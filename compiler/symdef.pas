@@ -26,7 +26,7 @@ interface
 
     uses
        { common }
-       cclasses,widestr,
+       cclasses,widestr,compilerbase,
        { global }
        globtype,globals,tokens,constexp,
        { symtable }
@@ -1825,7 +1825,7 @@ implementation
 
     procedure tdefawaresymtablestack.add_helpers_and_generics(st:tsymtable;addgenerics:boolean);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         s: TSymStr;
         list: TFPObjectList;
@@ -1859,7 +1859,7 @@ implementation
             else
               begin
                 if addgenerics then
-                  tcompiler(compiler).parser.pgenutil.add_generic_dummysym(sym,'');
+                  compiler.parser.pgenutil.add_generic_dummysym(sym,'');
                 { add nested helpers as well }
                 if assigned(def) and
                     (def.typ in [recorddef,objectdef]) and
@@ -4913,7 +4913,7 @@ implementation
 
     function tabstractrecorddef.RttiName: string;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         function generate_full_paramname(maxlength:longint):string;
           const
@@ -4996,7 +4996,7 @@ implementation
                 if crcidx<0 then
                   internalerror(2014121201);
                 basename:=copy(objrealname^,1,crcidx-1);
-                tcompiler(compiler).parser.pgenutil.split_generic_name(basename,nongeneric,paramcount);
+                compiler.parser.pgenutil.split_generic_name(basename,nongeneric,paramcount);
                 rttistring:=rttistring+nongeneric+'<';
                 remlength:=255-length(rttistring)-1;
                 if remlength<4 then
@@ -5008,7 +5008,7 @@ implementation
               if is_generic then
                 begin
                   rttistring:=OwnerHierarchyName;
-                  tcompiler(compiler).parser.pgenutil.split_generic_name(objrealname^,nongeneric,paramcount);
+                  compiler.parser.pgenutil.split_generic_name(objrealname^,nongeneric,paramcount);
                   rttistring:=rttistring+nongeneric+'<';
                   { we don't want any ',' if there is only one parameter }
                   for i:=0 to paramcount-1 do

@@ -26,7 +26,7 @@ unit pdecobj;
 interface
 
     uses
-      cclasses,
+      cclasses,compilerbase,
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
@@ -1486,7 +1486,7 @@ implementation
 
     function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1639,7 +1639,7 @@ implementation
                 current_module.checkforwarddefs.add(current_structdef);
 
                 symtablestack.push(current_structdef.symtable);
-                tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+                compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
                 { when we are parsing a generic already then this is a generic as
                   well }
                 if old_parse_generic then
@@ -1670,7 +1670,7 @@ implementation
               parse_object_options;
 
             symtablestack.push(current_structdef.symtable);
-            tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
+            compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
             { when we are parsing a generic already then this is a generic as
               well }
             if old_parse_generic then
@@ -1679,7 +1679,7 @@ implementation
 
             { in non-Delphi modes we need a strict private symbol without type
               count and type parameters in the name to simplify resolving }
-            tcompiler(compiler).parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
+            compiler.parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
 
             { parse list of parent classes }
             { for record helpers in mode Delphi this is not allowed }

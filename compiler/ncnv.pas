@@ -421,7 +421,7 @@ implementation
 
     function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         constp      : tsetconstnode;
         p2,p3,p4    : tnode;
@@ -783,7 +783,7 @@ implementation
 
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         { procvars without arguments in variant arrays are always called by
           Delphi }
@@ -885,7 +885,7 @@ implementation
       and instead insert a conversion to the local procvar type. }
     function maybe_global_proc_to_nested(var fromnode: tnode; todef: tdef): boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp: tnode;
       begin
@@ -917,7 +917,7 @@ implementation
       which method was found, which may be a parent class) }
     function maybe_classmethod_to_methodprocvar(var fromnode: tnode; todef: tdef): boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp: tnode;
       begin
@@ -3416,7 +3416,7 @@ implementation
     { remove int type conversions and set the result to the given type }
     procedure doremoveinttypeconvs(level : dword;var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       function SmallerOrSigned(def: tdef): Boolean;
         begin

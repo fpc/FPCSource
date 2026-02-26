@@ -27,7 +27,7 @@ unit nutils;
 interface
 
   uses
-    globtype,constexp,
+    globtype,constexp,compilerbase,
     symtype,symsym,symbase,symtable,
     node,compinnr,
     nbas;
@@ -400,7 +400,7 @@ implementation
 
     procedure load_procvar_from_calln(var p1:tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         p2 : tnode;
       begin
@@ -432,7 +432,7 @@ implementation
 
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp : tnode;
       begin
@@ -581,7 +581,7 @@ implementation
 
     function load_vmt_for_self_node(self_node: tnode): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         self_resultdef: tdef;
         obj_def: tobjectdef;
@@ -1142,7 +1142,7 @@ implementation
 
     function create_simplified_ord_const(const value: tconstexprint; def: tdef; forinline, rangecheck: boolean): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if not forinline then
           result:=genintconstnode(value,compiler)
@@ -1153,7 +1153,7 @@ implementation
 
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         plist : ppropaccesslistitem;
       begin
@@ -1263,7 +1263,7 @@ implementation
 
     function handle_staticfield_access(sym: tsym; var p1: tnode): boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       function handle_generic_staticfield_access:boolean;
         var
@@ -1352,7 +1352,7 @@ implementation
 
     function genloadfield(n: tnode; const fieldname: string): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         vs         : tsym;
       begin

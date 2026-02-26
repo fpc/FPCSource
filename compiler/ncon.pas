@@ -281,7 +281,7 @@ implementation
 
     function get_string_value(p: tnode; def: tstringdef): tstringconstnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         stringVal: string;
         pWideStringVal: tcompilerwidestring;
@@ -328,7 +328,7 @@ implementation
 
     function genconstsymtree(p : tconstsym) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         p1  : tnode;
         len : longint;

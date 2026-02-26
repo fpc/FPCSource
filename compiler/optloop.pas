@@ -29,6 +29,7 @@ unit optloop;
   interface
 
     uses
+      compilerbase,
       node;
 
     function unroll_loop(node : tnode) : tnode;
@@ -103,7 +104,7 @@ unit optloop;
 
     function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if n.isequal(preplaceinfo(arg)^.node) then
           begin
@@ -119,7 +120,7 @@ unit optloop;
 
     function unroll_loop(node : tnode) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         unrolls,i : cardinal;
         counts : qword;
@@ -332,7 +333,7 @@ unit optloop;
 
     function toptimizeinductionvariablescontext.findpreviousstrengthreduction(var n: tnode): boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         hp : tnode;
@@ -380,7 +381,7 @@ unit optloop;
     { checks if the strength of n can be reduced, currforloop is the tforloop being considered }
     function toptimizeinductionvariablescontext.dostrengthreductiontest(var n: tnode): foreachnoderesult;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         tempnode,startvaltemp : ttempcreatenode;
         dummy : longint;
@@ -570,7 +571,7 @@ unit optloop;
 
     procedure toptimizeinductionvariablescontext.optimizeinductionvariablessingleforloop(var n: tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         loopcode : tblocknode;
         loopcodestatements,
@@ -663,7 +664,7 @@ unit optloop;
 
     function OptimizeForLoop_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         Result:=fen_false;
         if (n.nodetype=forn) and

@@ -31,7 +31,7 @@ unit optdfa;
   interface
 
     uses
-      node,optutils;
+      compilerbase,node,optutils;
 
     type
       TDFABuilder = class
@@ -625,7 +625,7 @@ unit optdfa;
 
     procedure TDFABuilder.createdfainfo(node : tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         dfarec : tdfainfo;
       begin

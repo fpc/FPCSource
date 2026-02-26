@@ -26,7 +26,7 @@ unit ptype;
 interface
 
     uses
-       globtype,cclasses,
+       globtype,cclasses,compilerbase,
        symtype,symdef,symbase;
 
     type
@@ -121,7 +121,7 @@ implementation
 
     procedure resolve_forward_types;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i: longint;
         tmp,
@@ -235,7 +235,7 @@ implementation
                   { generate specializations for generic forwarddefs }
                   if not (oo_is_forward in tobjectdef(def).objectoptions) and
                       tstoreddef(def).is_generic then
-                    tcompiler(compiler).parser.pgenutil.generate_specializations_for_forwarddef(def);
+                    compiler.parser.pgenutil.generate_specializations_for_forwarddef(def);
                  end;
               else
                 internalerror(200811071);
@@ -260,7 +260,7 @@ implementation
     }
     procedure parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         t2: tdef;
         structstackindex: longint;
@@ -308,7 +308,7 @@ implementation
                        begin
                          if not allowspecialization then
                            Message(parser_e_no_local_para_def);
-                         tcompiler(compiler).parser.pgenutil.generate_specialization(t2,isunitspecific,false,'',srsym.name,srsymtable);
+                         compiler.parser.pgenutil.generate_specialization(t2,isunitspecific,false,'',srsym.name,srsymtable);
                        end;
                      def:=t2;
                    end;
@@ -474,11 +474,11 @@ implementation
 
     procedure single_type(out def:tdef;options:TSingleTypeOptions);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
        function handle_dummysym(sym:tsym):tdef;
          begin
-           sym:=tcompiler(compiler).parser.pgenutil.resolve_generic_dummysym(sym.name);
+           sym:=compiler.parser.pgenutil.resolve_generic_dummysym(sym.name);
            if assigned(sym) and
                not (sp_generic_dummy in sym.symoptions) and
                (sym.typ=typesym) then
@@ -603,7 +603,7 @@ implementation
               end
             else
               symname:='';
-            tcompiler(compiler).parser.pgenutil.generate_specialization(def,isunitspecific,stoParseClassParent in options,'',symname,srsymtable);
+            compiler.parser.pgenutil.generate_specialization(def,isunitspecific,stoParseClassParent in options,'',symname,srsymtable);
             parse_nested_types(def,stoIsForwardDef in options,[stoAllowSpecialization,stoAllowTypeDef]*options<>[],nil);
           end
         else
@@ -1047,7 +1047,7 @@ implementation
     { reads a record declaration }
     function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          olddef : tdef;
 
@@ -1124,7 +1124,7 @@ implementation
              (df_generic in old_current_structdef.defoptions) then
            include(current_structdef.defoptions,df_generic);
 
-         tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+         compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
          { when we are parsing a generic already then this is a generic as
            well }
          if old_parse_generic then
@@ -1134,7 +1134,7 @@ implementation
            current_genericdef:=current_structdef;
          { in non-Delphi modes we need a strict private symbol without type
            count and type parameters in the name to simply resolving }
-         tcompiler(compiler).parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
+         compiler.parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
          { apply $RTTI directive to current object }
          current_structdef.apply_rtti_directive(current_module.rtti_directive);
 
@@ -1202,7 +1202,7 @@ implementation
     { reads a type definition and returns a pointer to it }
     procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
@@ -1338,7 +1338,7 @@ implementation
                      begin
                        if not assigned(ttypenode(pt1).typesym) then
                          internalerror(2025103102);
-                       tcompiler(compiler).parser.pgenutil.generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
+                       compiler.parser.pgenutil.generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
                        { handle nested types }
                        if assigned(def) then
                          post_comp_expr_gendef(def);
@@ -1378,10 +1378,10 @@ implementation
                              begin
                                if ttypesym(def.typesym).typedef.typ<>undefineddef then
                                  { non-Delphi modes... }
-                                 tcompiler(compiler).parser.pgenutil.split_generic_name(def.typesym.name,genstr,gencount)
+                                 compiler.parser.pgenutil.split_generic_name(def.typesym.name,genstr,gencount)
                                else
                                  genstr:=def.typesym.name;
-                               sym:=tcompiler(compiler).parser.pgenutil.resolve_generic_dummysym(genstr);
+                               sym:=compiler.parser.pgenutil.resolve_generic_dummysym(genstr);
                              end
                            else
                              sym:=nil;
@@ -1476,7 +1476,7 @@ implementation
               assigned(tt2.typesym) and
               (sp_generic_dummy in tt2.typesym.symoptions) then
             begin
-              sym:=tcompiler(compiler).parser.pgenutil.resolve_generic_dummysym(tt2.typesym.name);
+              sym:=compiler.parser.pgenutil.resolve_generic_dummysym(tt2.typesym.name);
               if assigned(sym) and
                   not (sp_generic_dummy in sym.symoptions) and
                   (sym.typ=typesym) then
@@ -1571,7 +1571,7 @@ implementation
            else if assigned(genericlist) then
              current_genericdef:=arrdef;
            symtablestack.push(arrdef.symtable);
-           tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
+           compiler.parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
            { there are two possibilities for the following to be true:
              * the array declaration itself is generic
              * the array is declared inside a generic
@@ -1671,7 +1671,7 @@ implementation
                       arrdef:=tarraydef(arrdef.elementdef);
                       symtablestack.push(arrdef.symtable);
                       { correctly update the generic information of the new array def }
-                      tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
+                      compiler.parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
                       if old_parse_generic then
                         include(arrdef.defoptions,df_generic);
                     end
@@ -1761,7 +1761,7 @@ implementation
             else if assigned(genericlist) then
               current_genericdef:=pd;
             symtablestack.push(pd.parast);
-            tcompiler(compiler).parser.pgenutil.insert_generic_parameter_types(pd,genericdef,genericlist,false);
+            compiler.parser.pgenutil.insert_generic_parameter_types(pd,genericdef,genericlist,false);
             { there are two possibilities for the following to be true:
               * the procvar declaration itself is generic
               * the procvar is declared inside a generic

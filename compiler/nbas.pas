@@ -394,7 +394,7 @@ implementation
 
     function internalstatements(out laststatement:tstatementnode):tblocknode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         { create dummy initial statement }
         laststatement := cstatementnode.create(cnothingnode.create(compiler),nil,compiler);
@@ -413,7 +413,7 @@ implementation
 
     procedure addstatement(var laststatement:tstatementnode;n:tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if assigned(laststatement.right) then
           internalerror(200204201);
@@ -424,7 +424,7 @@ implementation
 
     function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         result:=nil;
         if (node_complexity(n)>4) or
@@ -442,7 +442,7 @@ implementation
 
     function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         result:=nil;
         if (node_complexity(n)>4) or

@@ -27,6 +27,7 @@ unit ngenutil;
 interface
 
   uses
+    compilerbase,
     cclasses,globtype,
     fmodule,
     aasmbase,aasmdata,
@@ -173,7 +174,7 @@ implementation
 
   class function tnodeutils.call_fail_node:tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       para : tcallparanode;
       newstatement : tstatementnode;
@@ -240,7 +241,7 @@ implementation
 
   class function tnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     begin
       { prevent initialisation of hidden syms that were moved to
         parentfpstructs: the original symbol isn't used anymore, the version
@@ -295,7 +296,7 @@ implementation
 
   class function tnodeutils.finalize_data_node(p:tnode):tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       hs : string;
     begin
@@ -352,7 +353,7 @@ implementation
 
   class procedure tnodeutils.sym_maybe_initialize(p: TObject; arg: pointer);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       hp : tnode;
     begin
@@ -463,7 +464,7 @@ implementation
 
   class procedure tnodeutils.sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       hp: tnode;
     begin
@@ -495,7 +496,7 @@ implementation
 
   class procedure tnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       structlist: tfplist;
       i: integer;
@@ -591,7 +592,7 @@ implementation
 
   class procedure tnodeutils.initialize_filerecs(p:TObject;statn:pointer);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -645,7 +646,7 @@ implementation
 
   class procedure tnodeutils.finalize_filerecs(p:TObject;statn:pointer);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -675,7 +676,7 @@ implementation
 
   class procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       target: tnode;
     begin
@@ -693,7 +694,7 @@ implementation
 
   class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: tstatementnode;
       block: tnode;
@@ -841,7 +842,7 @@ implementation
 
   class procedure tnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       size: asizeint;
       trashintval: int64;
@@ -937,7 +938,7 @@ implementation
 
   class procedure tnodeutils.maybe_trash_variable_callback(p:TObject;statn:pointer);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -951,7 +952,7 @@ implementation
 
   class procedure tnodeutils.trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     begin
       addstatement(stat,cassignmentnode.create(trashn,trashvaln,compiler));
     end;
@@ -959,7 +960,7 @@ implementation
 
   class procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     begin
       addstatement(stat,ccallnode.createintern('fpc_fillmem',
         ccallparanode.Create(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false,compiler),

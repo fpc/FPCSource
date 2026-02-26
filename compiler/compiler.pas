@@ -176,6 +176,15 @@ type
     property Parser: TParser read FParser;
   end;
 
+  { TCompilerHelper }
+
+  TCompilerHelper = class helper for TCompilerBase
+  private
+    function GetParser: TParser; inline;
+  public
+    property Parser: TParser read GetParser;
+  end;
+
 function Compile(const cmd:TCmdStr):longint;
 
 implementation
@@ -458,6 +467,13 @@ begin
     result:=0
   else
     result:=1;
+end;
+
+{ TCompilerHelper }
+
+function TCompilerHelper.GetParser: TParser; inline;
+begin
+  Result := TCompiler(Self).Parser;
 end;
 
 function Compile(const cmd:TCmdStr):longint;

@@ -1651,7 +1651,7 @@ type
          init_procinfo:=finishstate.init_procinfo;
 
          { Generate specializations of objectdefs methods }
-         tcompiler(compiler).parser.pgenutil.generate_specialization_procs;
+         compiler.parser.pgenutil.generate_specialization_procs;
 
          // This needs to be done before we generate the VMTs
          if (target_cpu=tsystemcpu.cpu_wasm32) then
@@ -2771,7 +2771,7 @@ type
 
         { Generate specializations of objectdefs methods }
         if Errorcount=0 then
-          tcompiler(compiler).parser.pgenutil.generate_specialization_procs;
+          compiler.parser.pgenutil.generate_specialization_procs;
 
         { This needs to be done before we generate the VMTs }
         if (target_cpu=tsystemcpu.cpu_wasm32) then

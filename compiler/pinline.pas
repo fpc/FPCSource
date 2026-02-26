@@ -26,6 +26,7 @@ unit pinline;
 interface
 
     uses
+      compilerbase,
       symtype,
       node,
       globals;
@@ -61,7 +62,7 @@ implementation
 
     function new_dispose_statement(is_new:boolean) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         newstatement : tstatementnode;
         temp         : ttempcreatenode;
@@ -80,7 +81,7 @@ implementation
 
       procedure ReadVariantRecordConstants;
         const
-          compiler = nil;  { TODO: fix node compiler reference!!! }
+          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           i,j : longint;
         begin
@@ -447,7 +448,7 @@ implementation
 
     function new_function : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         p1,p2  : tnode;
         classh : tobjectdef;
@@ -537,7 +538,7 @@ implementation
 
     function inline_setlength : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         paras: tnode;
       begin
@@ -556,7 +557,7 @@ implementation
 
     function inline_setstring : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         paras, strpara, pcharpara: tnode;
         procname: string;
@@ -613,7 +614,7 @@ implementation
 
     function inline_initfinal(isinit: boolean): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         newblock,
         paras   : tnode;
@@ -686,7 +687,7 @@ implementation
 
     function inline_copy_insert_delete(nr:tinlinenumber;const name:string;checkempty:boolean) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }

@@ -702,7 +702,7 @@ implementation
 
     procedure maybe_convert_to_string(var n: tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         { stringconstnodes are arrays of char. It's much more }
         { efficient to write a constant string, so convert    }

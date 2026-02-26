@@ -27,6 +27,7 @@ unit symcreat;
 interface
 
   uses
+    compilerbase,
     finput,tokens,scanner,globtype,cclasses,
     aasmdata,
     symconst,symbase,symtype,symdef,symsym,
@@ -1975,7 +1976,7 @@ implementation
 
   function maybe_add_sym_to_parentfpstruct(pd: tprocdef; sym: tsym; vardef: tdef; addrparam: boolean): tsym;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       fieldvardef,
       nestedvarsdef: tdef;
@@ -2198,7 +2199,7 @@ implementation
 
   function generate_pkg_stub(pd:tprocdef):tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     begin
       if target_info.system in systems_all_windows+systems_nativent then
         begin
@@ -2215,7 +2216,7 @@ implementation
 
   procedure generate_attr_constrs(attrs:tfpobjectlist);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       ps : tprocsym;
       pd : tprocdef;

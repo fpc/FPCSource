@@ -26,7 +26,7 @@ unit pstatmnt;
 interface
 
     uses
-      tokens,node;
+      compilerbase,tokens,node;
 
 
     function statement_block(starttoken : ttoken) : tnode;
@@ -67,7 +67,7 @@ implementation
 
     function if_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          ex,if_a,else_a : tnode;
       begin
@@ -89,7 +89,7 @@ implementation
     { creates a block (list) of statements, til the next END token }
     function statements_til_end : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
          first,last : tstatementnode;
@@ -122,7 +122,7 @@ implementation
 
     function case_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          casedef : tdef;
          caseexpr,p : tnode;
@@ -303,7 +303,7 @@ implementation
 
     function repeat_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
          first,last,p_e : tnode;
@@ -339,7 +339,7 @@ implementation
 
     function while_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
          p_e,p_a : tnode;
@@ -373,7 +373,7 @@ implementation
 
     function for_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         procedure check_range(hp:tnode; fordef: tdef);
           begin
@@ -590,7 +590,7 @@ implementation
 
     function _with_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
          p   : tnode;
@@ -856,7 +856,7 @@ implementation
 
     function raise_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          p,pobj,paddr,pframe : tnode;
       begin
@@ -889,7 +889,7 @@ implementation
 
     function try_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       procedure check_type_valid(var def: tdef);
         begin
@@ -1088,7 +1088,7 @@ implementation
 
     function _asm_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         asmstat : tasmnode;
         reg     : tregister;
@@ -1190,7 +1190,7 @@ implementation
     { Old Turbo Pascal INLINE(data/data/...) }
     function tp_inline_statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         actype : taiconst_type;
 
@@ -1358,7 +1358,7 @@ implementation
 
     function statement : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          p,
          astatement,
@@ -1608,7 +1608,7 @@ implementation
 
     function statement_block(starttoken : ttoken) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
          first,last : tnode;

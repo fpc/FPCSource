@@ -256,7 +256,7 @@ end;
 
 function genaddsstringcharoptnode(p: taddnode): tnode;
 const
-  compiler = nil;  { TODO: fix node compiler reference!!! }
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   hp: tnode;
 begin
@@ -280,7 +280,7 @@ end;
 
 function genaddsstringcsstringoptnode(p: taddnode): tnode;
 const
-  compiler = nil;  { TODO: fix node compiler reference!!! }
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   hp: tnode;
 begin
@@ -311,7 +311,7 @@ end;
 
 function genmultistringadd(p: taddnode): tnode;
 const
-  compiler = nil;  { TODO: fix node compiler reference!!! }
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   hp,sn : tnode;
   arrp  : tarrayconstructornode;
@@ -448,7 +448,7 @@ end;
 
 function genmultidynarrayadd(p: taddnode): tnode;
 const
-  compiler = nil;  { TODO: fix node compiler reference!!! }
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   hp,sn : tnode;
   arrp  : tarrayconstructornode;

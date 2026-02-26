@@ -287,7 +287,7 @@ begin
   end;
   {$ENDIF}
   case m.state of
-    ms_registered : tcompiler(compiler).parser.compile_module(m);
+    ms_registered : compiler.parser.compile_module(m);
     {$IFNDEF DisableCTaskPPU}
     ms_load: (m as tppumodule).continueloadppu;
     {$ENDIF}
@@ -298,15 +298,15 @@ begin
             macrosymtablestack.clear;
             FreeAndNil(macrosymtablestack);
           end;
-        tcompiler(compiler).parser.compile_module(m);
+        compiler.parser.compile_module(m);
       end;
     ms_compiled : if (not m.is_initial) or m.is_unit then
                     (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
-    ms_compiling_wait : tcompiler(compiler).parser.pmodules.proc_program_declarations(m,m.islibrary);
-    ms_compiling_waitintf : tcompiler(compiler).parser.pmodules.parse_unit_interface_declarations(m);
-    ms_compiling_waitimpl : tcompiler(compiler).parser.pmodules.proc_unit_implementation(m);
-    ms_compiling_waitfinish : tcompiler(compiler).parser.pmodules.finish_compile_unit(m);
-    ms_compiled_waitcrc : tcompiler(compiler).parser.pmodules.finish_unit(m);
+    ms_compiling_wait : compiler.parser.pmodules.proc_program_declarations(m,m.islibrary);
+    ms_compiling_waitintf : compiler.parser.pmodules.parse_unit_interface_declarations(m);
+    ms_compiling_waitimpl : compiler.parser.pmodules.proc_unit_implementation(m);
+    ms_compiling_waitfinish : compiler.parser.pmodules.finish_compile_unit(m);
+    ms_compiled_waitcrc : compiler.parser.pmodules.finish_unit(m);
     ms_processed : ;
   else
     InternalError(2024011801);
@@ -316,7 +316,7 @@ begin
     { program must wait for all units to finish }
   else if m.state=ms_compiled then
     begin
-    tcompiler(compiler).parser.parsing_done(m);
+    compiler.parser.parsing_done(m);
     if m.is_initial and not m.is_unit then
       m.state:=ms_processed;
     end;

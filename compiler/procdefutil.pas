@@ -26,6 +26,7 @@ unit procdefutil;
 interface
 
 uses
+  compilerbase,
   globtype,procinfo,
   symconst,symtype,symdef,
   node,nbas;
@@ -802,7 +803,7 @@ implementation
 
   function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     function create_paras(pd:tprocdef):tcallparanode;
       var
@@ -1316,7 +1317,7 @@ implementation
 
   function load_capturer(capturer:tabstractvarsym):tnode;inline;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     begin
       result:=cloadnode.create(capturer,capturer.owner,compiler);
     end;
@@ -1324,7 +1325,7 @@ implementation
 
   function instantiate_capturer(capturer_sym:tabstractvarsym):tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       capturer_def : tobjectdef;
       ctor : tprocsym;
@@ -1345,7 +1346,7 @@ implementation
 
   procedure initialize_captured_paras(pd:tprocdef;capturer:tabstractvarsym;var stmt:tstatementnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       i : longint;
       psym: tparavarsym;
@@ -1374,7 +1375,7 @@ implementation
 
   procedure attach_outer_capturer(ctx:tprocinfo;capturer:tabstractvarsym;var stmt:tstatementnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       alivefield,
       selffield : tfieldvarsym;
@@ -1440,7 +1441,7 @@ implementation
 
   procedure initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       capturer_sym,
       keepalive_sym : tabstractvarsym;
@@ -1496,7 +1497,7 @@ implementation
 
   function convert_captured_sym(var n:tnode;arg:pointer):foreachnoderesult;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       convertarg : pconvert_arg absolute arg;
       mapping : pconvert_mapping;
@@ -1578,7 +1579,7 @@ implementation
 
   procedure convert_captured_syms(pd:tprocdef;tree:tnode);
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     function self_tree_for_sym(selfsym:tsym;fieldsym:tsym):tnode;
       var

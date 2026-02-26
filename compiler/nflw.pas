@@ -319,7 +319,7 @@ implementation
 
     function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         result:=cfornode.create(hloopvar,
           cinlinenode.create(in_low_x,false,expr.getcopy,compiler),
@@ -332,7 +332,7 @@ implementation
 
     function create_objc_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         mainstatement, outerloopbodystatement, innerloopbodystatement, tempstatement: tstatementnode;
         state, mutationcheck, currentamount, innerloopcounter, items, expressiontemp: ttempcreatenode;
@@ -563,7 +563,7 @@ implementation
 
     function create_string_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         loopstatement, loopbodystatement: tstatementnode;
         loopvar, stringvar: ttempcreatenode;
@@ -627,7 +627,7 @@ implementation
 
     function create_array_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         loopstatement, loopbodystatement: tstatementnode;
         loopvar, arrayvar: ttempcreatenode;
@@ -765,7 +765,7 @@ implementation
 
     function create_set_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         loopstatement, loopbodystatement: tstatementnode;
         loopvar, setvar: ttempcreatenode;
@@ -835,7 +835,7 @@ implementation
     function create_enumerator_for_in_loop(hloopvar, hloopbody, expr: tnode;
        enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         loopstatement, loopbodystatement: tstatementnode;
         enumvar: ttempcreatenode;
@@ -951,7 +951,7 @@ implementation
 
     function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd, movenext: tprocdef;
         helperdef: tobjectdef;

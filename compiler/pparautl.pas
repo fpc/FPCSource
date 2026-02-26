@@ -26,7 +26,7 @@ unit pparautl;
 interface
 
     uses
-      symtype,symconst,symdef;
+      compilerbase,symtype,symconst,symdef;
 
     procedure insert_funcret_para(pd:tabstractprocdef);
     procedure insert_parentfp_para(pd:tabstractprocdef);
@@ -1259,7 +1259,7 @@ implementation
 
     procedure build_parentfpstruct(pd: tprocdef);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         nestedvars: tsym;
         nestedvarsst: tsymtable;

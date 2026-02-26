@@ -28,7 +28,7 @@ unit psub;
 interface
 
     uses
-      globals,cclasses,
+      globals,cclasses,compilerbase,
       node,nbas,nutils,aasmdata,
       symdef,procinfo,optdfa;
 
@@ -279,7 +279,7 @@ implementation
 
     procedure initializevars(p:TObject;arg:pointer);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         b : tblocknode;
       begin
@@ -351,7 +351,7 @@ implementation
 
     function block(islibrary : boolean) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          { parse const,types and vars }
          read_declarations(islibrary);
@@ -438,7 +438,7 @@ implementation
 
     procedure add_label_init(p:TObject;arg:pointer);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if tstoredsym(p).typ=labelsym then
           begin
@@ -455,7 +455,7 @@ implementation
 
     function generate_bodyentry_block:tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         srsym        : tsym;
         para         : tcallparanode;
@@ -611,7 +611,7 @@ implementation
 
     function generate_bodyexit_block:tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         srsym : tsym;
         para : tcallparanode;
@@ -2643,7 +2643,7 @@ implementation
 
     procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2710,7 +2710,7 @@ implementation
               begin
                 { also generate the bodies for all previously done
                   specializations so that we might inline them }
-                tcompiler(compiler).parser.pgenutil.generate_specialization_procs;
+                compiler.parser.pgenutil.generate_specialization_procs;
                 { convert all load nodes that might have been captured by a
                   capture object }
                 tcgprocinfo(current_procinfo).convert_captured_syms;

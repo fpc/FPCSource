@@ -26,6 +26,7 @@ unit pexpr;
 interface
 
     uses
+      compilerbase,
       symtype,symdef,symbase,
       node,ncal,compinnr,
       tokens,globtype,globals,constexp,
@@ -161,7 +162,7 @@ implementation
 
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          p1,p2,argname : tnode;
          prev_in_args,
@@ -232,7 +233,7 @@ implementation
 
      function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
        const
-         compiler = nil;  { TODO: fix node compiler reference!!! }
+         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
        var
          hdef  : tdef;
          temp  : ttempcreatenode;
@@ -270,7 +271,7 @@ implementation
 
      function statement_syssym(l : tinlinenumber) : tnode;
        const
-         compiler = nil;  { TODO: fix node compiler reference!!! }
+         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         p1,p2,paras  : tnode;
         err,
@@ -1018,7 +1019,7 @@ implementation
 
     function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd: tprocdef;
       begin
@@ -1065,7 +1066,7 @@ implementation
     { reads the parameter for a subroutine call }
     procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          membercall,
          prevafterassn : boolean;
@@ -1242,7 +1243,7 @@ implementation
 
     procedure handle_procvar(pv : tprocvardef;var p2 : tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,hp2 : tnode;
         hpp    : ^tnode;
@@ -1284,7 +1285,7 @@ implementation
 
     procedure handle_funcref(fr:tobjectdef;var p2:tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,hp2 : tnode;
         hpp    : ^tnode;
@@ -1327,7 +1328,7 @@ implementation
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          paras : tnode;
          p2    : tnode;
@@ -1472,7 +1473,7 @@ implementation
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         isclassref:boolean;
         isrecordtype:boolean;
@@ -1685,7 +1686,7 @@ implementation
 
     function handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         spezdef : tdef;
       begin
@@ -1705,7 +1706,7 @@ implementation
                 spezdef:=tdef(tprocsym(srsym).procdeflist[0])
               else
                 spezdef:=nil;
-              spezdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,spezdef,enforce_unit,srsym.realname,srsym.owner);
+              spezdef:=compiler.parser.pgenutil.generate_specialization_phase1(spezcontext,spezdef,enforce_unit,srsym.realname,srsym.owner);
               case spezdef.typ of
                 errordef:
                   begin
@@ -1734,7 +1735,7 @@ implementation
                 arraydef,
                 procvardef:
                   begin
-                    spezdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
+                    spezdef:=compiler.parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(spezdef),false,'');
                     spezcontext.free;
                     spezcontext:=nil;
                     if spezdef<>generrordef then
@@ -1754,7 +1755,7 @@ implementation
 
     function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -1958,7 +1959,7 @@ implementation
 
     function real_const_node_from_pattern(const s:string):tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         d : bestreal;
         code : integer;
@@ -1996,7 +1997,7 @@ implementation
     { returns whether or not p1 has been changed }
     function postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       { tries to avoid syntax errors after invalid qualifiers }
       procedure recoverconsume_postfixops;
@@ -2027,7 +2028,7 @@ implementation
 
       procedure handle_variantarray;
         const
-          compiler = nil;  { TODO: fix node compiler reference!!! }
+          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
        var
          p4 : tnode;
          newstatement : tstatementnode;
@@ -2122,7 +2123,7 @@ implementation
 
       function parse_array_constructor(arrdef:tarraydef): tnode;
         const
-          compiler = nil;  { TODO: fix node compiler reference!!! }
+          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           newstatement,assstatement:tstatementnode;
           arrnode:ttempcreatenode;
@@ -3078,7 +3079,7 @@ implementation
 
     function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hdef : tdef;
         pd : tprocdef;
@@ -3364,7 +3365,7 @@ implementation
 
     function factor(getaddr:boolean;flags:texprflags) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
          {---------------------------------------------
                          Factor_read_id
@@ -3513,7 +3514,7 @@ implementation
                          srsymtable:=nil;
                        {$push}
                        {$warn 5036 off}
-                       hdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,nil,unit_found,nil,orgstoredpattern,srsymtable,dummypos);
+                       hdef:=compiler.parser.pgenutil.generate_specialization_phase1(spezcontext,nil,unit_found,nil,orgstoredpattern,srsymtable,dummypos);
                        {$pop}
                        if hdef=generrordef then
                          begin
@@ -3526,7 +3527,7 @@ implementation
                          begin
                            if hdef.typ in [objectdef,recorddef,procvardef,arraydef] then
                              begin
-                               hdef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
+                               hdef:=compiler.parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
                                spezcontext.free;
                                spezcontext:=nil;
                                if hdef<>generrordef then
@@ -3589,7 +3590,7 @@ implementation
                      )
                    ) then
                  begin
-                   srsym:=tcompiler(compiler).parser.pgenutil.resolve_generic_dummysym(srsym.name);
+                   srsym:=compiler.parser.pgenutil.resolve_generic_dummysym(srsym.name);
                    if assigned(srsym) then
                      srsymtable:=srsym.owner
                    else
@@ -3837,7 +3838,7 @@ implementation
                  end;
                  { if this is the case then the postfix handling is done in
                    sub_expr if necessary }
-                 dopostfix:=not tcompiler(compiler).parser.pgenutil.could_be_generic(idstr);
+                 dopostfix:=not compiler.parser.pgenutil.could_be_generic(idstr);
                end;
            { TP7 ugliness: @proc^ is parsed as (@proc)^, but @notproc^ is parsed
              as @(notproc^) }
@@ -4482,7 +4483,7 @@ implementation
 ****************************************************************************}
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simple_expr and
      simpl2_expr.}
@@ -4581,9 +4582,9 @@ implementation
             end;
 
           if assigned(parseddef) and assigned(gensym) and assigned(p2) then
-            gendef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
+            gendef:=compiler.parser.pgenutil.generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
           else
-            gendef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase1(spezcontext,gendef,unitspecific,gensym.realname,gensym.owner);
+            gendef:=compiler.parser.pgenutil.generate_specialization_phase1(spezcontext,gendef,unitspecific,gensym.realname,gensym.owner);
           case gendef.typ of
             errordef:
               begin
@@ -4596,7 +4597,7 @@ implementation
             procvardef,
             arraydef:
               begin
-                gendef:=tcompiler(compiler).parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
+                gendef:=compiler.parser.pgenutil.generate_specialization_phase2(spezcontext,tstoreddef(gendef),false,'');
                 spezcontext.free;
                 spezcontext:=nil;
                 if gendef.typ=errordef then
@@ -5024,7 +5025,7 @@ implementation
 
     function expr(dotypecheck : boolean) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
          p1,p2 : tnode;

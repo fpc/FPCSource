@@ -27,7 +27,7 @@ unit pdecvar;
 interface
 
     uses
-      cclasses,
+      cclasses,compilerbase,
       symtable,symsym,symdef,symtype;
 
     type
@@ -73,7 +73,7 @@ implementation
 
     function read_property_dec(is_classproperty:boolean;astruct:tabstractrecorddef):tpropertysym;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -1695,7 +1695,7 @@ implementation
 
     procedure read_record_fields(options:Tvar_dec_options; reorderlist: TFPObjectList; variantdesc : ppvariantrecdesc;out had_generic:boolean; out attr_element_count : integer);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          sc : TFPObjectList;
          i  : longint;

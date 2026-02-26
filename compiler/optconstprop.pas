@@ -28,7 +28,7 @@ unit optconstprop;
   interface
 
     uses
-      node;
+      compilerbase,node;
 
     { does constant propagation for rootnode
 
@@ -77,7 +77,7 @@ unit optconstprop;
       the search can continue with the next statement }
     function replaceBasicAssign(var n: tnode; arg: tnode; var tree_modified: boolean): boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         st2, oldnode: tnode;
         old: pnode;

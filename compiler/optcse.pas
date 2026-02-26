@@ -29,7 +29,7 @@ unit optcse;
   interface
 
     uses
-      sysutils,node;
+      sysutils,compilerbase,node;
 
     {
       the function  creates non optimal code so far:
@@ -301,7 +301,7 @@ unit optcse;
 
     function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         csedomain : boolean;
         lists : tlists;
@@ -672,7 +672,7 @@ unit optcse;
 
     function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp: tnode;
       begin
@@ -698,7 +698,7 @@ unit optcse;
 
     function do_consttovar(var rootnode : tnode) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         constentries : tconstentries;
       Procedure QuickSort(L, R : Longint);

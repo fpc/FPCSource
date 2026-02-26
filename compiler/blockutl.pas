@@ -28,6 +28,7 @@ unit blockutl;
 interface
 
   uses
+    compilerbase,
     node,nld,ncnv,
     symtype,symdef;
 
@@ -271,7 +272,7 @@ implementation
   { compose an on-stack block literal for a "procedure of object" }
   function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       statement: tstatementnode;
       literaltemp: ttempcreatenode;
@@ -317,7 +318,7 @@ implementation
 
   function generate_block_for_procaddr(procloadnode: tloadnode): tnode;
     const
-      compiler = nil;  { TODO: fix node compiler reference!!! }
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       procvarnode: tnode;
       { procvardef representing the original function we want to invoke }

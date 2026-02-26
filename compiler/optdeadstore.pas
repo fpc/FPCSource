@@ -29,7 +29,7 @@ unit optdeadstore;
   interface
 
     uses
-      node;
+      compilerbase,node;
 
     function do_optdeadstoreelim(var rootnode : tnode;out changed: boolean) : tnode;
 
@@ -46,7 +46,7 @@ unit optdeadstore;
 
     function deadstoreelim(var n: tnode; arg: pointer): foreachnoderesult;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         a: tassignmentnode;
         redundant: boolean;

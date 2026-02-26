@@ -26,7 +26,7 @@ unit optutils;
   interface
 
     uses
-      cclasses,
+      cclasses,compilerbase,
       node,
       globtype;
 
@@ -220,7 +220,7 @@ unit optutils;
 
     procedure SetNodeSucessors(p,last : tnode);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         BreakContinueStack : TBreakContinueStack;
         Exitsuccessor: TNode;

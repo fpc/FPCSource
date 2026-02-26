@@ -370,7 +370,7 @@ implementation
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -4330,7 +4330,7 @@ implementation
                 procdefinition.register_def;
 
                 if procdefinition.is_specialization and (procdefinition.typ=procdef) then
-                  tcompiler(compiler).parser.pgenutil.maybe_add_pending_specialization(procdefinition,candidates.para_anon_syms);
+                  compiler.parser.pgenutil.maybe_add_pending_specialization(procdefinition,candidates.para_anon_syms);
 
                 candidates.done;
               end; { end of procedure to call determination }

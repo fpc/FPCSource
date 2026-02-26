@@ -26,7 +26,7 @@ unit opttail;
   interface
 
     uses
-      symdef,node;
+      compilerbase,symdef,node;
 
     procedure do_opttail(var n : tnode;p : tprocdef);
 
@@ -42,7 +42,7 @@ unit opttail;
 
     procedure do_opttail(var n : tnode;p : tprocdef);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
         labelnode : tlabelnode;

@@ -30,7 +30,7 @@ unit opttree;
   interface
 
     uses
-      node;
+      compilerbase,node;
 
     { tries to bring the tree in a normalized form:
        - expressions are free of control statements
@@ -63,7 +63,7 @@ unit opttree;
 
     function searchblock(var n : tnode;arg : pointer) : foreachnoderesult;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,
         statements,

@@ -26,7 +26,7 @@ unit htypechk;
 interface
 
     uses
-      sysutils,cclasses,cmsgs,tokens,
+      sysutils,cclasses,cmsgs,tokens,compilerbase,
       node,globtype,compinnr,
       symconst,symtype,symdef,symsym,symbase,
       pgentype;
@@ -735,7 +735,7 @@ implementation
 
     function isunaryoverloaded(var t : tnode;ocf:toverload_check_flags) : boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         ld      : tdef;
         optoken : ttoken;
@@ -876,7 +876,7 @@ implementation
 
     function isbinaryoverloaded(var t : tnode;ocf:toverload_check_flags) : boolean;
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         rd,ld   : tdef;
         optoken : ttoken;
@@ -2250,7 +2250,7 @@ implementation
 
     procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
         changedhierarchy : boolean;
@@ -2265,12 +2265,12 @@ implementation
           foundanything:=false;
           { try to specialize the procsym }
           if srsym.could_be_implicitly_specialized and
-            tcompiler(compiler).parser.pgenutil.try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),result) then
+            compiler.parser.pgenutil.try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),result) then
             foundanything:=true;
           for j:=0 to srsym.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(srsym.ProcdefList[j]);
-              if not tcompiler(compiler).parser.pgenutil.finalize_specialization(pd,spezcontext) then
+              if not compiler.parser.pgenutil.finalize_specialization(pd,spezcontext) then
                 continue;
               if (po_ignore_for_overload_resolution in pd.procoptions) then
                 begin
@@ -2440,7 +2440,7 @@ implementation
 
     procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
       const
-        compiler = nil;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         j          : integer;
         pd         : tprocdef;
@@ -2501,11 +2501,11 @@ implementation
                     hasoverload:=false;
                     foundanything:=false;
                     if tprocsym(srsym).could_be_implicitly_specialized then
-                      foundanything:=tcompiler(compiler).parser.pgenutil.try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),hasoverload);
+                      foundanything:=compiler.parser.pgenutil.try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),hasoverload);
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
-                        if not tcompiler(compiler).parser.pgenutil.finalize_specialization(pd,spezcontext) then
+                        if not compiler.parser.pgenutil.finalize_specialization(pd,spezcontext) then
                           continue;
                         if (po_ignore_for_overload_resolution in pd.procoptions) then
                           begin
