@@ -5023,6 +5023,7 @@ var DontClear: boolean;
     S: string;
     LineCount,LinesScroll : Sw_Integer;
 begin
+  TView.HandleEvent(Event);   { get focus on view if not already }
   case Event.What of
     evKeyDown :
       begin
