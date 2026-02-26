@@ -28,7 +28,7 @@ interface
 uses
   compilerbase,
   fmodule,
-  pmodules,pgenutil,pstatmnt,pexpr;
+  pmodules,pgenutil,pstatmnt,pexpr,pexports;
 
 type
 
@@ -41,6 +41,7 @@ type
     FPGenUtil: TGenericsParseUtils;
     FPStatmnt: TStatementsParser;
     FPExpr: TExpressionParser;
+    FPExports: TExportsParser;
 
     procedure initparser;
     procedure doneparser;
@@ -58,6 +59,7 @@ type
     property pgenutil: TGenericsParseUtils read FPGenUtil;
     property pstatmnt: TStatementsParser read FPStatmnt;
     property pexpr: TExpressionParser read FPExpr;
+    property pexports: TExportsParser read FPExports;
   end;
 
 implementation
@@ -344,11 +346,13 @@ implementation
         FPModules:=TModulesParser.Create(acompiler);
         FPGenUtil:=TGenericsParseUtils.Create(acompiler);
         FPStatmnt:=TStatementsParser.Create(acompiler);
+        FPExports:=TExportsParser.Create(acompiler);
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPExports);
         FreeAndNil(FPStatmnt);
         FreeAndNil(FPGenUtil);
         FreeAndNil(FPModules);

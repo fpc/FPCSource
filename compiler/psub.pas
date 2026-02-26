@@ -3094,6 +3094,8 @@ implementation
 {$endif DEBUG_NODE_XML}
 
     procedure read_declarations(islibrary : boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hadgeneric : boolean;
 
@@ -3189,7 +3191,7 @@ implementation
                      end
                    else if islibrary or
                      (target_info.system in systems_unit_program_exports) then
-                     read_exports
+                     compiler.parser.pexports.read_exports
                    else
                      begin
                         Message(parser_w_unsupported_feature);

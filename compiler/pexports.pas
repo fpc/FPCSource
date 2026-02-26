@@ -28,8 +28,19 @@ interface
     uses
        compilerbase;
 
+type
+
+  { TExportsParser }
+
+  TExportsParser = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
     { reads an exports statement in a library }
     procedure read_exports;
+  end;
 
 implementation
 
@@ -54,10 +65,12 @@ implementation
        gendef,export
        ;
 
+    constructor TExportsParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
 
-    procedure read_exports;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TExportsParser.read_exports;
       var
         orgs,
         DefString,
