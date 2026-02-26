@@ -2025,8 +2025,6 @@ implementation
 
 
       procedure handle_variantarray;
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
        var
          p4 : tnode;
          newstatement : tstatementnode;
@@ -2120,8 +2118,6 @@ implementation
        end;
 
       function parse_array_constructor(arrdef:tarraydef): tnode;
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           newstatement,assstatement:tstatementnode;
           arrnode:ttempcreatenode;
