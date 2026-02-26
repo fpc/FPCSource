@@ -42,8 +42,12 @@ interface
       );
       texprflags = set of texprflag;
 
+  { TExpressionParser }
+
   TExpressionParser = class
   private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
     function statement_syssym(l : tinlinenumber) : tnode;
@@ -60,6 +64,8 @@ interface
                             out memberparentdef: tdef): boolean;
     function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
   public
+    constructor Create(ACompiler: TCompilerBase);
+
     { reads a whole expression }
     function expr(dotypecheck:boolean) : tnode;
 
@@ -179,8 +185,6 @@ implementation
 
 
     function TExpressionParser.parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          p1,p2,argname : tnode;
          prev_in_args,
@@ -250,8 +254,6 @@ implementation
 
 
      function TExpressionParser.gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
-       const
-         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
        var
          hdef  : tdef;
          temp  : ttempcreatenode;
@@ -288,8 +290,6 @@ implementation
 
 
      function TExpressionParser.statement_syssym(l : tinlinenumber) : tnode;
-       const
-         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         p1,p2,paras  : tnode;
         err,
@@ -1036,8 +1036,6 @@ implementation
 
 
     function TExpressionParser.maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd: tprocdef;
       begin
@@ -1083,8 +1081,6 @@ implementation
 
     { reads the parameter for a subroutine call }
     procedure TExpressionParser.do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          membercall,
          prevafterassn : boolean;
@@ -1260,8 +1256,6 @@ implementation
 
 
     procedure TExpressionParser.handle_procvar(pv : tprocvardef;var p2 : tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,hp2 : tnode;
         hpp    : ^tnode;
@@ -1302,8 +1296,6 @@ implementation
 
 
     procedure TExpressionParser.handle_funcref(fr:tobjectdef;var p2:tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp,hp2 : tnode;
         hpp    : ^tnode;
@@ -1345,8 +1337,6 @@ implementation
 
     { the following procedure handles the access to a property symbol }
     procedure TExpressionParser.handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          paras : tnode;
          p2    : tnode;
@@ -1490,8 +1480,6 @@ implementation
 
     { the ID token has to be consumed before calling this function }
     procedure TExpressionParser.do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags;spezcontext:tspecializationcontext);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         isclassref:boolean;
         isrecordtype:boolean;
@@ -1703,8 +1691,6 @@ implementation
 
 
     function TExpressionParser.handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         spezdef : tdef;
       begin
@@ -1772,8 +1758,6 @@ implementation
 
 
     function TExpressionParser.handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         srsym : tsym;
         srsymtable : tsymtable;
@@ -1976,8 +1960,6 @@ implementation
 
 
     function TExpressionParser.real_const_node_from_pattern(const s:string):tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         d : bestreal;
         code : integer;
@@ -2014,8 +1996,6 @@ implementation
 
     { returns whether or not p1 has been changed }
     function TExpressionParser.postfixoperators(var p1:tnode;var again:boolean;getaddr:boolean): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       { tries to avoid syntax errors after invalid qualifiers }
       procedure recoverconsume_postfixops;
@@ -3096,8 +3076,6 @@ implementation
 
 
     function TExpressionParser.factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hdef : tdef;
         pd : tprocdef;
@@ -3381,9 +3359,13 @@ implementation
       end;
 
 
+    constructor TExpressionParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
     function TExpressionParser.factor(getaddr:boolean;flags:texprflags) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
          {---------------------------------------------
                          Factor_read_id
@@ -4500,8 +4482,6 @@ implementation
                              Sub_Expr
 ****************************************************************************}
     function TExpressionParser.sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simple_expr and
      simpl2_expr.}
@@ -5042,8 +5022,6 @@ implementation
 
 
     function TExpressionParser.expr(dotypecheck : boolean) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
          p1,p2 : tnode;
