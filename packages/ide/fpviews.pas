@@ -4687,6 +4687,7 @@ procedure TFPMemo.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
     S: string;
 begin
+  TView.HandleEvent(Event);   { get focus on view if not already }
   case Event.What of
     evKeyDown :
       begin
