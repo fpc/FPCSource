@@ -28,12 +28,36 @@ interface
     uses
       compilerbase,tokens,node;
 
+type
+
+  { TStatementsParser }
+
+  TStatementsParser = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+    function statement : tnode;
+    function if_statement : tnode;
+    function statements_til_end : tnode;
+    function case_statement : tnode;
+    function repeat_statement : tnode;
+    function while_statement : tnode;
+    function skip_nodes_before_load(p: tnode): tnode;
+    function for_statement : tnode;
+    function _with_statement : tnode;
+    function with_statement : tnode;
+    function raise_statement : tnode;
+    function try_statement : tnode;
+    function _asm_statement : tnode;
+    function tp_inline_statement : tnode;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
     function statement_block(starttoken : ttoken) : tnode;
 
     { reads an assembler block }
     function assembler_block : tnode;
-
+  end;
 
 implementation
 
@@ -62,12 +86,7 @@ implementation
        switches;
 
 
-    function statement : tnode;forward;
-
-
-    function if_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.if_statement : tnode;
       var
          ex,if_a,else_a : tnode;
       begin
@@ -87,9 +106,7 @@ implementation
       end;
 
     { creates a block (list) of statements, til the next END token }
-    function statements_til_end : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.statements_til_end : tnode;
 
       var
          first,last : tstatementnode;
@@ -120,9 +137,7 @@ implementation
       end;
 
 
-    function case_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.case_statement : tnode;
       var
          casedef : tdef;
          caseexpr,p : tnode;
@@ -301,9 +316,7 @@ implementation
       end;
 
 
-    function repeat_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.repeat_statement : tnode;
 
       var
          first,last,p_e : tnode;
@@ -337,9 +350,7 @@ implementation
       end;
 
 
-    function while_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.while_statement : tnode;
 
       var
          p_e,p_a : tnode;
@@ -353,7 +364,7 @@ implementation
       end;
 
     { a helper function which is used both by "with" and "for-in loop" nodes }
-    function skip_nodes_before_load(p: tnode): tnode;
+    function TStatementsParser.skip_nodes_before_load(p: tnode): tnode;
       begin
         { ignore nodes that don't add instructions in the tree }
         while assigned(p) and
@@ -371,9 +382,7 @@ implementation
         result:=p;
       end;
 
-    function for_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.for_statement : tnode;
 
         procedure check_range(hp:tnode; fordef: tdef);
           begin
@@ -588,9 +597,7 @@ implementation
       end;
 
 
-    function _with_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser._with_statement : tnode;
 
       var
          p   : tnode;
@@ -847,16 +854,14 @@ implementation
       end;
 
 
-    function with_statement : tnode;
+    function TStatementsParser.with_statement : tnode;
       begin
          consume(_WITH);
          with_statement:=_with_statement();
       end;
 
 
-    function raise_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.raise_statement : tnode;
       var
          p,pobj,paddr,pframe : tnode;
       begin
@@ -887,9 +892,7 @@ implementation
       end;
 
 
-    function try_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.try_statement : tnode;
 
       procedure check_type_valid(var def: tdef);
         begin
@@ -1086,9 +1089,7 @@ implementation
       end;
 
 
-    function _asm_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser._asm_statement : tnode;
       var
         asmstat : tasmnode;
         reg     : tregister;
@@ -1188,9 +1189,7 @@ implementation
 
 
     { Old Turbo Pascal INLINE(data/data/...) }
-    function tp_inline_statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.tp_inline_statement : tnode;
       var
         actype : taiconst_type;
 
@@ -1356,9 +1355,13 @@ implementation
       end;
 
 
-    function statement : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor TStatementsParser.Create(ACompiler: TCompilerBase);
+      begin
+
+      end;
+
+
+    function TStatementsParser.statement : tnode;
       var
          p,
          astatement,
@@ -1606,9 +1609,7 @@ implementation
       end;
 
 
-    function statement_block(starttoken : ttoken) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TStatementsParser.statement_block(starttoken : ttoken) : tnode;
 
       var
          first,last : tnode;
@@ -1659,7 +1660,7 @@ implementation
       end;
 
 
-    function assembler_block : tnode;
+    function TStatementsParser.assembler_block : tnode;
       var
         p : tnode;
         {$if not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}

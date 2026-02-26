@@ -364,7 +364,7 @@ implementation
          { Handle assembler block different }
          if (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            block:=assembler_block;
+            block:=compiler.parser.pstatmnt.assembler_block;
             exit;
           end;
 
@@ -391,7 +391,7 @@ implementation
                      begin
                         { The library init code is already called and does not
                           need to be in the initfinal table (PFV) }
-                        block:=statement_block(_INITIALIZATION);
+                        block:=compiler.parser.pstatmnt.statement_block(_INITIALIZATION);
                         init_main_block_syms(block);
                      end
                    else if current_scanner.token=_FINALIZATION then
@@ -400,18 +400,18 @@ implementation
                          point when we try to read the nonh existing initialization section
                          so we've to check if we are really try to parse the finalization }
                        if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
-                         block:=statement_block(_FINALIZATION)
+                         block:=compiler.parser.pstatmnt.statement_block(_FINALIZATION)
                        else
                          block:=nil;
                      end
                    else
-                     block:=statement_block(_BEGIN);
+                     block:=compiler.parser.pstatmnt.statement_block(_BEGIN);
                 end;
             end
          else
             begin
                { parse routine body }
-               block:=statement_block(_BEGIN);
+               block:=compiler.parser.pstatmnt.statement_block(_BEGIN);
                init_main_block_syms(block);
             end;
       end;

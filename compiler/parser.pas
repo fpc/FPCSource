@@ -28,7 +28,7 @@ interface
 uses
   compilerbase,
   fmodule,
-  pmodules,pgenutil;
+  pmodules,pgenutil,pstatmnt;
 
 type
 
@@ -39,6 +39,7 @@ type
     FCompiler: TCompilerBase;
     FPModules: TModulesParser;
     FPGenUtil: TGenericsParseUtils;
+    FPStatmnt: TStatementsParser;
 
     procedure initparser;
     procedure doneparser;
@@ -54,6 +55,7 @@ type
 
     property pmodules: TModulesParser read FPModules;
     property pgenutil: TGenericsParseUtils read FPGenUtil;
+    property pstatmnt: TStatementsParser read FPStatmnt;
   end;
 
 implementation
@@ -338,11 +340,13 @@ implementation
         FCompiler:=acompiler;
         InitParser;
         FPModules:=TModulesParser.Create(acompiler);
+        FPStatmnt:=TStatementsParser.Create(acompiler);
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPStatmnt);
         FreeAndNil(FPModules);
         DoneParser;
         inherited;
