@@ -2460,14 +2460,14 @@ implementation
                case inlinenumber of
                  in_const_abs :
                    if vl.signed then
-                     hp:=create_simplified_ord_const(abs(vl.svalue),resultdef,forinline,false)
+                     hp:=create_simplified_ord_const(abs(vl.svalue),resultdef,forinline,false,compiler)
                    else
-                     hp:=create_simplified_ord_const(vl.uvalue,resultdef,forinline,false);
+                     hp:=create_simplified_ord_const(vl.uvalue,resultdef,forinline,false,compiler);
                  in_const_sqr:
                    if vl.signed then
-                     hp:=create_simplified_ord_const(sqr(vl.svalue),resultdef,forinline,false)
+                     hp:=create_simplified_ord_const(sqr(vl.svalue),resultdef,forinline,false,compiler)
                    else
-                     hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline,false);
+                     hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline,false,compiler);
                  in_const_odd :
                    hp:=cordconstnode.create(qword(odd(int64(vl))),pasbool1type,true,compiler);
                  in_const_swap_word :
@@ -2704,7 +2704,7 @@ implementation
                           { the type of the original integer constant is irrelevant,
                             it should be automatically adapted to the new value
                             (except when inlining) }
-                          result:=create_simplified_ord_const(vl,resultdef,forinline,cs_check_range in localswitches)
+                          result:=create_simplified_ord_const(vl,resultdef,forinline,cs_check_range in localswitches,compiler)
                         else
                           { check the range for enums, chars, booleans }
                           result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags),compiler);
