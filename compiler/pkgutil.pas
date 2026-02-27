@@ -832,7 +832,7 @@ implementation
                                   if [po_external,po_has_importdll]*pd.procoptions=[po_external,po_has_importdll] then
                                     { if we use an external procedure of another unit we
                                       need to import it ourselves from the correct library }
-                                    import_external_proc(pd)
+                                    compiler.parser.psub.import_external_proc(pd)
                                   else
                                     import_proc_symbol(pd,pkgentry^.package);
                                 end;

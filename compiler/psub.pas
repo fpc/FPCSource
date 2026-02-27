@@ -106,6 +106,15 @@ interface
     procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
     procedure XMLFinalizeNodeFile(RootName: shortstring);
 {$endif DEBUG_NODE_XML}
+type
+  TSubroutineParser = class
+  private
+    FCompiler: TCompilerBase;
+    procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+
     { reads the declaration blocks }
     procedure read_declarations(islibrary : boolean);
 
@@ -121,6 +130,7 @@ interface
     procedure read_proc_body(pd:tprocdef);
 
     procedure import_external_proc(pd:tprocdef);
+  end;
 
 
 implementation
@@ -172,6 +182,12 @@ implementation
        ,aopt
        {$endif}
        ;
+
+    constructor TSubroutineParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
 
     function checknodeinlining(procdef: tprocdef): boolean;
 
@@ -354,7 +370,7 @@ implementation
         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          { parse const,types and vars }
-         read_declarations(islibrary);
+         compiler.parser.psub.read_declarations(islibrary);
 
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
@@ -2641,9 +2657,7 @@ implementation
       end;
 
 
-    procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TSubroutineParser.read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -2744,7 +2758,7 @@ implementation
       end;
 
 
-    procedure read_proc_body(pd:tprocdef);
+    procedure TSubroutineParser.read_proc_body(pd:tprocdef);
       var
         old_module_procinfo : tobject;
         old_current_procinfo : tprocinfo;
@@ -2759,9 +2773,7 @@ implementation
       end;
 
 
-    function read_proc(flags:tread_proc_flags; usefwpd: tprocdef):tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TSubroutineParser.read_proc(flags:tread_proc_flags; usefwpd: tprocdef):tprocdef;
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -3005,9 +3017,7 @@ implementation
       end;
 
 
-    procedure import_external_proc(pd:tprocdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TSubroutineParser.import_external_proc(pd:tprocdef);
       var
         name : string;
       begin
@@ -3097,9 +3107,7 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
-    procedure read_declarations(islibrary : boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TSubroutineParser.read_declarations(islibrary : boolean);
       var
         hadgeneric : boolean;
 
@@ -3272,9 +3280,7 @@ implementation
       end;
 
 
-    procedure read_interface_declarations;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TSubroutineParser.read_interface_declarations;
       var
         hadgeneric : boolean;
 

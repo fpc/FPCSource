@@ -4398,7 +4398,7 @@ implementation
                      oldfuncrefdef:=getfuncrefdef;
                      getprocvardef:=nil;
                      getfuncrefdef:=nil;
-                     pd:=read_proc([rpf_anonymous],nil);
+                     pd:=compiler.parser.psub.read_proc([rpf_anonymous],nil);
                      getprocvardef:=oldprocvardef;
                      getfuncrefdef:=oldfuncrefdef;
                      { assume that we try to get the address except if certain

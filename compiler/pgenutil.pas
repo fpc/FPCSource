@@ -2957,6 +2957,8 @@ uses
 
 
     procedure process_procdef(def:tprocdef;hmodule:tmodule);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         oldcurrent_filepos : tfileposinfo;
       begin
@@ -2972,7 +2974,7 @@ uses
             current_filepos.moduleindex:=hmodule.unit_index;
             current_tokenpos:=current_filepos;
             current_scanner.startreplaytokens(tprocdef(def.genericdef).generictokenbuf,hmodule.change_endian);
-            read_proc_body(def);
+            compiler.parser.psub.read_proc_body(def);
             current_filepos:=oldcurrent_filepos;
           end
         { synthetic routines will be implemented afterwards }

@@ -227,6 +227,8 @@ implementation
 
 
   function str_parse_method_impl_with_fileinfo(str: ansistring; usefwpd: tprocdef; fileno, lineno: longint; is_classdef: boolean; out result_procdef: tprocdef):boolean;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        oldparse_only: boolean;
        tmpstr: ansistring;
@@ -257,7 +259,7 @@ implementation
       flags:=[];
       if is_classdef then
         include(flags,rpf_classmethod);
-      result_procdef:=read_proc(flags,usefwpd);
+      result_procdef:=compiler.parser.psub.read_proc(flags,usefwpd);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -1643,6 +1645,8 @@ implementation
   end;
 
   function str_parse_method(str: ansistring; allowgenericid : boolean): tprocdef;
+   const
+     compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
    var
      oldparse_only: boolean;
      tmpstr: ansistring;
@@ -1661,7 +1665,7 @@ implementation
     current_scanner.allowgenericid:=allowgenericid;
     current_scanner.substitutemacro('hidden_interface_method',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
     current_scanner.readtoken(false);
-    Result:=read_proc([],Nil);
+    Result:=compiler.parser.psub.read_proc([],Nil);
     parse_only:=oldparse_only;
     { remove the temporary macro input file again }
     current_scanner.closeinputfile;

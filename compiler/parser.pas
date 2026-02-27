@@ -29,7 +29,7 @@ uses
   compilerbase,
   fmodule,
   pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj,
-  pdecl;
+  pdecl,psub;
 
 type
 
@@ -48,6 +48,7 @@ type
     FPDecSub: TSubroutineDeclarationParser;
     FPDecObj: TObjectDeclarationsParser;
     FPDecl: TDeclarationParser;
+    FPSub: TSubroutineParser;
 
     procedure initparser;
     procedure doneparser;
@@ -71,6 +72,7 @@ type
     property pdecsub: TSubroutineDeclarationParser read FPDecSub;
     property pdecobj: TObjectDeclarationsParser read FPDecObj;
     property pdecl: TDeclarationParser read FPDecl;
+    property psub: TSubroutineParser read FPSub;
   end;
 
 implementation
@@ -89,7 +91,7 @@ implementation
       cscript,gendef,
       comphook,
       scanner,scandir,
-      pbase,psystem,psub,ncgrtti,
+      pbase,psystem,ncgrtti,
       cpuinfo,procinfo;
 
     procedure TParser.parsing_done(module: tmodule);
@@ -362,11 +364,13 @@ implementation
         FPDecSub:=TSubroutineDeclarationParser.Create(acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(acompiler);
         FPDecl:=TDeclarationParser.Create(acompiler);
+        FPSub:=TSubroutineParser.Create(acompiler);
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPSub);
         FreeAndNil(FPDecl);
         FreeAndNil(FPDecObj);
         FreeAndNil(FPDecSub);

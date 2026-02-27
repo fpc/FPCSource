@@ -1343,7 +1343,7 @@ type
          { fake classdef to represent the class corresponding to the unit }
          addmoduleclass(curr);
 {$endif}
-        read_interface_declarations;
+        compiler.parser.psub.read_interface_declarations;
 
 
         { Export macros defined in the interface for macpas. The macros
