@@ -431,11 +431,11 @@ implementation
 
 
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         hp : tnode;
       begin
+        compiler:=p1.compiler;
         result:=false;
         if not (p1.resultdef.typ in [procvardef,objectdef]) or
            (
