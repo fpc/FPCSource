@@ -944,7 +944,7 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               def:=nil;
-              single_type(def,[stoAllowSpecialization]);
+              compiler.parser.ptype.single_type(def,[stoAllowSpecialization]);
               statement_syssym:=cerrornode.create(compiler);
               if def<>generrordef then
                 { "type expected" error is already done by single_type }

@@ -124,7 +124,7 @@ implementation
         if (po_virtualmethod in pd.procoptions) then
           include(astruct.objectoptions,oo_has_virtual);
 
-        maybe_parse_hint_directives(pd);
+        compiler.parser.ptype.maybe_parse_hint_directives(pd);
       end;
 
 
@@ -417,7 +417,7 @@ implementation
         while try_to_consume(_COMMA) do
           begin
              { use single_type instead of id_type for specialize support }
-             single_type(hdef,[stoAllowSpecialization,stoParseClassParent]);
+             compiler.parser.ptype.single_type(hdef,[stoAllowSpecialization,stoParseClassParent]);
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
@@ -584,7 +584,7 @@ implementation
           begin
             consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
-            single_type(hdef,[stoAllowSpecialization, stoParseClassParent]);
+            compiler.parser.ptype.single_type(hdef,[stoAllowSpecialization, stoParseClassParent]);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin
@@ -805,7 +805,7 @@ implementation
         { set extendeddef to non-Nil so that potential checks for it won't trigger
           access violations }
         current_objectdef.extendeddef:=generrordef;
-        single_type(hdef,[stoParseClassParent]);
+        compiler.parser.ptype.single_type(hdef,[stoParseClassParent]);
         if not assigned(hdef) or (hdef.typ=errordef) then
           begin
             case helpertype of
@@ -1008,7 +1008,7 @@ implementation
                   chkjava(result);
                 end;
 
-              maybe_parse_hint_directives(result);
+              compiler.parser.ptype.maybe_parse_hint_directives(result);
 
               parse_only:=oldparse_only;
             end;
@@ -1788,7 +1788,7 @@ implementation
               { need method to hold the initialization code for typed constants? }
               if (target_info.system in systems_typed_constants_node_init) and
                  not is_any_interface_kind(current_structdef) then
-                add_typedconst_init_routine(current_structdef);
+                compiler.parser.ptype.add_typedconst_init_routine(current_structdef);
             end;
 
             symtablestack.pop(current_structdef.symtable);

@@ -38,6 +38,17 @@ interface
       );
       TSingleTypeOptions=set of TSingleTypeOption;
 
+  TTypesParser = class
+  private
+    FCompiler: TCompilerBase;
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
+    function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
+    procedure parse_record_members(recsym:tsym);
+    function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+
     procedure resolve_forward_types;
 
     { reads a string, file type or a type identifier }
@@ -62,6 +73,7 @@ interface
 
     { parse hint directives (platform, deprecated, ...) for a procdef }
     procedure maybe_parse_hint_directives(pd:tprocdef);
+  end;
 
 implementation
 
@@ -91,7 +103,13 @@ implementation
        ;
 
 
-    procedure maybe_parse_hint_directives(pd:tprocdef);
+    constructor TTypesParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    procedure TTypesParser.maybe_parse_hint_directives(pd:tprocdef);
       var
         dummysymoptions : tsymoptions;
         deprecatedmsg : pshortstring;
@@ -119,9 +137,7 @@ implementation
       end;
 
 
-    procedure resolve_forward_types;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TTypesParser.resolve_forward_types;
       var
         i: longint;
         tmp,
@@ -245,9 +261,6 @@ implementation
       end;
 
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean); forward;
-
-
     { def is the outermost type in which other types have to be searched
 
       isforward indicates whether the current definition can be a forward definition
@@ -258,9 +271,7 @@ implementation
       being parsed (so using id_type on them after pushing def on the
       symtablestack would result in errors because they'd come back as errordef)
     }
-    procedure parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TTypesParser.parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
       var
         t2: tdef;
         structstackindex: longint;
@@ -319,7 +330,7 @@ implementation
       end;
 
 
-    function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
+    function TTypesParser.try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
       var
         structdef : tdef;
         structdefstack : tfpobjectlist;
@@ -355,7 +366,7 @@ implementation
          result:=false;
       end;
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
+    procedure TTypesParser.id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
@@ -472,9 +483,7 @@ implementation
       end;
 
 
-    procedure single_type(out def:tdef;options:TSingleTypeOptions);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TTypesParser.single_type(out def:tdef;options:TSingleTypeOptions);
 
        function handle_dummysym(sym:tsym):tdef;
          begin
@@ -681,7 +690,7 @@ implementation
       end;
 
 
-    function result_type(options:TSingleTypeOptions):tdef;
+    function TTypesParser.result_type(options:TSingleTypeOptions):tdef;
       begin
         single_type(result,options);
         { file types cannot be function results }
@@ -689,9 +698,7 @@ implementation
           message(parser_e_illegal_function_result);
       end;
 
-    procedure parse_record_members(recsym:tsym);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TTypesParser.parse_record_members(recsym:tsym);
 
       function IsAnonOrLocal: Boolean;
         begin
@@ -1047,9 +1054,7 @@ implementation
       end;
 
     { reads a record declaration }
-    function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TTypesParser.record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
       var
          olddef : tdef;
 
@@ -1202,9 +1207,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TTypesParser.read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
       const
         SingleTypeOptionsInTypeBlock:array[Boolean] of TSingleTypeOptions = ([],[stoIsForwardDef]);
       var
@@ -2180,7 +2183,7 @@ implementation
       end;
 
 
-    procedure read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
+    procedure TTypesParser.read_anon_type(var def : tdef;parseprocvardir:boolean;genericdef:tstoreddef);
       var
         hadtypetoken : boolean;
       begin
@@ -2191,7 +2194,7 @@ implementation
 
 
 
-    procedure add_typedconst_init_routine(def: tabstractrecorddef);
+    procedure TTypesParser.add_typedconst_init_routine(def: tabstractrecorddef);
       var
         sstate: tscannerstate;
         pd: tprocdef;

@@ -29,7 +29,7 @@ uses
   compilerbase,
   fmodule,
   pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj,
-  pdecl,psub,pinline;
+  pdecl,psub,pinline,ptype;
 
 type
 
@@ -50,6 +50,7 @@ type
     FPDecl: TDeclarationParser;
     FPSub: TSubroutineParser;
     FPInline: TInlineParser;
+    FPType: TTypesParser;
 
     procedure initparser;
     procedure doneparser;
@@ -75,6 +76,7 @@ type
     property pdecl: TDeclarationParser read FPDecl;
     property psub: TSubroutineParser read FPSub;
     property pinline: TInlineParser read FPInline;
+    property ptype: TTypesParser read FPType;
   end;
 
 implementation
@@ -368,11 +370,13 @@ implementation
         FPDecl:=TDeclarationParser.Create(acompiler);
         FPSub:=TSubroutineParser.Create(acompiler);
         FPInline:=TInlineParser.Create(acompiler);
+        FPType:=TTypesParser.Create(acompiler);
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPType);
         FreeAndNil(FPInline);
         FreeAndNil(FPSub);
         FreeAndNil(FPDecl);

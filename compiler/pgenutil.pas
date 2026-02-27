@@ -2106,7 +2106,7 @@ uses
                         else
                           ttypesym(srsym).fprettyname:=prettyname;
 
-                        read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
+                        compiler.parser.ptype.read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
                         ttypesym(srsym).typedef:=result;
                         result.typesym:=srsym;
                       end;
@@ -2340,7 +2340,7 @@ uses
             begin
               def:=nil;
               { parse the type and assign the const type to generictype  }
-              single_type(def,[]);
+              compiler.parser.ptype.single_type(def,[]);
               for i:=const_list_index to result.count-1 do
                 begin
                   { finalize constant information once type is known }
@@ -2426,7 +2426,7 @@ uses
                       { def is already set to a class or record }
                       if gcf_record in constraintdata.flags then
                         Message(parser_e_illegal_expression);
-                      single_type(def, [stoAllowSpecialization]);
+                      compiler.parser.ptype.single_type(def, [stoAllowSpecialization]);
                       { only types that are inheritable are allowed }
                       if (def.typ<>objectdef) or
                           not (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_javaclass]) then

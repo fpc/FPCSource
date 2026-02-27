@@ -391,7 +391,7 @@ implementation
               begin
                 block_type:=bt_var_type;
                 consume(_COLON);
-                single_type(pv.returndef,[]);
+                compiler.parser.ptype.single_type(pv.returndef,[]);
                 block_type:=bt_var;
               end;
              { possible proc directives }
@@ -441,7 +441,7 @@ implementation
                      stoptions:=[stoAllowSpecialization]
                    else
                      stoptions:=[];
-                   single_type(arrayelementdef,stoptions);
+                   compiler.parser.ptype.single_type(arrayelementdef,stoptions);
                    if assigned(arrayelementdef.typesym) then
                      check_hints(arrayelementdef.typesym,arrayelementdef.typesym.symoptions,arrayelementdef.typesym.deprecatedmsg);
                    tarraydef(hdef).elementdef:=arrayelementdef;
@@ -458,7 +458,7 @@ implementation
                 else }
                   begin
                     block_type:=bt_var_type;
-                    single_type(hdef,[stoAllowSpecialization]);
+                    compiler.parser.ptype.single_type(hdef,[stoAllowSpecialization]);
                     block_type:=bt_var;
                   end;
 
@@ -1467,7 +1467,7 @@ implementation
             parse_generic:=(df_generic in pd.defoptions);
             if pd.is_generic or pd.is_specialization then
               symtablestack.push(pd.parast);
-            pd.returndef:=result_type([stoAllowSpecialization]);
+            pd.returndef:=compiler.parser.ptype.result_type([stoAllowSpecialization]);
 
             // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
@@ -1879,7 +1879,7 @@ implementation
               astruct.symtable.includeoption(sto_has_generic);
           end;
 
-        maybe_parse_hint_directives(result);
+        compiler.parser.ptype.maybe_parse_hint_directives(result);
 
         parse_only:=oldparse_only;
       end;
@@ -3187,7 +3187,7 @@ const
              _DEPRECATED :
                if (m_delphi in current_settings.modeswitches) and (pd.typ=procdef) then
                  begin
-                   maybe_parse_hint_directives(tprocdef(pd));
+                   compiler.parser.ptype.maybe_parse_hint_directives(tprocdef(pd));
                    { could the new token still be a directive? }
                    if current_scanner.token<>_ID then
                      exit;

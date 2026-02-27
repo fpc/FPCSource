@@ -985,7 +985,7 @@ implementation
                           { is a explicit name for the exception given ? }
                           if try_to_consume(_COLON) then
                             begin
-                              single_type(ot,[]);
+                              compiler.parser.ptype.single_type(ot,[]);
                               check_type_valid(ot);
                               sym:=clocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
@@ -1008,7 +1008,7 @@ implementation
                                if (srsym.typ=typesym) then
                                  begin
                                    ot:=ttypesym(srsym).typedef;
-                                   parse_nested_types(ot,false,false,nil);
+                                   compiler.parser.ptype.parse_nested_types(ot,false,false,nil);
                                    check_type_valid(ot);
                                  end
                                else

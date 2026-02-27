@@ -311,7 +311,7 @@ implementation
                      caret, to support const s : ^string = nil }
                    block_type:=bt_const_type;
                    consume(_COLON);
-                   read_anon_type(hdef,false,nil);
+                   compiler.parser.ptype.read_anon_type(hdef,false,nil);
                    block_type:=bt_const;
                    { create symbol }
                    storetokenpos:=current_tokenpos;
@@ -922,7 +922,7 @@ implementation
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
-              read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
+              compiler.parser.ptype.read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
               { update the definition of the type }
               if assigned(hdef) then
                 begin
@@ -1267,7 +1267,7 @@ implementation
                   (current_scanner.idtoken=_FINAL))));
          { resolve type block forward declarations and restore a unit
            container for them }
-         resolve_forward_types;
+         compiler.parser.ptype.resolve_forward_types;
          current_module.checkforwarddefs.free;
          current_module.checkforwarddefs:=old_checkforwarddefs;
          block_type:=old_block_type;

@@ -443,11 +443,11 @@ implementation
                         hdef:=carraydef.create_openarray;
                         hdef.owner:=astruct.symtable;
                         { define field type }
-                        single_type(arraytype,[]);
+                        compiler.parser.ptype.single_type(arraytype,[]);
                         tarraydef(hdef).elementdef:=arraytype;
                       end
                     else
-                      single_type(hdef,[]);
+                      compiler.parser.ptype.single_type(hdef,[]);
                   end
                 else
                   hdef:=cformaltype;
@@ -474,7 +474,7 @@ implementation
          if (current_scanner.token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
               consume(_COLON);
-              single_type(p.propdef,[stoAllowSpecialization]);
+              compiler.parser.ptype.single_type(p.propdef,[stoAllowSpecialization]);
 
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
                 Message1(type_e_not_automatable,p.propdef.typename);
@@ -776,7 +776,7 @@ implementation
          { Parse possible "implements" keyword }
          if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
            repeat
-             single_type(def,[]);
+             compiler.parser.ptype.single_type(def,[]);
 
              if not(is_interface(def)) then
                message(parser_e_class_implements_must_be_interface);
@@ -1484,7 +1484,7 @@ implementation
                read_gpc_name(sc);
 {$endif}
 
-             read_anon_type(hdef,false,nil);
+             compiler.parser.ptype.read_anon_type(hdef,false,nil);
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
              for i:=0 to sc.count-1 do
                begin
@@ -1829,7 +1829,7 @@ implementation
                  gendef:=tfieldvarsym(srsym).vardef;
                end;
 
-             read_anon_type(hdef,false,tstoreddef(gendef));
+             compiler.parser.ptype.read_anon_type(hdef,false,tstoreddef(gendef));
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
@@ -2048,7 +2048,7 @@ implementation
                       symtablestack.top.insertsym(fieldvs);
                     end;
                 end;
-              read_anon_type(casetype,true,nil);
+              compiler.parser.ptype.read_anon_type(casetype,true,nil);
               block_type:=bt_var;
               if assigned(fieldvs) then
                 begin
