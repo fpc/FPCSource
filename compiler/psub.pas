@@ -55,6 +55,7 @@ interface
         procedure convert_captured_syms;
         function block(islibrary : boolean) : tnode;
         function generate_bodyentry_block:tnode;
+        function generate_bodyexit_block:tnode;
       protected
         procedure generate_code_exceptfilters;
       public
@@ -623,9 +624,7 @@ implementation
       end;
 
 
-    function generate_bodyexit_block:tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function tcgprocinfo.generate_bodyexit_block:tnode;
       var
         srsym : tsym;
         para : tcallparanode;
