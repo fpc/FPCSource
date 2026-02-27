@@ -1,0 +1,20 @@
+unit cycle2_changea_ant;
+
+{$mode objfpc}
+
+interface
+
+uses cycle2_changea_bird;
+
+const Factor = 5; // changed
+
+function Crawl(w : word): word;
+
+implementation
+
+function Crawl(w : word): word;
+begin
+  Result := Fly(w*2);
+end;
+
+end.
