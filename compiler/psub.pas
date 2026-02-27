@@ -58,6 +58,7 @@ interface
         function generate_bodyexit_block:tnode;
         procedure init_main_block_syms(ablock: tnode);
         procedure initializevars(p:TObject;arg:pointer);
+        procedure add_label_init(p:TObject;arg:pointer);
       protected
         procedure generate_code_exceptfilters;
       public
@@ -453,9 +454,7 @@ implementation
       end;
 
 
-    procedure add_label_init(p:TObject;arg:pointer);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure tcgprocinfo.add_label_init(p:TObject;arg:pointer);
       begin
         if tstoredsym(p).typ=labelsym then
           begin
