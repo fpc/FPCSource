@@ -45,7 +45,7 @@ type
     FPExports: TExportsParser;
     FPTConst: TTypedConstParser;
     FPDecVar: TVariableDeclarationsParser;
-    FPDecSub: TSubroutineParser;
+    FPDecSub: TSubroutineDeclarationParser;
     FPDecObj: TObjectDeclarationsParser;
     FPDecl: TDeclarationParser;
 
@@ -68,7 +68,7 @@ type
     property pexports: TExportsParser read FPExports;
     property ptconst: TTypedConstParser read FPTConst;
     property pdecvar: TVariableDeclarationsParser read FPDecVar;
-    property pdecsub: TSubroutineParser read FPDecSub;
+    property pdecsub: TSubroutineDeclarationParser read FPDecSub;
     property pdecobj: TObjectDeclarationsParser read FPDecObj;
     property pdecl: TDeclarationParser read FPDecl;
   end;
@@ -359,7 +359,7 @@ implementation
         FPStatmnt:=TStatementsParser.Create(acompiler);
         FPExports:=TExportsParser.Create(acompiler);
         FPTConst:=TTypedConstParser.Create(acompiler);
-        FPDecSub:=TSubroutineParser.Create(acompiler);
+        FPDecSub:=TSubroutineDeclarationParser.Create(acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(acompiler);
         FPDecl:=TDeclarationParser.Create(acompiler);
       end;

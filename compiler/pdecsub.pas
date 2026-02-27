@@ -63,9 +63,9 @@ interface
       );
       tparse_proc_flags=set of tparse_proc_flag;
 
-  { TSubroutineParser }
+  { TSubroutineDeclarationParser }
 
-  TSubroutineParser = class
+  TSubroutineDeclarationParser = class
   private
     FCompiler: TCompilerBase;
     procedure check_msg_para(p:TObject;arg:pointer);
@@ -163,7 +163,7 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
-    function TSubroutineParser.push_child_hierarchy(obj:tabstractrecorddef):integer;
+    function TSubroutineDeclarationParser.push_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class,hp : tobjectdef;
       begin
@@ -186,7 +186,7 @@ implementation
         until hp=obj;
       end;
 
-    function TSubroutineParser.push_nested_hierarchy(obj:tabstractrecorddef):integer;
+    function TSubroutineDeclarationParser.push_nested_hierarchy(obj:tabstractrecorddef):integer;
       begin
         result:=0;
         if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
@@ -194,7 +194,7 @@ implementation
         inc(result,push_child_hierarchy(obj));
       end;
 
-    function TSubroutineParser.pop_child_hierarchy(obj:tabstractrecorddef):integer;
+    function TSubroutineDeclarationParser.pop_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class : tobjectdef;
       begin
@@ -214,7 +214,7 @@ implementation
           end;
       end;
 
-    function TSubroutineParser.pop_nested_hierarchy(obj:tabstractrecorddef):integer;
+    function TSubroutineDeclarationParser.pop_nested_hierarchy(obj:tabstractrecorddef):integer;
       begin
         result:=pop_child_hierarchy(obj);
         if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
@@ -222,7 +222,7 @@ implementation
       end;
 
 
-    procedure TSubroutineParser.check_msg_para(p:TObject;arg:pointer);
+    procedure TSubroutineDeclarationParser.check_msg_para(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ<>paravarsym) then
          exit;
@@ -239,7 +239,7 @@ implementation
       end;
 
 
-    procedure TSubroutineParser.parse_parameter_dec(pd:tabstractprocdef);
+    procedure TSubroutineDeclarationParser.parse_parameter_dec(pd:tabstractprocdef);
       {
         handle_procvar needs the same changes
       }
@@ -577,7 +577,7 @@ implementation
       end;
 
 
-    function TSubroutineParser.parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
+    function TSubroutineDeclarationParser.parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
       var
         hs       : string;
         orgsp,sp,orgspnongen,spnongen : TIDString;
@@ -1416,7 +1416,7 @@ implementation
       end;
 
 
-    procedure TSubroutineParser.parse_proc_dec_finish(pd:tprocdef;flags:tparse_proc_flags;astruct:tabstractrecorddef);
+    procedure TSubroutineDeclarationParser.parse_proc_dec_finish(pd:tprocdef;flags:tparse_proc_flags;astruct:tabstractrecorddef);
       var
         locationstr: string;
         i: integer;
@@ -1717,7 +1717,7 @@ implementation
          end;
       end;
 
-    function TSubroutineParser.parse_proc_dec(flags:tparse_proc_flags;astruct:tabstractrecorddef):tprocdef;
+    function TSubroutineDeclarationParser.parse_proc_dec(flags:tparse_proc_flags;astruct:tabstractrecorddef):tprocdef;
       var
         pd : tprocdef;
         old_block_type : tblock_type;
@@ -1839,7 +1839,7 @@ implementation
       end;
 
 
-    function TSubroutineParser.parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
+    function TSubroutineDeclarationParser.parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
       var
         oldparse_only: boolean;
         flags : tparse_proc_flags;
@@ -1889,7 +1889,7 @@ implementation
                         Procedure directive handlers
 ****************************************************************************}
 
-procedure TSubroutineParser.pd_compilerproc(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_compilerproc(pd:tabstractprocdef);
 var
   v : Tconstexprint;
 begin
@@ -1906,17 +1906,17 @@ begin
     end;
 end;
 
-procedure TSubroutineParser.pd_far(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_far(pd:tabstractprocdef);
 begin
   pd.declared_far;
 end;
 
-procedure TSubroutineParser.pd_near(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_near(pd:tabstractprocdef);
 begin
   pd.declared_near;
 end;
 
-procedure TSubroutineParser.pd_export(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_export(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304264);
@@ -1926,7 +1926,7 @@ begin
     Message(parser_e_dont_nest_export);
 end;
 
-procedure TSubroutineParser.pd_forward(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_forward(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304265);
@@ -1934,7 +1934,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_alias(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_alias(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304266);
@@ -1944,7 +1944,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_public(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_public(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042601);
@@ -1956,7 +1956,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_asmname(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_asmname(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304267);
@@ -1975,7 +1975,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_internconst(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_internconst(pd:tabstractprocdef);
 
 var v:Tconstexprint;
 
@@ -1991,7 +1991,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_internproc(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_internproc(pd:tabstractprocdef);
 
 var v:Tconstexprint;
 
@@ -2008,13 +2008,13 @@ begin
   tprocdef(pd).forwarddef:=false;
 end;
 
-procedure TSubroutineParser.pd_interrupt(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_interrupt(pd:tabstractprocdef);
 begin
   if pd.parast.symtablelevel>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
 end;
 
-procedure TSubroutineParser.pd_abstract(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_abstract(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304269);
@@ -2035,7 +2035,7 @@ begin
   tprocdef(pd).forwarddef:=false;
 end;
 
-procedure TSubroutineParser.pd_final(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_final(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200910170);
@@ -2050,7 +2050,7 @@ begin
     Message(parser_e_only_virtual_methods_final);
 end;
 
-procedure TSubroutineParser.pd_enumerator(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_enumerator(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200910250);
@@ -2078,7 +2078,7 @@ begin
     Message(parser_e_enumerator_identifier_required);
 end;
 
-procedure TSubroutineParser.pd_virtual(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_virtual(pd:tabstractprocdef);
 {$ifdef WITHDMT}
 var
   pt : tnode;
@@ -2119,7 +2119,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_dispid(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_dispid(pd:tabstractprocdef);
 
 var pt:Tnode;
 
@@ -2139,7 +2139,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_static(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_static(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2013032001);
@@ -2157,7 +2157,7 @@ begin
   include(pd.procoptions,po_staticmethod);
 end;
 
-procedure TSubroutineParser.pd_override(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_override(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042611);
@@ -2177,14 +2177,14 @@ begin
     Message2(parser_e_proc_dir_conflict,'OVERRIDE','"EXTERNAL"');
 end;
 
-procedure TSubroutineParser.pd_overload(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_overload(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042612);
   include(tprocdef(pd).procsym.symoptions,sp_has_overloaded);
 end;
 
-procedure TSubroutineParser.pd_message(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_message(pd:tabstractprocdef);
 var
   pt : tnode;
   paracnt : longint;
@@ -2250,7 +2250,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_reintroduce(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_reintroduce(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200401211);
@@ -2267,7 +2267,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_syscall(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
 
     procedure include_po_syscall;
       var
@@ -2436,7 +2436,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_external(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_external(pd:tabstractprocdef);
 {
   If import_dll=nil the procedure is assumed to be in another
   object file. In that object file it should have the name to
@@ -2552,7 +2552,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_weakexternal(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_weakexternal(pd:tabstractprocdef);
 begin
   if not(target_info.system in systems_weak_linking) then
     message(parser_e_weak_external_not_supported)
@@ -2561,7 +2561,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_winapi(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_winapi(pd:tabstractprocdef);
 begin
   if not(target_info.system in systems_all_windows+[system_i386_nativent]) then
     pd.proccalloption:=pocall_cdecl
@@ -2571,7 +2571,7 @@ begin
 end;
 
 
-procedure TSubroutineParser.pd_hardfloat(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_hardfloat(pd:tabstractprocdef);
 begin
   if
 {$if defined(arm)}
@@ -2581,7 +2581,7 @@ begin
     message(parser_e_cannot_use_hardfloat_in_a_softfloat_environment);
 end;
 
-procedure TSubroutineParser.pd_section(pd:tabstractprocdef);
+procedure TSubroutineDeclarationParser.pd_section(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2021032801);
@@ -2614,7 +2614,7 @@ const
     (
       idtok:_ABSTRACT;
       pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_javaclass];
-      handler  : @TSubroutineParser.pd_abstract;
+      handler  : @TSubroutineDeclarationParser.pd_abstract;
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
       mutexclpocall : [pocall_internproc];
@@ -2623,7 +2623,7 @@ const
     ),(
       idtok:_ALIAS;
       pd_flags : [pd_implemen,pd_body,pd_notobjintf];
-      handler  : @TSubroutineParser.pd_alias;
+      handler  : @TSubroutineDeclarationParser.pd_alias;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [];
@@ -2632,7 +2632,7 @@ const
     ),(
       idtok:_ASMNAME;
       pd_flags : [pd_interface,pd_implemen,pd_notobjintf];
-      handler  : @TSubroutineParser.pd_asmname;
+      handler  : @TSubroutineDeclarationParser.pd_asmname;
       pocall   : pocall_cdecl;
       pooption : [po_external];
       mutexclpocall : [pocall_internproc];
@@ -2677,7 +2677,7 @@ const
     ),(
       idtok:_DISPID;
       pd_flags : [pd_dispinterface];
-      handler  : @TSubroutineParser.pd_dispid;
+      handler  : @TSubroutineDeclarationParser.pd_dispid;
       pocall   : pocall_none;
       pooption : [po_dispid];
       mutexclpocall : [pocall_internproc];
@@ -2686,7 +2686,7 @@ const
     ),(
       idtok:_DYNAMIC;
       pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord];
-      handler  : @TSubroutineParser.pd_virtual;
+      handler  : @TSubroutineDeclarationParser.pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
@@ -2695,7 +2695,7 @@ const
     ),(
       idtok:_EXPORT;
       pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_export;
+      handler  : @TSubroutineDeclarationParser.pd_export;
       pocall   : pocall_none;
       pooption : [po_exports,po_global];
       mutexclpocall : [pocall_internproc];
@@ -2704,7 +2704,7 @@ const
     ),(
       idtok:_EXTERNAL;
       pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord,pd_nothelper,pd_javaclass,pd_intfjava];
-      handler  : @TSubroutineParser.pd_external;
+      handler  : @TSubroutineDeclarationParser.pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
       mutexclpocall : [pocall_syscall];
@@ -2714,7 +2714,7 @@ const
     ),(
       idtok:_FAR;
       pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_far;
+      handler  : @TSubroutineDeclarationParser.pd_far;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -2732,7 +2732,7 @@ const
     ),(
       idtok:_FINAL;
       pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_javaclass];
-      handler  : @TSubroutineParser.pd_final;
+      handler  : @TSubroutineDeclarationParser.pd_final;
       pocall   : pocall_none;
       pooption : [po_finalmethod];
       mutexclpocall : [pocall_internproc];
@@ -2741,7 +2741,7 @@ const
     ),(
       idtok:_FORWARD;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_forward;
+      handler  : @TSubroutineDeclarationParser.pd_forward;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -2777,7 +2777,7 @@ const
     ),(
       idtok:_INTERNCONST;
       pd_flags : [pd_interface,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_internconst;
+      handler  : @TSubroutineDeclarationParser.pd_internconst;
       pocall   : pocall_none;
       pooption : [po_internconst];
       mutexclpocall : [];
@@ -2786,7 +2786,7 @@ const
     ),(
       idtok:_INTERNPROC;
       pd_flags : [pd_interface,pd_implemen,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_internproc;
+      handler  : @TSubroutineDeclarationParser.pd_internproc;
       pocall   : pocall_internproc;
       pooption : [];
       mutexclpocall : [];
@@ -2795,7 +2795,7 @@ const
     ),(
       idtok:_INTERRUPT;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_interrupt;
+      handler  : @TSubroutineDeclarationParser.pd_interrupt;
 {$ifdef i386}
       pocall   : pocall_oldfpccall;
 {$else i386}
@@ -2827,7 +2827,7 @@ const
     ),(
       idtok:_MESSAGE;
       pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_objcprot,pd_notrecord];
-      handler  : @TSubroutineParser.pd_message;
+      handler  : @TSubroutineDeclarationParser.pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
       mutexclpocall : [pocall_internproc];
@@ -2845,7 +2845,7 @@ const
     ),(
       idtok:_NEAR;
       pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_near;
+      handler  : @TSubroutineDeclarationParser.pd_near;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -2872,7 +2872,7 @@ const
     ),(
       idtok:_OVERLOAD;
       pd_flags : [pd_implemen,pd_interface,pd_body,pd_javaclass,pd_intfjava,pd_objcclass,pd_objcprot];
-      handler  : @TSubroutineParser.pd_overload;
+      handler  : @TSubroutineDeclarationParser.pd_overload;
       pocall   : pocall_none;
       pooption : [po_overload];
       mutexclpocall : [pocall_internproc];
@@ -2881,7 +2881,7 @@ const
     ),(
       idtok:_OVERRIDE;
       pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_javaclass,pd_intfjava,pd_notrecord];
-      handler  : @TSubroutineParser.pd_override;
+      handler  : @TSubroutineDeclarationParser.pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
       mutexclpocall : [pocall_internproc];
@@ -2899,7 +2899,7 @@ const
     ),(
       idtok:_PUBLIC;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_public;
+      handler  : @TSubroutineDeclarationParser.pd_public;
       pocall   : pocall_none;
       pooption : [po_public,po_global];
       mutexclpocall : [pocall_internproc];
@@ -2917,7 +2917,7 @@ const
     ),(
       idtok:_REINTRODUCE;
       pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass,pd_notrecord,pd_javaclass];
-      handler  : @TSubroutineParser.pd_reintroduce;
+      handler  : @TSubroutineDeclarationParser.pd_reintroduce;
       pocall   : pocall_none;
       pooption : [po_reintroduce];
       mutexclpocall : [pocall_internproc];
@@ -2935,7 +2935,7 @@ const
     ),(
       idtok:_SECTION;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobject,pd_notobjintf,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_section;
+      handler  : @TSubroutineDeclarationParser.pd_section;
       pocall   : pocall_none;
       pooption : [po_public,po_global];
       mutexclpocall : [pocall_internproc];
@@ -2955,7 +2955,7 @@ const
     ),(
       idtok:_STATIC;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_object,pd_record,pd_javaclass,pd_notobjintf];
-      handler  : @TSubroutineParser.pd_static;
+      handler  : @TSubroutineDeclarationParser.pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
       mutexclpocall : [pocall_internproc];
@@ -2976,7 +2976,7 @@ const
       { FIX ME!!! MorphOS/AOS68k pd_flags should be:
         pd_interface, pd_implemen, pd_notobject, pd_notobjintf (KB) }
       pd_flags : [pd_interface,pd_implemen,pd_procvar];
-      handler  : @TSubroutineParser.pd_syscall;
+      handler  : @TSubroutineDeclarationParser.pd_syscall;
       pocall   : pocall_syscall;
       pooption : [];
       mutexclpocall : [];
@@ -2985,7 +2985,7 @@ const
     ),(
       idtok:_VIRTUAL;
       pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_notrecord,pd_javaclass];
-      handler  : @TSubroutineParser.pd_virtual;
+      handler  : @TSubroutineDeclarationParser.pd_virtual;
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
@@ -3013,7 +3013,7 @@ const
     ),(
       idtok:_COMPILERPROC;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_notobjintf];
-      handler  : @TSubroutineParser.pd_compilerproc;
+      handler  : @TSubroutineDeclarationParser.pd_compilerproc;
       pocall   : pocall_none;
       pooption : [po_compilerproc];
       mutexclpocall : [];
@@ -3022,7 +3022,7 @@ const
     ),(
       idtok:_WEAKEXTERNAL;
       pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject,pd_notrecord,pd_nothelper];
-      handler  : @TSubroutineParser.pd_weakexternal;
+      handler  : @TSubroutineDeclarationParser.pd_weakexternal;
       pocall   : pocall_none;
       { mark it both external and weak external, so we don't have to
         adapt all code for external symbols to also check for weak external
@@ -3035,7 +3035,7 @@ const
     ),(
       idtok:_WINAPI;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
-      handler  : @TSubroutineParser.pd_winapi;
+      handler  : @TSubroutineDeclarationParser.pd_winapi;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_stdcall,pocall_cdecl,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
@@ -3044,7 +3044,7 @@ const
     ),(
       idtok:_ENUMERATOR;
       pd_flags : [pd_interface,pd_object,pd_record];
-      handler  : @TSubroutineParser.pd_enumerator;
+      handler  : @TSubroutineDeclarationParser.pd_enumerator;
       pocall   : pocall_none;
       pooption : [];
       mutexclpocall : [pocall_internproc];
@@ -3062,7 +3062,7 @@ const
     ),(
       idtok:_HARDFLOAT;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
-      handler  : @TSubroutineParser.pd_hardfloat;
+      handler  : @TSubroutineDeclarationParser.pd_hardfloat;
       pocall   : pocall_hardfloat;
       pooption : [];
       mutexclpocall : [];
@@ -3128,13 +3128,13 @@ const
    );
 
 
-    constructor TSubroutineParser.Create(ACompiler: TCompilerBase);
+    constructor TSubroutineDeclarationParser.Create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
       end;
 
 
-    function TSubroutineParser.check_proc_directive(isprocvar:boolean):boolean;
+    function TSubroutineDeclarationParser.check_proc_directive(isprocvar:boolean):boolean;
       var
         i : longint;
       begin
@@ -3162,7 +3162,7 @@ const
       end;
 
 
-    function TSubroutineParser.parse_proc_direc(pd:tabstractprocdef;var pdflags:tpdflags):boolean;
+    function TSubroutineDeclarationParser.parse_proc_direc(pd:tabstractprocdef;var pdflags:tpdflags):boolean;
       {
         Parse the procedure directive, returns true if a correct directive is found
       }
@@ -3369,7 +3369,7 @@ const
       end;
 
 
-    function TSubroutineParser.proc_get_importname(pd:tprocdef):string;
+    function TSubroutineDeclarationParser.proc_get_importname(pd:tprocdef):string;
       var
         dllname, importname : string;
 
@@ -3431,7 +3431,7 @@ const
       end;
 
 
-    procedure TSubroutineParser.proc_set_mangledname(pd:tprocdef);
+    procedure TSubroutineDeclarationParser.proc_set_mangledname(pd:tprocdef);
       var
         s : string;
       begin
@@ -3501,7 +3501,7 @@ const
       end;
 
 
-    procedure TSubroutineParser.parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
+    procedure TSubroutineDeclarationParser.parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
       {
         Parse the procedure directives. It does not matter if procedure directives
         are written using ;procdir; or ['procdir'] syntax.
@@ -3620,7 +3620,7 @@ const
       end;
 
 
-    procedure TSubroutineParser.parse_proctype_directives(pd_or_invkdef:tdef);
+    procedure TSubroutineDeclarationParser.parse_proctype_directives(pd_or_invkdef:tdef);
       var
         pdflags : tpdflags;
         pd : tabstractprocdef;
@@ -3636,7 +3636,7 @@ const
       end;
 
 
-    procedure TSubroutineParser.parse_object_proc_directives(pd:tprocdef);
+    procedure TSubroutineDeclarationParser.parse_object_proc_directives(pd:tprocdef);
       var
         pdflags : tpdflags;
       begin
@@ -3644,7 +3644,7 @@ const
         parse_proc_directives(pd,pdflags);
       end;
 
-    procedure TSubroutineParser.parse_record_proc_directives(pd:tprocdef);
+    procedure TSubroutineDeclarationParser.parse_record_proc_directives(pd:tprocdef);
       var
         pdflags : tpdflags;
       begin
