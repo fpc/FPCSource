@@ -1,10 +1,10 @@
-unit touchleaf1_ant;
+unit cycle2_changeb_crc_ant;
 
 {$mode objfpc}
 
 interface
 
-uses touchleaf1_bird;
+uses cycle2_changeb_crc_bird;
 
 function Crawl(w : word): word;
 
@@ -12,7 +12,7 @@ implementation
 
 function Crawl(w : word): word;
 begin
-  Result := Fly(w*2);
+  Result := specialize Fly<word>(w*2);
 end;
 
 end.
