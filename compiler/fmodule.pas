@@ -92,6 +92,12 @@ interface
       tmodule = class;
       tused_unit = class;
 
+      tunitimportsym = class
+        module: tmodule;
+        symid: longint;
+        sym: TSymEntry;
+      end;
+
       tunitmaprec = record
         u        : tmodule;
         { number of references }
@@ -146,6 +152,7 @@ interface
         do_reload,                { force reloading of the unit }
         {$IFNDEF DisableCTaskPPU}
         fromppu: boolean;         { loaded from ppu }
+        ppu_discarded: boolean;         { ppu was recompiled }
         {$ENDIF}
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded, interface_crc and indirect_crc are valid }
@@ -209,7 +216,7 @@ interface
         asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
         publicasmsyms : TFPHashObjectList; { contains the assembler symbols which need to be exported from a package }
         externasmsyms : TFPHashObjectList; { contains the assembler symbols which are imported from another unit }
-        unitimportsyms : tfpobjectlist; { list of symbols that are imported from other units }
+        unitimportsyms : tfpobjectlist; { list of symbols (tunitimportsym) that are imported from other units }
         debuginfo     : TObject;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
@@ -228,6 +235,27 @@ interface
 
         used_units           : tlinkedlist; { list of tused_unit }
         dependent_units      : tlinkedlist;
+
+        { circular unit groups = strongly connected components }
+        scc_finished: boolean; { scc is compiled = this module and all used modules even indirectly are finished
+                                 Note that in a cycle ms_processed can be reached while scc_finished is still false }
+        scc_root: tmodule;     { valid if not scc_finished: all modules of a scc poins to their root module }
+        scc_next: tmodule;     { next module in same scc }
+        scc_index: integer;    { dont use. used in ttask_handler.update_circular_unit_groups }
+        scc_lowindex: integer; { valid if >0 and scc_finished=false.
+                                 lowest scc_index reachable through used_units,
+                                 all circular connected modules have the same lowindex }
+        scc_onstack: boolean;  { dont use. used in ttask_handler.update_circular_unit_groups }
+        {$IFNDEF DisableCTaskPPU}
+        class var
+          ctask_fast_backtrack: boolean;
+          cycle_stamp: dword;
+        var
+        cycle_search_stamp: dword;
+        scc_tree_unfinished: boolean; { only valid for scc roots }
+        other_scc_unfinished: boolean; { only valid for scc roots }
+        scc_tree_crc_wait: tmodule;
+        {$ENDIF}
 
         localunitsearchpath,           { local searchpaths }
         localobjectsearchpath,
@@ -299,12 +327,15 @@ interface
         function hasdependency(callermodule:tmodule): boolean;
         procedure flagdependent(callermodule:tmodule);
         {$IFNDEF DisableCTaskPPU}
+        class procedure increase_cycle_stamp;
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
+        function are_all_used_units_compiled: boolean;
         class var queue_module: tqueue_module_event;
         class var rename_module: trename_module_event;
         {$ENDIF}
-        procedure addimportedsym(sym:TSymEntry);
+        procedure addimportedsym(sym:TSymEntry; check_if_exists: boolean = true);
+        procedure derefimportedsymbols;
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         function  usesmodule_in_interface(m : tmodule) : boolean;
         function findusedunit(m : tmodule) : tused_unit;
@@ -704,7 +735,7 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(modulename);
-        unitimportsyms:=TFPObjectList.Create(false);
+        unitimportsyms:=TFPObjectList.Create(true);
         publicasmsyms:=TFPHashObjectList.Create(true);
         externasmsyms:=TFPHashObjectList.Create(true);
         InitDebugInfo(self,false);
@@ -958,7 +989,7 @@ implementation
         externasmsyms.free;
         externasmsyms:=TFPHashObjectList.Create(true);
         unitimportsyms.free;
-        unitimportsyms:=TFPObjectList.Create(false);
+        unitimportsyms:=TFPObjectList.Create(true);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         unitmap:=nil;
@@ -1072,7 +1103,9 @@ implementation
            mainsource
            state
            loaded_from
+           ppu_discarded
            sources_avail
+           compilecount
         }
       end;
 
@@ -1105,6 +1138,9 @@ implementation
         if hasdependency(callermodule) then exit;
         Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
         dependent_units.concat(tdependent_unit.create(callermodule,frominterface));
+
+        if callermodule.scc_finished then
+          Internalerror(2026022202);
       end;
 
     procedure tmodule.removedependency(callermodule: tmodule);
@@ -1149,15 +1185,19 @@ implementation
             this unit, unless this unit is already compiled during
             the loading }
           m:=dm.u;
-          {$IFDEF DEBUG_PPU_CYCLES}
-          writeln('PPUALGO tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
-          {$ENDIF}
           {$IFNDEF DisableCTaskPPU}
+          if m.state in [ms_compiled,ms_processed] then
+          begin
+            writeln('tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
+            Internalerror(2026022510);
+          end;
           if not m.do_reload and is_reload_needed(dm) then
           begin
+            {$IFDEF DEBUG_PPU_CYCLES}
+            writeln('PPUALGO tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
+            {$ENDIF}
             m.do_reload:=true;
             Message1(unit_u_flag_for_reload,m.modulename^);
-            queue_module(m);
             { We have to flag the units that depend on this unit even
               though it didn't change, because they might also
               indirectly depend on the unit that did change (e.g.,
@@ -1184,75 +1224,146 @@ implementation
         end;
       end;
 
+    class procedure tmodule.increase_cycle_stamp;
+      begin
+        if cycle_stamp=high(integer) then
+          Internalerror(2026022203);
+        inc(cycle_stamp);
+      end;
+
     function tmodule.statestr: string;
-    begin
-      str(state,Result);
-      if do_reload then
-        Result:='do_reload,'+Result;
-    end;
+      begin
+        str(state,Result);
+        if do_reload then
+          Result:='do_reload,'+Result;
+      end;
 
     procedure tmodule.checkstate;
-    begin
-      // Note: ms_load is checked in tppumodule.checkstate
-
-      if interface_compiled then
       begin
-        if state in [ms_registered,ms_compile,ms_compiling_wait,ms_compiling_waitintf] then
+        // Note: ms_load is checked in tppumodule.checkstate
+
+        if interface_compiled then
         begin
-          writeln('tmodule.checkstate ',modulename^,' ',statestr,' interface_compiled=true');
-          Internalerror(2026021912);
+          if state in [ms_registered,ms_compile,ms_compiling_wait,ms_compiling_waitintf] then
+          begin
+            writeln('tmodule.checkstate ',modulename^,' ',statestr,' interface_compiled=true');
+            Internalerror(2026021912);
+          end;
+        end else begin
+          if state in [ms_compiling_waitimpl,ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed] then
+          begin
+            writeln('tmodule.checkstate ',modulename^,' ',statestr,' interface_compiled=false');
+            Internalerror(2026021911);
+          end;
         end;
-      end else begin
-        if state in [ms_compiling_waitimpl,ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed] then
+
+        if crc_final then
         begin
-          writeln('tmodule.checkstate ',modulename^,' ',statestr,' interface_compiled=false');
-          Internalerror(2026021911);
+          if state in [ms_registered,ms_compile,ms_compiling_wait,ms_compiling_waitintf,
+            ms_compiling_waitimpl,ms_compiling_waitfinish] then
+          begin
+            writeln('tmodule.checkstate ',modulename^,' ',statestr,' crc_final=true');
+            Internalerror(2026021910);
+          end;
+        end else begin
+          if state in [ms_compiled_waitcrc,ms_compiled,ms_processed] then
+          begin
+            writeln('tmodule.checkstate ',modulename^,' ',statestr,' crc_final=false');
+            Internalerror(2026021909);
+          end;
         end;
       end;
-
-      if crc_final then
-      begin
-        if state in [ms_registered,ms_compile,ms_compiling_wait,ms_compiling_waitintf,
-          ms_compiling_waitimpl,ms_compiling_waitfinish] then
-        begin
-          writeln('tmodule.checkstate ',modulename^,' ',statestr,' crc_final=true');
-          Internalerror(2026021910);
-        end;
-      end else begin
-        if state in [ms_compiled_waitcrc,ms_compiled,ms_processed] then
-        begin
-          writeln('tmodule.checkstate ',modulename^,' ',statestr,' crc_final=false');
-          Internalerror(2026021909);
-        end;
-      end;
-    end;
 
     {$IFNDEF DisableCTaskPPU}
     procedure tmodule.disconnect_depending_modules;
-    var
-      uu: tused_unit;
-    begin
-      uu:=tused_unit(used_units.first);
-      while assigned(uu) do
+      var
+        uu: tused_unit;
       begin
-        uu.u.removedependency(self);
-        uu.dependent_added:=false;
-        uu:=tused_unit(uu.next);
+        uu:=tused_unit(used_units.first);
+        while assigned(uu) do
+          begin
+            uu.u.removedependency(self);
+            uu.dependent_added:=false;
+            uu:=tused_unit(uu.next);
+          end;
       end;
-    end;
 
     function tmodule.is_reload_needed(du: tdependent_unit): boolean;
       begin
         Result:=(du.u.state in [ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed])
              or (du.in_interface and du.u.interface_compiled);
-        // Note: see also the override in fppu.tppumodule
+        { Note: see also the override in fppu.tppumodule }
       end;
+
+    function tmodule.are_all_used_units_compiled: boolean;
+    var
+      uu: tused_unit;
+    begin
+      uu:=tused_unit(used_units.First);
+      while assigned(uu) do
+        begin
+          if not (uu.u.state in [ms_compiled,ms_processed]) then
+            exit(false);
+          uu:=tused_unit(uu.Next);
+        end;
+      Result:=true;
+    end;
+
     {$ENDIF}
 
-    procedure tmodule.addimportedsym(sym:TSymEntry);
+      procedure tmodule.addimportedsym(sym: TSymEntry; check_if_exists: boolean);
+      var
+        importsym: tunitimportsym;
+        module: tmodule;
+        asymtable: TSymtable;
+        i: Integer;
       begin
-        if unitimportsyms.IndexOf(sym)<0 then
-          unitimportsyms.Add(sym);
+        if check_if_exists then
+        begin
+          for i:=0 to unitimportsyms.Count-1 do
+            if tunitimportsym(unitimportsyms[i]).sym=sym then
+              exit;
+        end;
+
+        asymtable:=sym.owner;
+        module:=tmodule(loaded_units.first);
+        while assigned(module) and (module.moduleid<>asymtable.moduleid) do
+          module:=tmodule(module.next);
+        if module=nil then
+        begin
+          writeln('tmodule.find_unitimportsymbol missing moduleid=',asymtable.moduleid);
+          Internalerror(2026022622);
+        end;
+
+        if (sym.SymId>=module.symlist.Count) then
+          Internalerror(2026022617);
+        if sym<>TSymEntry(module.symlist[sym.SymId]) then
+        begin
+          writeln('tmodule.addimportedsym ',modulename^,' ',statestr,' ',Sym.RealName,' ',Sym.SymId,' MISMATCH');
+          Internalerror(2026022611);
+        end;
+
+        importsym:=tunitimportsym.Create;
+        importsym.sym:=sym;
+        importsym.module:=module;
+        importsym.symid:=sym.SymId;
+        unitimportsyms.Add(importsym);
+      end;
+
+    procedure tmodule.derefimportedsymbols;
+      var
+        i: Integer;
+        importsym: tunitimportsym;
+        module: tmodule;
+      begin
+        for i:=0 to unitimportsyms.Count-1 do
+          begin
+            importsym:=tunitimportsym(unitimportsyms[i]);
+            module:=importsym.module;
+            if (importsym.SymId>=module.symlist.Count) then
+              Internalerror(2026022618);
+            importsym.sym:=TSymEntry(module.symlist[importsym.symid]);
+          end;
       end;
 
     function tmodule.addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
@@ -1340,21 +1451,28 @@ implementation
     function tmodule.usedunitsfinalcrc(out firstwaiting: tmodule): boolean;
 
     var
-      itm: TLinkedListItem;
+      uu: tused_unit;
 
     begin
-      Result:=True;
-      itm:=self.used_units.First;
-      firstwaiting:=Nil;
-      while assigned(itm) do
+      firstwaiting:=scc_tree_crc_wait;
+      if (firstwaiting<>nil) and (firstwaiting<>self) then
+        exit(false);
+
+      uu:=tused_unit(used_units.First);
+      while assigned(uu) do
         begin
-        if not tused_unit(itm).u.crc_final then
+        if uu.u.do_reload
+            or not uu.u.interface_compiled
+            or not uu.u.crc_final then
           begin
-          firstwaiting:=tused_unit(itm).u;
+          firstwaiting:=uu.u;
           exit(false);
           end;
-        itm:=itm.Next;
+        uu:=tused_unit(uu.Next);
         end;
+
+      firstwaiting:=nil;
+      Result:=True;
     end;
 
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;
@@ -1382,7 +1500,7 @@ implementation
       u:=tused_unit(used_units.First);
       while assigned(u) do
         begin
-        if (u.u=m) then
+        if u.u=m then
           exit(u);
         u:=tused_unit(u.next);
         end;

@@ -414,7 +414,6 @@ implementation
     function compile_module(module : tmodule) : boolean;
 
       var
-         hp,hp2 : tmodule;
          finished : boolean;
          sc : tscannerfile;
 

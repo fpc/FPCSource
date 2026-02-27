@@ -54,7 +54,6 @@ implementation
        pkgutil,
        wpobase,
        scanner,pbase,pexpr,psystem,psub,pgenutil,pparautl,ncgvmt,ncgrtti,
-       ctask,
        cpuinfo;
 
 
@@ -191,7 +190,7 @@ implementation
       var
         hp : tppumodule;
         unitsym : tunitsym;
-        isnew,load_ok : boolean;
+        isnew : boolean;
         uu: tused_unit;
 
       begin
@@ -199,10 +198,7 @@ implementation
         hp:=registerunit(curr,s,'',isnew);
         if isnew then
           usedunits.concat(tused_unit.create(hp,true,addasused,nil));
-        load_ok:=hp.loadppu(curr);
-        if not load_ok then
-          { We must schedule a compile. }
-          task_handler.addmodule(hp);
+        hp.loadppu(curr);
         hp.adddependency(curr,curr.in_interface);
 
         { add to symtable stack }
@@ -703,24 +699,26 @@ implementation
     function loadunits(curr: tmodule; frominterface : boolean) : boolean;
 
       var
-         s  : ansistring;
-         pu  : tused_unit;
-         state: tglobalstate;
-         isLoaded : Boolean;
-         lu : tmodule;
+        {$IFDEF DisableCTaskPPU}
+        s  : ansistring;
+        isLoaded : Boolean;
+        {$ENDIF}
+        pu  : tused_unit;
+        state: tglobalstate;
+        lu : tmodule;
 
-         procedure restorestate;
+        procedure restorestate;
 
-         begin
-           state.restore;
-           if assigned(current_scanner) and (current_module.scanner=current_scanner) then
-              begin
+        begin
+          state.restore;
+          if assigned(current_scanner) and (current_module.scanner=current_scanner) then
+            begin
               if assigned(current_scanner.inputfile) then
                 current_scanner.tempopeninputfile;
-              end;
-           state.free;
-           state := nil;
-         end;
+            end;
+          state.free;
+          state := nil;
+        end;
 
       begin
         Result:=true;
@@ -752,10 +750,12 @@ implementation
                  pu.dependent_added:=true;
                  lu.adddependency(curr,frominterface);
                end;
-               if not lu.interface_compiled or lu.do_reload then
+               if not lu.interface_compiled or lu.do_reload or tmodule.ctask_fast_backtrack then
                begin
                  { an used unit is delayed
-                   Important: load the rest of the uses section }
+                   Important: do not break, load the remaining uses section, so the scheduler
+                              has more information about cycles }
+                 tmodule.ctask_fast_backtrack:=true;
                  Result:=false;
                end;
                {$ELSE}
@@ -1311,11 +1311,11 @@ type
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             symtablestack.pop(curr.globalsymtable);
-
+            curr.state:=ms_moduleerror;
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
-            exit;
+            exit(false);
           end;
 
         { we need to be able to reference these in descendants,
@@ -1453,7 +1453,7 @@ type
             ) then
            Message2(unit_e_illegal_unit_name,curr.realmodulename^,s1^);
          if (curr.modulename^='SYSTEM') then
-          include(current_settings.moduleswitches,cs_compilesystem);
+           include(current_settings.moduleswitches,cs_compilesystem);
          dispose(s2);
          dispose(s1);
 
@@ -1587,10 +1587,13 @@ type
         i : longint;
         ag : boolean;
         finishstate : tfinishstate;
-        waitingmodule : tmodule;
+        waitingmodule , old_module: tmodule;
       begin
          result:=true;
          { curr is now module }
+
+         old_module:=current_module;
+         set_current_module(module);
 
          if not assigned(module.finishstate) then
            internalerror(2012091801);
@@ -1605,8 +1608,8 @@ type
          // This needs to be done before we generate the VMTs
          if (target_cpu=tsystemcpu.cpu_wasm32) then
            begin
-           add_synthetic_interface_classes_for_st(module.globalsymtable,false,true);
-           add_synthetic_interface_classes_for_st(module.localsymtable,true,true);
+             add_synthetic_interface_classes_for_st(module.globalsymtable,false,true);
+             add_synthetic_interface_classes_for_st(module.localsymtable,true,true);
            end;
 
          { generate construction functions for all attributes in the unit:
@@ -1734,10 +1737,12 @@ type
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             module_is_done(module);
+            module.state:=ms_moduleerror;
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
-            exit;
+            set_current_module(old_module);
+            exit(false);
           end;
 
          { if an Objective-C module, generate rtti and module info }
@@ -1800,20 +1805,22 @@ type
         { compute CRC }
         if ErrorCount=0 then
           begin
-          if not module.usedunitsfinalcrc(waitingmodule) then
+          if not module.are_all_used_units_compiled then
             begin
-            { Some used units are still compiling, so their CRCs can change.
-              Compute the final CRC of this module and wait.
-              Needed for compiling circular dependent units. }
-            {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
-            writeln('finish_compile_unit ',module.realmodulename^,' waiting for used unit CRCs...');
-            {$ENDIF}
-            tppumodule(module).getppucrc;
-            module.crc_final:=true;
-            module.state:=ms_compiled_waitcrc;
-            exit(false);
+              { Some used units are still compiling, so their CRCs can change.
+                Compute the final CRC of this module and wait.
+                Needed for compiling circular dependent units. }
+              {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
+              writeln('finish_compile_unit ',module.realmodulename^,' waiting for used unit CRCs...');
+              {$ENDIF}
+              tppumodule(module).getppucrc;
+              module.crc_final:=true;
+              module.state:=ms_compiled_waitcrc;
+              set_current_module(old_module);
+              exit(false);
             end;
           end;
+        set_current_module(old_module);
 
         result:=finish_unit(module);
       end;
@@ -1826,15 +1833,20 @@ type
 {$endif EXTDEBUG}
         store_interface_crc,
         store_indirect_crc : cardinal;
+{$ifdef debug_devirt}
         i : longint;
-        waitingmodule : tmodule;
+{$endif}
         hstatus : TFPCHeapStatus;
+        old_module: tmodule;
 
       begin
         {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
         writeln('finish_unit ',module.realmodulename^,' write ppu and free mem...');
         {$ENDIF}
-        result:=true;
+        result:=ErrorCount=0;
+
+        old_module:=current_module;
+        set_current_module(module);
 
         { Write out the ppufile after the object file has been created }
         store_interface_crc:=module.interface_crc;
@@ -1842,7 +1854,7 @@ type
 {$ifdef EXTDEBUG}
         store_crc:=module.crc;
 {$endif EXTDEBUG}
-        if ErrorCount=0 then
+        if result then
           tppumodule(module).writeppu;
 
         if not(cs_compilesystem in current_settings.moduleswitches) then
@@ -1870,9 +1882,11 @@ type
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             module_is_done(module);
+            module.state := ms_moduleerror;
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
 {$endif DEBUG_NODE_XML}
+            set_current_module(old_module);
             exit;
           end;
 
@@ -1930,6 +1944,8 @@ type
           hstatus:=GetFPCHeapStatus;
           WriteLn(DStr(hstatus.CurrHeapUsed shr 10),'/',DStr(hstatus.CurrHeapSize shr 10),' Kb Used');
         end;
+
+        set_current_module(old_module);
       end;
 
     function proc_package(curr: tmodule) : boolean;
@@ -2211,9 +2227,10 @@ type
            begin
              Message1(unit_f_errors_in_unit,tostr(Errorcount));
              status.skip_error:=true;
+             curr.state:=ms_moduleerror;
              pkg.free;
              pkg := nil;
-             exit;
+             exit(false);
            end;
 
          { remove all unused units, this happens when units are removed
@@ -2293,9 +2310,10 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            curr.state:=ms_moduleerror;
             pkg.free;
             pkg := nil;
-            exit;
+            exit(false);
           end;
 
          if (not curr.is_unit) then
@@ -2369,6 +2387,8 @@ type
               begin
                 Message1(unit_f_errors_in_unit,tostr(Errorcount));
                 status.skip_error:=true;
+                curr.state:=ms_moduleerror;
+                result:=false;
               end;
 
              pkg.free;
@@ -2476,6 +2496,7 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            curr.state:=ms_moduleerror;
             exit;
           end;
 
@@ -2589,6 +2610,7 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            curr.state:=ms_moduleerror;
             exit;
           end;
         { create the executable when we are at level 1 }
