@@ -429,6 +429,7 @@ var W: PWindow;
     Z: TRect;
     Len : Byte;
     BM: TEditorBookMark;
+    ZoomRect: TRect;
 begin
   XDataOfs:=0;
   Desktop^.Lock;
@@ -562,6 +563,7 @@ begin
            end;
       end;
   end;
+  GetData(ZoomRect,sizeof(ZoomRect));
   if W=nil then
     begin
       Desktop^.Unlock;
@@ -573,12 +575,18 @@ begin
     WI.Bounds.A.X:=round(WI.Bounds.A.X*ScreenWidth/VM.col);
     if (W^.Flags and wfGrow)<>0 then
       WI.Bounds.B.X:=Max(16,round(WI.Bounds.B.X*ScreenWidth/VM.col));
+    ZoomRect.A.X:=round(ZoomRect.A.X*ScreenWidth/VM.col);
+    if (W^.Flags and wfGrow)<>0 then
+      ZoomRect.B.X:=Max(16,round(ZoomRect.B.X*ScreenWidth/VM.col));
   end;
   if (VM.row > 2) and (ScreenHeight<>VM.row) then
   begin
     WI.Bounds.A.Y:=round(WI.Bounds.A.Y*(ScreenHeight-2)/(VM.row-2));
     if (W^.Flags and wfGrow)<>0 then
-      WI.Bounds.B.Y:=Max(6,round(WI.Bounds.B.Y*(ScreenHeight-2)/(VM.row-2)));
+      WI.Bounds.B.Y:=Max(5,round(WI.Bounds.B.Y*(ScreenHeight-2)/(VM.row-2)));
+    ZoomRect.A.Y:=round(ZoomRect.A.Y*(ScreenHeight-2)/(VM.row-2));
+    if (W^.Flags and wfGrow)<>0 then
+      ZoomRect.B.Y:=Max(5,round(ZoomRect.B.Y*(ScreenHeight-2)/(VM.row-2)));
   end;
   {relocate and resize window as needed}
   W^.GetBounds(R);
@@ -598,7 +606,7 @@ begin
       end
     else
       W^.Hide;
-  {check if window is out screen bounds and bring it back if so}
+  {check if window is out of screen bounds and bring it back if so}
   ZZ:=0;
   Desktop^.GetExtent(Z);
   if R.A.Y>Z.B.Y-7 then
@@ -623,6 +631,7 @@ begin
     end;
   if ZZ<>0 then W^.MoveTo(R.A.X,R.A.Y);
   W^.Number:=WI.WinNb;
+  W^.ZoomRect:=ZoomRect;
   Desktop^.Unlock;
 end;
 begin
@@ -701,6 +710,7 @@ var W: PWindow;
     Ch: AnsiChar;
     TP: TPoint;
     BM: TEditorBookMark;
+    ZoomRect: TRect;
     L: longint;
 procedure AddData(const B; Size: word);
 begin
@@ -760,6 +770,7 @@ begin
         AddData(ch,sizeof(AnsiChar));
       end;
   end;
+  ZoomRect:=W^.ZoomRect; AddData(ZoomRect,sizeof(ZoomRect));
 
   WI.TitleLen:=length(Title);
   WI.ExtraDataSize:=XDataOfs;
