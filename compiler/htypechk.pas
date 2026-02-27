@@ -734,9 +734,8 @@ implementation
 
 
     function isunaryoverloaded(var t : tnode;ocf:toverload_check_flags) : boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         ld      : tdef;
         optoken : ttoken;
         operpd  : tprocdef;
@@ -745,6 +744,7 @@ implementation
         cand_cnt : integer;
         inlinenumber: tinlinenumber;
       begin
+        compiler:=t.compiler;
         result:=false;
         operpd:=nil;
 
