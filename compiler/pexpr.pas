@@ -303,14 +303,14 @@ implementation
           in_new_x :
             begin
               if afterassignment or in_args then
-               statement_syssym:=new_function
+               statement_syssym:=compiler.parser.pinline.new_function
               else
-               statement_syssym:=new_dispose_statement(true);
+               statement_syssym:=compiler.parser.pinline.new_dispose_statement(true);
             end;
 
           in_dispose_x :
             begin
-              statement_syssym:=new_dispose_statement(false);
+              statement_syssym:=compiler.parser.pinline.new_dispose_statement(false);
             end;
 
           in_ord_x,
@@ -772,22 +772,22 @@ implementation
 
           in_initialize_x:
             begin
-              statement_syssym:=inline_initialize;
+              statement_syssym:=compiler.parser.pinline.inline_initialize;
             end;
 
           in_finalize_x:
             begin
-              statement_syssym:=inline_finalize;
+              statement_syssym:=compiler.parser.pinline.inline_finalize;
             end;
 
           in_copy_x:
             begin
-              statement_syssym:=inline_copy;
+              statement_syssym:=compiler.parser.pinline.inline_copy;
             end;
 
           in_concat_x :
             begin
-              statement_syssym:=inline_concat;
+              statement_syssym:=compiler.parser.pinline.inline_concat;
             end;
 
           in_read_x,
@@ -807,7 +807,7 @@ implementation
 
           in_setlength_x:
             begin
-              statement_syssym := inline_setlength;
+              statement_syssym := compiler.parser.pinline.inline_setlength;
             end;
 
           in_objc_selector_x:
@@ -961,17 +961,17 @@ implementation
 
           in_setstring_x_y_z:
             begin
-              statement_syssym := inline_setstring;
+              statement_syssym := compiler.parser.pinline.inline_setstring;
             end;
 
           in_delete_x_y_z:
             begin
-              statement_syssym:=inline_delete;
+              statement_syssym:=compiler.parser.pinline.inline_delete;
             end;
 
           in_insert_x_y_z:
             begin
-              statement_syssym:=inline_insert;
+              statement_syssym:=compiler.parser.pinline.inline_insert;
             end;
           in_const_eh_return_data_regno:
             begin

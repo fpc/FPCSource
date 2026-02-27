@@ -29,7 +29,17 @@ interface
       compilerbase,
       symtype,
       node,
-      globals;
+      globals,compinnr;
+
+type
+  TInlineParser = class
+  private
+    FCompiler: TCompilerBase;
+    function inline_initfinal(isinit: boolean): tnode;
+    function inline_copy_insert_delete(nr:tinlinenumber;const name:string;checkempty:boolean) : tnode;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
     function new_dispose_statement(is_new:boolean) : tnode;
     function new_function : tnode;
@@ -42,6 +52,7 @@ interface
     function inline_insert : tnode;
     function inline_delete : tnode;
     function inline_concat : tnode;
+  end;
 
 
 implementation
@@ -49,7 +60,7 @@ implementation
     uses
        { global }
        globtype,tokens,verbose,constexp,
-       systems,compinnr,compiler,
+       systems,compiler,
        { symtable }
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
@@ -60,9 +71,13 @@ implementation
        pbase,pexpr;
 
 
-    function new_dispose_statement(is_new:boolean) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor TInlineParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    function TInlineParser.new_dispose_statement(is_new:boolean) : tnode;
       var
         newstatement : tstatementnode;
         temp         : ttempcreatenode;
@@ -80,8 +95,6 @@ implementation
         variantselectsymbol : tfieldvarsym;
 
       procedure ReadVariantRecordConstants;
-        const
-          compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
         var
           i,j : longint;
         begin
@@ -446,9 +459,7 @@ implementation
       end;
 
 
-    function new_function : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TInlineParser.new_function : tnode;
       var
         p1,p2  : tnode;
         classh : tobjectdef;
@@ -536,9 +547,7 @@ implementation
       end;
 
 
-    function inline_setlength : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TInlineParser.inline_setlength : tnode;
       var
         paras: tnode;
       begin
@@ -555,9 +564,7 @@ implementation
       end;
 
 
-    function inline_setstring : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TInlineParser.inline_setstring : tnode;
       var
         paras, strpara, pcharpara: tnode;
         procname: string;
@@ -612,9 +619,7 @@ implementation
       end;
 
 
-    function inline_initfinal(isinit: boolean): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TInlineParser.inline_initfinal(isinit: boolean): tnode;
       var
         newblock,
         paras   : tnode;
@@ -673,21 +678,19 @@ implementation
       end;
 
 
-    function inline_initialize : tnode;
+    function TInlineParser.inline_initialize : tnode;
       begin
         result:=inline_initfinal(true);
       end;
 
 
-    function inline_finalize : tnode;
+    function TInlineParser.inline_finalize : tnode;
       begin
         result:=inline_initfinal(false);
       end;
 
 
-    function inline_copy_insert_delete(nr:tinlinenumber;const name:string;checkempty:boolean) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TInlineParser.inline_copy_insert_delete(nr:tinlinenumber;const name:string;checkempty:boolean) : tnode;
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }
@@ -707,25 +710,25 @@ implementation
       end;
 
 
-    function inline_copy: tnode;
+    function TInlineParser.inline_copy: tnode;
       begin
         result:=inline_copy_insert_delete(in_copy_x,'Copy',false);
       end;
 
 
-    function inline_insert: tnode;
+    function TInlineParser.inline_insert: tnode;
       begin
         result:=inline_copy_insert_delete(in_insert_x_y_z,'Insert',false);
       end;
 
 
-    function inline_delete: tnode;
+    function TInlineParser.inline_delete: tnode;
       begin
         result:=inline_copy_insert_delete(in_delete_x_y_z,'Delete',false);
       end;
 
 
-    function inline_concat: tnode;
+    function TInlineParser.inline_concat: tnode;
       begin
         result:=inline_copy_insert_delete(in_concat_x,'Concat',false);
       end;
