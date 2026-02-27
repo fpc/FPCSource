@@ -85,6 +85,7 @@ const
   nWarnIgnoringLinkLib = 1036;
   nErrInvalidIndent = 1037;
   nErrMultilineNonWhiteSpaceBeforeClosing = 1038;
+  nErrInvalidMultiLineTrimLeft = 1039;
 
 // resourcestring patterns of messages
 resourcestring
@@ -128,6 +129,7 @@ resourcestring
   SWarnIgnoringLinkLib = 'Ignoring LINKLIB directive %s -> %s (Options: %s)';
   SErrInvalidIndent = ' Inconsistent indent characters';
   SErrMultilineNonWhiteSpaceBeforeClosing = 'There should be no white-space characters before closing quotes of the text block';
+  SErrInvalidMultiLineTrimLeft = 'Invalid MultiLineStringTrimLeft value: "%s", use ALL/AUTO/NONE or 0..65535';
 
 type
   {$IFDEF PAS2JS}
@@ -1309,7 +1311,7 @@ const
 
   OBJFPCModeSwitches =  [msObjfpc,msClass,msObjpas,msResult,msStringPchar,msNestedComment,
     msRepeatForward,msCVarSupport,msInitFinal,msOut,msDefaultPara,msHintDirective,
-    msProperty,msDefaultInline,msExcept];
+    msProperty,msDefaultInline,msExcept,msDelphiMultiLineStrings];
 
   TPModeSwitches = [msTP7,msTPProcVar,msDuplicateNames];
 
@@ -3993,21 +3995,100 @@ begin
           else
             Result := tkString;
         end;
+      '`':
+        if (msMultiLineStrings in CurrentModeSwitches) then
+        begin
+          // Backtick string as continuation: #$41` text `#$42
+          // Flush raw segment before the backtick
+          SectionLength := FTokenPos - StartP;
+          {$ifdef UsePChar}
+          if SectionLength > 0 then
+          begin
+            SetLength(FCurTokenString, Length(FCurTokenString) + SectionLength);
+            Move(StartP^, FCurTokenString[Length(FCurTokenString) - SectionLength + 1], SectionLength);
+          end;
+          {$else}
+          if SectionLength > 0 then
+            FCurTokenString := FCurTokenString + copy(s, StartP, SectionLength);
+          {$endif}
+          // Convert backtick content to apostrophe-delimited form
+          FCurTokenString := FCurTokenString + '''';
+          Inc(FTokenPos); // skip opening backtick
+          {$ifndef UsePChar}
+          while FTokenPos <= l do
+          begin
+            case s[FTokenPos] of
+              '`':
+                if (FTokenPos < l) and (s[FTokenPos+1] = '`') then
+                begin
+                  // escaped backtick ``
+                  FCurTokenString := FCurTokenString + '`';
+                  Inc(FTokenPos, 2);
+                end
+                else
+                begin
+                  // closing backtick
+                  Inc(FTokenPos);
+                  break;
+                end;
+              '''':
+                begin
+                  // escape apostrophe inside backtick content
+                  FCurTokenString := FCurTokenString + '''''';
+                  Inc(FTokenPos);
+                end;
+            else
+              FCurTokenString := FCurTokenString + s[FTokenPos];
+              Inc(FTokenPos);
+            end;
+          end;
+          {$else}
+          while FTokenPos[0] <> #0 do
+          begin
+            case FTokenPos[0] of
+              '`':
+                if FTokenPos[1] = '`' then
+                begin
+                  FCurTokenString := FCurTokenString + '`';
+                  Inc(FTokenPos, 2);
+                end
+                else
+                begin
+                  Inc(FTokenPos);
+                  break;
+                end;
+              '''':
+                begin
+                  FCurTokenString := FCurTokenString + '''''';
+                  Inc(FTokenPos);
+                end;
+            else
+              FCurTokenString := FCurTokenString + FTokenPos[0];
+              Inc(FTokenPos);
+            end;
+          end;
+          {$endif}
+          FCurTokenString := FCurTokenString + '''';
+          // Reset StartP so subsequent segments are captured correctly
+          StartP := FTokenPos;
+          Result := tkString;
+        end
+        else
+          Break;
     else
       Break;
     end;
   until false;
   SectionLength := FTokenPos - StartP;
   {$ifdef UsePChar}
-  SetLength(FCurTokenString, SectionLength);
   if SectionLength > 0 then
-    Move(StartP^, FCurTokenString[1], SectionLength);
-  //Writeln('String: ',UTF8String(FCurTokenString),length(FCurTokenString));
-  //For I:=2 to Length(FCurTokenString)-1 do
-  //  Write(hexStr(Ord(FCurtokenString[I]),2));
-  //Writeln;
+  begin
+    SetLength(FCurTokenString, Length(FCurTokenString) + SectionLength);
+    Move(StartP^, FCurTokenString[Length(FCurTokenString) - SectionLength + 1], SectionLength);
+  end;
   {$else}
-  FCurTokenString:=FCurTokenString+copy(FCurLine,StartP,SectionLength);
+  if SectionLength > 0 then
+    FCurTokenString := FCurTokenString + copy(FCurLine, StartP, SectionLength);
   {$endif}
 end;
 
@@ -4206,9 +4287,10 @@ begin
                 AddToCurString(false);
                 AddApostroph;
                 TokenStart := FTokenPos;
-                // Can happen if the last char on the line was the quote..
-                if ({$ifdef UsePChar}FTokenPos[0] = #0{$else}FTokenPos>l{$endif}) then
-                  Dec(FTokenPos);
+                // Re-enter loop without extra Inc(FTokenPos) so that
+                // the character after the apostrophe (possibly closing
+                // backtick or end-of-line) is processed correctly.
+                continue;
                 end;
               end;
               Inc(FTokenPos);
@@ -5450,7 +5532,9 @@ begin
     'NONE' : I:=0;
   else
     If not TryStrToInt(S,I) then
-      I:=0;
+      Error(nErrInvalidMultiLineTrimLeft,SErrInvalidMultiLineTrimLeft,[aParam])
+    else if (I<0) or (I>65535) then
+      Error(nErrInvalidMultiLineTrimLeft,SErrInvalidMultiLineTrimLeft,[aParam]);
   end;
   MultilineStringsTrimLeft:=I;
 end;

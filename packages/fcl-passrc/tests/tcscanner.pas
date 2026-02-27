@@ -71,6 +71,8 @@ type
     FPathPrefix : String;
     FTestTokenString: String;
     FMultiLine : String;
+    procedure DoInvalidMultilineTrimLeft1;
+    procedure DoInvalidMultilineTrimLeft2;
     procedure DoTestDelphiMultiLine;
     procedure DoTestDelphiMultiLineString;
   protected
@@ -139,6 +141,7 @@ type
     procedure TestMultilineStringTrimAuto;
     procedure TestMultilineStringTrim2;
     procedure TestMultilineStringQuoted;
+    procedure TestMultilineStringEndQuote;
     Procedure TestDelphiMultiLine;
     procedure TestDelphiMultiLineNotEnabled;
     procedure TestDelphiMultiLineWrongIndent;
@@ -151,6 +154,7 @@ type
     procedure TestDelphiMultiLineEmbeddedQuotes;
     procedure TestDelphiMultiLineInDelphiMode;
     procedure TestDelphiMultiLineFailNonWhiteSpaceBeforeClosing;
+    procedure TestMultilineContinuation;
     Procedure TestTextBlockDirective;
     procedure TestNumber;
     procedure TestChar;
@@ -869,7 +873,19 @@ begin
 
 end;
 
+procedure TTestScanner.DoInvalidMultilineTrimLeft1;
+begin
+  TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT -1}');
+end;
+
+procedure TTestScanner.DoInvalidMultilineTrimLeft2;
+begin
+  TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT 655366}');
+end;
+
+
 procedure TTestScanner.TestMultilineTrimLeftDirective;
+
 begin
   AssertTrue('Default', FScanner.MultilineStringsTrimLeft=0);
   TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT 1}');
@@ -880,6 +896,11 @@ begin
   AssertTrue('ALL', FScanner.MultilineStringsTrimLeft=-2);
   TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT AUTO}');
   AssertTrue('AUTO', FScanner.MultilineStringsTrimLeft=-1);
+  AssertException('Invalid value -1',EScannerError,@DoInvalidMultilineTrimLeft1);
+  // After error, we need to reset the scanner
+  FreeAndNil(FScanner);
+  FScanner:=TTestingPascalScanner.Create(FResolver);
+  AssertException('Invalid value 65536',EScannerError,@DoInvalidMultilineTrimLeft2);
 end;
 
 procedure TTestScanner.TestMultilineStringTrimAll;
@@ -934,6 +955,34 @@ const Src = '`'+sLineBreak+
    Res = #39+sLineBreak+
        'message: ''''DataNodeProcessor "'''' + this.nodeID + ''''" already waiting for data'''''+sLineBreak+
        '''';
+begin
+  Scanner.MultilineStringsTrimLeft:=2;
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineStringsEOLStyle:=elLF;
+  Scanner.SkipWhiteSpace:=True;
+  DoTestToken(pscanner.tkString,Src);
+  AssertEquals('Correct trim',Res,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringEndQuote;
+
+const
+  Src = '`''`';
+  Res = #39#39#39#39; // (both backticks converted to ticks)
+
+begin
+  Scanner.MultilineStringsTrimLeft:=2;
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineStringsEOLStyle:=elLF;
+  Scanner.SkipWhiteSpace:=True;
+  DoTestToken(pscanner.tkString,Src);
+  AssertEquals('Correct string',Res,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineContinuation;
+const
+  Src = '#$41` text `#$42';
+   Res = '#$41'' text ''#$42';
 begin
   SCanner.MultilineStringsTrimLeft:=2;
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
@@ -1103,6 +1152,7 @@ begin
   Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msDelphiMultiLineStrings];
   AssertException('Non Whitespace chars before closing',EScannerError,@DoTestDelphiMultiLineString,'afile.pp(3,10) Error: '+SErrMultilineNonWhiteSpaceBeforeClosing);
 end;
+
 
 
 procedure TTestScanner.TestDelphiMultiLine;
