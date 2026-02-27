@@ -695,6 +695,7 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE SizeLimits (Var Min, Max: TPoint); Virtual;
+      PROCEDURE CalcBounds (Var Bounds: TRect; Delta: TPoint); Virtual;
    END;
    PWindow = ^TWindow;
 
@@ -4270,6 +4271,20 @@ BEGIN
    Min.Y := MinWinSize.Y;                             { Set min y size }
 END;
 
+{--TWindow------------------------------------------------------------------}
+{  CalcBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27jan2026 M        }
+{---------------------------------------------------------------------------}
+PROCEDURE TWindow.CalcBounds (Var Bounds: TRect; Delta: TPoint);
+VAR WinBounds : TRect;
+BEGIN
+  { Need to change ZoomRect as well. It is not great to assign new bounds
+    to ZoomRect directly in CalcBounds, but there is not much options. }
+  GetBounds(WinBounds);                   { Save current bounds }
+  SetBounds(ZoomRect);                    { Set ZoomRect as bounds }
+  inherited CalcBounds (ZoomRect,Delta);  { New bounds for ZoomRect }
+  SetBounds(WinBounds);                   { Restore bounds }
+  inherited CalcBounds (Bounds,Delta);    { Calc new bounds }
+END;
 
 
 {--TView--------------------------------------------------------------------}
