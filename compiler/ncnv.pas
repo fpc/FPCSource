@@ -420,9 +420,8 @@ implementation
       end;
 
     function arrayconstructor_to_set(p:tnode;freep:boolean):tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler    : TCompilerBase;
         constp      : tsetconstnode;
         p2,p3,p4    : tnode;
         hdef        : tdef;
@@ -508,6 +507,7 @@ implementation
         oldfilepos: tfileposinfo;
         first: Boolean;
       begin
+        compiler:=p.compiler;
         { keep in sync with arrayconstructor_can_be_set }
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
