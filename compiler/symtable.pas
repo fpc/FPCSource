@@ -26,7 +26,7 @@ interface
 
     uses
        { common }
-       cutils,cclasses,globtype,tokens,
+       cutils,cclasses,globtype,tokens,compilerbase,
        { symtable }
        symconst,symbase,symtype,symdef,symsym;
 
@@ -59,7 +59,7 @@ interface
           procedure writedefs(ppufile:tcompilerppufile);
           procedure writesyms(ppufile:tcompilerppufile);
        public
-          constructor create(const s:string);
+          constructor create(const s:string; ACompiler: TCompilerBase);
           procedure insertsym(sym:TSymEntry;checkdup:boolean=true);override;
           procedure deletesym(sym:TSymEntry);override;
           { load/write }
@@ -118,7 +118,7 @@ interface
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
           recordalignmin: shortint; { local equivalentsof global settings, so that records can be created with custom settings internally }
           has_fields_with_mop : tmanagementoperators; { whether any of the fields has the need for a management operator (or one of the field's fields) }
-          constructor create(const n:string;usealign,recordminalign:shortint);
+          constructor create(const n:string;usealign,recordminalign:shortint;acompiler: TCompilerBase);
           destructor destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -168,14 +168,14 @@ interface
           { object/classes. In XE5 and newer is possible to use class operator }
           { for classes (like for Delphi .NET before) only for Delphi NEXTGEN  }
           managementoperators : tmanagementoperators;
-          constructor create(const n:string;usealign,recordminalign:shortint);
+          constructor create(const n:string;usealign,recordminalign:shortint;acompiler: TCompilerBase);
           procedure insertunionst(unionst : trecordsymtable;offset : asizeint);
           procedure includemanagementoperator(mop:tmanagementoperator);
        end;
 
        tObjectSymtable = class(tabstractrecordsymtable)
        public
-          constructor create(adefowner:tdef;const n:string;usealign,recordminalign:shortint);
+          constructor create(adefowner:tdef;const n:string;usealign,recordminalign:shortint;acompiler: TCompilerBase);
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
@@ -230,7 +230,7 @@ interface
 
        tlocalsymtable = class(tabstractlocalsymtable)
        public
-          constructor create(adefowner:tdef;level:byte);
+          constructor create(adefowner:tdef;level:byte;acompiler: TCompilerBase);
           function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
@@ -238,13 +238,13 @@ interface
 
        tparasymtable = class(tabstractlocalsymtable)
        public
-          constructor create(adefowner:tdef;level:byte);
+          constructor create(adefowner:tdef;level:byte;acompiler: TCompilerBase);
           function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
        tabstractuniTSymtable = class(tstoredsymtable)
        public
-          constructor create(const n : string;id:word);
+          constructor create(const n : string;id:word;acompiler: TCompilerBase);
           function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
           function findnamespace(const n:string):TSymEntry;virtual;
           function iscurrentunit:boolean;override;
@@ -256,14 +256,14 @@ interface
        tglobalsymtable = class(tabstractuniTSymtable)
        public
           unittypecount : word;
-          constructor create(const n : string;id:word);
+          constructor create(const n : string;id:word;acompiler: TCompilerBase);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
        tstaticsymtable = class(tabstractuniTSymtable)
        public
-          constructor create(const n : string;id:word);
+          constructor create(const n : string;id:word;acompiler: TCompilerBase);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
@@ -272,13 +272,13 @@ interface
 
        tspecializesymtable = class(tglobalsymtable)
        public
-          constructor create(const n : string;id:word);
+          constructor create(const n : string;id:word;acompiler: TCompilerBase);
           function iscurrentunit:boolean;override;
        end;
 
        twithsymtable = class(TSymtable)
           withrefnode : tobject; { tnode }
-          constructor create(aowner:tdef;ASymList:TFPHashObjectList;refnode:tobject{tnode});
+          constructor create(aowner:tdef;ASymList:TFPHashObjectList;refnode:tobject{tnode};acompiler: TCompilerBase);
           destructor  destroy;override;
           procedure clear;override;
           procedure insertdef(def:TDefEntry);override;
@@ -286,12 +286,12 @@ interface
 
        tstt_exceptsymtable = class(TSymtable)
        public
-          constructor create;
+          constructor create(acompiler: TCompilerBase);
        end;
 
        tmacrosymtable = class(tstoredsymtable)
        public
-          constructor create(exported: boolean);
+          constructor create(exported: boolean;acompiler: TCompilerBase);
        end;
 
        { tenumsymtable }
@@ -299,7 +299,7 @@ interface
        tenumsymtable = class(tabstractsubsymtable)
        public
           procedure insertsym(sym: TSymEntry; checkdup: boolean = true); override;
-          constructor create(adefowner:tdef);
+          constructor create(adefowner:tdef;acompiler: TCompilerBase);
        end;
 
        { tarraysymtable }
@@ -307,7 +307,7 @@ interface
        tarraysymtable = class(tabstractsubsymtable)
        public
           procedure insertdef(def:TDefEntry);override;
-          constructor create(adefowner:tdef);
+          constructor create(adefowner:tdef;acompiler: TCompilerBase);
        end;
 
     var
@@ -503,9 +503,9 @@ implementation
                              TStoredSymtable
 *****************************************************************************}
 
-    constructor tstoredsymtable.create(const s:string);
+    constructor tstoredsymtable.create(const s:string; ACompiler: TCompilerBase);
       begin
-        inherited create(s);
+        inherited create(s,ACompiler);
         { Note: this happens for the initial macro symtable, so no error here }
         if not assigned(current_module) then
           comment(v_debug,'Current module not available for module id')
@@ -1188,9 +1188,9 @@ implementation
       end;
 {$endif llvm}
 
-    constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign:shortint);
+    constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign:shortint;acompiler: TCompilerBase);
       begin
-        inherited create(n);
+        inherited create(n,acompiler);
         _datasize:=0;
         databitsize:=0;
         recordalignment:=1;
@@ -1879,9 +1879,9 @@ implementation
                               TRecordSymtable
 ****************************************************************************}
 
-    constructor trecordsymtable.create(const n:string;usealign,recordminalign:shortint);
+    constructor trecordsymtable.create(const n:string;usealign,recordminalign:shortint;acompiler: TCompilerBase);
       begin
-        inherited create(n,usealign,recordminalign);
+        inherited create(n,usealign,recordminalign,acompiler);
         symtabletype:=recordsymtable;
       end;
 
@@ -2006,9 +2006,9 @@ implementation
                               TObjectSymtable
 ****************************************************************************}
 
-    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign,recordminalign:shortint);
+    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign,recordminalign:shortint;acompiler: TCompilerBase);
       begin
-        inherited create(n,usealign,recordminalign);
+        inherited create(n,usealign,recordminalign,acompiler);
         symtabletype:=ObjectSymtable;
         defowner:=adefowner;
       end;
@@ -2467,9 +2467,9 @@ implementation
                               TLocalSymtable
 ****************************************************************************}
 
-    constructor tlocalsymtable.create(adefowner:tdef;level:byte);
+    constructor tlocalsymtable.create(adefowner:tdef;level:byte;acompiler: TCompilerBase);
       begin
-        inherited create('');
+        inherited create('',acompiler);
         defowner:=adefowner;
         symtabletype:=localsymtable;
         symtablelevel:=level;
@@ -2541,9 +2541,9 @@ implementation
                               TParaSymtable
 ****************************************************************************}
 
-    constructor tparasymtable.create(adefowner:tdef;level:byte);
+    constructor tparasymtable.create(adefowner:tdef;level:byte;acompiler: TCompilerBase);
       begin
-        inherited create('');
+        inherited create('',acompiler);
         defowner:=adefowner;
         symtabletype:=parasymtable;
         symtablelevel:=level;
@@ -2572,9 +2572,9 @@ implementation
                          TAbstractUniTSymtable
 ****************************************************************************}
 
-    constructor tabstractuniTSymtable.create(const n : string;id:word);
+    constructor tabstractuniTSymtable.create(const n : string;id:word;acompiler: TCompilerBase);
       begin
-        inherited create(n);
+        inherited create(n,acompiler);
         moduleid:=id;
       end;
 
@@ -2718,9 +2718,9 @@ implementation
                               TStaticSymtable
 ****************************************************************************}
 
-    constructor tstaticsymtable.create(const n : string;id:word);
+    constructor tstaticsymtable.create(const n : string;id:word;acompiler: TCompilerBase);
       begin
-        inherited create(n,id);
+        inherited create(n,id,acompiler);
         symtabletype:=staticsymtable;
         symtablelevel:=main_program_level;
         currentvisibility:=vis_private;
@@ -2766,9 +2766,9 @@ implementation
                               TGlobalSymtable
 ****************************************************************************}
 
-    constructor tglobalsymtable.create(const n : string;id:word);
+    constructor tglobalsymtable.create(const n : string;id:word;acompiler: TCompilerBase);
       begin
-         inherited create(n,id);
+         inherited create(n,id,acompiler);
          symtabletype:=globalsymtable;
          symtablelevel:=main_program_level;
       end;
@@ -2794,9 +2794,9 @@ implementation
                              tspecializesymtable
 *****************************************************************************}
 
-    constructor tspecializesymtable.create(const n : string;id:word);
+    constructor tspecializesymtable.create(const n : string;id:word;acompiler: TCompilerBase);
       begin
-        inherited create(n,id);
+        inherited create(n,id,acompiler);
         { the specialize symtable does not own the syms and defs as they are all
           moved to a different symtable before the symtable is destroyed; this
           avoids calls to "extract" }
@@ -2814,9 +2814,9 @@ implementation
                               TWITHSYMTABLE
 ****************************************************************************}
 
-    constructor twithsymtable.create(aowner:tdef;ASymList:TFPHashObjectList;refnode:tobject{tnode});
+    constructor twithsymtable.create(aowner:tdef;ASymList:TFPHashObjectList;refnode:tobject{tnode};acompiler: TCompilerBase);
       begin
-         inherited create('');
+         inherited create('',acompiler);
          symtabletype:=withsymtable;
          withrefnode:=refnode;
          { Replace SymList with the passed symlist }
@@ -2858,9 +2858,9 @@ implementation
                           TSTT_ExceptionSymtable
 ****************************************************************************}
 
-    constructor tstt_excepTSymtable.create;
+    constructor tstt_excepTSymtable.create(acompiler: TCompilerBase);
       begin
-        inherited create('');
+        inherited create('',acompiler);
         symtabletype:=exceptsymtable;
       end;
 
@@ -2869,9 +2869,9 @@ implementation
                           TMacroSymtable
 ****************************************************************************}
 
-    constructor tmacrosymtable.create(exported: boolean);
+    constructor tmacrosymtable.create(exported: boolean;acompiler: TCompilerBase);
       begin
-        inherited create('');
+        inherited create('',acompiler);
         if exported then
           symtabletype:=exportedmacrosymtable
         else
@@ -2916,9 +2916,9 @@ implementation
         inherited insertsym(sym, checkdup);
       end;
 
-    constructor tenumsymtable.create(adefowner: tdef);
+    constructor tenumsymtable.create(adefowner: tdef;acompiler: TCompilerBase);
       begin
-        inherited Create('');
+        inherited Create('',acompiler);
         symtabletype:=enumsymtable;
         defowner:=adefowner;
       end;
@@ -2937,9 +2937,9 @@ implementation
           inherited insertdef(def);
       end;
 
-    constructor tarraysymtable.create(adefowner: tdef);
+    constructor tarraysymtable.create(adefowner: tdef;acompiler: TCompilerBase);
       begin
-        inherited Create('');
+        inherited Create('',acompiler);
         symtabletype:=arraysymtable;
         defowner:=adefowner;
       end;
@@ -5046,6 +5046,8 @@ implementation
 ****************************************************************************}
 
    procedure InitSymtable;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { Reset symbolstack }
        symtablestack:=nil;
@@ -5054,7 +5056,7 @@ implementation
        generrorsym:=terrorsym.create;
        generrordef:=cerrordef.create;
        { macros }
-       initialmacrosymtable:=tmacrosymtable.create(false);
+       initialmacrosymtable:=tmacrosymtable.create(false,compiler);
        macrosymtablestack:=TSymtablestack.create;
        macrosymtablestack.push(initialmacrosymtable);
 {$ifdef UNITALIASES}

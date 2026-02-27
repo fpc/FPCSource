@@ -3025,6 +3025,8 @@ implementation
 ****************************************************************************}
 
     constructor tenumdef.create;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(enumdef,true);
          minval:=0;
@@ -3033,7 +3035,7 @@ implementation
          has_jumps:=false;
          basedef:=nil;
          basedefderef.reset;
-         symtable:=tenumsymtable.create(self);
+         symtable:=tenumsymtable.create(self,compiler);
       end;
 
 
@@ -3051,6 +3053,8 @@ implementation
 
 
     constructor tenumdef.ppuload(ppufile:tcompilerppufile);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited ppuload(enumdef,ppufile);
          minval:=ppufile.getaint;
@@ -3067,7 +3071,7 @@ implementation
            begin
              ppuload_platform(ppufile);
              // create with nil defowner first to prevent values changes on insert
-             symtable:=tenumsymtable.create(nil);
+             symtable:=tenumsymtable.create(nil,compiler);
              tenumsymtable(symtable).ppuload(ppufile);
              symtable.defowner:=self;
            end;
@@ -4416,6 +4420,8 @@ implementation
 ***************************************************************************}
 
     constructor tarraydef.create(l, h: asizeint; def: tdef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(arraydef,true);
          lowrange:=l;
@@ -4425,7 +4431,7 @@ implementation
          _elementdef:=nil;
          _elementdefderef.reset;
          arrayoptions:=[];
-         symtable:=tarraysymtable.create(self);
+         symtable:=tarraysymtable.create(self,compiler);
       end;
 
 
@@ -4529,6 +4535,8 @@ implementation
 
 
     constructor tarraydef.ppuload(ppufile:tcompilerppufile);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited ppuload(arraydef,ppufile);
          { the addresses are calculated later }
@@ -4538,7 +4546,7 @@ implementation
          highrange:=ppufile.getasizeint;
          ppufile.getset(tppuset2(arrayoptions));
          ppuload_platform(ppufile);
-         symtable:=tarraysymtable.create(self);
+         symtable:=tarraysymtable.create(self,compiler);
          tarraysymtable(symtable).ppuload(ppufile)
       end;
 
@@ -5380,6 +5388,8 @@ implementation
 
 
     constructor trecorddef.create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         name : string;
         pname : pshortstring;
@@ -5400,7 +5410,7 @@ implementation
           that can have side-effects (e.g., it removes helpers) }
         symtablestack:=nil;
 
-        symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin);
+        symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin,compiler);
         symtable.defowner:=self;
         isunion:=false;
         inherited create(pname^,recorddef,true);
@@ -5464,6 +5474,8 @@ implementation
 
 
     constructor trecorddef.ppuload(ppufile:tcompilerppufile);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       procedure readvariantrecdesc(var variantrecdesc : pvariantrecdesc);
         var
@@ -5495,7 +5507,7 @@ implementation
            end
          else
            begin
-             symtable:=trecordsymtable.create(objrealname^,0,0);
+             symtable:=trecordsymtable.create(objrealname^,0,0,compiler);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).explicitrecordalignment:=shortint(ppufile.getbyte);
@@ -5716,9 +5728,11 @@ implementation
 ***************************************************************************}
 
     constructor tabstractprocdef.create(dt:tdeftyp;level:byte;doregister:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(dt,doregister);
-         parast:=tparasymtable.create(self,level);
+         parast:=tparasymtable.create(self,level,compiler);
          paras:=nil;
          minparacount:=0;
          maxparacount:=0;
@@ -6651,10 +6665,12 @@ implementation
 
 
     constructor tprocdef.create(level:byte;doregister:boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(procdef,level,doregister);
          implprocdefinfo:=allocmem(sizeof(implprocdefinfo^));
-         localst:=tlocalsymtable.create(self,parast.symtablelevel);
+         localst:=tlocalsymtable.create(self,parast.symtablelevel,compiler);
 {$ifdef symansistr}
          _mangledname:='';
 {$else symansistr}
@@ -6686,6 +6702,8 @@ implementation
 
 
     constructor tprocdef.ppuload(ppufile:tcompilerppufile);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i,aliasnamescount,sizeleft : longint;
         level : byte;
@@ -6770,12 +6788,12 @@ implementation
          ppuload_platform(ppufile);
 
          { load para symtable }
-         parast:=tparasymtable.create(self,level);
+         parast:=tparasymtable.create(self,level,compiler);
          tparasymtable(parast).ppuload(ppufile);
          { load local symtable }
          if store_localst then
           begin
-            localst:=tlocalsymtable.create(self,level);
+            localst:=tlocalsymtable.create(self,level,compiler);
             tlocalsymtable(localst).ppuload(ppufile);
           end
          else
@@ -7730,10 +7748,12 @@ implementation
 
 
     constructor tprocvardef.ppuload(ppufile:tcompilerppufile);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited ppuload(procvardef,ppufile);
          { load para symtable }
-         parast:=tparasymtable.create(self,ppufile.getbyte);
+         parast:=tparasymtable.create(self,ppufile.getbyte,compiler);
          ppuload_platform(ppufile);
          tparasymtable(parast).ppuload(ppufile);
       end;
@@ -7907,6 +7927,8 @@ implementation
 ***************************************************************************}
 
    constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
         inherited create(n,objectdef,doregister);
         fcurrent_dispid:=0;
@@ -7921,7 +7943,7 @@ implementation
         if objecttype=odt_helper then
           owner.includeoption(sto_has_helper);
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords,
-          current_settings.alignment.recordalignmin);
+          current_settings.alignment.recordalignmin,compiler);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
         set_parent(c);
@@ -7937,6 +7959,8 @@ implementation
 
 
     constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          i,
          implintfcount : longint;
@@ -7951,7 +7975,7 @@ implementation
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
            stringdispose(objextname);
-         symtable:=tObjectSymtable.create(self,objrealname^,0,0);
+         symtable:=tObjectSymtable.create(self,objrealname^,0,0,compiler);
          tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
          tObjectSymtable(symtable).paddingsize:=ppufile.getword;
          tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);

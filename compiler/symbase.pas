@@ -28,7 +28,7 @@ interface
        { common }
        cutils,cclasses,
        { global }
-       globtype,globals,
+       globtype,globals,compilerbase,
        { symtable }
        symconst
        ;
@@ -90,6 +90,7 @@ interface
 
        TSymtable = class
        public
+          compiler  : TCompilerBase;
           name      : pshortstring;
           realname  : pshortstring;
           DefList   : TFPObjectList;
@@ -105,7 +106,7 @@ interface
           { do not allow to add new definitions, can be extended to symbols probably }
           sealed : boolean;
           symtabletype  : TSymtabletype;
-          constructor Create(const s:string);
+          constructor Create(const s:string; ACompiler: TCompilerBase);
           { attention: only execute the a child's destructor if refcount is 1! }
           destructor  destroy;override;
           procedure freeinstance;override;
@@ -240,8 +241,9 @@ implementation
                                 TSymtable
 ****************************************************************************}
 
-    constructor TSymtable.Create(const s:string);
+    constructor TSymtable.Create(const s:string; ACompiler: TCompilerBase);
       begin
+         compiler:=ACompiler;
          if s<>'' then
            begin
              name:=stringdup(upper(s));

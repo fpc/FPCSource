@@ -630,13 +630,13 @@ implementation
              pushobjchild(withdef,parenthelperdef.childof);
            { keep the original tobjectdef as owner, because that is used for
              visibility of the symtable }
-           st:=twithsymtable.create(withdef,obj.symtable.SymList,refnode.getcopy);
+           st:=twithsymtable.create(withdef,obj.symtable.SymList,refnode.getcopy,compiler);
            symtablestack.push(st);
            withsymtablelist.add(st);
            { push the symtable of the helper }
            if assigned(parenthelperdef) then
              begin
-               st:=twithsymtable.create(withdef,parenthelperdef.symtable.SymList,refnode.getcopy);
+               st:=twithsymtable.create(withdef,parenthelperdef.symtable.SymList,refnode.getcopy,compiler);
                symtablestack.push(st);
                withsymtablelist.add(st);
              end;
@@ -750,7 +750,7 @@ implementation
                    if assigned(helperdef) then
                      pushobjchild(helperdef,helperdef.childof);
                    { push object symtable }
-                   st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.SymList,refnode);
+                   st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.SymList,refnode,compiler);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                  end;
@@ -764,7 +764,7 @@ implementation
                    if assigned(helperdef) then
                      pushobjchild(helperdef,helperdef.childof);
                    { push object symtable }
-                   st:=twithsymtable.Create(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).symtable.SymList,refnode);
+                   st:=twithsymtable.Create(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).symtable.SymList,refnode,compiler);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
@@ -776,7 +776,7 @@ implementation
                    if assigned(helperdef) then
                      pushobjchild(helperdef,helperdef.childof);
                    { push record symtable }
-                   st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode);
+                   st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode,compiler);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
@@ -786,7 +786,7 @@ implementation
                      internalerror(2012122802);
                    helperdef:=nil;
                    { push record symtable }
-                   st:=twithsymtable.create(p.resultdef,nil,refnode);
+                   st:=twithsymtable.create(p.resultdef,nil,refnode,compiler);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
@@ -797,7 +797,7 @@ implementation
             { push helper symtable }
             if assigned(helperdef) then
               begin
-                st:=twithsymtable.Create(helperdef,helperdef.symtable.SymList,refnode.getcopy);
+                st:=twithsymtable.Create(helperdef,helperdef.symtable.SymList,refnode.getcopy,compiler);
                 symtablestack.push(st);
                 withsymtablelist.add(st);
               end;
@@ -1022,7 +1022,7 @@ implementation
                                  type }
                                sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
-                          excepTSymtable:=tstt_excepTSymtable.create;
+                          excepTSymtable:=tstt_excepTSymtable.create(compiler);
                           excepTSymtable.defowner:=current_procinfo.procdef;
                           excepTSymtable.insertsym(sym);
                           symtablestack.push(excepTSymtable);

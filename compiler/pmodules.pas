@@ -1352,7 +1352,7 @@ type
 
         if (m_mac in current_settings.modeswitches) then
           begin
-            curr.globalmacrosymtable:=tmacrosymtable.create(true);
+            curr.globalmacrosymtable:=tmacrosymtable.create(true,compiler);
             curr.localmacrosymtable.SymList.ForEachCall(@copy_macro,curr);
           end;
 
@@ -1405,7 +1405,7 @@ type
         parse_only:=false;
 
         { create static symbol table }
-        curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid);
+        curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid,compiler);
 
 
         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
@@ -1522,7 +1522,7 @@ type
 
          { generate now the global symboltable,
            define first as local to overcome dependency conflicts }
-         curr.localsymtable:=tglobalsymtable.create(curr.modulename^,curr.moduleid);
+         curr.localsymtable:=tglobalsymtable.create(curr.modulename^,curr.moduleid,compiler);
 
          { insert unitsym of this unit to prevent other units having
            the same name }
@@ -2075,7 +2075,7 @@ type
 
          { insert after the unit symbol tables the static symbol table }
          { of the program                                             }
-         curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid);
+         curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid,compiler);
 
          { ensure that no packages are picked up from the options }
          packagelist.clear;
@@ -3048,7 +3048,7 @@ type
 
          { insert after the unit symbol tables the static symbol table
            of the program                                              }
-         curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid);
+         curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid,compiler);
 
          { load system unit }
          load_ok:=loadsystemunit(curr);

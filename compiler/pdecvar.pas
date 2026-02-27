@@ -412,7 +412,7 @@ implementation
                 not((m_delphi in current_settings.modeswitches) and is_interfacecom_or_dispinterface(astruct)) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
-              p.parast:=tparasymtable.create(nil,0);
+              p.parast:=tparasymtable.create(nil,0,compiler);
               symtablestack.push(p.parast);
               sc:=TFPObjectList.create(false);
               repeat
@@ -2063,7 +2063,7 @@ implementation
                 Message(type_e_ordinal_expr_expected);
               consume(_OF);
 
-              UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin);
+              UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
               UnionDef:=crecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
 

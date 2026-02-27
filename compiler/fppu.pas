@@ -39,7 +39,7 @@ interface
     uses
       cmsgs,verbose,
       cutils,cclasses,cstreams,
-      globtype,globals,fpchash,finput,fmodule,
+      globtype,globals,fpchash,finput,fmodule,compilerbase,
       symbase,ppu,symtype;
 
     type
@@ -2081,6 +2081,8 @@ var
       end;
 
       function tppumodule.load_usedunits: boolean;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       { self is a ppu (or in a package) }
       {$IFDEF DisableCTaskPPU}
       var
@@ -2144,14 +2146,14 @@ var
             internalerror(200208187);
           deflist.count:=ppufile.header.deflistsize;
           symlist.count:=ppufile.header.symlistsize;
-          globalsymtable:=tglobalsymtable.create(realmodulename^,moduleid);
+          globalsymtable:=tglobalsymtable.create(realmodulename^,moduleid,compiler);
           tstoredsymtable(globalsymtable).ppuload(ppufile);
 
           if ppufile.readentry<>ibexportedmacros then
             Message(unit_f_ppu_read_error);
           if boolean(ppufile.getbyte) then
             begin
-              globalmacrosymtable:=tmacrosymtable.Create(true);
+              globalmacrosymtable:=tmacrosymtable.Create(true,compiler);
               tstoredsymtable(globalmacrosymtable).ppuload(ppufile)
             end;
 
@@ -2212,7 +2214,7 @@ var
           { load implementation symtable }
           if mf_local_symtable in moduleflags then
             begin
-              localsymtable:=tstaticsymtable.create(realmodulename^,moduleid);
+              localsymtable:=tstaticsymtable.create(realmodulename^,moduleid,compiler);
               tstaticsymtable(localsymtable).ppuload(ppufile);
             end;
 

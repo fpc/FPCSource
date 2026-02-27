@@ -26,7 +26,7 @@ interface
 
     uses
        { common }
-       sysutils,cutils,compinnr,
+       sysutils,cutils,compinnr,compilerbase,
        { target }
        globtype,globals,widestr,constexp,
        { symtable }
@@ -1614,6 +1614,8 @@ implementation
 
 
     constructor tpropertysym.ppuload(ppufile:tcompilerppufile);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pap : tpropaccesslisttypes;
       begin
@@ -1630,7 +1632,7 @@ implementation
          ppuload_platform(ppufile);
          if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
            begin
-             parast:=tparasymtable.create(nil,0);
+             parast:=tparasymtable.create(nil,0,compiler);
              tparasymtable(parast).ppuload(ppufile);
            end
          else

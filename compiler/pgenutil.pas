@@ -1996,7 +1996,7 @@ uses
               added to the correct symtable; this symtable does not contain
               any other symbols, so that the type resolution can not be
               influenced by symbols in the current unit }
-            tempst:=tspecializesymtable.create(current_module.modulename^,current_module.moduleid);
+            tempst:=tspecializesymtable.create(current_module.modulename^,current_module.moduleid,compiler);
             symtablestack.push(tempst);
 
             { Reparse the original type definition }
@@ -2412,7 +2412,7 @@ uses
                         Message(parser_e_illegal_expression)
                       else
                         begin
-                          srsymtable:=trecordsymtable.create(defname,0,1);
+                          srsymtable:=trecordsymtable.create(defname,0,1,compiler);
                           basedef:=crecorddef.create(defname,srsymtable);
                           include(constraintdata.flags,gcf_record);
                           allowconstructor:=false;

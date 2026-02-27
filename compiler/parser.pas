@@ -64,6 +64,7 @@ type
     function compile_module(module : tmodule) : boolean;
     procedure parsing_done(module : tmodule);
 
+    property Compiler: TCompilerBase read FCompiler;
     property pmodules: TModulesParser read FPModules;
     property pgenutil: TGenericsParseUtils read FPGenUtil;
     property pstatmnt: TStatementsParser read FPStatmnt;
@@ -550,7 +551,7 @@ implementation
          set_current_scanner(sc);
 
          { init macros before anything in the file is parsed.}
-         module.localmacrosymtable:= tmacrosymtable.create(false);
+         module.localmacrosymtable:= tmacrosymtable.create(false,compiler);
          macrosymtablestack.push(initialmacrosymtable);
          macrosymtablestack.push(module.localmacrosymtable);
 
