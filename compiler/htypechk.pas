@@ -875,9 +875,8 @@ implementation
 
 
     function isbinaryoverloaded(var t : tnode;ocf:toverload_check_flags) : boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         rd,ld   : tdef;
         optoken : ttoken;
         operpd  : tprocdef;
@@ -964,6 +963,7 @@ implementation
           end;
 
       begin
+        compiler:=t.compiler;
         isbinaryoverloaded:=false;
         operpd:=nil;
         ppn:=nil;
