@@ -399,11 +399,11 @@ implementation
 
 
     procedure load_procvar_from_calln(var p1:tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         p2 : tnode;
       begin
+        compiler:=p1.compiler;
         if p1.nodetype<>calln then
           internalerror(200212251);
         { was it a procvar, then we simply remove the calln and
