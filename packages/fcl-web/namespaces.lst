@@ -101,8 +101,12 @@ src/jwt/fpjwaes256.pp=namespaced/Jwt.Jwa.Es256.pp
 src/jwt/fpjwasha256.pp=namespaced/Jwt.Jwa.Sha256.pp
 src/jwt/fpjwt.pp=namespaced/Jwt.Types.pp
 src/jwt/fpoauth2.pp=namespaced/Jwt.Oauth2.pp
-src/fcm/fpfcmclient.pp=Fcm.Client.pp
-src/fcm/fpfcmstrings.pp=Fcm.Strings.pp
-src/fcm/fpfcmtypes.pp=Fcm.Types.pp
-src/openapi/fpopenapiclient.pp=FpWeb.OpenAPI.Client.pp
-src/openapi/fpopenapimodule.pp=FpWeb.OpenAPI.Module.pp
+{s*:src/fcm/}=namespaced/
+{i+:src/fcm/}
+src/fcm/fpfcmclient.pp=namespaced/Fcm.Client.pp
+src/fcm/fpfcmstrings.pp=namespaced/Fcm.Strings.pp
+src/fcm/fpfcmtypes.pp=namespaced/Fcm.Types.pp
+{s*:src/openapi/}=namespaced/
+{i+:src/openapi/}
+src/openapi/fpopenapiclient.pp=namespaced/FpWeb.OpenAPI.Client.pp
+src/openapi/fpopenapimodule.pp=namespaced/FpWeb.OpenAPI.Module.pp
