@@ -30,7 +30,7 @@ interface
 // We cannot detect the char size before the uses clause is parsed, it will return 1, the compiler default.
 // So we need a define here, maybe a compiler switch is needed to set the default size (-Sw ?) which would allow to set the default type.
 // The detection here is based on the assumption that the dotted units use widestring...
-{$IFDEF FPC_DOTTEDUNITS}
+{$IF DEFINED(FPC_DOTTEDUNITS) OR DEFINED(UNICODE)}
 {$DEFINE USEWIDESTRING}
 {$ENDIF}
 
