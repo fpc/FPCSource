@@ -580,9 +580,8 @@ implementation
 
 
     function load_vmt_for_self_node(self_node: tnode): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         self_resultdef: tdef;
         obj_def: tobjectdef;
         self_temp,
@@ -593,6 +592,7 @@ implementation
         paras: tcallparanode;
         docheck,is_typecasted_classref: boolean;
       begin
+        compiler:=self_node.compiler;
         self_resultdef:=self_node.resultdef;
         case self_resultdef.typ of
           classrefdef:
