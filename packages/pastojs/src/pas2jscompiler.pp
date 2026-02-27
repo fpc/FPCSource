@@ -4329,7 +4329,6 @@ end;
 function TPas2jsCompiler.FormatPath(const aPath: String): String;
 begin
   Result:=FS.FormatPath(aPath);
-  Writeln('Info: Formatpath ',aPath,' -> ',Result);
 end;
 
 function TPas2jsCompiler.FullFormatPath(const aPath: String): String;
