@@ -1351,11 +1351,11 @@ implementation
 
 
     function genloadfield(n: tnode; const fieldname: string): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler   : TCompilerBase;
         vs         : tsym;
       begin
+        compiler:=n.compiler;
         if not assigned(n.resultdef) then
           typecheckpass(n);
         vs:=tsym(tabstractrecorddef(n.resultdef).symtable.find(fieldname));
