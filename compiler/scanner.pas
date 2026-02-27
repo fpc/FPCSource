@@ -838,7 +838,9 @@ implementation
     procedure SetAppType(NewAppType:tapptype);
       begin
 {$ifdef i8086}
-        if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) and (apptype<>NewAppType) then
+        { Set application extension regardless if it might or might not have been correct.
+          Important for secondary compilations from Textmode IDE. }
+        if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             if NewAppType=app_com then
               begin
