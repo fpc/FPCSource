@@ -5254,15 +5254,24 @@ Var
 begin
   For I:=Aliases.Count-1 downto 0 do
     if pos('=',Aliases[i])>0 then
-      begin
+    begin
       Aliases.GetNameValue(I,N,V);
-      N:=ExtractFileName(N);
-      V:=ExtractFileName(V);
-      Aliases.Add(N+'='+V);
-      N:=ChangeFileExt(N,'');
-      V:=ChangeFileExt(V,'');
-      Aliases.Add(N+'='+V);
+
+      if not N.StartsWith('{') then
+      begin
+        {$IFDEF WINDOWS}
+        N := N.Replace('/', PathSeparator, [rfReplaceAll]);
+        V := V.Replace('/', PathSeparator, [rfReplaceAll]);
+        {$ENDIF}
+
+        N:=ExtractFileName(N);
+        V:=ExtractFileName(V);
+        Aliases.Add(N+'='+V);
+        N:=ChangeFileExt(N,'');
+        V:=ChangeFileExt(V,'');
+        Aliases.Add(N+'='+V);
       end;
+    end;
 end;
 
 procedure TPackage.ApplyNameSpaces(aEngine: TBuildEngine; aFileName: string; aTarget : TCompileTarget);
@@ -7693,7 +7702,7 @@ procedure TBuildEngine.ResolveFileNames(APackage: TPackage; ACPU: TCPU;
       FindFileInPath(APackage,APackage.SourcePath,SF,SD,ACPU,AOS);
     if SD<>'' then
       SD:=IncludeTrailingPathDelimiter(SD);
-    T.FTargetSourceFileName:=SD+SF;
+    T.FTargetSourceFileName:=(SD+SF).Replace(PathDelim, '/', [rfReplaceAll]);
     if FileExists(AddPathPrefix(APackage,T.TargetSourceFileName)) then
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
