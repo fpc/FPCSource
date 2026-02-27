@@ -54,6 +54,7 @@ interface
         procedure OptimizeNodeTree;
         procedure convert_captured_syms;
         function block(islibrary : boolean) : tnode;
+        function generate_bodyentry_block:tnode;
       protected
         procedure generate_code_exceptfilters;
       public
@@ -468,9 +469,7 @@ implementation
       end;
 
 
-    function generate_bodyentry_block:tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function tcgprocinfo.generate_bodyentry_block:tnode;
       var
         srsym        : tsym;
         para         : tcallparanode;
