@@ -53,6 +53,7 @@ interface
         procedure setup_tempgen;
         procedure OptimizeNodeTree;
         procedure convert_captured_syms;
+        function block(islibrary : boolean) : tnode;
       protected
         procedure generate_code_exceptfilters;
       public
@@ -365,9 +366,7 @@ implementation
          end;
       end;
 
-    function block(islibrary : boolean) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function tcgprocinfo.block(islibrary : boolean) : tnode;
       begin
          { parse const,types and vars }
          compiler.parser.psub.read_declarations(islibrary);
