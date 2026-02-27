@@ -57,6 +57,7 @@ interface
         function generate_bodyentry_block:tnode;
         function generate_bodyexit_block:tnode;
         procedure init_main_block_syms(ablock: tnode);
+        procedure initializevars(p:TObject;arg:pointer);
       protected
         procedure generate_code_exceptfilters;
       public
@@ -297,9 +298,7 @@ implementation
                       PROCEDURE/FUNCTION BODY PARSING
 ****************************************************************************}
 
-    procedure initializevars(p:TObject;arg:pointer);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure tcgprocinfo.initializevars(p:TObject;arg:pointer);
       var
         b : tblocknode;
       begin
