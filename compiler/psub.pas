@@ -56,6 +56,7 @@ interface
         function block(islibrary : boolean) : tnode;
         function generate_bodyentry_block:tnode;
         function generate_bodyexit_block:tnode;
+        procedure init_main_block_syms(ablock: tnode);
       protected
         procedure generate_code_exceptfilters;
       public
@@ -346,7 +347,7 @@ implementation
           end;
       end;
 
-    procedure init_main_block_syms(block: tnode);
+    procedure tcgprocinfo.init_main_block_syms(ablock: tnode);
       var
          oldfilepos: tfileposinfo;
       begin
@@ -357,7 +358,7 @@ implementation
              values: part of function entry }
            oldfilepos:=current_filepos;
            current_filepos:=current_procinfo.entrypos;
-           current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
+           current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,ablock);
            current_filepos:=oldfilepos;
          end;
 
