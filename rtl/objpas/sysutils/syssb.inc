@@ -709,7 +709,7 @@ function TGenericStringBuilder.ToString(UpdateCapacity: Boolean): SBString;
 begin
   if (Length<>Capacity) and UpdateCapacity then
     SetCapacity(Length);
-  Result:=ToString;
+  Result:=ToString();
 end;
 
 
