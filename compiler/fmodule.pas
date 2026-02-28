@@ -1781,14 +1781,14 @@ implementation
         var
           i: Integer;
         begin
+          Result:=false;
           if m=self then exit(true);
-          if m.cycle_search_stamp=tmodule.cycle_stamp then exit(false);
+          if m.cycle_search_stamp=tmodule.cycle_stamp then exit;
           m.cycle_search_stamp:=tmodule.cycle_stamp;
           if not Assigned(m.waitingunits) then exit;
           for i:=m.waitingunits.Count-1 downto 0 do
             if search(tmodule(m.waitingunits[i])) then
               exit(true);
-          Result:=false;
         end;
 
       var
