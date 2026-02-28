@@ -153,6 +153,7 @@ interface
         {$IFNDEF DisableCTaskPPU}
         fromppu: boolean;         { loaded from ppu }
         ppu_discarded: boolean;         { ppu was recompiled }
+        ppu_waitingfor_crc: boolean;
         {$ENDIF}
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded, interface_crc and indirect_crc are valid }
@@ -353,6 +354,8 @@ interface
         procedure add_public_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
         procedure add_extern_asmsym(sym:TAsmSymbol);
         procedure add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+        procedure remove_waitforunit_cycles;
+        procedure remove_all_waitsforthisunit;
         procedure remove_from_waitingforunits(amodule : tmodule);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
         function ToString: RTLString; override;
@@ -1770,6 +1773,54 @@ implementation
             exit;
           end;
         tasmsymbol.create(externasmsyms,name,bind,typ);
+      end;
+
+    procedure tmodule.remove_waitforunit_cycles;
+
+        function search(m: tmodule): boolean;
+        var
+          i: Integer;
+        begin
+          if m=self then exit(true);
+          if m.cycle_search_stamp=tmodule.cycle_stamp then exit(false);
+          m.cycle_search_stamp:=tmodule.cycle_stamp;
+          if not Assigned(m.waitingunits) then exit;
+          for i:=m.waitingunits.Count-1 downto 0 do
+            if search(tmodule(m.waitingunits[i])) then
+              exit(true);
+          Result:=false;
+        end;
+
+      var
+        waitingmodule: tmodule;
+        i: Integer;
+      begin
+        if not Assigned(waitingunits) then exit;
+        tmodule.increase_cycle_stamp;
+        for i:=waitingunits.Count-1 downto 0 do
+          begin
+            waitingmodule:=tmodule(waitingunits[i]);
+            if search(waitingmodule) then
+              begin
+                waitingunits.delete(i);
+                waitingmodule.remove_from_waitingforunits(self);
+                tmodule.increase_cycle_stamp;
+              end;
+          end;
+      end;
+
+    procedure tmodule.remove_all_waitsforthisunit;
+      var
+        i: Integer;
+        waitingmodule: tmodule;
+      begin
+        if not assigned(waitingunits) then exit;
+        for i:=0 to waitingunits.count-1 do
+          begin
+            waitingmodule:=tmodule(waitingunits[i]);
+            waitingmodule.remove_from_waitingforunits(self);
+          end;
+        waitingunits.Clear;
       end;
 
     procedure tmodule.remove_from_waitingforunits(amodule: tmodule);

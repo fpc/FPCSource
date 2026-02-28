@@ -599,6 +599,7 @@ var
   var
     uu: tused_unit;
     um: tmodule;
+    i: Integer;
   begin
     Result:=false;
     if m.cycle_search_stamp=tmodule.cycle_stamp then exit;
@@ -632,6 +633,33 @@ var
               end;
           end;
         uu:=tused_unit(uu.Next);
+      end;
+
+    if (m.state=ms_compiling_waitfinish) and assigned(m.waitingforunit) then
+      begin
+        for i:=0 to m.waitingforunit.Count do
+          begin
+            um:=tmodule(m.waitingforunit[i]);
+            if um=pas_mod then
+              begin
+                { m waits for pas_mod }
+                Result:=true;
+                if m.fromppu then
+                  begin
+                    best:=m;
+                    exit;
+                  end;
+              end;
+            if search(um) then
+              begin
+                Result:=true;
+                if m.fromppu then
+                  begin
+                    best:=m;
+                    exit;
+                  end;
+              end;
+          end;
       end;
   end;
 
@@ -825,6 +853,11 @@ begin
     begin
       writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr);
       Internalerror(2026022411);
+    end;
+  if mf_release in m.moduleflags then
+    begin
+      writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr,' unit was compiled with Ur');
+      Internalerror(2026022412);
     end;
 
   Result:=restore_state(m);
