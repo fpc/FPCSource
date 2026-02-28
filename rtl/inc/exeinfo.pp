@@ -53,10 +53,6 @@ type
     // Offset of the binary image forming permanent offset to all retrieved values
     ImgOffset: TExeOffset;
     filename  : shortstring;
-    // Allocate static buffer for reading data
-    buf       : array[0..4095] of byte;
-    bufsize,
-    bufcnt    : longint;
   end;
 
 function OpenExeFile(var e:TExeFile;const fn:shortstring):boolean;
@@ -1575,7 +1571,6 @@ var
 begin
   OpenExeFile:=false;
   fillchar(e,sizeof(e),0);
-  e.bufsize:=sizeof(e.buf);
   e.filename:=fn;
   if fn='' then   // we don't want to read stdin
     exit;
@@ -1626,6 +1621,8 @@ var
   c      : cardinal;
   ofm    : word;
   g      : file;
+  buf    : array[0..4095] of byte;
+  bufcnt : longint;
 begin
   CheckDbgFile:=false;
   assign(g,fn);
@@ -1640,9 +1637,9 @@ begin
   { We reuse the buffer from e here to prevent too much stack allocation }
   c:=0;
   repeat
-    blockread(g,e.buf,e.bufsize,e.bufcnt);
-    c:=UpdateCrc32(c,e.buf,e.bufcnt);
-  until e.bufcnt<e.bufsize;
+    blockread(g,buf,sizeof(buf),bufcnt);
+    c:=UpdateCrc32(c,buf,bufcnt);
+  until bufcnt<sizeof(buf);
   close(g);
   CheckDbgFile:=(dbgcrc=c);
 end;
