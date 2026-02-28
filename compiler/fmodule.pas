@@ -1505,7 +1505,10 @@ implementation
         hp : tmodule;
       begin
         if id>=derefmapsize then
-          internalerror(200306231);
+          begin
+            writeln('tmodule.resolve_unit ',modulename^,' ',statestr,' id=',id,' derefmapsize=',derefmapsize);
+            internalerror(200306231);
+          end;
         result:=derefmap[id].u;
         if not assigned(result) then
           begin
