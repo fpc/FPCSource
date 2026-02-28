@@ -10518,10 +10518,6 @@ unit aoptx86;
             { Re-evaluate from p_last.  Probably could be faster, but it's guaranteed to be correct }
             Continue;
 
-          JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
-          if not Assigned(JumpLabel) then
-            InternalError(2024012801);
-
           { Optimise the J(c); stc/clc optimisation first since this will
             get missed if the main optimisation takes place }
           if (taicpu(hp1).opcode = A_JCC) then
@@ -10533,6 +10529,12 @@ unit aoptx86;
                   Result := True;
                   Exit;
                 end;
+
+              { TryJccStcClcOpts calls "DoJumpOptimizations", which may change
+                the label destination, so only grab the label name afterwards }
+              JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
+              if not Assigned(JumpLabel) then
+                InternalError(2024012802);
 
               hp2 := nil; { Suppress compiler warning }
 
@@ -10573,6 +10575,12 @@ unit aoptx86;
                       Exit;
                     end;
                 end;
+            end
+          else
+            begin
+              JumpLabel := TAsmLabel(taicpu(hp1).oper[0]^.ref^.symbol);
+              if not Assigned(JumpLabel) then
+                InternalError(2024012801);
             end;
 
           hp2 := nil; { Suppress compiler warning }
