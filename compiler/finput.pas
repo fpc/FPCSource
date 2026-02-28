@@ -148,7 +148,7 @@ interface
      type
         tmodulebase = class(TLinkedListItem)
           { index }
-          unit_index       : longint;  { global counter for browser }
+          moduleid      : longint;  { global counter for browser }
           { status }
           state            : tmodulestate;
           { sources }
@@ -549,7 +549,7 @@ uses
 
 {$ifndef GENERIC_CPU}
 {$ifdef heaptrc}
-         ppheap_register_file(f.path+f.name,current_module.unit_index*100000+f.ref_index);
+         ppheap_register_file(f.path+f.name,current_module.moduleid*100000+f.ref_index);
 {$endif heaptrc}
 {$endif not GENERIC_CPU}
       end;
@@ -686,7 +686,7 @@ uses
         state:=ms_registered;
         { unit index }
         inc(global_unit_count);
-        unit_index:=global_unit_count;
+        moduleid:=global_unit_count;
         { sources }
         sourcefiles:=TInputFileManager.Create;
       end;

@@ -357,7 +357,7 @@ implementation
             hmodule:=find_module_from_symtable(srsym.Owner);
             if not Assigned(hmodule) then
               internalerror(2010011201);
-            if hmodule.unit_index=current_filepos.moduleindex then
+            if hmodule.moduleid=current_filepos.moduleindex then
               begin
                 if cuf_consume_id in flags then
                   consume(_ID);

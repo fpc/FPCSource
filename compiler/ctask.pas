@@ -1091,7 +1091,7 @@ begin
 
   if t=nil then
     begin
-    {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' added to task scheduler. State: ',m.statestr,' unit_index=',m.unit_index);{$ENDIF}
+    {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' added to task scheduler. State: ',m.statestr,' moduleid=',m.moduleid);{$ENDIF}
     { Clear reset flag.
       This can happen when during load, reset is done and unit is added to task list. }
     m.is_reset:=false;

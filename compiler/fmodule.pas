@@ -176,7 +176,6 @@ interface
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
         change_endian : boolean;  { if the unit is loaded on a system with a different endianess than it was compiled on }
-        moduleid      : longint;
         unitmap       : tunitmaparray; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
         derefmap      : tderefmaparray; { mapping of all units needed for deref }
@@ -354,7 +353,7 @@ interface
        current_module    : tmodule;     { Current module which is compiled or loaded }
        compiled_module   : tmodule;     { Current module which is compiled }
        usedunits         : tlinkedlist; { Used units for this program }
-       loaded_units      : tlinkedlist; { All loaded units }
+       loaded_units      : tlinkedlist; { All loaded units, excluding main_module }
        unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }
@@ -425,7 +424,7 @@ implementation
               end
             else
               begin
-                current_filepos.moduleindex:=current_module.unit_index;
+                current_filepos.moduleindex:=current_module.moduleid;
                 parser_current_file:='';
               end;
           end
@@ -449,7 +448,7 @@ implementation
          if not(assigned(loaded_units)) then
            exit;
          hp:=tmodule(loaded_units.first);
-         while assigned(hp) and (hp.unit_index<>moduleindex) do
+         while assigned(hp) and (hp.moduleid<>moduleindex) do
            hp:=tmodule(hp.next);
          result:=hp;
       end;
@@ -469,7 +468,6 @@ implementation
 
     procedure addloadedunit(hp:tmodule);
       begin
-        hp.moduleid:=loaded_units.count;
         loaded_units.concat(hp);
       end;
 
@@ -1452,20 +1450,21 @@ implementation
       begin
         { Extend unitmap }
         oldmapsize:=unitmapsize;
-        unitmapsize:=loaded_units.count;
+        unitmapsize:=loaded_units.count+1;
         setlength(unitmap,unitmapsize);
 
         { Extend Derefmap }
         oldmapsize:=derefmapsize;
-        derefmapsize:=loaded_units.count;
+        derefmapsize:=loaded_units.count+1;
         setlength(derefmap,derefmapsize);
         { Add all units to unitmap }
         hp:=tmodule(loaded_units.first);
-        i:=0;
+        if hp=nil then exit;
+        i:=hp.moduleid;
         while assigned(hp) do
           begin
             if hp.moduleid>=unitmapsize then
-              internalerror(200501151);
+              internalerror(2005011513);
             { Verify old entries }
             if (i<oldmapsize) then
               begin
