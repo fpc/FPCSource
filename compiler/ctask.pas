@@ -941,12 +941,12 @@ begin
   SetLength(stack,cnt);
   stackindex:=0;
 
-  {$IFDEF DEBUG_CTASK}
+  {$IFDEF DEBUG_PPU_CYCLES}
   grp_cnt:=0;
   {$ENDIF}
   cur_index:=0;
   scc_traverse(main_module);
-  {$IFDEF DEBUG_CTASK}
+  {$IFDEF DEBUG_PPU_CYCLES}
   writeln('tmodule.update_circular_unit_groups modulecnt=',cnt,' grp_cnt=',grp_cnt);
   {$ENDIF}
 end;
@@ -957,11 +957,20 @@ var
   besttask: ttask_list;
   firstwaiting, m, scc_root, best: tmodule;
   n: TSymStr;
-
+  {$IFDEF DEBUG_CTASK}
+  loopcnt: integer;
+  {$ENDIF}
 begin
   { Strategy: goal is to write ppus early, so that mem is freed early and in case of an error
               next compile can load ppus instead of compiling again. }
+  {$IFDEF DEBUG_CTASK}
+  loopcnt:=0;
+  {$ENDIF}
   repeat
+    {$IFDEF DEBUG_CTASK}
+    inc(loopcnt);
+    writeln('CTASK: Loop: ',loopcnt);
+    {$ENDIF}
     tmodule.ctask_fast_backtrack:=false;
 
     { compute circular unit groups aka scc (strongly connected components) }
@@ -1025,9 +1034,6 @@ begin
         recompile_scc(scc_root);
         continue;
       end;
-    {$IFDEF DEBUG_CTASK}
-    writeln('ttask_handler.processqueue best=',best.modulename^,' ',best.statestr);
-    {$ENDIF}
     n:=best.modulename^;
     besttask:=ttask_list(Hash.Find(n));
     if besttask=nil then
