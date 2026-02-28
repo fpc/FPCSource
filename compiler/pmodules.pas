@@ -215,9 +215,7 @@ implementation
         begin
           { add to used units }
           uu:=curr.addusedunit(hp,false,unitsym);
-          {$IFNDEF DisableCTaskPPU}
           uu.dependent_added:=true;
-          {$ENDIF}
         end;
         result:=hp;
       end;
@@ -699,26 +697,21 @@ implementation
     function loadunits(curr: tmodule; frominterface : boolean) : boolean;
 
       var
-        {$IFDEF DisableCTaskPPU}
-        s  : ansistring;
-        isLoaded : Boolean;
-        {$ENDIF}
         pu  : tused_unit;
         state: tglobalstate;
         lu : tmodule;
 
         procedure restorestate;
-
-        begin
-          state.restore;
-          if assigned(current_scanner) and (current_module.scanner=current_scanner) then
-            begin
-              if assigned(current_scanner.inputfile) then
-                current_scanner.tempopeninputfile;
-            end;
-          state.free;
-          state := nil;
-        end;
+          begin
+            state.restore;
+            if assigned(current_scanner) and (current_module.scanner=current_scanner) then
+              begin
+                if assigned(current_scanner.inputfile) then
+                  current_scanner.tempopeninputfile;
+              end;
+            state.free;
+            state := nil;
+          end;
 
       begin
         Result:=true;
@@ -734,7 +727,6 @@ implementation
             if pu.in_uses and
                (pu.in_interface=frominterface) then
              begin
-               {$IFNDEF DisableCTaskPPU}
                { always call loadppu for the cycle test }
                tppumodule(lu).loadppu(curr);
                if not (curr.state in [ms_compile,ms_compiling_wait,ms_compiling_waitintf,ms_compiling_waitimpl]) then
@@ -758,31 +750,6 @@ implementation
                  tmodule.ctask_fast_backtrack:=true;
                  Result:=false;
                end;
-               {$ELSE}
-               if lu.interface_compiled then
-                 isLoaded:=true
-               else if (lu.state=ms_registered) then
-                  // try to load
-                 isLoaded:=tppumodule(lu).loadppu(curr) and lu.interface_compiled
-               else
-                 isLoaded:=False;
-               isLoaded:=IsLoaded and not lu.is_reset ;
-               if not IsLoaded then
-                 begin
-                   // In case of is_reset, the task handler will discard the state if the module was already there
-                   task_handler.addmodule(lu);
-                 end;
-               IsLoaded:=Isloaded and not curr.is_reset;
-               Result:=Result and IsLoaded;
-               { If we were reset, then used_units is no longer correct, and we must exit at once. }
-               if curr.is_reset then
-                 break;
-               { is our module compiled? then we can stop }
-               if curr.state in [ms_compiled_waitcrc,ms_compiled,ms_processed] then
-                 break;
-               { add this unit to the dependencies }
-               lu.adddependency(curr,frominterface);
-               {$ENDIF}
                { check hints }
                pu.check_hints;
              end;
@@ -1324,23 +1291,10 @@ type
         {$IFDEF Debug_WaitCRC}
         writeln('parse_unit_interface_declarations ',curr.realmodulename^);
         {$ENDIF}
-        {$IFDEF DisableCTaskPPU}
-        if not(cs_compilesystem in current_settings.moduleswitches) and
-          (Errorcount=0) then
-          tppumodule(curr).getppucrc;
-        {$ELSE}
         if Errorcount=0 then
           tppumodule(curr).getppucrc;
-        {$ENDIF}
         curr.in_interface:=false;
         curr.interface_compiled:=true;
-
-        {$IFDEF DisableCTaskPPU}
-        { First reload all units depending on our interface, we need to do this
-          in the implementation part to prevent erroneous circular references }
-        tppumodule(curr).setdefgeneration;
-        tppumodule(curr).reload_flagged_units;
-        {$ENDIF}
 
         { Parse the implementation section }
         if (m_mac in current_settings.modeswitches) and try_to_consume(_END) then
@@ -3065,15 +3019,10 @@ type
          else
            curr.consume_semicolon_after_uses:=false;
 
-         {$IFNDEF DisableCTaskPPU}
          if curr.is_initial then
            load_ok:=false; { delay program, so ctask can finish all units }
          if not load_ok then
            curr.state:=ms_compiling_wait;
-         {$ELSE}
-         if not load_ok then
-           curr.state:=ms_compiling_wait;
-         {$ENDIF}
 
          { Can we continue compiling ? }
 

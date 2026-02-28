@@ -319,8 +319,6 @@ interface
       ccallnode : tcallnodeclass = tcallnode;
       ccallparanode : tcallparanodeclass = tcallparanode;
 
-//      blabla: boolean;
-
 implementation
 
     uses

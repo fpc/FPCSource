@@ -52,9 +52,7 @@ interface
           sourcefn   : TPathStr; { Source specified with "uses .. in '..'" }
           comments   : TCmdStrList;
           nsprefix   : TCmdStr; { Namespace prefix the unit was found with }
-          {$IFNDEF DisableCTaskPPU}
           loadedfrommodule: tmodule;
-          {$endif}
 {$ifdef Test_Double_checksum}
           interface_read_crc_index,
           interface_write_crc_index,
@@ -77,7 +75,6 @@ interface
           procedure getppucrc;
           procedure writeppu;
           function loadppu(from_module : tmodule) : boolean;
-          {$IFNDEF DisableCTaskPPU}
           function get_check_uses(out check_impl_uses, check_crc: boolean): boolean;
           function continueloadppu : boolean;
           function canreload(out firstwaiting: tmodule; recompile_if_crc_changed, ignore_do_reload: boolean): boolean;
@@ -85,16 +82,9 @@ interface
           function ppuloadcancontinue(out firstwaiting: tmodule): boolean;
           function is_reload_needed(pu: tdependent_unit): boolean; override;
           procedure recompile_cycle;
-          {$endif}
           procedure post_load_or_compile(from_module : tmodule; second_time: boolean);
           procedure discardppu;
-          {$IFDEF DisableCTaskPPU}
-          function  needrecompile:boolean;
-          {$ENDIF}
           procedure setdefgeneration;
-          {$IFDEF DisableCTaskPPU}
-          procedure reload_flagged_units;
-          {$ENDIF}
           procedure end_of_parsing;override;
        private
           unitimportsymsderefs : tfplist;
@@ -106,13 +96,7 @@ interface
           defsgeneration : longint;
 
           function check_loadfrompackage: boolean;
-          {$IFDEF DisableCTaskPPU}
-          procedure check_reload(from_module: tmodule; var do_load: boolean);
-          {$ENDIF}
           function  openppu(ppufiletime:longint):boolean;
-          {$IFDEF DisableCTaskPPU}
-          procedure prepare_second_load(from_module: tmodule);
-          {$ENDIF}
           procedure recompile_from_sources(from_module: tmodule);
           function  search_unit_files(loaded_from : tmodule; onlysource:boolean):TAvailableUnitFiles;
           function  search_unit(loaded_from : tmodule; onlysource,shortname:boolean):TAvailableUnitFiles;
@@ -120,18 +104,13 @@ interface
           procedure load_interface;
           procedure load_implementation;
           function load_usedunits: boolean;
-          {$IFNDEF DisableCTaskPPU}
           function load_usedunits_section: boolean;
           function ppu_check_used_crcs: boolean;
-          {$endif}
           procedure printcomments;
           procedure queuecomment(const s:TMsgStr;v,w:longint);
           procedure buildderefunitimportsyms;
           procedure derefunitimportsyms;
           procedure freederefunitimportsyms;
-          {$IFDEF DisableCTaskPPU}
-          procedure try_load_ppufile(from_module: tmodule);
-          {$ENDIF}
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
@@ -212,7 +191,6 @@ var
     function tppumodule.statestr: string;
       begin
         Result:=inherited statestr;
-        {$IFNDEF DisableCTaskPPU}
         if state<>ms_load then exit;
         if ppu_waitingfor_crc then
           Result:=Result+',waitcrc'
@@ -220,7 +198,6 @@ var
           Result:=Result+',interface_compiled'
         else
           Result:=Result+',waitintf';
-        {$ENDIF}
       end;
 
     procedure tppumodule.checkstate;
@@ -233,12 +210,8 @@ var
 
     procedure tppumodule.reset(for_recompile : boolean);
       begin
-        {$IFDEF DisableCTaskPPU}
-        inc(currentdefgeneration);
-        {$ELSE}
         loadedfrommodule:=nil;
         ppu_waitingfor_crc:=false;
-        {$ENDIF}
         discardppu;
         freederefunitimportsyms;
         unitimportsymsderefs.free;
@@ -270,22 +243,8 @@ var
             tunitwpoinfo(wpoinfo).derefimpl;
           end;
 
-        {$IFNDEF DisableCTaskPPU}
         { all dependent units were already flagged recursively for reload }
         defsgeneration:=currentdefgeneration;
-        {$ELSE}
-        { We have to flag the units that depend on this unit even
-          though it didn't change, because they might also
-          indirectly depend on the unit that did change (e.g.,
-          in case rgobj, rgx86 and rgcpu have been compiled
-          already, and then rgobj is recompiled for some reason
-          -> rgx86 is re-reresolved, but the vmtentries of trgcpu
-          must also be re-resolved, because they will also contain
-          pointers to procdefs in the old trgobj (in case of a
-          recompile, all old defs are freed) }
-        flagdependent(loadfrom);
-        reload_flagged_units;
-        {$ENDIF}
       end;
 
 
@@ -852,13 +811,8 @@ var
 
                 { now load the unit and all used units }
                 load_interface;
-                {$IFNDEF DisableCTaskPPU}
                 if not load_usedunits then
                   internalerror(2026020415);
-                {$ELSE}
-                setdefgeneration;
-                load_usedunits;
-                {$ENDIF}
                 Message1(unit_u_finished_loading_unit,modulename^);
 
                 result:=true;
@@ -1445,18 +1399,9 @@ var
            hp:=registerunit(self,hs,'',isnew);
            if isnew then
              usedunits.Concat(tused_unit.create(hp,in_interface,true,nil));
-           {$IFDEF DisableCTaskPPU}
-           if LoadCount=1 then
-             pu:=addusedunit(hp,false,nil)
-           else
-           {$ENDIF}
-             begin
-             pu:=findusedunit(hp);
-             { Safety, normally this should not happen:
-               The used units list cannot change between loads unless recompiled and then loadcount is 1... }
-             if pu=nil then
-               pu:=addusedunit(hp,false,nil);
-             end;
+           pu:=findusedunit(hp);
+           if pu=nil then
+             pu:=addusedunit(hp,false,nil);
            pu.checksum:=checksum;
            pu.interface_checksum:=intfchecksum;
            pu.indirect_checksum:=indchecksum;
@@ -2086,10 +2031,6 @@ var
 
       function tppumodule.load_usedunits: boolean;
       { self is a ppu (or in a package) }
-      {$IFDEF DisableCTaskPPU}
-      var
-        pu           : tused_unit;
-      {$ENDIF}
       begin
         Result:=true;
         if current_module<>self then
@@ -2099,53 +2040,10 @@ var
         begin
           { load the used units from interface }
           in_interface:=true;
-          {$IFNDEF DisableCTaskPPU}
           if not load_usedunits_section then
             exit(false); { e.g. fail or some used unit interface is not ready }
           if current_module<>self then
             internalerror(2026022317);
-          {$ELSE}
-          pu:=tused_unit(used_units.first);
-          while assigned(pu) do
-           begin
-             if pu.in_interface then
-              begin
-                tppumodule(pu.u).loadppu(self);
-                { if this unit is scheduled for compilation or compiled we can stop }
-                if state<>ms_load then
-                  exit;
-                { add this unit to the dependencies }
-                pu.u.adddependency(self,true);
-                { need to recompile the current unit, check the interface
-                  crc. And when not compiled with -Ur then check the complete
-                  crc }
-                if (pu.u.interface_crc<>pu.interface_checksum) or
-                   (pu.u.indirect_crc<>pu.indirect_checksum) or
-                   (
-                    (not(mf_release in moduleflags)) and
-                    (pu.u.crc<>pu.checksum)
-                   ) then
-                 begin
-                   Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename,@queuecomment);
-  {$ifdef DEBUG_UNIT_CRC_CHANGES}
-                   if (pu.u.interface_crc<>pu.interface_checksum) then
-                     Comment(V_Normal,'  intfcrc change: '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
-                   else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                     Comment(V_Normal,'  indcrc change: '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^)
-                   else
-                     Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
-  {$endif DEBUG_UNIT_CRC_CHANGES}
-                   recompile_reason:=rr_crcchanged;
-                   {$IFDEF DEBUG_PPU_CYCLES}
-                   writeln('PPUALGO tppumodule.load_usedunits ',modulename^,' interface uses "',pu.u.modulename^,'" old=',state,' new=',ms_compile);
-                   {$ENDIF}
-                   state:=ms_compile;
-                   exit;
-                 end;
-              end;
-             pu:=tused_unit(pu.next);
-           end;
-          {$ENDIF}
           { ok, now load the interface of this unit }
           if current_module<>self then
             internalerror(200208187);
@@ -2171,7 +2069,6 @@ var
         end;
 
         { now only read the implementation uses }
-        {$IFNDEF DisableCTaskPPU}
         if not ppu_waitingfor_crc then
         begin
           if not load_usedunits_section then
@@ -2179,40 +2076,6 @@ var
           if current_module<>self then
             internalerror(2026022316);
         end;
-        {$ELSE}
-        pu:=tused_unit(used_units.first);
-        while assigned(pu) do
-         begin
-           if (not pu.in_interface) then
-            begin
-              tppumodule(pu.u).loadppu(self);
-              { if this unit is compiled we can stop }
-              if state=ms_compiled then
-                exit;
-              { add this unit to the dependencies }
-              pu.u.adddependency(self,false);
-              { need to recompile the current unit ? }
-              if (pu.u.interface_crc<>pu.interface_checksum) or
-                 (pu.u.indirect_crc<>pu.indirect_checksum) then
-                begin
-                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename+' {impl}',@queuecomment);
-{$ifdef DEBUG_UNIT_CRC_CHANGES}
-                  if (pu.u.interface_crc<>pu.interface_checksum) then
-                    Comment(V_Normal,'  intfcrc change (2): '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
-                  else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                    Comment(V_Normal,'  indcrc change (2): '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^);
-{$endif DEBUG_UNIT_CRC_CHANGES}
-                  recompile_reason:=rr_crcchanged;
-                  {$IFDEF DEBUG_PPU_CYCLES}
-                  writeln('PPUALGO tppumodule.load_usedunits ',modulename^,' implementation uses "',pu.u.modulename^,'" old=',state,' new=',ms_compile);
-                  {$ENDIF}
-                  state:=ms_compile;
-                  exit;
-                end;
-            end;
-           pu:=tused_unit(pu.next);
-         end;
-        {$ENDIF}
 
         if not ppu_waitingfor_crc then
           begin
@@ -2259,7 +2122,6 @@ var
         state:=ms_compiled;
       end;
 
-    {$IFNDEF DisableCTaskPPU}
     function tppumodule.load_usedunits_section: boolean;
       var
         pu: tused_unit;
@@ -2433,71 +2295,11 @@ var
         set_current_module(from_module);
       end;
 
-    {$ENDIF}
-
-    {$IFDEF DisableCTaskPPU}
-    function tppumodule.needrecompile:boolean;
-      var
-        pu : tused_unit;
-      begin
-        result:=false;
-        pu:=tused_unit(used_units.first);
-        while assigned(pu) do
-         begin
-           { need to recompile the current unit, check the interface
-             crc. And when not compiled with -Ur then check the complete
-             crc }
-
-           if (pu.u.interface_crc<>pu.interface_checksum) or
-              (pu.u.indirect_crc<>pu.indirect_checksum) or
-              (
-               (pu.in_interface) and
-               (pu.u.crc<>pu.checksum)
-              ) then
-             begin
-{$ifdef DEBUG_UNIT_CRC_CHANGES}
-               if (pu.u.interface_crc<>pu.interface_checksum) then
-                 Comment(V_Normal,'  intfcrc change (3): '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
-               else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                 Comment(V_Normal,'  indcrc change (3): '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^)
-               else
-                 Comment(V_Normal,'  implcrc change (3): '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
-{$endif DEBUG_UNIT_CRC_CHANGES}
-               result:=true;
-               exit;
-             end;
-           pu:=tused_unit(pu.next);
-         end;
-      end;
-    {$ENDIF}
-
     procedure tppumodule.setdefgeneration;
       begin
         defsgeneration:=currentdefgeneration;
         inc(currentdefgeneration);
       end;
-
-    {$IFDEF DisableCTaskPPU}
-    procedure tppumodule.reload_flagged_units;
-      var
-        hp : tppumodule;
-      begin
-        { now reload all dependent units with outdated defs }
-        hp:=tppumodule(loaded_units.first);
-        while assigned(hp) do
-         begin
-           if hp.do_reload and
-              (hp.defsgeneration<defsgeneration) then
-             begin
-               hp.defsgeneration:=defsgeneration;
-               hp.loadppu(self);
-             end
-           else
-             hp.do_reload:=false;
-           hp:=tppumodule(hp.next);
-         end;
-      end;
-    {$ENDIF}
 
     procedure tppumodule.end_of_parsing;
       begin
@@ -2509,38 +2311,6 @@ var
 
         inherited end_of_parsing;
       end;
-
-    {$IFDEF DisableCTaskPPU}
-    procedure tppumodule.check_reload(from_module : tmodule; var do_load : boolean);
-
-      begin
-        { A force reload }
-        if not do_reload then
-          exit;
-        Message(unit_u_forced_reload);
-        do_reload:=false;
-        { When the unit is already loaded or being loaded
-         we can maybe skip a complete reload/recompile }
-        if assigned(globalsymtable)
-            and (not needrecompile) then
-         begin
-           { When we don't have any data stored yet there
-             is nothing to resolve }
-           if interface_compiled and
-               { it makes no sense to re-resolve the unit if it is already finally compiled }
-               not (state in [ms_compiled,ms_processed])
-           then
-             begin
-               re_resolve(from_module);
-             end
-           else
-             begin
-             Message1(unit_u_skipping_reresolving_unit,modulename^);
-             end;
-           do_load:=false;
-         end;
-      end;
-    {$ENDIF}
 
     { Returns true if the module was loaded from package }
     function tppumodule.check_loadfrompackage : boolean;
@@ -2561,69 +2331,6 @@ var
             usedunits.concat(tused_unit.create(self,true,false,nil));
           end;
       end;
-
-    {$IFDEF DisableCTaskPPU}
-    procedure tppumodule.prepare_second_load(from_module: tmodule);
-
-      const
-         CompileStates  = [ms_compile, ms_compiling_wait,
-                           ms_compiling_waitintf, ms_compiling_waitimpl, ms_compiling_waitfinish,
-                           ms_compiled_waitcrc, ms_compiled, ms_processed];
-
-        begin
-          { try to load the unit a second time first }
-          Message1(unit_u_second_load_unit,modulename^);
-          Message2(unit_u_previous_state,modulename^,ModuleStateStr[state]);
-          { Flag modules to reload }
-          flagdependent(from_module);
-          { Reset the module }
-          reset(false);
-          if state in CompileStates then
-            begin
-              Message1(unit_u_second_compile_unit,modulename^);
-              {$IFDEF DEBUG_PPU_CYCLES}
-              writeln('PPUALGO tppumodule.prepare_second_load ',modulename^,' old=',state,' new=',ms_compile);
-              {$ENDIF}
-              state:=ms_compile;
-            end
-          else
-            state:=ms_load;
-        end;
-    {$ENDIF}
-
-    {$IFDEF DisableCTaskPPU}
-    procedure tppumodule.try_load_ppufile(from_module : tmodule);
-
-      begin
-        Message1(unit_u_loading_unit,modulename^);
-        if auPPU in search_unit_files(from_module,false) then
-          state:=ms_load
-        else begin
-          {$IFDEF DEBUG_PPU_CYCLES}
-          writeln('PPUALGO tppumodule.try_load_ppufile ',modulename^,' no ppu found old=',state,' new=',ms_compile);
-          {$ENDIF}
-          state:=ms_compile;
-        end;
-        if state=ms_load then
-         begin
-           load_interface;
-           setdefgeneration;
-           if state=ms_load then
-            begin
-              load_usedunits;
-              if state=ms_load then begin
-                {$IFDEF DEBUG_PPU_CYCLES}
-                writeln('PPUALGO tppumodule.try_load_ppufile ',modulename^,' state=',state,' do_reload=',do_reload);
-                {$ENDIF}
-                Message1(unit_u_finished_loading_unit,modulename^);
-              end;
-            end;
-         end;
-        { PPU is not needed anymore }
-        if assigned(ppufile) then
-          discardppu;
-      end;
-    {$ENDIF}
 
     procedure tppumodule.recompile_from_sources(from_module : tmodule);
 
@@ -2665,57 +2372,42 @@ var
         {$IFDEF DEBUG_PPU_CYCLES}
         writeln('PPUALGO tppumodule.recompile_from_sources ',modulename^,' old=',statestr,' new=',ms_compile);
         {$ENDIF}
-        {$IFNDEF DisableCTaskPPU}
         was_interfaced_compiled:=interface_compiled;
         { disconnect used modules }
         disconnect_depending_modules;
         if fromppu then
           ppu_discarded:=true;
-        {$ENDIF}
         { Flag modules to reload }
         flagdependent(from_module);
         { Reset the module }
         reset(true);
         { mark this module for recompilation }
         state:=ms_compile;
-        {$IFNDEF DisableCTaskPPU}
         if was_interfaced_compiled then
           setdefgeneration;
         queue_module(self);  // save state
-        {$ELSE}
-        setdefgeneration;
-        {$ENDIF}
       end;
 
     procedure tppumodule.post_load_or_compile(from_module : tmodule; second_time : boolean);
+      begin
+        if current_module<>self then
+          internalerror(200212282);
 
-    begin
-      if current_module<>self then
-        internalerror(200212282);
+        if in_interface then
+          internalerror(200212283);
 
-      if in_interface then
-        internalerror(200212283);
-
-      {$IFDEF DisableCTaskPPU}
-      { for a second_time recompile reload all dependent units,
-        for a first time compile register the unit _once_ }
-      if second_time or do_reload then
-        reload_flagged_units;
-      {$ENDIF}
-
-      { reopen the old module }
-{$ifdef SHORT_ON_FILE_HANDLES}
-      if from_module.is_unit and
-          assigned(tppumodule(from_module).ppufile) then
-         tppumodule(from_module).ppufile.tempopen;
-{$endif SHORT_ON_FILE_HANDLES}
-      state:=ms_processed;
-    end;
+        { reopen the old module }
+  {$ifdef SHORT_ON_FILE_HANDLES}
+        if from_module.is_unit and
+            assigned(tppumodule(from_module).ppufile) then
+           tppumodule(from_module).ppufile.tempopen;
+  {$endif SHORT_ON_FILE_HANDLES}
+        state:=ms_processed;
+      end;
 
     function tppumodule.loadppu(from_module : tmodule) : boolean;
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
-      {$IFNDEF DisableCTaskPPU}
       begin
         Result:=false;
 
@@ -2783,124 +2475,26 @@ var
       end;
 
     function tppumodule.get_check_uses(out check_impl_uses, check_crc: boolean): boolean;
-    begin
-      check_impl_uses:=false;
-      check_crc:=false;
-      if not interface_compiled then
-        exit(false);
-      Result:=true;
-
-      { if implementation was parsed then implementation uses must be checked too }
-      if state=ms_load then
-        check_impl_uses:=ppu_waitingfor_crc
-      else if fromppu then
-        check_impl_uses:=true
-      else
-        check_impl_uses:=state in [ms_compiling_waitfinish..ms_compiled,ms_processed];
-
-      { if the crc(s) of used unit are known }
-      check_crc:=not (mf_release in moduleflags)
-          and (fromppu or (state in [ms_load,ms_compiled,ms_processed]));
-    end;
-
-      {$ELSE}
-      var
-        do_load,
-        second_time: boolean;
-
       begin
-        Result:=false;
-
-        Inc(LoadCount);
-
-        Message3(unit_u_load_unit,from_module.modulename^,
-                 ImplIntf[from_module.in_interface],
-                 modulename^);
-
-        { check if the globalsymtable is already available, but
-          we must reload when the do_reload flag is set
-          The globalsymtable is created after loading the interface ppus }
-        if (not do_reload) and
-            assigned(globalsymtable) then
-          exit(True);
-
-        { reset }
-        do_load:=true;
-        second_time:=false;
-        set_current_module(self);
-
-        do_load:=not check_loadfrompackage;
-
-        { A force reload }
-        check_reload(from_module, do_load);
-
-        if not do_load then
-        begin
-          // No need to do anything, restore situation and exit.
-          set_current_module(from_module);
-          exit(state=ms_compiled);
-        end;
-
-        { loading the unit for a second time? }
-        {$IFDEF DEBUG_PPU_CYCLES}
-        writeln('PPUALGO tppumodule.loadppu ',modulename^,' ',state);
-        {$ENDIF}
-        if state=ms_registered then
-          state:=ms_load
-        else if (state in [ms_compile, ms_compiling_waitintf]) then
-        begin
-          { no use continuing if we must be compiled }
-          // but we still need to restore current_module!
-          set_current_module(from_module);
+        check_impl_uses:=false;
+        check_crc:=false;
+        if not interface_compiled then
           exit(false);
-        end
+        Result:=true;
+
+        { if implementation was parsed then implementation uses must be checked too }
+        if state=ms_load then
+          check_impl_uses:=ppu_waitingfor_crc
+        else if fromppu then
+          check_impl_uses:=true
         else
-        begin
-          { ppu cycle, e.g. A intf uses B impl uses A }
-          second_time:=true;
-          prepare_second_load(from_module);
-          {$IFDEF DEBUG_PPU_CYCLES}
-          writeln('PPUALGO tppumodule.loadppu AFTER prepare_second_load ',modulename^,' ',state);
-          {$ENDIF}
-        end;
+          check_impl_uses:=state in [ms_compiling_waitfinish..ms_compiled,ms_processed];
 
-        { close old_current_ppu on system that are
-          short on file handles like DOS PM }
-{$ifdef SHORT_ON_FILE_HANDLES}
-        if from_module.is_unit and
-           assigned(tppumodule(from_module).ppufile) then
-          tppumodule(from_module).ppufile.tempclose;
-{$endif SHORT_ON_FILE_HANDLES}
-
-        { try opening ppu, skip this when we already
-          know that we need to compile the unit }
-        if not (state=ms_compile) then
-          try_load_ppufile(from_module);
-
-        { Do we need to recompile the unit }
-        if (state=ms_compile) then
-          recompile_from_sources(from_module)
-        else
-          state:=ms_compiled;
-
-        Result:=(state=ms_compiled);
-
-        // We cannot do this here, the order is all messed up...
-        // if not second_time then
-        //   usedunits.concat(tused_unit.create(self,true,false,nil));
-
-        if result then
-          post_load_or_compile(from_module,second_time);
-
-        { we are back, restore current_module }
-        set_current_module(from_module);
-        { safety, so it does not become negative }
-        if LoadCount>0 then
-          Dec(LoadCount);
+        { if the crc(s) of used unit are known }
+        check_crc:=not (mf_release in moduleflags)
+            and (fromppu or (state in [ms_load,ms_compiled,ms_processed]));
       end;
-      {$ENDIF}
 
-    {$IFNDEF DisableCTaskPPU}
     function tppumodule.continueloadppu: boolean;
       var
         old_module: tmodule;
@@ -3031,8 +2625,6 @@ var
         set_current_module(self);
         re_resolve(loadedfrommodule);
       end;
-
-    {$endif}
 
     procedure tppumodule.discardppu;
       begin

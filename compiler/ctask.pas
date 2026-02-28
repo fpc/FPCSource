@@ -70,7 +70,6 @@ type
     function findtask_nohash(m : tmodule) : ttask_list;
     procedure queuemodule(m: tmodule);
     procedure renamemodule(m: tmodule; const oldname: TSymStr);
-    {$IFNDEF DisableCTaskPPU}
     function restore_state(m: tmodule): ttask_list;
     function reload_module(m: tmodule): ttask_list;
     function recompile_module(m: tmodule): ttask_list;
@@ -83,7 +82,6 @@ type
     function check_cycle_wait_for_pas(scc_root: tmodule): boolean;
     function recompile_reloads(scc_root: tmodule): boolean;
     procedure recompile_scc(scc_root: tmodule);
-    {$ENDIF}
   public
     constructor create;
     destructor destroy; override;
@@ -187,18 +185,14 @@ constructor ttask_handler.create;
 begin
   list:=ttasklinkedlist.Create;
   hash:=TFPHashList.Create;
-  {$IFNDEF DisableCTaskPPU}
   tmodule.queue_module:=@queuemodule;
   tmodule.rename_module:=@renamemodule;
-  {$ENDIF}
 end;
 
 destructor ttask_handler.destroy;
 begin
-  {$IFNDEF DisableCTaskPPU}
   tmodule.queue_module:=nil;
   tmodule.rename_module:=nil;
-  {$ENDIF}
   hash.free;
   hash := nil;
   List.Clear;
@@ -249,18 +243,14 @@ begin
         exit(false); { the initial unit must wait for ms_processed til all others are processed }
     end;
 
-  {$IFNDEF DisableCTaskPPU}
   if m.do_reload then
     cancontinue:=tppumodule(m).canreload(firstwaiting,false,false)
   else
-  {$ENDIF}
   begin
     case m.state of
       ms_unknown : cancontinue:=true;
       ms_registered : cancontinue:=true;
-      {$IFNDEF DisableCTaskPPU}
       ms_load: cancontinue:=tppumodule(m).ppuloadcancontinue(firstwaiting);
-      {$ENDIF}
       ms_compile : cancontinue:=true;
       ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
       ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
@@ -270,10 +260,6 @@ begin
       ms_compiled,
       ms_processed,
       ms_moduleerror : cancontinue:=true;
-    {$IFDEF DisableCTaskPPU}
-    else
-      InternalError(2024011802);
-    {$ENDIF}
     end;
   end;
 
@@ -309,23 +295,15 @@ begin
   orgname:=m.modulename^;
   if Assigned(t.state) then
     t.RestoreState;
-  {$IFNDEF DisableCTaskPPU}
   if m.do_reload then
   begin
     tppumodule(m).reload;
     exit(false);
   end;
-  {$ENDIF}
   case m.state of
     ms_registered :
-      {$IFDEF DisableCTaskPPU}
-      parser.compile_module(m);
-      {$ELSE}
       tppumodule(m).loadppu(tppumodule(m).loadedfrommodule);
-      {$ENDIF}
-    {$IFNDEF DisableCTaskPPU}
     ms_load: (m as tppumodule).continueloadppu;
-    {$ENDIF}
     ms_compile :
       begin
         if m=main then
@@ -380,7 +358,6 @@ begin
     rebuild_hash;
 end;
 
-{$IFNDEF DisableCTaskPPU}
 procedure ttask_handler.search_finished_scc(m: tmodule{$IFDEF DEBUG_PPU_CYCLES}; const Indent: string{$ENDIF});
 { called after all circular_unit_groups have beeen computed.
   depth-first-search all modules and computes tree_unfinished and other_scc_unfinished.
@@ -737,8 +714,6 @@ begin
   until not changed;
 end;
 
-{$ENDIF}
-
 procedure ttask_handler.rebuild_hash;
 
 var
@@ -987,7 +962,6 @@ begin
   { Strategy: goal is to write ppus early, so that mem is freed early and in case of an error
               next compile can load ppus instead of compiling again. }
   repeat
-    {$IFNDEF DisableCTaskPPU}
     tmodule.ctask_fast_backtrack:=false;
 
     { compute circular unit groups aka scc (strongly connected components) }
@@ -1066,8 +1040,6 @@ begin
         writeln('ttask_handler.processqueue hash mismatch: ',best.modulename^,' ',besttask.module.modulename^);
         Internalerror(2026022123);
       end;
-
-    {$ENDIF}
 
     {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',besttask.module.ToString,' state=',besttask.module.statestr,' total-units=',loaded_units.Count,' tasks=',list.Count);{$ENDIF}
     if continue_task(besttask) then

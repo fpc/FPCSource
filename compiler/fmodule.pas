@@ -54,10 +54,11 @@ interface
 
     type
       trecompile_reason = (rr_unknown,
-        rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
-        {$IFNDEF DisableCTaskPPU}
-        ,rr_buildcycle
-        {$ENDIF}
+        rr_noppu,
+        rr_sourcenewer,
+        rr_build,
+        rr_crcchanged,
+        rr_buildcycle
       );
 
 {$ifdef VER3_2}
@@ -114,10 +115,8 @@ interface
       end;
       tderefmaparray = array of tderefmaprec;
 
-      {$IFNDEF DisableCTaskPPU}
       tqueue_module_event = procedure(m: tmodule) of object;
       trename_module_event = procedure(m: tmodule; const oldname: TSymStr) of object;
-      {$ENDIF}
 
       { tused_unit }
 
@@ -129,9 +128,7 @@ interface
         in_interface    : boolean;
         u               : tmodule;
         unitsym         : tunitsym;
-        {$IFNDEF DisableCTaskPPU}
         dependent_added : boolean;
-        {$ENDIF}
         constructor create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
         procedure check_hints;
       end;
@@ -150,11 +147,9 @@ interface
       public
         is_reset,                 { has reset been called ? }
         do_reload,                { force reloading of the unit }
-        {$IFNDEF DisableCTaskPPU}
         fromppu: boolean;         { loaded from ppu }
         ppu_discarded: boolean;         { ppu was recompiled }
         ppu_waitingfor_crc: boolean;
-        {$ENDIF}
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded, interface_crc and indirect_crc are valid }
         is_dbginfo_written,
@@ -247,7 +242,6 @@ interface
                                  lowest scc_index reachable through used_units,
                                  all circular connected modules have the same lowindex }
         scc_onstack: boolean;  { dont use. used in ttask_handler.update_circular_unit_groups }
-        {$IFNDEF DisableCTaskPPU}
         class var
           ctask_fast_backtrack: boolean;
           cycle_stamp: dword;
@@ -256,7 +250,6 @@ interface
         scc_tree_unfinished: boolean; { only valid for scc roots }
         other_scc_unfinished: boolean; { only valid for scc roots }
         scc_tree_crc_wait: tmodule;
-        {$ENDIF}
 
         localunitsearchpath,           { local searchpaths }
         localobjectsearchpath,
@@ -266,9 +259,6 @@ interface
 
         moduleoptions: tmoduleoptions;
         deprecatedmsg: pshortstring;
-        {$IFDEF DisableCTaskPPU}
-        loadcount : integer;
-        {$ENDIF}
         compilecount : integer;
         consume_semicolon_after_uses : Boolean;
         initfinalchecked : boolean;
@@ -327,14 +317,12 @@ interface
         procedure removedependency(callermodule:tmodule);
         function hasdependency(callermodule:tmodule): boolean;
         procedure flagdependent(callermodule:tmodule);
-        {$IFNDEF DisableCTaskPPU}
         class procedure increase_cycle_stamp;
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
         function are_all_used_units_compiled: boolean;
         class var queue_module: tqueue_module_event;
         class var rename_module: trename_module_event;
-        {$ENDIF}
         procedure addimportedsym(sym:TSymEntry; check_if_exists: boolean = true);
         procedure derefimportedsymbols;
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
@@ -915,11 +903,7 @@ implementation
         m : tmodule;
       begin
         is_reset:=true;
-        {$IFDEF DisableCTaskPPU}
-        LoadCount:=0;
-        {$ELSE}
         fromppu:=false;
-        {$ENDIF}
         if assigned(scanner) then
           begin
             { also update current_scanner if it was pointing
@@ -1188,7 +1172,6 @@ implementation
             this unit, unless this unit is already compiled during
             the loading }
           m:=dm.u;
-          {$IFNDEF DisableCTaskPPU}
           if m.state in [ms_compiled,ms_processed] then
           begin
             writeln('tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
@@ -1212,17 +1195,6 @@ implementation
               recompile, all old defs are freed) }
             m.flagdependent(self);
           end;
-          {$ELSE}
-          if (m=callermodule) and (m.state<ms_compiled_waitcrc) then
-            Message1(unit_u_no_reload_is_caller,m.modulename^)
-          else if (m.state=ms_compile) then
-            Message1(unit_u_no_reload_in_second_compile,m.modulename^)
-          else
-          begin
-            m.do_reload:=true;
-            Message1(unit_u_flag_for_reload,m.modulename^);
-          end;
-          {$ENDIF}
           dm:=tdependent_unit(dm.next);
         end;
       end;
@@ -1277,7 +1249,6 @@ implementation
         end;
       end;
 
-    {$IFNDEF DisableCTaskPPU}
     procedure tmodule.disconnect_depending_modules;
       var
         uu: tused_unit;
@@ -1299,22 +1270,20 @@ implementation
       end;
 
     function tmodule.are_all_used_units_compiled: boolean;
-    var
-      uu: tused_unit;
-    begin
-      uu:=tused_unit(used_units.First);
-      while assigned(uu) do
-        begin
-          if not (uu.u.state in [ms_compiled,ms_processed]) then
-            exit(false);
-          uu:=tused_unit(uu.Next);
-        end;
-      Result:=true;
-    end;
+      var
+        uu: tused_unit;
+      begin
+        uu:=tused_unit(used_units.First);
+        while assigned(uu) do
+          begin
+            if not (uu.u.state in [ms_compiled,ms_processed]) then
+              exit(false);
+            uu:=tused_unit(uu.Next);
+          end;
+        Result:=true;
+      end;
 
-    {$ENDIF}
-
-      procedure tmodule.addimportedsym(sym: TSymEntry; check_if_exists: boolean);
+    procedure tmodule.addimportedsym(sym: TSymEntry; check_if_exists: boolean);
       var
         importsym: tunitimportsym;
         module: tmodule;
@@ -1379,7 +1348,6 @@ implementation
       end;
 
     function tmodule.usedunitsloaded(interface_units : boolean; out firstwaiting : tmodule): boolean;
-    {$IFNDEF DisableCTaskPPU}
       var
         uu: tused_unit;
         ok: Boolean;
@@ -1408,39 +1376,6 @@ implementation
           uu:=tused_unit(uu.Next);
         end;
       end;
-    {$ELSE}
-      const
-        statesneeded : array[boolean] of tmodulestates = (
-          [ms_processed, ms_compiled, ms_compiling_waitimpl, ms_compiling_waitfinish, ms_compiled_waitcrc],
-          [ms_processed, ms_compiled, ms_compiling_waitimpl, ms_compiling_waitfinish, ms_compiled_waitcrc]);
-
-      var
-        itm : TLinkedListItem;
-        states : set of tmodulestate;
-
-      begin
-        Result:=True;
-        States:=statesneeded[interface_units];
-        itm:=self.used_units.First;
-        firstwaiting:=Nil;
-        while Result and assigned(itm) do
-          begin
-          result:=tused_unit(itm).u.state in states;
-          {$IFDEF DEBUG_CTASK_VERBOSE}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
-          if not result then
-            begin
-            if firstwaiting=Nil then
-              begin
-              firstwaiting:=tused_unit(itm).u;
-              {$IFNDEF DEBUG_CTASK_VERBOSE}
-              break;
-              {$ENDIF}
-              end;
-            end;
-          itm:=itm.Next;
-          end;
-      end;
-    {$ENDIF}
 
     function tmodule.nowaitingforunits(out firstwaiting : tmodule): Boolean;
 
