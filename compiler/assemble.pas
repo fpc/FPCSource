@@ -1058,7 +1058,7 @@ Implementation
             (lastfileinfo.fileindex<>hp.fileinfo.fileindex) then
           begin
             { in case of a generic the module can be different }
-            if current_module.unit_index=hp.fileinfo.moduleindex then
+            if current_module.moduleid=hp.fileinfo.moduleindex then
               module:=current_module
             else
               module:=get_module(hp.fileinfo.moduleindex);

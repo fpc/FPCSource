@@ -2035,7 +2035,7 @@ uses
                   internalerror(2012051202);
                 oldcurrent_filepos:=current_filepos;
                 { use the index the module got from the current compilation process }
-                current_filepos.moduleindex:=hmodule.unit_index;
+                current_filepos.moduleindex:=hmodule.moduleid;
                 current_tokenpos:=current_filepos;
                 if parse_generic then
                   begin
@@ -2943,7 +2943,7 @@ uses
             oldcurrent_filepos:=current_filepos;
             current_filepos:=tprocdef(def.genericdef).fileinfo;
             { use the index the module got from the current compilation process }
-            current_filepos.moduleindex:=hmodule.unit_index;
+            current_filepos.moduleindex:=hmodule.moduleid;
             current_tokenpos:=current_filepos;
             current_scanner.startreplaytokens(tprocdef(def.genericdef).generictokenbuf,hmodule.change_endian);
             read_proc_body(def);

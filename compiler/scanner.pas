@@ -1675,7 +1675,7 @@ type
                 hmodule:=find_module_from_symtable(srsym.Owner);
                 if not Assigned(hmodule) then
                   internalerror(201001120);
-                if hmodule.unit_index=current_filepos.moduleindex then
+                if hmodule.moduleid=current_filepos.moduleindex then
                   begin
                     preproc_consume(_POINT);
                     current_scanner.skipspace;
@@ -4175,7 +4175,7 @@ type
         filepos.line:=line_no;
         filepos.column:=tokenpos-lastlinepos;
         filepos.fileindex:=inputfile.ref_index;
-        filepos.moduleindex:=current_module.unit_index;
+        filepos.moduleindex:=current_module.moduleid;
       end;
 
 
