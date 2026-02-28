@@ -54,7 +54,6 @@ interface
           nsprefix   : TCmdStr; { Namespace prefix the unit was found with }
           {$IFNDEF DisableCTaskPPU}
           loadedfrommodule: tmodule;
-          ppu_waitingfor_crc: boolean;
           {$endif}
 {$ifdef Test_Double_checksum}
           interface_read_crc_index,
@@ -2219,6 +2218,23 @@ var
           begin
             ppu_waitingfor_crc:=true;
 
+            { load implementation symtable }
+            if mf_local_symtable in moduleflags then
+              begin
+                localsymtable:=tstaticsymtable.create(realmodulename^,moduleid);
+                tstaticsymtable(localsymtable).ppuload(ppufile);
+              end;
+
+            { we can now dereference all pointers to the implementation parts }
+            tstoredsymtable(globalsymtable).derefimpl(false);
+            { we've just loaded the localsymtable from the ppu file, so everything
+              in it was registered by definition (otherwise it wouldn't have been in
+              there) }
+            if assigned(localsymtable) then
+              tstoredsymtable(localsymtable).derefimpl(false);
+
+            remove_waitforunit_cycles;
+
             { the implementation uses were just connected,
               the scc_tree_crc_wait is outdated.
               If all used units are compiled, continue.
@@ -2231,28 +2247,14 @@ var
         if not ppu_check_used_crcs then
           exit(false);
 
-        { load implementation symtable }
-        if mf_local_symtable in moduleflags then
-          begin
-            localsymtable:=tstaticsymtable.create(realmodulename^,moduleid);
-            tstaticsymtable(localsymtable).ppuload(ppufile);
-          end;
-
-        { we can now dereference all pointers to the implementation parts }
-        tstoredsymtable(globalsymtable).derefimpl(false);
-        { we've just loaded the localsymtable from the ppu file, so everything
-          in it was registered by definition (otherwise it wouldn't have been in
-          there) }
-        if assigned(localsymtable) then
-          tstoredsymtable(localsymtable).derefimpl(false);
-
-        { the below cannot be reloaded }
         derefunitimportsyms;
 
         { read whole program optimisation-related information }
         wpoinfo:=tunitwpoinfo.ppuload(ppufile);
         tunitwpoinfo(wpoinfo).deref;
         tunitwpoinfo(wpoinfo).derefimpl;
+
+        remove_all_waitsforthisunit;
 
         state:=ms_compiled;
       end;

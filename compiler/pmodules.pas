@@ -1233,11 +1233,8 @@ type
           end;
 
         { remove all units that we are waiting for that are already waiting for
-          us => breaking up circles }
-        for i:=0 to curr.waitingunits.count-1 do
-          for j:=curr.waitingforunit.count-1 downto 0 do
-            if curr.waitingunits[i]=curr.waitingforunit[j] then
-              curr.waitingforunit.Delete(j);
+          us => breaking up cycles }
+        curr.remove_waitforunit_cycles;
 
     {$ifdef DEBUG_UNITWAITING}
         Writeln('Unit ', curr.modulename^, ' is waiting for units: ');
@@ -1330,10 +1327,10 @@ type
         {$IFDEF DisableCTaskPPU}
         if not(cs_compilesystem in current_settings.moduleswitches) and
           (Errorcount=0) then
-           tppumodule(curr).getppucrc;
+          tppumodule(curr).getppucrc;
         {$ELSE}
         if Errorcount=0 then
-           tppumodule(curr).getppucrc;
+          tppumodule(curr).getppucrc;
         {$ENDIF}
         curr.in_interface:=false;
         curr.interface_compiled:=true;
@@ -1367,8 +1364,8 @@ type
             if current_scanner.token=_USES then
               begin
               parseusesclause(curr);
-              if not loadunits(curr,false) then
-                 curr.state:=ms_compiling_waitimpl;
+              if not loadunits(curr,false) or tmodule.ctask_fast_backtrack then
+                curr.state:=ms_compiling_waitimpl;
               { do not consume the semicolon yet, because the units in the uses clause
                 may not yet be loaded and conditional compilation expressions may
                 depend on symbols from those units }
@@ -1520,7 +1517,7 @@ type
              else
                current_namespacelist:=Nil;
              parseusesclause(curr);
-             load_ok:=loadunits(curr,true) and load_ok;
+             load_ok:=loadunits(curr,true) and load_ok and not tmodule.ctask_fast_backtrack;
              { has it been compiled at a higher level ?}
              if curr.state in [ms_compiled,ms_processed] then
                begin
@@ -1796,11 +1793,7 @@ type
            end;
 
         { remove all waits for this unit }
-        for i:=0 to module.waitingunits.count-1 do
-          begin
-            waitingmodule:=tmodule(module.waitingunits[i]);
-            waitingmodule.remove_from_waitingforunits(module);
-          end;
+        module.remove_all_waitsforthisunit;
 
         { compute CRC }
         if ErrorCount=0 then
