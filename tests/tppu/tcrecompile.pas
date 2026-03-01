@@ -56,7 +56,7 @@ type
     // -Ur Generate release unit files (never automatically recompiled)
     procedure TestUr_cycle2;
 
-    procedure TestChangeInlineBodyBug; // Bug: prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
+    procedure TestChangeInlineBody; // prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
 
     procedure TestBug41457; // two cycles of size 2 and 3
 
@@ -75,6 +75,7 @@ type
     //         the indirect_crc does not yet support this. 16th Feb 2026
 
     // generics
+    procedure TestGeneric_ChangeC; // change generic implementation of a specialization
     procedure TestGeneric_IndirectUses; // specialization of an inherited class in an indirectly used unit
     procedure TestGeneric_Cycle1; // prg->ant->bird, bird.impl->ant, TAnt->TBird
     procedure TestGeneric_Cycle2; // prg->ant.impl->bird, bird.impl->ant, TAnt->TBird
@@ -558,7 +559,7 @@ begin
   CheckCompiled(['ur_cycle2_bird.pas']);
 end;
 
-procedure TTestRecompile.TestChangeInlineBodyBug;
+procedure TTestRecompile.TestChangeInlineBody;
 var
   ProgDir, PkgDir, PkgOutDir: String;
 begin
@@ -767,6 +768,31 @@ begin
   // the main src is always compiled, cat intf class TCat changed, so bird and ant are recompiled
   CheckCompiled(['ancestorchange1_ant.pas','ancestorchange1_bird.pas','ancestorchange1_cat.pas',
     'ancestorchange1_eagle.pas']);
+end;
+
+procedure TTestRecompile.TestGeneric_ChangeC;
+// ant->bird->cat, bird specializes cat, change the generic implementation of cat
+var
+  Dir: String;
+begin
+  Dir:='generic_changec';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'generic_changec_ant.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'generic_changec_cat.pas',
+    Dir+PathDelim+'src2'+PathDelim+'generic_changec_cat.pas');
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['generic_changec_ant.pas','generic_changec_bird.pas','generic_changec_cat.pas']);
+
+  Step:='Second compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, cat impl of the generic changed, so specialization in bird changed
+  CheckCompiled(['generic_changec_ant.pas','generic_changec_bird.pas','generic_changec_cat.pas']);
 end;
 
 procedure TTestRecompile.TestGeneric_IndirectUses;
