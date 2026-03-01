@@ -271,6 +271,12 @@ var
       id: LongInt;
     begin
       if stack=nil then exit;
+      if old_current_module.fromppu then
+        begin
+          { ppu does not have its own symtablestack }
+          writeln('tglobalstate.reload_symtable_stack ',old_current_module.modulename^,' ',old_current_module.statestr);
+          Internalerror(2026030106);
+        end;
       item:=stack.stack;
       while item<>nil do
         begin
