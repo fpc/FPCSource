@@ -98,6 +98,7 @@ interface
           function check_loadfrompackage: boolean;
           function  openppu(ppufiletime:longint):boolean;
           procedure recompile_from_sources(from_module: tmodule);
+          procedure mark_recompile_needed(reason: trecompile_reason);
           function  search_unit_files(loaded_from : tmodule; onlysource:boolean):TAvailableUnitFiles;
           function  search_unit(loaded_from : tmodule; onlysource,shortname:boolean):TAvailableUnitFiles;
           function  loadfrompackage:boolean;
@@ -2285,14 +2286,10 @@ var
       end;
 
     procedure tppumodule.recompile_cycle;
-      var
-        from_module: tmodule;
       begin
         recompile_reason:=rr_buildcycle;
-        from_module:=current_module;
         set_current_module(self);
         recompile_from_sources(loadedfrommodule);
-        set_current_module(from_module);
       end;
 
     procedure tppumodule.setdefgeneration;
@@ -2338,6 +2335,12 @@ var
         pu : tused_unit;
         was_interfaced_compiled: Boolean;
       begin
+        if current_module<>self then
+          begin
+            writeln('tppumodule.recompile_from_sources ',modulename^);
+            internalerror(2026030110);
+          end;
+
         { recompile the unit or give a fatal error if sources not available }
         if not sources_avail then
          begin
@@ -2379,13 +2382,27 @@ var
           ppu_discarded:=true;
         { Flag modules to reload }
         flagdependent(from_module);
+        { Reset stack, parser, scanner, etc }
+        if not fromppu then
+          end_of_parsing;
         { Reset the module }
         reset(true);
+
         { mark this module for recompilation }
         state:=ms_compile;
         if was_interfaced_compiled then
           setdefgeneration;
         queue_module(self);  // save state
+      end;
+
+    procedure tppumodule.mark_recompile_needed(reason: trecompile_reason);
+      begin
+        {$IFDEF DEBUG_PPU_CYCLES}
+        writeln('PPUALGO tppumodule.mark_recompile_needed ',modulename^,' old=',statestr,' new=',ms_compile);
+        {$ENDIF}
+        recompile_reason:=reason;
+        do_recompile:=true;
+        do_reload:=true;
       end;
 
     procedure tppumodule.post_load_or_compile(from_module : tmodule; second_time : boolean);
@@ -2536,7 +2553,7 @@ var
           Result:=true;
           post_load_or_compile(loadedfrommodule,false);
         end else if state=ms_compile then
-          recompile_from_sources(loadedfrommodule);
+          mark_recompile_needed(recompile_reason);
 
         { we are back, restore current_module }
         set_current_module(old_module);
@@ -2579,11 +2596,10 @@ var
                   else
                     Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
       {$endif DEBUG_UNIT_CRC_CHANGES}
-                  recompile_reason:=rr_crcchanged;
                   {$IFDEF DEBUG_PPU_CYCLES}
                   writeln('PPUALGO tppumodule.canreload ',modulename^,' ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
                   {$ENDIF}
-                  recompile_from_sources(loadedfrommodule);
+                  mark_recompile_needed(rr_crcchanged);
                   exit(false);
                 end;
               end;

@@ -146,6 +146,7 @@ interface
         FImportLibraryList : TFPHashObjectList;
       public
         is_reset,                 { has reset been called ? }
+        do_recompile,         { reset needed, done by ctask }
         do_reload,                { force reloading of the unit }
         fromppu: boolean;         { loaded from ppu }
         ppu_discarded: boolean;         { ppu was recompiled }
@@ -898,6 +899,7 @@ implementation
         m : tmodule;
       begin
         is_reset:=true;
+        do_recompile:=false;
         fromppu:=false;
         if assigned(scanner) then
           begin
@@ -1206,6 +1208,8 @@ implementation
     function tmodule.statestr: string;
       begin
         str(state,Result);
+        if do_recompile then
+          Result:='do_recompile,'+Result;
         if do_reload then
           Result:='do_reload,'+Result;
       end;

@@ -71,6 +71,7 @@ type
     procedure queuemodule(m: tmodule);
     procedure renamemodule(m: tmodule; const oldname: TSymStr);
     function restore_state(m: tmodule): ttask_list;
+    procedure clear_state;
     function reload_module(m: tmodule): ttask_list;
     function recompile_module(m: tmodule): ttask_list;
     procedure update_circular_unit_groups;
@@ -80,6 +81,7 @@ type
     function check_do_reload_cycle(scc_root: tmodule): boolean;
     function check_crc_mismatches(scc_root: tmodule): boolean;
     function check_cycle_wait_for_pas(scc_root: tmodule): boolean;
+    function recompile_pending(scc_root: tmodule): boolean;
     procedure recompile_scc(scc_root: tmodule);
   public
     constructor create;
@@ -361,6 +363,7 @@ begin
   if not result then
     { Not done, save state }
     t.SaveState;
+  clear_state;
   {
     the name can change as a result of processing, e.g. PROGRAM -> TB0406
     Normally only for the initial module, but we'll do a generic check.
@@ -680,6 +683,27 @@ begin
     end;
 end;
 
+function ttask_handler.recompile_pending(scc_root: tmodule): boolean;
+var
+  m, next: tmodule;
+begin
+  Result:=false;
+  m:=scc_root;
+  while assigned(m) do
+    begin
+      next:=m.scc_next;
+      if m.do_recompile then
+        begin
+          {$IFDEF DEBUG_CTASK}
+          writeln('PPUALGO ttask_handler.recompile_pending recompiling ',m.modulename^,' ',m.statestr,' ...');
+          {$ENDIF}
+          Result:=true;
+          recompile_module(m);
+        end;
+      m:=next;
+    end;
+end;
+
 procedure ttask_handler.recompile_scc(scc_root: tmodule);
 var
   m, next: tmodule;
@@ -799,6 +823,12 @@ begin
     Result.RestoreState;
 end;
 
+procedure ttask_handler.clear_state;
+begin
+  symtablestack:=nil;
+  macrosymtablestack:=nil;
+end;
+
 function ttask_handler.reload_module(m: tmodule): ttask_list;
 begin
   if m.state in [ms_compiled,ms_processed] then
@@ -810,6 +840,7 @@ begin
   Result:=restore_state(m);
   tppumodule(m).reload;
   Result.SaveState;
+  clear_state;
 end;
 
 function ttask_handler.recompile_module(m: tmodule): ttask_list;
@@ -826,8 +857,8 @@ begin
     end;
 
   Result:=restore_state(m);
-  tppumodule(m).recompile_cycle;
-  Result.SaveState;
+  tppumodule(m).recompile_cycle; // this will call queuemodule
+  clear_state;
 end;
 
 procedure ttask_handler.update_circular_unit_groups;
@@ -956,12 +987,15 @@ begin
   {$IFDEF DEBUG_CTASK}
   loopcnt:=0;
   {$ENDIF}
+  scc_root:=nil;
   repeat
     {$IFDEF DEBUG_CTASK}
     inc(loopcnt);
-    writeln('CTASK: Loop: ',loopcnt);
+    writeln('CTASK: Iteration: ',loopcnt);
     {$ENDIF}
     tmodule.ctask_fast_backtrack:=false;
+
+    recompile_pending(scc_root);
 
     { compute circular unit groups aka scc (strongly connected components) }
     update_circular_unit_groups;
@@ -987,6 +1021,9 @@ begin
     {$IFDEF DEBUG_PPU_CYCLES}
     writeln('ttask_handler.processqueue scc_root: ',scc_root.modulename^,' ',scc_root.statestr);
     {$ENDIF}
+
+    if recompile_pending(scc_root) then
+      continue;
 
     { check all scc' modules if crc mismatch }
     if check_crc_mismatches(scc_root) then
@@ -1051,9 +1088,8 @@ begin
         check_hash;
         {$ENDIF}
       end
-    else
-      if best.state=ms_moduleerror then
-        exit;
+    else if best.state=ms_moduleerror then
+      exit;
   until (main_module.state = ms_processed) and (list.Count=0);
 end;
 
@@ -1099,7 +1135,6 @@ begin
       {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' was reset, resetting flag. State: ',m.statestr);{$ENDIF}
       m.is_reset:=false;
       t.DiscardState;
-      t.SaveState;
       end;
     end;
   {$IFDEF DEBUG_CTASK}
