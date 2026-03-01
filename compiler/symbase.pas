@@ -127,6 +127,7 @@ interface
        psymtablestackitem = ^TSymtablestackitem;
        TSymtablestackitem = record
          symtable : TSymtable;
+         saved_moduleid : longint;
          next     : psymtablestackitem;
        end;
 

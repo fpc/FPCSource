@@ -620,7 +620,7 @@ implementation
         mainsource:=fn;
 
         old_mod_cnt:=length(all_modules);
-        if old_mod_cnt<=moduleid then
+        if moduleid>=old_mod_cnt then
           begin
             if old_mod_cnt<32 then
               new_mod_cnt:=32
