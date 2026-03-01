@@ -355,6 +355,7 @@ interface
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units, excluding main_module }
        unloaded_units    : tlinkedlist; { Units removed from loaded_units, to be freed }
+       all_modules: array of tmodule;   { modules by moduleid }
        SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }
 
@@ -384,20 +385,8 @@ implementation
 *****************************************************************************}
 
     function find_module_from_symtable(st:tsymtable):tmodule;
-      var
-        hp : tmodule;
       begin
-        result:=nil;
-        hp:=tmodule(loaded_units.first);
-        while assigned(hp) do
-          begin
-            if (hp.moduleid=st.moduleid) then
-              begin
-                result:=hp;
-                exit;
-              end;
-            hp:=tmodule(hp.next);
-         end;
+        result:=get_module(st.moduleid);
       end;
 
     procedure set_current_module(p:tmodule);
@@ -438,30 +427,22 @@ implementation
 
 
     function get_module(moduleindex : longint) : tmodule;
-      var
-         hp : tmodule;
       begin
-         result:=nil;
-         if moduleindex=0 then
-           exit;
-         result:=current_module;
-         if not(assigned(loaded_units)) then
-           exit;
-         hp:=tmodule(loaded_units.first);
-         while assigned(hp) and (hp.moduleid<>moduleindex) do
-           hp:=tmodule(hp.next);
-         result:=hp;
+        if moduleindex>=length(all_modules) then
+          result:=nil
+        else
+          result:=all_modules[moduleindex];
       end;
 
 
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
       var
-         hp : tmodule;
+        hp : tmodule;
       begin
-         hp:=get_module(moduleindex);
-         if assigned(hp) then
+        hp:=get_module(moduleindex);
+        if assigned(hp) then
           get_source_file:=hp.sourcefiles.get_file(fileindex)
-         else
+        else
           get_source_file:=nil;
       end;
 
@@ -620,6 +601,8 @@ implementation
       var
         n:string;
         fn:TPathStr;
+        old_mod_cnt, i: SizeInt;
+        new_mod_cnt: Integer;
       begin
         if amodulename='' then
           n:=ChangeFileExt(ExtractFileName(afilename),'')
@@ -635,6 +618,20 @@ implementation
         else
          inherited create('Program');
         mainsource:=fn;
+
+        old_mod_cnt:=length(all_modules);
+        if old_mod_cnt<=moduleid then
+          begin
+            if old_mod_cnt<32 then
+              new_mod_cnt:=32
+            else
+              new_mod_cnt:=old_mod_cnt*2;
+            setlength(all_modules,new_mod_cnt);
+            for i:=old_mod_cnt to new_mod_cnt-1 do
+              all_modules[i]:=nil;
+          end;
+        all_modules[moduleid]:=self;
+
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}
         asmprefix:=stringdup(FixFileName('as'));
@@ -1299,9 +1296,7 @@ implementation
         end;
 
         asymtable:=sym.owner;
-        module:=tmodule(loaded_units.first);
-        while assigned(module) and (module.moduleid<>asymtable.moduleid) do
-          module:=tmodule(module.next);
+        module:=get_module(asymtable.moduleid);
         if module=nil then
         begin
           writeln('tmodule.find_unitimportsymbol missing moduleid=',asymtable.moduleid);
