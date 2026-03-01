@@ -1081,14 +1081,12 @@ begin
     end
   else
     begin
-    { We have a task, if it was reset, then clear the state and move the task to the start. }
+    { We have a task, if it was reset, then clear the state. }
     if m.is_reset then
       begin
       {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' was reset, resetting flag. State: ',m.statestr);{$ENDIF}
       m.is_reset:=false;
       t.DiscardState;
-      list.Remove(t);
-      list.insertbefore(t,list.First);
       end;
     end;
   {$IFDEF DEBUG_CTASK}
