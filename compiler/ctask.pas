@@ -160,6 +160,8 @@ end;
 
 procedure ttask_list.SaveState;
 begin
+  if module.fromppu then exit;
+  set_current_module(module);
   if State=Nil then
     State:=tglobalstate.Create(true)
   else
@@ -168,13 +170,23 @@ end;
 
 procedure ttask_list.RestoreState;
 begin
-  if not module.is_reset then
-    state.restore;
+  if module.fromppu then exit;
+  if module.is_reset then
+    begin
+      writeln('ttask_list.RestoreState is_reset ',module.modulename^,' ',module.statestr);
+      Internalerror(2026030105);
+    end;
+  if state=nil then
+    begin
+      writeln('ttask_list.RestoreState state=nil ',module.modulename^,' ',module.statestr);
+      Internalerror(2026030106);
+    end;
+  state.restore;
   if assigned(current_scanner) and assigned(current_scanner.inputfile) then
-      if current_scanner.inputfile.closed then
+    if current_scanner.inputfile.closed then
       begin
-      current_scanner.tempopeninputfile;
-      current_scanner.gettokenpos;
+        current_scanner.tempopeninputfile;
+        current_scanner.gettokenpos;
       end;
 end;
 
@@ -1087,6 +1099,7 @@ begin
       {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' was reset, resetting flag. State: ',m.statestr);{$ENDIF}
       m.is_reset:=false;
       t.DiscardState;
+      t.SaveState;
       end;
     end;
   {$IFDEF DEBUG_CTASK}
