@@ -37,8 +37,15 @@ uses
 
 
 type
+  TSymTableStackKind = (
+    stsk_global,
+    stsk_macro
+    );
+
+  { tglobalstate }
 
   tglobalstate = class
+    reload: boolean;
   { scanner }
     oldtokenpos    : tfileposinfo;
     old_block_type : tblock_type;
@@ -62,12 +69,14 @@ type
     old_debuginfo : tdebuginfo;
     old_scanner : tscannerfile;
     old_parser_file : string;
-    constructor create;
+    constructor create(for_module_switch: boolean);
     destructor destroy; override;
     procedure clearscanner;
     class procedure remove_scanner_from_states(scanner : tscannerfile); static;
-    procedure save;
+    procedure save(for_module_switch: boolean = false);
+    procedure save_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
     procedure restore;
+    procedure reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
   end;
 
 procedure save_global_state(state:tglobalstate);
@@ -136,14 +145,19 @@ var
     state.restore;
   end;
 
-  procedure tglobalstate.save;
+  procedure tglobalstate.save(for_module_switch: boolean);
 
     begin
+      reload:=for_module_switch;
       old_current_module:=current_module;
 
       { save symtable state }
       oldsymtablestack:=symtablestack;
+      if for_module_switch then
+        save_symtable_stack(oldsymtablestack,stsk_global);
       oldmacrosymtablestack:=macrosymtablestack;
+      if for_module_switch then
+        save_symtable_stack(oldmacrosymtablestack,stsk_macro);
       oldcurrent_procinfo:=current_procinfo;
 
       { save scanner state }
@@ -175,6 +189,45 @@ var
       old_scanner:=current_scanner;
     end;
 
+  procedure tglobalstate.save_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
+    var
+      item: psymtablestackitem;
+      m: tmodule;
+      id: LongInt;
+    begin
+      if stack=nil then exit;
+      item:=stack.stack;
+      while item<>nil do
+        begin
+          id:=item^.symtable.moduleid;
+          item^.saved_moduleid:=id;
+          if (id<>current_module.moduleid) and (id>0) then
+            begin
+              m:=get_module(id);
+              if m=nil then
+                begin
+                  writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' ',kind,' unknown moduleid: ',id);
+                  Internalerror(2026030103);
+                end;
+              case kind of
+                stsk_global:
+                  if m.globalsymtable<>item^.symtable then
+                    begin
+                      writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' globalsymstack: item is not globalsymtable of ', m.modulename^,' ',m.statestr);
+                      Internalerror(2026030101);
+                    end;
+                stsk_macro:
+                  if m.globalmacrosymtable<>item^.symtable then
+                    begin
+                      writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' globalmacrosymstack: item is not globalmacrosymtable of ', m.modulename^,' ',m.statestr);
+                      Internalerror(2026030102);
+                    end;
+              end;
+            end;
+          item:=item^.next;
+        end;
+    end;
+
   procedure tglobalstate.restore;
 
     begin
@@ -189,7 +242,11 @@ var
 
       { restore symtable state }
       symtablestack:=oldsymtablestack;
+      if reload then
+        reload_symtable_stack(symtablestack,stsk_global);
       macrosymtablestack:=oldmacrosymtablestack;
+      if reload then
+        reload_symtable_stack(macrosymtablestack,stsk_macro);
       current_procinfo:=oldcurrent_procinfo;
       current_filepos:=oldcurrent_filepos;
       current_settings:=old_settings;
@@ -204,11 +261,34 @@ var
       current_debuginfo:=old_debuginfo;
     end;
 
-    constructor tglobalstate.create;
+  procedure tglobalstate.reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
+    var
+      item: psymtablestackitem;
+      m: tmodule;
+      id: LongInt;
+    begin
+      if stack=nil then exit;
+      item:=stack.stack;
+      while item<>nil do
+        begin
+          id:=item^.saved_moduleid;
+          if (id<>current_module.moduleid) and (id>0) then
+            begin
+              m:=get_module(id);
+              case kind of
+                stsk_global: item^.symtable:=m.globalsymtable;
+                stsk_macro:  item^.symtable:=m.globalmacrosymtable;
+              end;
+            end;
+          item:=item^.next;
+        end;
+    end;
+
+  constructor tglobalstate.create(for_module_switch: boolean);
 
     begin
       addstate(self);
-      save;
+      save(for_module_switch);
     end;
 
   destructor tglobalstate.destroy;
