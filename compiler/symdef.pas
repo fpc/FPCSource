@@ -1657,7 +1657,7 @@ implementation
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
       var
-        s,t,
+        s,
         prefix : TSymStr;
         hash : qword;
       begin
@@ -6973,11 +6973,8 @@ implementation
 
          { node tree for inlining }
 
-         oldcrc:=ppufile.do_crc;
-         ppufile.do_crc:=false;
          if has_inlininginfo then
            ppuwritenodetree(ppufile,inlininginfo^.code);
-         ppufile.do_crc:=oldcrc;
       end;
 
 
@@ -8579,7 +8576,6 @@ implementation
 
     function tobjectdef.vmt_def: trecorddef;
       var
-        where: tsymtable;
         vmttypesym: tsymentry;
       begin
         if not is_unique_objpasdef then

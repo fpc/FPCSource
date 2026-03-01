@@ -60,6 +60,9 @@ type
 
     procedure TestBug41457; // two cycles of size 2 and 3
 
+    // inline
+    procedure TestInline1; // ant->bird->cat, cat inline body changes
+
     // inline modifier in implementation (not in interface)
     procedure TestImplInline1; // 2 units, cycle, impl inline
     procedure TestImplInline2; // program + 2 units cycle, impl inline
@@ -602,10 +605,7 @@ begin
   OutDir:=ProgDir+'lib';
   MainSrc:=ProgDir+'testcib_prog.pas';
   Compile;
-  // fpc should compile elk:
-  //CheckCompiled(['testcib_prog.pas','testcib_elk.pas']);
-  // But it does not:
-  CheckCompiled(['testcib_prog.pas']);
+  CheckCompiled(['testcib_prog.pas','testcib_elk.pas']);
 end;
 
 procedure TTestRecompile.TestBug41457;
@@ -631,6 +631,31 @@ begin
   Step:='Second compile';
   Compile;
   CheckCompiled(['bug41457_ant.pas']);
+end;
+
+procedure TTestRecompile.TestInline1;
+// ant->bird->cat, cat inline body changes
+var
+  Dir: String;
+begin
+  Dir:='inline1';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'inline1_ant.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'inline1_cat.pas',
+    Dir+PathDelim+'src2'+PathDelim+'inline1_cat.pas');
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['inline1_ant.pas','inline1_bird.pas','inline1_cat.pas']);
+
+  Step:='Second compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, ant impl changed, so bird is also compiled
+  CheckCompiled(['inline1_ant.pas','inline1_bird.pas','inline1_cat.pas']);
 end;
 
 procedure TTestRecompile.TestImplInline1;
