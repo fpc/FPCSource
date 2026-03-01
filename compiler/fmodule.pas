@@ -1163,6 +1163,8 @@ implementation
 
       begin
         { flag all units that depend on this unit for reloading }
+        if not interface_compiled then exit;
+
         dm:=tdependent_unit(dependent_units.first);
         while assigned(dm) do
         begin
@@ -1261,6 +1263,7 @@ implementation
       end;
 
     function tmodule.is_reload_needed(du: tdependent_unit): boolean;
+      { du.u is a module using this unit }
       begin
         Result:=(du.u.state in [ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed])
              or (du.in_interface and du.u.interface_compiled);
