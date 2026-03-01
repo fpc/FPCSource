@@ -80,7 +80,6 @@ type
     function check_do_reload_cycle(scc_root: tmodule): boolean;
     function check_crc_mismatches(scc_root: tmodule): boolean;
     function check_cycle_wait_for_pas(scc_root: tmodule): boolean;
-    function recompile_reloads(scc_root: tmodule): boolean;
     procedure recompile_scc(scc_root: tmodule);
   public
     constructor create;
@@ -666,27 +665,6 @@ begin
             end;
         end;
       pas_mod:=pas_mod.scc_next;
-    end;
-end;
-
-function ttask_handler.recompile_reloads(scc_root: tmodule): boolean;
-var
-  m, next: tmodule;
-begin
-  Result:=false;
-  m:=scc_root;
-  while assigned(m) do
-    begin
-      next:=m.scc_next;
-      if m.do_reload then
-        begin
-          {$IFDEF DEBUG_CTASK}
-          writeln('PPUALGO ttask_handler.recompile_reloads recompiling ',m.modulename^,' ',m.statestr,' ...');
-          {$ENDIF}
-          Result:=true;
-          recompile_module(m);
-        end;
-      m:=next;
     end;
 end;
 
