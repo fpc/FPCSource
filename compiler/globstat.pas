@@ -27,7 +27,7 @@ unit globstat;
 interface
 
 uses
-  globtype,tokens,globals,
+  globtype,globals,
   aasmdata,
   dbgbase,
   symbase,symsym,
@@ -43,6 +43,8 @@ type
     );
 
   { tglobalstate }
+  { Note: this is only needed for pas modules, ppu modules simply skip save and restore
+    Especially a ppu does not create its own symtablestack }
 
   tglobalstate = class
     reload: boolean;
@@ -141,9 +143,9 @@ var
 
   procedure restore_global_state(state:tglobalstate);
 
-  begin
-    state.restore;
-  end;
+    begin
+      state.restore;
+    end;
 
   procedure tglobalstate.save(for_module_switch: boolean);
 
@@ -231,6 +233,8 @@ var
   procedure tglobalstate.restore;
 
     begin
+      set_current_module(old_current_module);
+
       { restore scanner }
       current_tokenpos:=oldtokenpos;
       block_type:=old_block_type;
@@ -255,7 +259,6 @@ var
 
       RestoreLocalVerbosity(current_settings.pmessage);
 
-      set_current_module(old_current_module);
       // These can be different
       current_asmdata:=old_asmdata;
       current_debuginfo:=old_debuginfo;
@@ -272,7 +275,7 @@ var
       while item<>nil do
         begin
           id:=item^.saved_moduleid;
-          if (id<>current_module.moduleid) and (id>0) then
+          if (id<>old_current_module.moduleid) and (id>0) then
             begin
               m:=get_module(id);
               case kind of

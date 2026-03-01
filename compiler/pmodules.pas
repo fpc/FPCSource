@@ -1144,7 +1144,9 @@ type
       var
         init_procinfo,
         finalize_procinfo : tcgprocinfo;
-        i,j : integer;
+        {$ifdef DEBUG_UNITWAITING}
+        i: integer;
+        {$ENDIF}
         finishstate:pfinishstate;
 
 
@@ -1535,10 +1537,9 @@ type
         force_init_final : boolean;
         init_procinfo,
         finalize_procinfo : tcgprocinfo;
-        i : longint;
         ag : boolean;
         finishstate : tfinishstate;
-        waitingmodule , old_module: tmodule;
+        old_module: tmodule;
       begin
          result:=true;
          { curr is now module }
