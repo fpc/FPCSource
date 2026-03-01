@@ -20,7 +20,7 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.Contnrs, System.RegExpr;
+  System.Classes, System.SysUtils, System.Contnrs, System.Regexpr;
 {$ELSE}
   Classes, SysUtils, Contnrs, RegExpr;
 {$ENDIF}
