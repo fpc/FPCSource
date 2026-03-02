@@ -563,13 +563,13 @@ implementation
 
 
     function create_string_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         loopstatement, loopbodystatement: tstatementnode;
         loopvar, stringvar: ttempcreatenode;
         stringindex, loopbody, forloopnode, fromn, ton: tnode;
       begin
+        compiler:=hloopvar.compiler;
         { result is a block of statements }
         result:=internalstatements(loopstatement);
 
