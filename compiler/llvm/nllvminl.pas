@@ -176,7 +176,7 @@ implementation
         block:=internalstatements(stat);
         resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
         addstatement(stat,resulttemp);
-        lefttemp:=maybereplacewithtemp(left,block,stat,left.resultdef.size,true);
+        lefttemp:=maybereplacewithtemp(compiler,left,block,stat,left.resultdef.size,true);
         cntresult:=
           ccallnode.createintern(
             procname,

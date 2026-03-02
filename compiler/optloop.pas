@@ -519,7 +519,7 @@ unit optloop;
 
                       addstatement(initcodestatements,tempnode);
 
-                      startvaltemp:=maybereplacewithtemp(currforloop.right,initcode,initcodestatements,currforloop.right.resultdef.size,true);
+                      startvaltemp:=maybereplacewithtemp(compiler,currforloop.right,initcode,initcodestatements,currforloop.right.resultdef.size,true);
                       nn:=caddrnode.create(
                           cvecnode.create(tvecnode(n).left.getcopy,ctypeconvnode.create_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef,compiler),compiler),
                           compiler

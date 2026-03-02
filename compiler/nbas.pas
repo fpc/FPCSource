@@ -360,7 +360,7 @@ interface
          location and replace n with a ttemprefnode referring to that location }
        function maybereplacewithtempref(compiler: TCompilerBase; var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
        { same as above, but create a regular temp rather than reference temp }
-       function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
+       function maybereplacewithtemp(compiler: TCompilerBase; var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
 
 implementation
 
@@ -437,9 +437,7 @@ implementation
           end;
       end;
 
-    function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function maybereplacewithtemp(compiler: TCompilerBase; var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
       begin
         result:=nil;
         if (node_complexity(n)>4) or
