@@ -118,6 +118,8 @@ interface
 
           procedure CheckParameters(count : integer);
         private
+          procedure maybe_convert_to_string(var n: tnode);
+
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
           function handle_text_read_write(filepara,params:Ttertiarynode;var newstatement:Tnode):boolean;
@@ -701,9 +703,7 @@ implementation
       end;
 
 
-    procedure maybe_convert_to_string(var n: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure tinlinenode.maybe_convert_to_string(var n: tnode);
       begin
         { stringconstnodes are arrays of char. It's much more }
         { efficient to write a constant string, so convert    }
