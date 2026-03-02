@@ -440,7 +440,7 @@ implementation
           (which must not be evaluated twice) }
         newblock:=nil;
         newstatement:=nil;
-        lefttemp:=maybereplacewithtempref(tcallparanode(left).left,newblock,newstatement,tcallparanode(left).left.resultdef.size,false);
+        lefttemp:=maybereplacewithtempref(compiler,tcallparanode(left).left,newblock,newstatement,tcallparanode(left).left.resultdef.size,false);
         if assigned(lefttemp) then
           begin
             assignmenttarget:=ctemprefnode.create(lefttemp);
