@@ -292,9 +292,12 @@ begin
   m:=t.module;
   if Assigned(t.state) then
     t.RestoreState;
+  tmodule.ctask_fast_backtrack:=false;
   if m.do_reload then
   begin
     tppumodule(m).reload;
+    t.SaveState;
+    clear_state;
     exit(false);
   end;
   case m.state of
@@ -970,7 +973,6 @@ begin
       end;
 
     {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',besttask.module.ToString,' state=',besttask.module.statestr,' total-units=',loaded_units.Count,' tasks=',taskcount);{$ENDIF}
-    tmodule.ctask_fast_backtrack:=false;
     if continue_task(besttask) then
       begin
         {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',besttask.module.ToString,' is finished, removing from task list');{$ENDIF}
