@@ -61,6 +61,7 @@ interface
          typ   : tdeftyp;
          defid : longint;
          owner : TSymtable;
+         compiler : TCompilerBase;
       end;
 
 

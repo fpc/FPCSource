@@ -3025,8 +3025,6 @@ implementation
 ****************************************************************************}
 
     constructor tenumdef.create;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(enumdef,true);
          minval:=0;
@@ -3053,8 +3051,6 @@ implementation
 
 
     constructor tenumdef.ppuload(ppufile:tcompilerppufile);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited ppuload(enumdef,ppufile);
          minval:=ppufile.getaint;
@@ -4420,8 +4416,6 @@ implementation
 ***************************************************************************}
 
     constructor tarraydef.create(l, h: asizeint; def: tdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(arraydef,true);
          lowrange:=l;
@@ -4535,8 +4529,6 @@ implementation
 
 
     constructor tarraydef.ppuload(ppufile:tcompilerppufile);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited ppuload(arraydef,ppufile);
          { the addresses are calculated later }
@@ -4920,8 +4912,6 @@ implementation
       end;
 
     function tabstractrecorddef.RttiName: string;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         function generate_full_paramname(maxlength:longint):string;
           const
@@ -5388,8 +5378,6 @@ implementation
 
 
     constructor trecorddef.create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         name : string;
         pname : pshortstring;
@@ -5474,8 +5462,6 @@ implementation
 
 
     constructor trecorddef.ppuload(ppufile:tcompilerppufile);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       procedure readvariantrecdesc(var variantrecdesc : pvariantrecdesc);
         var
@@ -5728,8 +5714,6 @@ implementation
 ***************************************************************************}
 
     constructor tabstractprocdef.create(dt:tdeftyp;level:byte;doregister:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(dt,doregister);
          parast:=tparasymtable.create(self,level,compiler);
@@ -6665,8 +6649,6 @@ implementation
 
 
     constructor tprocdef.create(level:byte;doregister:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(procdef,level,doregister);
          implprocdefinfo:=allocmem(sizeof(implprocdefinfo^));
@@ -6702,8 +6684,6 @@ implementation
 
 
     constructor tprocdef.ppuload(ppufile:tcompilerppufile);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i,aliasnamescount,sizeleft : longint;
         level : byte;
@@ -7748,8 +7728,6 @@ implementation
 
 
     constructor tprocvardef.ppuload(ppufile:tcompilerppufile);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          inherited ppuload(procvardef,ppufile);
          { load para symtable }
@@ -7927,8 +7905,6 @@ implementation
 ***************************************************************************}
 
    constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
         inherited create(n,objectdef,doregister);
         fcurrent_dispid:=0;
@@ -7959,8 +7935,6 @@ implementation
 
 
     constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          i,
          implintfcount : longint;
