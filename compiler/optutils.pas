@@ -219,9 +219,8 @@ unit optutils;
 
 
     procedure SetNodeSucessors(p,last : tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         BreakContinueStack : TBreakContinueStack;
         Exitsuccessor: TNode;
       { sets the successor nodes of a node tree block
@@ -234,6 +233,7 @@ unit optutils;
           result:=nil;
           if p=nil then
             exit;
+          compiler:=p.compiler;
           case p.nodetype of
             statementn:
               begin
