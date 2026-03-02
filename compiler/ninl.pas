@@ -1452,7 +1452,7 @@ implementation
         { create a blocknode in which the successive write/read statements will be  }
         { put, since they belong together. Also create a dummy statement already to }
         { make inserting of additional statements easier                            }
-        newblock:=internalstatements(newstatement);
+        newblock:=internalstatements(compiler,newstatement);
 
         if is_rwstr then
           begin
@@ -1723,7 +1723,7 @@ implementation
         { create the blocknode which will hold the generated statements + }
         { an initial dummy statement                                      }
 
-        newblock:=internalstatements(newstatement);
+        newblock:=internalstatements(compiler,newstatement);
 
         { do we need a temp for code? Yes, if no code specified, or if  }
         { code is not a valsinttype sized parameter (we already checked }
@@ -1910,7 +1910,7 @@ implementation
           begin
             { possibly generic involved? }
             if df_generic in current_procinfo.procdef.defoptions then
-              result:=internalstatements(newstatement)
+              result:=internalstatements(compiler,newstatement)
             else
               CGMessage(type_e_mismatch);
             exit;
@@ -5057,7 +5057,7 @@ implementation
          newblock: tblocknode;
          hdef: tdef;
        begin
-         newblock := internalstatements(newstatement);
+         newblock := internalstatements(compiler,newstatement);
          { extra parameter? }
          if assigned(tcallparanode(left).right) then
            begin
@@ -5253,7 +5253,7 @@ implementation
              end;
            { create statements with call initialize the arguments and
              call fpc_dynarr_setlength }
-           newblock:=internalstatements(newstatement);
+           newblock:=internalstatements(compiler,newstatement);
 
            { get temp for array of lengths }
            temp:=ctempcreatenode.create(carraydef.getreusable(sinttype,dims),dims*sinttype.size,tt_persistent,false,compiler);
@@ -5437,7 +5437,7 @@ implementation
          para         : tcallparanode;
        begin
          { create statements with call to getmem+initialize }
-         newblock:=internalstatements(newstatement);
+         newblock:=internalstatements(compiler,newstatement);
 
          { create temp for result }
          temp := ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
@@ -5674,7 +5674,7 @@ implementation
                  CGMessagePos(fileinfo,type_e_array_required);
                  exit(cerrornode.create(compiler));
                end;
-             insertblock:=internalstatements(insertstatement);
+             insertblock:=internalstatements(compiler,insertstatement);
              datatemp:=nil;
              if iscomparray then
                begin
@@ -5903,7 +5903,7 @@ implementation
                  if not assigned(arrn) then
                    internalerror(2017101001);
 
-                 result:=internalstatements(newstatement);
+                 result:=internalstatements(compiler,newstatement);
 
                  { generate the open array constructor for the source arrays
                    note: the order needs to be swapped again here! }
@@ -6025,7 +6025,7 @@ implementation
          target := tcallparanode(target).left;
          index := tcallparanode(index).left;
 
-         loop := internalstatements(loopstatement);
+         loop := internalstatements(compiler,loopstatement);
          loopvar := ctempcreatenode.create(
            tarraydef(packednode.resultdef).rangedef,
            tarraydef(packednode.resultdef).rangedef.size,
@@ -6267,7 +6267,7 @@ implementation
                returned result, namely the original value, is equal to the
                comparand which means that the Succeeded parameter needs to be
                True (otherwise it needs to be False). }
-             n:=internalstatements(stmt);
+             n:=internalstatements(compiler,stmt);
              tmp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
              addstatement(stmt,tmp);
              addstatement(stmt,cassignmentnode.create(ctemprefnode.create(tmp,compiler),result,compiler));
@@ -6286,7 +6286,7 @@ implementation
              { the helpers return the original value, due to ease of implementation with the
                existing Interlocked* implementations, but the intrinsics need to return the
                resulting value so we add/sub the Value to/from the result }
-             n:=internalstatements(stmt);
+             n:=internalstatements(compiler,stmt);
              tmp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
              addstatement(stmt,tmp);
              if inlinenumber=in_atomic_inc then

@@ -441,8 +441,8 @@ unit optcse;
                       begin
                         if not(assigned(statements)) then
                           begin
-                            nodes:=internalstatements(statements);
-                            addstatement(statements,internalstatements(creates));
+                            nodes:=internalstatements(compiler,statements);
+                            addstatement(statements,internalstatements(compiler,creates));
                           end;
 
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
@@ -566,6 +566,8 @@ unit optcse;
 
 
     function do_optcse(var rootnode : tnode) : tnode;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         deletes,
         statements : tstatementnode;
@@ -580,9 +582,9 @@ unit optcse;
         writeln('====================================================================================');
         writeln;
 {$endif csedebug}
-        deleteblock:=internalstatements(deletes);
+        deleteblock:=internalstatements(compiler,deletes);
         foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,@deletes);
-        rootblock:=internalstatements(statements);
+        rootblock:=internalstatements(compiler,statements);
         addstatement(statements,rootnode);
         addstatement(statements,deleteblock);
         rootnode:=rootblock;
@@ -802,9 +804,9 @@ unit optcse;
                     current_filepos:=current_procinfo.entrypos;
                     if not(assigned(createblock)) then
                       begin
-                        rootblock:=internalstatements(statements);
-                        createblock:=internalstatements(creates);
-                        deleteblock:=internalstatements(deletes);
+                        rootblock:=internalstatements(compiler,statements);
+                        createblock:=internalstatements(compiler,creates);
+                        deleteblock:=internalstatements(compiler,deletes);
                       end;
                      constentries[i].temp:=ctempcreatenode.create(constentries[i].valuenode.resultdef,
                        constentries[i].valuenode.resultdef.size,tt_persistent,true,compiler);
@@ -826,9 +828,9 @@ unit optcse;
                     current_filepos:=current_procinfo.entrypos;
                     if not(assigned(createblock)) then
                       begin
-                        rootblock:=internalstatements(statements);
-                        createblock:=internalstatements(creates);
-                        deleteblock:=internalstatements(deletes);
+                        rootblock:=internalstatements(compiler,statements);
+                        createblock:=internalstatements(compiler,creates);
+                        deleteblock:=internalstatements(compiler,deletes);
                       end;
                      constentries[i].temp:=ctempcreatenode.create(cpointerdef.getreusable(constentries[i].valuenode.resultdef),
                        voidpointertype.size,tt_persistent,true,compiler);

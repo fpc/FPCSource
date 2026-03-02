@@ -3555,7 +3555,7 @@ const
                 end
               else
                 begin
-                  result:=internalstatements(newstatement);
+                  result:=internalstatements(compiler,newstatement);
                   tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
                   addstatement(newstatement,tempnode);
                   { initialize the temp, since it will be passed to a
@@ -3704,7 +3704,7 @@ const
           else
             begin
               { add two var sets }
-              result:=internalstatements(newstatement);
+              result:=internalstatements(compiler,newstatement);
 
               { create temp for result }
               temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
@@ -3797,7 +3797,7 @@ const
                     end
                   else
                     begin
-                      result:=internalstatements(newstatement);
+                      result:=internalstatements(compiler,newstatement);
 
                       { create temp for result }
                       temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
@@ -3874,7 +3874,7 @@ const
                             ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
                             cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler),compiler);
 
-                          result:=internalstatements(newstatement);
+                          result:=internalstatements(compiler,newstatement);
 
                           { create temp for result }
                           temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
@@ -3982,7 +3982,7 @@ const
                 end
               else
                 begin
-                  result:=internalstatements(newstatement);
+                  result:=internalstatements(compiler,newstatement);
                   tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
                   addstatement(newstatement,tempnode);
                   { initialize the temp, since it will be passed to a

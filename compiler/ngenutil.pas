@@ -187,7 +187,7 @@ implementation
       newstatement : tstatementnode;
       srsym : tsym;
     begin
-      result:=internalstatements(newstatement);
+      result:=internalstatements(compiler,newstatement);
 
       { call fail helper and exit normal }
       if is_class(current_structdef) then
@@ -697,7 +697,7 @@ implementation
       if pd.generate_safecall_wrapper then
         begin
           ressym:=tsym(pd.localst.Find('safecallresult'));
-          block:=internalstatements(stat);
+          block:=internalstatements(compiler,stat);
           addstatement(stat,
             cassignmentnode.create(
               cloadnode.create(ressym,ressym.owner,compiler),
@@ -712,7 +712,7 @@ implementation
       if (m_isolike_program_para in current_settings.modeswitches) and
         (pd.proctypeoption=potype_proginit) then
         begin
-          block:=internalstatements(stat);
+          block:=internalstatements(compiler,stat);
           pd.localst.SymList.ForEachCall(@initialize_filerecs,@stat);
           addstatement(stat,result);
           pd.localst.SymList.ForEachCall(@finalize_filerecs,@stat);
@@ -731,7 +731,7 @@ implementation
                   in case of $j-, these are marked "final" in Java and such
                   static fields must be initialized in the class constructor
                   itself -> add them here }
-                block:=internalstatements(stat);
+                block:=internalstatements(compiler,stat);
                 if assigned(pd.struct.tcinitcode) then
                   begin
                     addstatement(stat,pd.struct.tcinitcode);
@@ -753,7 +753,7 @@ implementation
               begin
                 if assigned(current_module.tcinitcode) then
                   begin
-                    block:=internalstatements(stat);
+                    block:=internalstatements(compiler,stat);
                     addstatement(stat,tnode(current_module.tcinitcode));
                     current_module.tcinitcode:=nil;
                     addstatement(stat,result);
@@ -765,7 +765,7 @@ implementation
                 begin
                   if assigned(pd.struct.tcinitcode) then
                     begin
-                      block:=internalstatements(stat);
+                      block:=internalstatements(compiler,stat);
                       addstatement(stat,pd.struct.tcinitcode);
                       pd.struct.tcinitcode:=nil;
                       addstatement(stat,result);
@@ -781,7 +781,7 @@ implementation
          pd.get_funcretsym_info(ressym,resdef) and
          (tabstractnormalvarsym(ressym).inparentfpstruct) then
         begin
-          block:=internalstatements(stat);
+          block:=internalstatements(compiler,stat);
           addstatement(stat,result);
           load_parentfpstruct_nested_funcret(ressym,stat);
           result:=block;
@@ -796,7 +796,7 @@ implementation
       result:=n;
       if check_insert_trashing(pd) then
         begin
-          result:=internalstatements(stat);
+          result:=internalstatements(compiler,stat);
           pd.parast.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
           pd.localst.SymList.ForEachCall(@maybe_trash_variable_callback,@stat);
           addstatement(stat,n);

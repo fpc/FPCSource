@@ -852,7 +852,7 @@ implementation
          if (flabels^.label_type = ltConstString) and (not valid_for_addr(left, false)) and
            (blocks.count > 0) then
            begin
-             init_block := internalstatements(stmt);
+             init_block := internalstatements(compiler,stmt);
              tempcaseexpr :=
                ctempcreatenode.create(
                  left.resultdef, left.resultdef.size, tt_persistent, true, compiler);
@@ -899,7 +899,7 @@ implementation
              if assigned(init_block) then
                firstpass(tnode(init_block));
 
-             if_block:=internalstatements(stmt);
+             if_block:=internalstatements(compiler,stmt);
 
              if assigned(init_block) then
                addstatement(stmt, init_block);
@@ -984,7 +984,7 @@ implementation
                end
              else
                begin
-                 init_block:=internalstatements(stmt);
+                 init_block:=internalstatements(compiler,stmt);
                  tempcaseexpr:=ctempcreatenode.create(
                    left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
                  temp_cleanup:=ctempdeletenode.create(tempcaseexpr,compiler);

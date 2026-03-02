@@ -166,7 +166,7 @@ unit optloop;
                   unrolls:=counts;
 
                 { create block statement }
-                unrollblock:=internalstatements(unrollstatement);
+                unrollblock:=internalstatements(compiler,unrollstatement);
 
                 { can we get rid completly of the for ? }
                 getridoffor:=(unrolls=counts) and not(hascontrollflowstatements) and
@@ -224,7 +224,7 @@ unit optloop;
                 if getridoffor then
                   begin
                     { create block statement }
-                    result:=internalstatements(newforstatement);
+                    result:=internalstatements(compiler,newforstatement);
                     addstatement(newforstatement,unrollblock);
                     doinlinesimplify(result);
                   end;
@@ -361,12 +361,14 @@ unit optloop;
 
 
     procedure toptimizeinductionvariablescontext.addinduction(temp : ttempcreatenode; expr : tnode);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if not assigned(initcode) then
           begin
-            initcode:=internalstatements(initcodestatements);
-            calccode:=internalstatements(calccodestatements);
-            deletecode:=internalstatements(deletecodestatements);
+            initcode:=internalstatements(compiler,initcodestatements);
+            calccode:=internalstatements(compiler,calccodestatements);
+            deletecode:=internalstatements(compiler,deletecodestatements);
             docalcatend:=not(assigned(currforloop.entrylabel)) and
               not(foreachnodestatic(currforloop.t2,@checkcontinue,nil));
           end;
@@ -610,7 +612,7 @@ unit optloop;
             tfornode(oldn).t1:=nil;
             tfornode(oldn).t2:=nil;
 
-            loopcode:=internalstatements(loopcodestatements);
+            loopcode:=internalstatements(compiler,loopcodestatements);
             if not docalcatend then
               addstatement(loopcodestatements,calccode);
             addstatement(loopcodestatements,tfornode(newfor).t2);
@@ -619,7 +621,7 @@ unit optloop;
             tfornode(newfor).t2:=loopcode;
             do_firstpass(newfor);
 
-            n:=internalstatements(newcodestatements);
+            n:=internalstatements(compiler,newcodestatements);
             oldn.Free;
             oldn := nil;
             addstatement(newcodestatements,initcode);

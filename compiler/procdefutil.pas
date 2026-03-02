@@ -1060,10 +1060,10 @@ implementation
             method (including the captured symbols) and have the original nested
             function simply call that function-turned-method }
           pi.code:=pinested.code;
-          pinested.code:=internalstatements(stmt);
+          pinested.code:=internalstatements(compiler,stmt);
         end
       else
-        pi.code:=internalstatements(stmt);
+        pi.code:=internalstatements(compiler,stmt);
 
       selfinfo.selfsym:=nil;
       selfinfo.ignore:=nil;

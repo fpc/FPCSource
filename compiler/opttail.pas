@@ -139,8 +139,8 @@ unit opttail;
                     { this is hairy to do because one parameter could be used to calculate another one, so
                       assign them first to temps and then add them }
 
-                    calcnodes:=internalstatements(calcstatements);
-                    copynodes:=internalstatements(copystatements);
+                    calcnodes:=internalstatements(compiler,calcstatements);
+                    copynodes:=internalstatements(compiler,copystatements);
                     paranode:=tcallparanode(usedcallnode.left);
                     while assigned(paranode) do
                       begin
@@ -198,7 +198,7 @@ unit opttail;
                       end;
 
                     oldnodetree:=n;
-                    n:=internalstatements(nodes);
+                    n:=internalstatements(compiler,nodes);
 
                     if assigned(usedcallnode.callinitblock) then
                       begin
@@ -291,7 +291,7 @@ unit opttail;
         writeln('====================================================================================');
 {$endif debug_opttail}
             oldnodes:=n;
-            n:=internalstatements(s);
+            n:=internalstatements(compiler,s);
             addstatement(s,labelnode);
             addstatement(s,oldnodes);
 {$ifdef debug_opttail}

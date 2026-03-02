@@ -1539,7 +1539,7 @@ implementation
           if not(tprocdef(tparasymtable(tparavarsym(tloadnode(get_open_const_array(left)).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
             begin
               temp:=nil;
-              result:=internalstatements(stat);
+              result:=internalstatements(compiler,stat);
               { can't use node_complexity here, assumes that the code has
                 already been firstpassed }
               if not is_const(right) then

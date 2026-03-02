@@ -415,7 +415,7 @@ implementation
             end;
          *)
 
-         result:=internalstatements(mainstatement);
+         result:=internalstatements(compiler,mainstatement);
          { the fast enumeration state }
          state:=ctempcreatenode.create(objc_fastenumerationstate,objc_fastenumerationstate.size,tt_persistent,false,compiler);
          typecheckpass(tnode(state));
@@ -456,7 +456,7 @@ implementation
          addstatement(mainstatement,cassignmentnode.create(ctemprefnode.create(expressiontemp,compiler),expr.getcopy,compiler));
 
          { we add the "repeat..until" afterwards, now just create the body }
-         outerloop:=internalstatements(outerloopbodystatement);
+         outerloop:=internalstatements(compiler,outerloopbodystatement);
          { the countByEnumeratingWithState_objects_count call }
          hp:=ccallparanode.create(cinlinenode.create(in_length_x,false,ctypenode.create(itemsarraydef,compiler),compiler),
                ccallparanode.create(caddrnode.create(ctemprefnode.create(items,compiler),compiler),
@@ -473,7 +473,7 @@ implementation
            ctemprefnode.create(currentamount,compiler),hp,compiler));
          { if currentamount = 0, bail out (use copy of hloopvar, because we
            have to use it again below) }
-         hp:=internalstatements(tempstatement);
+         hp:=internalstatements(compiler,tempstatement);
          addstatement(tempstatement,cassignmentnode.create(
              hloopvar.getcopy,cnilnode.create(compiler),compiler));
          addstatement(tempstatement,cbreaknode.create(compiler));
@@ -491,7 +491,7 @@ implementation
           ctemprefnode.create(innerloopcounter,compiler),cordconstnode.create(-1,ptruinttype,false,compiler),compiler));
 
         { and now the inner loop, again adding the repeat/until afterwards }
-        innerloop:=internalstatements(innerloopbodystatement);
+        innerloop:=internalstatements(compiler,innerloopbodystatement);
         { inc(innerloopcounter) without range/overflowchecking (because
           we go from culong(-1) to 0 during the first iteration }
         hp:=cinlinenode.create(
@@ -571,7 +571,7 @@ implementation
       begin
         compiler:=hloopvar.compiler;
         { result is a block of statements }
-        result:=internalstatements(loopstatement);
+        result:=internalstatements(compiler,loopstatement);
 
         { create a temp variable for expression }
         stringvar := ctempcreatenode.create(
@@ -592,7 +592,7 @@ implementation
 
         stringindex:=ctemprefnode.create(loopvar,compiler);
 
-        loopbody:=internalstatements(loopbodystatement);
+        loopbody:=internalstatements(compiler,loopbodystatement);
         // for-in loop variable := string_expression[index]
         addstatement(loopbodystatement,
           cassignmentnode.create(hloopvar, cvecnode.create(ctemprefnode.create(stringvar,compiler),stringindex,compiler),compiler));
@@ -640,7 +640,7 @@ implementation
         expression := expr;
 
         { result is a block of statements }
-        result:=internalstatements(loopstatement);
+        result:=internalstatements(compiler,loopstatement);
 
         is_string:=ado_IsConstString in tarraydef(expr.resultdef).arrayoptions;
 
@@ -736,7 +736,7 @@ implementation
 
         arrayindex:=ctemprefnode.create(loopvar,compiler);
 
-        loopbody:=internalstatements(loopbodystatement);
+        loopbody:=internalstatements(compiler,loopbodystatement);
         // for-in loop variable := array_expression[index]
         if assigned(arrayvar) then
           addstatement(loopbodystatement,
@@ -784,7 +784,7 @@ implementation
             exit;
           end;
         { result is a block of statements }
-        result:=internalstatements(loopstatement);
+        result:=internalstatements(compiler,loopstatement);
 
         { create a temp variable for expression }
         setvar := ctempcreatenode.create(
@@ -811,7 +811,7 @@ implementation
 
         loopbody:=cifnode.create(
           cinnode.create(ctemprefnode.create(loopvar,compiler),ctemprefnode.create(setvar,compiler),compiler),
-          internalstatements(loopbodystatement),
+          internalstatements(compiler,loopbodystatement),
           nil,compiler);
 
         addstatement(loopbodystatement,cassignmentnode.create(hloopvar,ctemprefnode.create(loopvar,compiler),compiler));
@@ -847,7 +847,7 @@ implementation
       begin
         compiler:=hloopvar.compiler;
         { result is a block of statements }
-        result:=internalstatements(loopstatement);
+        result:=internalstatements(compiler,loopstatement);
 
         enumerator_is_class := is_class(enumerator_get.returndef);
 
@@ -876,7 +876,7 @@ implementation
             compiler
           ));
 
-        loopbody:=internalstatements(loopbodystatement);
+        loopbody:=internalstatements(compiler,loopbodystatement);
         { for-in loop variable := enumerator.current }
         if enumerator_current.getpropaccesslist(palt_read,propaccesslist) then
           begin
@@ -2130,9 +2130,9 @@ implementation
         needsifblock:=not(is_constnode(right)) or not(is_constnode(t1));
 
         { convert the for loop into a while loop }
-        result:=internalstatements(statements);
-        ifblock:=internalstatements(ifstatements);
-        loopblock:=internalstatements(loopstatements);
+        result:=internalstatements(compiler,statements);
+        ifblock:=internalstatements(compiler,ifstatements);
+        loopblock:=internalstatements(compiler,loopstatements);
 
         usefromtemp:=(might_have_sideeffects(t1) and not(is_const(right))) or (node_complexity(right)>1);
         usetotemp:=not(is_const(t1));
@@ -2313,7 +2313,7 @@ implementation
         newstatement:=nil;
         if assigned(left) then
           begin
-             result:=internalstatements(newstatement);
+             result:=internalstatements(compiler,newstatement);
              addstatement(newstatement,left);
              left:=nil;
           end;
@@ -2328,7 +2328,7 @@ implementation
            (tabstractnormalvarsym(ressym).inparentfpstruct) then
           begin
             if not assigned(result) then
-              result:=internalstatements(newstatement);
+              result:=internalstatements(compiler,newstatement);
             compiler.nodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
           end;
         if assigned(result) then
@@ -2712,7 +2712,7 @@ implementation
         current_addr : tlabelnode;
         raisenode : tcallnode;
       begin
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
 
         if assigned(left) then
           begin

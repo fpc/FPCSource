@@ -272,7 +272,7 @@ implementation
          if might_have_sideeffects(p1,[]) then
            begin
              typecheckpass(p1);
-             result:=internalstatements(newstatement);
+             result:=internalstatements(compiler,newstatement);
              hdef:=cpointerdef.getreusable(p1.resultdef);
              temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false,compiler);
              addstatement(newstatement,temp);
@@ -2038,7 +2038,7 @@ implementation
        begin
          { create statements with call initialize the arguments and
            call fpc_dynarr_setlength }
-         newblock:=internalstatements(newstatement);
+         newblock:=internalstatements(compiler,newstatement);
 
          { store all indices in a temporary array }
          countindices:=0;
@@ -2125,7 +2125,7 @@ implementation
           assnode:tnode;
           paracount:integer;
         begin
-          result:=internalstatements(newstatement);
+          result:=internalstatements(compiler,newstatement);
           { create temp for result }
           arrnode:=ctempcreatenode.create(arrdef,arrdef.size,tt_persistent,true,compiler);
           addstatement(newstatement,arrnode);
@@ -2134,7 +2134,7 @@ implementation
           { check arguments and create an assignment calls }
           if try_to_consume(_LKLAMMER) then
             begin
-              assnode:=internalstatements(assstatement);
+              assnode:=internalstatements(compiler,assstatement);
               repeat
                 { arr[i] := param_i }
                 addstatement(assstatement,
@@ -2215,7 +2215,7 @@ implementation
                     begin
                       extdef:=tobjectdef(srsymtable.defowner).extendeddef;
                       newstatement:=nil;
-                      n:=internalstatements(newstatement);
+                      n:=internalstatements(compiler,newstatement);
                       temp:=ctempcreatenode.create(extdef,extdef.size,tt_persistent,false,compiler);
                       addstatement(newstatement,temp);
                       addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),node,compiler));

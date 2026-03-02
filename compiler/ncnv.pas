@@ -1152,7 +1152,7 @@ implementation
           chartype:='char';
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
-            newblock:=internalstatements(newstat);
+            newblock:=internalstatements(compiler,newstat);
             restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_'+chartype+'array_to_shortstr',
@@ -1255,7 +1255,7 @@ implementation
           chartype:='widechar'
         else
           chartype:='char';
-        newblock:=internalstatements(newstat);
+        newblock:=internalstatements(compiler,newstat);
         restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
         addstatement(newstat,restemp);
         addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
@@ -1803,7 +1803,7 @@ implementation
       begin
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
-            newblock:=internalstatements(newstat);
+            newblock:=internalstatements(compiler,newstat);
             restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
@@ -1880,7 +1880,7 @@ implementation
       begin
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
-            newblock:=internalstatements(newstat);
+            newblock:=internalstatements(compiler,newstat);
             restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pwidechar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
@@ -2002,7 +2002,7 @@ implementation
         temp2        : ttempcreatenode;
       begin
         { create statements with call to getmem+initialize }
-        result:=internalstatements(newstatement);
+        result:=internalstatements(compiler,newstatement);
 
         { create temp for result }
         temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
@@ -2083,7 +2083,7 @@ implementation
 
         tarrayconstructornode(left).force_type(tarraydef(resultdef).elementdef);
 
-        result:=internalstatements(newstatement);
+        result:=internalstatements(compiler,newstatement);
         { create temp for result }
         arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true,compiler);
         addstatement(newstatement,arrnode);
@@ -2091,7 +2091,7 @@ implementation
         paracount:=0;
 
         { create an assignment call for each element }
-        assnode:=internalstatements(assstatement);
+        assnode:=internalstatements(compiler,assstatement);
         if left.nodetype=arrayconstructorrangen then
           internalerror(2016021902);
         elemnode:=tarrayconstructornode(left);
@@ -2156,7 +2156,7 @@ implementation
       begin
         tarrayconstructornode(left).force_type(tarraydef(resultdef).elementdef);
 
-        result:=internalstatements(newstatement);
+        result:=internalstatements(compiler,newstatement);
         { create temp for result }
         arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true,compiler);
         addstatement(newstatement,arrnode);
@@ -2164,7 +2164,7 @@ implementation
         paracount:=0;
 
         { create an assignment call for each element }
-        assnode:=internalstatements(assstatement);
+        assnode:=internalstatements(compiler,assstatement);
         if left.nodetype=arrayconstructorrangen then
           internalerror(2020041402);
         elemnode:=tarrayconstructornode(left);
@@ -2760,7 +2760,7 @@ implementation
                       totypedef,compiler);
             if assigned(hp) then
               begin
-                blck:=internalstatements(stmt);
+                blck:=internalstatements(compiler,stmt);
                 addstatement(stmt,cassignmentnode.create(hp,left,compiler));
                 left:=nil;
                 addstatement(stmt,result);
@@ -3158,7 +3158,7 @@ implementation
                                typecasting to a class or interface }
                              { we need to make sure the result can still be
                                passed as a var parameter                    }
-                             newblock:=internalstatements(newstatement);
+                             newblock:=internalstatements(compiler,newstatement);
                              if (valid_for_var(left,false)) then
                                begin
                                  tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
@@ -3492,7 +3492,7 @@ implementation
 
                   if NeedMinus1Check then
                     begin
-                      newblock:=internalstatements(newstatements);
+                      newblock:=internalstatements(compiler,newstatements);
                       tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true,compiler);
                       addstatement(newstatements,tempnode);
                       addstatement(newstatements,cifnode.create_internal(
@@ -4309,7 +4309,7 @@ implementation
           end
         else
           begin
-            result:=internalstatements(newstatement);
+            result:=internalstatements(compiler,newstatement);
 
             { in case left is a smallset expression, it can be an addn or so. }
             { fpc_varset_load expects a formal const parameter, which doesn't }
@@ -4326,7 +4326,7 @@ implementation
                 left:=result;
                 firstpass(left);
                 { recreate the result's internalstatements list }
-                result:=internalstatements(newstatement);
+                result:=internalstatements(compiler,newstatement);
               end;
 
             { create temp for result }
@@ -4437,7 +4437,7 @@ implementation
 
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
-            newblock:=internalstatements(newstat);
+            newblock:=internalstatements(compiler,newstat);
             restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
@@ -5092,7 +5092,7 @@ implementation
                 if might_have_sideeffects(left) or
                   (node_complexity(left)>2) then
                   begin
-                    result:=internalstatements(statement);
+                    result:=internalstatements(compiler,statement);
                     tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
                     addstatement(statement,tempnode);
                     addstatement(statement,cassignmentnode.create_internal(ctemprefnode.create(tempnode,compiler),left,compiler));

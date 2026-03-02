@@ -397,7 +397,7 @@ implementation
 
                   { create statements with call to getmem+initialize or
                     finalize+freemem }
-                  new_dispose_statement:=internalstatements(newstatement);
+                  new_dispose_statement:=internalstatements(compiler,newstatement);
 
                   if is_new then
                    begin

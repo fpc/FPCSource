@@ -444,7 +444,7 @@ implementation
 
       begin
         variantdispatch:=selfnode.resultdef.typ=variantdef;
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
         result_data:=nil;
         selftemp:=nil;
         selfpara:=nil;
@@ -769,8 +769,8 @@ implementation
           it's modified by the caller, that's no problem) }
         if not is_array_constructor(left.resultdef) then
           begin
-            fparainit:=internalstatements(initstat);
-            finiblock:=internalstatements(finistat);
+            fparainit:=internalstatements(compiler,initstat);
+            finiblock:=internalstatements(compiler,finistat);
             paratemp:=nil;
 
             { making a copy of an open array, an array of const or a dynamic
@@ -1308,7 +1308,7 @@ implementation
                        ((left.nodetype=stringconstn) and
                         (tstringdef(parasym.vardef).len<tstringconstnode(left).len))))) then
                    begin
-                     block:=internalstatements(statements);
+                     block:=internalstatements(compiler,statements);
                      { temp for the new string }
                      temp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,
                        tt_persistent,true,compiler);
@@ -2148,7 +2148,7 @@ implementation
           exit;
         if not assigned(callinitblock) then
           begin
-            callinitblock:=internalstatements(lastinitstatement);
+            callinitblock:=internalstatements(compiler,lastinitstatement);
             lastinitstatement.left.free;
             lastinitstatement.left:=n;
             firstpass(tnode(callinitblock));
@@ -2181,7 +2181,7 @@ implementation
           exit;
         if not assigned(callcleanupblock) then
           begin
-            callcleanupblock:=internalstatements(lastdonestatement);
+            callcleanupblock:=internalstatements(compiler,lastdonestatement);
             lastdonestatement.left.free;
             lastdonestatement.left:=n;
             firstpass(tnode(callcleanupblock));
@@ -3051,7 +3051,7 @@ implementation
                             assignment to the value output (function result),
                             so use a block node for that}
 
-                          Result := internalstatements(NewStatements);
+                          Result := internalstatements(compiler,NewStatements);
 
                           { Create a node for writing the Code output }
                           addstatement(
@@ -3217,7 +3217,7 @@ implementation
         }
         if (cnf_inherited in callnodeflags) then
           begin
-             block:=internalstatements(statements);
+             block:=internalstatements(compiler,statements);
              objcsupertype:=search_named_unit_globaltype('OBJC','OBJC_SUPER',true).typedef;
              if (objcsupertype.typ<>recorddef) then
                internalerror(2009032901);
@@ -4607,7 +4607,7 @@ implementation
             { if the result is used, we've to insert a call to convert the type to be on the "safe side" }
             if (cnf_return_value_used in callnodeflags) and not is_void(procdefinition.returndef) then
               begin
-                result:=internalstatements(statements);
+                result:=internalstatements(compiler,statements);
                 converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),
                   tt_persistent,true,compiler);
                 addstatement(statements,converted_result_data);
@@ -5724,12 +5724,12 @@ implementation
           ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
 
         { Create new code block for inlining }
-        inlineblock:=internalstatements(inlineinitstatement);
+        inlineblock:=internalstatements(compiler,inlineinitstatement);
         { make sure that valid_for_assign() returns false for this block
           (otherwise assigning values to the block will result in assigning
            values to the inlined function's result) }
         include(inlineblock.flags,nf_no_lvalue);
-        inlinecleanupblock:=internalstatements(inlinecleanupstatement);
+        inlinecleanupblock:=internalstatements(compiler,inlinecleanupstatement);
 
         if assigned(callinitblock) then
           addstatement(inlineinitstatement,callinitblock.getcopy);

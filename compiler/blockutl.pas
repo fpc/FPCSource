@@ -277,7 +277,7 @@ implementation
       statement: tstatementnode;
       literaltemp: ttempcreatenode;
     begin
-      result:=internalstatements(statement);
+      result:=internalstatements(compiler,statement);
       { create new block literal structure }
       literaltemp:=ctempcreatenode.create(blockliteraldef,blockliteraldef.size,tt_persistent,false,compiler);
       addstatement(statement,literaltemp);

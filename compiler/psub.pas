@@ -477,7 +477,7 @@ implementation
         newstatement : tstatementnode;
         def          : tabstractrecorddef;
       begin
-        result:=internalstatements(newstatement);
+        result:=internalstatements(compiler,newstatement);
 
         if assigned(current_structdef) then
           begin
@@ -630,7 +630,7 @@ implementation
         newstatement : tstatementnode;
         oldlocalswitches: tlocalswitches;
       begin
-        result:=internalstatements(newstatement);
+        result:=internalstatements(compiler,newstatement);
 
         if assigned(current_structdef) then
           begin
@@ -790,7 +790,7 @@ implementation
                   internalerror(200305106);
 
                 current_filepos:=entrypos;
-                constructionblock:=internalstatements(newstatement);
+                constructionblock:=internalstatements(compiler,newstatement);
                 { initialise constructionsuccessful with -1, indicating that
                   the construction was not successful and hence
                   beforedestruction should not be called if a destructor is
@@ -848,7 +848,7 @@ implementation
                 if assigned(pd) or is_object(procdef.struct) then
                   begin
                     current_filepos:=exitpos;
-                    exceptblock:=internalstatements(newstatement);
+                    exceptblock:=internalstatements(compiler,newstatement);
                     { first free the instance if non-nil }
                     if assigned(pd) then
                       { if vmt<>0 then call destructor }
@@ -882,7 +882,7 @@ implementation
                     { then re-raise the exception }
                     addstatement(newstatement,craisenode.create(nil,nil,nil,compiler));
                     current_filepos:=entrypos;
-                    newblock:=internalstatements(newstatement);
+                    newblock:=internalstatements(compiler,newstatement);
                     { try
                         tocode
                       except
@@ -939,7 +939,7 @@ implementation
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
         current_filepos:=entrypos;
-        newblock:=internalstatements(newstatement);
+        newblock:=internalstatements(compiler,newstatement);
         { Note - this is not strippable since it wraps the entire procedure }
         Exclude(TBlockNode(newblock).blocknodeflags, bnf_strippable);
         { initialization is common for all cases }
@@ -981,7 +981,7 @@ implementation
               implicit finally is used }
             current_filepos:=exitpos;
             { Generate code that will be in the try...finally }
-            finalcode:=internalstatements(codestatement);
+            finalcode:=internalstatements(compiler,codestatement);
             if procdef.proctypeoption<>potype_exceptfilter then
               addstatement(codestatement,cfinalizetempsnode.create(compiler));
             compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);

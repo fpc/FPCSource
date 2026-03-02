@@ -383,7 +383,7 @@ begin
     end
   else
     begin
-      result:=internalstatements(newstatement);
+      result:=internalstatements(compiler,newstatement);
       tempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent ,true,compiler);
       addstatement(newstatement,tempnode);
       { initialize the temp, since it will be passed to a
@@ -488,7 +488,7 @@ begin
     end
   else
     begin
-      result:=internalstatements(newstatement);
+      result:=internalstatements(compiler,newstatement);
       tempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent ,true,compiler);
       addstatement(newstatement,tempnode);
       { initialize the temp, since it will be passed to a

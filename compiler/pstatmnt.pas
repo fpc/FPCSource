@@ -684,7 +684,7 @@ implementation
             else
               begin
                 { complex load, load in temp first }
-                newblock:=internalstatements(newstatement);
+                newblock:=internalstatements(compiler,newstatement);
                 { when we can't take the address of p, load it in a temp }
                 { since we may need its address later on                 }
                 if not valid_for_addr(p,false) then

@@ -627,7 +627,7 @@ implementation
         if docheck then
           begin
             { check for nil self-pointer }
-            block:=internalstatements(stat);
+            block:=internalstatements(compiler,stat);
             if is_object(self_resultdef) then
               begin
                 self_temp:=ctempcreatenode.create_value(

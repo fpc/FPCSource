@@ -463,8 +463,8 @@ implementation
 
          if (nodetype=modn) and (mdnf_isomod in moddivnodeflags) then
            begin
-             result:=internalstatements(statements);
-             else_block:=internalstatements(else_statements);
+             result:=internalstatements(compiler,statements);
+             else_block:=internalstatements(compiler,else_statements);
              result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
 
              { right <=0? }
@@ -626,7 +626,7 @@ implementation
                     else
                       shiftval:=left.resultdef.size*8-1;
 
-                    result:=internalstatements(statements);
+                    result:=internalstatements(compiler,statements);
                     temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
                     resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
                     addstatement(statements,resulttemp);
@@ -694,7 +694,7 @@ implementation
                 shiftval:=left.resultdef.size*8-1;
                 tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
 
-                result:=internalstatements(statements);
+                result:=internalstatements(compiler,statements);
                 temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
                 resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
                 addstatement(statements,resulttemp);
