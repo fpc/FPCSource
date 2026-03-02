@@ -447,15 +447,15 @@ end;
 
 
 function genmultidynarrayadd(p: taddnode): tnode;
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
+  compiler: TCompilerBase;
   hp,sn : tnode;
   arrp  : tarrayconstructornode;
   newstatement : tstatementnode;
   tempnode    : ttempcreatenode;
   para : tcallparanode;
 begin
+  compiler:=p.compiler;
   arrp:=nil;
   hp:=p;
   while assigned(hp) and (hp.nodetype=addn) do
