@@ -45,29 +45,32 @@ interface
     pinitfinalentry = ^tinitfinalentry;
 
     tnodeutils = class
-      class function call_fail_node:tnode; virtual;
-      class function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
-      class function finalize_data_node(p:tnode):tnode; virtual;
+      function call_fail_node:tnode; virtual;
+      function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
+      function finalize_data_node(p:tnode):tnode; virtual;
      strict protected
+      FCompiler: TCompilerBase;
       type
         tstructinifinipotype = potype_class_constructor..potype_class_destructor;
-      class procedure sym_maybe_initialize(p: TObject; arg: pointer);
+      procedure sym_maybe_initialize(p: TObject; arg: pointer);
       { generates the code for finalisation of local variables }
-      class procedure local_varsyms_finalize(p:TObject;arg:pointer);
+      procedure local_varsyms_finalize(p:TObject;arg:pointer);
       { generates the code for finalization of static symtable and
         all local (static) typed consts }
-      class procedure static_syms_finalize(p: TObject; arg: pointer);
-      class procedure sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
-      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); virtual;
+      procedure static_syms_finalize(p: TObject; arg: pointer);
+      procedure sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
+      procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); virtual;
+      property Compiler: TCompilerBase read FCompiler;
      public
-      class procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
-      class procedure procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
+      constructor Create(ACompiler: TCompilerBase); virtual;
+      procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
+      procedure procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
       { returns true if the unit requires an initialisation section (e.g.,
         to force class constructors for the JVM target to initialise global
         records/arrays) }
-      class function force_init: boolean; virtual;
+      function force_init: boolean; virtual;
       { idem for finalization }
-      class function force_final: boolean; virtual;
+      function force_final: boolean; virtual;
 
       { if the funcretsym was moved to the parentfpstruct, use this method to
         move its value back back into the funcretsym before the function exit, as
@@ -75,84 +78,84 @@ interface
         the value to be returned; replacing it with an absolutevarsym that
         redirects to the field in the parentfpstruct doesn't work, as the code
         generator cannot deal with such symbols }
-       class procedure load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
+       procedure load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
       { called after parsing a routine with the code of the entire routine
         as argument; can be used to modify the node tree. By default handles
         insertion of code for systems that perform the typed constant
         initialisation via the node tree }
-      class function wrap_proc_body(pd: tprocdef; n: tnode): tnode; virtual;
+      function wrap_proc_body(pd: tprocdef; n: tnode): tnode; virtual;
 
       { trashes a paravarsym or localvarsym if possible (not a managed type,
         "out" in case of parameter, ...) }
-      class procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); virtual;
+      procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); virtual;
 
-      class function  check_insert_trashing(pd: tprocdef): boolean; virtual;
+      function  check_insert_trashing(pd: tprocdef): boolean; virtual;
      strict protected
       { called from wrap_proc_body to insert the trashing for the wrapped
         routine's local variables and parameters }
-      class function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
+      function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
       { callback called for every local variable and parameter by
         maybe_insert_trashing(), calls through to maybe_trash_variable() }
-      class procedure maybe_trash_variable_callback(p: TObject; statn: pointer);
+      procedure maybe_trash_variable_callback(p: TObject; statn: pointer);
       { returns whether a particular sym can be trashed. If not,
         maybe_trash_variable won't do anything }
-      class function  trashable_sym(p: tsym): boolean; virtual;
+      function  trashable_sym(p: tsym): boolean; virtual;
       { trashing for 1/2/3/4/8-byte sized variables }
-      class procedure trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode); virtual;
+      procedure trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode); virtual;
       { trashing for differently sized variables that those handled by
         trash_small() }
-      class procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
+      procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
       { insert a single bss sym, called by insert bssdata (factored out
         non-common part for llvm) }
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ: Tasmsymtype); virtual;
+      procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ: Tasmsymtype); virtual;
 
       { initialization of iso styled program parameters }
-      class procedure initialize_filerecs(p : TObject; statn : pointer);
+      procedure initialize_filerecs(p : TObject; statn : pointer);
       { finalization of iso styled program parameters }
-      class procedure finalize_filerecs(p : TObject; statn : pointer);
+      procedure finalize_filerecs(p : TObject; statn : pointer);
      public
-      class procedure insertbssdata(sym : tstaticvarsym); virtual;
+      procedure insertbssdata(sym : tstaticvarsym); virtual;
 
-      class function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
-      class procedure InsertInitFinalTable(main : tmodule);
+      function create_main_procdef(const name: string; potype:tproctypeoption; ps: tprocsym):tdef; virtual;
+      procedure InsertInitFinalTable(main : tmodule);
      protected
-      class procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
-      class procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
+      procedure InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag); virtual;
+      procedure InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag); virtual;
 
-      class procedure insert_init_final_table(main: tmodule; entries:tfplist); virtual;
+      procedure insert_init_final_table(main: tmodule; entries:tfplist); virtual;
 
-      class function get_init_final_list(main : tmodule): tfplist;
-      class procedure release_init_final_list(list:tfplist);
+      function get_init_final_list(main : tmodule): tfplist;
+      procedure release_init_final_list(list:tfplist);
      public
-      class procedure InsertThreadvarTablesTable; virtual;
-      class procedure InsertThreadvars; virtual;
-      class procedure InsertWideInitsTablesTable; virtual;
-      class procedure InsertWideInits; virtual;
-      class procedure InsertResStrInits; virtual;
-      class procedure InsertResStrTablesTable; virtual;
-      class procedure InsertResourceTablesTable; virtual;
-      class procedure InsertResourceInfo(ResourcesUsed : boolean); virtual;
+      procedure InsertThreadvarTablesTable; virtual;
+      procedure InsertThreadvars; virtual;
+      procedure InsertWideInitsTablesTable; virtual;
+      procedure InsertWideInits; virtual;
+      procedure InsertResStrInits; virtual;
+      procedure InsertResStrTablesTable; virtual;
+      procedure InsertResourceTablesTable; virtual;
+      procedure InsertResourceInfo(ResourcesUsed : boolean); virtual;
 
-      class procedure InsertMemorySizes; virtual;
+      procedure InsertMemorySizes; virtual;
 
       { Call this to check if init code is required }
-      class function has_init_list: boolean; static;
+      function has_init_list: boolean;
 
       { called right before an object is assembled, can be used to insert
         global information into the assembler list (used by LLVM to insert type
         info) }
-      class procedure InsertObjectInfo; virtual;
+      procedure InsertObjectInfo; virtual;
 
       { register that asm symbol sym with type def has to be considered as "used" even if not
         references to it can be found. If compileronly, this is only for the compiler, otherwise
         also for the linker }
-      class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
+      procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); virtual;
 
-      class procedure RegisterModuleInitFunction(pd: tprocdef); virtual;
-      class procedure RegisterModuleFiniFunction(pd: tprocdef); virtual;
+      procedure RegisterModuleInitFunction(pd: tprocdef); virtual;
+      procedure RegisterModuleFiniFunction(pd: tprocdef); virtual;
 
      strict protected
-      class procedure add_main_procdef_paras(pd: tdef); virtual;
+      procedure add_main_procdef_paras(pd: tdef); virtual;
     end;
     tnodeutilsclass = class of tnodeutils;
 
@@ -172,9 +175,13 @@ implementation
       pass_1,
       export;
 
-  class function tnodeutils.call_fail_node:tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  constructor tnodeutils.Create(ACompiler: TCompilerBase);
+    begin
+      FCompiler:=ACompiler;
+    end;
+
+
+  function tnodeutils.call_fail_node:tnode;
     var
       para : tcallparanode;
       newstatement : tstatementnode;
@@ -239,9 +246,7 @@ implementation
     end;
 
 
-  class function tnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  function tnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
     begin
       { prevent initialisation of hidden syms that were moved to
         parentfpstructs: the original symbol isn't used anymore, the version
@@ -294,9 +299,7 @@ implementation
     end;
 
 
-  class function tnodeutils.finalize_data_node(p:tnode):tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  function tnodeutils.finalize_data_node(p:tnode):tnode;
     var
       hs : string;
     begin
@@ -351,9 +354,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.sym_maybe_initialize(p: TObject; arg: pointer);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.sym_maybe_initialize(p: TObject; arg: pointer);
     var
       hp : tnode;
     begin
@@ -398,7 +399,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.local_varsyms_finalize(p: TObject; arg: pointer);
+  procedure tnodeutils.local_varsyms_finalize(p: TObject; arg: pointer);
     begin
       if (tsym(p).typ=localvarsym) and
          (tlocalvarsym(p).refs>0) and
@@ -414,7 +415,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.static_syms_finalize(p: TObject; arg: pointer);
+  procedure tnodeutils.static_syms_finalize(p: TObject; arg: pointer);
     var
       i : longint;
       pd : tprocdef;
@@ -462,9 +463,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
     var
       hp: tnode;
     begin
@@ -494,9 +493,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
     var
       structlist: tfplist;
       i: integer;
@@ -522,7 +519,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
+  procedure tnodeutils.procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
     begin
       { initialize local data like ansistrings }
       case pd.proctypeoption of
@@ -547,7 +544,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
+  procedure tnodeutils.procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
     begin
       { no finalization in exceptfilters, they /are/ the finalization code }
       if current_procinfo.procdef.proctypeoption=potype_exceptfilter then
@@ -576,7 +573,7 @@ implementation
     end;
 
 
-  class function tnodeutils.force_init: boolean;
+  function tnodeutils.force_init: boolean;
     begin
       result:=
         (target_info.system in systems_typed_constants_node_init) and
@@ -584,15 +581,13 @@ implementation
     end;
 
 
-  class function tnodeutils.force_final: boolean;
+  function tnodeutils.force_final: boolean;
     begin
       result:=false;
     end;
 
 
-  class procedure tnodeutils.initialize_filerecs(p:TObject;statn:pointer);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.initialize_filerecs(p:TObject;statn:pointer);
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -644,9 +639,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.finalize_filerecs(p:TObject;statn:pointer);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.finalize_filerecs(p:TObject;statn:pointer);
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -674,9 +667,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.load_parentfpstruct_nested_funcret(ressym: tsym; var stat: tstatementnode);
     var
       target: tnode;
     begin
@@ -692,9 +683,7 @@ implementation
     end;
 
 
-  class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
     var
       stat: tstatementnode;
       block: tnode;
@@ -800,7 +789,7 @@ implementation
     end;
 
 
-  class function tnodeutils.maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
+  function tnodeutils.maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
     var
       stat: tstatementnode;
     begin
@@ -814,7 +803,7 @@ implementation
         end;
     end;
 
-  class function tnodeutils.check_insert_trashing(pd: tprocdef): boolean;
+  function tnodeutils.check_insert_trashing(pd: tprocdef): boolean;
     begin
       result:=
         (localvartrashing<>-1) and
@@ -822,7 +811,7 @@ implementation
     end;
 
 
-  class function tnodeutils.trashable_sym(p: tsym): boolean;
+  function tnodeutils.trashable_sym(p: tsym): boolean;
     begin
       result:=
         ((p.typ=localvarsym) or
@@ -840,9 +829,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
     var
       size: asizeint;
       trashintval: int64;
@@ -936,9 +923,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.maybe_trash_variable_callback(p:TObject;statn:pointer);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.maybe_trash_variable_callback(p:TObject;statn:pointer);
     var
       stat: ^tstatementnode absolute statn;
     begin
@@ -950,17 +935,13 @@ implementation
     end;
 
 
-  class procedure tnodeutils.trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode);
     begin
       addstatement(stat,cassignmentnode.create(trashn,trashvaln,compiler));
     end;
 
 
-  class procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
     begin
       addstatement(stat,ccallnode.createintern('fpc_fillmem',
         ccallparanode.Create(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false,compiler),
@@ -970,7 +951,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
+  procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
     begin
       if sym.globalasmsym then
         begin
@@ -993,7 +974,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.insertbssdata(sym: tstaticvarsym);
+  procedure tnodeutils.insertbssdata(sym: tstaticvarsym);
     var
       l : asizeint;
       varalign,wantedalign,explicitalign : shortint;
@@ -1067,7 +1048,7 @@ implementation
     end;
 
 
-  class function tnodeutils.create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef;
+  function tnodeutils.create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef;
     var
       pd: tprocdef;
     begin
@@ -1097,7 +1078,7 @@ implementation
     end;
 
 
-  class function tnodeutils.get_init_final_list(main : tmodule):tfplist;
+  function tnodeutils.get_init_final_list(main : tmodule):tfplist;
 
     procedure addusedunits(m : tmodule);
 
@@ -1162,7 +1143,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.release_init_final_list(list:tfplist);
+  procedure tnodeutils.release_init_final_list(list:tfplist);
     begin
       if not assigned(list) then
         internalerror(2017051901);
@@ -1170,7 +1151,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertInitFinalTable(main : tmodule);
+  procedure tnodeutils.InsertInitFinalTable(main : tmodule);
     var
       entries : tfplist;
     begin
@@ -1182,7 +1163,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.insert_init_final_table(main : tmodule; entries:tfplist);
+  procedure tnodeutils.insert_init_final_table(main : tmodule; entries:tfplist);
     var
       i : longint;
       unitinits : ttai_typedconstbuilder;
@@ -1318,7 +1299,7 @@ implementation
     end;
 
 
-  class function tnodeutils.has_init_list: boolean;
+  function tnodeutils.has_init_list: boolean;
     var
       hp : tused_unit;
     begin
@@ -1342,7 +1323,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertThreadvarTablesTable;
+  procedure tnodeutils.InsertThreadvarTablesTable;
     var
       hp : tused_unit;
       tcb: ttai_typedconstbuilder;
@@ -1420,7 +1401,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertThreadvars;
+  procedure tnodeutils.InsertThreadvars;
     var
       s : TSymStr;
       tcb: ttai_typedconstbuilder;
@@ -1454,7 +1435,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag);
+  procedure tnodeutils.InsertRuntimeInitsTablesTable(const prefix,tablename:string;unitflag:tmoduleflag);
     var
       hp: tused_unit;
       tcb: ttai_typedconstbuilder;
@@ -1507,7 +1488,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag);
+  procedure tnodeutils.InsertRuntimeInits(const prefix:string;list:TLinkedList;unitflag:tmoduleflag);
     var
       s: string;
       item: TTCInitItem;
@@ -1549,31 +1530,31 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertWideInits;
+  procedure tnodeutils.InsertWideInits;
     begin
       InsertRuntimeInits('WIDEINITS',current_asmdata.WideInits,mf_wideinits);
     end;
 
 
-  class procedure tnodeutils.InsertResStrInits;
+  procedure tnodeutils.InsertResStrInits;
     begin
       InsertRuntimeInits('RESSTRINITS',current_asmdata.ResStrInits,mf_resstrinits);
     end;
 
 
-  class procedure tnodeutils.InsertWideInitsTablesTable;
+  procedure tnodeutils.InsertWideInitsTablesTable;
     begin
       InsertRuntimeInitsTablesTable('WIDEINITS','FPC_WIDEINITTABLES',mf_wideinits);
     end;
 
 
-  class procedure tnodeutils.InsertResStrTablesTable;
+  procedure tnodeutils.InsertResStrTablesTable;
     begin
       InsertRuntimeInitsTablesTable('RESSTRINITS','FPC_RESSTRINITTABLES',mf_resstrinits);
     end;
 
 
-  class procedure tnodeutils.InsertResourceTablesTable;
+  procedure tnodeutils.InsertResourceTablesTable;
     var
       hp : tmodule;
       count : longint;
@@ -1620,7 +1601,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
+  procedure tnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     var
       tcb: ttai_typedconstbuilder;
     begin
@@ -1652,7 +1633,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertMemorySizes;
+  procedure tnodeutils.InsertMemorySizes;
     var
       tcb: ttai_typedconstbuilder;
       s: shortstring;
@@ -1760,7 +1741,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.InsertObjectInfo;
+  procedure tnodeutils.InsertObjectInfo;
     var
       tcb: ttai_typedconstbuilder;
     begin
@@ -1784,13 +1765,13 @@ implementation
     end;
 
 
-  class procedure tnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
+  procedure tnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
     begin
       { don't do anything by default }
     end;
 
 
-  class procedure tnodeutils.RegisterModuleInitFunction(pd: tprocdef);
+  procedure tnodeutils.RegisterModuleInitFunction(pd: tprocdef);
     begin
       { setinitname may generate a new section -> don't add to the
         current list, because we assume this remains a text section }
@@ -1798,13 +1779,13 @@ implementation
     end;
 
 
-  class procedure tnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
+  procedure tnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
     begin
       exportlib.setfininame(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
     end;
 
 
-   class procedure tnodeutils.add_main_procdef_paras(pd: tdef);
+   procedure tnodeutils.add_main_procdef_paras(pd: tdef);
      var
        pvs: tparavarsym;
      begin

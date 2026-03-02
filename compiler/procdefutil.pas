@@ -58,7 +58,8 @@ implementation
     ngenutil,
     symbase,symsym,symtable,defutil,defcmp,
     htypechk,
-    pparautl,psub;
+    pparautl,psub,
+    compiler;
 
 
   function create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
@@ -437,6 +438,8 @@ implementation
 
 
   function get_or_create_capturer(pd:tprocdef):tsym;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       name : tsymstr;
       parent,
@@ -504,8 +507,8 @@ implementation
 
           if st.symtabletype<>localsymtable then
             begin
-              cnodeutils.insertbssdata(tstaticvarsym(result));
-              cnodeutils.insertbssdata(tstaticvarsym(keepalive));
+              compiler.nodeutils.insertbssdata(tstaticvarsym(result));
+              compiler.nodeutils.insertbssdata(tstaticvarsym(keepalive));
             end;
 
           { avoid warnings as these symbols are initialized using initialize_capturer

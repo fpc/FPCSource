@@ -721,7 +721,7 @@ implementation
                not is_managed_type(tarraydef(resultdef).elementdef) then
               { finalize the entire parameter }
               callnode.add_init_statement(
-                cnodeutils.finalize_data_node(
+                compiler.nodeutils.finalize_data_node(
                   cderefnode.create(ctemprefnode.create(temp,compiler),compiler)))
             else
               begin
@@ -5264,7 +5264,7 @@ implementation
             addstatement(inlineinitstatement,tempnode);
 
             if localvartrashing <> -1 then
-              cnodeutils.maybe_trash_variable(inlineinitstatement,tabstractnormalvarsym(p),ctemprefnode.create(tempnode,compiler));
+              compiler.nodeutils.maybe_trash_variable(inlineinitstatement,tabstractnormalvarsym(p),ctemprefnode.create(tempnode,compiler));
 
             addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
             { inherit addr_taken flag }

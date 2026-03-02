@@ -150,7 +150,8 @@ implementation
       pass_1,ppu,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,ngenutil,
       nobjc,objcdef,
-      cgbase,procinfo;
+      cgbase,procinfo,
+      compiler;
 
    function geninlinenode(number : tinlinenumber;is_const:boolean;l : tnode;acompiler:TCompilerBase) : tinlinenode;
 
@@ -537,7 +538,7 @@ implementation
                   tabstractvarsym(srsym).varstate:=vs_initialised;
 
                   srsymtable.insertsym(srsym);
-                  cnodeutils.insertbssdata(tstaticvarsym(srsym));
+                  compiler.nodeutils.insertbssdata(tstaticvarsym(srsym));
                 end;
               result:=cloadnode.create(srsym,srsymtable,compiler);
             end

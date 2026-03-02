@@ -1464,7 +1464,7 @@ implementation
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
-                code:=cnodeutils.call_fail_node;
+                code:=compiler.nodeutils.call_fail_node;
              end;
            _ASM :
              begin

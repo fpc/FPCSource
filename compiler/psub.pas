@@ -680,7 +680,7 @@ implementation
                             caddnode.create(unequaln,
                               ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype,compiler),
                               cnilnode.create(compiler),compiler),
-                            cnodeutils.finalize_data_node(load_self_node),
+                            compiler.nodeutils.finalize_data_node(load_self_node),
                             nil,compiler));
                         end;
                       { parameter 3 : vmt_offset }
@@ -813,7 +813,7 @@ implementation
                     include(tocode.flags,nf_block_with_exit);
                     if procdef.proctypeoption<>potype_exceptfilter then
                       addstatement(newstatement,cfinalizetempsnode.create(compiler));
-                    cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
+                    compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                     temps_finalized:=true;
                   end;
 
@@ -946,14 +946,14 @@ implementation
         addstatement(newstatement,loadpara_asmnode);
         addstatement(newstatement,stackcheck_asmnode);
         addstatement(newstatement,entry_asmnode);
-        cnodeutils.procdef_block_add_implicit_initialize_nodes(procdef,newstatement);
+        compiler.nodeutils.procdef_block_add_implicit_initialize_nodes(procdef,newstatement);
         addstatement(newstatement,init_asmnode);
         if assigned(procdef.parentfpinitblock) then
           begin
             if assigned(tblocknode(procdef.parentfpinitblock).left) then
               begin
-                if cnodeutils.check_insert_trashing(procdef) then
-                  cnodeutils.maybe_trash_variable(newstatement,tabstractnormalvarsym(procdef.parentfpstruct),cloadnode.create(procdef.parentfpstruct,procdef.parentfpstruct.owner,compiler));
+                if compiler.nodeutils.check_insert_trashing(procdef) then
+                  compiler.nodeutils.maybe_trash_variable(newstatement,tabstractnormalvarsym(procdef.parentfpstruct),cloadnode.create(procdef.parentfpstruct,procdef.parentfpstruct.owner,compiler));
                 { could be an asmn in case of a pure assembler procedure,
                   but those shouldn't access nested variables }
                 addstatement(newstatement,procdef.parentfpinitblock);
@@ -984,7 +984,7 @@ implementation
             finalcode:=internalstatements(codestatement);
             if procdef.proctypeoption<>potype_exceptfilter then
               addstatement(codestatement,cfinalizetempsnode.create(compiler));
-            cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);
+            compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);
             temps_finalized:=true;
 
             current_filepos:=entrypos;
@@ -1018,14 +1018,14 @@ implementation
               begin
                 if procdef.proctypeoption<>potype_exceptfilter then
                   addstatement(newstatement,cfinalizetempsnode.create(compiler));
-                cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
+                compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                 temps_finalized:=true;
               end;
           end;
         if not temps_finalized then
           begin
             current_filepos:=exitpos;
-            cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
+            compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
           end;
         do_firstpass(newblock);
         code:=newblock;
@@ -1960,7 +1960,7 @@ implementation
         { init/final code must be wrapped later (after code for main proc body
           has been generated) }
         if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-          code:=cnodeutils.wrap_proc_body(procdef,code);
+          code:=compiler.nodeutils.wrap_proc_body(procdef,code);
 
         { automatic inlining? }
         if (cs_opt_autoinline in current_settings.optimizerswitches) and

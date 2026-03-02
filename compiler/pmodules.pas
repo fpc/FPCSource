@@ -155,7 +155,7 @@ implementation
 
         { allow a target-specific pass over all assembler code (used by LLVM
           to insert type definitions }
-        cnodeutils.InsertObjectInfo;
+        compiler.nodeutils.InsertObjectInfo;
 
         { Start and end module debuginfo, at least required for stabs
           to insert n_sourcefile lines }
@@ -1050,7 +1050,7 @@ implementation
         { main are always used }
         inc(ps.refs);
         st.insertsym(ps);
-        pd:=tprocdef(cnodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
+        pd:=tprocdef(compiler.nodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
         { We don't need a local symtable, change it into the static symtable }
         if not (potype in [potype_mainstub,potype_pkgstub,potype_libmainstub]) then
           begin
@@ -1688,7 +1688,7 @@ type
          { Now the sole purpose of this is to change 'init' to 'init_implicit',
            is it needed at all? (Sergei) }
          { it's needed in case cnodeutils.force_init = true }
-         if (force_init_final or cnodeutils.force_init) and
+         if (force_init_final or compiler.nodeutils.force_init) and
             (
               not assigned(init_procinfo) or
               has_no_code(init_procinfo.code)
@@ -1702,7 +1702,7 @@ type
                end;
              init_procinfo:=gen_implicit_initfinal(module,mf_init,module.localsymtable);
            end;
-         if (force_init_final or cnodeutils.force_final) and
+         if (force_init_final or compiler.nodeutils.force_final) and
             (
               not assigned(finalize_procinfo) or
               has_no_code(finalize_procinfo.code)
@@ -1723,10 +1723,10 @@ type
            a register that is also used in the finalize body (PFV) }
          if assigned(init_procinfo) then
            begin
-             if (force_init_final or cnodeutils.force_init) or
+             if (force_init_final or compiler.nodeutils.force_init) or
                 not(has_no_code(init_procinfo.code)) then
                begin
-                 init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
+                 init_procinfo.code:=compiler.nodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
                  init_procinfo.generate_code_tree;
                  include(module.moduleflags,mf_init);
                end
@@ -1738,10 +1738,10 @@ type
          if assigned(finalize_procinfo) then
            begin
              if force_init_final or
-                cnodeutils.force_init or
+                compiler.nodeutils.force_init or
                 not(has_no_code(finalize_procinfo.code)) then
                begin
-                 finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
+                 finalize_procinfo.code:=compiler.nodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
                  finalize_procinfo.generate_code_tree;
                  include(module.moduleflags,mf_finalize);
                end
@@ -1802,16 +1802,16 @@ type
          write_persistent_type_info(module.localsymtable,false);
 
          { Tables }
-         cnodeutils.InsertThreadvars;
+         compiler.nodeutils.InsertThreadvars;
 
          { Resource strings }
          GenerateResourceStrings;
 
          { Widestring typed constants }
-         cnodeutils.InsertWideInits;
+         compiler.nodeutils.InsertWideInits;
 
          { Resourcestring references }
-         cnodeutils.InsertResStrInits;
+         compiler.nodeutils.InsertResStrInits;
 
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
@@ -2215,7 +2215,7 @@ type
 
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(curr.localsymtable).needs_init_final;
-         if force_init_final or cnodeutils.force_init then
+         if force_init_final or compiler.nodeutils.force_init then
            {init_procinfo:=gen_implicit_initfinal(mf_init,curr.localsymtable)};
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -2568,7 +2568,7 @@ type
           InsertPData;
   {$endif arm}
 
-        cnodeutils.InsertThreadvars;
+        compiler.nodeutils.InsertThreadvars;
 
         { generate rtti/init tables }
         write_persistent_type_info(curr.localsymtable,false);
@@ -2591,21 +2591,21 @@ type
         GenerateResourceStrings;
 
         { Windows widestring needing initialization }
-        cnodeutils.InsertWideInits;
+        compiler.nodeutils.InsertWideInits;
 
         { Resourcestring references (const foo:string=someresourcestring) }
-        cnodeutils.InsertResStrInits;
+        compiler.nodeutils.InsertResStrInits;
 
         { insert Tables and StackLength }
-        cnodeutils.InsertInitFinalTable(curr);
-        cnodeutils.InsertThreadvarTablesTable;
-        cnodeutils.InsertResourceTablesTable;
-        cnodeutils.InsertWideInitsTablesTable;
-        cnodeutils.InsertResStrTablesTable;
-        cnodeutils.InsertMemorySizes;
+        compiler.nodeutils.InsertInitFinalTable(curr);
+        compiler.nodeutils.InsertThreadvarTablesTable;
+        compiler.nodeutils.InsertResourceTablesTable;
+        compiler.nodeutils.InsertWideInitsTablesTable;
+        compiler.nodeutils.InsertResStrTablesTable;
+        compiler.nodeutils.InsertMemorySizes;
 
         { Insert symbol to resource info }
-        cnodeutils.InsertResourceInfo(resources_used);
+        compiler.nodeutils.InsertResourceInfo(resources_used);
 
         { create callframe info }
         create_dwarf_frame;
@@ -2733,7 +2733,7 @@ type
            if not(target_info.system in systems_darwin) then
              initpd:=main_procinfo.procdef;
 
-           cnodeutils.RegisterModuleInitFunction(initpd);
+           compiler.nodeutils.RegisterModuleInitFunction(initpd);
          end
         else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macosclassic]+systems_darwin+systems_aix)) then
           begin
@@ -2791,7 +2791,7 @@ type
 
         { should we force unit initialization? }
         force_init_final:=tstaticsymtable(curr.localsymtable).needs_init_final;
-        if force_init_final or cnodeutils.force_init then
+        if force_init_final or compiler.nodeutils.force_init then
           init_procinfo:=gen_implicit_initfinal(curr,mf_init,curr.localsymtable);
 
         { Add symbol to the exports section for win32 so smartlinking a
@@ -2801,7 +2801,7 @@ type
            (mf_has_exports in curr.moduleflags) then
           current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
 
-        if (force_init_final or cnodeutils.force_final) and
+        if (force_init_final or compiler.nodeutils.force_final) and
            (
              not assigned(finalize_procinfo)
              or has_no_code(finalize_procinfo.code)
@@ -2821,7 +2821,7 @@ type
          { Place in "pure assembler" list so that the llvm assembler writer
            directly emits the generated directives }
          if (islibrary) then
-           cnodeutils.RegisterModuleFiniFunction(search_system_proc('fpc_lib_exit'));
+           compiler.nodeutils.RegisterModuleFiniFunction(search_system_proc('fpc_lib_exit'));
 
         { all labels must be defined before generating code }
         if Errorcount=0 then
@@ -2835,7 +2835,7 @@ type
           begin
             { initialization can be implicit only }
             include(curr.moduleflags,mf_init);
-            init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
+            init_procinfo.code:=compiler.nodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
             init_procinfo.generate_code;
             init_procinfo.resetprocdef;
             release_main_proc(curr,init_procinfo);
@@ -2843,10 +2843,10 @@ type
         if assigned(finalize_procinfo) then
           begin
             if force_init_final or
-               cnodeutils.force_init or
+               compiler.nodeutils.force_init or
                not(has_no_code(finalize_procinfo.code)) then
               begin
-                finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
+                finalize_procinfo.code:=compiler.nodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
                 finalize_procinfo.generate_code_tree;
                 include(curr.moduleflags,mf_finalize);
               end;

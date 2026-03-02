@@ -435,7 +435,7 @@ implementation
                       begin
                         labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insertsym(labelsym.jumpbuf);
-                        cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
+                        compiler.nodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
                     { the buffer will be setup later, but avoid a hint }

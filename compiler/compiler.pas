@@ -154,7 +154,8 @@ uses
   ,i_aix
 {$endif aix}
   ,ctask
-  ,globtype;
+  ,globtype
+  ,ngenutil;
 
 type
 {****************************************************************************
@@ -164,6 +165,7 @@ type
   private
     FTaskHandler: TTask_handler;
     FParser: TParser;
+    FNodeUtils: TNodeUtils;
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -174,6 +176,7 @@ type
     function Compile(const cmd:TCmdStr):longint;
 
     property Parser: TParser read FParser;
+    property NodeUtils: TNodeUtils read FNodeUtils;
   end;
 
   { TCompilerHelper }
@@ -181,8 +184,10 @@ type
   TCompilerHelper = class helper for TCompilerBase
   private
     function GetParser: TParser; inline;
+    function GetNodeUtils: TNodeUtils; inline;
   public
     property Parser: TParser read GetParser;
+    property NodeUtils: TNodeUtils read GetNodeUtils;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -474,6 +479,11 @@ end;
 function TCompilerHelper.GetParser: TParser; inline;
 begin
   Result := TCompiler(Self).Parser;
+end;
+
+function TCompilerHelper.GetNodeUtils: TNodeUtils;
+begin
+  Result := TCompiler(Self).NodeUtils;
 end;
 
 function Compile(const cmd:TCmdStr):longint;

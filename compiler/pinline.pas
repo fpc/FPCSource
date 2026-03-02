@@ -415,7 +415,7 @@ implementation
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
                        ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
-                       addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler),false));
+                       addstatement(newstatement,compiler.nodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler),false));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
@@ -437,10 +437,10 @@ implementation
                            { ensure that p gets evaluated only once, in case it is e.g. a call }
                            temp:=ctempcreatenode.create_value(p.resultdef,p.resultdef.size,tt_persistent,true,p,compiler);
                            addstatement(newstatement,temp);
-                           addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler)));
+                           addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler)));
                          end
                        else
-                         addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy,compiler)));
+                         addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(p.getcopy,compiler)));
 
                      ReadVariantRecordConstants;
 
@@ -666,9 +666,9 @@ implementation
         else
          begin
            if isinit then
-             newblock:=cnodeutils.initialize_data_node(ppn.left,true)
+             newblock:=compiler.nodeutils.initialize_data_node(ppn.left,true)
            else
-             newblock:=cnodeutils.finalize_data_node(ppn.left);
+             newblock:=compiler.nodeutils.finalize_data_node(ppn.left);
          end;
         ppn.left:=nil;
         paras.free;

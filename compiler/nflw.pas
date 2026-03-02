@@ -311,7 +311,7 @@ implementation
     {$if defined(xtensa) or defined(i386) or defined(riscv)}
       cpuinfo,
     {$endif defined(xtensa) or defined(i386) or defined(riscv)}
-      cgbase,procinfo
+      cgbase,procinfo,compiler
       ;
 
 
@@ -2328,7 +2328,7 @@ implementation
           begin
             if not assigned(result) then
               result:=internalstatements(newstatement);
-            cnodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
+            compiler.nodeutils.load_parentfpstruct_nested_funcret(ressym,newstatement);
           end;
         if assigned(result) then
           begin

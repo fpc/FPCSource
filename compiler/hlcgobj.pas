@@ -35,7 +35,7 @@ unit hlcgobj;
 
     uses
        cclasses,globtype,constexp,
-       cpubase,cgbase,cgutils,parabase,
+       cpubase,cgbase,cgutils,parabase,compilerbase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symbase,symtype,symsym,symdef,
        node,nutils,
@@ -64,6 +64,10 @@ unit hlcgobj;
        { thlcgobj }
 
        thlcgobj = class
+       private
+          FCompiler: TCompilerBase;  { TODO: fix node compiler reference!!! }
+       protected
+          property Compiler: TCompilerBase read FCompiler;
        public
           {************************************************}
           {                 basic routines                 }
@@ -732,7 +736,8 @@ implementation
 {$ifdef x86}
        cgx86,
 {$endif x86}
-       ncgutil;
+       ncgutil,
+       compiler;
 
 
     procedure destroy_hlcodegen;
@@ -5107,7 +5112,7 @@ implementation
              if tf_init_final_units_by_calls in target_info.flags then
                begin
                  { Only insert call if there are init functions }
-                 if cnodeutils.has_init_list then
+                 if compiler.nodeutils.has_init_list then
                    cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false);
                end
              else

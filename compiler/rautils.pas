@@ -27,7 +27,7 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,
+  globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,compilerbase,
   symconst,symbase,symtype,symdef,symsym,constexp,symcpu;
 
 Const
@@ -228,7 +228,8 @@ uses
   defutil,systems,verbose,globals,
   symtable,paramgr,
   aasmcpu,
-  procinfo,ngenutil;
+  procinfo,ngenutil,
+  compiler;
 
 {*************************************************************************
                               TExprParse
@@ -1375,13 +1376,15 @@ end;
 procedure AddAbsoluteSymRefs(sym: tabsolutevarsym); forward;
 
 procedure MaybeAddSymRef(sym: tsym);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 begin
   case sym.typ of
      absolutevarsym:
        AddAbsoluteSymRefs(tabsolutevarsym(sym));
      staticvarsym:
        if not(vo_is_external in tstaticvarsym(sym).varoptions) then
-         cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),tstaticvarsym(sym).vardef,true);
+         compiler.nodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),tstaticvarsym(sym).vardef,true);
      procsym:
        begin
          { if it's a pure assembler routine, the definition of the symbol will also
@@ -1389,7 +1392,7 @@ begin
            it as used anyway, clang will get into trouble) }
          if not(po_assembler in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) and
             not(po_external in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) then
-           cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname,AT_FUNCTION),tprocdef(tprocsym(sym).ProcdefList[0]),true);
+           compiler.nodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname,AT_FUNCTION),tprocdef(tprocsym(sym).ProcdefList[0]),true);
        end;
      else
        ;
@@ -1397,6 +1400,8 @@ begin
 end;
 
 procedure AddAbsoluteSymRefs(sym: tabsolutevarsym);
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   symlist: ppropaccesslistitem;
 begin
@@ -1405,7 +1410,7 @@ begin
       ;
     toasm:
       begin
-        cnodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),sym.vardef,true);
+        compiler.nodeutils.RegisterUsedAsmSym(current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),sym.vardef,true);
       end;
     tovar:
       begin
