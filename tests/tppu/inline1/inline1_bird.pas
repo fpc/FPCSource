@@ -1,16 +1,18 @@
-unit touchleaf1_bird;
+unit inline1_bird;
 
 {$mode objfpc}
 
 interface
 
-function Fly(w : word): word;
+uses inline1_cat;
+
+function Fly(w: word): word;
 
 implementation
 
 function Fly(w : word): word;
 begin
-  Result:=w*7;
+  Result:=2*Jump(w);
 end;
 
 end.

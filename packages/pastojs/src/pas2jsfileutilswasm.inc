@@ -17,7 +17,7 @@
 
 function FilenameIsAbsolute(const aFilename: string): boolean;
 begin
-  Result:=ExpandFileName(aFilename)=aFileName;
+  Result:=FilenameIsUnixAbsolute(aFileName);
 end;
 
 function ExpandFileNamePJ(const FileName: string; BaseDir: string): string;

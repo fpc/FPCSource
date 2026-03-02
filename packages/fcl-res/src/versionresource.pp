@@ -532,6 +532,7 @@ procedure TVersionResource.WriteWideString(const aString: string);
 var ws : widestring;
     w : word;
     i : integer;
+    isnulterminate : boolean;
 begin
   ws:=aString;
   for i:=1 to length(ws) do
@@ -542,8 +543,14 @@ begin
     {$ENDIF}
     RawData.WriteBuffer(w,2);
   end;
-  w:=0;
-  RawData.WriteBuffer(w,2);
+  w:=length(ws);
+
+  isnulterminate:=(w>0) and (ws[w]=#0);
+  if not isnulterminate then
+    begin
+      w:=0;
+      RawData.WriteBuffer(w,2);
+    end;
 end;
 
 function TVersionResource.GetType: TResourceDesc;

@@ -30,7 +30,7 @@
 
 	.file	"crt1.c"
 #APP
-        .ident  "FreePascal 2.6.x/2.7.x series dynlinked to libc"
+        .ident  "FreePascal 3.3.x development series dynlinked to libc"
 #NO_APP
 	.section	.note.tag,"a",@note
 	.align 4
@@ -41,7 +41,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	1400097
+	.long	1500068
         .long   8
         .long   4
         .long   1

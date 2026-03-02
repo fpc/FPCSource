@@ -6387,8 +6387,6 @@ begin
   }
   if IsReadOnly then Exit;
 
-  Lock;
-
   CP.X:=-1; CP.Y:=-1;
   Line:=GetDisplayText(CurPos.Y);
   X:=CurPos.X; ShortCut:='';
@@ -6405,6 +6403,7 @@ begin
    if SelectCodeTemplate(ShortCut) then
      TranslateCodeTemplate(ShortCut,CodeLines);
 
+  Lock;
   if CodeLines^.Count>0 then
   begin
     LineIndent:=X;

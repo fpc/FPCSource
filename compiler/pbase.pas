@@ -130,7 +130,7 @@ implementation
            if we just parsed the a token that has m_class }
          if not(m_class in current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
-            (m_class in tokeninfo^[idtoken].keyword) then
+            (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
            Message(parser_f_need_objfpc_or_delphi_mode);
        end;
 
@@ -142,7 +142,7 @@ implementation
            if we just parsed the a token that has m_class }
          if not(m_class in current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
-            (m_class in tokeninfo^[idtoken].keyword) then
+            (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
            MessagePos(filepos,parser_f_need_objfpc_or_delphi_mode);
        end;
 
@@ -152,20 +152,20 @@ implementation
     procedure consume(i : ttoken);
 
     begin
-        if (token<>i) and (idtoken<>i) then
+        if (current_scanner.token<>i) and (current_scanner.idtoken<>i) then
           begin
             if current_scanner.had_multiline_string then
               Message2(scan_f_unterminated_multiline_string,
                        tostr(current_scanner.multiline_start_line),
                        tostr(current_scanner.multiline_start_column))
-            else if token=_id then
+            else if current_scanner.token=_id then
               Message2(scan_f_syn_expected,tokeninfo^[i].str,'identifier '+current_scanner.pattern)
             else
-              Message2(scan_f_syn_expected,tokeninfo^[i].str,tokeninfo^[token].str);
+              Message2(scan_f_syn_expected,tokeninfo^[i].str,tokeninfo^[current_scanner.token].str);
           end
         else
           begin
-            if token=_END then
+            if current_scanner.token=_END then
               last_endtoken_filepos:=current_tokenpos;
             current_scanner.readtoken(true);
           end;
@@ -174,24 +174,24 @@ implementation
     procedure consume_last_dot;
 
     begin
-        if (token<>_POINT) then
+        if (current_scanner.token<>_POINT) then
           begin
-          if token=_id then
+          if current_scanner.token=_id then
             Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,'identifier '+current_scanner.pattern)
           else
-            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[token].str)
+            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[current_scanner.token].str)
           end
-        else if c<>#0 then
+        else if current_scanner.c<>#0 then
           current_scanner.readtoken(true);
     end;
 
     function try_to_consume(i:Ttoken):boolean;
       begin
         try_to_consume:=false;
-        if (token=i) or (idtoken=i) then
+        if (current_scanner.token=i) or (current_scanner.idtoken=i) then
          begin
            try_to_consume:=true;
-           if token=_END then
+           if current_scanner.token=_END then
             last_endtoken_filepos:=current_tokenpos;
            current_scanner.readtoken(true);
          end;
@@ -200,10 +200,10 @@ implementation
 
     procedure consume_all_until(atoken : ttoken);
       begin
-         while (token<>atoken) and (idtoken<>atoken) do
+         while (current_scanner.token<>atoken) and (current_scanner.idtoken<>atoken) do
           begin
-            Consume(token);
-            if token=_EOF then
+            Consume(current_scanner.token);
+            if current_scanner.token=_EOF then
              begin
                Consume(atoken);
                if current_scanner.had_multiline_string then
@@ -236,7 +236,7 @@ implementation
         t : ttoken;
       begin
         { first check for identifier }
-        if token<>_ID then
+        if current_scanner.token<>_ID then
           begin
             consume(_ID);
             srsym:=generrorsym;
@@ -269,7 +269,7 @@ implementation
         t : ttoken;
       begin
         { first check for identifier }
-        if token<>_ID then
+        if current_scanner.token<>_ID then
           begin
             consume(_ID);
             srsym:=generrorsym;
@@ -357,7 +357,7 @@ implementation
             hmodule:=find_module_from_symtable(srsym.Owner);
             if not Assigned(hmodule) then
               internalerror(2010011201);
-            if hmodule.unit_index=current_filepos.moduleindex then
+            if hmodule.moduleid=current_filepos.moduleindex then
               begin
                 if cuf_consume_id in flags then
                   consume(_ID);
@@ -393,7 +393,7 @@ implementation
                         exit;
                       end;
                   end;
-                case token of
+                case current_scanner.token of
                   _ID:
                     begin
                       if cuf_check_attr_suffix in flags then
@@ -412,11 +412,11 @@ implementation
                             searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
                         end
                       else
-                        if (cuf_allow_specialize in flags) and (idtoken=_SPECIALIZE) then
+                        if (cuf_allow_specialize in flags) and (current_scanner.idtoken=_SPECIALIZE) then
                           begin
                             consume(_ID);
                             is_specialize:=true;
-                            if token=_ID then
+                            if current_scanner.token=_ID then
                               begin
                                 if (cuf_check_attr_suffix in flags) and
                                     searchsym_in_module(tunitsym(srsym).module,current_scanner.pattern+custom_attribute_suffix,srsym,srsymtable) then
@@ -477,11 +477,11 @@ implementation
           exit;
         repeat
           last_is_deprecated:=false;
-          case idtoken of
+          case current_scanner.idtoken of
             _LIBRARY:
               begin
                 if sp_hint_library in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_library);
                 try_consume_hintdirective:=true;
@@ -489,7 +489,7 @@ implementation
             _DEPRECATED:
               begin
                 if sp_hint_deprecated in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_deprecated);
                 try_consume_hintdirective:=true;
@@ -498,7 +498,7 @@ implementation
             _EXPERIMENTAL:
               begin
                 if sp_hint_experimental in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_experimental);
                 try_consume_hintdirective:=true;
@@ -506,7 +506,7 @@ implementation
             _PLATFORM:
               begin
                 if sp_hint_platform in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_platform);
                 try_consume_hintdirective:=true;
@@ -514,7 +514,7 @@ implementation
             _UNIMPLEMENTED:
               begin
                 if sp_hint_unimplemented in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_unimplemented);
                 try_consume_hintdirective:=true;
@@ -522,18 +522,18 @@ implementation
             else
               break;
           end;
-          consume(Token);
+          consume(current_scanner.token);
           { handle deprecated message }
-          if ((token=_CSTRING) or (token=_CCHAR)) and last_is_deprecated then
+          if ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) and last_is_deprecated then
             begin
               if not assigned(deprecatedmsg) then
                 begin
-                  if token=_CSTRING then
+                  if current_scanner.token=_CSTRING then
                     deprecatedmsg:=stringdup(current_scanner.cstringpattern)
                   else
                     deprecatedmsg:=stringdup(current_scanner.pattern);
                 end;
-              consume(token);
+              consume(current_scanner.token);
               include(symopt,sp_has_deprecated_msg);
             end;
         until false;

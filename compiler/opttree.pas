@@ -30,7 +30,7 @@ unit opttree;
   interface
 
     uses
-      node,optutils;
+      node;
 
     { tries to bring the tree in a normalized form:
        - expressions are free of control statements

@@ -184,7 +184,7 @@ implementation
             include(p.propoptions,ppo_defaultproperty);
             if not(ppo_hasparameters in p.propoptions) then
               message(parser_e_property_need_paras);
-            if (token=_COLON) then
+            if (current_scanner.token=_COLON) then
               begin
                 Message(parser_e_field_not_allowed_here);
                 consume_all_until(_SEMICOLON);
@@ -194,7 +194,7 @@ implementation
         { parse possible enumerator modifier }
         if try_to_consume(_ENUMERATOR) then
           begin
-            if (token = _ID) then
+            if (current_scanner.token = _ID) then
             begin
               if current_scanner.pattern='CURRENT' then
               begin
@@ -210,7 +210,7 @@ implementation
               end
               else
                 Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
-              consume(token);
+              consume(current_scanner.token);
             end
             else
               Message(parser_e_enumerator_identifier_required);
@@ -437,7 +437,7 @@ implementation
         if try_to_consume(_EXTERNAL) then
           begin
             hs:='';
-            if token in [_CSTRING,_CWSTRING,_CCHAR,_CWCHAR] then
+            if current_scanner.token in [_CSTRING,_CWSTRING,_CCHAR,_CWCHAR] then
               begin
                 { Always add library prefix and suffix to create an uniform name }
                 hs:=get_stringconst;
@@ -508,8 +508,8 @@ implementation
                   if try_to_consume(_SEALED) then
                     include(current_structdef.objectoptions,oo_is_sealed)
                   else if (current_objectdef.objecttype=odt_javaclass) and
-                          (token=_ID) and
-                          (idtoken=_EXTERNAL) then
+                          (current_scanner.token=_ID) and
+                          (current_scanner.idtoken=_EXTERNAL) then
                     begin
                       get_cpp_or_java_class_external_status(current_objectdef);
                       gotexternal:=true;
@@ -549,7 +549,7 @@ implementation
         hasparentdefined:=false;
 
         { reads the parent class }
-        if (token=_LKLAMMER) or
+        if (current_scanner.token=_LKLAMMER) or
            is_objccategory(current_structdef) then
           begin
             consume(_LKLAMMER);
@@ -910,7 +910,7 @@ implementation
         oldparse_only: boolean;
         flags : tparse_proc_flags;
       begin
-        case token of
+        case current_scanner.token of
           _PROCEDURE,
           _FUNCTION:
             begin
@@ -1133,18 +1133,18 @@ implementation
           consume(_CLASS);
           { class modifier is only allowed for procedures, functions, }
           { constructors, destructors, fields and properties          }
-          if not((token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_THREADVAR]) or (token=_CONSTRUCTOR)) then
+          if not((current_scanner.token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_THREADVAR]) or (current_scanner.token=_CONSTRUCTOR)) then
             Message(parser_e_procedure_or_function_expected);
 
           { class properties currently can't have attributes }
-          if not(token in [_FUNCTION,_PROCEDURE]) then
+          if not(current_scanner.token in [_FUNCTION,_PROCEDURE]) then
             check_unbound_attributes;
 
           { Java interfaces can contain final class vars }
           if is_interface(current_structdef) or
              (is_javainterface(current_structdef) and
               (not(is_final) or
-               (token<>_VAR))) then
+               (current_scanner.token<>_VAR))) then
             Message(parser_e_no_static_method_in_interfaces)
           else
             { class methods are also allowed for Objective-C protocols }
@@ -1165,7 +1165,7 @@ implementation
              is_javainterface(current_structdef) then
             Message(parser_e_no_access_specifier_in_interfaces);
           current_structdef.symtable.currentvisibility:=vis;
-          consume(token);
+          consume(current_scanner.token);
           if (oo<>oo_none) then
             include(current_structdef.objectoptions,oo);
           fields_allowed:=true;
@@ -1180,7 +1180,7 @@ implementation
       begin
         { empty class declaration ? }
         if (current_objectdef.objecttype in [odt_class,odt_objcclass,odt_javaclass]) and
-           (token=_SEMICOLON) then
+           (current_scanner.token=_SEMICOLON) then
           exit;
 
         { in "publishable" classes the default access type is published }
@@ -1199,7 +1199,7 @@ implementation
         object_member_blocktype:=bt_general;
         fieldlist:=tfpobjectlist.create(false);
         repeat
-          case token of
+          case current_scanner.token of
             _TYPE :
               begin
                 check_unbound_attributes;
@@ -1208,14 +1208,14 @@ implementation
                 consume(_TYPE);
                 object_member_blocktype:=bt_type;
 
-                if (token=_LECKKLAMMER) and (m_prefixed_attributes in current_settings.modeswitches) then
+                if (current_scanner.token=_LECKKLAMMER) and (m_prefixed_attributes in current_settings.modeswitches) then
                   begin
                     check_unbound_attributes;
                     types_dec(true,hadgeneric, rtti_attrs_def);
                   end
                 else
                   { expect at least one type declaration }
-                  if token<>_ID then
+                  if current_scanner.token<>_ID then
                     consume(_ID);
               end;
             _VAR :
@@ -1224,7 +1224,7 @@ implementation
                 rtti_attrs_def := nil;
                 parse_var(false);
                 { expect at least one var declaration }
-                if token<>_ID then
+                if current_scanner.token<>_ID then
                   consume(_ID);
               end;
             _CONST:
@@ -1233,7 +1233,7 @@ implementation
                 rtti_attrs_def := nil;
                 parse_const;
                 { expect at least one constant declaration }
-                if token<>_ID then
+                if current_scanner.token<>_ID then
                   consume(_ID);
               end;
             _THREADVAR :
@@ -1247,19 +1247,19 @@ implementation
                   end;
                 parse_var(true);
                 { expect at least one threadvar declaration }
-                if token<>_ID then
+                if current_scanner.token<>_ID then
                   consume(_ID);
               end;
             _ID :
               begin
                 if is_objcprotocol(current_structdef) and
-                   ((idtoken=_REQUIRED) or
-                    (idtoken=_OPTIONAL)) then
+                   ((current_scanner.idtoken=_REQUIRED) or
+                    (current_scanner.idtoken=_OPTIONAL)) then
                   begin
-                    current_structdef.symtable.currentlyoptional:=(idtoken=_OPTIONAL);
-                    consume(idtoken)
+                    current_structdef.symtable.currentlyoptional:=(current_scanner.idtoken=_OPTIONAL);
+                    consume(current_scanner.idtoken)
                   end
-                else case idtoken of
+                else case current_scanner.idtoken of
                   _PRIVATE :
                     begin
                       parse_visibility(vis_private,oo_has_private);
@@ -1283,9 +1283,9 @@ implementation
                           is_javainterface(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                          consume(_STRICT);
-                        if token=_ID then
+                        if current_scanner.token=_ID then
                           begin
-                            case idtoken of
+                            case current_scanner.idtoken of
                               _PRIVATE:
                                 begin
                                   consume(_PRIVATE);
@@ -1313,8 +1313,8 @@ implementation
                         object_member_blocktype:=bt_general;
                      end
                     else if (m_final_fields in current_settings.modeswitches) and
-                            (token=_ID) and
-                            (idtoken=_FINAL) then
+                            (current_scanner.token=_ID) and
+                            (current_scanner.idtoken=_FINAL) then
                       begin
                         { currently only supported for external classes, because
                           requires fully working DFA otherwise }
@@ -1323,16 +1323,16 @@ implementation
                           Message(parser_e_final_only_external);
                         consume(_final);
                         is_final:=true;
-                        if token=_CLASS then
+                        if current_scanner.token=_CLASS then
                           parse_class;
-                        if not(token in [_CONST,_VAR]) then
+                        if not(current_scanner.token in [_CONST,_VAR]) then
                           message(parser_e_final_only_const_var);
                       end
                     else
                       begin
                         if object_member_blocktype=bt_general then
                           begin
-                            if (idtoken=_GENERIC) and
+                            if (current_scanner.idtoken=_GENERIC) and
                                 not (m_delphi in current_settings.modeswitches) and
                                 (
                                   not fields_allowed or
@@ -1343,7 +1343,7 @@ implementation
                                   Message(parser_e_procedure_or_function_expected);
                                 consume(_ID);
                                 hadgeneric:=true;
-                                if not (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                                if not (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS]) then
                                   Message(parser_e_procedure_or_function_expected);
                               end
                             else
@@ -1623,7 +1623,7 @@ implementation
           parse_object_options;
 
         { forward def? }
-        if token=_SEMICOLON then
+        if current_scanner.token=_SEMICOLON then
           begin
             if assigned(fd) then
               Message1(parser_e_type_alread_forward,n)

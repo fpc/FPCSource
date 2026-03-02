@@ -14548,15 +14548,10 @@ procedure TPasResolver.ComputeDereference(El: TUnaryExpr;
   var ResolvedEl: TPasResolverResult);
 
   procedure Deref(TypeEl: TPasType);
-  var
-    Expr: TPasExpr;
   begin
-    Expr:=ResolvedEl.ExprEl;
-    if Expr=nil then
-      Expr:=El;
     ComputeElement(TypeEl,ResolvedEl,[rcNoImplicitProc],El);
     ResolvedEl.IdentEl:=nil;
-    ResolvedEl.ExprEl:=Expr;
+    ResolvedEl.ExprEl:=El; // El = TUnaryExpr(eopDeref), needed by CheckCanBeLHS
     ResolvedEl.Flags:=ResolvedEl.Flags+[rrfReadable,rrfWritable];
   end;
 

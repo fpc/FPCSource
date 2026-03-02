@@ -240,7 +240,7 @@ implementation
             { OMF LINNUM records do not support multiple source files }
             if (hp.typ=ait_instruction) and
                (nolineinfolevel=0) and
-               (tailineinfo(hp).fileinfo.fileindex=main_module.unit_index) then
+               (tailineinfo(hp).fileinfo.fileindex=main_module.moduleid) then
               begin
                 currfileinfo:=tailineinfo(hp).fileinfo;
 

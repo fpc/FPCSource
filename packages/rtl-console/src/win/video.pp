@@ -49,14 +49,37 @@ var ConsoleInfo : TConsoleScreenBufferInfo;
     NoConsoleOnStart: boolean;
     NewConsoleHandleAllocated:  boolean;
     ConsoleOutHandle: THandle;
+    StartConsoleOutHandle: THandle;
+    AlternativeConsoleOutHandle: THandle;
 
     LineBuf: array of TCharInfo;
+
+Function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;  forward;
+
+procedure UpdateFileHandles;
+var StdOutputHandle : THandle;
+begin
+  {StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));}
+  StdOutputHandle:=THandle(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+  {StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));}
+  TextRec(Output).Handle:=StdOutputHandle;
+  VideoSetConsoleOutHandle(StdOutputHandle);
+  TextRec(StdOut).Handle:=StdOutputHandle;
+  {TextRec(StdErr).Handle:=StdErrorHandle;}
+end;
 
 procedure SysInitVideo;
 var
   SecAttr: TSecurityAttributes;
+  Mode : TVideoMode;
 begin
   ScreenColor:=true;
+  with SecAttr do
+  begin
+   nLength := SizeOf (TSecurityAttributes);
+   SecAttr.bInheritHandle := true;
+   SecAttr.lpSecurityDescriptor := nil;
+  end;
   if NoConsoleOnStart then
    begin
     if not (AllocConsole) then
@@ -66,12 +89,6 @@ begin
      end;
 {Reopen StdOut/StdErr/StdIn}
     OrigCP := GetACP;
-    with SecAttr do
-     begin
-      nLength := SizeOf (TSecurityAttributes);
-      SecAttr.bInheritHandle := true;
-      SecAttr.lpSecurityDescriptor := nil;
-     end;
     ConsoleOutHandle := CreateFile (@ConsoleOutDeviceName [1], Generic_Read or Generic_Write, File_Share_Write, @SecAttr, Open_Existing, File_Attribute_Normal, 0);
     if ConsoleOutHandle = Invalid_Handle_Value then
      begin
@@ -100,16 +117,47 @@ begin
     - dmMaximumWindowSize : Maximal size of Screen buffer.
     The first implementation of video used srWindow. After some
     bug-reports, this was switched to dwMaximumWindowSize.
+
+    Note by Margers: again using srWindow and adaptive strategy.
   }
-  with ConsoleInfo.dwMaximumWindowSize do
+  with ConsoleInfo{.dwMaximumWindowSize} do
     begin
-    ScreenWidth:=X;
-    ScreenHeight:=Y;
+      ScreenWidth:=srwindow.right-srwindow.left+1;
+      ScreenHeight:=srwindow.bottom-srwindow.top+1;
     end;
   { TDrawBuffer only has FVMaxWidth elements
     larger values lead to crashes }
   if ScreenWidth> FVMaxWidth then
     ScreenWidth:=FVMaxWidth;
+
+  StartConsoleOutHandle:=ConsoleOutHandle;
+
+  { Create "alternative" screen buffer }
+  ConsoleOutHandle:=CreateConsoleScreenBuffer(
+    GENERIC_READ or GENERIC_WRITE,
+    FILE_SHARE_READ or FILE_SHARE_WRITE,SecAttr,
+    CONSOLE_TEXTMODE_BUFFER,nil);
+
+  if ConsoleOutHandle = Invalid_Handle_Value then
+    begin
+      WriteLn ('Error: Console output not possible!');
+      RunError (103);
+    end;
+
+  Mode.row:=ScreenHeight;
+  Mode.col:=ScreenWidth;
+  Mode.color:=true;
+
+  if not SysSetVideoMode(Mode) then
+    begin
+      WriteLn ('Error: Unable to setup alternative screen buffer!');
+      RunError (103);
+    end;
+  AlternativeConsoleOutHandle:=ConsoleOutHandle;
+  SetStdHandle(cardinal(Std_Output_Handle),ConsoleOutHandle);
+  SetConsoleActiveScreenBuffer(ConsoleOutHandle);
+  UpdateFileHandles;
+
   CursorX:=ConsoleInfo.dwCursorPosition.x;
   CursorY:=ConsoleInfo.dwCursorPosition.y;
   if not ConsoleCursorInfo.bvisible then
@@ -117,7 +165,6 @@ begin
   else
     CursorLines:=ConsoleCursorInfo.dwSize;
 end;
-
 
 
 procedure VideoSetConsoleOutHandle (NewHandle: THandle);
@@ -134,11 +181,19 @@ begin
 end;
 
 
-
 procedure SysDoneVideo;
+Var srWindow, WindowPos : Small_rect;
+    res : boolean;
+    error : longint;
+    Resize : boolean;
+    A,B : longint;
+    AlternativeScreenBufferInfo : Console_screen_buffer_info;
 begin
+
   if NoConsoleOnStart then
    begin
+    CloseHandle (AlternativeConsoleOutHandle);
+    AlternativeConsoleOutHandle := Invalid_Handle_Value;
     CloseHandle (ConsoleOutHandle);
     NewConsoleHandleAllocated := false;
     ConsoleOutHandle := Invalid_Handle_Value;
@@ -146,10 +201,95 @@ begin
    end
   else
    begin
-    SetConsoleScreenBufferSize (ConsoleOutHandle, OrigConsoleInfo.dwSize);
-    SetConsoleWindowInfo (ConsoleOutHandle, true, OrigConsoleInfo.srWindow);
-    SetConsoleCursorInfo(ConsoleOutHandle, OrigConsoleCursorInfo);
+    GetConsoleScreenBufferInfo(ConsoleOutHandle,@AlternativeScreenBufferInfo);
+    GetConsoleScreenBufferInfo(StartConsoleOutHandle,@OrigConsoleInfo);
+    WindowPos:=OrigConsoleInfo.srWindow;
+
+    with AlternativeScreenBufferInfo do
+    begin
+      A:=srWindow.Right-srWindow.Left;
+      B:=srWindow.Bottom-srWindow.Top;
+
+      if (OrigConsoleInfo.dwSize.X < (A+1)) or (OrigConsoleInfo.dwSize.Y < (B+1)) then
+      begin
+        dwSize.X:=A+1;
+        dwSize.Y:=B+1;
+        if OrigConsoleInfo.dwSize.Y > dwSize.Y then
+          dwSize.Y:= OrigConsoleInfo.dwSize.Y;
+        if SetConsoleScreenBufferSize(StartConsoleOutHandle,dwSize) then
+        begin
+          GetConsoleScreenBufferInfo(StartConsoleOutHandle,@OrigConsoleInfo);
+          WindowPos:=OrigConsoleInfo.srWindow;
+          WindowPos.Right:=WindowPos.Right-WindowPos.Left;
+          WindowPos.Left:=0;
+        end;
+      end;
+      A:=WindowPos.Right-WindowPos.Left;
+      B:=srWindow.Right-srWindow.Left;
+
+      if A<>B then
+      begin
+        Resize:=true;
+        if B<A then
+        begin
+          if (WindowPos.Right = OrigConsoleInfo.dwSize.X-1) and (WindowPos.Left<>0) then
+            WindowPos.Left:=WindowPos.Left-(B-A)
+          else
+            WindowPos.Right:=WindowPos.Right+(B-A);
+        end;
+        if B>A then
+        begin
+          WindowPos.Right:=WindowPos.Right+(B-A);
+          if WindowPos.Right>=OrigConsoleInfo.dwSize.X then
+          begin
+            WindowPos.Left:=WindowPos.Left-((OrigConsoleInfo.dwSize.X-1)- WindowPos.Right);
+            WindowPos.Right:=OrigConsoleInfo.dwSize.X-1;
+            if WindowPos.Left<0 then
+              WindowPos.Left:=0;
+          end;
+        end;
+      end;
+      A:=WindowPos.Bottom-WindowPos.Top;
+      B:=srWindow.Bottom-srWindow.Top;
+      if A<>B then
+      begin
+        Resize:=true;
+        if B<A then
+        begin
+          if WindowPos.Bottom = OrigConsoleInfo.dwSize.Y-1 then
+            WindowPos.Top:=WindowPos.Top-(B-A)
+          else
+            WindowPos.Bottom:=WindowPos.Bottom+(B-A);
+        end;
+        if B>A then
+        begin
+          WindowPos.Bottom:=WindowPos.Bottom+(B-A);
+          if WindowPos.Bottom>=OrigConsoleInfo.dwSize.Y then
+          begin
+            WindowPos.Bottom:=OrigConsoleInfo.dwSize.Y-1;
+            WindowPos.Top:=((OrigConsoleInfo.dwSize.Y-1)- B);
+            if WindowPos.Top<0 then
+              WindowPos.Top:=0;
+          end;
+        end;
+      end;
+    end;
+
+    { back to original console, but it might not be original size }
+    SetConsoleScreenBufferSize (StartConsoleOutHandle, OrigConsoleInfo.dwSize);
+    res:=SetConsoleWindowInfo (StartConsoleOutHandle, true, WindowPos);
+    if not res then
+      error:=GetLastError;
+    SetConsoleCursorInfo(StartConsoleOutHandle, OrigConsoleCursorInfo);
     SetConsoleCP(OrigCP);
+
+    SetStdHandle(cardinal(Std_Output_Handle),StartConsoleOutHandle);
+    SetConsoleActiveScreenBuffer(StartConsoleOutHandle);
+    UpdateFileHandles;
+    ConsoleOutHandle:=StartConsoleOutHandle;
+    CloseHandle (AlternativeConsoleOutHandle);
+    AlternativeConsoleOutHandle := Invalid_Handle_Value;
+    { we are out }
    end;
   SetLength(LineBuf,0);
 end;
@@ -212,12 +352,25 @@ begin
    SetConsoleCursorInfo(ConsoleOutHandle,ConsoleCursorInfo);
 end;
 
+Const
+  SysVideoModeCount = 7;
+  SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
+   (Col: 40; Row: 25; Color: True),
+   (Col: 80; Row: 25; Color: True),
+   (Col: 80; Row: 30; Color: True),
+   (Col: 80; Row: 43; Color: True),
+   (Col: 80; Row: 50; Color: True),
+   (Col: 80; Row: 25; Color: True), // Reserved for mode set by resize window
+   (Col: 80; Row: 25; Color: True)  // Reserved for TargetEntry
+  );
+
 function SysVideoModeSelector (const VideoMode: TVideoMode): boolean;
 
 var MI: Console_Screen_Buffer_Info;
     C: Coord;
     SR: Small_Rect;
-
+    I : Integer;
+    FoundVideoMode : Boolean;
 begin
   if not (GetConsoleScreenBufferInfo (ConsoleOutHandle, MI)) then
     SysVideoModeSelector := false
@@ -253,6 +406,26 @@ begin
             if SetConsoleWindowInfo (ConsoleOutHandle, true, SR) then
               begin
                 SysVideoModeSelector := true;
+                I:=SysVideoModeCount-1;
+                FoundVideoMode:=False;
+
+                While (I>=0) and Not FoundVideoMode do
+                If (VideoMode.col=SysVMD[i].col) and
+                   (VideoMode.Row=SysVMD[i].Row) and
+                   (VideoMode.Color=SysVMD[i].Color) then
+                  FoundVideoMode:=True
+                else
+                  Dec(I);
+
+                 If Not FoundVideoMode Then
+                   begin
+                     { As we where able to set this mode, this is avalable }
+                     { Register the curent video mode in reserved slot in System Modes }
+                     SysVMD[SysVideoModeCount-2].Col:=VideoMode.Col;
+                     SysVMD[SysVideoModeCount-2].Row:=VideoMode.Row;
+                     SysVMD[SysVideoModeCount-2].Color:={VideoMode.Color}True;
+                   end;
+
                 SetCursorType (LastCursorType);
                 ClearScreen;
               end
@@ -275,17 +448,6 @@ begin
     end;
 end;
 
-Const
-  SysVideoModeCount = 6;
-  SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
-   (Col: 40; Row: 25; Color: True),
-   (Col: 80; Row: 25; Color: True),
-   (Col: 80; Row: 30; Color: True),
-   (Col: 80; Row: 43; Color: True),
-   (Col: 80; Row: 50; Color: True),
-   (Col: 80; Row: 25; Color: True) // Reserved for TargetEntry
-  );
-
 
 Function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;
 
@@ -302,15 +464,17 @@ begin
       SysSetVideoMode:=True
     else
       Dec(I);
-  If SysSetVideoMode then
+  if SysVideoModeSelector(Mode) then
     begin
-    if SysVideoModeSelector(Mode) then
-      begin
+      If Not SysSetVideoMode then
+        begin
+          I:=SysVideoModeCount-2;
+          SysSetVideoMode:=true;
+        end;
       ScreenWidth:=SysVMD[I].Col;
       ScreenHeight:=SysVMD[I].Row;
       ScreenColor:=SysVMD[I].Color;
-      end else SysSetVideoMode := false;
-    end;
+    end else SysSetVideoMode := false;
 end;
 
 Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
@@ -495,8 +659,8 @@ begin
       if OrigScreenSize > 0 then
        begin
       { Register the current video mode in reserved slot in System Modes}
-        SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
-        SysVMD[SysVideoModeCount-1].Row:=dwMaximumWindowSize.Y;
+        SysVMD[SysVideoModeCount-1].Col:=srWindow.Right-srWindow.Left+1;
+        SysVMD[SysVideoModeCount-1].Row:=srWindow.bottom-srWindow.top+1;
         SysVMD[SysVideoModeCount-1].Color:=true;
         GetMem (OrigScreen, OrigScreenSize);
        end;

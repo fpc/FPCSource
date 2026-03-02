@@ -25,8 +25,6 @@ unit cdynset;
 
   interface
 
-    uses
-      globtype;
 
     type
       TDynSet = array of byte;

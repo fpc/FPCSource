@@ -38,11 +38,7 @@ interface
       new_scanner: tscannerfile;
       old_scanner: tscannerfile;
       old_filepos: tfileposinfo;
-      old_token: ttoken;
-      old_c: char;
-      old_orgpattern: string;
       old_modeswitches: tmodeswitches;
-      old_idtoken: ttoken;
       valid: boolean;
     end;
 
@@ -152,17 +148,13 @@ implementation
       old_block_type: tblock_type;
     begin
       { would require saving of cstringpattern, patternw }
-      if (token=_CSTRING) or
-         (token=_CWCHAR) or
-         (token=_CWSTRING) then
+      if (current_scanner.token=_CSTRING) or
+         (current_scanner.token=_CWCHAR) or
+         (current_scanner.token=_CWSTRING) then
         internalerror(2011032201);
       sstate.old_scanner:=current_scanner;
       sstate.old_filepos:=current_filepos;
-      sstate.old_token:=token;
-      sstate.old_c:=c;
-      sstate.old_orgpattern:=current_scanner.orgpattern;
       sstate.old_modeswitches:=current_settings.modeswitches;
-      sstate.old_idtoken:=idtoken;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
@@ -183,12 +175,7 @@ implementation
           sstate.new_scanner.free; // no nil needed
           set_current_scanner(sstate.old_scanner);
           current_filepos:=sstate.old_filepos;
-          token:=sstate.old_token;
           current_settings.modeswitches:=sstate.old_modeswitches;
-          c:=sstate.old_c;
-          current_scanner.orgpattern:=sstate.old_orgpattern;
-          current_scanner.pattern:=upper(sstate.old_orgpattern);
-          idtoken:=sstate.old_idtoken;
         end;
     end;
 

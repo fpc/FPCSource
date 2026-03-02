@@ -271,6 +271,7 @@ uses
       end;
 
     procedure maybe_add_waiting_unit(tt:tdef);
+    { called only by a pas module when specializing or inlining, not by a ppu module }
       var
         hmodule : tmodule;
       begin
@@ -285,11 +286,11 @@ uses
         if hmodule=current_module then
           exit;
 
-        if (hmodule.state = ms_load) and hmodule.interface_compiled then
-          Exit;
+        { Note: if hmodule.state=ms_load its implementation is not yet ready }
 
-        if not (hmodule.state in [ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed]) then
+        if hmodule.state<ms_compiling_waitfinish then
           begin
+            tmodule.ctask_fast_backtrack:=true;
 {$ifdef DEBUG_UNITWAITING}
             Writeln('Unit ', current_module.modulename^,
               ' waiting for ', hmodule.modulename^);
@@ -593,7 +594,7 @@ uses
           end
         else
           specializename:='$';
-        while not (token in [_GT,_RSHARPBRACKET]) do
+        while not (current_scanner.token in [_GT,_RSHARPBRACKET]) do
           begin
             { "first" is set to false at the end of the loop! }
             if not first then
@@ -815,7 +816,7 @@ uses
       function find_param_in_specialization(owner:tprocdef;genericparam:ttypesym;def:tstoreddef):boolean;
         var
           parasym: ttypesym;
-          k, i: integer;
+          i: integer;
         begin
           result:=false;
           for i:=0 to def.genericparas.count-1 do
@@ -1107,7 +1108,7 @@ uses
       { compare generic parameters <T> with call node parameters. }
       function is_possible_specialization(callerparams:tfplist;genericdef:tprocdef;out unnamed_syms:tfplist;out genericparams:tfphashlist):boolean;
         var
-          i,j,
+          i,
           count : integer;
           paravar : tparavarsym;
           base_def : tstoreddef;
@@ -1119,7 +1120,6 @@ uses
           target_element,
           caller_element : tdef;
           required_param_count : integer;
-          adef : tarraydef;
         begin
           result:=false;
           paras:=nil;
@@ -1282,7 +1282,6 @@ uses
           pt : tcallparanode;
           paradef : tdef;
           sym : tsym;
-          i : integer;
         begin
           result:=tfplist.create;
           pt:=tcallparanode(para);
@@ -1447,7 +1446,7 @@ uses
           begin
             consume(_LSHARPBRACKET);
             { handle "<>" }
-            if (token=_GT) or (token=_RSHARPBRACKET) then
+            if (current_scanner.token=_GT) or (current_scanner.token=_RSHARPBRACKET) then
               begin
                 Message(type_e_type_id_expected);
                 if not try_to_consume(_GT) then
@@ -1743,8 +1742,6 @@ uses
         psym,
         srsym : tsym;
         flags : thccflags;
-        paramdef1,
-        paramdef2,
         def : tdef;
         old_block_type : tblock_type;
         state : tspecializationstate;
@@ -1760,7 +1757,6 @@ uses
         i,
         replaydepth : longint;
         item : tobject;
-        allequal,
         hintsprocessed : boolean;
         pd : tprocdef;
         pdflags : tpdflags;
@@ -2039,7 +2035,7 @@ uses
                   internalerror(2012051202);
                 oldcurrent_filepos:=current_filepos;
                 { use the index the module got from the current compilation process }
-                current_filepos.moduleindex:=hmodule.unit_index;
+                current_filepos.moduleindex:=hmodule.moduleid;
                 current_tokenpos:=current_filepos;
                 if parse_generic then
                   begin
@@ -2186,7 +2182,7 @@ uses
                 end;
                 { Consume the remainder of the buffer }
                 while current_scanner.replay_stack_depth>replaydepth do
-                  consume(token);
+                  consume(current_scanner.token);
 
                 if assigned(recordbuf) then
                   begin
@@ -2301,7 +2297,7 @@ uses
               is_const:=true;
               const_list_index:=result.count;
             end;
-          if token=_ID then
+          if current_scanner.token=_ID then
             begin
               if is_const then
                 generictype:=cconstsym.create_undefined(current_scanner.orgpattern,cundefinedtype)
@@ -2367,7 +2363,7 @@ uses
               repeat
                 doconsume:=true;
 
-                case token of
+                case current_scanner.token of
                   _CONSTRUCTOR:
                     begin
                       if not allowconstructor or (gcf_constructor in constraintdata.flags) then
@@ -2436,7 +2432,7 @@ uses
                     end;
                 end;
                 if doconsume then
-                  consume(token);
+                  consume(current_scanner.token);
               until not try_to_consume(_COMMA);
 
               if ([gcf_class,gcf_constructor]*constraintdata.flags<>[]) or
@@ -2490,7 +2486,7 @@ uses
             end
           else
             begin
-              if token=_SEMICOLON then
+              if current_scanner.token=_SEMICOLON then
                 begin
                   { two different typeless parameters are considered as incompatible }
                   for i:=firstidx to result.count-1 do
@@ -2503,7 +2499,7 @@ uses
                   firstidx:=result.count;
                 end;
             end;
-          if token=_SEMICOLON then
+          if current_scanner.token=_SEMICOLON then
             begin
               is_const:=false;
               allowconst:=true;
@@ -2793,7 +2789,6 @@ uses
 
     function is_or_belongs_to_current_genericdef(def:tdef):boolean;
       var
-        d : tdef;
         state : pspecializationstate;
       begin
         result:=true;
@@ -2948,7 +2943,7 @@ uses
             oldcurrent_filepos:=current_filepos;
             current_filepos:=tprocdef(def.genericdef).fileinfo;
             { use the index the module got from the current compilation process }
-            current_filepos.moduleindex:=hmodule.unit_index;
+            current_filepos.moduleindex:=hmodule.moduleid;
             current_tokenpos:=current_filepos;
             current_scanner.startreplaytokens(tprocdef(def.genericdef).generictokenbuf,hmodule.change_endian);
             read_proc_body(def);
@@ -3016,7 +3011,6 @@ uses
         def : tstoreddef;
         state : tspecializationstate;
         hmodule : tmodule;
-        mstate : tmodulestate;
 
       begin
         { first copy all entries and then work with that list to ensure that
@@ -3050,9 +3044,8 @@ uses
                   { we need to check for a forward declaration only if the
                     generic was declared in the same unit (otherwise there
                     should be one) }
-                  mstate:=hmodule.state;
-                  if ((hmodule=current_module) or (hmodule.state<ms_compiling_waitfinish))
-                      and tprocdef(def.genericdef).forwarddef then
+                  if ((hmodule=current_module) and tprocdef(def.genericdef).forwarddef)
+                      or ((hmodule<>current_module) and (hmodule.state<ms_compiling_waitfinish)) then
                     begin
                       readdlist.add(def);
                       continue;
@@ -3118,7 +3111,6 @@ uses
       var
         hmodule : tmodule;
         st : tsymtable;
-        i : integer;
       begin
         if parse_generic then
           exit;

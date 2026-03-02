@@ -1,9 +1,8 @@
 # Markdown parser examples
 
 ## Synopsis
-This directory contains 3 markdown parser examples:
 
-They are:
+This directory contains the following markdown parser examples:
 
 * demomd - simple markdown parser and html renderer.
 * md2html - slightly more complete markdown-to-html converter.

@@ -353,7 +353,7 @@ implementation
 
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
-         if (token=_ASM) and (m_delphi in current_settings.modeswitches) then
+         if (current_scanner.token=_ASM) and (m_delphi in current_settings.modeswitches) then
            include(current_procinfo.procdef.procoptions,po_assembler);
 
          { Handle assembler block different }
@@ -370,7 +370,7 @@ implementation
              (current_module.is_unit or islibrary)
             ) then
            begin
-             if (token=_END) then
+             if (current_scanner.token=_END) then
                 begin
                    consume(_END);
                    { We need at least a node, else the entry/exit code is not
@@ -382,14 +382,14 @@ implementation
                 end
               else
                 begin
-                   if token=_INITIALIZATION then
+                   if current_scanner.token=_INITIALIZATION then
                      begin
                         { The library init code is already called and does not
                           need to be in the initfinal table (PFV) }
                         block:=statement_block(_INITIALIZATION);
                         init_main_block_syms(block);
                      end
-                   else if token=_FINALIZATION then
+                   else if current_scanner.token=_FINALIZATION then
                      begin
                        { when a unit has only a finalization section, we can come to this
                          point when we try to read the nonh existing initialization section
@@ -3094,7 +3094,7 @@ implementation
         repeat
            if not assigned(current_procinfo) then
              internalerror(200304251);
-           case token of
+           case current_scanner.token of
               _LABEL:
                 begin
                   handle_unexpected_had_generic;
@@ -3127,8 +3127,8 @@ implementation
                    begin
                      { class modifier is only allowed for procedures, functions, }
                      { constructors, destructors                                 }
-                     if not((token in [_FUNCTION,_PROCEDURE,_DESTRUCTOR,_OPERATOR]) or (token=_CONSTRUCTOR)) and
-                        not((token=_ID) and (idtoken=_OPERATOR)) then
+                     if not((current_scanner.token in [_FUNCTION,_PROCEDURE,_DESTRUCTOR,_OPERATOR]) or (current_scanner.token=_CONSTRUCTOR)) and
+                        not((current_scanner.token=_ID) and (current_scanner.idtoken=_OPERATOR)) then
                        Message(parser_e_procedure_or_function_expected);
 
                      if is_interface(current_structdef) then
@@ -3144,7 +3144,7 @@ implementation
               _PROCEDURE,
               _OPERATOR:
                 begin
-                  if hadgeneric and not (token in [_PROCEDURE,_FUNCTION]) then
+                  if hadgeneric and not (current_scanner.token in [_PROCEDURE,_FUNCTION]) then
                     begin
                       Message(parser_e_procedure_or_function_expected);
                       hadgeneric:=false;
@@ -3185,7 +3185,7 @@ implementation
                 end;
               else
                 begin
-                  case idtoken of
+                  case current_scanner.idtoken of
                     _RESOURCESTRING:
                       begin
                         handle_unexpected_had_generic;
@@ -3233,9 +3233,9 @@ implementation
              the token is a string/char. As this is a syntax error and compilation will abort anyways,
              skipping the call does not matter
            }
-           (token<>_CSTRING) and
-           (token<>_CWCHAR) and
-           (token<>_CWSTRING) then
+           (current_scanner.token<>_CSTRING) and
+           (current_scanner.token<>_CWCHAR) and
+           (current_scanner.token<>_CWSTRING) then
            add_synthetic_method_implementations(current_procinfo.procdef.localst);
 
          { check for incomplete class definitions, this is only required
@@ -3263,7 +3263,7 @@ implementation
       begin
          hadgeneric:=false;
          repeat
-           case token of
+           case current_scanner.token of
              _CONST :
                begin
                  handle_unexpected_had_generic;
@@ -3288,7 +3288,7 @@ implementation
              _PROCEDURE,
              _OPERATOR :
                begin
-                 if hadgeneric and not (token in [_FUNCTION, _PROCEDURE]) then
+                 if hadgeneric and not (current_scanner.token in [_FUNCTION, _PROCEDURE]) then
                    begin
                      message(parser_e_procedure_or_function_expected);
                      hadgeneric:=false;
@@ -3301,7 +3301,7 @@ implementation
                end;
              else
                begin
-                 case idtoken of
+                 case current_scanner.idtoken of
                    _RESOURCESTRING :
                      begin
                        handle_unexpected_had_generic;

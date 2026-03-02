@@ -233,7 +233,7 @@ type
       Imports    : PImportCollection;
       LoadedFrom : PString;
       UsedUnits  : PSymbolCollection;
-      DependentUnits: PSymbolCollection;
+      DependentUnits: PSortedSymbolCollection;
       MainSource: PString;
       SourceFiles: pstringCollection;
       constructor Init(const AName, AMainSource: string);
@@ -1136,10 +1136,13 @@ begin
 end;
 
 procedure TModuleSymbol.AddDependentUnit(P: PSymbol);
+var I : Sw_Integer; S : String;
 begin
   if Assigned(DependentUnits)=false then
     New(DependentUnits, Init(10,10));
-  DependentUnits^.Insert(P);
+  S:=DependentUnits^.LookUp(P^.Name^,I);
+  if (I=-1) or (S<>P^.Name^) then { not found }
+    DependentUnits^.Insert(P);
 end;
 
 procedure TModuleSymbol.AddSourceFile(const Path: string);

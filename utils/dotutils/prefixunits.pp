@@ -17,7 +17,11 @@ program prefixunits;
 {$mode objfpc}
 {$H+}
 
-uses cwstring, SysUtils, Classes, custapp, prefixer;
+uses
+  {$IFDEF UNIX}
+  cwstring,
+  {$ENDIF}
+  Classes, SysUtils, custapp, prefixer;
 
 type
 

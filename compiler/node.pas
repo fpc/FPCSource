@@ -280,8 +280,8 @@ interface
        transientflagsequal : TTransientNodeFlags = [tnf_error];
 
     type
-       tnodelist = class
-       end;
+      tnodelist = class
+      end;
 
       pnode = ^tnode;
       { basic class for the intermediated representation fpc uses }

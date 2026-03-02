@@ -250,9 +250,7 @@ type
     private
       DosScreenBufferHandle,
       IDEScreenBufferHandle,
-      StartScreenBufferHandle,
-      DummyScreenBufferHandle,
-      NewScreenBufferHandle : THandle;
+      StartScreenBufferHandle : THandle;
       IDEActive : boolean;
       ConsoleMode,IdeMode      : Dword;
       IdeScreenMode : TVideoMode;
@@ -954,21 +952,8 @@ const
   ENABLE_AUTO_POSITION   = $100;
 
 
-
-procedure UpdateFileHandles;
-begin
-  {StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));}
-  StdOutputHandle:=THandle(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
-  {StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));}
-  TextRec(Output).Handle:=StdOutputHandle;
-  VideoSetConsoleOutHandle(StdOutputHandle);
-  TextRec(StdOut).Handle:=StdOutputHandle;
-  {TextRec(StdErr).Handle:=StdErrorHandle;}
-end;
-
 constructor TWindowsScreen.Init;
 var
-  SecurityAttr : Security_attributes;
   BigWin : Coord;
   res : longbool;
   Error : dword;
@@ -977,52 +962,16 @@ begin
   inherited Init;
   {if GetConsoleOutputCP<>437 then
     res:=SetConsoleOutputCP(437);}
-  SecurityAttr.nLength:=SizeOf(Security_attributes);
-  SecurityAttr.lpSecurityDescriptor:=nil;
-  SecurityAttr.bInheritHandle:=true;
-  NewScreenBufferHandle:=CreateConsoleScreenBuffer(
-    GENERIC_READ or GENERIC_WRITE,
-    FILE_SHARE_READ or FILE_SHARE_WRITE,SecurityAttr,
-    CONSOLE_TEXTMODE_BUFFER,nil);
-  DummyScreenBufferHandle:=CreateConsoleScreenBuffer(
-    GENERIC_READ or GENERIC_WRITE,
-    FILE_SHARE_READ or FILE_SHARE_WRITE,SecurityAttr,
-    CONSOLE_TEXTMODE_BUFFER,nil);
   StartScreenBufferHandle:=GetStdHandle(cardinal(STD_OUTPUT_HANDLE));
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
   IdeMode:=ConsoleMode;
 {$ifdef debug}
   Complain('Starting ConsoleMode is $'+hexstr(ConsoleMode,8));
-{define Windowsbigwin}
 {$endif debug}
-{$ifdef Windowsbigwin}
   GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
-  BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
-  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top; // mantis 15779 was 200
-  { Try to allow to store more info }
-  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,BigWin);
-  if not res then
-    error:=GetLastError;
-  res:=SetConsoleScreenBufferSize(StartScreenBufferHandle,BigWin);
-  if not res then
-    error:=GetLastError;
-{$endif Windowsbigwin}
-  GetConsoleScreenBufferInfo(StartScreenBufferHandle,
-    @ConsoleScreenBufferInfo);
-  { make sure that the IDE Screen Handle has the maximum display size
-    this removes the scroll bars if it is maximized }
 
-  BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
-  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top;
-  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
-     BigWin);
-// mantis 15779 : was
-//  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
-//         ConsoleScreenBufferInfo.dwMaximumWindowSize);
-  if not res then
-    error:=GetLastError;
-  IDEScreenBufferHandle:=NewScreenBufferHandle;
+  IDEScreenBufferHandle:=Invalid_Handle_Value;
   DosScreenBufferHandle:=StartScreenBufferHandle;
   Capture;
   IdeScreenMode.row:=0;
@@ -1034,12 +983,7 @@ begin
   { copy the Dos buffer content into the original ScreenBuffer
     which remains the startup std_output_handle PM }
   {if StartScreenBufferHandle=IDEScreenBufferHandle then}
-    BufferCopy(DosScreenBufferHandle,IDEScreenBufferHandle);
-  SetConsoleActiveScreenBuffer(StartScreenBufferHandle);
-  SetStdHandle(cardinal(Std_Output_Handle),StartScreenBufferHandle);
-  UpdateFileHandles;
-  CloseHandle(NewScreenBufferHandle);
-  CloseHandle(DummyScreenBufferHandle);
+  {  BufferCopy(DosScreenBufferHandle,IDEScreenBufferHandle); }
   inherited Done;
 end;
 
@@ -1254,9 +1198,6 @@ begin
     Complain('is not equal to IDEMode  $'+hexstr(IdeMode,8));
 {$endif debug}
   IdeMode:=NowIdeMode;
-  { set the dummy buffer as active already now PM }
-  SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
-  UpdateFileHandles;
 end;
 
 { dummy for Windows as the Buffer screen
@@ -1267,17 +1208,11 @@ begin
 {$ifdef debug}
   Complain('ConsoleMode now is $'+hexstr(ConsoleMode,8));
 {$endif debug}
-  { set the dummy buffer as active already now PM }
-  SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
-  UpdateFileHandles;
 end;
 
 procedure TWindowsScreen.SwitchToConsoleScreen;
 begin
-  SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
-  SetStdHandle(cardinal(Std_Output_Handle),DosScreenBufferHandle);
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), ConsoleMode);
-  UpdateFileHandles;
   IDEActive:=false;
 end;
 
@@ -1285,14 +1220,32 @@ procedure TWindowsScreen.SwitchBackToIDEScreen;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
   WindowPos : Small_rect;
-  res : boolean;
-  error : longint;
+  NewScreenHeight:Longword;
+  NewScreenWidth:Longword;
 begin
-  SetStdHandle(cardinal(Std_Output_Handle),IDEScreenBufferHandle);
-  UpdateFileHandles;
+  IDEScreenBufferHandle:=GetStdHandle(cardinal(STD_OUTPUT_HANDLE));
   GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
     @ConsoleScreenBufferInfo);
-  SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
+  WindowPos.left:=0;
+  WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
+                   -ConsoleScreenBufferInfo.srWindow.left;
+  WindowPos.top:=0;
+  WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
+                   -ConsoleScreenBufferInfo.srWindow.top;
+
+  NewScreenHeight:=WindowPos.bottom+1;
+  NewScreenWidth:=WindowPos.right+1;
+
+  if (NewScreenHeight<>ScreenHeight) or (NewScreenWidth<>ScreenWidth) then
+  begin
+    IdeScreenMode.col:=NewScreenWidth;
+    IdeScreenMode.row:=NewScreenHeight;
+    IdeScreenMode.Color:=True;
+    { reset to new dimensions so fv app know that this is new size }
+    if Assigned(Application) and (IdeScreenMode.row<>0)then
+      Application^.SetScreenVideoMode(IdeScreenMode);
+  end;
+
   { Needed to force InitSystemMsg to use the right console handle }
   DoneEvents;
   InitEvents;
@@ -1305,29 +1258,6 @@ begin
                     ENABLE_INSERT_MODE or
                     ENABLE_QUICK_EDIT_MODE);
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
-  WindowPos.left:=0;
-  WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
-                   -ConsoleScreenBufferInfo.srWindow.left;
-  WindowPos.top:=0;
-  WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
-                   -ConsoleScreenBufferInfo.srWindow.top;
-  with ConsoleScreenBufferInfo.dwMaximumWindowSize do
-    begin
-    if WindowPos.Right<X-1 then
-      WindowPos.right:=X-1;
-    if WindowPos.Bottom<Y-1 then
-      WindowPos.Bottom:=Y-1;
-    end;
-  res:=SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
-  if not res then
-    error:=GetLastError;
-{$ifdef DEBUG}
-  IdeScreenMode.row:=WindowPos.bottom+1;
-  IdeScreenMode.col:=WindowPos.right+1;
-{$endif DEBUG}
-  { needed to force the correct size for videobuf }
-  if Assigned(Application) and (IdeScreenMode.row<>0)then
-    Application^.SetScreenVideoMode(IdeScreenMode);
   IDEActive:=true;
 end;
 

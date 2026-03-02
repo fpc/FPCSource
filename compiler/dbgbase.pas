@@ -95,7 +95,7 @@ interface
       current_debuginfo : tdebuginfo;
 
     procedure InitDebugInfo(hp:tmodule; restore_current_debuginfo : boolean);
-    procedure DoneDebugInfo(hp:tmodule;var current_debuginfo_reset : boolean);
+    procedure DoneDebugInfo(hp:tmodule; out current_debuginfo_reset : boolean);
     procedure RegisterDebugInfo(const r:tdbginfo;c:TDebugInfoClass);
 
 
@@ -650,7 +650,7 @@ implementation
       end;
 
 
-    procedure DoneDebugInfo(hp:tmodule;var current_debuginfo_reset : boolean);
+    procedure DoneDebugInfo(hp:tmodule; out current_debuginfo_reset : boolean);
       begin
         current_debuginfo_reset:=false;
         if assigned(hp.DebugInfo) then

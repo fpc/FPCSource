@@ -67,7 +67,6 @@ implementation
     cfileutl,cutils,
     systems,globals,version,
     verbose,
-    ppu,
     entfile,pkgutil;
 
 { tpcppackage }

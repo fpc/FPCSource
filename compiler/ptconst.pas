@@ -91,8 +91,8 @@ implementation
         if not in_structure and
            (
             (
-             (token = _ID) and
-             ((idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (idtoken = _WEAKEXTERNAL)) and
+             (current_scanner.token = _ID) and
+             ((current_scanner.idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (current_scanner.idtoken = _WEAKEXTERNAL)) and
              (m_cvar_support in current_settings.modeswitches)
             ) or
             (
@@ -109,7 +109,7 @@ implementation
         { try to parse a section directive }
         if not in_structure and (target_info.system in systems_allow_section) and
            (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
-           (idtoken=_SECTION) then
+           (current_scanner.idtoken=_SECTION) then
           begin
             try_consume_sectiondirective(section);
             if section<>'' then

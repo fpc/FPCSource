@@ -472,7 +472,7 @@ implementation
               else
                 lastfileidx:=0;
 
-              lastmoduleidx:=module.unit_index;
+              lastmoduleidx:=module.moduleid;
             end;
         end;
       end;

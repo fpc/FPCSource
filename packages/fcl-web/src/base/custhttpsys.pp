@@ -532,7 +532,7 @@ procedure THTTPSysRequest.FillHTTPVariables(aRequest: PHTTP_REQUEST);
     len := 32;
     SetLength(Result, len - 1);
 
-    if WSAAddressToString(aRequest^.Address.pRemoteAddress^, size, Nil, PAnsiChar(Result), len) <> 0 then begin
+    if WSAAddressToString(aRequest^.Address.pRemoteAddress^, size, Nil, {$IF SIZEOF(CHAR)=1}PAnsiChar{$ELSE}PWideChar{$ENDIF}(Result), len) <> 0 then begin
       //Writeln('Failed to retrieve address string; error: ', WSAGetLastError);
       Exit('');
     end;

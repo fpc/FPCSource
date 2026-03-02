@@ -40,6 +40,7 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
 
   var
      e : TMouseEvent;
+     MouseWheel : Longint;
 
   begin
     EnterCriticalSection(ChangeMouseEvents);
@@ -53,11 +54,21 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
       e.buttons:=e.buttons or MouseMiddleButton;
     if (ir.Event.MouseEvent.dwButtonState and RIGHTMOST_BUTTON_PRESSED<>0) then
       e.buttons:=e.buttons or MouseRightButton;
-    if (ir.Event.MouseEvent.dwButtonState and $FF880000=$FF880000) then
-      e.buttons:=e.buttons or MouseButton5;
-    if (ir.Event.MouseEvent.dwButtonState and $00780000=$00780000) then
-      e.buttons:=e.buttons or MouseButton4;
 
+    MouseWheel:=ir.Event.MouseEvent.dwButtonState and $FFFF0000;
+    if MouseWheel <> 0 then
+    begin
+      { Because Windows report "wrong" x,y for mouse scroll
+        buttons, we use x,y from previous event. "Wrong"
+        here is that x,y add imagined character count from
+        console window top and left margins. }
+      e.x:=LasthandlerMouseEvent.x;
+      e.y:=LasthandlerMouseEvent.y;
+      if (MouseWheel<0) then
+        e.buttons:=e.buttons or MouseButton5;
+      if (MouseWheel>0) then
+        e.buttons:=e.buttons or MouseButton4;
+    end;
     if (Lasthandlermouseevent.x<>e.x) or (LasthandlerMouseEvent.y<>e.y) then
       e.Action:=MouseActionMove;
     if (LastHandlerMouseEvent.Buttons<>e.Buttons) then

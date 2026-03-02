@@ -27,7 +27,7 @@ unit globstat;
 interface
 
 uses
-  globtype,tokens,globals,
+  globtype,globals,
   aasmdata,
   dbgbase,
   symbase,symsym,
@@ -37,13 +37,19 @@ uses
 
 
 type
+  TSymTableStackKind = (
+    stsk_global,
+    stsk_macro
+    );
+
+  { tglobalstate }
+  { Note: this is only needed for pas modules, ppu modules simply skip save and restore
+    Especially a ppu does not create its own symtablestack }
 
   tglobalstate = class
+    reload: boolean;
   { scanner }
-    oldidtoken,
-    oldtoken       : ttoken;
     oldtokenpos    : tfileposinfo;
-    oldc           : char;
     old_block_type : tblock_type;
   { symtable }
     oldsymtablestack,
@@ -65,16 +71,18 @@ type
     old_debuginfo : tdebuginfo;
     old_scanner : tscannerfile;
     old_parser_file : string;
-    constructor create(savefull : boolean);
+    constructor create(for_module_switch: boolean);
     destructor destroy; override;
     procedure clearscanner;
     class procedure remove_scanner_from_states(scanner : tscannerfile); static;
-    procedure save(full : boolean);
-    procedure restore(full : boolean);
+    procedure save(for_module_switch: boolean = false);
+    procedure save_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
+    procedure restore;
+    procedure reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
   end;
 
-procedure save_global_state(state:tglobalstate;full:boolean);
-procedure restore_global_state(state:tglobalstate;full:boolean);
+procedure save_global_state(state:tglobalstate);
+procedure restore_global_state(state:tglobalstate);
 
 implementation
 
@@ -128,31 +136,33 @@ var
     Dec(Statecount);
   end;
 
-  procedure save_global_state(state:tglobalstate;full:boolean);
+  procedure save_global_state(state:tglobalstate);
     begin
-      state.save(full);
+      state.save;
     end;
 
-  procedure restore_global_state(state:tglobalstate;full:boolean);
-
-  begin
-    state.restore(full);
-  end;
-
-  procedure tglobalstate.save(full: boolean);
+  procedure restore_global_state(state:tglobalstate);
 
     begin
+      state.restore;
+    end;
+
+  procedure tglobalstate.save(for_module_switch: boolean);
+
+    begin
+      reload:=for_module_switch;
       old_current_module:=current_module;
 
       { save symtable state }
       oldsymtablestack:=symtablestack;
+      if for_module_switch then
+        save_symtable_stack(oldsymtablestack,stsk_global);
       oldmacrosymtablestack:=macrosymtablestack;
+      if for_module_switch then
+        save_symtable_stack(oldmacrosymtablestack,stsk_macro);
       oldcurrent_procinfo:=current_procinfo;
 
       { save scanner state }
-      oldc:=c;
-      oldtoken:=token;
-      oldidtoken:=idtoken;
       old_block_type:=block_type;
       oldtokenpos:=current_tokenpos;
       {
@@ -175,22 +185,67 @@ var
       old_settings:=current_settings;
       old_verbosity:=status.verbosity;
 
-      if full then
-        begin
-          old_asmdata:=current_asmdata;
-          old_debuginfo:=current_debuginfo;
-          old_parser_file:=parser_current_file;
-          old_scanner:=current_scanner;
-        end;
+      old_asmdata:=current_asmdata;
+      old_debuginfo:=current_debuginfo;
+      old_parser_file:=parser_current_file;
+      old_scanner:=current_scanner;
     end;
 
-  procedure tglobalstate.restore(full: boolean);
+  procedure tglobalstate.save_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
+    var
+      item: psymtablestackitem;
+      m: tmodule;
+      id: LongInt;
+    begin
+      {$IFDEF DEBUG_SAVESYMSTACK}
+      writeln('DEBUG_SAVESYMSTACK: tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' ',kind,' Stack=',hexstr(ptruint(stack),16),' self=',hexstr(ptruint(self),16));
+      {$ENDIF}
+      if stack=nil then exit;
+
+      item:=stack.stack;
+      while item<>nil do
+        begin
+          id:=item^.symtable.moduleid;
+          item^.saved_moduleid:=id;
+          if (id<>current_module.moduleid) and (id>0) then
+            begin
+              m:=get_module(id);
+              {$IFDEF DEBUG_SAVESYMSTACK}
+              writeln('   ',m.modulename^,' ',m.statestr);
+              {$ENDIF}
+              if m=nil then
+                begin
+                  writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' ',kind,' unknown moduleid: ',id);
+                  Internalerror(2026030103);
+                end;
+              case kind of
+                stsk_global:
+                  if m.globalsymtable<>item^.symtable then
+                    begin
+                      writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' globalsymstack: item is not globalsymtable of ', m.modulename^,' ',m.statestr);
+                      Internalerror(2026030101);
+                    end;
+                stsk_macro:
+                  if m.globalmacrosymtable<>item^.symtable then
+                    begin
+                      writeln('tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' globalmacrosymstack: item is not globalmacrosymtable of ', m.modulename^,' ',m.statestr);
+                      Internalerror(2026030102);
+                    end;
+              end;
+            end;
+          item:=item^.next;
+        end;
+      {$IFDEF DEBUG_SAVESYMSTACK}
+      writeln('DEBUG_SAVESYMSTACK: END tglobalstate.save_symtable_stack ',current_module.modulename^,' ',current_module.statestr,' ',kind,' Stack=',hexstr(ptruint(stack),16),' self=',hexstr(ptruint(self),16));
+      {$ENDIF}
+    end;
+
+  procedure tglobalstate.restore;
 
     begin
+      set_current_module(old_current_module);
+
       { restore scanner }
-      c:=oldc;
-      token:=oldtoken;
-      idtoken:=oldidtoken;
       current_tokenpos:=oldtokenpos;
       block_type:=old_block_type;
       switchesstatestack:=old_switchesstatestack;
@@ -201,7 +256,11 @@ var
 
       { restore symtable state }
       symtablestack:=oldsymtablestack;
+      if reload then
+        reload_symtable_stack(symtablestack,stsk_global);
       macrosymtablestack:=oldmacrosymtablestack;
+      if reload then
+        reload_symtable_stack(macrosymtablestack,stsk_macro);
       current_procinfo:=oldcurrent_procinfo;
       current_filepos:=oldcurrent_filepos;
       current_settings:=old_settings;
@@ -210,25 +269,59 @@ var
 
       RestoreLocalVerbosity(current_settings.pmessage);
 
-      if full then
+      // These can be different
+      current_asmdata:=old_asmdata;
+      current_debuginfo:=old_debuginfo;
+    end;
+
+  procedure tglobalstate.reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
+    var
+      item: psymtablestackitem;
+      m: tmodule;
+      id: LongInt;
+    begin
+      {$IFDEF DEBUG_SAVESYMSTACK}
+      writeln('DEBUG_SAVESYMSTACK: tglobalstate.reload_symtable_stack ',old_current_module.modulename^,' ',old_current_module.statestr,' ',kind,' Stack=',hexstr(ptruint(stack),16),' self=',hexstr(ptruint(self),16));
+      {$ENDIF}
+      if stack=nil then exit;
+      if old_current_module.fromppu then
         begin
-          set_current_module(old_current_module);
-          // These can be different
-          current_asmdata:=old_asmdata;
-          current_debuginfo:=old_debuginfo;
+          { ppu does not have its own symtablestack }
+          writeln('tglobalstate.reload_symtable_stack ',old_current_module.modulename^,' ',old_current_module.statestr);
+          Internalerror(2026030106);
+        end;
+      item:=stack.stack;
+      while item<>nil do
+        begin
+          id:=item^.saved_moduleid;
+          if (id<>old_current_module.moduleid) and (id>0) then
+            begin
+              m:=get_module(id);
+              {$IFDEF DEBUG_SAVESYMSTACK}
+              writeln('  ',m.modulename^,' ',m.statestr,' HasGlobalSymTable=',m.globalsymtable<>nil);
+              {$ENDIF}
+              case kind of
+                stsk_global: item^.symtable:=m.globalsymtable;
+                stsk_macro:  item^.symtable:=m.globalmacrosymtable;
+              end;
+            end;
+          item:=item^.next;
         end;
     end;
 
-    constructor tglobalstate.create(savefull: boolean);
+  constructor tglobalstate.create(for_module_switch: boolean);
 
     begin
       addstate(self);
-      save(savefull);
+      save(for_module_switch);
     end;
 
   destructor tglobalstate.destroy;
 
     begin
+      {$IFDEF DEBUG_SAVESYMSTACK}
+      writeln('DEBUG_SAVESYMSTACK: tglobalstate.destroy Stack=',hexstr(ptruint(symtablestack),16),' self=',hexstr(ptruint(self),16),' reload=',reload);
+      {$ENDIF}
       removestate(self);
       inherited destroy;
     end;
@@ -237,10 +330,7 @@ var
 
   begin
     old_scanner:=nil;
-    oldidtoken:=NOTOKEN;
-    oldtoken:=NOTOKEN;
     oldtokenpos:=Default(tfileposinfo);
-    oldc:=#0;
     old_block_type:=bt_none;
   end;
 

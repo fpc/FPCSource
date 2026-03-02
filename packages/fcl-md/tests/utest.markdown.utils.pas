@@ -30,7 +30,6 @@ type
   TTestMarkdownUtils = class(TTestCase)
   private
     FEntities: TFPStringHashTable;
-    FBuilder: TStringBuilder;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -65,13 +64,11 @@ begin
   FEntities := TFPStringHashTable.Create;
   FEntities.Add('amp', '&');
   FEntities.Add('lt', '<');
-  FBuilder := TStringBuilder.Create;
 end;
 
 procedure TTestMarkdownUtils.TearDown;
 begin
   FEntities.Free;
-  FBuilder.Free;
 end;
 
 procedure TTestMarkdownUtils.TestIsWhitespaceChar;

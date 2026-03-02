@@ -1758,8 +1758,7 @@ end;
 
 procedure TViHashList.Delete(Index: SizeInt);
 var
-  it: PViHashListItem;
-  prev, i: SizeInt;
+  i: SizeInt;
 begin
   If SizeUint(Index)>=SizeUint(FCount) then
     RaiseIndexError(Index);

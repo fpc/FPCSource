@@ -136,9 +136,7 @@ implementation
       pvdef : tprocvardef absolute def;
       intfdef : tobjectdef;
       invokedef : tprocdef;
-      psym : tprocsym;
       sym : tsym;
-      st : tsymtable;
       i : longint;
       name : tidstring;
     begin
@@ -444,7 +442,6 @@ implementation
       def : tobjectdef;
       typesym : tsym;
       keepalive : tabstractvarsym;
-      intfimpl : TImplementedInterface;
       st : tsymtable;
     begin
       if pd.has_capturer then
@@ -1178,9 +1175,6 @@ implementation
       info : pcapturedsyminfo;
       pi : tprocinfo;
       mapping : tsym_mapping;
-      invokedef,
-      parentdef,
-      curpd : tprocdef;
     begin
       capturer:=nil;
       result:=funcref_intf_for_proc(pd,fileinfo_to_suffix(pd.fileinfo));
@@ -1487,8 +1481,7 @@ implementation
       i : longint;
       old_filepos : tfileposinfo;
       loadprocvar : boolean;
-      paras,
-      mp : tnode;
+      paras: tnode;
       cnf : tcallnodeflags;
       paraold,
       paranew : tcallparanode;
@@ -1581,16 +1574,14 @@ implementation
       end;
 
     var
-      i,j : longint;
+      i: longint;
       capturer : tobjectdef;
       tocapture,
       capturedsyms : tfplist;
       convertarg : tconvert_arg;
       mapping : pconvert_mapping;
-      invokepd : tprocdef;
       selfsym,
       sym : tsym;
-      info: pcapturedsyminfo;
     begin
       {$ifdef DEBUG_CAPTURER}writeln('Converting captured symbols of ',pd.procsym.name);{$endif}
 

@@ -298,7 +298,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           errordef:
             begin
                { try to consume something useful }
-               if token=_LKLAMMER then
+               if current_scanner.token=_LKLAMMER then
                  consume_all_until(_RKLAMMER)
                else
                  consume_all_until(_SEMICOLON);
@@ -1343,7 +1343,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 while true do
                   begin
                     read_typed_const_data(def.elementdef);
-                    if token=_RKLAMMER then
+                    if current_scanner.token=_RKLAMMER then
                       begin
                         consume(_RKLAMMER);
                         break;
@@ -1358,7 +1358,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   begin
                     read_typed_const_data(def.elementdef);
                     Inc(curoffset,def.elementdef.size);
-                    if token=_RKLAMMER then
+                    if current_scanner.token=_RKLAMMER then
                       begin
                         Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
                         consume(_RKLAMMER);
@@ -1662,7 +1662,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         SymList:TFPHashObjectList;
       begin
         { GUID }
-        if (def=rec_tguid) and (token=_ID) then
+        if (def=rec_tguid) and (current_scanner.token=_ID) then
           begin
             n:=comp_expr([ef_accept_equal]);
             if n.nodetype=stringconstn then
@@ -1679,7 +1679,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n := nil;
             exit;
           end;
-        if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
+        if (def=rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
             n:=comp_expr([ef_accept_equal]);
             inserttypeconv(n,cshortstringtype);
@@ -1707,7 +1707,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         recsym := nil;
         startoffset:=curoffset;
         error := false;
-        while token<>_RKLAMMER do
+        while current_scanner.token<>_RKLAMMER do
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;
@@ -1815,9 +1815,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { goto next field }
                 srsym:=get_next_varsym(def,SymList,symidx);
 
-                if token=_SEMICOLON then
+                if current_scanner.token=_SEMICOLON then
                   consume(_SEMICOLON)
-                else if (token=_COMMA) and (m_mac in current_settings.modeswitches) then
+                else if (current_scanner.token=_COMMA) and (m_mac in current_settings.modeswitches) then
                   consume(_COMMA)
                 else
                   break;
@@ -1902,7 +1902,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         startoffset:=curoffset;
         objoffset:=0;
         vmtwritten:=false;
-        while token<>_RKLAMMER do
+        while current_scanner.token<>_RKLAMMER do
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;
@@ -2010,7 +2010,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 basenode:=cvecnode.create(orgbase.getcopy,ctypeconvnode.create_explicit(genintconstnode(i),tarraydef(def).rangedef));
                 read_typed_const_data(def.elementdef);
-                if token=_RKLAMMER then
+                if current_scanner.token=_RKLAMMER then
                   begin
                     Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
                     consume(_RKLAMMER);
@@ -2067,7 +2067,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
       begin
         { GUID }
-        if (def=rec_tguid) and (token=_ID) then
+        if (def=rec_tguid) and (current_scanner.token=_ID) then
           begin
             n:=comp_expr([ef_accept_equal]);
             if n.nodetype=stringconstn then
@@ -2089,7 +2089,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n := nil;
             exit;
           end;
-        if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
+        if (def=rec_tguid) and ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) then
           begin
             n:=comp_expr([ef_accept_equal]);
             inserttypeconv(n,cshortstringtype);
@@ -2113,7 +2113,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         recsym := nil;
         orgbasenode:=basenode;
         basenode:=nil;
-        while token<>_RKLAMMER do
+        while current_scanner.token<>_RKLAMMER do
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;
@@ -2194,9 +2194,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 recsym := srsym;
                 { goto next field }
                 srsym:=get_next_varsym(def,SymList,symidx);
-                if token=_SEMICOLON then
+                if current_scanner.token=_SEMICOLON then
                   consume(_SEMICOLON)
-                else if (token=_COMMA) and (m_mac in current_settings.modeswitches) then
+                else if (current_scanner.token=_COMMA) and (m_mac in current_settings.modeswitches) then
                   consume(_COMMA)
                 else
                   break;
@@ -2268,7 +2268,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         objoffset:=0;
         orgbasenode:=basenode;
         basenode:=nil;
-        while token<>_RKLAMMER do
+        while current_scanner.token<>_RKLAMMER do
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;

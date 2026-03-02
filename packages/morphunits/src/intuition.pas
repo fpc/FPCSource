@@ -2011,6 +2011,9 @@ const
   OM_ADDMEMBER = OM_Dummy + 9;  // used by various classes with lists
   OM_REMMEMBER = OM_Dummy + 10; // used by various classes with lists
 
+  OM_RETAIN    = OM_Dummy + 11; // increase a BOOPSI object's internal usage counter
+  OM_RELEASE   = OM_Dummy + 12; // decrease a BOOPSI object's internal usage counter
+
 // Parameter 'Messages' passed to methods
 type
   // OM_NEW and OM_SET

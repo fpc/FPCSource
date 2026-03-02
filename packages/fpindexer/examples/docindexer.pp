@@ -6,7 +6,11 @@ program docindexer;
 {$ENDIF}
 
 uses
-  cwstring, cthreads, SysUtils, Classes, DateUtils, sqldb, SQLDBindexDB, FBindexDB, sqliteindexdb,  pgindexdb, memindexdb, fpIndexer, inifiles,
+  {$IFDEF UNIX}
+  cwstring, cthreads,
+  {$ENDIF}
+  SysUtils, Classes, DateUtils, sqldb, SQLDBindexDB, FBindexDB, sqliteindexdb,
+  pgindexdb, memindexdb, fpIndexer, inifiles,
   // indexer readers
   IReaderTXT, IReaderPAS, IReaderHTML, CustApp;
 

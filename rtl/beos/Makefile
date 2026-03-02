@@ -541,7 +541,6 @@ OBJCUNIT=objc
 OBJCBASEUNIT=objcbase
 OBJPASUNIT=objpas
 OS2DEFUNIT=OS2Api.os2def
-PAGEMEMUNIT=System.PageMem
 PILOTUNIT=PalmApi.Pilot
 PMBIDIUNIT=OS2Api.pmbidi
 PMBITMAPUNIT=OS2Api.pmbitmap
@@ -804,7 +803,6 @@ OBJCUNIT=objc
 OBJCBASEUNIT=objcbase
 OBJPASUNIT=objpas
 OS2DEFUNIT=os2def
-PAGEMEMUNIT=pagemem
 PILOTUNIT=pilot
 PMBIDIUNIT=pmbidi
 PMBITMAPUNIT=pmbitmap
@@ -2669,7 +2667,9 @@ else
 ifeq ($(OS_TARGET),android)
   RTLDEFSINCDIR = $(LINUXINC)
 else
+ifeq ($(RTLDEFSINCDIR),) 
   RTLDEFSINCDIR = $(OSDIR)
+endif
 endif
 endif
 FPWIDESTRING_DEPS=$(OBJPASDIR)/fpwidestring.pp $(RTLDEFSINCDIR)/rtldefs.inc \

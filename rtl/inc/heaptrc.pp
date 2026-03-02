@@ -897,7 +897,7 @@ type
     hCur, hStart, hEnd: HashList.ppNode;
     hMask: SizeUint;
     function MoveNext: HashList.pNode;
-    procedure FixupPreRemoveCur(var h: HashList);
+    procedure FixupPreRemoveCur;
     procedure FixupPostRehash(var h: HashList);
   end;
 
@@ -915,7 +915,7 @@ type
     cur := result;
   end;
 
-  procedure CircularHashListIterator.FixupPreRemoveCur(var h: HashList);
+  procedure CircularHashListIterator.FixupPreRemoveCur;
   var
     oldCur: HashList.pNode;
   begin
@@ -1032,7 +1032,7 @@ type
     procedure Unlock; inline;
 
   type
-    CheckFlag = (InsideLock, InTraceXxx, InDoGetFreeMem, InFreeToFreeItems, InCheckHeap, InPublicCheckHeap);
+    CheckFlag = (InsideLock, InTraceXxx, InDoGetFreeMem, InFreeToFreeItems, InSimplifiedFreeToFreeItems, InCheckHeap, InPublicCheckHeap);
     CheckFlags = set of CheckFlag;
 
     // To call prevMgr.FreeMem outside Lock and, when KeepReleased is enabled, save on unlocking and locking again by performing up to length(p) prevMgr.FreeMems at once.
@@ -1065,12 +1065,12 @@ type
     function CheckFreedMemory(n: pNode; sz: SizeUint): boolean;
     class function IndexNot(p: pointer; n: SizeUint; b: byte): SizeInt; static; // Slow function (or, rather, its speed is unimportant) for rechecking what exactly failed.
     procedure FreeToFreeItems(untilSumSize: SizeUint; justFreed: pNode; var freeBatch: PrevMgrToFreeBatch; cf: CheckFlags);
-    procedure FreeAllToFreeItems(cf: CheckFlags); // For finalization.
+    procedure FreeToFreeItems(untilSumSize: SizeUint; cf: CheckFlags);
     function AllocateNode(info: SizeUint): pNode;
     procedure FreeNode(n: pNode; var freeBatch: PrevMgrToFreeBatch; cf: CheckFlags);
     class function CfSkipFrames(cf: CheckFlags): SizeUint; static; inline;
 
-    function DoGetMem(size: PtrUint): pointer;
+    function DoGetMem(size: PtrUint; zeroed: boolean): pointer;
     function DoFreeMem(p: pointer; size: PtrUint): PtrUint;
 
     class function TraceGetMem(size: PtrUint): pointer; static;
@@ -1323,13 +1323,13 @@ var
     end;
   end;
 
-  procedure HeapTracer.FreeAllToFreeItems(cf: CheckFlags);
+  procedure HeapTracer.FreeToFreeItems(untilSumSize: SizeUint; cf: CheckFlags);
   var
     freeBatch: PrevMgrToFreeBatch;
   begin
     freeBatch.n := 0;
     freeBatch.ht := @self;
-    FreeToFreeItems(0, nil, freeBatch, cf);
+    FreeToFreeItems(untilSumSize, nil, freeBatch, cf + [CheckFlag.InSimplifiedFreeToFreeItems]);
     freeBatch.Flush(self);
   end;
 
@@ -1382,7 +1382,7 @@ type
   end;
 {$endif}
 
-  function HeapTracer.DoGetMem(size: PtrUint): pointer;
+  function HeapTracer.DoGetMem(size: PtrUint; zeroed: boolean): pointer;
   var
     fullSize, headSize, nTrace, info: SizeUint;
     n: pNode;
@@ -1406,13 +1406,17 @@ type
     fullSize := headSize + size + SizeUint(HeadTailSizes[info shr TailSizeIndexShift and TailSizeIndexMask] * TailSizeUnit);
     if fullSize < size then RunError(204);
 
-    result := prevMgr.GetMem(fullSize);
+    if zeroed then
+      result := prevMgr.AllocMem(fullSize)
+    else
+      result := prevMgr.GetMem(fullSize);
     if headSize <> 0 then
     begin
       FillChar(result^, headSize, HeadFillerByte);
       inc(result, headSize);
     end;
-    FillChar(result^, size, DataFillerByte); // clear the memory
+    if not zeroed then
+      FillChar(result^, size, DataFillerByte);
     // tailor to the default tail size
     if info and (TailSizeIndexMask shl TailSizeIndexShift) = 1 shl TailSizeIndexShift then
       unaligned(pUint32(result + size)^) := FillerByteToUint32 * TailFillerByte
@@ -1460,7 +1464,7 @@ type
   begin
     if not Assigned(p) then exit(0);
     nTrace := NoTrace; // Skip collecting trace if definitely not required.
-    if KeepReleasedBytes > size then
+    if KeepReleasedBytes > 0 then // Careful: “size” is usually DontVerifySize.
     begin
       nTrace := traceDepth;
       if nTrace > 0 then
@@ -1480,7 +1484,7 @@ type
       exit(0);
     end;
     inc(freeMemCount);
-    if hn = hCheck.cur then hCheck.FixupPreRemoveCur(h);
+    if hn = hCheck.cur then hCheck.FixupPreRemoveCur;
     n := pointer(hn) - PtrUint(@Node(nil^).hn);
     h.RemoveNode(hn, hnLink); // Even on size mismatch etc., remove from h so that double free still throws an error.
     if hCheck.hmask <> h.nhmask then hCheck.FixupPostRehash(h);
@@ -1524,7 +1528,7 @@ type
 
   class function HeapTracer.TraceGetMem(size: PtrUint): pointer;
   begin
-    result := ht.DoGetMem(size);
+    result := ht.DoGetMem(size, false);
   end;
 
   class function HeapTracer.TraceFreeMem(p: pointer): PtrUint;
@@ -1539,8 +1543,7 @@ type
 
   class function HeapTracer.TraceAllocMem(size: PtrUint): pointer;
   begin
-    result := ht.DoGetMem(size);
-    FillChar(result^, size, 0); // Must be okay as long as MemSize returns exactly size.
+    result := ht.DoGetMem(size, true);
   end;
 
   class function HeapTracer.TraceReallocMem(var p: pointer; size: PtrUint): pointer;
@@ -1565,7 +1568,7 @@ type
         exit(nil);
       end else
       begin
-        result := ht.DoGetMem(size);
+        result := ht.DoGetMem(size, false);
         p := result;
         exit;
       end;
@@ -1653,7 +1656,7 @@ type
 
     if n^.userPtr <> result then
     begin
-      if @n^.hn = this^.hCheck.cur then this^.hCheck.FixupPreRemoveCur(this^.h);
+      if @n^.hn = this^.hCheck.cur then this^.hCheck.FixupPreRemoveCur;
       this^.h.RemoveNode(@n^.hn, this^.h.GetLink(@n^.hn, oldHash)); // dummyLink can become invalid after unlocking, so recover the correct link.
 
       n^.userPtr := result;
@@ -1767,7 +1770,7 @@ type
   procedure HeapTracer.Dump(var f: text);
   var
     tf: pNode;
-    i: SizeInt;
+    i, sumSize: SizeInt;
     something: boolean;
   begin
   {$if declared(SystemRealloc)}
@@ -1779,12 +1782,14 @@ type
     if Assigned(tf) then
     begin
       write(f, LineEnding, 'ht.toFree: ');
+      sumSize := 0;
       repeat
         if tf <> toFree.first then write(f, ', ');
         DumpHNode(@tf^.hn, f); // Hack, hn does not exist, but DumpHNode simply applies offset and dumps containing Node.
+        inc(SizeUint(sumSize), tf^.GetUserSizeRequest);
         tf := tf^.next;
       until not Assigned(tf);
-      writeln(f, ' (', StackTracesRegistry.CountLinkedListItems(toFree.first, PtrUint(@Node(nil^).next)), ' total)');
+      writeln(f, ' (', StackTracesRegistry.CountLinkedListItems(toFree.first, PtrUint(@Node(nil^).next)), ' total, ', sumSize, ' b)');
     end;
     something := false;
     for i := 0 to High(freeNodes) do
@@ -2045,7 +2050,7 @@ type
   procedure HeapTracer.Uninstall;
   begin
     if not mgrInstalled then exit;
-    FreeAllToFreeItems([]); // Finalization does this before reporting, but reporting can allocate with BacktraceStrFuncs...
+    FreeToFreeItems(0, []); // Finalization does this before reporting, but reporting can allocate with BacktraceStrFuncs...
 
     Finalize(h);
     Finalize(traces);
@@ -2128,6 +2133,7 @@ end;
     n: pNode;
     display: TDisplayExtraInfoProc;
     status: TFPCHeapStatus;
+    emptyCluster: boolean;
   begin
     if skipIfNoLeaks and (h.nItems = 0) and (getMemCount = freeMemCount) and (getMemSize = freeMemSize) then
       exit;
@@ -2155,6 +2161,7 @@ end;
     rem := h.nItems;
     if rem > MaxLeaksToReport then rem := MaxLeaksToReport;
     ih := 0;
+    emptyCluster := false;
     while (ih <= h.nhmask) and (rem > 0) do
     begin
       hn := h.h[ih];
@@ -2162,20 +2169,31 @@ end;
       begin
         n := pointer(hn) - PtrUint(@Node(nil^).hn);
         sz := n^.GetUserSizeRequest;
-        writeln(f, 'Call trace for block $', HexStr(n^.userPtr), ' size ', sz);
-        if printleakedblock then HexDump(f, n^.userPtr, sz);
+        if Assigned(n^.trace) and emptyCluster then // Cluster multiple “N/A”s without extra newlines.
+          writeln(f);
+        emptyCluster := not Assigned(n^.trace) and not printleakedblock;
+        write(f, 'Call trace for block $', HexStr(n^.userPtr), ' size ', sz);
+        if Assigned(n^.trace) then writeln(f) else writeln(f, ': N/A.');
         if n^.info and (ExtraInfoIndexMask shl ExtraInfoIndexShift) <> 0 then
         begin
           display := extraInfos[n^.info shr ExtraInfoIndexShift and ExtraInfoIndexMask - 1].display;
           if Assigned(display) then
+          begin
             display(outfp^, pointer(@n^.extraIfNoFullUserRequest) + n^.info and HasFullUserRequestBit * HasFullUserRequestBitToOffsetBetweenExtras);
+            emptyCluster := false;
+          end;
         end;
-        DumpTrace(f, n);
+        if printleakedblock then HexDump(f, n^.userPtr, sz);
+        if Assigned(n^.trace) then
+          DumpTrace(f, n)
+        else if not emptyCluster then
+          writeln(f);
         dec(rem);
         hn := hn^.next;
       end;
       inc(ih);
     end;
+    if emptyCluster then writeln(f);
     // Recover rehashes.
     h.minItems := savedMinItems;
     h.maxItems := savedMaxItems;
@@ -2739,7 +2757,7 @@ initialization
 finalization
   if ht.mgrInstalled then
   begin
-    ht.FreeAllToFreeItems([]);
+    ht.FreeToFreeItems(0, []);
     if UseHeapTrace then
     begin
       IOResult;

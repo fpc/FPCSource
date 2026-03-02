@@ -1,10 +1,12 @@
-unit touchleaf1_ant;
+unit cycle2_changea_ant;
 
 {$mode objfpc}
 
 interface
 
-uses touchleaf1_bird;
+uses cycle2_changea_bird;
+
+const Factor = 5; // changed
 
 function Crawl(w : word): word;
 

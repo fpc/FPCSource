@@ -127,6 +127,7 @@ interface
        psymtablestackitem = ^TSymtablestackitem;
        TSymtablestackitem = record
          symtable : TSymtable;
+         saved_moduleid : longint;
          next     : psymtablestackitem;
        end;
 
@@ -139,6 +140,11 @@ interface
          procedure push(st:TSymtable); virtual;
          procedure pushafter(st,afterst:TSymtable); virtual;
          procedure pop(st:TSymtable); virtual;
+         { Remove st from anywhere in the stack without raising an error if
+           it is not present.  Used by the CTask PPU-cycle fix to excise a
+           symtable that is about to be freed (via tmodule.reset) from a
+           suspended module's saved symtablestack before RestoreState runs. }
+         procedure remove(st:TSymtable);
          function  top:TSymtable;
          function getcopyuntil(finalst: TSymtable): TSymtablestack;
        end;
@@ -482,6 +488,34 @@ implementation
         hp:=stack;
         stack:=hp^.next;
         dispose(hp);
+      end;
+
+
+    procedure TSymtablestack.remove(st: TSymtable);
+      { Remove st from anywhere in the stack.  If st appears more than once
+        (which should not happen in normal operation) all occurrences are
+        removed.  A missing st is silently ignored. }
+      var
+        prev, cur, nxt: psymtablestackitem;
+      begin
+        prev:=nil;
+        cur:=stack;
+        while assigned(cur) do
+          begin
+            nxt:=cur^.next;
+            if cur^.symtable=st then
+              begin
+                if assigned(prev) then
+                  prev^.next:=nxt
+                else
+                  stack:=nxt;
+                dispose(cur);
+                { do NOT update prev ? the item at prev is still valid }
+              end
+            else
+              prev:=cur;
+            cur:=nxt;
+          end;
       end;
 
 

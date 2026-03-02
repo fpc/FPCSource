@@ -20,6 +20,15 @@
   This unit should not be compiled in objfpc mode, since this would make it
   dependent on objpas unit.
 }
+
+{$modeswitch advancedrecords} {$modeswitch class} {$modeswitch result} {$modeswitch out} {$typedaddress on}
+
+{$if not defined(FPUNONE) and not defined(FPUSOFT)}
+  {$define can_use_ln_in_constants}
+{$endif}
+
+{-$define debug_lineinfocache}
+
 unit lnfodwrf;
 
 interface
@@ -31,7 +40,7 @@ type
   CodePointer = Pointer;
 {$ENDIF}
 
-function GetLineInfo(addr:codeptruint;var func,source:string;var line:longint) : boolean;
+function GetLineInfo(addr:codeptruint;var func,source:shortstring;var line:longint) : boolean;
 function DwarfBackTraceStr(addr: CodePointer): shortstring;
 procedure CloseDwarf;
 
@@ -41,6 +50,133 @@ var
   // address is supplied then further calls may result in an undefined behaviour.
   // In summary: enable for speed, disable for resilience.
   AllowReuseOfLineInfoData: Boolean = True;
+
+// While the cache can scale down arbitrarily, e.g. down to 8 records, its mere code size is nontrivial (3.3 Kb on x64), so just disable for small bitnesses.
+{$if not defined(cpuint8) and not defined(cpuint16)}
+{$define has_LineInfoCache}
+type
+  LineInfoCache = record
+    function TryGet(addr: CodePointer; out func, source: shortstring; out line: longint): boolean;
+    procedure Put(addr: CodePointer; const func, source: shortstring; line: longint);
+
+  private type
+    StringDataHeaderHashType = uint16;
+
+    pStringDataHeader = ^StringDataHeader;
+    StringDataHeader = packed record
+      len: uint8;
+      hash: StringDataHeaderHashType; // Hopefully automatically unaligned().
+    end;
+
+  const
+    // String data format, stored in strings.data and referenced by strings.dataOfs:
+    // 3 bytes: StringDataHeader.
+    // N bytes: string data.
+    StringHeaderSize = sizeof(StringDataHeader);
+    File0Function1 = 2;
+
+  {$if false and defined(debug_lineinfocache)}
+    StringLengthEstimation = 10;
+    MaxStrings = 8;
+    StringsHashSize = 4;
+    MaxAddresses = 8;
+    AddressesHashSize = 4;
+  {$else select cache size}
+    StringLengthEstimation = 24; // Expected average string length. (Value for FPC allocation traces when compiling itself at the time of writing this comment: 15.2.)
+    HashLoadFactor = 4;
+
+    // 64-bit CPUs tend to have more memory.
+    MaxStrings = {$if sizeof(pointer) > 4} 1600 {$else} 1000 {$endif};
+    StringsHashSizePrecomputed = {$if sizeof(pointer) > 4} 512 {$else} 256 {$endif};
+    StringsHashSize = {$ifdef can_use_ln_in_constants} 1 shl round(ln(MaxStrings / HashLoadFactor) / ln(2)) {$else} StringsHashSizePrecomputed {$endif};
+  {$if StringsHashSize <> StringsHashSizePrecomputed} {$error fix StringsHashSizePrecomputed} {$endif}
+  {$if StringsHashSize and (StringsHashSize - 1) <> 0} {$error must be 2^N} {$endif}
+
+    MaxAddresses = {$if sizeof(pointer) > 4} 8000 {$else} 3600 {$endif};
+    AddressesHashSizePrecomputed = {$if sizeof(pointer) > 4} 2048 {$else} 1024 {$endif};
+    AddressesHashSize = {$ifdef can_use_ln_in_constants} 1 shl round(ln(MaxAddresses / HashLoadFactor) / ln(2)) {$else} AddressesHashSizePrecomputed {$endif};
+  {$if AddressesHashSize <> AddressesHashSizePrecomputed} {$error fix AddressesHashSizePrecomputed} {$endif}
+  {$if AddressesHashSize and (AddressesHashSize - 1) <> 0} {$error must be 2^N} {$endif}
+  {$endif select cache size}
+    MaxStringsData = MaxStrings * (StringHeaderSize + StringLengthEstimation);
+
+  type
+    StringIndexType = {$if MaxStrings <= High(uint8)} uint8 {$elseif MaxStrings <= High(uint16)} uint16 {$else} {$error MaxStrings looks too large.} {$endif};
+    StringDataOffsetType = {$if MaxStringsData <= High(uint8)} uint8 {$elseif MaxStringsData <= High(uint16)} uint16 {$else} {$error MaxStringsData looks too large.} {$endif};
+    AddressIndexType = {$if MaxAddresses <= High(uint8)} uint8 {$elseif MaxAddresses <= High(uint16)} uint16 {$else} {$error MaxAddresses looks too large.} {$endif};
+
+  var
+    // File and function names are merged only for simplicity, not sure if it hurts the eviction behavior (think of MaxStrings functions in one file evicting other files)...
+    strings: record
+      nUpto, nFree, firstLru1, lastLru1, firstFree1: StringIndexType;
+      hash1: array[0 .. StringsHashSize - 1] of StringIndexType;
+      s: array[0 .. MaxStrings - 1] of record
+      case uint32 of
+        0: (prevLru1, nextLru1: StringIndexType);
+        1: (nextFree1: StringIndexType);
+      end;
+      nextCollision1: array[0 .. MaxStrings - 1] of StringIndexType;
+      firstUser1: array[0 .. MaxStrings - 1] of AddressIndexType;
+      dataOfs: array[0 .. MaxStrings - 1] of StringDataOffsetType;
+      dataSize: StringDataOffsetType;
+      data: array[0 .. MaxStringsData - 1] of byte;
+    end;
+
+    addresses: record
+      nUpto, nFree, firstLru1, lastLru1, firstFree1: AddressIndexType;
+      hash1: array[0 .. AddressesHashSize - 1] of AddressIndexType;
+      p: array[0 .. MaxAddresses - 1] of CodePointer;
+      a: array[0 .. MaxAddresses - 1] of record
+      case uint32 of
+        0: (prevLru1, nextLru1: AddressIndexType);
+        1: (nextFree1: AddressIndexType);
+      end;
+      nextCollision1: array[0 .. MaxAddresses - 1] of AddressIndexType;
+      fileFunc: array[0 .. MaxAddresses - 1, 0 .. File0Function1 - 1] of StringIndexType;
+      u: array[0 .. MaxAddresses - 1] of record
+        // Addresses don’t distinguish between file and function names,
+        // so address A might use string S as file name: fileFunc[A, 0] = S,
+        // and address B might use the same string S as function name: fileFunc[B, 1] = S.
+        //
+        // If such a B is the user of S that immediately follows A,
+        // u[A].nextUser[0] = 1 + B, and u[B].prevUser1[1] = 1 + A.
+        //
+        // These File0Function1 indices for a particular address A that uses a particular string S
+        // can be determined with ord(S <> fileFunc[A, 0]).
+        //
+        // Special case: fileFunc[0] = fileFunc[1]. Only prev/nextUser1[0] are used then, and prev/nextUser1[1] are garbage.
+        // (So ord(stringUsedByAddress = fileFunc[1]) won’t work.)
+        prevUser1, nextUser1: array[0 .. File0Function1 - 1] of AddressIndexType;
+      end;
+      lineLo16: array[0 .. MaxAddresses - 1] of uint16;
+      lineHi8: array[0 .. MaxAddresses - 1] of uint8; // Support line numbers up to 16,777,215.
+    end;
+
+    class function HashMemory(p: pointer; n: SizeUint): SizeUint; static;
+    class function HashCodePointer(p: CodePointer): SizeUint; static; inline;
+    procedure AddStringToLRU(id: SizeUint);
+    procedure RemoveStringFromLRU(id: SizeUint);
+    procedure BumpStringLRU(id: SizeUint); inline;
+    function FindString(const s: shortstring; hash: SizeUint): SizeInt;
+    function AddString(const s: shortstring; hash: SizeUint): SizeUint;
+    procedure RemoveString(id: SizeUint);
+    procedure StringToShortstring(id: SizeUint; out ss: shortstring);
+    procedure PackStrings;
+    procedure AddStringUser(stringId, addressId, iFileFunc: SizeUint);
+    procedure RemoveStringUser(stringId, addressId, iFileFunc: SizeUint);
+
+    procedure AddAddressToLRU(id: SizeUint);
+    procedure RemoveAddressFromLRU(id: SizeUint);
+    function FindAddress(addr: CodePointer; hash: SizeUint): SizeInt;
+    function AddAddress(addr: CodePointer; hash, fileId, funcId: SizeUint; lineNo: uint32): SizeUint;
+    procedure RemoveAddress(id: SizeUint);
+  {$ifdef debug_lineinfocache}
+    procedure DumpStringValue(var f: text; id: SizeUint);
+    procedure DumpAddressValue(var f: text; id: SizeUint);
+    procedure Dump(var f: text);
+  {$endif}
+  end;
+{$endif enable LineInfoCache}
 
 
 implementation
@@ -79,8 +215,18 @@ type
 {$endif CPUI8086}
   TSegment = Word;
 
-{$WARNING This code is not thread-safe, and needs improvement}
+const
+  DwarfLock = 0;
+{$ifdef has_LineInfoCache}
+  LiCacheLock = 1;
+{$endif has_LineInfoCache}
+
 var
+{$ifdef fpc_has_feature_threading}
+  locksAlive: boolean;
+  locks: array[0 .. {$ifdef has_LineInfoCache} LiCacheLock {$else} DwarfLock {$endif}] of TRTLCriticalSection;
+  prevInitProc, prevExitProc: CodePointer;
+{$endif fpc_has_feature_threading}
   { the input file to read DWARF debug info from, i.e. paramstr(0) }
   e : TExeFile;
   { the offset and size of the DWARF debug_line section in the file }
@@ -95,6 +241,23 @@ var
   { the offset and size of the DWARF debug_abbrev section in the file }
   Dwarf_Debug_Abbrev_Section_Offset,
   Dwarf_Debug_Abbrev_Section_Size : longint;
+{$ifdef has_LineInfoCache}
+  liCache: LineInfoCache;
+{$endif has_LineInfoCache}
+
+  procedure Lock(index: SizeUint); inline;
+  begin
+  {$ifdef fpc_has_feature_threading}
+    if locksAlive then EnterCriticalSection(locks[index]);
+  {$endif}
+  end;
+
+  procedure Unlock(index: SizeUint); inline;
+  begin
+  {$ifdef fpc_has_feature_threading}
+    if locksAlive then LeaveCriticalSection(locks[index]);
+  {$endif}
+  end;
 
 { DWARF 2 default opcodes}
 const
@@ -262,6 +425,19 @@ type
   tofar=Pointer;
 {$endif cpui8086}
 
+procedure CloseDwarf(needLock: boolean);
+begin
+  if needLock then
+    Lock(DwarfLock);
+  if e.isopen then
+    CloseExeFile(e);
+
+  // Reset last processed filename
+  lastfilename := '';
+  if needLock then
+    Unlock(DwarfLock);
+end;
+
 function OpenDwarf(addr : codepointer) : boolean;
 var
   oldprocessaddress: TExeProcessAddress;
@@ -295,7 +471,7 @@ begin
   end;
 
   // Close previously opened Dwarf
-  CloseDwarf;
+  CloseDwarf(false);
 
   // Reset last open dwarf result
   lastopendwarf := false;
@@ -339,11 +515,7 @@ end;
 
 procedure CloseDwarf;
 begin
-  if e.isopen then
-    CloseExeFile(e);
-
-  // Reset last processed filename
-  lastfilename := '';
+  CloseDwarf(true);
 end;
 
 
@@ -666,7 +838,7 @@ end;
 
 
 function ParseCompilationUnit(var er : TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
-  var source : String; var line : longint; var found : Boolean) : QWord;
+  var source : ShortString; var line : longint; var found : Boolean) : QWord;
 var
   state : TMachineState;
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -1067,7 +1239,7 @@ begin
 end;
 
 function ParseCompilationUnitForFunctionName(var er: TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
-  var func : String; var found : Boolean) : QWord;
+  var func : ShortString; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TDebugInfoProgramHeader64;
@@ -1265,52 +1437,35 @@ begin
     end;
 end;
 
-const
-{ 64 bit and 32 bit CPUs tend to have more memory }
-{$if defined(CPU64)}
-  LineInfoCacheLength = 2039;
-{$elseif defined(CPU32)}
-  LineInfoCacheLength = 251;
-{$else}
-  LineInfoCacheLength = 1;
-{$endif CPU64}
 
-var
-  LineInfoCache : array[0..LineInfoCacheLength-1] of
-                    record
-                      addr : codeptruint;
-                      func, source : string;
-                      line : longint;
-                    end;
-
-function GetLineInfo(addr : codeptruint; var func, source : string; var line : longint) : boolean;
+function GetLineInfo(addr : codeptruint; var func, source : shortstring; var line : longint) : boolean;
 var
   current_offset,
   end_offset, debug_info_offset_from_aranges : QWord;
   segment : Word = 0;
 
   found, found_aranges : Boolean;
-  CacheIndex: CodePtrUInt;
   er: TEReader;
 
 begin
+{$ifdef has_LineInfoCache}
+  Lock(LiCacheLock);
+  result := liCache.TryGet(CodePointer(addr), func, source, line);
+  Unlock(LiCacheLock);
+  if result then exit;
+{$endif has_LineInfoCache}
+
   func := '';
   source := '';
+  line := 0;
   GetLineInfo:=false;
 
-  CacheIndex:=addr mod LineInfoCacheLength;
-
-  if LineInfoCache[CacheIndex].addr=addr then
-    begin
-      func:=LineInfoCache[CacheIndex].func;
-      source:=LineInfoCache[CacheIndex].source;
-      line:=LineInfoCache[CacheIndex].line;
-      GetLineInfo:=true;
-      exit;
-    end;
-
+  Lock(DwarfLock);
   if not OpenDwarf(codepointer(addr)) then
+  begin
+    Unlock(DwarfLock);
     exit;
+  end;
 
 {$ifdef CPUI8086}
   {$if defined(FPC_MM_MEDIUM) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
@@ -1373,13 +1528,14 @@ begin
   end;
 
   if not AllowReuseOfLineInfoData then
-    CloseDwarf;
+    CloseDwarf(false);
+  Unlock(DwarfLock);
 
-  LineInfoCache[CacheIndex].addr:=addr;
-  LineInfoCache[CacheIndex].func:=func;
-  LineInfoCache[CacheIndex].source:=source;
-  LineInfoCache[CacheIndex].line:=line;
-
+{$ifdef has_LineInfoCache}
+  Lock(LiCacheLock);
+  liCache.Put(CodePointer(addr), func, source, line);
+  Unlock(LiCacheLock);
+{$endif has_LineInfoCache}
   GetLineInfo:=true;
 end;
 
@@ -1387,8 +1543,8 @@ end;
 function DwarfBackTraceStr(addr: CodePointer): shortstring;
 var
   func,
-  source : string;
-  hs     : string;
+  source,
+  hs : shortstring;
   line   : longint;
   Store  : TBackTraceStrFunc;
   Success : boolean;
@@ -1423,12 +1579,595 @@ begin
 end;
 
 
+{$ifdef has_LineInfoCache}
+{$push} {$q-,r-}
+  class function LineInfoCache.HashMemory(p: pointer; n: SizeUint): SizeUint;
+  const
+    C1 = uint32($cc9e2d51);
+    C2 = uint32($1b873593);
+  var
+    tail: uint32;
+    rem: SizeUint;
+  begin
+    result := 0;
+
+    rem := n div 4;
+    while rem > 0 do
+    begin
+      result := RolDWord(result xor (RolDWord(unaligned(pUint32(p)^) * C1, 15) * C2), 13) * 5 + $e6546b64;
+      inc(p, 4); dec(rem);
+    end;
+
+    rem := n mod 4;
+    if rem > 0 then
+    begin
+      tail := pByte(p)^;
+      if rem > 1 then inc(tail, unaligned(uint32(pUint16(p + rem - 2)^) shl 8));
+      result := result xor (RolDWord(tail * C1, 15) * C2);
+    end;
+
+    result := result xor n;
+    result := (result xor (result shr 16)) * $85ebca6b;
+    result := (result xor (result shr 13)) * $c2b2ae35;
+    result := result xor (result shr 16);
+  end;
+
+  class function LineInfoCache.HashCodePointer(p: CodePointer): SizeUint;
+  begin
+    result := (CodePtrUint(p) xor CodePtrUint(p) shr 16) * $21f0aaad;
+    result := (result xor result shr 15) * $735a2d97;
+    result := result xor result shr 15;
+  end;
+{$pop}
+
+  procedure LineInfoCache.AddStringToLRU(id: SizeUint);
+  var
+    firstLru1: SizeUint;
+  begin
+    firstLru1 := strings.firstLru1;
+    strings.s[id].prevLru1 := 0;
+    strings.s[id].nextLru1 := firstLru1;
+    inc(id);
+    strings.firstLru1 := id;
+    if firstLru1 = 0 then
+      strings.lastLru1 := id
+    else
+      strings.s[firstLru1 - 1].prevLru1 := id;
+  end;
+
+  procedure LineInfoCache.RemoveStringFromLRU(id: SizeUint);
+  var
+    prevLru1, nextLru1: SizeUint;
+  begin
+    prevLru1 := strings.s[id].prevLru1;
+    nextLru1 := strings.s[id].nextLru1;
+    if prevLru1 = 0 then
+      strings.firstLru1 := nextLru1
+    else
+      strings.s[prevLru1 - 1].nextLru1 := nextLru1;
+    if nextLru1 = 0 then
+      strings.lastLru1 := prevLru1
+    else
+      strings.s[nextLru1 - 1].prevLru1 := prevLru1;
+  end;
+
+  procedure LineInfoCache.BumpStringLRU(id: SizeUint);
+  begin
+    RemoveStringFromLRU(id);
+    AddStringToLRU(id);
+  end;
+
+  function LineInfoCache.FindString(const s: shortstring; hash: SizeUint): SizeInt;
+  var
+    hp: pStringDataHeader;
+  begin
+    result := strings.hash1[hash and (StringsHashSize - 1)];
+    while result <> 0 do
+    begin
+      pointer(hp) := @strings.data[strings.dataOfs[result - 1]];
+      if (hp^.hash = StringDataHeaderHashType(hash)) and (hp^.len = length(s)) and (CompareByte(s[1], hp[1], hp^.len) = 0) then
+        break;
+      result := strings.nextCollision1[result - 1];
+    end;
+    dec(result);
+  end;
+
+  function LineInfoCache.AddString(const s: shortstring; hash: SizeUint): SizeUint;
+  var
+    dataOfs: SizeUint;
+    hash1Cell: ^StringIndexType;
+    hp: pStringDataHeader;
+  begin
+  {$ifdef debug_lineinfocache}
+    Assert(SizeUint(StringHeaderSize + length(s)) <= SizeUint(MaxStringsData - strings.dataSize), 'not enough space');
+    Assert(FindString(s, hash) < 0, 'already exists');
+  {$endif}
+    if strings.nFree <> 0 then
+    begin
+      result := strings.firstFree1 - 1;
+      strings.firstFree1 := strings.s[result].nextFree1;
+      dec(strings.nFree);
+    end else
+    begin
+    {$ifdef debug_lineinfocache} Assert(strings.nUpto < MaxStrings, 'strings.nUpto past the limit'); {$endif}
+      result := strings.nUpto;
+      inc(strings.nUpto);
+    end;
+
+    // Add to strings.hash1.
+    hash1Cell := @strings.hash1[hash and (StringsHashSize - 1)];
+    strings.nextCollision1[result] := hash1Cell^;
+    hash1Cell^ := 1 + result;
+
+    // Add to strings.data.
+    dataOfs := strings.dataSize;
+    strings.dataOfs[result] := dataOfs;
+    pointer(hp) := pByte(strings.data) + dataOfs;
+    hp^.hash := StringDataHeaderHashType(hash);
+    hp^.len := length(s);
+    Move(s[1], hp[1], length(s));
+    strings.dataSize := dataOfs + SizeUint(length(s) + StringHeaderSize);
+
+    strings.firstUser1[result] := 0;
+    AddStringToLRU(result);
+  end;
+
+  procedure LineInfoCache.RemoveString(id: SizeUint);
+  var
+    hLink1: ^StringIndexType;
+  begin
+    while strings.firstUser1[id] <> 0 do
+      RemoveAddress(strings.firstUser1[id] - 1);
+
+    // Remove from strings.hash1.
+    hLink1 := @strings.hash1[pStringDataHeader(pByte(strings.data) + strings.dataOfs[id])^.hash and (StringsHashSize - 1)];
+    while hLink1^ <> 1 + id do
+    begin
+    {$ifdef debug_lineinfocache} Assert(hLink1^ <> 0, 'not found in strings.hash1'); {$endif}
+      hLink1 := @strings.nextCollision1[hLink1^ - 1];
+    end;
+    hLink1^ := strings.nextCollision1[id];
+
+    // Careful: nextFree1 reuses the prevLru1 space, so removal from LRU must be performed before adding to nextFree1.
+    RemoveStringFromLRU(id);
+
+    // Add to strings.firstFree1.
+    inc(strings.nFree);
+    strings.s[id].nextFree1 := strings.firstFree1;
+    strings.firstFree1 := 1 + id;
+  end;
+
+  procedure LineInfoCache.StringToShortstring(id: SizeUint; out ss: shortstring);
+  var
+    hp: pStringDataHeader;
+  begin
+    pointer(hp) := pByte(strings.data) + strings.dataOfs[id];
+    SetLength(ss, hp^.len);
+    Move(hp[1], ss[1], length(ss));
+  end;
+
+  procedure LineInfoCache.PackStrings;
+  var
+    dp, removed, moveN, id1, stringDataSize: SizeUint;
+    hp: pStringDataHeader;
+  begin
+    dp := 0; removed := 0; moveN := 0;
+    while dp < strings.dataSize do
+    begin
+      pointer(hp) := pByte(strings.data) + dp;
+      stringDataSize := hp^.len + StringHeaderSize;
+      id1 := strings.hash1[hp^.hash and (StringsHashSize - 1)];
+      while (id1 <> 0) and (strings.dataOfs[id1 - 1] <> dp) do
+        id1 := strings.nextCollision1[id1 - 1];
+      if id1 <> 0 then // string alive
+      begin
+        strings.dataOfs[id1 - 1] := dp - removed;
+        inc(moveN, stringDataSize);
+      end else
+      begin // string removed
+        if (moveN > 0) and (removed > 0) then
+          Move(strings.data[dp - moveN], strings.data[dp - moveN - removed], moveN);
+        moveN := 0;
+        inc(removed, stringDataSize);
+      end;
+      inc(dp, stringDataSize);
+    end;
+    if (moveN > 0) and (removed > 0) then
+      Move(strings.data[dp - moveN], strings.data[dp - moveN - removed], moveN);
+    dec(strings.dataSize, removed);
+  end;
+
+  procedure LineInfoCache.AddStringUser(stringId, addressId, iFileFunc: SizeUint);
+  var
+    nextUser1: SizeUint;
+  begin
+  {$ifdef debug_lineinfocache} Assert(stringId = addresses.fileFunc[addressId, iFileFunc]); {$endif}
+    nextUser1 := strings.firstUser1[stringId];
+    addresses.u[addressId].prevUser1[iFileFunc] := 0;
+    addresses.u[addressId].nextUser1[iFileFunc] := nextUser1;
+    if nextUser1 <> 0 then
+      addresses.u[nextUser1 - 1].prevUser1[ord(stringId <> addresses.fileFunc[nextUser1 - 1, 0])] := 1 + addressId;
+    strings.firstUser1[stringId] := 1 + addressId;
+  end;
+
+  procedure LineInfoCache.RemoveStringUser(stringId, addressId, iFileFunc: SizeUint);
+  var
+    prevUser1, nextUser1: SizeUint;
+  begin
+  {$ifdef debug_lineinfocache} Assert(stringId = addresses.fileFunc[addressId, iFileFunc]); {$endif}
+    prevUser1 := addresses.u[addressId].prevUser1[iFileFunc];
+    nextUser1 := addresses.u[addressId].nextUser1[iFileFunc];
+    if prevUser1 = 0 then
+      strings.firstUser1[stringId] := nextUser1
+    else
+      addresses.u[prevUser1 - 1].nextUser1[ord(stringId <> addresses.fileFunc[prevUser1 - 1, 0])] := nextUser1;
+    if nextUser1 <> 0 then
+      addresses.u[nextUser1 - 1].prevUser1[ord(stringId <> addresses.fileFUnc[nextUser1 - 1, 0])] := prevUser1;
+  end;
+
+  procedure LineInfoCache.AddAddressToLRU(id: SizeUint);
+  var
+    firstLru1: SizeUint;
+  begin
+    firstLru1 := addresses.firstLru1;
+    addresses.a[id].prevLru1 := 0;
+    addresses.a[id].nextLru1 := firstLru1;
+    inc(id);
+    addresses.firstLru1 := id;
+    if firstLru1 = 0 then
+      addresses.lastLru1 := id
+    else
+      addresses.a[firstLru1 - 1].prevLru1 := id;
+  end;
+
+  procedure LineInfoCache.RemoveAddressFromLRU(id: SizeUint);
+  var
+    prevLru1, nextLru1: SizeUint;
+  begin
+    prevLru1 := addresses.a[id].prevLru1;
+    nextLru1 := addresses.a[id].nextLru1;
+    if prevLru1 = 0 then
+      addresses.firstLru1 := nextLru1
+    else
+      addresses.a[prevLru1 - 1].nextLru1 := nextLru1;
+    if nextLru1 = 0 then
+      addresses.lastLru1 := prevLru1
+    else
+      addresses.a[nextLru1 - 1].prevLru1 := prevLru1;
+  end;
+
+  function LineInfoCache.FindAddress(addr: CodePointer; hash: SizeUint): SizeInt;
+  begin
+    result := addresses.hash1[hash and (AddressesHashSize - 1)];
+    while (result <> 0) and (addresses.p[result - 1] <> addr) do
+      result := addresses.nextCollision1[result - 1];
+    dec(result);
+  end;
+
+  function LineInfoCache.AddAddress(addr: CodePointer; hash, fileId, funcId: SizeUint; lineNo: uint32): SizeUint;
+  var
+    hash1Cell: ^AddressIndexType;
+  begin
+  {$ifdef debug_lineinfocache} Assert(FindAddress(addr, HashCodePointer(addr)) < 0, 'already exists'); {$endif}
+    if addresses.nFree > 0 then
+    begin
+      result := addresses.firstFree1 - 1;
+      addresses.firstFree1 := addresses.a[result].nextFree1;
+      dec(addresses.nFree);
+    end else
+    begin
+    {$ifdef debug_lineinfocache} Assert(addresses.nUpto < MaxAddresses, 'addresses.nUpto past the limit'); {$endif}
+      result := addresses.nUpto;
+      inc(addresses.nUpto);
+    end;
+
+    addresses.p[result] := addr;
+    addresses.lineLo16[result] := uint16(lineNo);
+    addresses.lineHi8[result] := lineNo shr 16;
+
+    // Add to addresses.hash.
+    hash1Cell := @addresses.hash1[hash and (AddressesHashSize - 1)];
+    addresses.nextCollision1[result] := hash1Cell^;
+    hash1Cell^ := 1 + result;
+
+    addresses.fileFunc[result, 0] := fileId;
+    addresses.fileFunc[result, 1] := funcId;
+    AddStringUser(fileId, result, 0);
+    if funcId <> fileId then AddStringUser(funcId, result, 1);
+
+    AddAddressToLRU(result);
+  end;
+
+  procedure LineInfoCache.RemoveAddress(id: SizeUint);
+  var
+    hLink1: ^AddressIndexType;
+  begin
+    RemoveStringUser(addresses.fileFunc[id, 0], id, 0);
+    if addresses.fileFunc[id, 0] <> addresses.fileFunc[id, 1] then
+      RemoveStringUser(addresses.fileFunc[id, 1], id, 1);
+
+    // Remove from addresses.hash.
+    hLink1 := @addresses.hash1[HashCodePointer(addresses.p[id]) and (AddressesHashSize - 1)];
+    while hLink1^ <> 1 + id do
+    begin
+    {$ifdef debug_lineinfocache} Assert(hLink1^ <> 0, 'not found in addresses.hash1'); {$endif}
+      hLink1 := @addresses.nextCollision1[hLink1^ - 1];
+    end;
+    hLink1^ := addresses.nextCollision1[id];
+
+    // Same as in RemoveString: nextFree1 reuses the prevLru1 space, careful.
+    RemoveAddressFromLRU(id);
+
+    // Add to addresses.firstFree1.
+    inc(addresses.nFree);
+    addresses.a[id].nextFree1 := addresses.firstFree1;
+    addresses.firstFree1 := 1 + id;
+  end;
+
+{$ifdef debug_lineinfocache}
+  procedure LineInfoCache.DumpStringValue(var f: text; id: SizeUint);
+  var
+    ss: shortstring;
+  begin
+    StringToShortstring(id, ss);
+    write(f, ss);
+  end;
+
+  procedure LineInfoCache.DumpAddressValue(var f: text; id: SizeUint);
+  begin
+    write(f, HexStr(CodePtrUint(addresses.p[id]), 1 + {$if sizeof(CodePtrUint) >= 8} BsrQWord {$else} BsrDWord {$endif} (CodePtrUint(addresses.p[id]) or 1) div 4));
+  end;
+
+  procedure LineInfoCache.Dump(var f: text);
+  var
+    ih, id1, user1, nChain, maxChain, nChains: SizeUint;
+  begin
+    if strings.nUpto = strings.nFree then
+      writeln(f, 'No strings (free ', strings.nFree, ')')
+    else
+    begin
+      writeln(f, 'Strings hash:');
+      nChains := 0;
+      maxChain := 0;
+      for ih := 0 to High(strings.hash1) do
+      begin
+        id1 := strings.hash1[ih];
+        if id1 <> 0 then
+        begin
+          inc(nChains);
+          nChain := 0;
+          repeat
+            inc(nChain);
+            id1 := strings.nextCollision1[id1 - 1];
+          until id1 = 0;
+          if nChain > maxChain then maxChain := nChain;
+          id1 := strings.hash1[ih];
+          write(f, 'h[', HexStr(ih, 1 + BsrDWord(StringsHashSize - 1) div 4), ']');
+          if nChain > 0 then write(f, ' (', nChain, ')');
+          write(f, ' = ');
+          DumpStringValue(f, id1 - 1);
+          repeat
+            id1 := strings.nextCollision1[id1 - 1];
+            if id1 = 0 then break;
+            write(f, ', ');
+            DumpStringValue(f, id1 - 1);
+          until false;
+          writeln(f);
+        end;
+      end;
+      writeln(f, 'Avg. chain length ', (strings.nUpto - strings.nFree) / nChains:0:2, ', max ', maxChain);
+      write(f, LineEnding, 'Strings (', strings.nUpto - strings.nFree);
+      if strings.nFree > 0 then write(f, ' + free ', strings.nFree);
+      writeln(f, '), dataSize = ', strings.dataSize, ', LRU to MRU order:');
+    end;
+    id1 := strings.firstLru1;
+    while id1 <> 0 do
+    begin
+      DumpStringValue(f, id1 - 1);
+      write(f, ', id: ', id1 - 1, ', dataOfs: ', strings.dataOfs[id1 - 1], ', users: ');
+      user1 := strings.firstUser1[id1 - 1];
+      if user1 = 0 then
+        writeln(f, '-')
+      else
+      begin
+        write(f, '(');
+        while user1 <> 0 do
+        begin
+          if user1 <> strings.firstUser1[id1 - 1] then write(f, ', ');
+          DumpAddressValue(f, user1 - 1);
+          user1 := addresses.u[user1 - 1].nextUser1[ord(id1 <> SizeUint(1) + addresses.fileFunc[user1 - 1, 0])];
+        end;
+        writeln(f, ')');
+      end;
+      id1 := strings.s[id1 - 1].nextLru1;
+    end;
+    if (strings.nUpto <> strings.nFree) or (addresses.nUpto <> addresses.nFree) then writeln(f);
+
+    if addresses.nUpto = addresses.nFree then
+      writeln(f, 'No addresses (free ', addresses.nFree, ')')
+    else
+    begin
+      writeln(f, 'Addresses hash:');
+      nChains := 0;
+      maxChain := 0;
+      for ih := 0 to High(addresses.hash1) do
+      begin
+        id1 := addresses.hash1[ih];
+        if id1 <> 0 then
+        begin
+          inc(nChains);
+          nChain := 0;
+          repeat
+            inc(nChain);
+            id1 := addresses.nextCollision1[id1 - 1];
+          until id1 = 0;
+          if nChain > maxChain then maxChain := nChain;
+          id1 := addresses.hash1[ih];
+          write(f, 'h[', HexStr(ih, 1 + BsrDWord(AddressesHashSize - 1) div 4), ']');
+          if nChain > 0 then write(f, ' (', nChain, ')');
+          write(f, ' = ');
+          DumpAddressValue(f, id1 - 1);
+          repeat
+            id1 := addresses.nextCollision1[id1 - 1];
+            if id1 = 0 then break;
+            write(f, ', ');
+            DumpAddressValue(f, id1 - 1);
+          until false;
+          writeln(f);
+        end;
+      end;
+      writeln(f, 'Avg. chain length ', (addresses.nUpto - addresses.nFree) / nChains:0:2, ', max ', maxChain);
+      write(f, LineEnding, 'Addresses (', addresses.nUpto - addresses.nFree);
+      if addresses.nFree > 0 then write(f, ' + free ', addresses.nFree);
+      writeln(f, '), LRU to MRU order:');
+    end;
+    id1 := addresses.firstLru1;
+    while id1 <> 0 do
+    begin
+      DumpAddressValue(f, id1 - 1);
+      write(f, ', ');
+      DumpStringValue(f, addresses.fileFunc[id1 - 1, 1]);
+      write(f, ' @ ');
+      DumpStringValue(f, addresses.fileFunc[id1 - 1, 0]);
+      write(f, ':', uint32(addresses.lineLo16[id1 - 1]) or uint32(addresses.lineHi8[id1 - 1]) shl 16, ', id: ', id1 - 1);
+      id1 := addresses.a[id1 - 1].nextLru1;
+      writeln(f);
+    end;
+  end;
+{$endif debug_lineinfocache}
+
+  function LineInfoCache.TryGet(addr: CodePointer; out func, source: shortstring; out line: longint): boolean;
+  var
+    hash: SizeUint;
+    id: SizeInt;
+  begin
+    hash := HashCodePointer(addr);
+    id := FindAddress(addr, hash);
+    result := id <> -1;
+    if not result then exit;
+    RemoveAddressFromLRU(id);
+    AddAddressToLRU(id);
+    BumpStringLRU(addresses.fileFunc[id, 0]);
+    StringToShortstring(addresses.fileFunc[id, 0], source);
+    BumpStringLRU(addresses.fileFunc[id, 1]);
+    StringToShortstring(addresses.fileFunc[id, 1], func);
+    line := uint32(addresses.lineLo16[id]) or uint32(addresses.lineHi8[id]) shl 16;
+  end;
+
+  procedure LineInfoCache.Put(addr: CodePointer; const func, source: shortstring; line: longint);
+  const
+    EvictionAlwaysMakesSpace = (MaxStrings >= 2) and (MaxStringsData >= 2 * (255 + StringHeaderSize));
+  var
+    addressHash, funcHash, sourceHash, reqStrings, reqData: SizeUint;
+    funcId, sourceId, addressId, evictPtr, prev, stringsToEvict, dataToEvict, alt {$if not EvictionAlwaysMakesSpace}, origDataToEvict {$endif}: SizeInt;
+  begin
+    if longword(line) > 1 shl 24 - 1 then exit; // Won’t fit into lineLo16 + lineHi8...
+
+    reqStrings := 0;
+    reqData := 0;
+    funcHash := HashMemory(@func[1], length(func));
+    funcId := FindString(func, funcHash);
+    if funcId = -1 then
+    begin
+      inc(reqStrings);
+      inc(reqData, SizeUint(length(func) + StringHeaderSize));
+    end;
+    sourceHash := HashMemory(@source[1], length(source));
+    sourceId := FindString(source, sourceHash);
+    if sourceId = -1 then
+    begin
+      inc(reqStrings);
+      inc(reqData, SizeUint(length(source) + StringHeaderSize));
+    end;
+
+    if (reqStrings > 0) or (reqData > 0) then
+    begin
+      // Has space, or need to evict something?
+      stringsToEvict := SizeInt(SizeUint(strings.nUpto)) - SizeInt(SizeUint(strings.nFree)) + SizeInt(reqStrings) - MaxStrings;
+      dataToEvict := SizeInt(SizeUint(strings.dataSize)) + SizeInt(reqData) - MaxStringsData;
+      if (stringsToEvict > 0) or (dataToEvict > 0) then
+      begin
+        alt := strings.dataSize div 8 + strings.dataSize div 32; // Evict at least 15.6% of strings at once, because PackStrings is slow.
+        if alt > dataToEvict then dataToEvict := alt;
+      {$if not EvictionAlwaysMakesSpace}
+        origDataToEvict := dataToEvict;
+      {$endif not EvictionAlwaysMakesSpace}
+        evictPtr := SizeInt(SizeUint(strings.lastLru1)) - 1;
+        while {$if not EvictionAlwaysMakesSpace} (evictPtr <> -1) and {$endif} ((stringsToEvict > 0) or (dataToEvict > 0)) do
+        begin
+          prev := SizeInt(SizeUint(strings.s[evictPtr].prevLru1)) - 1;
+          if (evictPtr <> funcId) and (evictPtr <> sourceId) then
+          begin
+            dec(stringsToEvict);
+            dec(dataToEvict, SizeInt(pStringDataHeader(pByte(strings.data) + strings.dataOfs[evictPtr])^.len + StringHeaderSize));
+            RemoveString(evictPtr);
+          end;
+          evictPtr := prev;
+        end;
+      {$if not EvictionAlwaysMakesSpace}
+        if dataToEvict <> origDataToEvict then
+      {$endif not EvictionAlwaysMakesSpace}
+          PackStrings; // This is crucial.
+      {$if not EvictionAlwaysMakesSpace}
+        // Eviction hasn’t evicted enough. Impossible situation for large enough caches.
+        // For small caches, a potential “improvement” is doing eviction in 2 passes, the first is just a simulation, so if the Put() request won’t fit anyway, don’t evict anything.
+        if (stringsToEvict > 0) or (dataToEvict > 0) then exit;
+      {$endif not EvictionAlwaysMakesSpace}
+      end;
+    end;
+
+    addressHash := HashCodePointer(addr);
+    addressId := FindAddress(addr, addressHash);
+    if addressId <> -1 then
+      RemoveAddress(addressId) // Just remove and re-add if already exists, this is cheap unlike adding and removing strings.
+    else if addresses.nUpto - addresses.nFree = MaxAddresses then
+      RemoveAddress(addresses.lastLru1 - 1);
+
+    if funcId = -1 then
+      funcId := AddString(func, funcHash)
+    else
+      BumpStringLRU(funcId);
+    if sourceId = -1 then
+      sourceId := AddString(source, sourceHash)
+    else
+      BumpStringLRU(sourceId);
+    addressId := AddAddress(addr, addressHash, sourceId, funcId, line);
+  end;
+{$endif has_LineInfoCache}
+
+{$ifdef fpc_has_feature_threading}
+  procedure InitializeAfterUnits;
+  var
+    i: SizeInt;
+  begin
+    if Assigned(prevInitProc) then TProcedure(prevInitProc)();
+    for i := 0 to High(locks) do InitCriticalSection(locks[i]);
+    locksAlive := true;
+  end;
+
+  procedure FinalizeBeforeUnits;
+  var
+    i: SizeInt;
+  begin
+    ExitProc := prevExitProc;
+    if not locksAlive then exit;
+    locksAlive := false;
+    for i := 0 to High(locks) do DoneCriticalSection(locks[i]);
+  end;
+{$endif fpc_has_feature_threading}
+
 initialization
+{$ifdef fpc_has_feature_threading}
+  prevInitProc := InitProc;
+  InitProc := @InitializeAfterUnits;
+  prevExitProc := ExitProc;
+  ExitProc := @FinalizeBeforeUnits;
+{$endif fpc_has_feature_threading}
   lastfilename := '';
   lastopendwarf := false;
   BackTraceStrFunc := @DwarfBacktraceStr;
 
 finalization
-  CloseDwarf;
+  CloseDwarf(false);
 
 end.

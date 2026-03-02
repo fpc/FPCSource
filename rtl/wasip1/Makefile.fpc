@@ -40,6 +40,9 @@ PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSINIT_UNITS=si_prc si_dll
 RESUNIT=$(FPINTRESUNIT)
+SYSUTILSDIR=$(WASICOMMONINC)
+CLASSESDIR=$(WASICOMMONINC)
+RTLDEFSINCDIR=$(WASICOMMONINC)
 # Paths
 OBJPASDIR=$(RTL)/objpas
 # Insert exception handler in system unit
@@ -109,7 +112,7 @@ Wasm.Semaphore$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Semaphore.pp $(WASMSEMDEPS)
 
 WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
 
-wasiapi$(PPUEXT) : wasiapi.pp $(WASIAPIDEPS)
+wasiapi$(PPUEXT) : $(WASICOMMONINC)/wasiapi.pp $(WASIAPIDEPS)
         $(COMPILER) $< -Fiwasiinc
 
 WASIApi.WASIApi$(PPUEXT) : $(NSOSDIR)/WASIApi.WASIApi.pp $(WASIAPIDEPS)
@@ -121,7 +124,7 @@ WASIApi.WASIApi$(PPUEXT) : $(NSOSDIR)/WASIApi.WASIApi.pp $(WASIAPIDEPS)
 
 WASIUTILDEPS=$(WASIAPIUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-wasiutil$(PPUEXT) : wasiutil.pp $(WASIUTILDEPS)
+wasiutil$(PPUEXT) : $(WASICOMMONINC)/wasiutil.pp $(WASIUTILDEPS)
         $(COMPILER) $<
 
 WASIApi.WASIUtil$(PPUEXT) :  $(NSOSDIR)/WASIApi.WASIUtil.pp $(WASIUTILDEPS)

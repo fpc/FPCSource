@@ -12,7 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
 unit fpsimpleservice;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {
   Application checks following command-line options to determine behaviour:
@@ -28,8 +30,13 @@ unit fpsimpleservice;
 
 interface
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses
+  System.Classes, System.SysUtils, Fcl.CustApp, Winapi.Windows, Fcl.EventLog, WinApi.Jedi.Winsvc;
+{$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, SysUtils, custapp, windows, eventlog, jwawinsvc;
+{$ENDIF FPC_DOTTEDUNITS}
 
 Type
   { TFPServiceThread }
@@ -381,7 +388,7 @@ begin
   if (ArgV<>Nil) then
     FServiceParamStr := strpas(ArgV^);
   SetLastError(0);
-  FStatusHandle := RegisterServiceCtrlHandlerA(PChar(Name),@ServiceControllerEntry);
+  FStatusHandle := RegisterServiceCtrlHandlerA(PAnsiChar(Name),@ServiceControllerEntry);
   if FStatusHandle <> 0 then
     begin
     if ReportStartPending then
