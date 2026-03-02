@@ -765,13 +765,13 @@ implementation
 
 
     function create_set_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         loopstatement, loopbodystatement: tstatementnode;
         loopvar, setvar: ttempcreatenode;
         loopbody, forloopnode: tnode;
       begin
+        compiler:=hloopvar.compiler;
         // first check is set is empty and if it so then skip other processing
         if not Assigned(tsetdef(expr.resultdef).elementdef) then
           begin
