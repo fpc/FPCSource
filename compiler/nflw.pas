@@ -332,15 +332,15 @@ implementation
 
 
     function create_objc_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         mainstatement, outerloopbodystatement, innerloopbodystatement, tempstatement: tstatementnode;
         state, mutationcheck, currentamount, innerloopcounter, items, expressiontemp: ttempcreatenode;
         outerloop, innerloop, hp: tnode;
         itemsarraydef: tarraydef;
         sym: tsym;
       begin
+        compiler:=hloopvar.compiler;
         { Objective-C enumerators require Objective-C 2.0 }
         if not(m_objectivec2 in current_settings.modeswitches) then
           begin
