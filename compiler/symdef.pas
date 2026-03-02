@@ -2366,6 +2366,8 @@ implementation
           end;
         if df_generic in defoptions then
           begin
+            { crc generic implementation }
+            ppufile.do_crc:=true;
             if assigned(generictokenbuf) then
               begin
                 sizeleft:=generictokenbuf.size;
