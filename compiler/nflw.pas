@@ -2012,7 +2012,7 @@ implementation
              res:=t2.simplify(false);
              if assigned(res) then
                t2:=res;
-             res:=unroll_loop(self);
+             res:=compiler.optloop.unroll_loop(self);
              if assigned(res) then
                begin
                  typecheckpass(res);

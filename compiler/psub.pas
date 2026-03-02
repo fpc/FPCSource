@@ -1253,7 +1253,7 @@ implementation
                for loops with more than one entry }
              and not(pi_has_label in flags) then
              begin
-               RedoDFA:=OptimizeInductionVariables(code);
+               RedoDFA:=compiler.optloop.OptimizeInductionVariables(code);
              end;
 
            if RedoDFA then
@@ -1263,7 +1263,7 @@ implementation
              end;
 
            if cs_opt_forloop in current_settings.optimizerswitches then
-             RedoDFA:=OptimizeForLoop(code);
+             RedoDFA:=compiler.optloop.OptimizeForLoop(code);
 
            RedoDFA:=ConvertForLoops(code) or RedoDFA;
 

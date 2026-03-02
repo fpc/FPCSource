@@ -30,11 +30,21 @@ unit optloop;
 
     uses
       compilerbase,
-      node;
+      node,nutils;
+
+type
+  TLoopOptimizer = class
+  private
+    FCompiler: TCompilerBase;
+    function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
     function unroll_loop(node : tnode) : tnode;
     function OptimizeInductionVariables(node : tnode) : boolean;
     function OptimizeForLoop(var node : tnode) : boolean;
+  end;
 
   implementation
 
@@ -47,12 +57,17 @@ unit optloop;
       verbose,
       symdef,symsym,
       defutil,
-      nutils,
       nadd,nbas,nflw,ncon,ninl,ncal,nld,nmem,ncnv,
       ncgmem,
       pass_1,
       optbase,optutils,
       procinfo;
+
+    constructor TLoopOptimizer.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
 
     function number_unrolls(node : tnode) : cardinal;
       var
@@ -102,9 +117,7 @@ unit optloop;
       end;
 
 
-    function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TLoopOptimizer.replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         if n.isequal(preplaceinfo(arg)^.node) then
           begin
@@ -118,9 +131,7 @@ unit optloop;
       end;
 
 
-    function unroll_loop(node : tnode) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TLoopOptimizer.unroll_loop(node : tnode) : tnode;
       var
         unrolls,i : cardinal;
         counts : qword;
@@ -199,7 +210,7 @@ unit optloop;
 
                     if getridoffor then
                       begin
-                        foreachnodestatic(tnode(unrollstatement),@replaceloadnodes,@replaceinfo);
+                        foreachnode(tnode(unrollstatement),@replaceloadnodes,@replaceinfo);
                         if lnf_backward in tfornode(node).loopflags then
                           replaceinfo.value:=replaceinfo.value-1
                         else
@@ -309,6 +320,7 @@ unit optloop;
 
     type
       toptimizeinductionvariablescontext = object
+        Compiler : TCompilerBase;
         currforloop : tfornode;
         initcode,
         calccode,
@@ -332,8 +344,6 @@ unit optloop;
 
 
     function toptimizeinductionvariablescontext.findpreviousstrengthreduction(var n: tnode): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         hp : tnode;
@@ -361,8 +371,6 @@ unit optloop;
 
 
     procedure toptimizeinductionvariablescontext.addinduction(temp : ttempcreatenode; expr : tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if not assigned(initcode) then
           begin
@@ -382,8 +390,6 @@ unit optloop;
 
     { checks if the strength of n can be reduced, currforloop is the tforloop being considered }
     function toptimizeinductionvariablescontext.dostrengthreductiontest(var n: tnode): foreachnoderesult;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         tempnode,startvaltemp : ttempcreatenode;
         dummy : longint;
@@ -572,8 +578,6 @@ unit optloop;
 
 
     procedure toptimizeinductionvariablescontext.optimizeinductionvariablessingleforloop(var n: tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         loopcode : tblocknode;
         loopcodestatements,
@@ -646,13 +650,14 @@ unit optloop;
       end;
 
 
-    function OptimizeInductionVariables(node : tnode) : boolean;
+    function TLoopOptimizer.OptimizeInductionVariables(node : tnode) : boolean;
       var
         ctx : toptimizeinductionvariablescontext;
       begin
         Result:=false;
         if not(pi_dfaavailable in current_procinfo.flags) then
           exit;
+        ctx.Compiler:=Compiler;
         ctx.changedforloop:=false;
         foreachnodestatic(pm_postprocess,node,@optimizeinductionvariablessingleforloop_static,@ctx);
         Result:=ctx.changedforloop;
@@ -661,13 +666,15 @@ unit optloop;
 
     type
       toptimizeforloopcontext = object
+        compiler : TCompilerBase;
         changedforloop : boolean;
       end;
 
     function OptimizeForLoop_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase;
       begin
+        compiler:=toptimizeforloopcontext(arg^).compiler;
         Result:=fen_false;
         if (n.nodetype=forn) and
           not(lnf_backward in tfornode(n).loopflags) and
@@ -721,10 +728,11 @@ unit optloop;
       end;
 
 
-    function OptimizeForLoop(var node : tnode) : boolean;
+    function TLoopOptimizer.OptimizeForLoop(var node : tnode) : boolean;
       var
         ctx : toptimizeforloopcontext;
       begin
+        ctx.compiler:=compiler;
         ctx.changedforloop:=false;
         if pi_dfaavailable in current_procinfo.flags then
           foreachnodestatic(pm_postprocess,node,@OptimizeForLoop_iterforloops,@ctx);
