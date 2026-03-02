@@ -3416,8 +3416,8 @@ implementation
 
     { remove int type conversions and set the result to the given type }
     procedure doremoveinttypeconvs(level : dword;var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase;
 
       function SmallerOrSigned(def: tdef): Boolean;
         begin
@@ -3435,6 +3435,7 @@ implementation
         tempnode: ttempcreatenode;
         NeedMinus1Check: Boolean;
       begin
+        compiler:=n.compiler;
         { we may not recurse into shr nodes:
 
           dword1:=dword1+((dword2+dword3) shr 2);
