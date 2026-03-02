@@ -310,9 +310,8 @@ end;
 
 
 function genmultistringadd(p: taddnode): tnode;
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
+  compiler: TCompilerBase;
   hp,sn : tnode;
   arrp  : tarrayconstructornode;
   newstatement : tstatementnode;
@@ -320,6 +319,7 @@ var
   is_shortstr : boolean;
   para : tcallparanode;
 begin
+  compiler:=p.compiler;
   arrp:=nil;
   hp:=p;
   is_shortstr:=is_shortstring(p.resultdef);
