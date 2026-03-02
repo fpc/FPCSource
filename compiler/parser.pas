@@ -524,8 +524,8 @@ implementation
          Message1(parser_i_compiling,module.mainsource);
 
        { reset symtable }
-         symtablestack:=tdefawaresymtablestack.create;
-         macrosymtablestack:=TSymtablestack.create;
+         symtablestack:=tdefawaresymtablestack.create(compiler);
+         macrosymtablestack:=TSymtablestack.create(compiler);
          systemunit:=nil;
          current_settings.defproccall:=init_settings.defproccall;
          current_exceptblock:=0;

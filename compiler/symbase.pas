@@ -132,8 +132,9 @@ interface
        end;
 
        TSymtablestack = class
+         compiler  : TCompilerBase;
          stack : psymtablestackitem;
-         constructor create;
+         constructor create(acompiler: TCompilerBase);
          destructor destroy;override;
          procedure clear;
          function finditem(st:TSymtable):psymtablestackitem;
@@ -414,8 +415,9 @@ implementation
                             Symtable Stack
 ****************************************************************************}
 
-    constructor TSymtablestack.create;
+    constructor TSymtablestack.create(acompiler: TCompilerBase);
       begin
+        compiler:=acompiler;
         stack:=nil;
       end;
 
@@ -514,7 +516,7 @@ implementation
 
   function TSymtablestack.getcopyuntil(finalst: TSymtable): TSymtablestack;
     begin
-      result:=TSymtablestack.create;
+      result:=TSymtablestack.create(compiler);
       addstitemreverse(result,finalst,stack);
     end;
 

@@ -5057,7 +5057,7 @@ implementation
        generrordef:=cerrordef.create;
        { macros }
        initialmacrosymtable:=tmacrosymtable.create(false,compiler);
-       macrosymtablestack:=TSymtablestack.create;
+       macrosymtablestack:=TSymtablestack.create(compiler);
        macrosymtablestack.push(initialmacrosymtable);
 {$ifdef UNITALIASES}
        { unit aliases }

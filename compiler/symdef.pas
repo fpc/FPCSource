@@ -1496,6 +1496,8 @@ implementation
       end;
 
     function getansistringdef:tstringdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         symtable:tsymtable;
         oldstack : tsymtablestack;
@@ -1519,7 +1521,7 @@ implementation
                   with the order if the unit contains generics or helpers; don't
                   use a def aware symtablestack though }
                 oldstack:=symtablestack;
-                symtablestack:=tsymtablestack.create;
+                symtablestack:=tsymtablestack.create(compiler);
                 symtablestack.push(symtable);
                 current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true);
                 symtablestack.pop(symtable);
@@ -1824,8 +1826,6 @@ implementation
 ****************************************************************************}
 
     procedure tdefawaresymtablestack.add_helpers_and_generics(st:tsymtable;addgenerics:boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         s: TSymStr;
         list: TFPObjectList;

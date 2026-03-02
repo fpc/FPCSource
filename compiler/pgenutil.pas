@@ -2859,7 +2859,7 @@ uses
       current_module.specializestate:=@state;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
       current_module.genericdummysyms:=tfphashobjectlist.create(true);
-      symtablestack:=tdefawaresymtablestack.create;
+      symtablestack:=tdefawaresymtablestack.create(compiler);
       if not assigned(genericdef.owner) then
         hmodule:=current_module
       else

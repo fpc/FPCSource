@@ -304,7 +304,7 @@ implementation
                    begin
                      structstackindex:=-1;
                      oldsymtablestack:=symtablestack;
-                     symtablestack:=TSymtablestack.create;
+                     symtablestack:=TSymtablestack.create(compiler);
                      symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
                      id_type(t2,isforwarddef,false,false,false,srsym,srsymtable,isspecialize,isunitspecific);
