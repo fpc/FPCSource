@@ -279,11 +279,11 @@ begin
 end;
 
 function genaddsstringcsstringoptnode(p: taddnode): tnode;
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
+  compiler: TCompilerBase;
   hp: tnode;
 begin
+  compiler := p.compiler;
   hp := caddsstringcsstringoptnode.create(p.left.getcopy,p.right.getcopy,compiler);
   hp.flags := p.flags;
   genaddsstringcsstringoptnode := hp;
