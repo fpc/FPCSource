@@ -426,8 +426,8 @@ interface
           constructor create_ord(const n : TSymStr;t : tconsttyp;v : tconstexprint;def:tdef);virtual;
           constructor create_ordptr(const n : TSymStr;t : tconsttyp;v : tconstptruint;def:tdef);virtual;
           constructor create_ptr(const n : TSymStr;t : tconsttyp;v : pointer;def:tdef);virtual;
-          constructor create_string(const n : TSymStr;t : tconsttyp;str:pchar;l:longint;def:tdef);virtual;
-          constructor create_wstring(const n : TSymStr;t : tconsttyp;pw:tcompilerwidestring);virtual;
+          constructor create_string(const n : TSymStr;t : tconsttyp;str:pchar;l:longint;def:tdef;acompiler: TCompilerBase);virtual;
+          constructor create_wstring(const n : TSymStr;t : tconsttyp;pw:tcompilerwidestring;acompiler: TCompilerBase);virtual;
           constructor create_undefined(const n : TSymStr;def:tdef);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -2686,7 +2686,7 @@ implementation
       end;
 
 
-    constructor tconstsym.create_string(const n : TSymStr;t : tconsttyp;str:pchar;l:longint;def: tdef);
+    constructor tconstsym.create_string(const n : TSymStr;t : tconsttyp;str:pchar;l:longint;def: tdef;acompiler: TCompilerBase);
       begin
          inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
@@ -2695,19 +2695,19 @@ implementation
          if assigned(def) then
            constdef:=def
          else
-           constdef:=carraydef.getreusable(cansichartype,l);
+           constdef:=carraydef.getreusable(cansichartype,l,acompiler);
          constdefderef.reset;
          value.len:=l;
       end;
 
 
-    constructor tconstsym.create_wstring(const n : TSymStr;t : tconsttyp;pw:tcompilerwidestring);
+    constructor tconstsym.create_wstring(const n : TSymStr;t : tconsttyp;pw:tcompilerwidestring;acompiler: TCompilerBase);
       begin
          inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valuews:=pw;
-         constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw));
+         constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw),acompiler);
          constdefderef.reset;
          value.len:=getlengthwidestring(pw);
       end;
@@ -2855,12 +2855,14 @@ implementation
 
 
     procedure tconstsym.deref;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         case consttyp of
           constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constwresourcestring,constguid:
             constdef:=tdef(constdefderef.resolve);
           constwstring:
-            constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(value.valuews));
+            constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(value.valuews),compiler);
           else
             internalerror(2015120801);
         end

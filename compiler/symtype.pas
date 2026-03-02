@@ -29,7 +29,7 @@ interface
       cutils,
       cclasses,
       { global }
-      globtype,globals,constexp,
+      globtype,globals,constexp,compilerbase,
       { symtable }
       symconst,symbase,
       { aasm }
@@ -74,7 +74,7 @@ interface
          dbg_state   : tdefdbgstatus;
          defoptions  : tdefoptions;
          defstates   : tdefstates;
-         constructor create(dt:tdeftyp);
+         constructor create(dt:tdeftyp;acompiler: TCompilerBase);
          destructor destroy; override;
          procedure buildderef;virtual;abstract;
          procedure buildderefimpl;virtual;abstract;
@@ -374,9 +374,10 @@ implementation
 
 {$endif DEBUG_NODE_XML}
 
-    constructor tdef.create(dt:tdeftyp);
+    constructor tdef.create(dt:tdeftyp;acompiler: TCompilerBase);
       begin
          inherited create;
+         compiler:=acompiler;
          typ:=dt;
          owner := nil;
          typesym := nil;

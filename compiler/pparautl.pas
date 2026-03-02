@@ -182,6 +182,8 @@ implementation
 
     procedure insert_self_and_vmt_para(pd:tabstractprocdef);
       const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      const
         name_cmd='_cmd';
         name_self='self';
         name_block_literal='_block_literal';
@@ -242,7 +244,7 @@ implementation
                 { generate the first hidden parameter, which is a so-called "block
                   literal" describing the block and containing its invocation
                   procedure  }
-                hdef:=cpointerdef.getreusable(get_block_literal_type_for_proc(pd));
+                hdef:=cpointerdef.getreusable(get_block_literal_type_for_proc(pd),compiler);
                 { mark as vo_is_parentfp so that proc2procvar comparisons will
                   succeed when assigning arbitrary routines to the block }
                 vs:=cparavarsym.create('$'+name_block_literal,paranr_blockselfpara,vs_value,
@@ -288,7 +290,7 @@ implementation
                        )) and
                    not assigned(pd.parast.find(name_vmt)) then
                  begin
-                   vs:=cparavarsym.create('$'+name_vmt,paranr_vmt,vs_value,cclassrefdef.create(tprocdef(pd).struct),[vo_is_vmt,vo_is_hidden_para]);
+                   vs:=cparavarsym.create('$'+name_vmt,paranr_vmt,vs_value,cclassrefdef.create(tprocdef(pd).struct,compiler),[vo_is_vmt,vo_is_hidden_para]);
                    pd.parast.insertsym(vs);
                  end;
 
@@ -306,7 +308,7 @@ implementation
                 vsp:=vs_value;
                 if (po_staticmethod in pd.procoptions) or
                    (po_classmethod in pd.procoptions) then
-                  hdef:=cclassrefdef.create(selfdef)
+                  hdef:=cclassrefdef.create(selfdef,compiler)
                 else
                   begin
                     if is_object(selfdef) or (selfdef.typ<>objectdef) then
@@ -1278,7 +1280,7 @@ implementation
           the JVM from thinking this is a nested class in the unit) }
         nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
           current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,compiler);
-        nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
+        nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst,compiler);
   {$ifdef jvm}
         maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
         { don't add clone/FpcDeepCopy, because the field names are not all
@@ -1290,7 +1292,7 @@ implementation
   {$endif}
         symtablestack.free;
         symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
-        pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
+        pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef,compiler);
         if not(po_assembler in pd.procoptions) then
           begin
             nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);

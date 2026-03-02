@@ -247,10 +247,10 @@ implementation
         begin
           if init_settings.fputype<>fpu_none then
             begin
-              s32floattype:=cfloatdef.create(s32real,true);
-              s64floattype:=cfloatdef.create(s64real,true);
-              s80floattype:=cfloatdef.create(s80real,true);
-              sc80floattype:=cfloatdef.create(sc80real,true);
+              s32floattype:=cfloatdef.create(s32real,true,compiler);
+              s64floattype:=cfloatdef.create(s64real,true,compiler);
+              s80floattype:=cfloatdef.create(s80real,true,compiler);
+              sc80floattype:=cfloatdef.create(sc80real,true,compiler);
             end
           else
             begin
@@ -266,58 +266,58 @@ implementation
 	pvmt_name : shortstring;
       begin
         symtablestack.push(systemunit);
-        cundefinedtype:=cundefineddef.create(true);
-        cformaltype:=cformaldef.create(false);
-        ctypedformaltype:=cformaldef.create(true);
-        voidtype:=corddef.create(uvoid,0,0,true);
-        voidpointertype:=cpointerdef.create(voidtype);
-        u8inttype:=corddef.create(u8bit,0,255,true);
-        s8inttype:=corddef.create(s8bit,int64(-128),127,true);
-        u16inttype:=corddef.create(u16bit,0,65535,true);
-        s16inttype:=corddef.create(s16bit,int64(-32768),32767,true);
-        s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true);
-        u24inttype:=corddef.create(customint,0,1 shl 24 - 1,true);
-        u32inttype:=corddef.create(u32bit,0,high(longword),true);
-        s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true);
-        s40inttype:=corddef.create(customint,-(int64(1) shl 39),int64(1) shl 39 - 1,true);
-        u40inttype:=corddef.create(customint,0,int64(1) shl 40 - 1,true);
-        s48inttype:=corddef.create(customint,-(int64(1) shl 47),int64(1) shl 47 - 1,true);
-        u48inttype:=corddef.create(customint,0,int64(1) shl 48 - 1,true);
-        s56inttype:=corddef.create(customint,-(int64(1) shl 55),int64(1) shl 55 - 1,true);
-        u56inttype:=corddef.create(customint,0,int64(1) shl 56 - 1,true);
-        u64inttype:=corddef.create(u64bit,low(qword),high(qword),true);
-        s64inttype:=corddef.create(s64bit,low(int64),high(int64),true);
+        cundefinedtype:=cundefineddef.create(true,compiler);
+        cformaltype:=cformaldef.create(false,compiler);
+        ctypedformaltype:=cformaldef.create(true,compiler);
+        voidtype:=corddef.create(uvoid,0,0,true,compiler);
+        voidpointertype:=cpointerdef.create(voidtype,compiler);
+        u8inttype:=corddef.create(u8bit,0,255,true,compiler);
+        s8inttype:=corddef.create(s8bit,int64(-128),127,true,compiler);
+        u16inttype:=corddef.create(u16bit,0,65535,true,compiler);
+        s16inttype:=corddef.create(s16bit,int64(-32768),32767,true,compiler);
+        s24inttype:=corddef.create(customint,-(int64(1) shl 23),1 shl 23 - 1,true,compiler);
+        u24inttype:=corddef.create(customint,0,1 shl 24 - 1,true,compiler);
+        u32inttype:=corddef.create(u32bit,0,high(longword),true,compiler);
+        s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true,compiler);
+        s40inttype:=corddef.create(customint,-(int64(1) shl 39),int64(1) shl 39 - 1,true,compiler);
+        u40inttype:=corddef.create(customint,0,int64(1) shl 40 - 1,true,compiler);
+        s48inttype:=corddef.create(customint,-(int64(1) shl 47),int64(1) shl 47 - 1,true,compiler);
+        u48inttype:=corddef.create(customint,0,int64(1) shl 48 - 1,true,compiler);
+        s56inttype:=corddef.create(customint,-(int64(1) shl 55),int64(1) shl 55 - 1,true,compiler);
+        u56inttype:=corddef.create(customint,0,int64(1) shl 56 - 1,true,compiler);
+        u64inttype:=corddef.create(u64bit,low(qword),high(qword),true,compiler);
+        s64inttype:=corddef.create(s64bit,low(int64),high(int64),true,compiler);
         { upper/lower bound not yet properly set for 128 bit types, as we don't
           support them yet at the Pascal level (nor for tconstexprint); they're
           only used internally by the high level code generator for LLVM to
           implement overflow checking }
-        u128inttype:=corddef.create(u128bit,0,0,true);
-        s128inttype:=corddef.create(s128bit,0,0,true);
-        pasbool1type:=corddef.create(pasbool1,0,1,true);
-        pasbool8type:=corddef.create(pasbool8,0,1,true);
-        pasbool16type:=corddef.create(pasbool16,0,1,true);
-        pasbool32type:=corddef.create(pasbool32,0,1,true);
-        pasbool64type:=corddef.create(pasbool64,0,1,true);
-        bool8type:=corddef.create(bool8bit,low(int64),high(int64),true);
-        bool16type:=corddef.create(bool16bit,low(int64),high(int64),true);
-        bool32type:=corddef.create(bool32bit,low(int64),high(int64),true);
-        bool64type:=corddef.create(bool64bit,low(int64),high(int64),true);
+        u128inttype:=corddef.create(u128bit,0,0,true,compiler);
+        s128inttype:=corddef.create(s128bit,0,0,true,compiler);
+        pasbool1type:=corddef.create(pasbool1,0,1,true,compiler);
+        pasbool8type:=corddef.create(pasbool8,0,1,true,compiler);
+        pasbool16type:=corddef.create(pasbool16,0,1,true,compiler);
+        pasbool32type:=corddef.create(pasbool32,0,1,true,compiler);
+        pasbool64type:=corddef.create(pasbool64,0,1,true,compiler);
+        bool8type:=corddef.create(bool8bit,low(int64),high(int64),true,compiler);
+        bool16type:=corddef.create(bool16bit,low(int64),high(int64),true,compiler);
+        bool32type:=corddef.create(bool32bit,low(int64),high(int64),true,compiler);
+        bool64type:=corddef.create(bool64bit,low(int64),high(int64),true,compiler);
 {$ifdef llvm}
         llvmbool1type:=corddef.create(pasbool1,0,1,true);
 {$endif llvm}
-        cansichartype:=corddef.create(uchar,0,255,true);
-        cwidechartype:=corddef.create(uwidechar,0,65535,true);
-        cshortstringtype:=cstringdef.createshort(255,true);
+        cansichartype:=corddef.create(uchar,0,255,true,compiler);
+        cwidechartype:=corddef.create(uwidechar,0,65535,true,compiler);
+        cshortstringtype:=cstringdef.createshort(255,true,compiler);
         { should we give a length to the default long and ansi string definition ?? }
-        clongstringtype:=cstringdef.createlong(-1,true);
-        cansistringtype:=cstringdef.createansi(0,true);
+        clongstringtype:=cstringdef.createlong(-1,true,compiler);
+        cansistringtype:=cstringdef.createansi(0,true,compiler);
         if target_info.system in systems_windows then
-          cwidestringtype:=cstringdef.createwide(true)
+          cwidestringtype:=cstringdef.createwide(true,compiler)
         else
-          cwidestringtype:=cstringdef.createunicode(true);
-        cunicodestringtype:=cstringdef.createunicode(true);
+          cwidestringtype:=cstringdef.createunicode(true,compiler);
+        cunicodestringtype:=cstringdef.createunicode(true,compiler);
         { length=0 for shortstring is open string (needed for readln(string) }
-        openshortstringtype:=cstringdef.createshort(0,true);
+        openshortstringtype:=cstringdef.createshort(0,true,compiler);
         if target_info.system=system_i386_watcom then
           pvmt_name:='lower__pvmt'
         else
@@ -327,12 +327,12 @@ implementation
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system=system_x86_64_win64 then
           begin
-            s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+            s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
             pbestrealtype:=@s64floattype;
           end
         else
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
-          s64currencytype:=cfloatdef.create(s64currency,true);
+          s64currencytype:=cfloatdef.create(s64currency,true,compiler);
 {$endif x86}
 {$ifdef powerpc}
         create_fpu_types;
@@ -406,21 +406,21 @@ implementation
 {$endif loongarch64}
         set_default_int_types;
         { some other definitions }
-        charpointertype:=cpointerdef.create(cansichartype);
-        widecharpointertype:=cpointerdef.create(cwidechartype);
+        charpointertype:=cpointerdef.create(cansichartype,compiler);
+        widecharpointertype:=cpointerdef.create(cwidechartype,compiler);
 {$ifdef i8086}
         parentfpvoidpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss);
 {$else i8086}
-        parentfpvoidpointertype:=cpointerdef.create(voidtype);
+        parentfpvoidpointertype:=cpointerdef.create(voidtype,compiler);
 {$endif i8086}
 {$ifdef x86}
-        voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near);
-        voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs);
-        voidneardspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ds);
-        voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss);
-        voidnearespointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_es);
-        voidnearfspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_fs);
-        voidneargspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_gs);
+        voidnearpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near,compiler);
+        voidnearcspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_cs,compiler);
+        voidneardspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ds,compiler);
+        voidnearsspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_ss,compiler);
+        voidnearespointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_es,compiler);
+        voidnearfspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_fs,compiler);
+        voidneargspointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_near_gs,compiler);
   {$ifdef i8086}
         voidfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_far);
         voidhugepointertype:=tcpupointerdefclass(cpointerdef).createx86(voidtype,x86pt_huge);
@@ -431,13 +431,13 @@ implementation
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far);
   {$endif i8086}
-        x86_m64type:=carraydef.create_vector(0,1,s32inttype);
-        x86_m128type:=carraydef.create_vector(0,3,s32inttype);
-        x86_m128dtype:=carraydef.create_vector(0,1,s32inttype);
-        x86_m128itype:=carraydef.create_vector(0,3,s32inttype);
-        x86_m256type:=carraydef.create_vector(0,7,s32inttype);
-        x86_m256dtype:=carraydef.create_vector(0,3,s32inttype);
-        x86_m256itype:=carraydef.create_vector(0,7,s32inttype);
+        x86_m64type:=carraydef.create_vector(0,1,s32inttype,compiler);
+        x86_m128type:=carraydef.create_vector(0,3,s32inttype,compiler);
+        x86_m128dtype:=carraydef.create_vector(0,1,s32inttype,compiler);
+        x86_m128itype:=carraydef.create_vector(0,3,s32inttype,compiler);
+        x86_m256type:=carraydef.create_vector(0,7,s32inttype,compiler);
+        x86_m256dtype:=carraydef.create_vector(0,3,s32inttype,compiler);
+        x86_m256itype:=carraydef.create_vector(0,7,s32inttype,compiler);
 
         tarraydef(x86_m64type).elementdef:=s32floattype;
         tarraydef(x86_m128type).elementdef:=s32floattype;
@@ -451,13 +451,13 @@ implementation
         wasmvoidexternreftype:=tcpupointerdefclass.create_externref(voidtype);
 {$endif wasm}
         set_default_ptr_types;
-        openchararraytype:=carraydef.create_openarray;
+        openchararraytype:=carraydef.create_openarray(compiler);
         tarraydef(openchararraytype).elementdef:=cansichartype;
-        cfiletype:=cfiledef.createuntyped;
+        cfiletype:=cfiledef.createuntyped(compiler);
         if f_variants in features then
           begin
-            cvarianttype:=cvariantdef.create(vt_normalvariant);
-            colevarianttype:=cvariantdef.create(vt_olevariant);
+            cvarianttype:=cvariantdef.create(vt_normalvariant,compiler);
+            colevarianttype:=cvariantdef.create(vt_olevariant,compiler);
           end;
 
 {$ifdef cpufpemu}
@@ -497,7 +497,7 @@ implementation
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
         if target_info.system<>system_x86_64_win64 then
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
-          addtype('Comp',cfloatdef.create(s64comp,true));
+          addtype('Comp',cfloatdef.create(s64comp,true,compiler));
 {$endif x86}
         addtype('Currency',s64currencytype);
         addtype('Pointer',voidpointertype);
@@ -552,8 +552,8 @@ implementation
         addtype('Int64',s64inttype);
         addtype('AnsiChar',cansichartype);
         addtype('WideChar',cwidechartype);
-        addtype('Text',cfiledef.createtext);
-        addtype('TypedFile',cfiledef.createtyped(voidtype));
+        addtype('Text',cfiledef.createtext(compiler));
+        addtype('TypedFile',cfiledef.createtyped(voidtype,compiler));
         if f_variants in features then
           begin
             addtype('Variant',cvarianttype);
@@ -659,8 +659,8 @@ implementation
           begin
             { Add a type for virtual method tables }
             hrecst:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
-            vmttype:=crecorddef.create('',hrecst);
-            pvmttype:=cpointerdef.create(vmttype);
+            vmttype:=crecorddef.create('',hrecst,compiler);
+            pvmttype:=cpointerdef.create(vmttype,compiler);
             { can't use addtype for pvmt because the rtti of the pointed
               type is not available. The rtti for pvmt will be written implicitly
               by thev tblarray below }
@@ -673,12 +673,12 @@ implementation
               (object) or the class name (class). We can't easily create separate
               vtable formats for both, as gdb is hard coded to search for
               __vtbl_ptr_type in all cases (JM) }
-            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype),[]));
-            vmtarraytype:=carraydef.create(0,0,s32inttype);
+            addfield(hrecst,cfieldvarsym.create('$vm1_or_classname',vs_value,cpointerdef.create(cshortstringtype,compiler),[]));
+            vmtarraytype:=carraydef.create(0,0,s32inttype,compiler);
             tarraydef(vmtarraytype).elementdef:=voidpointertype;
             addfield(hrecst,cfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
             addtype('$__vtbl_ptr_type',vmttype);
-            vmtarraytype:=carraydef.create(0,1,s32inttype);
+            vmtarraytype:=carraydef.create(0,1,s32inttype,compiler);
             tarraydef(vmtarraytype).elementdef:=pvmttype;
             addtype('$vtblarray',vmtarraytype);
           end;
@@ -686,13 +686,13 @@ implementation
         hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
-        methodpointertype:=crecorddef.create('',hrecst);
+        methodpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
         hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
-        nestedprocpointertype:=crecorddef.create('',hrecst);
+        nestedprocpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$nestedprocpointer',nestedprocpointertype);
         symtablestack.pop(systemunit);
       end;

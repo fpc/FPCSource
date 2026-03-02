@@ -29,6 +29,7 @@ interface
 
 uses
   globtype,
+  compilerbase,
   aasmbase,aasmdata,
   symtype;
 
@@ -47,6 +48,8 @@ uses
 
 
 function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: TSymStr; _bind: TAsmSymBind; _typ: Tasmsymtype; def: tdef): TAsmSymbol;
+  const
+    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     symind: tasmsymbol;
     ptrdef: tdef;
@@ -65,7 +68,7 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
         (_typ=AT_DATA_FORCEINDIRECT)
        ) then
       begin
-        ptrdef:=cpointerdef.getreusable(def);
+        ptrdef:=cpointerdef.getreusable(def,compiler);
         symind:=current_asmdata.DefineAsmSymbol(s,AB_INDIRECT,AT_DATA,ptrdef);
         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
         tcb.emit_tai(Tai_const.Create_sym_offset(result,0),ptrdef);

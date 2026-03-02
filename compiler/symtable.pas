@@ -576,26 +576,26 @@ implementation
            b:=ppufile.readentry;
            def:=nil;
            case b of
-             ibpointerdef : def:=cpointerdef.ppuload(ppufile);
-             ibarraydef : def:=carraydef.ppuload(ppufile);
-             iborddef : def:=corddef.ppuload(ppufile);
-             ibfloatdef : def:=cfloatdef.ppuload(ppufile);
-             ibprocdef : def:=cprocdef.ppuload(ppufile);
-             ibshortstringdef : def:=cstringdef.loadshort(ppufile);
-             iblongstringdef : def:=cstringdef.loadlong(ppufile);
-             ibansistringdef : def:=cstringdef.loadansi(ppufile);
-             ibwidestringdef : def:=cstringdef.loadwide(ppufile);
-             ibunicodestringdef : def:=cstringdef.loadunicode(ppufile);
-             ibrecorddef : def:=crecorddef.ppuload(ppufile);
-             ibobjectdef : def:=cobjectdef.ppuload(ppufile);
-             ibenumdef : def:=cenumdef.ppuload(ppufile);
-             ibsetdef : def:=csetdef.ppuload(ppufile);
-             ibprocvardef : def:=cprocvardef.ppuload(ppufile);
-             ibfiledef : def:=cfiledef.ppuload(ppufile);
-             ibclassrefdef : def:=cclassrefdef.ppuload(ppufile);
-             ibformaldef : def:=cformaldef.ppuload(ppufile);
-             ibvariantdef : def:=cvariantdef.ppuload(ppufile);
-             ibundefineddef : def:=cundefineddef.ppuload(ppufile);
+             ibpointerdef : def:=cpointerdef.ppuload(ppufile,compiler);
+             ibarraydef : def:=carraydef.ppuload(ppufile,compiler);
+             iborddef : def:=corddef.ppuload(ppufile,compiler);
+             ibfloatdef : def:=cfloatdef.ppuload(ppufile,compiler);
+             ibprocdef : def:=cprocdef.ppuload(ppufile,compiler);
+             ibshortstringdef : def:=cstringdef.loadshort(ppufile,compiler);
+             iblongstringdef : def:=cstringdef.loadlong(ppufile,compiler);
+             ibansistringdef : def:=cstringdef.loadansi(ppufile,compiler);
+             ibwidestringdef : def:=cstringdef.loadwide(ppufile,compiler);
+             ibunicodestringdef : def:=cstringdef.loadunicode(ppufile,compiler);
+             ibrecorddef : def:=crecorddef.ppuload(ppufile,compiler);
+             ibobjectdef : def:=cobjectdef.ppuload(ppufile,compiler);
+             ibenumdef : def:=cenumdef.ppuload(ppufile,compiler);
+             ibsetdef : def:=csetdef.ppuload(ppufile,compiler);
+             ibprocvardef : def:=cprocvardef.ppuload(ppufile,compiler);
+             ibfiledef : def:=cfiledef.ppuload(ppufile,compiler);
+             ibclassrefdef : def:=cclassrefdef.ppuload(ppufile,compiler);
+             ibformaldef : def:=cformaldef.ppuload(ppufile,compiler);
+             ibvariantdef : def:=cvariantdef.ppuload(ppufile,compiler);
+             ibundefineddef : def:=cundefineddef.ppuload(ppufile,compiler);
              ibenddefs : break;
              ibend : Message(unit_f_ppu_read_error);
            else
@@ -5054,7 +5054,7 @@ implementation
        systemunit:=nil;
        { create error syms and def }
        generrorsym:=terrorsym.create;
-       generrordef:=cerrordef.create;
+       generrordef:=cerrordef.create(compiler);
        { macros }
        initialmacrosymtable:=tmacrosymtable.create(false,compiler);
        macrosymtablestack:=TSymtablestack.create(compiler);

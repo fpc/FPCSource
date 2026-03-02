@@ -27,7 +27,7 @@ unit cpupara;
 
     uses
       globtype,
-      cpubase,cgbase,cgutils,
+      cpubase,cgbase,cgutils,compilerbase,
       symconst,symtype,symsym,symdef,
       parabase,paramgr;
 
@@ -402,6 +402,8 @@ unit cpupara;
 
 
     function finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i, vecsize, maxvecsize: longint;
       begin
@@ -500,7 +502,7 @@ unit cpupara;
                (classes[i-1].typ<>X86_64_SSEUP_CLASS) then
               begin
                 classes[i].typ:=X86_64_SSE_CLASS;
-                classes[i].def:=carraydef.getreusable_no_free(s32floattype,2);
+                classes[i].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
               end;
 
             (*  If X86_64_X87UP_CLASS isn't preceded by X86_64_X87_CLASS,
@@ -543,7 +545,7 @@ unit cpupara;
               X86_64_SSESF_CLASS:
                 begin
                   classes[0].typ:=X86_64_SSE_CLASS;
-                  classes[0].def:=carraydef.getreusable_no_free(s32floattype,2);
+                  classes[0].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
                 end;
               else
                 ;
@@ -559,7 +561,7 @@ unit cpupara;
               X86_64_SSESF_CLASS:
                 begin
                   classes[1].typ:=X86_64_SSE_CLASS;
-                  classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
+                  classes[1].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
                 end;
               else
                 ;
@@ -901,6 +903,8 @@ unit cpupara;
 
 
     function classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         rounded_offset: aint;
       begin
@@ -941,7 +945,7 @@ unit cpupara;
                             fields, we need a 64 bit rather than a 32 bit load }
                           classes[0].typ:=X86_64_SSE_CLASS;
 
-                        classes[0].def:=carraydef.getreusable_no_free(s32floattype,2);
+                        classes[0].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
                       end;
                     result:=1;
                   end;
@@ -971,9 +975,9 @@ unit cpupara;
                 s128real:
                   begin
                     classes[0].typ:=X86_64_SSE_CLASS;
-                    classes[0].def:=carraydef.getreusable_no_free(s32floattype,2);
+                    classes[0].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
                     classes[1].typ:=X86_64_SSEUP_CLASS;
-                    classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
+                    classes[1].def:=carraydef.getreusable_no_free(s32floattype,2,compiler);
                     result:=2;
                   end;
               end;
@@ -1410,6 +1414,8 @@ unit cpupara;
 
     function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      const
         intretregs: array[0..1] of tregister = (NR_FUNCTION_RETURN_REG,NR_FUNCTION_RETURN_REG_HIGH);
         mmretregs: array[0..1] of tregister = (NR_MM_RESULT_REG,NR_MM_RESULT_REG_HIGH);
         mmretregs_vectorcall: array[0..3] of tregister = (NR_XMM0,NR_XMM1,NR_XMM2,NR_XMM3);
@@ -1585,7 +1591,7 @@ unit cpupara;
                               else
                                 InternalError(2018012901);
                             end;
-                            paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
+                            paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j,compiler);
                           end;
                         else
                           if (x86_64_use_ms_abi(p.proccalloption) and (p.proccalloption <> pocall_vectorcall)) then
@@ -1631,6 +1637,8 @@ unit cpupara;
 
     procedure tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp         : tparavarsym;
         fdef,
@@ -1694,7 +1702,7 @@ unit cpupara;
                 loc[1].typ:=X86_64_NO_CLASS;
                 paracgsize:=OS_ADDR;
                 paralen:=sizeof(pint);
-                paradef:=cpointerdef.getreusable_no_free(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                 paralocdef:=paradef;
                 paraalign:=procparaalign;
                 loc[0].def:=paralocdef;
@@ -1936,7 +1944,7 @@ unit cpupara;
                                   else
                                     InternalError(2018012903);
                                 end;
-                                paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j);
+                                paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j,compiler);
                               end;
                             else
                               if (use_ms_abi and (p.proccalloption <> pocall_vectorcall)) then

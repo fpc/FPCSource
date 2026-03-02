@@ -26,7 +26,7 @@ unit defutil;
 interface
 
     uses
-       globtype,globals,constexp,
+       globtype,globals,constexp,compilerbase,
        symconst,symtype,symdef,
        cgbase,cpubase;
 
@@ -1635,6 +1635,8 @@ implementation
 
 
     function to_hwvectordef(p: tdef; nil_on_error: boolean): tdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         result:=nil;
         if p.typ=arraydef then
@@ -1642,7 +1644,7 @@ implementation
             if tarraydef(p).is_hwvector then
               result:=p
             else if fits_in_mm_register(p) then
-              result:=carraydef.getreusable_vector(tarraydef(p).elementdef,tarraydef(p).elecount)
+              result:=carraydef.getreusable_vector(tarraydef(p).elementdef,tarraydef(p).elecount,compiler)
             else if not nil_on_error then
               internalerror(2022090811);
           end

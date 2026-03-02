@@ -412,7 +412,7 @@ implementation
                      if (left.location.reference.index<>NR_NO) or
                         (left.location.reference.offset<>0) then
                        internalerror(200410107);
-                     hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),left.location.reference.base,tempcgpara)
+                     hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),left.location.reference.base,tempcgpara)
                    end
                  else
                    begin
@@ -549,7 +549,7 @@ implementation
         literaldef: trecorddef;
       begin
         literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
-        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef),true);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef,compiler),true);
         { load the invoke pointer }
         hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,ctempposinvalid,right.resultdef.alignment,[]);
         callprocdef:=cprocvardef.getreusableprocaddr(procdefinition,pc_address_only);
@@ -933,7 +933,7 @@ implementation
          else
            begin
              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,procdefinition);
-             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(procdefinition),cpointerdef.getreusable(callprocdef),right.location.reference);
+             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(procdefinition,compiler),cpointerdef.getreusable(callprocdef,compiler),right.location.reference);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,callprocdef,callprocdef,right.location.reference,reg);
            end;
        end;
@@ -1136,7 +1136,7 @@ implementation
                    retloc:=do_call_ref(href)
                  else
                    begin
-                     hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,vmt_entry.resultdef,cpointerdef.getreusable(procdefinition),pvreg);
+                     hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,vmt_entry.resultdef,cpointerdef.getreusable(procdefinition,compiler),pvreg);
                      retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
                      unget_call_reg(current_asmdata.CurrAsmList,pvreg);
                    end;

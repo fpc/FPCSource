@@ -501,7 +501,7 @@ implementation
                         { if vmt=1 then newinstance }
                         call:=
                           ccallnode.create(nil,tprocsym(srsym),srsym.owner,
-                            ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef),compiler),
+                            ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef,compiler),compiler),
                             [],nil,compiler);
                         include(call.callnodeflags,cnf_ignore_devirt_wpo);
                         addstatement(newstatement,cifnode.create(

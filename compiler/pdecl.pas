@@ -132,7 +132,7 @@ implementation
                  begin
                    initwidestring(pw);
                    copywidestring(tstringconstnode(p).valuews,pw);
-                   hp:=cconstsym.create_wstring(orgname,constwstring,pw);
+                   hp:=cconstsym.create_wstring(orgname,constwstring,pw,compiler);
                  end
                else
                  begin
@@ -144,9 +144,9 @@ implementation
                      keep it }
                    if is_ansistring(p.resultdef) and
                       (tstringdef(p.resultdef).encoding<>0) then
-                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,p.resultdef)
+                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,p.resultdef,compiler)
                    else
-                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,nil);
+                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,nil,compiler);
                  end;
              end;
            realconstn :
@@ -872,7 +872,7 @@ implementation
                   sym:=tsym(symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
-                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true));
+                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true,compiler));
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
@@ -1378,14 +1378,14 @@ implementation
                                   getmem(sp,2);
                                   sp[0]:=chr(tordconstnode(p).value.svalue);
                                   sp[1]:=#0;
-                                  sym:=cconstsym.create_string(orgname,constresourcestring,sp,1,nil);
+                                  sym:=cconstsym.create_string(orgname,constresourcestring,sp,1,nil,compiler);
                                   end
                                 else
                                   begin
                                   initwidestring(pw);
                                   setlengthwidestring(pw,1);
                                   pw.data[0]:=tordconstnode(p).value.svalue;
-                                  sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw);
+                                  sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw,compiler);
                                   end;
                              end
                            else
@@ -1402,7 +1402,7 @@ implementation
                                sp[len]:=#0;
                                if len>0 then
                                  move(valueas[0],sp^,len);
-                               sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil);
+                               sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil,compiler);
                                end
                              else
                                begin
@@ -1411,7 +1411,7 @@ implementation
                                  changestringtype(cunicodestringtype);
                                initwidestring(pw);
                                copywidestring(valuews,pw);
-                               sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw);
+                               sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw,compiler);
                                end;
                           end;
                       else

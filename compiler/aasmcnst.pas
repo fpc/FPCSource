@@ -27,7 +27,7 @@ unit aasmcnst;
 interface
 
 uses
-  cclasses,globtype,constexp,widestr,
+  cclasses,globtype,constexp,widestr,compilerbase,
   aasmbase,aasmdata,aasmtai,
   symconst,symbase,symtype,symdef,symsym;
 
@@ -831,6 +831,8 @@ implementation
 
 
    procedure tai_aggregatetypedconst.finish;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        lString : tai_string;
        len : integer;
@@ -843,7 +845,7 @@ implementation
              internalerror(2014070105);
            lString:=tai_string(tai_simpletypedconst(fvalues[0]).val);
            len:=lString.len;
-           tai_simpletypedconst(fvalues[0]).fdef:=carraydef.getreusable(cansichartype,len);
+           tai_simpletypedconst(fvalues[0]).fdef:=carraydef.getreusable(cansichartype,len,compiler);
          end;
      end;
 
@@ -1052,6 +1054,8 @@ implementation
 
 
    procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        ptrdef : tdef;
        symind : tasmsymbol;
@@ -1062,7 +1066,7 @@ implementation
           (sym.bind in [AB_GLOBAL,AB_COMMON]) and
           (sym.typ=AT_DATA) then
          begin
-           ptrdef:=cpointerdef.getreusable(def);
+           ptrdef:=cpointerdef.getreusable(def,compiler);
            symind:=current_asmdata.DefineAsmSymbol(sym.name,AB_INDIRECT,AT_DATA,ptrdef);
            { reuse the section if possible }
            if section=sec_rodata then
@@ -1644,6 +1648,8 @@ implementation
 
 
    class function ttai_typedconstbuilder.get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint): trecorddef;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        name: TSymStr;
        streledef: tdef;
@@ -1671,7 +1677,7 @@ implementation
        if (typ<>st_widestring) or
           not winlike then
          begin
-           result:=crecorddef.create_global_internal('$'+name,1,1);
+           result:=crecorddef.create_global_internal('$'+name,1,1,compiler);
            { encoding }
            result.add_field_by_def('',u16inttype);
            { element size }
@@ -1697,18 +1703,20 @@ implementation
        else
          begin
            result:=crecorddef.create_global_internal('$'+name,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin);
+             targetinfos[target_info.system]^.alignment.recordalignmin,compiler);
            { length in bytes }
            result.add_field_by_def('',s32inttype);
            streledef:=cwidechartype;
          end;
        { data (include zero terminator) }
-       result.add_field_by_def('',carraydef.getreusable(streledef,len+1));
+       result.add_field_by_def('',carraydef.getreusable(streledef,len+1,compiler));
        trecordsymtable(trecorddef(result).symtable).addalignmentpadding;
      end;
 
 
    function ttai_typedconstbuilder.emit_ansistring_const(datalist: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding): tasmlabofs;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        startlab: tasmlabel;
        ansistrrecdef: trecorddef;
@@ -1720,7 +1728,7 @@ implementation
        result:=datatcb.emit_string_const_common(st_ansistring,len,encoding,startlab);
 
        { add room for the #0-terminator }
-       datadef:=carraydef.getreusable(cansichartype,len+1);
+       datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
        datatcb.maybe_begin_aggregate(datadef);
        ts:=tai_string.Create_Data(data,len,true);
        datatcb.emit_tai(ts,datadef);
@@ -1731,6 +1739,8 @@ implementation
 
 
    function ttai_typedconstbuilder.emit_unicodestring_const(datalist: TAsmList; data: tcompilerwidestring; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        i, strlength: longint;
        string_symofs: asizeint;
@@ -1769,7 +1779,7 @@ implementation
          end;
        if cwidechartype.size = 2 then
          begin
-           datadef:=carraydef.getreusable(cwidechartype,strlength+1);
+           datadef:=carraydef.getreusable(cwidechartype,strlength+1,compiler);
            datatcb.maybe_begin_aggregate(datadef);
            for i:=0 to strlength-1 do
              datatcb.emit_tai(Tai_const.Create_16bit(data.data[i]),cwidechartype);
@@ -1842,23 +1852,27 @@ implementation
 
 
    function ttai_typedconstbuilder.emit_shortstring_const(const str: shortstring): tdef;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { we use an arraydef instead of a shortstringdef, because we don't have
          functionality in place yet to reuse shortstringdefs of the same length
          and neither the lowlevel nor the llvm typedconst builder cares about
          this difference }
-       result:=carraydef.getreusable(cansichartype,length(str)+1);
+       result:=carraydef.getreusable(cansichartype,length(str)+1,compiler);
        maybe_begin_aggregate(result);
        emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
        if str<>'' then
-         emit_tai(Tai_string.Create(str),carraydef.getreusable(cansichartype,length(str)));
+         emit_tai(Tai_string.Create(str),carraydef.getreusable(cansichartype,length(str),compiler));
        maybe_end_aggregate(result);
      end;
 
 
    function ttai_typedconstbuilder.emit_pchar_const(str: pchar; len: pint): tdef;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
-       result:=carraydef.getreusable(cansichartype,len+1);
+       result:=carraydef.getreusable(cansichartype,len+1,compiler);
        maybe_begin_aggregate(result);
        if len=0 then
          emit_tai(Tai_const.Create_8bit(0),cansichartype)
@@ -1915,6 +1929,8 @@ implementation
 
 
    procedure ttai_typedconstbuilder.emit_pooled_shortstring_const_ref(const str:shortstring);
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        pool : thashset;
        entry : phashsetitem;
@@ -1934,7 +1950,7 @@ implementation
 
            { include length and terminating zero for quick conversion to pchar }
            l:=length(str);
-           datadef:=carraydef.getreusable(cansichartype,l+2);
+           datadef:=carraydef.getreusable(cansichartype,l+2,compiler);
 
            { we start a new constbuilder as we don't know whether we're called
              from inside an internal constbuilder }
@@ -1975,6 +1991,8 @@ implementation
 
 
    function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin: shortint): trecorddef;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        anonrecorddef: trecorddef;
        typesym: ttypesym;
@@ -1995,7 +2013,7 @@ implementation
              end;
          end;
        { create skeleton def }
-       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin);
+       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin,compiler);
        trecordsymtable(anonrecorddef.symtable).recordalignment:=recordalign;
        { generic aggregate housekeeping }
        begin_aggregate_internal(anonrecorddef,true);
@@ -2190,10 +2208,12 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_emit_staticvar(vs: tstaticvarsym);
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { pointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
-       emit_tai(Tai_const.Createname(vs.mangledname,AT_DATA,fqueue_offset),cpointerdef.getreusable(vs.vardef));
+       emit_tai(Tai_const.Createname(vs.mangledname,AT_DATA,fqueue_offset),cpointerdef.getreusable(vs.vardef,compiler));
        fqueue_offset:=low(fqueue_offset);
      end;
 
@@ -2238,10 +2258,12 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_emit_asmsym(sym: tasmsymbol; def: tdef);
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { pointerdef, because "sym" represents the address of whatever the
          data is }
-       def:=cpointerdef.getreusable(def);
+       def:=cpointerdef.getreusable(def,compiler);
        emit_tai(Tai_const.Create_sym_offset(sym,fqueue_offset),def);
        fqueue_offset:=low(fqueue_offset);
      end;

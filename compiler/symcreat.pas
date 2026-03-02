@@ -1925,6 +1925,8 @@ implementation
 
 
   procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       sym: tsym;
       parasym: tparavarsym;
@@ -1968,7 +1970,7 @@ implementation
                   if vo_is_self in parasym.varoptions then
                     begin
                       if parasym.vardef.typ=classrefdef then
-                        parasym.vardef:=cclassrefdef.create(newstruct)
+                        parasym.vardef:=cclassrefdef.create(newstruct,compiler)
                       else
                         parasym.vardef:=newstruct;
                     end
@@ -2020,7 +2022,7 @@ implementation
           nestedvarsst:=trecorddef(nestedvarsdef).symtable;
           { indicate whether or not this is a var/out/constref/... parameter }
           if addrparam then
-            fieldvardef:=cpointerdef.getreusable(vardef)
+            fieldvardef:=cpointerdef.getreusable(vardef,compiler)
           else
             fieldvardef:=vardef;
           result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[]);
@@ -2249,7 +2251,7 @@ implementation
           { the RTTI always references this symbol }
           inc(ps.refs);
           current_module.localsymtable.insertsym(ps);
-          pd:=cprocdef.create(normal_function_level,true);
+          pd:=cprocdef.create(normal_function_level,true,compiler);
           { always register the def }
           pd.register_def;
           pd.procsym:=ps;

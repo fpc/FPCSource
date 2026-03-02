@@ -421,7 +421,7 @@ implementation
          typecheckpass(tnode(state));
          addstatement(mainstatement,state);
          { the temporary items array }
-         itemsarraydef:=carraydef.create(1,16,u32inttype);
+         itemsarraydef:=carraydef.create(1,16,u32inttype,compiler);
          itemsarraydef.elementdef:=objc_idtype;
          items:=ctempcreatenode.create(itemsarraydef,itemsarraydef.size,tt_persistent,false,compiler);
          addstatement(mainstatement,items);
@@ -659,7 +659,7 @@ implementation
             if assigned(tmpdef) and (tmpdef.typ=arraydef) and (tarraydef(tmpdef).arrayoptions = []) then
               begin
                 elementcount:=elementcount*tarraydef(tmpdef).elecount;
-                convertdef:=carraydef.create(0,elementcount-1,s32inttype);
+                convertdef:=carraydef.create(0,elementcount-1,s32inttype,compiler);
                 tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
                 expression:=expr.getcopy;
                 expression:=ctypeconvnode.create_internal(expression,convertdef,compiler);

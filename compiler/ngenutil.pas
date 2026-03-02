@@ -1053,9 +1053,9 @@ implementation
       pd: tprocdef;
     begin
       if potype<>potype_mainstub then
-        pd:=cprocdef.create(main_program_level,true)
+        pd:=cprocdef.create(main_program_level,true,compiler)
       else
-        pd:=cprocdef.create(normal_function_level,true);
+        pd:=cprocdef.create(normal_function_level,true,compiler);
       { always register the def }
       pd.register_def;
       pd.procsym:=ps;
@@ -1381,6 +1381,8 @@ implementation
 
 
   procedure AddToThreadvarList(p:TObject;arg:pointer);
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       tcb: ttai_typedconstbuilder;
       field1, field2: tsym;
@@ -1392,7 +1394,8 @@ implementation
          { address of threadvar }
          tcb.emit_tai(tai_const.Createname(tstaticvarsym(p).mangledname,0),
            cpointerdef.getreusable(
-             get_threadvar_record(tstaticvarsym(p).vardef,field1,field2)
+             get_threadvar_record(tstaticvarsym(p).vardef,field1,field2),
+             compiler
            )
          );
          { size of threadvar }
@@ -1508,9 +1511,9 @@ implementation
           begin
             { address to initialize }
             tcb.queue_init(voidpointertype);
-            rawdatadef:=carraydef.getreusable(cansichartype,tstaticvarsym(item.sym).vardef.size);
+            rawdatadef:=carraydef.getreusable(cansichartype,tstaticvarsym(item.sym).vardef.size,compiler);
             tcb.queue_vecn(rawdatadef,item.offset);
-            tcb.queue_typeconvn(cpointerdef.getreusable(tstaticvarsym(item.sym).vardef),cpointerdef.getreusable(rawdatadef));
+            tcb.queue_typeconvn(cpointerdef.getreusable(tstaticvarsym(item.sym).vardef,compiler),cpointerdef.getreusable(rawdatadef,compiler));
             tcb.queue_emit_staticvar(tstaticvarsym(item.sym));
             { value with which to initialize }
             tcb.emit_tai(Tai_const.Create_sym(item.datalabel),item.datadef)
@@ -1651,7 +1654,7 @@ implementation
       while (length(s) mod 2) <> 0 do
         s:=s+' ';
 {$endif m68k}
-      def:=carraydef.getreusable(cansichartype,length(s));
+      def:=carraydef.getreusable(cansichartype,length(s),compiler);
       tcb.maybe_begin_aggregate(def);
       tcb.emit_tai(Tai_string.Create(s),def);
       tcb.maybe_end_aggregate(def);
@@ -1683,8 +1686,8 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',stacksize-1,carraydef.getreusable(u8inttype,stacksize-1),AT_DATA));
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(u8inttype,1),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',stacksize-1,carraydef.getreusable(u8inttype,stacksize-1,compiler),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(u8inttype,1,compiler),AT_DATA));
         end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
@@ -1726,7 +1729,7 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize,compiler),AT_DATA));
         end;
 
       { Valgrind usage }
@@ -1795,9 +1798,9 @@ implementation
          begin
            pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
-           pvs:=cparavarsym.create('ARGV',2,vs_const,cpointerdef.getreusable(charpointertype),[]);
+           pvs:=cparavarsym.create('ARGV',2,vs_const,cpointerdef.getreusable(charpointertype,compiler),[]);
            tprocdef(pd).parast.insertsym(pvs);
-           pvs:=cparavarsym.create('ARGP',3,vs_const,cpointerdef.getreusable(charpointertype),[]);
+           pvs:=cparavarsym.create('ARGP',3,vs_const,cpointerdef.getreusable(charpointertype,compiler),[]);
            tprocdef(pd).parast.insertsym(pvs);
            tprocdef(pd).calcparas;
          end

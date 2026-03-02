@@ -384,7 +384,7 @@ implementation
           if parseprocvar<>pv_none then
            begin
              { inline procvar definitions are always nested procvars }
-             pv:=cprocvardef.create(normal_function_level+1,true);
+             pv:=cprocvardef.create(normal_function_level+1,true,compiler);
              if current_scanner.token=_LKLAMMER then
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
@@ -425,7 +425,7 @@ implementation
                 consume(_ARRAY);
                 consume(_OF);
                 { define range and type of range }
-                hdef:=carraydef.create_openarray;
+                hdef:=carraydef.create_openarray(compiler);
                 { array of const ? }
                 if (current_scanner.token=_CONST) and (m_objpas in current_settings.modeswitches) then
                  begin
@@ -1206,7 +1206,7 @@ implementation
               break;
             checkstack:=checkstack^.next;
           end;
-        pd:=cprocdef.create(st.symtablelevel+1,not assigned(genericdef));
+        pd:=cprocdef.create(st.symtablelevel+1,not assigned(genericdef),compiler);
         pd.struct:=astruct;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;

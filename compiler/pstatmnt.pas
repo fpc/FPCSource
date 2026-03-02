@@ -713,7 +713,7 @@ implementation
                 if hasimplicitderef then
                   hdef:=p.resultdef
                 else
-                  hdef:=cpointerdef.create(p.resultdef);
+                  hdef:=cpointerdef.create(p.resultdef,compiler);
                 { load address of the value in a temp }
                 tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p,compiler);
                 typecheckpass(tnode(tempnode));

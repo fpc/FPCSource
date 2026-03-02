@@ -29,7 +29,7 @@ unit raatt;
       { common }
       cutils,cclasses,
       { global }
-      globtype,
+      globtype,compilerbase,
       { aasm }
       cpubase,cpuinfo,aasmbase,aasmtai,aasmdata,aasmcpu,
       { assembler reader }
@@ -1111,6 +1111,8 @@ unit raatt;
 
 
    Function tattreader.Assemble: tlinkedlist;
+     const
+       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      Var
        hl         : tasmlabel;
        commname,
@@ -1346,7 +1348,7 @@ unit raatt;
                Consume(AS_ID);
                Consume(AS_COMMA);
                symofs:=BuildConstExpression(false,false);
-               curList.concat(Tai_datablock.Create(commname,symofs,carraydef.getreusable(u8inttype,symofs),AT_DATA));
+               curList.concat(Tai_datablock.Create(commname,symofs,carraydef.getreusable(u8inttype,symofs,compiler),AT_DATA));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;
@@ -1358,7 +1360,7 @@ unit raatt;
                Consume(AS_ID);
                Consume(AS_COMMA);
                symofs:=BuildConstExpression(false,false);
-               curList.concat(Tai_datablock.Create_global(commname,symofs,carraydef.getreusable(u8inttype,symofs),AT_DATA));
+               curList.concat(Tai_datablock.Create_global(commname,symofs,carraydef.getreusable(u8inttype,symofs,compiler),AT_DATA));
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;

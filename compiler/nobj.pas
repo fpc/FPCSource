@@ -27,6 +27,7 @@ interface
 
     uses
        cutils,cclasses,
+       compilerbase,
        globtype,
        symdef,symsym
        ;
@@ -800,6 +801,8 @@ implementation
 
 
     procedure TVMTBuilder.create_vmt_def;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i: longint;
         vmtdef: trecorddef;
@@ -834,7 +837,8 @@ implementation
           '$vmtdef',
           0,
           target_info.alignment.recordalignmin,
-          _class.symtable);
+          _class.symtable,
+          compiler);
 {$ifdef llvm}
         { in case of a class declared in the implementation section of unit
           whose method is called from an inline routine -- LLVM needs to be able

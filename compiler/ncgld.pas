@@ -300,7 +300,7 @@ implementation
              }
 
              tv_rec:=get_threadvar_record(resultdef,tv_index_field,tv_non_mt_data_field);
-             fieldptrdef:=cpointerdef.getreusable(resultdef);
+             fieldptrdef:=cpointerdef.getreusable(resultdef,compiler);
              current_asmdata.getjumplabel(norelocatelab);
              current_asmdata.getjumplabel(endrelocatelab);
              { make sure hregister can't allocate the register necessary for the parameter }
@@ -337,8 +337,8 @@ implementation
                begin
                  { Load a pointer to the thread var record into a register. }
                  { This register will be used in both multithreaded and non-multithreaded cases. }
-                 hreg_tv_rec:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(tv_rec));
-                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tv_rec,cpointerdef.getreusable(tv_rec),tvref,hreg_tv_rec);
+                 hreg_tv_rec:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(tv_rec,compiler));
+                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tv_rec,cpointerdef.getreusable(tv_rec,compiler),tvref,hreg_tv_rec);
                  reference_reset_base(tvref,hreg_tv_rec,0,ctempposinvalid,tvref.alignment,tvref.volatility)
                end;
              paraloc1.init;
@@ -523,7 +523,7 @@ implementation
                       hregister:=location.register
                     else
                       begin
-                        vd:=cpointerdef.getreusable(resultdef);
+                        vd:=cpointerdef.getreusable(resultdef,compiler);
                         hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vd);
                         { we need to load only an address }
                         location.size:=int_cgsize(vd.size);
@@ -600,7 +600,7 @@ implementation
                                end
                              else
                                begin
-                                 vd:=cpointerdef.getreusable(left.resultdef);
+                                 vd:=cpointerdef.getreusable(left.resultdef,compiler);
 {$if defined(CPU8BITALU) and defined(CPU16BITADDR)}
                                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,vd,left.location.reference,cg.GetNextReg(cg.GetNextReg(location.register)));
 {$else defined(CPU8BITALU) and defined(CPU16BITADDR)}
@@ -634,14 +634,14 @@ implementation
                            begin
                              { vmt pointer is a pointer to the vmt record }
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,ctempposinvalid,vd.alignment,[]);
-                             vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def,compiler);
                              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),tfieldvarsym(tobjectdef(left.resultdef).vmt_field),href);
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(tobjectdef(left.resultdef).vmt_field).vardef,vmtdef,href,hregister);
                            end
                          else if left.resultdef.typ=classrefdef then
                            begin
-                             vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def);
+                             vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def,compiler);
                              { classrefdef is a pointer to the vmt already }
 {$if defined(CPU8BITALU) and defined(CPU16BITADDR)}
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
@@ -656,7 +656,7 @@ implementation
                            begin
                              { an interface is a pointer to a pointer to a vmt }
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,ctempposinvalid,vd.alignment,[]);
-                             vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def,compiler);
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtdef,vmtdef,href,hregister);
                            end
@@ -818,7 +818,7 @@ implementation
             else if (right.nodetype=stringconstn) and
                (tstringconstnode(right).len=0) then
               begin
-                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),tpointerdef(charpointertype),left.location.reference);
+                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(charpointertype),left.location.reference);
                 hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,0,left.location.reference);
               end
             { char loading }
@@ -826,7 +826,7 @@ implementation
               begin
                 if right.nodetype=ordconstn then
                   begin
-                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),cpointerdef.getreusable(u16inttype),left.location.reference);
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(u16inttype,compiler),left.location.reference);
                     if (target_info.endian = endian_little) then
                       hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
                           setalignment(left.location.reference,1))
@@ -837,7 +837,7 @@ implementation
                 else
                   begin
                     href:=left.location.reference;
-                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef),tpointerdef(charpointertype),href);
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),tpointerdef(charpointertype),href);
                     hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,1,href);
                     inc(href.offset,1);
                     href.alignment:=1;
@@ -1502,9 +1502,9 @@ implementation
                  if vaddr then
                    begin
                      hlcg.location_force_mem(current_asmdata.CurrAsmList,hp.left.location,lt);
-                     tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt));
-                     hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.resultdef,cpointerdef.getreusable(lt),hp.left.location.reference,tmpreg);
-                     hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt),varfield.vardef,tmpreg,fref);
+                     tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt,compiler));
+                     hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hp.left.resultdef,cpointerdef.getreusable(lt,compiler),hp.left.location.reference,tmpreg);
+                     hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(lt,compiler),varfield.vardef,tmpreg,fref);
                    end
                  else
                    hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,hp.left.resultdef,varfield.vardef,hp.left.location,fref);

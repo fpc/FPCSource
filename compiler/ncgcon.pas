@@ -332,7 +332,7 @@ implementation
                            l:=len;
 
                           { include length and terminating zero for quick conversion to pchar }
-                          datadef:=carraydef.getreusable(cansichartype,l+2);
+                          datadef:=carraydef.getreusable(cansichartype,l+2,compiler);
                           datatcb.maybe_begin_aggregate(datadef);
                           datatcb.emit_tai(Tai_const.Create_8bit(l),cansichartype);
                           t:=Tai_string.Create_Data(asconstpchar,l,true);
@@ -350,7 +350,7 @@ implementation
                             string can be used for pchar assignments (but it's
                             also used for array-of-char assignments, in which
                             case the terminating #0 is not part of the data) }
-                          datadef:=carraydef.getreusable(cansichartype,len+1);
+                          datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
                           datatcb.maybe_begin_aggregate(datadef);
                           t:=Tai_string.Create_Data(asconstpchar,len,true);
                           datatcb.emit_tai(t,datadef);

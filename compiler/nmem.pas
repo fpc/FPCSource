@@ -236,7 +236,7 @@ implementation
                           if assigned(current_structdef.genericdef) then
                             if current_structdef.genericdef=left.resultdef then
                               begin
-                                resultdef:=cclassrefdef.create(current_structdef);
+                                resultdef:=cclassrefdef.create(current_structdef,compiler);
                                 defaultresultdef:=false;
                               end
                             else
@@ -245,10 +245,10 @@ implementation
                       else
                         message(parser_e_cant_create_generics_of_this_type);
                       if defaultresultdef then
-                        resultdef:=cclassrefdef.create(left.resultdef);
+                        resultdef:=cclassrefdef.create(left.resultdef,compiler);
                     end
                   else
-                    resultdef:=cclassrefdef.create(left.resultdef);
+                    resultdef:=cclassrefdef.create(left.resultdef,compiler);
                 end
               else
                 CGMessage(parser_e_pointer_to_class_expected);
@@ -825,7 +825,7 @@ implementation
                 hp:=tunarynode(hp).left;
               end;
             if anf_typedaddr in addrnodeflags then
-              res:=cpointerconstnode.create(offset,cpointerdef.getreusable(left.resultdef),compiler)
+              res:=cpointerconstnode.create(offset,cpointerdef.getreusable(left.resultdef,compiler),compiler)
             else
               res:=cpointerconstnode.create(offset,voidpointertype,compiler);
             result:=true;
@@ -836,7 +836,7 @@ implementation
             if not(anf_typedaddr in addrnodeflags) then
               resultdef:=voidpointertype
             else
-              resultdef:=cpointerdef.getreusable(left.resultdef);
+              resultdef:=cpointerdef.getreusable(left.resultdef,compiler);
             result:=true;
           end
       end;
@@ -902,7 +902,7 @@ implementation
          if left.resultdef.typ=pointerdef then
            resultdef:=tpointerdef(left.resultdef).pointeddef
          else if left.resultdef.typ=undefineddef then
-           resultdef:=cundefineddef.create(true)
+           resultdef:=cundefineddef.create(true,compiler)
          else
            CGMessage(parser_e_invalid_qualifier);
       end;
@@ -1199,7 +1199,8 @@ implementation
                    {Convert array indexes to low_bound..high_bound.}
                    inserttypeconv(right,cenumdef.create_subrange(tenumdef(right.resultdef),
                                                       asizeint(Tarraydef(left.resultdef).lowrange),
-                                                      asizeint(Tarraydef(left.resultdef).highrange)
+                                                      asizeint(Tarraydef(left.resultdef).highrange),
+                                                      compiler
                                                      ),compiler)
                  else if (htype.typ=orddef) and
                     { right can also be a variant or another type with
@@ -1248,7 +1249,8 @@ implementation
                      inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
                                                          int64(Tarraydef(left.resultdef).highrange),
-                                                         true
+                                                         true,
+                                                         compiler
                                                         ),compiler);
                    end
                  else
@@ -1264,7 +1266,7 @@ implementation
                  inserttypeconv(right,u8inttype,compiler)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
-                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true),compiler)
+                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true,compiler),compiler)
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype,compiler);
@@ -1312,7 +1314,7 @@ implementation
                   is_packed_array(left.resultdef) and
                   ((tarraydef(left.resultdef).elepackedbitsize div 8) <> resultdef.size) then
                  begin
-                   resultdef:=cenumdef.create_subrange(tenumdef(resultdef),tenumdef(resultdef).min,tenumdef(resultdef).max);
+                   resultdef:=cenumdef.create_subrange(tenumdef(resultdef),tenumdef(resultdef).min,tenumdef(resultdef).max,compiler);
                    tenumdef(resultdef).calcsavesize(1);
                  end
              end;

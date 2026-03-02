@@ -28,7 +28,7 @@ interface
     uses
       node,
       globtype,
-      cpubase,cgbase,parabase,cgutils,
+      cpubase,cgbase,parabase,cgutils,compilerbase,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symbase,symdef,symsym,symtype
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
@@ -897,6 +897,8 @@ implementation
 ****************************************************************************}
 
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
         i       : longint;
@@ -979,7 +981,7 @@ implementation
                             begin
                               if isaddr then
                                 begin
-                                  ptrdef:=cpointerdef.getreusable(vs.vardef);
+                                  ptrdef:=cpointerdef.getreusable(vs.vardef,compiler);
                                   hlcg.GetLocal(list,vs,ptrdef.size,ptrdef.alignment,ptrdef,vs.initialloc.reference)
                                 end
                               else

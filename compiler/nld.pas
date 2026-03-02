@@ -429,11 +429,11 @@ implementation
                  side, but on the callee-side we use it as a pointer ->
                  adjust }
                if (loadnf_load_addr in loadnodeflags) then
-                 resultdef:=cpointerdef.getreusable(resultdef);
+                 resultdef:=cpointerdef.getreusable(resultdef,compiler);
 
                if (vo_is_self in tabstractvarsym(symtableentry).varoptions) and (resultdef=objc_idtype) and
                  (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                 resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct)
+                 resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct,compiler)
              end;
            procsym :
              begin
@@ -1350,7 +1350,7 @@ implementation
             is_array_of_const(hdef) or
             is_open_array(hdef) then
            hdef:=voidtype;
-         resultdef:=carraydef.create(0,len-1,s32inttype);
+         resultdef:=carraydef.create(0,len-1,s32inttype,compiler);
          include(tarraydef(resultdef).arrayoptions,ado_IsConstructor);
          if varia then
            include(tarraydef(resultdef).arrayoptions,ado_IsVariant);

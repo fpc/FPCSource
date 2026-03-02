@@ -29,6 +29,7 @@ interface
 
   uses
     cclasses,
+    compilerbase,
     aasmbase,aasmdata,
     symbase,symdef;
 
@@ -148,6 +149,8 @@ function objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
 *******************************************************************}
 
 procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
+  const
+    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     entry  : PHashSetItem;
     strlab : tasmlabel;
@@ -174,10 +177,10 @@ procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tcons
         );
         tcb.free;
         tcb := nil;
-        def:=cpointerdef.getreusable(def);
+        def:=cpointerdef.getreusable(def,compiler);
       end
     else
-      def:=cpointerdef.getreusable(carraydef.getreusable(cansichartype,len+1));
+      def:=cpointerdef.getreusable(carraydef.getreusable(cansichartype,len+1,compiler),compiler);
     sym:=TAsmLabel(Entry^.Data);
   end;
 
@@ -893,6 +896,8 @@ From Clang:
 { Generate rtti for an Objective-C class and its meta-class. }
 procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);
   const
+    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  const
     CLS_CLASS  = 1;
     CLS_META   = 2;
     CLS_HIDDEN = $20000;
@@ -1015,7 +1020,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
       targetinfos[target_info.system]^.alignment.recordalignmin);
 
     { for class declaration: the isa points to the meta-class declaration }
-    tcb.emit_tai(Tai_const.Create_sym(metasym),cpointerdef.getreusable(metaDef));
+    tcb.emit_tai(Tai_const.Create_sym(metasym),cpointerdef.getreusable(metaDef,compiler));
     { pointer to the super_class name if any, nil otherwise }
     if assigned(superStrSym) then
       begin
@@ -1196,6 +1201,8 @@ From Clang:
 ///
 *)
 procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tobjectdef; out ivarslabel: tasmlabel);
+  const
+    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   type
     ivar_data = record
       vf      : tfieldvarsym;
@@ -1288,7 +1295,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
 
     { we use voidpointertype for all elements so that we can reuse the
       recorddef for all ivar tables with the same number of elements }
-    pptruinttype:=cpointerdef.getreusable(ptruinttype);
+    pptruinttype:=cpointerdef.getreusable(ptruinttype,compiler);
     for i:=0 to vcnt-1 do
       begin
         { reference to the offset }
@@ -1334,6 +1341,8 @@ From Clang:
 /// @endcode
 *)
 procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol: tobjectdef; out protocollabel: tasmsymbol);
+  const
+    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     lbl,
     listsym       : TAsmSymbol;
@@ -1408,12 +1417,12 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
 
     { also add an entry to the __DATA, __objc_protolist section, required to
       register the protocol with the runtime }
-    listsym:=current_asmdata.DefineAsmSymbol(protocol.rtti_mangledname(objcmetartti),AB_PRIVATE_EXTERN,AT_DATA,cpointerdef.getreusable(prottype));
+    listsym:=current_asmdata.DefineAsmSymbol(protocol.rtti_mangledname(objcmetartti),AB_PRIVATE_EXTERN,AT_DATA,cpointerdef.getreusable(prottype,compiler));
     tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_weak,tcalo_no_dead_strip]);
-    tcb.emit_tai(tai_const.Create_sym(lbl),cpointerdef.getreusable(prottype));
+    tcb.emit_tai(tai_const.Create_sym(lbl),cpointerdef.getreusable(prottype,compiler));
     list.concatList(
       tcb.get_final_asmlist(
-        listsym,cpointerdef.getreusable(prottype),
+        listsym,cpointerdef.getreusable(prottype,compiler),
         sec_objc_protolist,'_OBJC_PROTOLIST',sizeof(pint)
       )
     );
@@ -1712,6 +1721,8 @@ From Clang:
 
 { Generate rtti for an Objective-C class and its meta-class. }
 procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);
+  const
+    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     root          : tobjectdef;
     superSym,
@@ -1811,7 +1822,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
 
     { 2) regular class declaration }
     { the isa }
-    isatcb.emit_tai(Tai_const.Create_sym(metasym),cpointerdef.getreusable(metadef));
+    isatcb.emit_tai(Tai_const.Create_sym(metasym),cpointerdef.getreusable(metadef,compiler));
     { the superclass }
     ConcatSymOrNil(isatcb,supersym,voidpointertype);
     { pointer to cache }
@@ -1836,6 +1847,8 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
 
 
 procedure tobjcrttiwriter_nonfragile.addclasslist(list: tasmlist; section: tasmsectiontype; const symname: string; classes: tfpobjectlist);
+  const
+    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     i: longint;
     sym: TAsmSymbol;
@@ -1845,7 +1858,7 @@ procedure tobjcrttiwriter_nonfragile.addclasslist(list: tasmlist; section: tasms
     if classes.count=0 then
       exit;
     tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
-    arrdef:=carraydef.getreusable(voidpointertype,classes.count);
+    arrdef:=carraydef.getreusable(voidpointertype,classes.count,compiler);
     sym:=current_asmdata.DefineAsmSymbol(symname,AB_LOCAL,AT_DATA,arrdef);
     tcb.maybe_begin_aggregate(arrdef);
     for i:=0 to classes.count-1 do

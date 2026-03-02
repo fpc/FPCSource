@@ -698,7 +698,7 @@ implementation
              p.free; // no nil needed
          end;
         { set the initial set type }
-        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true,compiler);
         { determine the resultdef for the tree }
         typecheckpass(result);
       end;
@@ -1864,7 +1864,7 @@ implementation
           CGMessage(type_e_no_addr_of_constant);
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
-        result:=ctypeconvnode.create_internal(left,cpointerdef.getreusable(resultdef),compiler);
+        result:=ctypeconvnode.create_internal(left,cpointerdef.getreusable(resultdef,compiler),compiler);
         typecheckpass(result);
         { left is reused }
         left:=nil;

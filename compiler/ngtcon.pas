@@ -588,7 +588,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   { fill with spaces if size is shorter }
                   fillchar(paddedstrdata[strlength+1],defsize-strlength-1,' ');
                   paddedstrdata[strlength+1]:=#0;
-                  ftcb.emit_tai(Tai_string.Create_Data(@paddedstrdata[0],defsize,false),carraydef.getreusable(cansichartype,defsize+1));
+                  ftcb.emit_tai(Tai_string.Create_Data(@paddedstrdata[0],defsize,false),carraydef.getreusable(cansichartype,defsize+1,compiler));
                   ftcb.maybe_end_aggregate(def);
                 end;
               st_ansistring:
@@ -889,7 +889,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   if (m_tp7 in current_settings.modeswitches) and
                      (len>255) then
                     len:=255;
-                  datadef:=carraydef.getreusable(cansichartype,len+1);
+                  datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
                   datatcb.maybe_begin_aggregate(datadef);
                   if len>0 then
                     datatcb.emit_tai(Tai_string.Create_Data(@tstringconstnode(node).valueas[0],len,true),datadef)
@@ -899,7 +899,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 end
               else if is_constcharnode(node) then
                 begin
-                  datadef:=carraydef.getreusable(cansichartype,2);
+                  datadef:=carraydef.getreusable(cansichartype,2,compiler);
                   datatcb.maybe_begin_aggregate(datadef);
                   datatcb.emit_tai(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0),datadef);
                   datatcb.maybe_end_aggregate(datadef);
@@ -907,7 +907,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               else
                 begin
                   Message(parser_e_illegal_expression);
-                  datadef:=carraydef.getreusable(cansichartype,1);
+                  datadef:=carraydef.getreusable(cansichartype,1,compiler);
                 end;
               ftcb.finish_internal_data_builder(datatcb,ll,datadef,varalign);
               { we now emit the address of the first element of the array
@@ -936,7 +936,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
                      pw:=tstringconstnode(node).valuews;
                      { include terminating #0 }
-                     datadef:=carraydef.getreusable(cwidechartype,tstringconstnode(node).len+1);
+                     datadef:=carraydef.getreusable(cwidechartype,tstringconstnode(node).len+1,compiler);
                      datatcb.maybe_begin_aggregate(datadef);
                      for i:=0 to tstringconstnode(node).len-1 do
                        datatcb.emit_tai(Tai_const.Create_16bit(pw.data[i]),cwidechartype);

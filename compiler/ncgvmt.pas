@@ -26,6 +26,7 @@ unit ncgvmt;
 interface
 
     uses
+      compilerbase,
       aasmdata,aasmbase,aasmcnst,
       symbase,symconst,symtype,symdef;
 
@@ -226,6 +227,8 @@ implementation
 
 
     procedure TVMTWriter.writenames(tcb: ttai_typedconstbuilder; p: pprocdeftree);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         datatcb : ttai_typedconstbuilder;
         len : byte;
@@ -234,22 +237,24 @@ implementation
            writenames(tcb,p^.l);
          tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,p^.nl);
          len:=length(p^.data.messageinf.str^);
-         datatcb.maybe_begin_aggregate(carraydef.getreusable(cansichartype,len+1));
-         datatcb.emit_tai(Tai_string.Create_Data(@p^.data.messageinf.str^[0],len+1,false),carraydef.getreusable(cansichartype,len+1));
-         datatcb.maybe_end_aggregate(carraydef.getreusable(cansichartype,len+1));
-         tcb.finish_internal_data_builder(datatcb,p^.nl,carraydef.getreusable(cansichartype,len+1),sizeof(pint));
+         datatcb.maybe_begin_aggregate(carraydef.getreusable(cansichartype,len+1,compiler));
+         datatcb.emit_tai(Tai_string.Create_Data(@p^.data.messageinf.str^[0],len+1,false),carraydef.getreusable(cansichartype,len+1,compiler));
+         datatcb.maybe_end_aggregate(carraydef.getreusable(cansichartype,len+1,compiler));
+         tcb.finish_internal_data_builder(datatcb,p^.nl,carraydef.getreusable(cansichartype,len+1,compiler),sizeof(pint));
          if assigned(p^.r) then
            writenames(tcb,p^.r);
       end;
 
     procedure TVMTWriter.writestrentry(tcb: ttai_typedconstbuilder; p: pprocdeftree; entrydef: tdef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          if assigned(p^.l) then
            writestrentry(tcb,p^.l,entrydef);
 
          { write name label }
          tcb.maybe_begin_aggregate(entrydef);
-         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(p^.data.messageinf.str^)+1)));
+         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(p^.data.messageinf.str^)+1,compiler),compiler));
          tcb.queue_init(voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
@@ -518,6 +523,8 @@ implementation
 
 
     procedure TVMTWriter.genpublishedmethodstable(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out pubmethodsdef: trecorddef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          count : longint;
          lists : tvmtasmoutput;
@@ -542,7 +549,7 @@ implementation
                      addr : codepointer;
                   end;
               }
-              lists.methodnamerec:=get_recorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(cshortstringtype),voidcodepointertype],1);
+              lists.methodnamerec:=get_recorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(cshortstringtype,compiler),voidcodepointertype],1);
               { from objpas.inc:
                   tmethodnametable = packed record
                     count : dword;
@@ -584,6 +591,8 @@ implementation
 
 
     procedure TVMTWriter.generate_field_table(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out fieldtabledef: trecorddef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i   : longint;
         sym : tsym;
@@ -668,7 +677,7 @@ implementation
               targetinfos[target_info.system]^.alignment.recordalignmin);
             datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
             if classtable<>nil then
-              datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef))
+              datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef,compiler))
             else
               datatcb.emit_tai(tai_const.Create_nil_codeptr,voidpointertype);
             if fieldcount>0 then
@@ -779,6 +788,8 @@ implementation
 
 
     procedure TVMTWriter.intf_gen_intf_ref(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint; interfaceentrydef, interfaceentrytypedef: tdef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd: tprocdef;
         siid,
@@ -796,10 +807,10 @@ implementation
           begin
             siid:=make_mangledname('IID',nonuniqueintf.owner,nonuniqueintf.objname^);
             tcb.emit_tai(Tai_const.Create_sym_offset(
-              current_asmdata.RefAsmSymbol(siid,AT_DATA,true),0),cpointerdef.getreusable(rec_tguid));
+              current_asmdata.RefAsmSymbol(siid,AT_DATA,true),0),cpointerdef.getreusable(rec_tguid,compiler));
           end
         else
-          tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(rec_tguid));
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(rec_tguid,compiler));
 
         { VTable }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('VTABLE') as tfieldvarsym;
@@ -831,13 +842,13 @@ implementation
         { IIDStr }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDSTRREF') as tfieldvarsym;
         siidstr:=make_mangledname('IIDSTR',nonuniqueintf.owner,nonuniqueintf.objname^);
-        tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
+        tcb.queue_init(cpointerdef.getreusable(cshortstringtype,compiler));
         tcb.queue_emit_asmsym(
           current_asmdata.RefAsmSymbol(
             siidstr,
             AT_DATA,
             true),
-          cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(nonuniqueintf.iidstr^)+1)));
+          cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(nonuniqueintf.iidstr^)+1,compiler),compiler));
         { IType }
         tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('ITYPE') as tfieldvarsym;
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
@@ -853,6 +864,8 @@ implementation
 
 
     procedure TVMTWriter.intf_write_table(tcb: ttai_typedconstbuilder; out lab: TAsmLabel; out intftabledef: trecorddef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i        : longint;
         ImplIntf : TImplementedInterface;
@@ -887,7 +900,7 @@ implementation
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
         if _class.ImplementedInterfaces.count>0 then
           begin
-            interfacearray:=carraydef.getreusable(interfaceentrydef,_class.ImplementedInterfaces.count);
+            interfacearray:=carraydef.getreusable(interfaceentrydef,_class.ImplementedInterfaces.count,compiler);
             datatcb.maybe_begin_aggregate(interfacearray);
             { Write vtbl references }
             for i:=0 to _class.ImplementedInterfaces.count-1 do
@@ -1042,6 +1055,8 @@ implementation
 
 
     procedure TVMTWriter.writevmt;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
@@ -1143,7 +1158,7 @@ implementation
          { it's not used yet, but the delphi-operators as and is need it (FK) }
          { it is not written for parents that don't have any vmt !! }
          if is_class(_class) then
-           parentvmtdef:=cpointerdef.getreusable(search_system_type('TVMT').typedef)
+           parentvmtdef:=cpointerdef.getreusable(search_system_type('TVMT').typedef,compiler)
          else
            parentvmtdef:=voidpointertype;
          if assigned(_class.childof) and
@@ -1164,13 +1179,13 @@ implementation
          if is_class(_class) then
           begin
             { pointer to class name string }
-            tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
+            tcb.queue_init(cpointerdef.getreusable(cshortstringtype,compiler));
             tcb.queue_emit_asmsym(classnamelabel,classnamedef);
             { pointer to dynamic table or nil }
             if (oo_has_msgint in _class.objectoptions) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(intmessagetable,cpointerdef.getreusable(intmessagetabledef));
+                tcb.queue_emit_asmsym(intmessagetable,cpointerdef.getreusable(intmessagetabledef,compiler));
               end
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
@@ -1178,7 +1193,7 @@ implementation
             if assigned(methodnametable) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(methodnametable,cpointerdef.getreusable(methodnametabledef))
+                tcb.queue_emit_asmsym(methodnametable,cpointerdef.getreusable(methodnametabledef,compiler))
               end
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);

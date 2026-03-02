@@ -2047,7 +2047,7 @@ implementation
          if is_open_array(paradef) then
           begin
             minargs:=1;
-            resultdef:=carraydef.create(0,-1,tarraydef(paradef).rangedef);
+            resultdef:=carraydef.create(0,-1,tarraydef(paradef).rangedef,compiler);
             tarraydef(resultdef).arrayoptions:=tarraydef(resultdef).arrayoptions+[ado_IsDynamicArray];
             tarraydef(resultdef).elementdef:=tarraydef(paradef).elementdef;
             func:='fpc_array_to_dynarray_copy';
@@ -4418,7 +4418,7 @@ implementation
                     left:=nil;
                     if inlinenumber=in_sizeof_x then
                       begin
-                        inserttypeconv_explicit(result,cpointerdef.getreusable(objdef.vmt_def),compiler);
+                        inserttypeconv_explicit(result,cpointerdef.getreusable(objdef.vmt_def,compiler),compiler);
                         result:=cderefnode.create(result,compiler);
                         result:=genloadfield(result,'VINSTANCESIZE');
                       end
@@ -4529,7 +4529,8 @@ implementation
 {$endif cpu64bitaddr}
                       get_min_value(resultdef),
                       get_max_value(resultdef),
-                      true),compiler)
+                      true,
+                      compiler),compiler)
                   else
                     inserttypeconv(hp,resultdef,compiler);
 
@@ -5132,7 +5133,8 @@ implementation
 {$endif cpu64bitaddr}
                  get_min_value(resultnode.resultdef),
                  get_max_value(resultnode.resultdef),
-                 true),compiler)
+                 true,
+                 compiler),compiler)
              else
                inserttypeconv(hpp,corddef.create(
 {$ifdef cpu64bitaddr}
@@ -5142,7 +5144,8 @@ implementation
 {$endif cpu64bitaddr}
                  get_min_value(resultnode.resultdef),
                  get_max_value(resultnode.resultdef),
-                 true),compiler)
+                 true,
+                 compiler),compiler)
            end
          else
            begin
@@ -5256,7 +5259,7 @@ implementation
            newblock:=internalstatements(compiler,newstatement);
 
            { get temp for array of lengths }
-           temp:=ctempcreatenode.create(carraydef.getreusable(sinttype,dims),dims*sinttype.size,tt_persistent,false,compiler);
+           temp:=ctempcreatenode.create(carraydef.getreusable(sinttype,dims,compiler),dims*sinttype.size,tt_persistent,false,compiler);
            addstatement(newstatement,temp);
 
            { load array of lengths }
@@ -6042,7 +6045,7 @@ implementation
          getrange(packednode.resultdef,plorange,phirange);
          { does not really need to be registered, but then we would have to
            record it elsewhere so it still can be freed }
-         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange,true);
+         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange,true,compiler);
          sourcevecindex := ctemprefnode.create(loopvar,compiler);
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype,compiler);
          targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true,compiler),compiler);

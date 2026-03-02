@@ -26,7 +26,7 @@ unit ncgrtti;
 interface
 
     uses
-      cclasses,constexp,globtype,
+      cclasses,constexp,globtype,compilerbase,
       aasmbase,aasmcnst,
       symbase,symconst,symtype,symdef,symsym,
       parabase;
@@ -1247,6 +1247,8 @@ implementation
 
 
     procedure TRTTIWriter.write_rtti_data(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         procedure unknown_rtti(def:tstoreddef);
         begin
@@ -1995,7 +1997,7 @@ implementation
               if (oo_has_vmt in def.objectoptions) then
                 tcb.emit_tai(
                   Tai_const.Createname(def.vmt_mangledname,AT_DATA_FORCEINDIRECT,0),
-                  cpointerdef.getreusable(def.vmt_def))
+                  cpointerdef.getreusable(def.vmt_def,compiler))
               else
                 tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
               end;

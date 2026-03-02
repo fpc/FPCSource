@@ -451,7 +451,7 @@ unit optcse;
                         addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
                         if addrstored then
-                          templist[i]:=ctempcreatenode.create_value(cpointerdef.getreusable(def),voidpointertype.size,tt_persistent,
+                          templist[i]:=ctempcreatenode.create_value(cpointerdef.getreusable(def,compiler),voidpointertype.size,tt_persistent,
                             true,caddrnode.create_internal(tnode(lists.nodelist[i]),compiler),compiler)
                         else
                           templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
@@ -832,7 +832,7 @@ unit optcse;
                         createblock:=internalstatements(compiler,creates);
                         deleteblock:=internalstatements(compiler,deletes);
                       end;
-                     constentries[i].temp:=ctempcreatenode.create(cpointerdef.getreusable(constentries[i].valuenode.resultdef),
+                     constentries[i].temp:=ctempcreatenode.create(cpointerdef.getreusable(constentries[i].valuenode.resultdef,compiler),
                        voidpointertype.size,tt_persistent,true,compiler);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp,compiler),

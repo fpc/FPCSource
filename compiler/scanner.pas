@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,constexp,version,tokens,
+       globtype,globals,constexp,version,tokens,compilerbase,
        symtype,symdef,symsym,
        verbose,comphook,
        finput,
@@ -1084,17 +1084,19 @@ type
   end;
 
   class constructor texprvalue.createdefs;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     begin
       { do not use corddef etc here: this code is executed before those
         variables are initialised. Since these types are only used for
         compile-time evaluation of conditional expressions, it doesn't matter
         that we use the base types instead of the cpu-specific ones. }
-      sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
-      uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
-      booldef:=torddef.create(pasbool1,0,1,false);
-      strdef:=tstringdef.createansi(0,false);
-      setdef:=tsetdef.create(sintdef,0,255,false);
-      realdef:=tfloatdef.create(s80real,false);
+      sintdef:=torddef.create(s64bit,low(int64),high(int64),false,compiler);
+      uintdef:=torddef.create(u64bit,low(qword),high(qword),false,compiler);
+      booldef:=torddef.create(pasbool1,0,1,false,compiler);
+      strdef:=tstringdef.createansi(0,false,compiler);
+      setdef:=tsetdef.create(sintdef,0,255,false,compiler);
+      realdef:=tfloatdef.create(s80real,false,compiler);
     end;
 
   class destructor texprvalue.destroydefs;

@@ -557,7 +557,7 @@ implementation
              }
              asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
              reference_reset_symbol(tmpref,asmsym,0,voidpointertype.alignment,[]);
-             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),location.reference);
+             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),location.reference);
              location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
@@ -627,7 +627,7 @@ implementation
 
      function tcgvecnode.get_address_type: tdef;
        begin
-         result:=cpointerdef.getreusable(resultdef);
+         result:=cpointerdef.getreusable(resultdef,compiler);
        end;
 
 

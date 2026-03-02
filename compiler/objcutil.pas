@@ -127,7 +127,7 @@ end;
           result:=ctypeconvnode.create_internal(
             cderefnode.create(
               ctypeconvnode.create_internal(n,
-                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype)),
+                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype,compiler),compiler),
                 compiler
               ),
               compiler

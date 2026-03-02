@@ -63,6 +63,8 @@ implementation
 
 
   function create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       st:TSymTable;
       checkstack: psymtablestackitem;
@@ -86,7 +88,7 @@ implementation
         destroyed before procsym, leaving invalid pointers). }
       oldsymtablestack:=symtablestack;
       symtablestack:=nil;
-      result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
+      result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true,compiler);
       result.returndef:=resultdef;
       { if the parent is a generic or a specialization, the new function is one
         as well }
@@ -133,6 +135,8 @@ implementation
 
 
   procedure convert_to_funcref_intf(const n:tidstring;var def:tdef);
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       oldsymtablestack : tsymtablestack;
       pvdef : tprocvardef absolute def;
@@ -150,7 +154,7 @@ implementation
         name:=anon_funcref_prefix+fileinfo_to_suffix(current_filepos)
       else
         name:=n;
-      intfdef:=cobjectdef.create(odt_interfacecom,name,interface_iunknown,true);
+      intfdef:=cobjectdef.create(odt_interfacecom,name,interface_iunknown,true,compiler);
       include(intfdef.objectoptions,oo_is_funcref);
       include(intfdef.objectoptions,oo_is_invokable);
       include(intfdef.objectoptions,oo_has_virtual);
@@ -291,6 +295,8 @@ implementation
 
 
   function funcref_intf_for_proc(pd:tabstractprocdef;const suffix:string):tobjectdef;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       name : tsymstr;
       sym : tsym;
@@ -319,7 +325,7 @@ implementation
 
       name:='$'+name;
 
-      result:=cobjectdef.create(odt_interfacecom,name,interface_iunknown,false);
+      result:=cobjectdef.create(odt_interfacecom,name,interface_iunknown,false,compiler);
       include(result.objectoptions,oo_is_funcref);
       include(result.objectoptions,oo_is_invokable);
 
@@ -469,7 +475,7 @@ implementation
               st:=pd.localst;
           end;
 
-          def:=cobjectdef.create(odt_class,name,parent,false);
+          def:=cobjectdef.create(odt_class,name,parent,false,compiler);
           include(def.objectoptions,oo_is_capturer);
           typesym:=ctypesym.create(name,def);
           typesym.fileinfo:=pd.fileinfo;
@@ -577,6 +583,8 @@ implementation
 
 
   procedure capture_captured_syms(pd:tprocdef;owner:tprocinfo;capturedef:tobjectdef;oldpd:tprocdef);
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       curpd : tprocdef;
       subcapturer : tobjectdef;
@@ -629,7 +637,7 @@ implementation
                         begin
                           fieldname:='$'+fieldname;
                           if not is_implicit_pointer_object_type(fielddef) then
-                            fielddef:=cpointerdef.getreusable(fielddef);
+                            fielddef:=cpointerdef.getreusable(fielddef,compiler);
                         end;
                       fieldsym:=cfieldvarsym.create(fieldname,vs_value,fielddef,[]);
                       fieldsym.fileinfo:=sym.fileinfo;

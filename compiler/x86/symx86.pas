@@ -27,7 +27,7 @@ interface
 
 uses
   globtype, cclasses,
-  symconst, symtype,symdef,symsym;
+  compilerbase, symconst, symtype,symdef,symsym;
 
 type
   tx86pointerdef = class(tpointerdef)
@@ -36,10 +36,10 @@ type
     procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
    public
     x86pointertyp : tx86pointertyp;
-    constructor create(def: tdef); override;
-    class function getreusable(def: tdef): tpointerdef; override;
-    class function getreusablex86(def: tdef; x86typ: tx86pointertyp): tpointerdef;
-    constructor createx86(def:tdef;x86typ:tx86pointertyp);virtual;
+    constructor create(def: tdef;acompiler:TCompilerBase); override;
+    class function getreusable(def: tdef;acompiler:TCompilerBase): tpointerdef; override;
+    class function getreusablex86(def: tdef; x86typ: tx86pointertyp;acompiler:TCompilerBase): tpointerdef;
+    constructor createx86(def:tdef;x86typ:tx86pointertyp;acompiler:TCompilerBase);virtual;
     function size: asizeint; override;
     function getcopy: tstoreddef; override;
     function GetTypeName: string; override;
@@ -84,20 +84,20 @@ implementation
     end;
 
 
-  constructor tx86pointerdef.create(def: tdef);
+  constructor tx86pointerdef.create(def: tdef;acompiler:TCompilerBase);
     begin
-      inherited create(def);
+      inherited create(def,acompiler);
       x86pointertyp := default_x86_data_pointer_type;
     end;
 
 
-  class function tx86pointerdef.getreusable(def: tdef): tpointerdef;
+  class function tx86pointerdef.getreusable(def: tdef;acompiler:TCompilerBase): tpointerdef;
     begin
-      result:=getreusablex86(def,default_x86_data_pointer_type);
+      result:=getreusablex86(def,default_x86_data_pointer_type,acompiler);
     end;
 
 
-  class function tx86pointerdef.getreusablex86(def: tdef; x86typ: tx86pointertyp): tpointerdef;
+  class function tx86pointerdef.getreusablex86(def: tdef; x86typ: tx86pointertyp;acompiler:TCompilerBase): tpointerdef;
     type
       tx86PtrDefKey = packed record
         def: tdef;
@@ -124,7 +124,7 @@ implementation
           { do not simply push/pop current_module.localsymtable, because
             that can have side-effects (e.g., it removes helpers) }
           symtablestack:=nil;
-          result:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ);
+          result:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ,acompiler);
           setup_reusable_def(def,result,res,oldsymtablestack);
           { res^.Data may still be nil -> don't overwrite result }
           exit;
@@ -133,9 +133,9 @@ implementation
     end;
 
 
-  constructor tx86pointerdef.createx86(def: tdef; x86typ: tx86pointertyp);
+  constructor tx86pointerdef.createx86(def: tdef; x86typ: tx86pointertyp;acompiler:TCompilerBase);
     begin
-      inherited create(def);
+      inherited create(def,acompiler);
       x86pointertyp:=x86typ;
     end;
 

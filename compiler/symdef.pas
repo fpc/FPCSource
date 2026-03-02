@@ -142,8 +142,8 @@ interface
           { original def for "type <name>" declarations }
           orgdef          : tstoreddef;
           orgdefderef     : tderef;
-          constructor create(dt:tdeftyp;doregister:boolean);
-          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+          constructor create(dt:tdeftyp;doregister:boolean;acompiler:TCompilerBase);
+          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler:TCompilerBase);
           destructor  destroy;override;
           function getcopy : tstoreddef;virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
@@ -199,10 +199,10 @@ interface
           filetyp : tfiletyp;
           typedfiledef : tdef;
           typedfiledefderef : tderef;
-          constructor createtext;virtual;
-          constructor createuntyped;virtual;
-          constructor createtyped(def : tdef);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor createtext(acompiler:TCompilerBase);virtual;
+          constructor createuntyped(acompiler:TCompilerBase);virtual;
+          constructor createtyped(def : tdef;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -219,8 +219,8 @@ interface
 
        tvariantdef = class(tstoreddef)
           varianttype : tvarianttype;
-          constructor create(v : tvarianttype);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(v : tvarianttype;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           function getcopy : tstoreddef;override;
           function GetTypeName:string;override;
           function alignment : shortint;override;
@@ -236,8 +236,8 @@ interface
 
        tformaldef = class(tstoreddef)
           typed:boolean;
-          constructor create(Atyped:boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(Atyped:boolean;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -248,7 +248,7 @@ interface
        tforwarddef = class(tstoreddef)
           tosymname : pshortstring;
           forwardpos : tfileposinfo;
-          constructor create(const s:string;const pos:tfileposinfo);virtual;
+          constructor create(const s:string;const pos:tfileposinfo;acompiler: TCompilerBase);virtual;
           destructor destroy;override;
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
@@ -256,8 +256,8 @@ interface
        tforwarddefclass = class of tforwarddef;
 
        tundefineddef = class(tstoreddef)
-          constructor create(doregister:boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(doregister:boolean;acompiler: TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -266,7 +266,7 @@ interface
        tundefineddefclass = class of tundefineddef;
 
        terrordef = class(tstoreddef)
-          constructor create;virtual;
+          constructor create(acompiler: TCompilerBase);virtual;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -278,8 +278,8 @@ interface
        tabstractpointerdef = class(tstoreddef)
           pointeddef : tdef;
           pointeddefderef : tderef;
-          constructor create(dt:tdeftyp;def:tdef);
-          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+          constructor create(dt:tdeftyp;def:tdef;acompiler:TCompilerBase);
+          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler:TCompilerBase);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -289,18 +289,18 @@ interface
 
        tpointerdef = class(tabstractpointerdef)
           has_pointer_math : boolean;
-          constructor create(def:tdef);virtual;
+          constructor create(def:tdef;acompiler:TCompilerBase);virtual;
           { returns a pointerdef for def, reusing an existing one in case it
             exists in the current module }
-          class function getreusable(def: tdef): tpointerdef; virtual;
+          class function getreusable(def: tdef;acompiler:TCompilerBase): tpointerdef; virtual;
           { same as above, but in case the def must never be freed after the
             current module has been compiled -- even if the def was not written
             to the ppu file (for defs in para locations, as we don't reset them
             so we don't have to recalculate them all the time) }
-          class function getreusable_no_free(def: tdef): tpointerdef;
+          class function getreusable_no_free(def: tdef;acompiler:TCompilerBase): tpointerdef;
           function size:asizeint;override;
           function getcopy:tstoreddef;override;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -346,8 +346,8 @@ interface
           { for targets that initialise typed constants via explicit assignments
             instead of by generating an initialised data section }
           tcinitcode     : tnode;
-          constructor create(const n:string; dt:tdeftyp;doregister:boolean);
-          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+          constructor create(const n:string; dt:tdeftyp;doregister:boolean;acompiler: TCompilerBase);
+          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler: TCompilerBase);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor destroy; override;
           procedure buildderefimpl;override;
@@ -401,12 +401,12 @@ interface
        public
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
-          constructor create(const n:string; p:TSymtable);virtual;
-          constructor create_global_internal(const n: string; packrecords, recordalignmin: shortint); virtual;
-          constructor create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable); virtual;
+          constructor create(const n:string; p:TSymtable;acompiler: TCompilerBase);virtual;
+          constructor create_global_internal(const n: string; packrecords, recordalignmin: shortint;acompiler: TCompilerBase); virtual;
+          constructor create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable;acompiler: TCompilerBase); virtual;
           function add_field_by_def(const optionalname: TIDString; def: tdef): tsym;
           procedure add_fields_from_deflist(fieldtypes: tfplist);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -525,8 +525,8 @@ interface
           }
           hiddenclassdef : tobjectdef;
           hiddenclassdefref : tderef;
-          constructor create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean;acompiler: TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -580,8 +580,8 @@ interface
        tobjectdefclass = class of tobjectdef;
 
        tclassrefdef = class(tabstractpointerdef)
-          constructor create(def:tdef);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(def:tdef;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -604,24 +604,24 @@ interface
           _elementdef      : tdef;
           _elementdefderef : tderef;
           procedure setelementdef(def:tdef);
-          class function getreusable_intern(def: tdef; elems: asizeint; const options: tarraydefoptions): tarraydef;
+          class function getreusable_intern(def: tdef; elems: asizeint; const options: tarraydefoptions;acompiler:TCompilerBase): tarraydef;
        public
           function elesize : asizeint;
           function elepackedbitsize : asizeint;
           function elecount : asizeuint;
           constructor create_from_pointer(def: tpointerdef);virtual;
-          constructor create(l, h: asizeint; def: tdef);virtual;
-          constructor create_vector(l,h:asizeint; def:tdef);
-          constructor create_openarray;virtual;
-          class function getreusable(def: tdef; elems: asizeint): tarraydef;
-          class function getreusable_vector(def: tdef; elems: asizeint): tarraydef;
+          constructor create(l, h: asizeint; def: tdef;acompiler:TCompilerBase);virtual;
+          constructor create_vector(l,h:asizeint; def:tdef;acompiler:TCompilerBase);
+          constructor create_openarray(acompiler:TCompilerBase);virtual;
+          class function getreusable(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
+          class function getreusable_vector(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
           { same as above, but in case the def must never be freed after the
             current module has been compiled -- even if the def was not written
             to the ppu file (for defs in para locations, as we don't reset them
             so we don't have to recalculate them all the time) }
-          class function getreusable_no_free(def: tdef; elems: asizeint): tarraydef;
-          class function getreusable_no_free_vector(def: tdef; elems: asizeint): tarraydef;
-          constructor ppuload(ppufile:tcompilerppufile);
+          class function getreusable_no_free(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
+          class function getreusable_no_free_vector(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
           destructor destroy; override;
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -645,8 +645,8 @@ interface
        torddef = class(tstoreddef)
           low,high : TConstExprInt;
           ordtype  : tordtype;
-          constructor create(t : tordtype;v,b : TConstExprInt; doregister: boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(t : tordtype;v,b : TConstExprInt; doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -662,8 +662,8 @@ interface
 
        tfloatdef = class(tstoreddef)
           floattype : tfloattype;
-          constructor create(t: tfloattype; doregister: boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(t: tfloattype; doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -723,8 +723,8 @@ interface
           { number of user visible parameters }
           maxparacount,
           minparacount    : byte;
-          constructor create(dt:tdeftyp;level:byte;doregister:boolean);
-          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+          constructor create(dt:tdeftyp;level:byte;doregister:boolean;acompiler: TCompilerBase);
+          constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler: TCompilerBase);
           destructor destroy;override;
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -759,7 +759,7 @@ interface
        end;
 
        tprocvardef = class(tabstractprocdef)
-          constructor create(level:byte;doregister:boolean);virtual;
+          constructor create(level:byte;doregister:boolean;acompiler: TCompilerBase);virtual;
           { returns a procvardef that represents the address of a proc(var)def }
           class function getreusableprocaddr(def: tabstractprocdef; copytyp: tcacheableproccopytyp): tprocvardef; virtual;
           { same as above, but in case the def must never be freed after the
@@ -767,7 +767,7 @@ interface
             to the ppu file (for defs in para locations, as we don't reset them
             so we don't have to recalculate them all the time) }
           class function getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -922,8 +922,8 @@ interface
           { only needed when actually compiling a unit, no need to save/load from ppu }
           invoke_helper : tprocdef;
           copied_from : tprocdef;
-          constructor create(level:byte;doregister:boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(level:byte;doregister:boolean;acompiler: TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
           destructor  destroy;override;
           procedure   freeimplprocdefinfo;
           { do not override this routine in platform-specific subclasses,
@@ -1029,16 +1029,16 @@ interface
           encoding   : tstringencoding;
           stringtype : tstringtype;
           len        : asizeint;
-          constructor createshort(l: byte; doregister: boolean);virtual;
-          constructor loadshort(ppufile:tcompilerppufile);
-          constructor createlong(l: asizeint; doregister: boolean);virtual;
-          constructor loadlong(ppufile:tcompilerppufile);
-          constructor createansi(aencoding: tstringencoding; doregister: boolean);virtual;
-          constructor loadansi(ppufile:tcompilerppufile);
-          constructor createwide(doregister: boolean);virtual;
-          constructor loadwide(ppufile:tcompilerppufile);
-          constructor createunicode(doregister: boolean);virtual;
-          constructor loadunicode(ppufile:tcompilerppufile);virtual;
+          constructor createshort(l: byte; doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor loadshort(ppufile:tcompilerppufile;acompiler:TCompilerBase);
+          constructor createlong(l: asizeint; doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor loadlong(ppufile:tcompilerppufile;acompiler:TCompilerBase);
+          constructor createansi(aencoding: tstringencoding; doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor loadansi(ppufile:tcompilerppufile;acompiler:TCompilerBase);
+          constructor createwide(doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor loadwide(ppufile:tcompilerppufile;acompiler:TCompilerBase);
+          constructor createunicode(doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor loadunicode(ppufile:tcompilerppufile;acompiler:TCompilerBase);virtual;
           function getcopy : tstoreddef;override;
           function  stringtypname:string;
           { do not override this routine in platform-specific subclasses,
@@ -1065,9 +1065,9 @@ interface
           basedefderef : tderef;
           symtable  : TSymtable;
           has_jumps : boolean;
-          constructor create;virtual;
-          constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(acompiler:TCompilerBase);virtual;
+          constructor create_subrange(_basedef:tenumdef;_min,_max:asizeint;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -1100,8 +1100,8 @@ interface
           { setlow is the lowest value valid according to the declaration of a set, i.e. for a set [3..4] it is really 3 }
           setlow,
           setmax   : asizeint;
-          constructor create(def: tdef; low, high: asizeint; doregister: boolean);virtual;
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(def: tdef; low, high: asizeint; doregister: boolean;acompiler:TCompilerBase);virtual;
+          constructor ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
@@ -1523,7 +1523,7 @@ implementation
                 oldstack:=symtablestack;
                 symtablestack:=tsymtablestack.create(compiler);
                 symtablestack.push(symtable);
-                current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true);
+                current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true,compiler);
                 symtablestack.pop(symtable);
                 symtablestack.free;
                 symtablestack:=oldstack;
@@ -1549,6 +1549,8 @@ implementation
 
 
     function get_threadvar_record(def: tdef; out index_field, non_mt_data_field: tsym): trecorddef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         typ: ttypesym;
         name: string;
@@ -1565,7 +1567,7 @@ implementation
         { set recordalinmin to sizeof(pint), so the second field gets put at
           offset = sizeof(pint) as expected }
         result:=crecorddef.create_global_internal(
-          name,sizeof(pint),sizeof(pint));
+          name,sizeof(pint),sizeof(pint),compiler);
 {$ifdef cpu16bitaddr}
         index_field:=result.add_field_by_def('',u16inttype);
 {$else cpu16bitaddr}
@@ -1577,6 +1579,8 @@ implementation
 
 
     function get_recorddef(prefix:tinternaltypeprefix; const fields:array of tdef; packrecords:shortint): trecorddef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         fieldlist: tfplist;
         srsym: tsym;
@@ -1601,7 +1605,7 @@ implementation
         for i:=low(fields) to high(fields) do
           fieldlist.add(fields[i]);
         result:=crecorddef.create_global_internal(internaltypeprefixName[prefix],packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin);
+          targetinfos[target_info.system]^.alignment.recordalignmin,compiler);
         result.add_fields_from_deflist(fieldlist);
         fieldlist.free;
         fieldlist := nil;
@@ -1609,6 +1613,8 @@ implementation
 
 
     procedure get_tabledef(prefix:tinternaltypeprefix;countdef,elementdef:tdef;count:longint;packrecords:shortint;out recdef:trecorddef;out arrdef:tarraydef);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         fields: tfplist;
         name: TIDString;
@@ -1642,12 +1648,12 @@ implementation
             exit;
           end;
         recdef:=crecorddef.create_global_internal(name,packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin);
+          targetinfos[target_info.system]^.alignment.recordalignmin,compiler);
         fields:=tfplist.create;
         fields.add(countdef);
         if count>0 then
           begin
-            arrdef:=carraydef.create(0,count-1,sizeuinttype);
+            arrdef:=carraydef.create(0,count-1,sizeuinttype,compiler);
             arrdef.elementdef:=elementdef;
             fields.add(arrdef);
           end
@@ -2076,9 +2082,9 @@ implementation
       end;
 
 
-    constructor tstoreddef.create(dt:tdeftyp;doregister:boolean);
+    constructor tstoreddef.create(dt:tdeftyp;doregister:boolean;acompiler:TCompilerBase);
       begin
-         inherited create(dt);
+         inherited create(dt,acompiler);
          savesize := 0;
 {$ifdef EXTDEBUG}
          fileinfo := current_filepos;
@@ -2135,13 +2141,13 @@ implementation
       end;
 
 
-    constructor tstoreddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+    constructor tstoreddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler:TCompilerBase);
       var
         sizeleft,i,cnt : longint;
         buf  : array[0..255] of byte;
         symderef : pderef;
       begin
-         inherited create(dt);
+         inherited create(dt,acompiler);
          DefId:=ppufile.getlongint;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
@@ -2329,7 +2335,7 @@ implementation
     function tstoreddef.getcopy : tstoreddef;
       begin
         Message(sym_e_cant_create_unique_type);
-        getcopy:=cerrordef.create;
+        getcopy:=cerrordef.create(compiler);
       end;
 
 
@@ -2761,18 +2767,18 @@ implementation
                                Tstringdef
 ****************************************************************************}
 
-    constructor tstringdef.createshort(l: byte; doregister: boolean);
+    constructor tstringdef.createshort(l: byte; doregister: boolean;acompiler:TCompilerBase);
       begin
-         inherited create(stringdef,doregister);
+         inherited create(stringdef,doregister,acompiler);
          stringtype:=st_shortstring;
          encoding:=0;
          len:=l;
       end;
 
 
-    constructor tstringdef.loadshort(ppufile:tcompilerppufile);
+    constructor tstringdef.loadshort(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(stringdef,ppufile);
+         inherited ppuload(stringdef,ppufile,acompiler);
          stringtype:=st_shortstring;
          encoding:=0;
          len:=ppufile.getbyte;
@@ -2780,18 +2786,18 @@ implementation
       end;
 
 
-    constructor tstringdef.createlong(l: asizeint; doregister: boolean);
+    constructor tstringdef.createlong(l: asizeint; doregister: boolean;acompiler:TCompilerBase);
       begin
-         inherited create(stringdef,doregister);
+         inherited create(stringdef,doregister,acompiler);
          stringtype:=st_longstring;
          encoding:=0;
          len:=l;
       end;
 
 
-    constructor tstringdef.loadlong(ppufile:tcompilerppufile);
+    constructor tstringdef.loadlong(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(stringdef,ppufile);
+         inherited ppuload(stringdef,ppufile,acompiler);
          stringtype:=st_longstring;
          encoding:=0;
          len:=ppufile.getasizeint;
@@ -2799,18 +2805,18 @@ implementation
       end;
 
 
-    constructor tstringdef.createansi(aencoding: tstringencoding; doregister: boolean);
+    constructor tstringdef.createansi(aencoding: tstringencoding; doregister: boolean;acompiler:TCompilerBase);
       begin
-         inherited create(stringdef,doregister);
+         inherited create(stringdef,doregister,acompiler);
          stringtype:=st_ansistring;
          encoding:=aencoding;
          len:=-1;
       end;
 
 
-    constructor tstringdef.loadansi(ppufile:tcompilerppufile);
+    constructor tstringdef.loadansi(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(stringdef,ppufile);
+         inherited ppuload(stringdef,ppufile,acompiler);
          stringtype:=st_ansistring;
          len:=ppufile.getasizeint;
          encoding:=ppufile.getword;
@@ -2818,9 +2824,9 @@ implementation
       end;
 
 
-    constructor tstringdef.createwide(doregister: boolean);
+    constructor tstringdef.createwide(doregister: boolean;acompiler:TCompilerBase);
       begin
-         inherited create(stringdef,doregister);
+         inherited create(stringdef,doregister,acompiler);
          stringtype:=st_widestring;
          if target_info.endian=endian_little then
            encoding:=CP_UTF16LE
@@ -2830,9 +2836,9 @@ implementation
       end;
 
 
-    constructor tstringdef.loadwide(ppufile:tcompilerppufile);
+    constructor tstringdef.loadwide(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(stringdef,ppufile);
+         inherited ppuload(stringdef,ppufile,acompiler);
          stringtype:=st_widestring;
          if target_info.endian=endian_little then
            encoding:=CP_UTF16LE
@@ -2843,9 +2849,9 @@ implementation
       end;
 
 
-    constructor tstringdef.createunicode(doregister: boolean);
+    constructor tstringdef.createunicode(doregister: boolean;acompiler:TCompilerBase);
       begin
-         inherited create(stringdef,doregister);
+         inherited create(stringdef,doregister,acompiler);
          stringtype:=st_unicodestring;
          if target_info.endian=endian_little then
            encoding:=CP_UTF16LE
@@ -2855,9 +2861,9 @@ implementation
       end;
 
 
-    constructor tstringdef.loadunicode(ppufile:tcompilerppufile);
+    constructor tstringdef.loadunicode(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(stringdef,ppufile);
+         inherited ppuload(stringdef,ppufile,acompiler);
          stringtype:=st_unicodestring;
          len:=ppufile.getasizeint;
          encoding:=ppufile.getword;
@@ -2867,7 +2873,7 @@ implementation
 
     function tstringdef.getcopy : tstoreddef;
       begin
-        result:=cstringdef.create(typ,true);
+        result:=cstringdef.create(typ,true,compiler);
         result.typ:=stringdef;
         tstringdef(result).stringtype:=stringtype;
         tstringdef(result).encoding:=encoding;
@@ -3024,9 +3030,9 @@ implementation
                                  TENUMDEF
 ****************************************************************************}
 
-    constructor tenumdef.create;
+    constructor tenumdef.create(acompiler:TCompilerBase);
       begin
-         inherited create(enumdef,true);
+         inherited create(enumdef,true,acompiler);
          minval:=0;
          maxval:=0;
          calcsavesize(current_settings.packenum);
@@ -3037,9 +3043,9 @@ implementation
       end;
 
 
-    constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:asizeint);
+    constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:asizeint;acompiler:TCompilerBase);
       begin
-         inherited create(enumdef,true);
+         inherited create(enumdef,true,acompiler);
          minval:=_min;
          maxval:=_max;
          basedef:=_basedef;
@@ -3050,9 +3056,9 @@ implementation
        end;
 
 
-    constructor tenumdef.ppuload(ppufile:tcompilerppufile);
+    constructor tenumdef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(enumdef,ppufile);
+         inherited ppuload(enumdef,ppufile,acompiler);
          minval:=ppufile.getaint;
          maxval:=ppufile.getaint;
          savesize:=ppufile.getaint;
@@ -3084,10 +3090,10 @@ implementation
     function tenumdef.getcopy : tstoreddef;
       begin
         if assigned(basedef) then
-          result:=cenumdef.create_subrange(basedef,minval,maxval)
+          result:=cenumdef.create_subrange(basedef,minval,maxval,compiler)
         else
           begin
-            result:=cenumdef.create;
+            result:=cenumdef.create(compiler);
             tenumdef(result).minval:=minval;
             tenumdef(result).maxval:=maxval;
             tenumdef(result).symtable.free;
@@ -3506,9 +3512,9 @@ implementation
                                  TORDDEF
 ****************************************************************************}
 
-    constructor torddef.create(t : tordtype;v,b : TConstExprInt; doregister: boolean);
+    constructor torddef.create(t : tordtype;v,b : TConstExprInt; doregister: boolean;acompiler:TCompilerBase);
       begin
-         inherited create(orddef,doregister);
+         inherited create(orddef,doregister,acompiler);
          low:=v;
          high:=b;
          ordtype:=t;
@@ -3516,9 +3522,9 @@ implementation
       end;
 
 
-    constructor torddef.ppuload(ppufile:tcompilerppufile);
+    constructor torddef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(orddef,ppufile);
+         inherited ppuload(orddef,ppufile,acompiler);
          ordtype:=tordtype(ppufile.getbyte);
          low:=ppufile.getexprint;
          high:=ppufile.getexprint;
@@ -3529,7 +3535,7 @@ implementation
 
     function torddef.getcopy : tstoreddef;
       begin
-         result:=corddef.create(ordtype,low,high,true);
+         result:=corddef.create(ordtype,low,high,true,compiler);
          result.typ:=orddef;
          torddef(result).low:=low;
          torddef(result).high:=high;
@@ -3660,17 +3666,17 @@ implementation
                                 TFLOATDEF
 ****************************************************************************}
 
-    constructor tfloatdef.create(t: tfloattype; doregister: boolean);
+    constructor tfloatdef.create(t: tfloattype; doregister: boolean;acompiler:TCompilerBase);
       begin
-         inherited create(floatdef,doregister);
+         inherited create(floatdef,doregister,acompiler);
          floattype:=t;
          setsize;
       end;
 
 
-    constructor tfloatdef.ppuload(ppufile:tcompilerppufile);
+    constructor tfloatdef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(floatdef,ppufile);
+         inherited ppuload(floatdef,ppufile,acompiler);
          floattype:=tfloattype(ppufile.getbyte);
          setsize;
          ppuload_platform(ppufile);
@@ -3679,7 +3685,7 @@ implementation
 
     function tfloatdef.getcopy : tstoreddef;
       begin
-         result:=cfloatdef.create(floattype,true);
+         result:=cfloatdef.create(floattype,true,compiler);
          result.typ:=floatdef;
          tfloatdef(result).savesize:=savesize;
       end;
@@ -3783,34 +3789,34 @@ implementation
                                 TFILEDEF
 ****************************************************************************}
 
-    constructor tfiledef.createtext;
+    constructor tfiledef.createtext(acompiler:TCompilerBase);
       begin
-         inherited create(filedef,true);
+         inherited create(filedef,true,acompiler);
          filetyp:=ft_text;
          typedfiledef:=nil;
          typedfiledefderef.reset;
       end;
 
 
-    constructor tfiledef.createuntyped;
+    constructor tfiledef.createuntyped(acompiler:TCompilerBase);
       begin
-         inherited create(filedef,true);
+         inherited create(filedef,true,acompiler);
          filetyp:=ft_untyped;
          typedfiledef:=nil;
       end;
 
 
-    constructor tfiledef.createtyped(def:tdef);
+    constructor tfiledef.createtyped(def:tdef;acompiler:TCompilerBase);
       begin
-         inherited create(filedef,true);
+         inherited create(filedef,true,acompiler);
          filetyp:=ft_typed;
          typedfiledef:=def;
       end;
 
 
-    constructor tfiledef.ppuload(ppufile:tcompilerppufile);
+    constructor tfiledef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(filedef,ppufile);
+         inherited ppuload(filedef,ppufile,acompiler);
          filetyp:=tfiletyp(ppufile.getbyte);
          if filetyp=ft_typed then
            ppufile.getderef(typedfiledefderef)
@@ -3824,11 +3830,11 @@ implementation
       begin
         case filetyp of
           ft_typed:
-            result:=cfiledef.createtyped(typedfiledef);
+            result:=cfiledef.createtyped(typedfiledef,compiler);
           ft_untyped:
-            result:=cfiledef.createuntyped;
+            result:=cfiledef.createuntyped(compiler);
           ft_text:
-            result:=cfiledef.createtext;
+            result:=cfiledef.createtext(compiler);
         end;
       end;
 
@@ -3927,17 +3933,17 @@ implementation
                                TVARIANTDEF
 ****************************************************************************}
 
-    constructor tvariantdef.create(v : tvarianttype);
+    constructor tvariantdef.create(v : tvarianttype;acompiler:TCompilerBase);
       begin
-         inherited create(variantdef,true);
+         inherited create(variantdef,true,acompiler);
          varianttype:=v;
          setsize;
       end;
 
 
-    constructor tvariantdef.ppuload(ppufile:tcompilerppufile);
+    constructor tvariantdef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(variantdef,ppufile);
+         inherited ppuload(variantdef,ppufile,acompiler);
          varianttype:=tvarianttype(ppufile.getbyte);
          setsize;
          ppuload_platform(ppufile);
@@ -3946,7 +3952,7 @@ implementation
 
     function tvariantdef.getcopy : tstoreddef;
       begin
-        result:=cvariantdef.create(varianttype);
+        result:=cvariantdef.create(varianttype,compiler);
       end;
 
 
@@ -4007,9 +4013,9 @@ implementation
                             TABSTRACtpointerdef
 ****************************************************************************}
 
-    constructor tabstractpointerdef.create(dt:tdeftyp;def:tdef);
+    constructor tabstractpointerdef.create(dt:tdeftyp;def:tdef;acompiler:TCompilerBase);
       begin
-        inherited create(dt,true);
+        inherited create(dt,true,acompiler);
         pointeddef:=def;
         pointeddefderef.reset;
         if df_generic in pointeddef.defoptions then
@@ -4019,9 +4025,9 @@ implementation
       end;
 
 
-    constructor tabstractpointerdef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+    constructor tabstractpointerdef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(dt,ppufile);
+         inherited ppuload(dt,ppufile,acompiler);
          ppufile.getderef(pointeddefderef);
       end;
 
@@ -4063,9 +4069,9 @@ implementation
                                tpointerdef
 ****************************************************************************}
 
-    constructor tpointerdef.create(def:tdef);
+    constructor tpointerdef.create(def:tdef;acompiler:TCompilerBase);
       begin
-        inherited create(pointerdef,def);
+        inherited create(pointerdef,def,acompiler);
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
         if (df_specialization in tstoreddef(def).defoptions)
 {$ifndef genericdef_for_nested}
@@ -4074,11 +4080,11 @@ implementation
            and assigned(tstoreddef(def).genericdef)
 {$endif}
            then
-          genericdef:=cpointerdef.getreusable(tstoreddef(def).genericdef);
+          genericdef:=cpointerdef.getreusable(tstoreddef(def).genericdef,acompiler);
       end;
 
 
-    class function tpointerdef.getreusable(def: tdef): tpointerdef;
+    class function tpointerdef.getreusable(def: tdef;acompiler:TCompilerBase): tpointerdef;
       var
         res: PHashSetItem;
         oldsymtablestack: tsymtablestack;
@@ -4097,7 +4103,7 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            result:=cpointerdef.create(def);
+            result:=cpointerdef.create(def,acompiler);
             setup_reusable_def(def,result,res,oldsymtablestack);
             { res^.Data may still be nil -> don't overwrite result }
             exit;
@@ -4106,9 +4112,9 @@ implementation
       end;
 
 
-    class function tpointerdef.getreusable_no_free(def: tdef): tpointerdef;
+    class function tpointerdef.getreusable_no_free(def: tdef;acompiler:TCompilerBase): tpointerdef;
       begin
-        result:=getreusable(def);
+        result:=getreusable(def,acompiler);
         if not result.is_registered then
           include(result.defoptions,df_not_registered_no_free);
       end;
@@ -4120,9 +4126,9 @@ implementation
       end;
 
 
-    constructor tpointerdef.ppuload(ppufile:tcompilerppufile);
+    constructor tpointerdef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(pointerdef,ppufile);
+         inherited ppuload(pointerdef,ppufile,acompiler);
          has_pointer_math:=(ppufile.getbyte<>0);
          ppuload_platform(ppufile);
       end;
@@ -4134,9 +4140,9 @@ implementation
           one of them will be destroyed on forward type resolve and the second will
           point to garbage }
         if pointeddef.typ=forwarddef then
-          result:=cpointerdef.create(tforwarddef(pointeddef).getcopy)
+          result:=cpointerdef.create(tforwarddef(pointeddef).getcopy,compiler)
         else
-          result:=cpointerdef.create(pointeddef);
+          result:=cpointerdef.create(pointeddef,compiler);
         tpointerdef(result).has_pointer_math:=has_pointer_math;
         tpointerdef(result).savesize:=savesize;
       end;
@@ -4199,19 +4205,19 @@ implementation
                               TCLASSREFDEF
 ****************************************************************************}
 
-    constructor tclassrefdef.create(def:tdef);
+    constructor tclassrefdef.create(def:tdef;acompiler:TCompilerBase);
       begin
          while (def.typ=objectdef) and tobjectdef(def).is_unique_objpasdef do
            def:=tobjectdef(def).childof;
-         inherited create(classrefdef,def);
+         inherited create(classrefdef,def,acompiler);
          if df_specialization in tstoreddef(def).defoptions then
-           genericdef:=cclassrefdef.create(tstoreddef(def).genericdef);
+           genericdef:=cclassrefdef.create(tstoreddef(def).genericdef,acompiler);
       end;
 
 
-    constructor tclassrefdef.ppuload(ppufile:tcompilerppufile);
+    constructor tclassrefdef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(classrefdef,ppufile);
+         inherited ppuload(classrefdef,ppufile,acompiler);
          ppuload_platform(ppufile);
       end;
 
@@ -4226,9 +4232,9 @@ implementation
     function tclassrefdef.getcopy:tstoreddef;
       begin
         if pointeddef.typ=forwarddef then
-          result:=cclassrefdef.create(tforwarddef(pointeddef).getcopy)
+          result:=cclassrefdef.create(tforwarddef(pointeddef).getcopy,compiler)
         else
-          result:=cclassrefdef.create(pointeddef);
+          result:=cclassrefdef.create(pointeddef,compiler);
       end;
 
 
@@ -4262,13 +4268,13 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-    constructor tsetdef.create(def: tdef; low, high: asizeint; doregister: boolean);
+    constructor tsetdef.create(def: tdef; low, high: asizeint; doregister: boolean;acompiler:TCompilerBase);
       var
         setallocbits: aint;
         packedsavesize: aint;
         actual_setalloc: ShortInt;
       begin
-         inherited create(setdef,doregister);
+         inherited create(setdef,doregister,acompiler);
          elementdef:=def;
          elementdefderef.reset;
          setmax:=high;
@@ -4302,9 +4308,9 @@ implementation
       end;
 
 
-    constructor tsetdef.ppuload(ppufile:tcompilerppufile);
+    constructor tsetdef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(setdef,ppufile);
+         inherited ppuload(setdef,ppufile,acompiler);
          ppufile.getderef(elementdefderef);
          savesize:=ppufile.getasizeint;
          setbase:=ppufile.getasizeint;
@@ -4316,7 +4322,7 @@ implementation
 
     function tsetdef.getcopy : tstoreddef;
       begin
-        result:=csetdef.create(elementdef,setbase,setmax,true);
+        result:=csetdef.create(elementdef,setbase,setmax,true,compiler);
         { the copy might have been created with a different setalloc setting }
         tsetdef(result).savesize:=savesize;
       end;
@@ -4377,17 +4383,17 @@ implementation
                                  TFORMALDEF
 ***************************************************************************}
 
-    constructor tformaldef.create(Atyped:boolean);
+    constructor tformaldef.create(Atyped:boolean;acompiler:TCompilerBase);
       begin
-         inherited create(formaldef,true);
+         inherited create(formaldef,true,acompiler);
          typed:=Atyped;
          savesize:=0;
       end;
 
 
-    constructor tformaldef.ppuload(ppufile:tcompilerppufile);
+    constructor tformaldef.ppuload(ppufile:tcompilerppufile;acompiler:TCompilerBase);
       begin
-         inherited ppuload(formaldef,ppufile);
+         inherited ppuload(formaldef,ppufile,acompiler);
          typed:=boolean(ppufile.getbyte);
          savesize:=0;
          ppuload_platform(ppufile);
@@ -4415,9 +4421,9 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.create(l, h: asizeint; def: tdef);
+    constructor tarraydef.create(l, h: asizeint; def: tdef;acompiler:TCompilerBase);
       begin
-         inherited create(arraydef,true);
+         inherited create(arraydef,true,acompiler);
          lowrange:=l;
          highrange:=h;
          rangedef:=def;
@@ -4429,21 +4435,21 @@ implementation
       end;
 
 
-    constructor tarraydef.create_vector(l ,h: asizeint; def: tdef);
+    constructor tarraydef.create_vector(l ,h: asizeint; def: tdef;acompiler:TCompilerBase);
       begin
-        self.create(l,h,def);
+        self.create(l,h,def,acompiler);
         include(arrayoptions,ado_IsVector);
       end;
 
 
-    constructor tarraydef.create_openarray;
+    constructor tarraydef.create_openarray(acompiler:TCompilerBase);
       begin
-        self.create(0,-1,sizesinttype);
+        self.create(0,-1,sizesinttype,acompiler);
         include(arrayoptions,ado_OpenArray);
       end;
 
 
-    class function tarraydef.getreusable_intern(def: tdef; elems: asizeint; const options: tarraydefoptions): tarraydef;
+    class function tarraydef.getreusable_intern(def: tdef; elems: asizeint; const options: tarraydefoptions;acompiler:TCompilerBase): tarraydef;
       var
         res: PHashSetItem;
         oldsymtablestack: tsymtablestack;
@@ -4470,7 +4476,7 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            result:=carraydef.create(0,elems-1,sizesinttype);
+            result:=carraydef.create(0,elems-1,sizesinttype,acompiler);
             result.elementdef:=def;
             result.arrayoptions:=options;
             setup_reusable_def(def,result,res,oldsymtablestack);
@@ -4481,28 +4487,28 @@ implementation
       end;
 
 
-    class function tarraydef.getreusable(def: tdef; elems: asizeint): tarraydef;
+    class function tarraydef.getreusable(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
       begin
-        result:=getreusable_intern(def,elems,[]);
+        result:=getreusable_intern(def,elems,[],acompiler);
       end;
 
 
-    class function tarraydef.getreusable_vector(def: tdef; elems: asizeint): tarraydef;
+    class function tarraydef.getreusable_vector(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
       begin
-        result:=getreusable_intern(def,elems,[ado_IsVector]);
+        result:=getreusable_intern(def,elems,[ado_IsVector],acompiler);
       end;
 
 
-    class function tarraydef.getreusable_no_free(def: tdef; elems: asizeint): tarraydef;
+    class function tarraydef.getreusable_no_free(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
       begin
-        result:=getreusable(def,elems);
+        result:=getreusable(def,elems,acompiler);
         if not result.is_registered then
           include(result.defoptions,df_not_registered_no_free);
       end;
 
-    class function tarraydef.getreusable_no_free_vector(def: tdef; elems: asizeint): tarraydef;
+    class function tarraydef.getreusable_no_free_vector(def: tdef; elems: asizeint; acompiler: TCompilerBase): tarraydef;
       begin
-        result:=getreusable_vector(def,elems);
+        result:=getreusable_vector(def,elems,acompiler);
         if not result.is_registered then
           include(result.defoptions,df_not_registered_no_free);
       end;
@@ -4522,15 +4528,15 @@ implementation
            further, the element size might be 0 e.g. for empty records, so use max(...,1)
            to avoid a division by zero }
          self.create(0,(high(asizeint) div max(def.pointeddef.size,1))-1,
-           def.converted_pointer_to_array_range_type);
+           def.converted_pointer_to_array_range_type,compiler);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def.pointeddef);
       end;
 
 
-    constructor tarraydef.ppuload(ppufile:tcompilerppufile);
+    constructor tarraydef.ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
       begin
-         inherited ppuload(arraydef,ppufile);
+         inherited ppuload(arraydef,ppufile,acompiler);
          { the addresses are calculated later }
          ppufile.getderef(_elementdefderef);
          ppufile.getderef(rangedefderef);
@@ -4545,7 +4551,7 @@ implementation
 
     function tarraydef.getcopy : tstoreddef;
       begin
-        result:=carraydef.create(lowrange,highrange,rangedef);
+        result:=carraydef.create(lowrange,highrange,rangedef,compiler);
         tarraydef(result).arrayoptions:=arrayoptions;
         tarraydef(result)._elementdef:=_elementdef;
       end;
@@ -4799,9 +4805,9 @@ implementation
                               tabstractrecorddef
 ***************************************************************************}
 
-    constructor tabstractrecorddef.create(const n:string; dt:tdeftyp;doregister:boolean);
+    constructor tabstractrecorddef.create(const n:string; dt:tdeftyp;doregister:boolean;acompiler: TCompilerBase);
       begin
-        inherited create(dt,doregister);
+        inherited create(dt,doregister,acompiler);
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
         objectoptions:=[];
@@ -4812,11 +4818,11 @@ implementation
           end;
       end;
 
-    constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+    constructor tabstractrecorddef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler: TCompilerBase);
       var
         ro: trtti_option;
       begin
-        inherited ppuload(dt,ppufile);
+        inherited ppuload(dt,ppufile,acompiler);
         objrealname:=ppufile.getpshortstring;
         objname:=stringdup(upper(objrealname^));
         import_lib:=ppufile.getpshortstring;
@@ -5365,9 +5371,9 @@ implementation
                                   trecorddef
 ***************************************************************************}
 
-    constructor trecorddef.create(const n:string; p:TSymtable);
+    constructor trecorddef.create(const n:string; p:TSymtable;acompiler: TCompilerBase);
       begin
-         inherited create(n,recorddef,true);
+         inherited create(n,recorddef,true,acompiler);
          symtable:=p;
          { we can own the symtable only if nobody else owns a copy so far }
          if symtable.refcount=1 then
@@ -5377,7 +5383,7 @@ implementation
       end;
 
 
-    constructor trecorddef.create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable);
+    constructor trecorddef.create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable;acompiler: TCompilerBase);
       var
         name : string;
         pname : pshortstring;
@@ -5398,10 +5404,10 @@ implementation
           that can have side-effects (e.g., it removes helpers) }
         symtablestack:=nil;
 
-        symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin,compiler);
+        symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin,acompiler);
         symtable.defowner:=self;
         isunion:=false;
-        inherited create(pname^,recorddef,true);
+        inherited create(pname^,recorddef,true,acompiler);
         where.insertdef(self);
         { if we specified a name, then we'll probably want to look up the
           type again by name too -> create typesym }
@@ -5421,14 +5427,14 @@ implementation
       end;
 
 
-    constructor trecorddef.create_global_internal(const n: string; packrecords, recordalignmin: shortint);
+    constructor trecorddef.create_global_internal(const n: string; packrecords, recordalignmin: shortint;acompiler: TCompilerBase);
       var
         where : tsymtable;
       begin
         where:=current_module.localsymtable;
         if not assigned(where) then
           where:=current_module.globalsymtable;
-        create_internal(n,packrecords,recordalignmin,where);
+        create_internal(n,packrecords,recordalignmin,where,acompiler);
       end;
 
 
@@ -5461,7 +5467,7 @@ implementation
       end;
 
 
-    constructor trecorddef.ppuload(ppufile:tcompilerppufile);
+    constructor trecorddef.ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
 
       procedure readvariantrecdesc(var variantrecdesc : pvariantrecdesc);
         var
@@ -5485,7 +5491,7 @@ implementation
         end;
 
       begin
-         inherited ppuload(recorddef,ppufile);
+         inherited ppuload(recorddef,ppufile,acompiler);
          if df_copied_def in defoptions then
            begin
              ppufile.getderef(cloneddefderef);
@@ -5552,7 +5558,7 @@ implementation
 
     function trecorddef.getcopy : tstoreddef;
       begin
-        result:=crecorddef.create(objrealname^,symtable.getcopy);
+        result:=crecorddef.create(objrealname^,symtable.getcopy,compiler);
         trecorddef(result).isunion:=isunion;
         include(trecorddef(result).defoptions,df_copied_def);
         if assigned(tcinitcode) then
@@ -5713,9 +5719,9 @@ implementation
                        TABSTRACTPROCDEF
 ***************************************************************************}
 
-    constructor tabstractprocdef.create(dt:tdeftyp;level:byte;doregister:boolean);
+    constructor tabstractprocdef.create(dt:tdeftyp;level:byte;doregister:boolean;acompiler: TCompilerBase);
       begin
-         inherited create(dt,doregister);
+         inherited create(dt,doregister,acompiler);
          parast:=tparasymtable.create(self,level,compiler);
          paras:=nil;
          minparacount:=0;
@@ -5898,9 +5904,9 @@ implementation
       end;
 
 
-    constructor tabstractprocdef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
+    constructor tabstractprocdef.ppuload(dt:tdeftyp;ppufile:tcompilerppufile;acompiler: TCompilerBase);
       begin
-         inherited ppuload(dt,ppufile);
+         inherited ppuload(dt,ppufile,acompiler);
          parast:=nil;
          Paras:=nil;
          minparacount:=0;
@@ -6094,14 +6100,14 @@ implementation
         if newtyp=procdef then
           begin
             if (copytyp<>pc_bareproc) then
-              result:=cprocdef.create(nestinglevel,doregister)
+              result:=cprocdef.create(nestinglevel,doregister,compiler)
             else
-              result:=cprocdef.create(normal_function_level,doregister);
+              result:=cprocdef.create(normal_function_level,doregister,compiler);
             tprocdef(result).visibility:=vis_public;
           end
         else
           begin
-            result:=cprocvardef.create(nestinglevel,true);
+            result:=cprocvardef.create(nestinglevel,true,compiler);
           end;
         tabstractprocdef(result).returndef:=returndef;
         tabstractprocdef(result).returndefderef:=returndefderef;
@@ -6157,7 +6163,7 @@ implementation
                 tabstractprocdef(result).returndef:=tdef(owner.defowner);
                 if not(is_implicit_pointer_object_type(returndef) or
                    (returndef.typ<>objectdef)) then
-                  tabstractprocdef(result).returndef:=cpointerdef.getreusable(tabstractprocdef(result).returndef);
+                  tabstractprocdef(result).returndef:=cpointerdef.getreusable(tabstractprocdef(result).returndef,compiler);
                 tabstractprocdef(result).proctypeoption:=potype_function;
               end
             else if is_void(returndef) then
@@ -6648,9 +6654,9 @@ implementation
       end;
 
 
-    constructor tprocdef.create(level:byte;doregister:boolean);
+    constructor tprocdef.create(level:byte;doregister:boolean;acompiler: TCompilerBase);
       begin
-         inherited create(procdef,level,doregister);
+         inherited create(procdef,level,doregister,acompiler);
          implprocdefinfo:=allocmem(sizeof(implprocdefinfo^));
          localst:=tlocalsymtable.create(self,parast.symtablelevel,compiler);
 {$ifdef symansistr}
@@ -6683,13 +6689,13 @@ implementation
       end;
 
 
-    constructor tprocdef.ppuload(ppufile:tcompilerppufile);
+    constructor tprocdef.ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
       var
         i,aliasnamescount,sizeleft : longint;
         level : byte;
         buf : array[0..255] of byte;
       begin
-         inherited ppuload(procdef,ppufile);
+         inherited ppuload(procdef,ppufile,acompiler);
 {$ifdef symansistr}
          if po_has_mangledname in procoptions then
            _mangledname:=ppufile.getansistring
@@ -7159,7 +7165,7 @@ implementation
             resdef:=tabstractnormalvarsym(ressym).vardef;
             { and TP-style constructors return a pointer to self }
             if is_object(resdef) then
-              resdef:=cpointerdef.getreusable(resdef);
+              resdef:=cpointerdef.getreusable(resdef,compiler);
           end
         else if (proccalloption=pocall_safecall) and
            (tf_safecall_exceptions in target_info.flags) then
@@ -7678,9 +7684,9 @@ implementation
                                  TPROCVARDEF
 ***************************************************************************}
 
-    constructor tprocvardef.create(level:byte;doregister:boolean);
+    constructor tprocvardef.create(level:byte;doregister:boolean;acompiler: TCompilerBase);
       begin
-         inherited create(procvardef,level,doregister);
+         inherited create(procvardef,level,doregister,acompiler);
       end;
 
 
@@ -7727,9 +7733,9 @@ implementation
       end;
 
 
-    constructor tprocvardef.ppuload(ppufile:tcompilerppufile);
+    constructor tprocvardef.ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
       begin
-         inherited ppuload(procvardef,ppufile);
+         inherited ppuload(procvardef,ppufile,acompiler);
          { load para symtable }
          parast:=tparasymtable.create(self,ppufile.getbyte,compiler);
          ppuload_platform(ppufile);
@@ -7742,7 +7748,7 @@ implementation
         i : tcallercallee;
         j : longint;
       begin
-        result:=cprocvardef.create(parast.symtablelevel,true);
+        result:=cprocvardef.create(parast.symtablelevel,true,compiler);
         tprocvardef(result).returndef:=returndef;
         tprocvardef(result).returndefderef:=returndefderef;
         tprocvardef(result).parast:=parast.getcopy;
@@ -7904,9 +7910,9 @@ implementation
                               TOBJECTDEF
 ***************************************************************************}
 
-   constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean);
+   constructor tobjectdef.create(ot:tobjecttyp;const n:string;c:tobjectdef;doregister:boolean;acompiler: TCompilerBase);
      begin
-        inherited create(n,objectdef,doregister);
+        inherited create(n,objectdef,doregister,acompiler);
         fcurrent_dispid:=0;
         objecttype:=ot;
         childof:=nil;
@@ -7934,7 +7940,7 @@ implementation
      end;
 
 
-    constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
+    constructor tobjectdef.ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
       var
          i,
          implintfcount : longint;
@@ -7942,7 +7948,7 @@ implementation
          ImplIntf : TImplementedInterface;
          vmtentry : pvmtentry;
       begin
-         inherited ppuload(objectdef,ppufile);
+         inherited ppuload(objectdef,ppufile,acompiler);
          objecttype:=tobjecttyp(ppufile.getbyte);
          helpertype:=thelpertype(ppufile.getbyte);
          objextname:=ppufile.getpshortstring;
@@ -8101,7 +8107,7 @@ implementation
       var
         i : longint;
       begin
-        result:=cobjectdef.create(objecttype,objrealname^,childof,true);
+        result:=cobjectdef.create(objecttype,objrealname^,childof,true,compiler);
         { the constructor allocates a symtable which we release to avoid memory leaks }
         tobjectdef(result).symtable.free;
         tobjectdef(result).symtable:=symtable.getcopy;
@@ -9238,9 +9244,9 @@ implementation
                                 TFORWARDDEF
 ****************************************************************************}
 
-   constructor tforwarddef.create(const s:string;const pos:tfileposinfo);
+   constructor tforwarddef.create(const s:string;const pos:tfileposinfo;acompiler: TCompilerBase);
      begin
-        inherited create(forwarddef,true);
+        inherited create(forwarddef,true,acompiler);
         tosymname:=stringdup(s);
         forwardpos:=pos;
      end;
@@ -9260,22 +9266,22 @@ implementation
 
     function tforwarddef.getcopy:tstoreddef;
       begin
-        result:=cforwarddef.create(tosymname^, forwardpos);
+        result:=cforwarddef.create(tosymname^, forwardpos,compiler);
       end;
 
 {****************************************************************************
                                TUNDEFINEDDEF
 ****************************************************************************}
 
-   constructor tundefineddef.create(doregister:boolean);
+   constructor tundefineddef.create(doregister:boolean;acompiler: TCompilerBase);
      begin
-        inherited create(undefineddef,doregister);
+        inherited create(undefineddef,doregister,acompiler);
      end;
 
 
-    constructor tundefineddef.ppuload(ppufile:tcompilerppufile);
+    constructor tundefineddef.ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
       begin
-         inherited ppuload(undefineddef,ppufile);
+         inherited ppuload(undefineddef,ppufile,acompiler);
          ppuload_platform(ppufile);
       end;
 
@@ -9296,9 +9302,9 @@ implementation
                                   TERRORDEF
 ****************************************************************************}
 
-    constructor terrordef.create;
+    constructor terrordef.create(acompiler: TCompilerBase);
       begin
-        inherited create(errordef,true);
+        inherited create(errordef,true,acompiler);
         { prevent consecutive faults }
         savesize:=1;
       end;

@@ -156,11 +156,11 @@ implementation
 {                    t:=cstringdef.createlong(tordconstnode(p).value))}
                     Message(parser_e_invalid_string_size);
                     tordconstnode(p).value:=255;
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true,compiler);
                   end
                 else
                   if tordconstnode(p).value<>255 then
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true,compiler);
                 consume(_RECKKLAMMER);
               end;
              p.free;
@@ -273,7 +273,7 @@ implementation
            begin
              typecheckpass(p1);
              result:=internalstatements(compiler,newstatement);
-             hdef:=cpointerdef.getreusable(p1.resultdef);
+             hdef:=cpointerdef.getreusable(p1.resultdef,compiler);
              temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false,compiler);
              addstatement(newstatement,temp);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),caddrnode.create_internal(p1,compiler),compiler));
@@ -2048,7 +2048,7 @@ implementation
            elements.add(p4);
          until not try_to_consume(_COMMA);
 
-         arraydef:=carraydef.getreusable(s32inttype,elements.count);
+         arraydef:=carraydef.getreusable(s32inttype,elements.count,compiler);
          temp:=ctempcreatenode.create(arraydef,arraydef.size,tt_persistent,false,compiler);
          addstatement(newstatement,temp);
          for countindices:=0 to elements.count-1 do
@@ -2302,7 +2302,7 @@ implementation
                      ft_typed:
                        begin
                          p1:=cderefnode.create(ctypeconvnode.create_internal(ccallnode.createintern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil,compiler)),
-                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef),compiler),compiler);
+                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef,compiler),compiler),compiler);
                          typecheckpass(p1);
                        end;
                      else
@@ -3212,7 +3212,7 @@ implementation
                   result:=cloadnode.create(srsym,srsymtable,compiler);
                   do_typecheckpass(result);
                   if is_systemunit_unicode then
-                    result.resultdef:=cstringdef.createunicode(true)
+                    result.resultdef:=cstringdef.createunicode(true,compiler)
                   else
                     result.resultdef:=getansistringdef;
                 end
@@ -3330,7 +3330,7 @@ implementation
           undefinedsym :
             begin
               result:=cnothingnode.Create(compiler);
-              result.resultdef:=cundefineddef.create(true);
+              result.resultdef:=cundefineddef.create(true,compiler);
               { clean up previously created dummy symbol }
               srsym.free;
               srsym := nil;
@@ -3999,7 +3999,7 @@ implementation
                                    hdef:=hclassdef;
                                  if (po_classmethod in current_procinfo.procdef.procoptions) or
                                     (po_staticmethod in current_procinfo.procdef.procoptions) then
-                                   hdef:=cclassrefdef.create(hdef);
+                                   hdef:=cclassrefdef.create(hdef,compiler);
                                  if useself then
                                    begin
                                      p1:=ctypeconvnode.create_internal(load_self_node,hdef,compiler);

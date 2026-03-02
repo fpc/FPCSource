@@ -193,6 +193,8 @@ uses
 
     function create_generic_constsym(fromdef:tdef;node:tnode;out prettyname:string):tconstsym;
       const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      const
         undefinedname = 'undefined';
       var
         sym : tconstsym;
@@ -220,14 +222,14 @@ uses
                 l:=UnicodeToUtf8(nil,0,tstringconstnode(node).valuews.asconstpunicodechar,tstringconstnode(node).valuews.len);
                 getmem(sp,l);
                 UnicodeToUtf8(sp,l,tstringconstnode(node).valuews.asconstpunicodechar,tstringconstnode(node).valuews.len);
-                sym:=cconstsym.create_string(undefinedname,conststring,sp,l,fromdef);
+                sym:=cconstsym.create_string(undefinedname,conststring,sp,l,fromdef,compiler);
                 prettyname:=''''+sp+'''';
                 end
               else
                 begin
                 getmem(sp,tstringconstnode(node).len+1);
                 move(tstringconstnode(node).asconstpchar^,sp^,tstringconstnode(node).len+1);
-                sym:=cconstsym.create_string(undefinedname,conststring,sp,tstringconstnode(node).len,fromdef);
+                sym:=cconstsym.create_string(undefinedname,conststring,sp,tstringconstnode(node).len,fromdef,compiler);
                 prettyname:=''''+tstringconstnode(node).asconstpchar+'''';
                 end;
             end;
@@ -819,7 +821,7 @@ uses
                   { array constructor is not a valid parameter type; getreusable
                     avoids creating multiple implementations for calls with the
                     same number of array elements of a particular type }
-                  def:=carraydef.getreusable(tarraydef(def).elementdef,tarraydef(def).highrange-tarraydef(def).lowrange+1);
+                  def:=carraydef.getreusable(tarraydef(def).elementdef,tarraydef(def).highrange-tarraydef(def).lowrange+1,compiler);
                 end;
               newtype:=ctypesym.create(def.fullownerhierarchyname(false,true)+typName[def.typ]+'$'+def.unique_id_str,def);
               include(newtype.symoptions,sp_generic_unnamed_type);
@@ -2413,7 +2415,7 @@ uses
                       else
                         begin
                           srsymtable:=trecordsymtable.create(defname,0,1,compiler);
-                          basedef:=crecorddef.create(defname,srsymtable);
+                          basedef:=crecorddef.create(defname,srsymtable,compiler);
                           include(constraintdata.flags,gcf_record);
                           allowconstructor:=false;
                         end;
@@ -2474,7 +2476,7 @@ uses
                     if (basedef.typ<>objectdef) or
                         not (tobjectdef(basedef).objecttype in [odt_javaclass,odt_class]) then
                       internalerror(2012101101);
-                  basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef),false);
+                  basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef),false,compiler);
                   for i:=0 to constraintdata.interfaces.count-1 do
                     tobjectdef(basedef).register_implemented_interface(tobjectdef(constraintdata.interfaces[i]),false);
                 end
@@ -2484,7 +2486,7 @@ uses
                     if basedef.typ<>errordef then
                       internalerror(2013021601);
                     def:=tdef(constraintdata.interfaces[0]);
-                    basedef:=cobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def),false);
+                    basedef:=cobjectdef.create(tobjectdef(def).objecttype,defname,tobjectdef(def),false,compiler);
                     constraintdata.interfaces.delete(0);
                   end;
 
@@ -2517,7 +2519,7 @@ uses
                   for i:=firstidx to result.count-1 do
                     if tsym(result[i]).typ<>constsym then
                       begin
-                        ttypesym(result[i]).typedef:=cundefineddef.create(false);
+                        ttypesym(result[i]).typedef:=cundefineddef.create(false,compiler);
                         ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
                       end;
                   { a semicolon terminates a type parameter group }
@@ -2538,7 +2540,7 @@ uses
         for i:=firstidx to result.count-1 do
           if tsym(result[i]).typ<>constsym then
             begin
-              ttypesym(result[i]).typedef:=cundefineddef.create(false);
+              ttypesym(result[i]).typedef:=cundefineddef.create(false,compiler);
               ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
             end;
         block_type:=old_block_type;

@@ -500,7 +500,7 @@ implementation
           end;
 
         { create a temp to store parameter values }
-        vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size);
+        vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size,compiler);
         { the size will be set once the vardistpatchparadef record has been completed }
         params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false,compiler);
         addstatement(statements,params);
@@ -703,7 +703,7 @@ implementation
                 left.resultdef:=resultdef;
                 orgparadef:=resultdef;
               end;
-            paraaddrtype:=cpointerdef.getreusable(orgparadef);
+            paraaddrtype:=cpointerdef.getreusable(orgparadef,compiler);
             { create temp with address of the parameter }
             temp:=ctempcreatenode.create(
               paraaddrtype,paraaddrtype.size,tt_persistent,true,compiler);
@@ -936,7 +936,7 @@ implementation
                 { don't increase/decrease the reference count here, will be done by
                   the callee (see (*) above) -> typecast to array of byte
                   for the assignment to the temp }
-                temparraydef:=carraydef.getreusable(u8inttype,left.resultdef.size);
+                temparraydef:=carraydef.getreusable(u8inttype,left.resultdef.size,compiler);
                 paratemp:=ctempcreatenode.create(temparraydef,temparraydef.size,tt_persistent,false,compiler);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
@@ -2349,7 +2349,7 @@ implementation
                       is_object(p.resultdef);
 
             if usederef then
-              hdef:=cpointerdef.getreusable(p.resultdef)
+              hdef:=cpointerdef.getreusable(p.resultdef,compiler)
             else
               hdef:=p.resultdef;
 
@@ -2808,7 +2808,7 @@ implementation
                                   be marked as instantiatable (only the pointeddef will actually be
                                   recorded, so it's no problem that the clasrefdef is only temporary)
                                 }
-                                crefdef:=cclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
+                                crefdef:=cclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef,compiler);
                                 { and register it }
                                 crefdef.register_created_object_type;
                               end
@@ -5545,7 +5545,7 @@ implementation
         paraaddr: taddrnode;
         isfuncretnode : boolean;
       begin
-        ptrtype:=cpointerdef.getreusable(para.left.resultdef);
+        ptrtype:=cpointerdef.getreusable(para.left.resultdef,compiler);
         tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true,compiler);
         addstatement(inlineinitstatement,tempnode);
         isfuncretnode:=nf_is_funcret in para.left.flags;

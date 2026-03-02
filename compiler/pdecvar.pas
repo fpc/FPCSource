@@ -378,8 +378,8 @@ implementation
          { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
          paranr:=0;
-         readprocdef:=cprocdef.create(normal_function_level,false);
-         writeprocdef:=cprocdef.create(normal_function_level,false);
+         readprocdef:=cprocdef.create(normal_function_level,false,compiler);
+         writeprocdef:=cprocdef.create(normal_function_level,false,compiler);
 
          readprocdef.struct:=astruct;
          writeprocdef.struct:=astruct;
@@ -440,7 +440,7 @@ implementation
                       begin
                         consume(_OF);
                         { define range and type of range }
-                        hdef:=carraydef.create_openarray;
+                        hdef:=carraydef.create_openarray(compiler);
                         hdef.owner:=astruct.symtable;
                         { define field type }
                         compiler.parser.ptype.single_type(arraytype,[]);
@@ -676,7 +676,7 @@ implementation
                             procsym :
                               begin
                                  { Create a temporary procvardef to handle parameters }
-                                 storedprocdef:=cprocvardef.create(normal_function_level,true);
+                                 storedprocdef:=cprocvardef.create(normal_function_level,true,compiler);
                                  include(storedprocdef.procoptions,po_methodpointer);
                                  { Return type must be boolean }
                                  storedprocdef.returndef:=pasbool1type;
@@ -2064,7 +2064,7 @@ implementation
               consume(_OF);
 
               UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
-              UnionDef:=crecorddef.create('',unionsymtable);
+              UnionDef:=crecorddef.create('',unionsymtable,compiler);
               uniondef.isunion:=true;
 
               startvarrecsize:=UnionSymtable.datasize;

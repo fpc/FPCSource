@@ -2826,7 +2826,7 @@ const
                         llow:=rlow;
                         lhigh:=rhigh;
                       end;
-                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue,true);
+                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue,true,compiler);
                     inserttypeconv(left,nd,compiler);
                     if (rd.typ=setdef) then
                       inserttypeconv(right,nd,compiler)
@@ -3228,7 +3228,7 @@ const
           begin
             if is_zero_based_array(rd) then
               begin
-                resultdef:=cpointerdef.getreusable(tarraydef(rd).elementdef);
+                resultdef:=cpointerdef.getreusable(tarraydef(rd).elementdef,compiler);
                 inserttypeconv(right,resultdef,compiler);
               end
             else
@@ -3260,7 +3260,7 @@ const
            begin
              if is_zero_based_array(ld) then
                begin
-                  resultdef:=cpointerdef.getreusable(tarraydef(ld).elementdef);
+                  resultdef:=cpointerdef.getreusable(tarraydef(ld).elementdef,compiler);
                   inserttypeconv(left,resultdef,compiler);
                end
              else

@@ -29,6 +29,7 @@ unit paramgr;
 
     uses
        globtype,
+       compilerbase,
        cpubase,cgbase,cgutils,
        parabase,
        aasmdata,
@@ -665,6 +666,8 @@ implementation
 
 
     function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; forcetempdef: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         paraloc : pcgparalocation;
       begin
@@ -696,7 +699,7 @@ implementation
             retloc.def:=tdef(p.owner.defowner);
             if not (is_implicit_pointer_object_type(retloc.def) or
                (retloc.def.typ<>objectdef)) then
-              retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
+              retloc.def:=cpointerdef.getreusable_no_free(retloc.def,compiler);
           end;
         retcgsize:=def_cgsize(retloc.def);
         retloc.intsize:=retloc.def.size;
@@ -704,7 +707,7 @@ implementation
         { Return is passed as var parameter }
         if ret_in_param(retloc.def,p) then
           begin
-            retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
+            retloc.def:=cpointerdef.getreusable_no_free(retloc.def,compiler);
             paraloc:=retloc.add_location;
             paraloc^.loc:=LOC_REFERENCE;
             paraloc^.size:=retcgsize;
@@ -749,6 +752,8 @@ implementation
 
 
     function tparamanager.get_paraloc_def(paradef: tdef; restlen: aint; fullsize: boolean): tdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         if fullsize then
           result:=paradef
@@ -757,7 +762,7 @@ implementation
         else if restlen in [1,2,4,8] then
           result:=cgsize_orddef(int_cgsize(restlen))
         else
-          result:=carraydef.getreusable_no_free(u8inttype,restlen);
+          result:=carraydef.getreusable_no_free(u8inttype,restlen,compiler);
       end;
 
 

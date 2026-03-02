@@ -631,7 +631,7 @@ implementation
             if is_object(self_resultdef) then
               begin
                 self_temp:=ctempcreatenode.create_value(
-                  cpointerdef.getreusable(self_resultdef),cpointerdef.getreusable(self_resultdef).size,tt_persistent,true,
+                  cpointerdef.getreusable(self_resultdef,compiler),cpointerdef.getreusable(self_resultdef,compiler).size,tt_persistent,true,
                   caddrnode.create(self_node,compiler),compiler);
               end
             else
@@ -681,14 +681,14 @@ implementation
           result:=cderefnode.create(
             ctypeconvnode.create_explicit(
               self_node,
-              cpointerdef.getreusable(voidpointertype),
+              cpointerdef.getreusable(voidpointertype,compiler),
               compiler
             ),
             compiler
           );
         result:=ctypeconvnode.create_explicit(
           result,
-          cpointerdef.getreusable(obj_def.vmt_def),
+          cpointerdef.getreusable(obj_def.vmt_def,compiler),
           compiler);
         typecheckpass(result);
         if docheck then

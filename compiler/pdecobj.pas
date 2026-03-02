@@ -1545,7 +1545,7 @@ implementation
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
-                current_structdef:=cobjectdef.create(objecttype,n,nil,true);
+                current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);
                 include(current_structdef.objectoptions,oo_is_forward);
               end
             else
@@ -1558,7 +1558,7 @@ implementation
               Message(parser_f_no_anonym_objects);
 
             { create new class }
-            current_structdef:=cobjectdef.create(objecttype,n,nil,true);
+            current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);
             tobjectdef(current_structdef).helpertype:=helpertype;
 
             { include always the forward flag, it'll be removed once the whole
