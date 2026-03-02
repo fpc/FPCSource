@@ -318,9 +318,10 @@ implementation
     // for-in loop helpers
 
     function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase;
       begin
+        compiler:=hloopvar.compiler;
         result:=cfornode.create(hloopvar,
           cinlinenode.create(in_low_x,false,expr.getcopy,compiler),
           cinlinenode.create(in_high_x,false,expr.getcopy,compiler),
