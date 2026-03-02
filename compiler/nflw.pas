@@ -835,9 +835,8 @@ implementation
 
     function create_enumerator_for_in_loop(hloopvar, hloopbody, expr: tnode;
        enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         loopstatement, loopbodystatement: tstatementnode;
         enumvar: ttempcreatenode;
         loopbody, whileloopnode,
@@ -846,6 +845,7 @@ implementation
         enumerator_is_class: boolean;
         enumerator_destructor: tprocdef;
       begin
+        compiler:=hloopvar.compiler;
         { result is a block of statements }
         result:=internalstatements(loopstatement);
 
