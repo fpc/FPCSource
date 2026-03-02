@@ -370,8 +370,6 @@ implementation
     function translate_disp_call(selfnode,parametersnode: tnode; calltype: tdispcalltype; const methodname : ansistring;
       dispid : longint;resultdef : tdef) : tnode;
       const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
-      const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
         DISPATCH_PROPERTYPUT = $4;
@@ -382,6 +380,7 @@ implementation
           DISPATCH_METHOD, DISPATCH_PROPERTYGET, DISPATCH_PROPERTYPUT
         );
       var
+        compiler: TCompilerBase;
         statements : tstatementnode;
         result_data,
         params : ttempcreatenode;
@@ -443,6 +442,7 @@ implementation
         end;
 
       begin
+        compiler:=selfnode.compiler;
         variantdispatch:=selfnode.resultdef.typ=variantdef;
         result:=internalstatements(compiler,statements);
         result_data:=nil;
