@@ -316,7 +316,7 @@ interface
         procedure adddependency(callermodule:tmodule; frominterface : boolean);
         procedure removedependency(callermodule:tmodule);
         function hasdependency(callermodule:tmodule): boolean;
-        procedure flagdependent(callermodule:tmodule);
+        procedure flagdependent;
         class procedure increase_cycle_stamp;
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
@@ -1155,7 +1155,7 @@ implementation
         Result:=false;
       end;
 
-    procedure tmodule.flagdependent(callermodule:tmodule);
+    procedure tmodule.flagdependent;
       var
         dm : tdependent_unit;
         m : tmodule;
@@ -1192,7 +1192,7 @@ implementation
               must also be re-resolved, because they will also contain
               pointers to procdefs in the old trgobj (in case of a
               recompile, all old defs are freed) }
-            m.flagdependent(self);
+            m.flagdependent;
           end;
           dm:=tdependent_unit(dm.next);
         end;

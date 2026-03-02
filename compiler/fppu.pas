@@ -81,7 +81,7 @@ interface
           procedure reload;
           function ppuloadcancontinue(out firstwaiting: tmodule): boolean;
           function is_reload_needed(pu: tdependent_unit): boolean; override;
-          procedure recompile_cycle;
+          procedure recompile_from_sources;
           procedure post_load_or_compile(from_module : tmodule; second_time: boolean);
           procedure discardppu;
           procedure setdefgeneration;
@@ -97,7 +97,6 @@ interface
 
           function check_loadfrompackage: boolean;
           function  openppu(ppufiletime:longint):boolean;
-          procedure recompile_from_sources(from_module: tmodule);
           procedure mark_recompile_needed(reason: trecompile_reason);
           function  search_unit_files(loaded_from : tmodule; onlysource:boolean):TAvailableUnitFiles;
           function  search_unit(loaded_from : tmodule; onlysource,shortname:boolean):TAvailableUnitFiles;
@@ -2285,13 +2284,6 @@ var
           Result:=inherited is_reload_needed(pu);
       end;
 
-    procedure tppumodule.recompile_cycle;
-      begin
-        recompile_reason:=rr_buildcycle;
-        set_current_module(self);
-        recompile_from_sources(loadedfrommodule);
-      end;
-
     procedure tppumodule.setdefgeneration;
       begin
         defsgeneration:=currentdefgeneration;
@@ -2329,28 +2321,24 @@ var
           end;
       end;
 
-    procedure tppumodule.recompile_from_sources(from_module : tmodule);
+    procedure tppumodule.recompile_from_sources;
 
       var
         pu : tused_unit;
         was_interfaced_compiled: Boolean;
       begin
-        if current_module<>self then
-          begin
-            writeln('tppumodule.recompile_from_sources ',modulename^);
-            internalerror(2026030110);
-          end;
+        set_current_module(self);
 
         { recompile the unit or give a fatal error if sources not available }
         if not sources_avail then
          begin
-           search_unit_files(from_module,true);
+           search_unit_files(loadedfrommodule,true);
            if not sources_avail then
             begin
               printcomments;
               if recompile_reason=rr_noppu then
                 begin
-                  pu:=tused_unit(from_module.used_units.first);
+                  pu:=tused_unit(loadedfrommodule.used_units.first);
                   while assigned(pu) do
                     begin
                       if pu.u=self then
@@ -2358,9 +2346,9 @@ var
                       pu:=tused_unit(pu.next);
                     end;
                   if assigned(pu) and assigned(pu.unitsym) then
-                    MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^)
+                    MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^)
                   else
-                    Message2(unit_f_cant_find_ppu,realmodulename^,from_module.realmodulename^);
+                    Message2(unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^);
                 end
               else
                 Message1(unit_f_cant_compile_unit,realmodulename^);
@@ -2381,7 +2369,7 @@ var
         if fromppu then
           ppu_discarded:=true;
         { Flag modules to reload }
-        flagdependent(from_module);
+        flagdependent;
         { Reset stack, parser, scanner, etc }
         if not fromppu then
           end_of_parsing;

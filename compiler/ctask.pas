@@ -857,7 +857,9 @@ begin
     end;
 
   Result:=restore_state(m);
-  tppumodule(m).recompile_cycle; // this will call queuemodule
+  if m.recompile_reason=rr_unknown then
+    m.recompile_reason:=rr_buildcycle;
+  tppumodule(m).recompile_from_sources; // this will call queuemodule
   clear_state;
 end;
 
