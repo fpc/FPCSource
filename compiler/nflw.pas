@@ -627,9 +627,8 @@ implementation
 
 
     function create_array_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         loopstatement, loopbodystatement: tstatementnode;
         loopvar, arrayvar: ttempcreatenode;
         arrayindex, lowbound, highbound, loopbody, forloopnode, expression: tnode;
@@ -637,6 +636,7 @@ implementation
         tmpdef, convertdef: tdef;
         elementcount: aword;
       begin
+        compiler:=hloopvar.compiler;
         expression := expr;
 
         { result is a block of statements }
