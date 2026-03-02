@@ -28,6 +28,9 @@ interface
   uses
     cclasses,cstreams,
     globtype,
+    {$ifdef cpufpemu}
+    ppu,
+    {$endif}
     pcp,finput,fpkg;
 
   type
