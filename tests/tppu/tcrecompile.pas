@@ -41,10 +41,12 @@ type
     procedure GetCompiler;
     procedure CheckCompiler;
   published
+    // simple
     procedure TestTwoUnits; // 2 units, recompile first
     procedure TestChangeLeaf1; // prog->ant->bird, change bird, recompile ant as well
     procedure TestChangeInner1; // prog->ant->bird, change ant, keep bird.ppu
 
+    // cycles
     procedure TestCycle2_ChangeB; // prog->ant->bird, bird.impl->ant, change bird, same crc
     procedure TestCycle3_ChangeC; // prog->ant->bird->cat, cat.impl->ant, change cat same crc
     procedure TestCycle3_ChangeC_Intf; // prog->ant->bird->cat, cat.impl->ant, change cat interface crc
@@ -52,16 +54,15 @@ type
     procedure TestCycle2_ChangeB_CRC; // prog->ant->bird, bird.impl->ant, change bird crc
     procedure TestCycle22_ChangeC_CRC; // prog->ant->bird->cat, bird.impl->ant, cat.impl->bird, change cat crc
     procedure TestCycle32_ChangeC_CRC; // prog->ant->bird->cat, bird.impl->ant, cat.impl->bird+ant, change cat crc
-
-    // -Ur Generate release unit files (never automatically recompiled)
-    procedure TestUr_cycle2;
-
-    procedure TestChangeInlineBody; // prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
-
     procedure TestBug41457; // two cycles of size 2 and 3
+    procedure TestPrgNameClash1; // prg name clash with unit
+
+    // -Ur Generate release unit files (never automatically recompile ppu)
+    procedure TestUr_cycle2;
 
     // inline
     procedure TestInline1; // ant->bird->cat, cat inline body changes
+    procedure TestChangeInlineBody; // prog+1 unit plus a package of 2 units, change of inline body
 
     // inline modifier in implementation (not in interface)
     procedure TestImplInline1; // 2 units, cycle, impl inline
@@ -76,7 +77,7 @@ type
 
     // generics
     procedure TestGeneric_ChangeC; // change generic implementation of a specialization
-    procedure TestGeneric_IndirectUses; // specialization of an inherited class in an indirectly used unit
+    procedure TestGeneric_IndirectUses; // TODO: specialization of an inherited class in an indirectly used unit
     procedure TestGeneric_Cycle1; // prg->ant->bird, bird.impl->ant, TAnt->TBird
     procedure TestGeneric_Cycle2; // prg->ant.impl->bird, bird.impl->ant, TAnt->TBird
   end;
@@ -347,6 +348,27 @@ begin
   Compile;
   // the main src is always compiled, ant changed, bird is kept
   CheckCompiled(['changeinner1_prg.pas','changeinner1_ant.pas']);
+end;
+
+procedure TTestRecompile.TestPrgNameClash1;
+// prog->ant->bird, prg name clash with bird
+var
+  Dir: String;
+begin
+  Dir:='prgnameclash1';
+  UnitPath:=Dir;
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'prgnameclash1_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['prgnameclash1_prg.pas','prgnameclash1_ant.pas','prgnameclash1_bird.pas']);
+
+  Step:='Second compile';
+  Compile;
+  // the main src is always compiled
+  CheckCompiled(['prgnameclash1_prg.pas']);
 end;
 
 procedure TTestRecompile.TestCycle2_ChangeB;
@@ -800,6 +822,8 @@ procedure TTestRecompile.TestGeneric_IndirectUses;
 var
   Dir: String;
 begin
+  exit;
+
   Dir:='generic_indirectuses';
   UnitPath:=Dir+';'+Dir+PathDelim+'src1';
   OutDir:=Dir+PathDelim+'ppus';

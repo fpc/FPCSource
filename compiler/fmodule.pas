@@ -251,6 +251,8 @@ interface
         other_scc_unfinished: boolean; { only valid for scc roots }
         scc_tree_crc_wait: tmodule;
 
+        task: TObject;         { ctask ttask }
+
         localunitsearchpath,           { local searchpaths }
         localobjectsearchpath,
         localincludesearchpath,
