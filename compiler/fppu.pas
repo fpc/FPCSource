@@ -2133,6 +2133,13 @@ var
         begin
           if pu.in_interface=in_interface then
           begin
+            { adddependency before loadppu for invalid cycle test }
+            if not pu.dependent_added then
+            begin
+              pu.u.adddependency(self,in_interface);
+              pu.dependent_added:=true;
+            end;
+
             tppumodule(pu.u).loadppu(self);
             { if this unit is scheduled for compilation or compiled we can stop }
             if state<>ms_load then
@@ -2145,13 +2152,6 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.load_usedunits_section ',modulename^,' (',statestr,') ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" state=',pu.u.statestr);
             {$ENDIF}
-
-            if not pu.dependent_added then
-            begin
-              { add this unit to the dependencies }
-              pu.u.adddependency(self,true);
-              pu.dependent_added:=true;
-            end;
 
             { check crc(s) if recompile is needed.
               Currently ppus wait for a pas to be compiled, because a ppu cannot
@@ -2661,11 +2661,11 @@ var
               { unit cycle found }
               if Cycle=nil then Cycle:=TFPList.Create;
               Cycle.Add(aFile);
-              // Writeln('exit at ',aParent.u.get_modulename);
+              //Writeln('exit at ',aFile.modulename^,' callermodule=',callermodule.modulename^,' in_interface=',callermodule.in_interface);
               exit(true);
             end;
 
-            aParent:=tdependent_unit(afile.dependent_units.First);
+            aParent:=tdependent_unit(aFile.dependent_units.First);
             While Assigned(aParent) do
             begin
               //writeln('Registering ',Callermodule.modulename^,': checking cyclic dependency of ',aFile.modulename^, ' on ',aParent.u.modulename^);
@@ -2674,7 +2674,7 @@ var
                 // writeln('Registering ',Callermodule.get_modulename,': checking cyclic dependency of ',aFile.get_modulename, ' on ',aparent.u.get_modulename);
                 if FindCycle(tppumodule(aParent.u),SearchFor,Cycle) then
                 begin
-                  // Writeln('Cycle found, exit at ',aParent.u.get_modulename);
+                  //Writeln('Cycle found, exit at ',aParent.u.modulename^,' uses ',aFile.modulename^);
                   Cycle.Add(aFile);
                   exit(true);
                 end;
@@ -2717,7 +2717,7 @@ var
           Cycle:=nil;
           try
             tmodule.increase_cycle_stamp;
-            if FindCycle(CallerModule as tppumodule,hp,Cycle) then
+            if FindCycle(tppumodule(CallerModule),hp,Cycle) then
             begin
               {$IFDEF DEBUGCYCLE}
               Writeln('Done cycle check');

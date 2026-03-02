@@ -1118,11 +1118,12 @@ implementation
 
     procedure tmodule.adddependency(callermodule: tmodule; frominterface: boolean);
       begin
-        { This is not needed for programs }
-        if not callermodule.is_unit then
-          exit;
         if hasdependency(callermodule) then exit;
-        Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
+        if is_unit then
+          Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
+
+        { dependent_units is needed by the invalid cycle test,
+          using the program is an invalid cycle as well }
         dependent_units.concat(tdependent_unit.create(callermodule,frominterface));
 
         if callermodule.scc_finished then

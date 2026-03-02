@@ -198,8 +198,8 @@ implementation
         hp:=registerunit(curr,s,'',isnew);
         if isnew then
           usedunits.concat(tused_unit.create(hp,true,addasused,nil));
+        hp.adddependency(curr,curr.in_interface); { adddependency before loadppu for invalid cycle test }
         hp.loadppu(curr);
-        hp.adddependency(curr,curr.in_interface);
 
         { add to symtable stack }
         if assigned(hp.globalsymtable) then
@@ -727,6 +727,12 @@ implementation
             if pu.in_uses and
                (pu.in_interface=frominterface) then
              begin
+               { adddependency before loadppu for invalid cycle test }
+               if not pu.dependent_added then
+               begin
+                 pu.dependent_added:=true;
+                 lu.adddependency(curr,frominterface);
+               end;
                { always call loadppu for the cycle test }
                tppumodule(lu).loadppu(curr);
                if not (curr.state in [ms_compile,ms_compiling_wait,ms_compiling_waitintf,ms_compiling_waitimpl]) then
@@ -736,11 +742,6 @@ implementation
                  {$ENDIF}
                  Result:=false;
                  break;
-               end;
-               if not pu.dependent_added then
-               begin
-                 pu.dependent_added:=true;
-                 lu.adddependency(curr,frominterface);
                end;
                if not lu.interface_compiled or lu.do_reload or tmodule.ctask_fast_backtrack then
                begin
