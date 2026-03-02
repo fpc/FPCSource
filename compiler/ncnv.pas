@@ -88,6 +88,8 @@ interface
           { called when inserttypeconv is used to convert to a def that is equal
             according to compare_defs() }
           class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; virtual;
+       private
+          function maybe_classmethod_to_methodprocvar(var fromnode: tnode; todef: tdef): boolean;
        protected
           function typecheck_int_to_int : tnode; virtual;
           function typecheck_cord_to_pointer : tnode; virtual;
@@ -916,9 +918,7 @@ implementation
       procvar of object. pexpr.do_proc_call() stores the symtable of classtype
       in the loadnode so we can retrieve it here (rather than the symtable in
       which method was found, which may be a parent class) }
-    function maybe_classmethod_to_methodprocvar(var fromnode: tnode; todef: tdef): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function ttypeconvnode.maybe_classmethod_to_methodprocvar(var fromnode: tnode; todef: tdef): boolean;
       var
         hp: tnode;
       begin
