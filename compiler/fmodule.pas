@@ -243,7 +243,8 @@ interface
                                  all circular connected modules have the same lowindex }
         scc_onstack: boolean;  { dont use. used in ttask_handler.update_circular_unit_groups }
         class var
-          ctask_fast_backtrack: boolean;
+          ctask_fast_backtrack: boolean; { true if some cycle was detected and returning fast to ctask scheduler }
+          ctask_finishing_main: boolean; { true if program/package was parsed and now the final rtl modules are loaded }
           cycle_stamp: dword;
         var
         cycle_search_stamp: dword;
@@ -887,6 +888,9 @@ implementation
         globalmacrosymtable := nil;
         localmacrosymtable.free;
         localmacrosymtable := nil;
+
+        task:=nil;
+        all_modules[moduleid]:=nil;
 {$ifdef MEMDEBUG}
         memsymtable.stop;
 {$endif}

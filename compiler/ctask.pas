@@ -895,7 +895,6 @@ begin
     inc(loopcnt);
     writeln('CTASK: Iteration: ',loopcnt);
     {$ENDIF}
-    tmodule.ctask_fast_backtrack:=false;
 
     recompile_pending(scc_root);
 
@@ -971,6 +970,7 @@ begin
       end;
 
     {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',besttask.module.ToString,' state=',besttask.module.statestr,' total-units=',loaded_units.Count,' tasks=',taskcount);{$ENDIF}
+    tmodule.ctask_fast_backtrack:=false;
     if continue_task(besttask) then
       begin
         {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',besttask.module.ToString,' is finished, removing from task list');{$ENDIF}
@@ -988,6 +988,12 @@ var
   t : ttask;
 
 begin
+  if tmodule.ctask_finishing_main then
+    begin
+      {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' skipping final rtl unit ',m.statestr,' moduleid=',m.moduleid);{$ENDIF}
+      exit;
+    end;
+
   t:=findtask(m);
   if t=nil then
     begin
@@ -1007,6 +1013,7 @@ begin
       t.DiscardState;
       end;
     end;
+  tmodule.ctask_fast_backtrack:=true;
 end;
 
 procedure ttask_handler.write_scc;

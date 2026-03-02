@@ -381,7 +381,8 @@ implementation
       end;
 
 
-    { Return true if all units were loaded, no recompilation needed. }
+    { load default units, like language mode units
+      Return true if all units were loaded, no recompilation needed. }
     function loaddefaultunits(curr :tmodule) : boolean;
 
       Procedure CheckAddUnit(s: string);
@@ -580,8 +581,8 @@ implementation
 {$endif RISCV32}
       end;
 
-
-    { Return true if all units were loaded, no recompilation needed. }
+    { Load units provided on the command line
+      Return true if all units were loaded, no recompilation needed. }
     function loadautounits(curr: tmodule) : boolean;
 
       Procedure CheckAddUnit(s: string);
@@ -748,6 +749,9 @@ implementation
                  { an used unit is delayed
                    Important: do not break, load the remaining uses section, so the scheduler
                               has more information about cycles }
+                 {$IFDEF DEBUG_PPU_CYCLES}
+                 writeln('PPUALGO loadunits ',curr.modulename^,' ',curr.statestr,' ',BoolToStr(pu.in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'", state=',pu.u.statestr,', waiting ...');
+                 {$ENDIF}
                  tmodule.ctask_fast_backtrack:=true;
                  Result:=false;
                end;
@@ -2419,6 +2423,7 @@ type
         hp:=nil;
         hp2:=nil;
         resources_used:=false;
+        tmodule.ctask_finishing_main:=true;
 
   {$ifdef DEBUG_NODE_XML}
         if IsLibrary then
@@ -3018,8 +3023,11 @@ type
              load_ok:=loadunits(curr,false) and load_ok;
              curr.consume_semicolon_after_uses:=true;
            end
-         else
+         else begin
            curr.consume_semicolon_after_uses:=false;
+           if tmodule.ctask_fast_backtrack then
+             load_ok:=false; { some used units are not fully compiled }
+         end;
 
          if curr.is_initial then
            load_ok:=false; { delay program, so ctask can finish all units }

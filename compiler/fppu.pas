@@ -2102,13 +2102,14 @@ var
               the scc_tree_crc_wait is outdated.
               If all used units are compiled, continue.
               otherwise some used units might still change }
-            if not are_all_used_units_compiled then
+            if not ctask_finishing_main and not are_all_used_units_compiled then
               exit(false);
           end;
 
         { check that all used units have their crc and checksums match }
         if not ppu_check_used_crcs then
           exit(false);
+        ppu_waitingfor_crc:=false;
 
         derefunitimportsyms;
 
@@ -2189,7 +2190,8 @@ var
             end;
 
             if pu.u.do_reload
-                or (not pu.u.interface_compiled) then
+                or (not pu.u.interface_compiled)
+                or ctask_fast_backtrack then
             begin
               { this used unit is delayed
                 Important: do not break, load the remaining uses section, so the scheduler
