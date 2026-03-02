@@ -667,9 +667,9 @@ var
        begin
          fnd:=[];
          if shortname then
-          filename:=FixFileName(Copy(realmodulename^,1,8))
+           filename:=FixFileName(Copy(realmodulename^,1,8))
          else
-          filename:=FixFileName(realmodulename^);
+           filename:=FixFileName(realmodulename^);
          { try to find unit
             1. look for ppu in cwd
             2. look for ppu in outputpath if set, this is tp7 compatible (PFV)
@@ -2652,25 +2652,26 @@ var
             aParent: tdependent_unit;
           begin
             { check already visited }
-            if aFile.cycle_stamp=tppumodule.cycle_stamp then
+            if aFile.cycle_search_stamp=tppumodule.cycle_stamp then
               exit(false);
-            aFile.cycle_stamp:=tppumodule.cycle_stamp; { mark visited }
+            aFile.cycle_search_stamp:=tppumodule.cycle_stamp; { mark visited }
+
+            if aFile=SearchFor then
+            begin
+              { unit cycle found }
+              if Cycle=nil then Cycle:=TFPList.Create;
+              Cycle.Add(aFile);
+              // Writeln('exit at ',aParent.u.get_modulename);
+              exit(true);
+            end;
 
             aParent:=tdependent_unit(afile.dependent_units.First);
             While Assigned(aParent) do
             begin
+              //writeln('Registering ',Callermodule.modulename^,': checking cyclic dependency of ',aFile.modulename^, ' on ',aParent.u.modulename^);
               if aParent.in_interface then
               begin
                 // writeln('Registering ',Callermodule.get_modulename,': checking cyclic dependency of ',aFile.get_modulename, ' on ',aparent.u.get_modulename);
-                if aParent.u=SearchFor then
-                begin
-                  { unit cycle found }
-                  if Cycle=nil then Cycle:=TFPList.Create;
-                  Cycle.Add(aParent.u);
-                  Cycle.Add(aFile);
-                  // Writeln('exit at ',aParent.u.get_modulename);
-                  exit(true);
-                end;
                 if FindCycle(tppumodule(aParent.u),SearchFor,Cycle) then
                 begin
                   // Writeln('Cycle found, exit at ',aParent.u.get_modulename);
@@ -2695,6 +2696,7 @@ var
       begin
         { Info }
         ups:=upper(s);
+
         { search all loaded units, skip program/library }
         hp:=tppumodule(loaded_units.first);
         while assigned(hp) and ((hp.modulename^<>ups) or not hp.is_unit) do
