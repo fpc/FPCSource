@@ -885,11 +885,11 @@ implementation
       solution is to remove the (wrong) conversion to a global procvar,
       and instead insert a conversion to the local procvar type. }
     function maybe_global_proc_to_nested(var fromnode: tnode; todef: tdef): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         hp: tnode;
       begin
+        compiler:=fromnode.compiler;
         result:=false;
         if (m_nested_procvars in current_settings.modeswitches) and
            not(m_tp_procvar in current_settings.modeswitches) and
