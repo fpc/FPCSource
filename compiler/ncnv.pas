@@ -782,9 +782,10 @@ implementation
 
 
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase;
       begin
+        compiler:=p.compiler;
         { procvars without arguments in variant arrays are always called by
           Delphi }
         if not(iscvarargs) then
