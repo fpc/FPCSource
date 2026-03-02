@@ -412,9 +412,10 @@ implementation
 
 
     procedure addstatement(var laststatement:tstatementnode;n:tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase;
       begin
+        compiler:=laststatement.compiler;
         if assigned(laststatement.right) then
           internalerror(200204201);
         laststatement.right:=cstatementnode.create(n,nil,compiler);
