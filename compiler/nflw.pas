@@ -951,14 +951,14 @@ implementation
 
 
     function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
+        compiler: TCompilerBase;
         pd, movenext: tprocdef;
         helperdef: tobjectdef;
         current: tpropertysym;
         storefilepos: tfileposinfo;
       begin
+        compiler:=hloopvar.compiler;
         storefilepos:=current_filepos;
         current_filepos:=hloopvar.fileinfo;
         if expr.nodetype=typen then
