@@ -30,7 +30,6 @@ uses fmodule;
 {$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
 {$endif PREPROCWRITE}
-    function compile(const filename:string) : boolean;
     function compile_module(module : tmodule) : boolean;
     procedure parsing_done(module : tmodule);
     procedure initparser;
@@ -399,17 +398,6 @@ implementation
 {*****************************************************************************
                              Compile a source file
 *****************************************************************************}
-
-    function compile(const filename:string) : boolean;
-
-    var
-      m : TModule;
-
-    begin
-      m:=tppumodule.create(nil,'',filename,false);
-      m.state:=ms_compile;
-      result:=compile_module(m);
-    end;
 
     function compile_module(module : tmodule) : boolean;
 
