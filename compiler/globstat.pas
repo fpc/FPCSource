@@ -79,6 +79,7 @@ type
     procedure save_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
     procedure restore;
     procedure reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
+    class procedure clear_state;
   end;
 
 procedure save_global_state(state:tglobalstate);
@@ -307,6 +308,26 @@ var
             end;
           item:=item^.next;
         end;
+    end;
+
+  class procedure tglobalstate.clear_state;
+    begin
+      symtablestack:=nil;
+      macrosymtablestack:=nil;
+      current_procinfo:=nil;
+
+      block_type:=bt_none;
+      flushpendingswitchesstate;
+      switchesstatestack:=default(tswitchesstatestack);
+      switchesstatestackpos:=0;
+
+      parse_only:=false;
+      current_settings:=default(tsettings);
+      current_asmdata:=nil;
+      current_debuginfo:=nil;
+
+      parser_current_file:='';
+      set_current_scanner(nil);
     end;
 
   constructor tglobalstate.create(for_module_switch: boolean);

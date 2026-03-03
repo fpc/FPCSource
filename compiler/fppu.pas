@@ -77,7 +77,7 @@ interface
           function loadppu(from_module : tmodule) : boolean;
           function get_check_uses(out check_impl_uses, check_crc: boolean): boolean;
           function continueloadppu : boolean;
-          function canreload(out firstwaiting: tmodule; recompile_if_crc_changed, ignore_do_reload: boolean): boolean;
+          function canreload(out firstwaiting: tmodule; ignore_do_reload: boolean): boolean;
           procedure reload;
           function ppuloadcancontinue(out firstwaiting: tmodule): boolean;
           function is_reload_needed(pu: tdependent_unit): boolean; override;
@@ -2186,6 +2186,8 @@ var
               {$IFDEF DEBUG_PPU_CYCLES}
               writeln('PPUALGO tppumodule.load_usedunits_section ',modulename^,' ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
               {$ENDIF}
+              if (mf_release in moduleflags) and fromppu then
+                error_release_checksum_changed(pu);
               { Note: the recompile_from_sources is invoked by the caller }
               state:=ms_compile;
               exit(false);
@@ -2230,6 +2232,8 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.ppu_check_used_crcs ',modulename^,' interface uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
             {$ENDIF}
+            if (mf_release in moduleflags) and fromppu then
+              error_release_checksum_changed(pu);
             state:=ms_compile;
             exit;
           end;
@@ -2552,8 +2556,7 @@ var
         set_current_module(old_module);
       end;
 
-    function tppumodule.canreload(out firstwaiting: tmodule;
-        recompile_if_crc_changed, ignore_do_reload: boolean): boolean;
+    function tppumodule.canreload(out firstwaiting: tmodule; ignore_do_reload: boolean): boolean;
       var
         check_impl_uses, check_crc: Boolean;
         pu: tused_unit;
@@ -2573,30 +2576,6 @@ var
               firstwaiting:=pu.u;
               exit(false);
             end;
-
-            if recompile_if_crc_changed then
-              begin
-                if (pu.u.interface_crc<>pu.interface_checksum) or
-                    (pu.u.indirect_crc<>pu.indirect_checksum) or
-                    (check_crc and pu.u.crc_final and (pu.u.crc<>pu.checksum) ) then
-                begin
-                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename,@queuecomment);
-      {$ifdef DEBUG_UNIT_CRC_CHANGES}
-                  if (pu.u.interface_crc<>pu.interface_checksum) then
-                    Comment(V_Normal,'  intfcrc change: '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
-                  else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                    Comment(V_Normal,'  indcrc change: '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^)
-                  else
-                    Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
-      {$endif DEBUG_UNIT_CRC_CHANGES}
-                  {$IFDEF DEBUG_PPU_CYCLES}
-                  writeln('PPUALGO tppumodule.canreload ',modulename^,' ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
-                  {$ENDIF}
-                  mark_recompile_needed(rr_crcchanged);
-                  exit(false);
-                end;
-              end;
-
           end;
           pu:=tused_unit(pu.next);
         end;
@@ -2616,7 +2595,7 @@ var
           Internalerror(2026022410);
         end;
 
-        if not canreload(firstwaiting,true,true) then
+        if not canreload(firstwaiting,true) then
         begin
           if do_reload then
           begin

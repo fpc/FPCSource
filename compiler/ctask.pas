@@ -66,7 +66,6 @@ type
     procedure queuemodule(m: tmodule);
     procedure renamemodule(m: tmodule; const oldname: TSymStr);
     function restore_state(m: tmodule): ttask;
-    procedure clear_state;
     function reload_module(m: tmodule): ttask;
     function recompile_module(m: tmodule): ttask;
     procedure update_circular_unit_groups;
@@ -348,7 +347,7 @@ begin
     end;
 
   if m.do_reload then
-    cancontinue:=tppumodule(m).canreload(firstwaiting,false,false)
+    cancontinue:=tppumodule(m).canreload(firstwaiting,false)
   else
   begin
     case m.state of
@@ -402,7 +401,7 @@ begin
   begin
     tppumodule(m).reload;
     t.SaveState;
-    clear_state;
+    tglobalstate.clear_state;
     exit(false);
   end;
   case m.state of
@@ -461,12 +460,13 @@ begin
   if not result then
     { Not done, save state }
     t.SaveState;
-  clear_state;
+  tglobalstate.clear_state;
 end;
 
 procedure ttask_handler.search_finished_scc(m: tmodule{$IFDEF DEBUG_PPU_CYCLES}; const Indent: string{$ENDIF});
 { called after all circular_unit_groups have beeen computed.
-  depth-first-search all modules and computes tree_unfinished and other_scc_unfinished.
+  depth-first-search all modules and computes scc_tree_unfinished, other_scc_unfinished
+  and scc_tree_crc_wait.
   marks finished scc with scc_finished:=true.
   returns an unfinished scc root, which sub sccs are all finished }
 var
@@ -599,7 +599,7 @@ begin
       if m.do_reload then
         begin
           HasDoReload:=true;
-          if not tppumodule(m).canreload(firstwaiting,false,true) then
+          if not tppumodule(m).canreload(firstwaiting,true) then
             exit;
         end;
       m:=m.scc_next;
@@ -659,6 +659,8 @@ begin
                       else
                         writeln(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.modulename^+' <> '+hexstr(pu.checksum,8)+' in unit '+m.modulename^);
                       {$endif DEBUG_UNIT_CRC_CHANGES}
+                      if (mf_release in m.moduleflags) and m.fromppu then
+                        m.error_release_checksum_changed(pu);
                       recompile_module(m);
                       Result:=true;
                       break;
@@ -838,12 +840,6 @@ begin
     Result.RestoreState;
 end;
 
-procedure ttask_handler.clear_state;
-begin
-  symtablestack:=nil;
-  macrosymtablestack:=nil;
-end;
-
 function ttask_handler.reload_module(m: tmodule): ttask;
 begin
   if m.state in [ms_compiled,ms_processed] then
@@ -855,7 +851,7 @@ begin
   Result:=restore_state(m);
   tppumodule(m).reload;
   Result.SaveState;
-  clear_state;
+  tglobalstate.clear_state;
 end;
 
 function ttask_handler.recompile_module(m: tmodule): ttask;
@@ -875,7 +871,7 @@ begin
   if m.recompile_reason=rr_unknown then
     m.recompile_reason:=rr_buildcycle;
   tppumodule(m).recompile_from_sources; // this will call queuemodule
-  clear_state;
+  tglobalstate.clear_state;
 end;
 
 procedure ttask_handler.update_circular_unit_groups;
