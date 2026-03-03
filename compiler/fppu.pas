@@ -2102,7 +2102,7 @@ var
               the scc_tree_crc_wait is outdated.
               If all used units are compiled, continue.
               otherwise some used units might still change }
-            if not ctask_finishing_main and not are_all_used_units_compiled then
+            if not are_all_used_units_compiled then
               exit(false);
           end;
 
@@ -2427,10 +2427,10 @@ var
                  modulename^);
 
         if do_reload then
-          exit; { reload needed. This needs all used units, so the scheduler invokes reload }
+          exit; { reload needed. see scheduler }
 
         if state>ms_registered then
-          exit(interface_compiled); { loading has already started }
+          exit(interface_compiled); { loading has already started or is finished }
 
         if ppu_discarded then
           exit; { the ppu crc didn't match and this module was reset, don't load the ppu }

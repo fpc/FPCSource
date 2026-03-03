@@ -244,7 +244,6 @@ interface
         scc_onstack: boolean;  { dont use. used in ttask_handler.update_circular_unit_groups }
         class var
           ctask_fast_backtrack: boolean; { true if some cycle was detected and returning fast to ctask scheduler }
-          ctask_finishing_main: boolean; { true if program/package was parsed and now the final rtl modules are loaded }
           cycle_stamp: dword;
         var
         cycle_search_stamp: dword;
@@ -324,6 +323,7 @@ interface
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
         function are_all_used_units_compiled: boolean;
+        class var finish_module: tqueue_module_event;
         class var queue_module: tqueue_module_event;
         class var rename_module: trename_module_event;
         procedure addimportedsym(sym:TSymEntry; check_if_exists: boolean = true);

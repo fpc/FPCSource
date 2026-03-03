@@ -186,7 +186,7 @@ implementation
         CheckResourcesUsed:=found;
       end;
 
-    function AddUnit(curr : tmodule; const s:string;addasused:boolean): tppumodule;
+    function AddUnit(curr : tmodule; const s:string; addasused:boolean = true): tppumodule;
       var
         hp : tppumodule;
         unitsym : tunitsym;
@@ -200,6 +200,7 @@ implementation
           usedunits.concat(tused_unit.create(hp,true,addasused,nil));
         hp.adddependency(curr,curr.in_interface); { adddependency before loadppu for invalid cycle test }
         hp.loadppu(curr);
+        tmodule.finish_module(hp);
 
         { add to symtable stack }
         if assigned(hp.globalsymtable) then
@@ -219,13 +220,6 @@ implementation
         end;
         result:=hp;
       end;
-
-
-    function AddUnit(curr :tmodule; const s:string):tppumodule;
-      begin
-        result:=AddUnit(curr,s,true);
-      end;
-
 
     function maybeloadvariantsunit(curr : tmodule) : boolean;
       var
@@ -2050,7 +2044,7 @@ type
                  def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
            end;
 
-         {Load the units used by the program we compile.}
+         { Load the units used by the program we compile. }
          if (current_scanner.token=_ID) and (current_scanner.idtoken=_CONTAINS) then
            begin
              { consume _CONTAINS word }
@@ -2417,13 +2411,11 @@ type
         sysinitmod, hp,hp2 : tmodule;
         resources_used : boolean;
 
-
       begin
         sysinitmod:=nil;
         hp:=nil;
         hp2:=nil;
         resources_used:=false;
-        tmodule.ctask_finishing_main:=true;
 
   {$ifdef DEBUG_NODE_XML}
         if IsLibrary then
