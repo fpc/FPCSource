@@ -2167,7 +2167,9 @@ var
                      ((pu.u.interface_crc<>pu.interface_checksum) or
                       (pu.u.indirect_crc<>pu.indirect_checksum)))
                 or (CRCValid and
+                  {$IFNDEF EnableUrCRC}
                   (not (mf_release in moduleflags)) and
+                  {$ENDIF}
                   (pu.u.crc<>pu.checksum)
                  ) then
             begin
@@ -2266,7 +2268,8 @@ var
         begin
           if pu.u.do_reload
               or not pu.u.interface_compiled
-              or (ppu_waitingfor_crc and not pu.u.crc_final and not (mf_release in moduleflags) ) then
+              or (ppu_waitingfor_crc and not pu.u.crc_final
+                 {$IFNDEF EnableUrCRC}and not (mf_release in moduleflags){$ENDIF} ) then
           begin
             firstwaiting:=pu.u;
             exit;
@@ -2498,8 +2501,8 @@ var
           check_impl_uses:=state in [ms_compiling_waitfinish..ms_compiled,ms_processed];
 
         { if the crc(s) of used unit are known }
-        check_crc:=not (mf_release in moduleflags)
-            and (fromppu or (state in [ms_load,ms_compiled,ms_processed]));
+        check_crc:={$IFNDEF EnableUrCRC}not (mf_release in moduleflags) and{$ENDIF}
+                   (fromppu or (state in [ms_load,ms_compiled,ms_processed]));
       end;
 
     function tppumodule.continueloadppu: boolean;

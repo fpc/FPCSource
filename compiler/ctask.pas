@@ -865,7 +865,7 @@ begin
       writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr);
       Internalerror(2026022411);
     end;
-  if mf_release in m.moduleflags then
+  if (mf_release in m.moduleflags) and m.fromppu then
     begin
       writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr,' unit was compiled with Ur');
       Internalerror(2026022412);
