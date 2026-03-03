@@ -2730,8 +2730,10 @@ begin
       ProcExpr:=TProcedureExpr(CreateElement(TProcedureExpr,'',AParent,visPublic));
       ProcExpr.Proc:=TPasAnonymousProcedure(ParseProcedureOrFunctionDecl(ProcExpr,ProcType,false));
       Engine.FinishScope(stProcedure,ProcExpr.Proc);
-      Result:=ProcExpr;
-      exit; // do not allow postfix operators . ^. [] ()
+      Last:=ProcExpr;
+      // ParseProcBeginBlock already called NextToken after 'end',
+      // so UngetToken to let the NextToken below re-read it for postfix handling
+      UngetToken;
       end;
     tkCaret:
       begin
@@ -4944,7 +4946,7 @@ begin
   Result:=Result+';'+CurTokenText;
 
   NextToken;
-  if not (CurToken in [tkString,tkIdentifier]) then
+  if not (CurToken in [tkString,tkStringMultiLine,tkIdentifier]) then
     begin
     if (CurToken=tkSemicolon) and (ExtMod in [vmExternal,vmPublic,vmExport]) then
       exit;
@@ -4957,7 +4959,7 @@ begin
   // external libname;
   // external libname name exportname;
   // external name exportname;
-  if (ExtMod=vmExternal) and (CurToken in [tkString,tkIdentifier])
+  if (ExtMod=vmExternal) and (CurToken in [tkString,tkStringMultiLine,tkIdentifier])
       and Not (CurTokenIsIdentifier('name')) then
     begin
     Result := Result + ' ' + CurTokenText;
@@ -4968,7 +4970,7 @@ begin
   if not CurTokenIsIdentifier('name') then
     ParseExcSyntaxError;
   NextToken;
-  if not (CurToken in [tkChar,tkString,tkIdentifier]) then
+  if not (CurToken in [tkChar,tkString,tkStringMultiLine,tkIdentifier]) then
     ParseExcTokenError(TokenInfos[tkString]);
   Result := Result + ' ' + CurTokenText;
   ExportName:=DoParseExpression(Parent);
@@ -5575,7 +5577,7 @@ begin
   pmExternal:
     begin
     NextToken;
-    if CurToken in [tkChar,tkString,tkIdentifier] then
+    if CurToken in [tkChar,tkString,tkStringMultiLine,tkIdentifier] then
       begin
       // external libname
       // external libname name XYZ
@@ -5591,7 +5593,7 @@ begin
       if CurTokenIsIdentifier('NAME') then
         begin
         NextToken;
-        if not (CurToken in [tkChar,tkString,tkIdentifier]) then
+        if not (CurToken in [tkChar,tkString,tkStringMultiLine,tkIdentifier]) then
           ParseExcTokenError(TokenInfos[tkString]);
         E:=DoParseExpression(Parent);
         if Assigned(P) then
@@ -5648,7 +5650,7 @@ begin
       begin
       AddModifier;
       NextToken;  // Should be "public name string".
-      if not (CurToken in [tkString,tkIdentifier]) then
+      if not (CurToken in [tkString,tkStringMultiLine,tkIdentifier]) then
         ParseExcTokenError(TokenInfos[tkString]);
       E:=DoParseExpression(Parent);
       if Parent is TPasProcedure then
@@ -5675,7 +5677,7 @@ begin
       case E.Kind of
         pekNumber, pekUnary:
           TPasProcedure(Parent).Messagetype:=pmtInteger;
-        pekString:
+        pekString, pekStringMultiLine:
           TPasProcedure(Parent).Messagetype:=pmtString;
         pekIdent : ; // unknown at this time
       else
@@ -6637,6 +6639,16 @@ begin
           end
         else
           Params.ParseExpr;
+        end;
+      tkProcedure, tkFunction:
+        begin
+        if msAnonymousFunctions in CurrentModeswitches then
+          begin
+          CheckStatementCanStart;
+          Params.ParseExpr;
+          end
+        else
+          ParseExcSyntaxError;
         end;
       else
         ParseExcSyntaxError;
