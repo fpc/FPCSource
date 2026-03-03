@@ -1386,9 +1386,8 @@ implementation
 
 
   procedure attach_outer_capturer(ctx:tprocinfo;capturer:tabstractvarsym;var stmt:tstatementnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       alivefield,
       selffield : tfieldvarsym;
       outeralive,
@@ -1396,6 +1395,7 @@ implementation
       alivenode,
       selfnode : tnode;
     begin
+      compiler:=ctx.compiler;
       if not ctx.procdef.was_anonymous and
           not (ctx.procdef.owner.symtabletype=localsymtable) then
         exit;
