@@ -1576,7 +1576,9 @@ end;
 procedure TJsonObjectWriter.AddValueToContainer(AValue: TJSONValue);
 var
   CurrentCont: TJSONAncestor;
+  Added: Boolean;
 begin
+  Added := False;
   CurrentCont := GetCurrentContainer;
   if CurrentCont is TJSONObject then
   begin
@@ -1584,12 +1586,16 @@ begin
     begin
       TJSONObject(CurrentCont).AddPair(FCurrentPropertyName, AValue);
       FCurrentPropertyName := '';
+      Added := True;
     end;
   end
   else if CurrentCont is TJSONArray then
   begin
     TJSONArray(CurrentCont).AddElement(AValue);
+    Added := True;
   end;
+  if not Added then
+    AValue.Free;
 end;
 
 procedure TJsonObjectWriter.PushContainer(AContainer: TJSONAncestor);

@@ -151,7 +151,6 @@ type
     FExtendedJsonMode: TJsonExtendedJsonMode;
     FReader: TTextReader;
     FScanner: TJSONScanner;
-    FOwnsReader: boolean;
     FContent: string;
   protected
     function ReadInternal: boolean; override;
@@ -485,6 +484,7 @@ end;
 constructor TJsonReader.Create;
 begin
   inherited Create;
+  FCloseInput:=True; 
   FMaxDepth:=64;
   FQuoteChar:='"';
   FDateTimeZoneHandling:=TJsonDateTimeZoneHandling.Local;
@@ -752,7 +752,6 @@ constructor TJsonTextReader.Create(const aReader: TTextReader);
 begin
   inherited Create;
   FReader:=aReader;
-  FOwnsReader:=False;
   FDateParseHandling:=TJsonDateParseHandling.DateTime;
   FExtendedJsonMode:=TJsonExtendedJsonMode.None;
 
@@ -773,7 +772,7 @@ end;
 destructor TJsonTextReader.Destroy;
 begin
   FreeAndNil(FScanner);
-  if FOwnsReader then
+  if CloseInput then
     FreeAndNil(FReader);
   inherited Destroy;
 end;
@@ -781,7 +780,7 @@ end;
 procedure TJsonTextReader.Close;
 begin
   inherited Close;
-  if FOwnsReader then
+  if CloseInput then
     FreeAndNil(FReader);
 end;
 
