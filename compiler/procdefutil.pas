@@ -444,9 +444,8 @@ implementation
 
 
   function get_or_create_capturer(pd:tprocdef):tsym;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       name : tsymstr;
       parent,
       def : tobjectdef;
@@ -454,6 +453,7 @@ implementation
       keepalive : tabstractvarsym;
       st : tsymtable;
     begin
+      compiler:=pd.compiler;
       if pd.has_capturer then
         begin
           result:=get_capturer(pd);
