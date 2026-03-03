@@ -85,6 +85,19 @@ begin
     T.Dependencies.AddUnit('system.jsonconsts');
 
     T:=P.Targets.AddUnit('system.jsonconsts.pp');
+    T:=P.Targets.AddUnit('system.json.serializers.pp');
+    T.Dependencies.AddUnit('system.jsonconsts');
+    T.Dependencies.AddUnit('system.json.types');
+    T.Dependencies.AddUnit('system.json.readers');
+    T.Dependencies.AddUnit('system.json.writers');
+    
+    T:=P.Targets.AddUnit('system.json.converters.pp');
+    T.Dependencies.AddUnit('system.json.serializers');
+    T.Dependencies.AddUnit('system.json.readers');
+    T.Dependencies.AddUnit('system.json.writers');
+    T.Dependencies.AddUnit('system.json.types');
+    T.Dependencies.AddUnit('system.json.utils');
+    T.Dependencies.AddUnit('system.jsonconsts');
 
     T:=P.Targets.AddUnit('system.pushnotifications.pp');
     T.ResourceStrings := True;
