@@ -37,7 +37,7 @@ uses
   { node }
   node,
   { symtable }
-  symtype,symdef,symbase;
+  symtype,symdef,symbase,symsym;
 
 type
 
@@ -49,6 +49,7 @@ type
     property Compiler: TCompilerBase read FCompiler;
     procedure make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
     function get_generic_param_def(sym:tsym):tdef;
+    function create_generic_constsym(fromdef:tdef;node:tnode;out prettyname:string):tconstsym;
     function parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -90,7 +91,7 @@ uses
   { global }
   globals,tokens,verbose,finput,constexp,compiler,
   { symtable }
-  symconst,symsym,symtable,defcmp,defutil,procinfo,
+  symconst,symtable,defcmp,defutil,procinfo,
   { modules }
   fmodule,
   { node }
@@ -191,9 +192,7 @@ uses
           result:=param1.typ=param2.typ;
       end;
 
-    function create_generic_constsym(fromdef:tdef;node:tnode;out prettyname:string):tconstsym;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TGenericsParseUtils.create_generic_constsym(fromdef:tdef;node:tnode;out prettyname:string):tconstsym;
       const
         undefinedname = 'undefined';
       var
