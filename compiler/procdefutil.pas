@@ -1357,13 +1357,13 @@ implementation
 
 
   procedure initialize_captured_paras(pd:tprocdef;capturer:tabstractvarsym;var stmt:tstatementnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       i : longint;
       psym: tparavarsym;
       n : tnode;
     begin
+      compiler:=pd.compiler;
       for i:=0 to pd.paras.count-1 do
         begin
           psym:=tparavarsym(pd.paras[i]);
