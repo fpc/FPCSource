@@ -39,6 +39,8 @@ interface
       end;
 
       TVMTWriter=class
+      private
+        FCompiler: TCompilerBase;
       protected
         _Class : tobjectdef;
         { message tables }
@@ -80,6 +82,7 @@ interface
         { generates a DMT for _class }
         function  gendmt : tasmlabel;
 {$endif WITHDMT}
+        property Compiler: TCompilerBase read FCompiler;
       public
         constructor create(c:tobjectdef); virtual;
         { write the VMT to al_globals }
@@ -121,6 +124,7 @@ implementation
     constructor TVMTWriter.create(c:tobjectdef);
       begin
         inherited Create;
+        FCompiler:=c.compiler;
         _Class:=c;
       end;
 
@@ -227,8 +231,6 @@ implementation
 
 
     procedure TVMTWriter.writenames(tcb: ttai_typedconstbuilder; p: pprocdeftree);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         datatcb : ttai_typedconstbuilder;
         len : byte;
@@ -246,8 +248,6 @@ implementation
       end;
 
     procedure TVMTWriter.writestrentry(tcb: ttai_typedconstbuilder; p: pprocdeftree; entrydef: tdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
          if assigned(p^.l) then
            writestrentry(tcb,p^.l,entrydef);
@@ -523,8 +523,6 @@ implementation
 
 
     procedure TVMTWriter.genpublishedmethodstable(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out pubmethodsdef: trecorddef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          count : longint;
          lists : tvmtasmoutput;
@@ -591,8 +589,6 @@ implementation
 
 
     procedure TVMTWriter.generate_field_table(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out fieldtabledef: trecorddef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i   : longint;
         sym : tsym;
@@ -788,8 +784,6 @@ implementation
 
 
     procedure TVMTWriter.intf_gen_intf_ref(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint; interfaceentrydef, interfaceentrytypedef: tdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         pd: tprocdef;
         siid,
@@ -864,8 +858,6 @@ implementation
 
 
     procedure TVMTWriter.intf_write_table(tcb: ttai_typedconstbuilder; out lab: TAsmLabel; out intftabledef: trecorddef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i        : longint;
         ImplIntf : TImplementedInterface;
@@ -1055,8 +1047,6 @@ implementation
 
 
     procedure TVMTWriter.writevmt;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
