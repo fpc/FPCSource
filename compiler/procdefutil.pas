@@ -1590,8 +1590,8 @@ implementation
 
 
   procedure convert_captured_syms(pd:tprocdef;tree:tnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase;
 
     function self_tree_for_sym(selfsym:tsym;fieldsym:tsym):tnode;
       var
@@ -1621,6 +1621,8 @@ implementation
       sym : tsym;
     begin
       {$ifdef DEBUG_CAPTURER}writeln('Converting captured symbols of ',pd.procsym.name);{$endif}
+
+      compiler:=pd.compiler;
 
       convertarg.mappings:=tfplist.create;
 
