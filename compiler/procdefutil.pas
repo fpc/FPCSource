@@ -1452,12 +1452,12 @@ implementation
 
 
   procedure initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       capturer_sym,
       keepalive_sym : tabstractvarsym;
     begin
+      compiler:=ctx.compiler;
       if ctx.procdef.has_capturer then
         begin
           capturer_sym:=get_capturer(ctx.procdef);
