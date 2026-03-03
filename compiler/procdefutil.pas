@@ -295,15 +295,15 @@ implementation
 
 
   function funcref_intf_for_proc(pd:tabstractprocdef;const suffix:string):tobjectdef;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       name : tsymstr;
       sym : tsym;
       symowner : tsymtable;
       oldsymtablestack: TSymtablestack;
       invokedef: tprocdef;
     begin
+      compiler:=pd.compiler;
       if pd.is_generic then
         internalerror(2022010710);
 
