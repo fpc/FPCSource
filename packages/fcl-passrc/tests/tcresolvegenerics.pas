@@ -1999,7 +1999,7 @@ begin
   'begin',
   '  a.Fly(3);',
   '']);
-  ParseProgram;
+  CheckResolverException('helper for specialized generic type is not supported',nXIsNotSupported);
 end;
 
 procedure TTestResolveGenerics.TestGen_LocalVar;
