@@ -897,10 +897,8 @@ implementation
 ****************************************************************************}
 
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
-
       var
+        compiler: TCompilerBase;
         i       : longint;
         highsym,
         sym     : tsym;
@@ -908,6 +906,7 @@ implementation
         ptrdef  : tdef;
         isaddr  : boolean;
       begin
+        compiler:=st.compiler;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
