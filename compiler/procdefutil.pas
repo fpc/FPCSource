@@ -135,9 +135,8 @@ implementation
 
 
   procedure convert_to_funcref_intf(const n:tidstring;var def:tdef);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       oldsymtablestack : tsymtablestack;
       pvdef : tprocvardef absolute def;
       intfdef : tobjectdef;
@@ -146,6 +145,7 @@ implementation
       i : longint;
       name : tidstring;
     begin
+      compiler:=def.compiler;
       if def.typ<>procvardef then
         internalerror(2021040201);
       if not (po_is_function_ref in tprocvardef(pvdef).procoptions) then
