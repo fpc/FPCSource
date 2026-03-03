@@ -583,9 +583,8 @@ implementation
 
 
   procedure capture_captured_syms(pd:tprocdef;owner:tprocinfo;capturedef:tobjectdef;oldpd:tprocdef);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       curpd : tprocdef;
       subcapturer : tobjectdef;
       symstodo : TFPList;
@@ -595,6 +594,7 @@ implementation
       fieldname : tsymstr;
       fielddef : tdef;
     begin
+      compiler:=pd.compiler;
       if not pd.was_anonymous or not assigned(pd.capturedsyms) or (pd.capturedsyms.count=0) then
         exit;
       { capture all variables that the original procdef captured }
