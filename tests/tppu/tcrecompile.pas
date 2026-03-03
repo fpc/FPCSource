@@ -45,7 +45,8 @@ type
     procedure TestTwoUnits; // 2 units, recompile first
     procedure TestChangeLeaf1; // prog->ant->bird, change bird, recompile ant as well
     procedure TestChangeInner1; // prog->ant->bird, change ant, keep bird.ppu
-    procedure TestPrgVariant; // loading variant ppu after parsing program
+    procedure TestPrgVariant; // loading implicit variant ppu after parsing program
+    procedure TestUnitVariant; // loading implicit variant ppu after parsing unit
 
     // cycles
     procedure TestCycle2_ChangeB; // prog->ant->bird, bird.impl->ant, change bird, same crc
@@ -365,6 +366,22 @@ begin
   CleanOutputDir;
   Compile;
   CheckCompiled(['prgvariant1.pas']);
+end;
+
+procedure TTestRecompile.TestUnitVariant;
+// prog->ant->bird, prg name clash with bird
+var
+  Dir: String;
+begin
+  Dir:='unitvariant1';
+  UnitPath:=Dir;
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'unitvariant1.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['unitvariant1.pas']);
 end;
 
 procedure TTestRecompile.TestPrgNameClash1;
