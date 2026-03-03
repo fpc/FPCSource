@@ -505,7 +505,7 @@ implementation
         params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false,compiler);
         addstatement(statements,params);
 
-        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
         tcb.begin_anonymous_record('',1,sizeof(pint),1);
 
         if not variantdispatch then  { generate a tdispdesc record }

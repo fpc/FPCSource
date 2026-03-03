@@ -215,6 +215,7 @@ type
     protected class var
      caggregateinformation: taggregateinformationclass;
     private
+     FCompiler: TCompilerBase;
      function getcurragginfo: taggregateinformation;
      procedure set_next_field(AValue: tfieldvarsym);
      procedure set_next_field_name(const AValue: TIDString);
@@ -300,8 +301,9 @@ type
 
      { easy access to the top level aggregate information instance }
      property curagginfo: taggregateinformation read getcurragginfo;
+     property Compiler: TCompilerBase read FCompiler;
     public
-     constructor create(const options: ttcasmlistoptions); virtual;
+     constructor create(const options: ttcasmlistoptions; ACompiler: TCompilerBase); virtual;
      destructor destroy; override;
 
     public
@@ -347,7 +349,7 @@ type
      class function is_smartlink_vectorized_dead_strip: boolean; virtual;
 
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): TSymStr;
-     class function get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint): trecorddef;
+     class function get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint; acompiler: TCompilerBase): trecorddef;
      { the datalist parameter specifies where the data for the string constant
        will be emitted (via an internal data builder)
        Note: data does not have to be #0-terminated (len specifies the length of the valid data) }
@@ -1054,8 +1056,6 @@ implementation
 
 
    procedure ttai_typedconstbuilder.finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        ptrdef : tdef;
        symind : tasmsymbol;
@@ -1073,7 +1073,7 @@ implementation
              indsecname:=secname
            else
              indsecname:=lower(symind.name);
-           indtcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+           indtcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
            indtcb.emit_tai(tai_const.create_sym_offset(sym,0),ptrdef);
            current_asmdata.asmlists[al_indirectglobals].concatlist(indtcb.get_final_asmlist(
              symind,
@@ -1264,9 +1264,10 @@ implementation
      end;
 
 
-   constructor ttai_typedconstbuilder.create(const options: ttcasmlistoptions);
+   constructor ttai_typedconstbuilder.create(const options: ttcasmlistoptions; ACompiler: TCompilerBase);
      begin
        inherited create;
+       FCompiler:=ACompiler;
        fasmlist:=tasmlist.create;
        foptions:=options;
        { queue is empty }
@@ -1367,7 +1368,7 @@ implementation
        else if (secname<>'') and
                (finternal_data_section_info[foundsec].secname<>secname) then
          internalerror(2015032401);
-       tcb:=ttai_typedconstbuilderclass(classtype).create(options);
+       tcb:=ttai_typedconstbuilderclass(classtype).create(options,compiler);
      end;
 
 
@@ -1647,9 +1648,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint): trecorddef;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+   class function ttai_typedconstbuilder.get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint; acompiler: TCompilerBase): trecorddef;
      var
        name: TSymStr;
        streledef: tdef;
@@ -1677,7 +1676,7 @@ implementation
        if (typ<>st_widestring) or
           not winlike then
          begin
-           result:=crecorddef.create_global_internal('$'+name,1,1,compiler);
+           result:=crecorddef.create_global_internal('$'+name,1,1,acompiler);
            { encoding }
            result.add_field_by_def('',u16inttype);
            { element size }
@@ -1703,20 +1702,18 @@ implementation
        else
          begin
            result:=crecorddef.create_global_internal('$'+name,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin,compiler);
+             targetinfos[target_info.system]^.alignment.recordalignmin,acompiler);
            { length in bytes }
            result.add_field_by_def('',s32inttype);
            streledef:=cwidechartype;
          end;
        { data (include zero terminator) }
-       result.add_field_by_def('',carraydef.getreusable(streledef,len+1,compiler));
+       result.add_field_by_def('',carraydef.getreusable(streledef,len+1,acompiler));
        trecordsymtable(trecorddef(result).symtable).addalignmentpadding;
      end;
 
 
    function ttai_typedconstbuilder.emit_ansistring_const(datalist: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding): tasmlabofs;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        startlab: tasmlabel;
        ansistrrecdef: trecorddef;
@@ -1739,8 +1736,6 @@ implementation
 
 
    function ttai_typedconstbuilder.emit_unicodestring_const(datalist: TAsmList; data: tcompilerwidestring; encoding: tstringencoding; winlike: boolean):tasmlabofs;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        i, strlength: longint;
        string_symofs: asizeint;
@@ -1852,8 +1847,6 @@ implementation
 
 
    function ttai_typedconstbuilder.emit_shortstring_const(const str: shortstring): tdef;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { we use an arraydef instead of a shortstringdef, because we don't have
          functionality in place yet to reuse shortstringdefs of the same length
@@ -1869,8 +1862,6 @@ implementation
 
 
    function ttai_typedconstbuilder.emit_pchar_const(str: pchar; len: pint): tdef;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        result:=carraydef.getreusable(cansichartype,len+1,compiler);
        maybe_begin_aggregate(result);
@@ -1929,8 +1920,6 @@ implementation
 
 
    procedure ttai_typedconstbuilder.emit_pooled_shortstring_const_ref(const str:shortstring);
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        pool : thashset;
        entry : phashsetitem;
@@ -1954,7 +1943,7 @@ implementation
 
            { we start a new constbuilder as we don't know whether we're called
              from inside an internal constbuilder }
-           strtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+           strtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
 
            strtcb.maybe_begin_aggregate(datadef);
            { l+1: include length byte; true: add terminating #0 }
@@ -1991,8 +1980,6 @@ implementation
 
 
    function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalign, recordalignmin: shortint): trecorddef;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      var
        anonrecorddef: trecorddef;
        typesym: ttypesym;
@@ -2208,8 +2195,6 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_emit_staticvar(vs: tstaticvarsym);
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { pointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
@@ -2258,8 +2243,6 @@ implementation
 
 
    procedure ttai_typedconstbuilder.queue_emit_asmsym(sym: tasmsymbol; def: tdef);
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { pointerdef, because "sym" represents the address of whatever the
          data is }

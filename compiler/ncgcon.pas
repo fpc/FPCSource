@@ -283,7 +283,7 @@ implementation
               { :-(, we must generate a new entry }
               if not assigned(entry^.Data) then
                 begin
-                  datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+                  datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                    case cst_type of
                       cst_ansistring:
                         begin
@@ -409,7 +409,7 @@ implementation
         current_asmdata.getdatalabel(lab);
         result:=lab;
         lab_set:=lab;
-        tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
         tcb.maybe_begin_aggregate(resultdef);
         if (source_info.endian=target_info.endian) then
           for i:=0 to resultdef.size-1 do
@@ -512,7 +512,7 @@ implementation
              if not assigned(entry^.Data) then
                begin
                  current_asmdata.getdatalabel(lastlabel);
-                 datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
+                 datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
                  datatcb.emit_guid_const(value);
                  current_asmdata.asmlists[al_typedconsts].concatList(
                    datatcb.get_final_asmlist(lastlabel,rec_tguid,sec_rodata_norel,lastlabel.name,const_align(16)));

@@ -433,6 +433,8 @@ implementation
 
 
     procedure TRTTIWriter.write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         locs : trttiparalocs;
         i : longint;
@@ -462,7 +464,7 @@ implementation
           begin
             current_asmdata.getglobaldatalabel(loclab);
 
-            loctcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
+            loctcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
             loctcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin);
@@ -954,6 +956,8 @@ implementation
 
 
     procedure TRTTIWriter.properties_write_rtti_data(tcb: ttai_typedconstbuilder; propnamelist:TFPHashObjectList; st:tsymtable; extended_rtti:boolean; visibilities:tvisibilities);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         sym : tsym;
@@ -1223,7 +1227,7 @@ implementation
                     tcb.emit_ord_const(visByte,u8inttype);
                     { create separate constant builder }
                     current_asmdata.getglobaldatalabel(tbllab);
-                    tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
+                    tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
                     { write TPropInfo record }
                     tbldef:=write_propinfo_data(tbltcb,tpropertysym(sym));
                     current_asmdata.asmlists[al_rtti].concatlist(
@@ -1697,7 +1701,7 @@ implementation
             mop: tmanagementoperator;
             procdef: tprocdef;
           begin
-            tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+            tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable],compiler);
 
             tcb.begin_anonymous_record(
               '',
@@ -2200,6 +2204,8 @@ implementation
       end;
 
   procedure TRTTIWriter.write_attribute_data(tcb:ttai_typedconstbuilder;attr_list:trtti_attribute_list);
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     procedure write_args(tbltcb:ttai_typedconstbuilder;attr:trtti_attribute);
       var
@@ -2217,7 +2223,7 @@ implementation
           begin
             current_asmdata.getglobaldatalabel(arglab);
 
-            argtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
+            argtcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
             argtcb.begin_anonymous_record('',defaultpacking,min(reqalign,SizeOf(PInt)),
               targetinfos[target_info.system]^.alignment.recordalignmin);
@@ -2276,7 +2282,7 @@ implementation
       { first write the attribute list as a separate table }
       current_asmdata.getglobaldatalabel(tbllab);
 
-      tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
+      tbltcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable],compiler);
 
       tbltcb.begin_anonymous_record(
         internaltypeprefixName[itp_rtti_attr_list]+tostr(count),
@@ -2345,6 +2351,8 @@ implementation
 
 
     procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         type Penumsym = ^Tenumsym;
 
@@ -2396,7 +2404,7 @@ implementation
             end;
           { write rtti data; make sure that the alignment matches the corresponding data structure
             in the code that uses it (if alignment is required). }
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           { use TConstPtrUInt packrecords to ensure good alignment }
           tcb.begin_anonymous_record('',defaultpacking,reqalign,
             targetinfos[target_info.system]^.alignment.recordalignmin);
@@ -2473,7 +2481,7 @@ implementation
           tabledef: tdef;
         begin
           { write rtti data }
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           { begin of Tstring_to_ord }
           tcb.begin_anonymous_record('',defaultpacking,min(reqalign,sizeof(PInt)),
             targetinfos[target_info.system]^.alignment.recordalignmin);
@@ -2647,6 +2655,8 @@ implementation
       end;
 
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
         tcb: ttai_typedconstbuilder;
@@ -2673,7 +2683,7 @@ implementation
         { write first all dependencies }
         write_child_rtti_data(def,rt);
         { write rtti data }
-        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
+        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
         s:=internaltypeprefixName[itp_rttidef]+tstoreddef(def).rtti_mangledname(rt);
 
         maybe_add_comment(tcb,'RTTI: begin Type '+def.GetTypeName+' ('+rttitypenames[rt]+')');

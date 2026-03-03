@@ -1214,7 +1214,7 @@ implementation
         end;
 
     begin
-      unitinits:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      unitinits:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       unitinits.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[target_info.system]^.alignment.recordalignmin);
 
@@ -1335,7 +1335,7 @@ implementation
       if (tf_section_threadvars in target_info.flags) then
         exit;
       count:=0;
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[target_info.system]^.alignment.recordalignmin);
       placeholder:=tcb.emit_placeholder(sizesinttype);
 
@@ -1414,7 +1414,7 @@ implementation
     begin
        if (tf_section_threadvars in target_info.flags) then
          exit;
-       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
        tabledef:=tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[target_info.system]^.alignment.recordalignmin);
        if assigned(current_module.globalsymtable) then
          current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
@@ -1446,7 +1446,7 @@ implementation
       tabledef: tdef;
       count: longint;
     begin
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[target_info.system]^.alignment.recordalignmin
       );
@@ -1502,7 +1502,7 @@ implementation
       if item=nil then
         exit;
       s:=make_mangledname(prefix,current_module.localsymtable,'');
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
         targetinfos[target_info.system]^.alignment.recordalignmin);
       repeat
@@ -1565,7 +1565,7 @@ implementation
       countplaceholder : ttypedconstplaceholder;
       tabledef: tdef;
     begin
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       count:=0;
       hp:=tmodule(loaded_units.first);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
@@ -1613,7 +1613,7 @@ implementation
            because in SysInit we can only reference it unconditionally }
          ((target_res.id=res_ext) and (target_info.system in systems_darwin)) then
         begin
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
 
           if ResourcesUsed and (target_res.id<>res_ext) then
             tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),voidpointertype)
@@ -1644,7 +1644,7 @@ implementation
       def: tdef;
     begin
       { Insert Ident of the compiler in the .fpc.version section }
-      tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip],compiler);
       s:='FPC '+full_version_string+
         ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname;
 {$ifdef m68k}
@@ -1668,7 +1668,7 @@ implementation
           not(tf_no_generic_stackcheck in target_info.flags) then
         begin
           { stacksize can be specified and is now simulated }
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
           tcb.emit_tai(Tai_const.Create_int_dataptr(stacksize),ptruinttype);
           sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,ptruinttype);
           current_asmdata.asmlists[al_globals].concatlist(
@@ -1712,7 +1712,7 @@ implementation
        end;
 {$ENDIF POWERPC}
       { Initial heapsize }
-      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
       tcb.emit_tai(Tai_const.Create_int_dataptr(heapsize),ptruinttype);
       sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,ptruinttype);
       current_asmdata.asmlists[al_globals].concatlist(
@@ -1733,7 +1733,7 @@ implementation
         end;
 
       { Valgrind usage }
-      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
       tcb.emit_ord_const(byte(cs_gdb_valgrind in current_settings.globalswitches),u8inttype);
       sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,u8inttype);
       current_asmdata.asmlists[al_globals].concatlist(
@@ -1754,7 +1754,7 @@ implementation
             next 4 bytes contain flags (currently only regarding whether the code in the object
             file supports or requires garbage collection)
           }
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_no_dead_strip],compiler);
           tcb.emit_ord_const(0,u64inttype);
           current_asmdata.asmlists[al_objc_data].concatList(
             tcb.get_final_asmlist(

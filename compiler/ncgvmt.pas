@@ -919,7 +919,7 @@ implementation
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
           tcb.emit_guid_const(_class.iidguid^);
           sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,rec_tguid);
           list.concatlist(tcb.get_final_asmlist(
@@ -933,7 +933,7 @@ implementation
           current_module.add_public_asmsym(sym);
         end;
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
       sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,def);
       list.concatlist(tcb.get_final_asmlist(
@@ -1094,7 +1094,7 @@ implementation
          intmessagetabledef:=nil;
 
          { generate VMT }
-         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
+         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect],compiler);
 
          { write tables for classes, this must be done before the actual
            class is written, because we need the labels defined }
