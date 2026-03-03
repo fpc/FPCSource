@@ -37,7 +37,9 @@ uses
   { node }
   node,
   { symtable }
-  symtype,symdef,symbase,symsym;
+  symtype,symdef,symbase,symsym,
+  { modules }
+  fmodule;
 
 type
 
@@ -51,6 +53,8 @@ type
     function get_generic_param_def(sym:tsym):tdef;
     function create_generic_constsym(fromdef:tdef;node:tnode;out prettyname:string):tconstsym;
     function parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
+    procedure process_procdef(def:tprocdef;hmodule:tmodule);
+    function process_abstractrecorddef(def:tabstractrecorddef):boolean;
   public
     constructor Create(ACompiler: TCompilerBase);
     procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);inline;
@@ -92,8 +96,6 @@ uses
   globals,tokens,verbose,finput,constexp,compiler,
   { symtable }
   symconst,symtable,defcmp,defutil,procinfo,
-  { modules }
-  fmodule,
   { node }
   nobj,ncon,ncal,
   { parser }
@@ -2957,9 +2959,7 @@ uses
 ****************************************************************************}
 
 
-    procedure process_procdef(def:tprocdef;hmodule:tmodule);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    procedure TGenericsParseUtils.process_procdef(def:tprocdef;hmodule:tmodule);
       var
         oldcurrent_filepos : tfileposinfo;
       begin
@@ -2984,7 +2984,7 @@ uses
       end;
 
 
-    function process_abstractrecorddef(def:tabstractrecorddef):boolean;
+    function TGenericsParseUtils.process_abstractrecorddef(def:tabstractrecorddef):boolean;
       var
         i  : longint;
         hp : tdef;
