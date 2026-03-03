@@ -813,8 +813,8 @@ implementation
 
 
   function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase;
 
     function create_paras(pd:tprocdef):tcallparanode;
       var
@@ -901,6 +901,7 @@ implementation
       fieldsym : tfieldvarsym;
       selfinfo : tselfinfo;
     begin
+      compiler:=n.compiler;
       if not (n.resultdef.typ in [procdef,procvardef]) then
         internalerror(2022022101);
 
