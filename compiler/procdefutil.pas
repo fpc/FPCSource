@@ -1508,9 +1508,8 @@ implementation
 
 
   function convert_captured_sym(var n:tnode;arg:pointer):foreachnoderesult;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
+      compiler: TCompilerBase;
       convertarg : pconvert_arg absolute arg;
       mapping : pconvert_mapping;
       i : longint;
@@ -1521,6 +1520,7 @@ implementation
       paraold,
       paranew : tcallparanode;
     begin
+      compiler:=n.compiler;
       result:=fen_true;
       if not (n.nodetype in [loadn,calln]) then
         exit;
