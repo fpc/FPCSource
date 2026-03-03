@@ -34,6 +34,7 @@ type
     FCompiler: TCompilerBase;
     procedure set_default_int_types;
     procedure set_default_ptr_types;
+    property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
 
@@ -241,8 +242,6 @@ implementation
       end;
 
     procedure TSystemUnitParser.create_intern_types;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       {
         all the types inserted into the system unit
       }
