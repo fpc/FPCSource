@@ -1516,7 +1516,7 @@ begin
 {$IFDEF UNIX}
   R:=ESysEINTR;
   // need to set this so ptr/addrsize are correct.
-  While SocketInvalid(Result.FD) and (R=ESysEINTR) do
+  While SocketInvalid(Result.FD) and (R=ESysEINTR) and FAccepting do
 {$ENDIF UNIX}
    begin
    Result.FD:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(FSocket.FD,addrptr,@addrSize);
