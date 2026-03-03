@@ -398,8 +398,8 @@ implementation
          begin
            systemunit:=tglobalsymtable(curr.localsymtable);
            { create system defines }
-           create_intern_types;
-           create_intern_symbols;
+           compiler.parser.psystem.create_intern_types;
+           compiler.parser.psystem.create_intern_symbols;
            { Set the owner of errorsym and errortype to symtable to
              prevent crashes when accessing .owner }
            generrorsym.owner:=systemunit;
@@ -416,7 +416,7 @@ implementation
         { load_intern_types resets the scanner... }
         current_scanner.tempcloseinputfile;
         state:=tglobalstate.create;
-        load_intern_types;
+        compiler.parser.psystem.load_intern_types;
         state.restore;
         FreeAndNil(state);
         current_scanner.tempopeninputfile;
@@ -2125,7 +2125,7 @@ type
                packages, so load it }
              AddUnit(curr,'system',false);
              systemunit:=tglobalsymtable(symtablestack.top);
-             load_intern_types;
+             compiler.parser.psystem.load_intern_types;
              { system unit is loaded, now insert feature defines }
              for feature:=low(tfeature) to high(tfeature) do
                if feature in features then
@@ -2153,7 +2153,7 @@ type
                      if (hp.modulename^='SYSTEM') and not assigned(systemunit) then
                        begin
                          systemunit:=tglobalsymtable(hp.globalsymtable);
-                         load_intern_types;
+                         compiler.parser.psystem.load_intern_types;
                        end;
                    end
                  else
@@ -2290,7 +2290,7 @@ type
              if not assigned(systemunit) and (uu.u.modulename^='SYSTEM') then
                begin
                  systemunit:=tglobalsymtable(uu.u.globalsymtable);
-                 load_intern_types;
+                 compiler.parser.psystem.load_intern_types;
                end;
              if not assigned(uu.u.package) then
                export_unit(uu.u);

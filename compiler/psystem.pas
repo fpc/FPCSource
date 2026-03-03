@@ -28,10 +28,20 @@ interface
     uses
       compilerbase,symbase;
 
+type
+  TSystemUnitParser = class
+  private
+    FCompiler: TCompilerBase;
+    procedure set_default_int_types;
+    procedure set_default_ptr_types;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+
     procedure create_intern_symbols;
     procedure create_intern_types;
 
     procedure load_intern_types;
+  end;
 
     procedure registernodes;
     procedure registertais;
@@ -48,7 +58,13 @@ implementation
       node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl;
 
 
-    procedure create_intern_symbols;
+    constructor TSystemUnitParser.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    procedure TSystemUnitParser.create_intern_symbols;
       {
         all intern procedures for the system unit
       }
@@ -124,7 +140,7 @@ implementation
       end;
 
 
-    procedure set_default_int_types;
+    procedure TSystemUnitParser.set_default_int_types;
       begin
 {$ifdef cpu64bitalu}
         aluuinttype:=u64inttype;
@@ -170,7 +186,7 @@ implementation
       end;
 
 
-    procedure set_default_ptr_types;
+    procedure TSystemUnitParser.set_default_ptr_types;
       begin
 {$ifdef i8086}
         if current_settings.x86memorymodel in x86_far_code_models then
@@ -224,7 +240,7 @@ implementation
         end;
       end;
 
-    procedure create_intern_types;
+    procedure TSystemUnitParser.create_intern_types;
       const
         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       {
@@ -698,7 +714,7 @@ implementation
       end;
 
 
-    procedure load_intern_types;
+    procedure TSystemUnitParser.load_intern_types;
       {
         Load all default definitions for consts from the system unit
       }

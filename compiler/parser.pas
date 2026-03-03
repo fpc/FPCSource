@@ -29,7 +29,7 @@ uses
   compilerbase,
   fmodule,
   pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj,
-  pdecl,psub,pinline,ptype;
+  pdecl,psub,pinline,ptype,psystem;
 
 type
 
@@ -51,6 +51,7 @@ type
     FPSub: TSubroutineParser;
     FPInline: TInlineParser;
     FPType: TTypesParser;
+    FPSystem: TSystemUnitParser;
 
     procedure initparser;
     procedure doneparser;
@@ -78,6 +79,7 @@ type
     property psub: TSubroutineParser read FPSub;
     property pinline: TInlineParser read FPInline;
     property ptype: TTypesParser read FPType;
+    property psystem: TSystemUnitParser read FPSystem;
   end;
 
 implementation
@@ -96,7 +98,7 @@ implementation
       cscript,gendef,
       comphook,
       scanner,scandir,
-      pbase,psystem,ncgrtti,
+      pbase,ncgrtti,
       cpuinfo,procinfo;
 
     procedure TParser.parsing_done(module: tmodule);
@@ -372,11 +374,13 @@ implementation
         FPSub:=TSubroutineParser.Create(acompiler);
         FPInline:=TInlineParser.Create(acompiler);
         FPType:=TTypesParser.Create(acompiler);
+        FPSystem:=TSystemUnitParser.Create(acompiler);
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPSystem);
         FreeAndNil(FPType);
         FreeAndNil(FPInline);
         FreeAndNil(FPSub);
