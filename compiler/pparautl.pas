@@ -72,7 +72,7 @@ implementation
 {$endif jvm}
       node,nbas,
       aasmbase,
-      paramgr;
+      paramgr,compiler;
 
 
     procedure insert_funcret_para(pd:tabstractprocdef);
@@ -1299,7 +1299,7 @@ implementation
             include(nestedvars.symoptions,sp_internal);
             pd.localst.insertsym(nestedvars);
             pd.parentfpstruct:=nestedvars;
-            pd.parentfpinitblock:=cblocknode.create(nil,compiler);
+            pd.parentfpinitblock:=compiler.cblocknode(nil);
           end;
         symtablestack.free;
         pd.parentfpstructptrtype:=pnestedvarsdef;

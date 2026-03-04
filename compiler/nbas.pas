@@ -396,7 +396,7 @@ implementation
       begin
         { create dummy initial statement }
         laststatement := compiler.cstatementnode(compiler.cnothingnode,nil);
-        result := cblocknode.create(laststatement,compiler);
+        result := compiler.cblocknode(laststatement);
         Include(result.blocknodeflags, bnf_strippable);
       end;
 

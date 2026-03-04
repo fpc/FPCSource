@@ -205,6 +205,7 @@ type
     function casmnode(p : TAsmList):tasmnode; inline;
     function casmnode_get_position:tasmnode; inline;
     function cstatementnode(l,r : tnode):tstatementnode; inline;
+    function cblocknode(l : tnode):tblocknode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -563,6 +564,11 @@ end;
 function TCompilerHelper.cstatementnode(l, r: tnode): tstatementnode; inline;
 begin
   result:=nbas.cstatementnode.create(l,r,self);
+end;
+
+function TCompilerHelper.cblocknode(l: tnode): tblocknode; inline;
+begin
+  result:=nbas.cblocknode.create(l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

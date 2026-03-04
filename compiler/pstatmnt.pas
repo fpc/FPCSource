@@ -131,7 +131,7 @@ implementation
               consume_emptystats;
            end;
          consume(_END);
-         statements_til_end:=cblocknode.create(first,compiler);
+         statements_til_end:=compiler.cblocknode(first);
          if assigned(first) then
            statements_til_end.fileinfo:=first.fileinfo;
       end;
@@ -344,7 +344,7 @@ implementation
            end;
          consume(_UNTIL);
 
-         first:=cblocknode.create(first,compiler);
+         first:=compiler.cblocknode(first);
          p_e:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
          result:=cwhilerepeatnode.create(p_e,first,false,true,compiler);
       end;
@@ -951,7 +951,7 @@ implementation
                 break;
               consume_emptystats;
            end;
-         p_try_block:=cblocknode.create(first,compiler);
+         p_try_block:=compiler.cblocknode(first);
 
          if try_to_consume(_FINALLY) then
            begin
@@ -1543,7 +1543,7 @@ implementation
                    begin
                      astatement:=statement();
                      typecheckpass(astatement);
-                     p:=cblocknode.create(compiler.cstatementnode(p,compiler.cstatementnode(astatement,nil)),compiler);
+                     p:=compiler.cblocknode(compiler.cstatementnode(p,compiler.cstatementnode(astatement,nil)));
                      Include(TBlockNode(p).blocknodeflags, bnf_strippable);
                    end;
                end
@@ -1654,7 +1654,7 @@ implementation
          if (starttoken<>_INITIALIZATION) or (current_scanner.token<>_FINALIZATION) then
            consume(_END);
 
-         last:=cblocknode.create(first,compiler);
+         last:=compiler.cblocknode(first);
          last.fileinfo:=filepos;
          statement_block:=last;
       end;
