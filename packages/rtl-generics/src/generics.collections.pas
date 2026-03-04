@@ -588,6 +588,7 @@ type
       function DoGetCurrent: PT; override;
     public
       constructor Create(AHashSet: THashSet<T>);
+      destructor Destroy; override;
     end;
   protected
     function GetPtrEnumerator: TEnumerator<PT>; override;
@@ -896,6 +897,7 @@ type
       function DoGetCurrent: PT; override;
     public
       constructor Create(ASortedSet: TSortedSet<T>);
+      destructor Destroy; override;
     end;
   protected
     function GetPtrEnumerator: TEnumerator<PT>; override;
@@ -959,6 +961,7 @@ type
       function DoGetCurrent: PT; override;
     public
       constructor Create(ASortedHashSet: TSortedHashSet<T>);
+      destructor Destroy; override;
     end;
   protected
     function GetPtrEnumerator: TEnumerator<PT>; override;
@@ -2924,6 +2927,12 @@ begin
   FEnumerator := AHashSet.FInternalDictionary.Keys.Ptr^.GetEnumerator;
 end;
 
+destructor THashSet<T>.TPointersEnumerator.Destroy;
+begin
+  FEnumerator.Free;
+  inherited;
+end;
+
 { THashSet<T> }
 
 procedure THashSet<T>.InternalDictionaryNotify(ASender: TObject; const AItem: T; AAction: TCollectionNotification);
@@ -4283,6 +4292,12 @@ begin
   FEnumerator := ASortedSet.FInternalTree.Keys.Ptr^.GetEnumerator;
 end;
 
+destructor TSortedSet<T>.TPointersEnumerator.Destroy;
+begin
+  FEnumerator.Free;
+  inherited;
+end;
+
 { TSortedSet<T> }
 
 procedure TSortedSet<T>.InternalAVLTreeNotify(ASender: TObject; const AItem: T; AAction: TCollectionNotification);
@@ -4463,6 +4478,12 @@ end;
 constructor TSortedHashSet<T>.TPointersEnumerator.Create(ASortedHashSet: TSortedHashSet<T>);
 begin
   FEnumerator := ASortedHashSet.FInternalTree.Keys.Ptr^.GetEnumerator;
+end;
+
+destructor TSortedHashSet<T>.TPointersEnumerator.Destroy;
+begin
+  FEnumerator.Free;
+  inherited;
 end;
 
 { TSortedHashSet<T> }
