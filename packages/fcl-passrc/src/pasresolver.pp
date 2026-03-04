@@ -1442,7 +1442,8 @@ type
     //ToDo: proStaticArrayConcat, // concat works with static arrays, returning a dynamic array
     proProcTypeWithoutIsNested, // proc types can use nested procs without 'is nested'
     proMethodAddrAsPointer,  // can assign @method to a pointer
-    proSafecallAllowsDefault // allow assigning a default calling convention to a SafeCall proc
+    proSafecallAllowsDefault, // allow assigning a default calling convention to a SafeCall proc
+    proMaximizeFPCompatibility // Forbid some things that FPC forbids
     );
   TPasResolverOptions = set of TPasResolverOption;
 
@@ -1546,6 +1547,8 @@ type
     procedure ClearResolveDataList(Kind: TResolveDataListKind);
     function GetBaseTypeNames(bt: TResolverBaseType): string;
     function GetBuiltInProcs(bp: TResolverBuiltInProc): TResElDataBuiltInProc;
+    function GetMaximizeFPCCompatibility: Boolean;
+    procedure SetMaximizeFPCCompatibility(AValue: Boolean);
   protected
     const
       cExact = 0;
@@ -2473,6 +2476,7 @@ type
     property Scopes[Index: integer]: TPasScope read GetScopes;
     property ScopeCount: integer read FScopeCount;
     property TopScope: TPasScope read FTopScope;
+    property MaximizeFPCCompatibility : Boolean Read GetMaximizeFPCCompatibility Write SetMaximizeFPCCompatibility;
     property DefaultScope: TPasDefaultScope read FDefaultScope write FDefaultScope;
     property ScopeClass_Array: TPasArrayScopeClass read FScopeClass_Array write FScopeClass_Array;
     property ScopeClass_Class: TPasClassScopeClass read FScopeClass_Class write FScopeClass_Class;
@@ -4915,6 +4919,19 @@ begin
   Result:=FBuiltInProcs[bp];
 end;
 
+function TPasResolver.GetMaximizeFPCCompatibility: Boolean;
+begin
+  Result:=(proMaximizeFPCompatibility in Self.Options);
+end;
+
+procedure TPasResolver.SetMaximizeFPCCompatibility(AValue: Boolean);
+begin
+  if aValue then
+    Include(FOptions,proMaximizeFPCompatibility)
+  else
+    Exclude(FOptions,proMaximizeFPCompatibility);
+end;
+
 procedure TPasResolver.SetRootElement(const AValue: TPasModule);
 begin
   if FRootElement=AValue then Exit;
@@ -6672,10 +6689,10 @@ begin
   // Attributes not allowed on type aliases
   // Note: El is not yet in Parent.Declarations at this point (FinishScope
   // is called before Add), so check if the last declaration is a TPasAttributes
-  if El.Parent is TPasDeclarations then
+  if (El.Parent is TPasDeclarations) and MaximizeFPCCompatibility then
     begin
     Decls := TPasDeclarations(El.Parent).Declarations;
-    if (Decls.Count > 0)
+    if  (Decls.Count > 0)
         and (TObject(Decls[Decls.Count - 1]) is TPasAttributes) then
       RaiseMsg(20260226100002,nAttributeNotAllowedHere,
         sAttributeNotAllowedHere,[],El);
@@ -7163,7 +7180,7 @@ begin
             for i:=0 to Proc.ProcType.Args.Count-1 do
               if TPasArgument(Proc.ProcType.Args[i]).ValueExpr=nil then
                 begin HasRequired:=true; break; end;
-            if not HasRequired then
+            if MaximizeFPCCompatibility and not HasRequired then
               RaiseMsg(20260225100003,nXIsNotSupported,sXIsNotSupported,
                 ['parameterless constructor in '+ObjKindNames[ObjKind]],Proc);
             end;
@@ -8769,7 +8786,7 @@ begin
     begin
     if aClass.IsExternal then
       RaiseMsg(20190116192722,nIllegalQualifier,sIllegalQualifier,['external'],aClass);
-    if aClass.HelperForType is TPasSpecializeType then
+    if MaximizeFPCCompatibility and (aClass.HelperForType is TPasSpecializeType) then
       RaiseMsg(20260225100004,nXIsNotSupported,sXIsNotSupported,
         ['helper for specialized generic type'],aClass);
     HelperForType:=ResolveAliasType(aClass.HelperForType);
@@ -8791,10 +8808,11 @@ begin
       end;
     okRecordHelper:
       begin
-      if not (msDelphi in CurrentParser.CurrentModeswitches)
-          and not (msAdvancedRecords in CurrentParser.CurrentModeswitches) then
-        RaiseMsg(20260225100005,nXIsNotSupported,sXIsNotSupported,
-          ['record helper without modeswitch advancedrecords'],aClass);
+      if MaximizeFPCCompatibility then
+        if not (msDelphi in CurrentParser.CurrentModeswitches)
+            and not (msAdvancedRecords in CurrentParser.CurrentModeswitches) then
+          RaiseMsg(20260225100005,nXIsNotSupported,sXIsNotSupported,
+            ['record helper without modeswitch advancedrecords'],aClass);
       if isDelphi then
         begin
         if (HelperForType.ClassType=TPasRecordType)
@@ -9337,7 +9355,7 @@ begin
         RaiseMsg(20190221145407,nWrongNumberOfParametersForCallTo,
           sWrongNumberOfParametersForCallTo,[aConstructor.Name],Expr);
       // check if ancestor constructor is hidden by a derived Create with required args
-      if aConstructor.Parent <> ClassEl then
+      if MaximizeFPCCompatibility and (aConstructor.Parent <> ClassEl) then
         for j := 0 to ClassEl.Members.Count - 1 do
           begin
           CurEl := TPasElement(ClassEl.Members[j]);
