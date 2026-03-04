@@ -133,6 +133,7 @@ type
     class function Max(const Args: array of T; const aDefault : T) : T; overload;
     class procedure Copy(const aSource: array of T; var aDestination: array of T; aCount: NativeInt); overload;
     class procedure Copy(const aSource: array of T; var aDestination: array of T; aSourceIndex, aDestIndex, aCount: SizeInt); overload;
+    class procedure Reverse(const aSource: Tarray<T>; var aTarget : TArray<T>);
     class function Contains(const Args: array of T; const aItem: T; const AComparer: IComparer<T>) : Boolean;
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TArray (bug #24254)
 
@@ -1316,6 +1317,24 @@ begin
   else
     Move(Pointer(@aSource[aSourceIndex])^, Pointer(@aDestination[aDestIndex])^, SizeOf(T)*aCount);
 end;
+
+class procedure TArrayHelper<T>.Reverse(const aSource: Tarray<T>; var aTarget: TArray<T>);
+
+var
+  lTmp : Array of T; // in case aSource=aTarget
+  i,j, lLen : SizeInt;
+begin
+  lLen:=Length(aSource);
+  SetLength(lTmp,lLen);
+  j:=lLen-1;
+  For I:=0 to lLen-1 do
+    begin
+    lTmp[j]:=aSource[i];
+    Dec(j);
+    end;
+  aTarget:=lTmp;
+end;
+
 
 class function TArrayHelper<T>.Contains(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): Boolean;
 begin
