@@ -443,7 +443,7 @@ implementation
          typecheckpass(tnode(innerloopcounter));
          addstatement(mainstatement,innerloopcounter);
          { initialise the state with 0 }
-         addstatement(mainstatement,ccallnode.createinternfromunit('SYSTEM','FILLCHAR',
+         addstatement(mainstatement,compiler.ccallnode_internfromunit('SYSTEM','FILLCHAR',
            ccallparanode.create(genintconstnode(0,compiler),
              ccallparanode.create(genintconstnode(objc_fastenumerationstate.size,compiler),
                ccallparanode.create(compiler.ctemprefnode(state),nil,compiler),compiler
@@ -514,7 +514,7 @@ implementation
             compiler.ctemprefnode(mutationcheck),
             cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler)
           ),
-          ccallnode.createinternfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
+          compiler.ccallnode_internfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
             ccallparanode.create(compiler.ctemprefnode(expressiontemp),nil,compiler)),
           nil,compiler));
         { finally: actually get the next element }

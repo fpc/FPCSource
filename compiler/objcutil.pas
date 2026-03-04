@@ -61,7 +61,7 @@ implementation
       objcdef,
       defutil,paramgr,
       nmem,ncal,nld,ncon,ncnv,
-      export;
+      export,compiler;
 
 
 {******************************************************************
@@ -178,7 +178,7 @@ end;
               begin
                 { otherwise we need the superclass of the metaclass }
                 para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^,compiler),nil,compiler);
-                result:=ccallnode.createinternfromunit('OBJC','OBJC_GETMETACLASS',para);
+                result:=compiler.ccallnode_internfromunit('OBJC','OBJC_GETMETACLASS',para);
               end
           end
         else

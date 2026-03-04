@@ -290,7 +290,7 @@ implementation
                    pointer }
                  if target_info.system in systems_objc_nfabi then
                    begin
-                     result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil,compiler));
+                     result:=compiler.ccallnode_internfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil,compiler));
                      inserttypeconv_explicit(result,resultdef,compiler);
                    end
                  else

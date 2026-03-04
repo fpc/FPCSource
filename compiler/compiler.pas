@@ -220,6 +220,7 @@ type
     function ccallnode_procvar(l,r:tnode):tcallnode; inline;
     function ccallnode_intern(const name: string; params: tnode):tcallnode; inline;
     function ccallnode_fromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode):tcallnode; inline;
+    function ccallnode_internfromunit(const fromunit, procname: string; params: tnode):tcallnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -653,6 +654,12 @@ function TCompilerHelper.ccallnode_fromintrinsic(
   const intrinsic: TInlineNumber; const name: string; params: tnode): tcallnode; inline;
 begin
   result:=ncal.ccallnode.createfromintrinsic(intrinsic,name,params,self);
+end;
+
+function TCompilerHelper.ccallnode_internfromunit(const fromunit,
+  procname: string; params: tnode): tcallnode; inline;
+begin
+  result:=ncal.ccallnode.createinternfromunit(fromunit,procname,params,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

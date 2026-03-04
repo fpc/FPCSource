@@ -5514,7 +5514,7 @@ implementation
 {$ifdef SUPPORT_GET_FRAME}
          paras:=ccallparanode.create(geninlinenode(in_get_frame,false,nil,compiler),paras,compiler);
 {$else}
-         paras:=ccallparanode.create(ccallnode.createinternfromunit('SYSTEM','GET_FRAME',nil),paras);
+         paras:=ccallparanode.create(compiler.ccallnode_internfromunit('SYSTEM','GET_FRAME',nil),paras);
 {$endif}
          result:=cifnode.create(cnotnode.create(tcallparanode(left).left,compiler),
             compiler.ccallnode_intern('fpc_assert',paras),nil,compiler);

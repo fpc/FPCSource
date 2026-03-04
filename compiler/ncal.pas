@@ -182,7 +182,7 @@ interface
           constructor create_procvar(l,r:tnode;acompiler:TCompilerBase);
           constructor createintern(const name: string; params: tnode;acompiler:TCompilerBase);
           constructor createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode;acompiler:TCompilerBase);
-          constructor createinternfromunit(const fromunit, procname: string; params: tnode);
+          constructor createinternfromunit(const fromunit, procname: string; params: tnode;acompiler:TCompilerBase);
           constructor createinternres(const name: string; params: tnode; res:tdef);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
@@ -1661,7 +1661,7 @@ implementation
        end;
 
 
-     constructor tcallnode.createinternfromunit(const fromunit, procname: string; params: tnode);
+     constructor tcallnode.createinternfromunit(const fromunit, procname: string; params: tnode;acompiler:TCompilerBase);
        var
          srsym: tsym;
          srsymtable: tsymtable;
@@ -1670,7 +1670,7 @@ implementation
          if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
-         create(params,tprocsym(srsym),srsymtable,nil,[],nil,compiler);
+         create(params,tprocsym(srsym),srsymtable,nil,[],nil,acompiler);
        end;
 
 
@@ -1694,7 +1694,7 @@ implementation
       var
         pd : tprocdef;
       begin
-        createinternfromunit(fromunit,procname,params);
+        createinternfromunit(fromunit,procname,params,nil);  { TODO: fix node compiler reference!!! }
         typedef:=res;
         include(callnodeflags,cnf_typedefset);
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
