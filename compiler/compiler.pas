@@ -196,6 +196,7 @@ type
     function caddnode(tt : tnodetype;l,r : tnode):taddnode; inline;
     function caddnode_internal(tt:tnodetype;l,r:tnode):taddnode; inline;
     function cnothingnode:tnothingnode; inline;
+    function cerrornode:terrornode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -515,9 +516,14 @@ begin
   result:=nadd.caddnode.create_internal(tt,l,r,self);
 end;
 
-function TCompilerHelper.cnothingnode: tnothingnode;
+function TCompilerHelper.cnothingnode: tnothingnode; inline;
 begin
   result:=nbas.cnothingnode.create(self);
+end;
+
+function TCompilerHelper.cerrornode: terrornode; inline;
+begin
+  result:=nbas.cerrornode.create(self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

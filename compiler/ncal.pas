@@ -3085,7 +3085,7 @@ implementation
         if not assigned(call_self_node) then
           begin
             CGMessage(parser_e_illegal_expression);
-            call_self_node:=cerrornode.create(compiler);
+            call_self_node:=compiler.cerrornode;
           end;
         result:=call_self_node;
       end;

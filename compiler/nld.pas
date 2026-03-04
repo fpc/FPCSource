@@ -213,7 +213,7 @@ implementation
 
     uses
       verbose,globtype,globals,systems,constexp,compinnr,
-      ppu,
+      ppu,compiler,
       symtable,
       defutil,defcmp,
       cpuinfo,
@@ -241,7 +241,7 @@ implementation
           end
         else
           begin
-            result:=cerrornode.create(compiler);
+            result:=compiler.cerrornode;
             CGMessage(parser_e_illegal_expression);
           end;
       end;
@@ -752,7 +752,7 @@ implementation
         if is_open_array(left.resultdef) or is_array_of_const(left.resultdef) then
           begin
             CGMessage(type_e_assignment_not_allowed);
-            result:=cerrornode.create(compiler);
+            result:=compiler.cerrornode;
             exit;
           end
         else if (left.resultdef.typ=formaldef) then

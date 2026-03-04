@@ -2241,7 +2241,7 @@ const
          { Stop checking when an error was found in the operator checking }
          if codegenerror then
            begin
-             result:=cerrornode.create(compiler);
+             result:=compiler.cerrornode;
              exit;
            end;
 
@@ -2403,7 +2403,7 @@ const
             if current_settings.fputype=fpu_none then
               begin
                 Message(parser_e_unsupported_real);
-                result:=cerrornode.create(compiler);
+                result:=compiler.cerrornode;
                 exit;
               end
             else

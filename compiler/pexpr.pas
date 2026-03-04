@@ -414,7 +414,7 @@ implementation
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create(compiler);
+                  statement_syssym:=compiler.cerrornode;
                 end;
             end;
 
@@ -425,7 +425,7 @@ implementation
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create(compiler);
+                  statement_syssym:=compiler.cerrornode;
                 end;
             end;
 
@@ -452,7 +452,7 @@ implementation
                  Message(parser_e_class_id_expected);
                  p1.free;
                  p1 := nil;
-                 statement_syssym:=cerrornode.create(compiler);
+                 statement_syssym:=compiler.cerrornode;
                end;
             end;
 
@@ -544,7 +544,7 @@ implementation
     {              else
                     begin
                        p1.free;
-                       p1:=cerrornode.create;
+                       p1:=compiler.cerrornode;
                        Message(parser_e_illegal_parameter_list);
                     end;}
                   consume(_RKLAMMER);
@@ -554,7 +554,7 @@ implementation
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create(compiler);
+                  statement_syssym:=compiler.cerrornode;
                 end;
             end;
 
@@ -635,7 +635,7 @@ implementation
                begin
                  p1.free;
                  p1 := nil;
-                 p2:=cerrornode.create(compiler);
+                 p2:=compiler.cerrornode;
                end;
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -751,7 +751,7 @@ implementation
                   comp_expr([ef_accept_equal]).free; // no nil needed
                   if try_to_consume(_COMMA) then
                     comp_expr([ef_accept_equal]).free; // no nil needed
-                  statement_syssym:=cerrornode.create(compiler);
+                  statement_syssym:=compiler.cerrornode;
                   consume(_RKLAMMER);
                 end
               else
@@ -763,7 +763,7 @@ implementation
                   if not(codegenerror) then
                     p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler)
                   else
-                    p2:=cerrornode.create(compiler);
+                    p2:=compiler.cerrornode;
                   p2:=ccallparanode.create(p1,p2,compiler);
                   statement_syssym:=geninlinenode(l,false,p2,compiler);
                   consume(_RKLAMMER);
@@ -825,7 +825,7 @@ implementation
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);
-                  statement_syssym:=cerrornode.create(compiler);
+                  statement_syssym:=compiler.cerrornode;
                 end;
             end;
 
@@ -945,7 +945,7 @@ implementation
               in_args:=true;
               def:=nil;
               compiler.parser.ptype.single_type(def,[stoAllowSpecialization]);
-              statement_syssym:=cerrornode.create(compiler);
+              statement_syssym:=compiler.cerrornode;
               if def<>generrordef then
                 { "type expected" error is already done by single_type }
                 if def.typ=forwarddef then
@@ -1137,7 +1137,7 @@ implementation
              if assigned(spezcontext) then
                begin
                  comment(v_error, 'Pointers to generics functions not implemented');
-                 p1:=cerrornode.create(compiler);
+                 p1:=compiler.cerrornode;
                  spezcontext.free;
                  spezcontext := nil;
                  exit;
@@ -1420,14 +1420,14 @@ implementation
                       end
                     else
                       begin
-                        p1:=cerrornode.create(compiler);
+                        p1:=compiler.cerrornode;
                         Message(parser_e_no_procedure_to_access_property);
                       end;
                   end;
                 end
               else
                 begin
-                   p1:=cerrornode.create(compiler);
+                   p1:=compiler.cerrornode;
                    Message(parser_e_no_procedure_to_access_property);
                 end;
            end
@@ -1460,7 +1460,7 @@ implementation
                        end
                      else
                        begin
-                          p1:=cerrornode.create(compiler);
+                          p1:=compiler.cerrornode;
                           Message(type_e_mismatch);
                        end;
                   end;
@@ -1468,7 +1468,7 @@ implementation
               else
                 begin
                    { error, no function to read property }
-                   p1:=cerrornode.create(compiler);
+                   p1:=compiler.cerrornode;
                    Message(parser_e_no_procedure_to_access_property);
                 end;
            end;
@@ -1492,7 +1492,7 @@ implementation
               there is another ID just after the ID of sym }
               Message1(sym_e_id_no_member,current_scanner.orgpattern);
               p1.free;
-              p1:=cerrornode.create(compiler);
+              p1:=compiler.cerrornode;
               { try to clean up }
               spezcontext.free;
               spezcontext := nil;
@@ -1597,7 +1597,7 @@ implementation
                                   not def_is_related(current_structdef,structh)) then
                                 begin
                                   p1.free;
-                                  p1:=cerrornode.create(compiler);
+                                  p1:=compiler.cerrornode;
                                   Message(parser_e_only_static_members_via_object_type);
                                   exit;
                                 end;
@@ -1817,7 +1817,7 @@ implementation
                      if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                        begin
                          result.free;
-                         result:=cerrornode.create(compiler);
+                         result:=compiler.cerrornode;
                        end;
                    end
                  else
@@ -1881,7 +1881,7 @@ implementation
                 if erroroutresult then
                   begin
                     result.free;
-                    result:=cerrornode.create(compiler);
+                    result:=compiler.cerrornode;
                   end
                 else
                   if result.nodetype<>specializen then
@@ -1974,7 +1974,7 @@ implementation
         if current_settings.fputype=fpu_none then
           begin
             Message(parser_e_unsupported_real);
-            result:=cerrornode.create(compiler);
+            result:=compiler.cerrornode;
             exit;
           end;
         if (current_settings.minfpconstprec=s32real) and
@@ -2316,7 +2316,7 @@ implementation
                     Message(parser_e_invalid_qualifier);
                     recoverconsume_postfixops;
                     p1.free;
-                    p1:=cerrornode.create(compiler);
+                    p1:=compiler.cerrornode;
                  end
                else
                  p1:=cderefnode.create(p1,compiler);
@@ -2345,7 +2345,7 @@ implementation
                    if not(assigned(protsym)) then
                      begin
                         p1.free;
-                        p1:=cerrornode.create(compiler);
+                        p1:=compiler.cerrornode;
                         again:=false;
                         message(parser_e_no_default_property_available);
                      end
@@ -2456,7 +2456,7 @@ implementation
                            if p1.resultdef.typ<>undefineddef then
                              Message(parser_e_invalid_qualifier);
                            p1.free;
-                           p1:=cerrornode.create(compiler);
+                           p1:=compiler.cerrornode;
                            comp_expr([ef_accept_equal]);
                            again:=false;
                          end;
@@ -2562,7 +2562,7 @@ implementation
                        if haderror then
                          begin
                            Message(parser_e_error_in_real);
-                           p2:=cerrornode.create(compiler);
+                           p2:=compiler.cerrornode;
                          end
                        else
                          p2:=real_const_node_from_pattern(valstr);
@@ -2659,7 +2659,7 @@ implementation
                          if erroroutp1 then
                            begin
                              p1.free;
-                             p1:=cerrornode.create(compiler);
+                             p1:=compiler.cerrornode;
                            end
                          else
                            if p1.nodetype<>specializen then
@@ -2685,14 +2685,14 @@ implementation
                              begin
                                p1.free;
                                Message1(sym_e_id_no_member,current_scanner.orgpattern);
-                               p1:=cerrornode.create(compiler);
+                               p1:=compiler.cerrornode;
                                consume(_ID);
                              end;
                        end
                      else
                        begin
                          p1.free;
-                         p1:=cerrornode.create(compiler);
+                         p1:=compiler.cerrornode;
                          consume(_ID);
                        end
                    end;
@@ -2717,7 +2717,7 @@ implementation
                                        begin
                                          Message2(scan_f_syn_expected,'CREATE',current_scanner.pattern);
                                          p1.free;
-                                         p1:=cerrornode.create(compiler);
+                                         p1:=compiler.cerrornode;
                                          consume(_ID);
                                        end;
                                    end
@@ -2725,7 +2725,7 @@ implementation
                                    begin
                                      Message(parser_e_invalid_qualifier);
                                      p1.free;
-                                     p1:=cerrornode.create(compiler);
+                                     p1:=compiler.cerrornode;
                                      consume(_ID);
                                    end;
                                end;
@@ -2734,7 +2734,7 @@ implementation
                            begin
                              Message(parser_e_invalid_qualifier);
                              p1.free;
-                             p1:=cerrornode.create(compiler);
+                             p1:=compiler.cerrornode;
                              consume(_ID);
                            end;
                        end
@@ -2743,7 +2743,7 @@ implementation
                          begin
                            Message(parser_e_invalid_qualifier);
                            p1.free;
-                           p1:=cerrornode.create(compiler);
+                           p1:=compiler.cerrornode;
                            consume(_ID);
                          end;
                    end;
@@ -2841,7 +2841,7 @@ implementation
                           if erroroutp1 then
                             begin
                               p1.free;
-                              p1:=cerrornode.create(compiler);
+                              p1:=compiler.cerrornode;
                             end
                           else
                             if p1.nodetype<>specializen then
@@ -2895,7 +2895,7 @@ implementation
                           if erroroutp1 then
                             begin
                               p1.free;
-                              p1:=cerrornode.create(compiler);
+                              p1:=compiler.cerrornode;
                             end
                           else
                             if p1.nodetype<>specializen then
@@ -2957,7 +2957,7 @@ implementation
                           if p1.resultdef.typ<>undefineddef then
                             Message(parser_e_invalid_qualifier);
                           p1.free;
-                          p1:=cerrornode.create(compiler);
+                          p1:=compiler.cerrornode;
                           { Error }
                           consume(_ID);
                         end;
@@ -3013,7 +3013,7 @@ implementation
                             begin
                               Message(parser_e_illegal_expression);
                               p1.free;
-                              p1:=cerrornode.create(compiler);
+                              p1:=compiler.cerrornode;
                               again:=false;
                             end;
                         end
@@ -3171,7 +3171,7 @@ implementation
                            begin
                              spezcontext.free;
                              spezcontext := nil;
-                             result:=cerrornode.create(compiler);
+                             result:=compiler.cerrornode;
                              if try_to_consume(_LKLAMMER) then
                               begin
                                 parse_paras(false,false,_RKLAMMER);
@@ -3338,7 +3338,7 @@ implementation
 
           errorsym :
             begin
-              result:=cerrornode.create(compiler);
+              result:=compiler.cerrornode;
               if try_to_consume(_LKLAMMER) then
                begin
                  parse_paras(false,false,_RKLAMMER);
@@ -3348,7 +3348,7 @@ implementation
 
           else
             begin
-              result:=cerrornode.create(compiler);
+              result:=compiler.cerrornode;
               Message(parser_e_illegal_expression);
             end;
         end; { end case }
@@ -3967,7 +3967,7 @@ implementation
                              if (srsym.typ=typesym) and not mightbegeneric then
                                begin
                                  Message(parser_e_methode_id_expected);
-                                 p1:=cerrornode.create(compiler);
+                                 p1:=compiler.cerrornode;
                                end
                              else
                                begin
@@ -4017,7 +4017,7 @@ implementation
                          else
                            begin
                              Message(parser_e_methode_id_expected);
-                             p1:=cerrornode.create(compiler);
+                             p1:=compiler.cerrornode;
                            end;
                        end;
                        if mightbegeneric then
@@ -4064,7 +4064,7 @@ implementation
                        else
                         begin
                           Message1(sym_e_id_no_member,hsorg);
-                          p1:=cerrornode.create(compiler);
+                          p1:=compiler.cerrornode;
                         end;
                        again:=false;
                      end;
@@ -4080,7 +4080,7 @@ implementation
                      else
                        Message(parser_e_generic_methods_only_in_methods);
                      again:=false;
-                     p1:=cerrornode.create(compiler);
+                     p1:=compiler.cerrornode;
                    end;
                  if p1.nodetype<>specializen then
                    postfixoperators(p1,again,getaddr);
@@ -4409,14 +4409,14 @@ implementation
                      if (p1.nodetype<>errorn) and getaddr then
                        begin
                          p1.free;
-                         p1:=cerrornode.create(compiler);
+                         p1:=compiler.cerrornode;
                          MessagePos(filepos,parser_e_illegal_expression);
                        end;
                    end
                  else
                    begin
                      Message(parser_e_illegal_expression);
-                     p1:=cerrornode.create(compiler);
+                     p1:=compiler.cerrornode;
                      { recover }
                      consume(current_scanner.token);
                    end;
@@ -4425,7 +4425,7 @@ implementation
              else
                begin
                  Message(parser_e_illegal_expression);
-                 p1:=cerrornode.create(compiler);
+                 p1:=compiler.cerrornode;
                  { recover }
                  consume(current_scanner.token);
                end;
@@ -4438,7 +4438,7 @@ implementation
 {$ifdef EXTDEBUG}
            Comment(V_Warning,'factor: p1=nil');
 {$endif}
-           p1:=cerrornode.create(compiler);
+           p1:=compiler.cerrornode;
            updatefpos:=true;
          end;
 
@@ -4693,7 +4693,7 @@ implementation
             if assigned(result) then
               result.fileinfo:=filepos
             else
-              result:=cerrornode.create(compiler);
+              result:=compiler.cerrornode;
 
           spezcontext.free;
           spezcontext := nil;
@@ -4843,7 +4843,7 @@ implementation
                              begin
                                identifier_not_found(tspecializenode(p1).sym.realname);
                                p1.free;
-                               p1:=cerrornode.create(compiler);
+                               p1:=compiler.cerrornode;
                              end;
                          end;
 
@@ -4860,7 +4860,7 @@ implementation
                          begin
                            identifier_not_found(ttypenode(p1).typedef.typesym.RealName);
                            p1.Free;
-                           p1:=cerrornode.create(compiler);
+                           p1:=compiler.cerrornode;
                          end;
 
                        { c) don't have their hints checked }

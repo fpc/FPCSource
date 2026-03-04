@@ -2540,7 +2540,7 @@ implementation
                           )
                         ) then
                       begin
-                        result:=cerrornode.create(compiler);
+                        result:=compiler.cerrornode;
                         exit;
                       end;
 
@@ -2654,7 +2654,7 @@ implementation
                   begin
                     if assigned(tprocdef(pd).capturedsyms) and (tprocdef(pd).capturedsyms.count>0) then
                       begin
-                        result:=cerrornode.create(compiler);
+                        result:=compiler.cerrornode;
                         exit;
                       end;
 
@@ -2769,7 +2769,7 @@ implementation
               end;
           end;
         if not assigned(result) then
-          result:=cerrornode.create(compiler);
+          result:=compiler.cerrornode;
       end;
 
 
@@ -2793,7 +2793,7 @@ implementation
                       totypedef,compiler);
           end
         else
-          result:=cerrornode.create(compiler);
+          result:=compiler.cerrornode;
       end;
 
 

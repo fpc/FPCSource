@@ -188,7 +188,7 @@ implementation
                  if is_new then
                    p2.free;
                    p2 := nil;
-                 new_dispose_statement := cerrornode.create(compiler);
+                 new_dispose_statement := compiler.cerrornode;
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -252,7 +252,7 @@ implementation
                  p.free;
                  p := nil;
                  consume(_RKLAMMER);
-                 new_dispose_statement:=cerrornode.create(compiler);
+                 new_dispose_statement:=compiler.cerrornode;
                  exit;
               end;
             { first parameter must be an object or class }
@@ -292,7 +292,7 @@ implementation
                   Message(parser_e_expr_have_to_be_destructor_call);
                  p.free;
                  p := nil;
-                 new_dispose_statement:=cerrornode.create(compiler);
+                 new_dispose_statement:=compiler.cerrornode;
               end
             else
               begin
@@ -377,7 +377,7 @@ implementation
                  else
                    begin
                      Message1(type_e_pointer_type_expected,p.resultdef.typename);
-                     new_dispose_statement:=cerrornode.create(compiler);
+                     new_dispose_statement:=compiler.cerrornode;
                    end;
                end
              else
@@ -478,7 +478,7 @@ implementation
            consume(_RKLAMMER);
            p1.free;
            p1 := nil;
-           new_function:=cerrornode.create(compiler);
+           new_function:=compiler.cerrornode;
            exit;
          end;
 
@@ -489,7 +489,7 @@ implementation
            consume(_RKLAMMER);
            p1.free;
            p1 := nil;
-           new_function:=cerrornode.create(compiler);
+           new_function:=compiler.cerrornode;
            exit;
          end;
 
@@ -514,7 +514,7 @@ implementation
                consume(_RKLAMMER);
                p1.free;
                p1 := nil;
-               new_function:=cerrornode.create(compiler);
+               new_function:=compiler.cerrornode;
                exit;
              end;
             classh:=tobjectdef(tpointerdef(p1.resultdef).pointeddef);
@@ -556,7 +556,7 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
-           result:=cerrornode.create(compiler);
+           result:=compiler.cerrornode;
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
@@ -628,7 +628,7 @@ implementation
         ppn     : tcallparanode;
       begin
         { for easy exiting if something goes wrong }
-        result := cerrornode.create(compiler);
+        result := compiler.cerrornode;
 
         consume(_LKLAMMER);
         paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
@@ -695,7 +695,7 @@ implementation
         paras   : tnode;
         { for easy exiting if something goes wrong }
       begin
-        result := cerrornode.create(compiler);
+        result := compiler.cerrornode;
 
         consume(_LKLAMMER);
         paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);

@@ -592,7 +592,7 @@ implementation
          else
            begin
              consume(_ASSIGNMENT); // fail
-             result:=cerrornode.create(compiler);
+             result:=compiler.cerrornode;
            end;
       end;
 
@@ -849,7 +849,7 @@ implementation
                if current_scanner.token<>_SEMICOLON then
                 statement;
              end;
-            result:=cerrornode.create(compiler);
+            result:=compiler.cerrornode;
           end;
       end;
 
@@ -1034,7 +1034,7 @@ implementation
                      if ot.typ=errordef then
                        begin
                           hp.free;
-                          hp:=cerrornode.create(compiler);
+                          hp:=compiler.cerrornode;
                        end;
                      if p_specific=nil then
                        begin
@@ -1382,7 +1382,7 @@ implementation
                 if (current_scanner.token<>_INTCONST) and (current_scanner.token<>_ID) then
                   begin
                     Message(sym_e_label_not_found);
-                    code:=cerrornode.create(compiler);
+                    code:=compiler.cerrornode;
                   end
                 else
                   begin
@@ -1411,7 +1411,7 @@ implementation
                      if srsym.typ<>labelsym then
                        begin
                           Message(sym_e_id_is_no_label_id);
-                          code:=cerrornode.create(compiler);
+                          code:=compiler.cerrornode;
                        end
                      else
                        begin

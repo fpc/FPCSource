@@ -344,7 +344,7 @@ implementation
         { Objective-C enumerators require Objective-C 2.0 }
         if not(m_objectivec2 in current_settings.modeswitches) then
           begin
-            result:=cerrornode.create(compiler);
+            result:=compiler.cerrornode;
             MessagePos(expr.fileinfo,parser_e_objc_enumerator_2_0);
             exit;
           end;
@@ -354,7 +354,7 @@ implementation
         if not assigned(objc_fastenumeration) or
            not assigned(objc_fastenumerationstate) then
           begin
-            result:=cerrornode.create(compiler);
+            result:=compiler.cerrornode;
             MessagePos(expr.fileinfo,parser_e_objc_missing_enumeration_defs);
             exit;
           end;
@@ -894,13 +894,13 @@ implementation
                  end
                else
                  begin
-                   enum_current:=cerrornode.create(compiler);
+                   enum_current:=compiler.cerrornode;
                    Message(type_e_mismatch);
                  end;
             end;
           end
         else
-          enum_current:=cerrornode.create(compiler);
+          enum_current:=compiler.cerrornode;
 
         addstatement(loopbodystatement,
           cassignmentnode.create(hloopvar, enum_current, compiler));
@@ -963,7 +963,7 @@ implementation
           begin
             if (expr.resultdef.typ=enumdef) and tenumdef(expr.resultdef).has_jumps then
               begin
-                result:=cerrornode.create(compiler);
+                result:=compiler.cerrornode;
                 hloopvar.free;
                 hloopvar := nil;
                 hloopbody.free;
@@ -1023,7 +1023,7 @@ implementation
                     movenext:=tabstractrecorddef(pd.returndef).search_enumerator_move;
                     if movenext = nil then
                       begin
-                        result:=cerrornode.create(compiler);
+                        result:=compiler.cerrornode;
                         hloopvar.free;
                         hloopvar := nil;
                         hloopbody.free;
@@ -1035,7 +1035,7 @@ implementation
                         current:=tpropertysym(tabstractrecorddef(pd.returndef).search_enumerator_current);
                         if current = nil then
                           begin
-                            result:=cerrornode.create(compiler);
+                            result:=compiler.cerrornode;
                             hloopvar.free;
                             hloopvar := nil;
                             hloopbody.free;
@@ -1068,7 +1068,7 @@ implementation
                         result:=compiler.cnothingnode;
                     else
                       begin
-                        result:=cerrornode.create(compiler);
+                        result:=compiler.cerrornode;
                         hloopvar.free;
                         hloopvar := nil;
                         hloopbody.free;

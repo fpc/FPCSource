@@ -290,7 +290,7 @@ implementation
         intrinsiccode: TInlineNumber;
 
       begin
-        result := cerrornode.create(compiler);
+        result := compiler.cerrornode;
 
         { get destination string }
         dest := tcallparanode(left);
@@ -545,7 +545,7 @@ implementation
               result:=cloadnode.create(srsym,srsymtable,compiler);
             end
           else
-            result:=cerrornode.create(compiler);
+            result:=compiler.cerrornode;
         end;
 
       var
@@ -563,7 +563,7 @@ implementation
             if block_type<>bt_const then
               result:=cpointerconstnode.create(0,def,compiler)
             else
-              result:=cerrornode.create(compiler);
+              result:=compiler.cerrornode;
             exit;
           end;
 
@@ -648,7 +648,7 @@ implementation
             Message(type_e_type_not_allowed_for_default);
         end;
         if not assigned(result) then
-          result:=cerrornode.create(compiler);
+          result:=compiler.cerrornode;
       end;
 
 
@@ -1383,7 +1383,7 @@ implementation
         { if we fail, we can quickly exit this way. We must generate something }
         { instead of the inline node, because firstpass will bomb with an      }
         { internalerror if it encounters a read/write                          }
-        result := cerrornode.create(compiler);
+        result := compiler.cerrornode;
 
         { reverse the parameters (needed to get the colon parameters in the }
         { correct order when processing write(ln)                           }
@@ -1658,7 +1658,7 @@ implementation
         valsinttype   : tdef;
       begin
         { for easy exiting if something goes wrong }
-        result := cerrornode.create(compiler);
+        result := compiler.cerrornode;
 
         { check the amount of parameters }
         if not(assigned(left)) or
@@ -1876,7 +1876,7 @@ implementation
         isarray: boolean;
       begin
         { for easy exiting if something goes wrong }
-        result:=cerrornode.create(compiler);
+        result:=compiler.cerrornode;
         resultdef:=voidtype;
         paras:=left;
         dims:=0;
@@ -1985,7 +1985,7 @@ implementation
         if not assigned(left) then
           begin
             do_error(false,'',fileinfo);
-            exit(cerrornode.create(compiler));
+            exit(compiler.cerrornode);
           end;
         result:=nil;
         { determine copy function to use based on the first argument,
@@ -2060,13 +2060,13 @@ implementation
         else if counter<=maxargs then
           begin
             do_error(true,'',ppn.left.fileinfo);
-            exit(cerrornode.create(compiler));
+            exit(compiler.cerrornode);
           end;
 
         if (counter<minargs) or (counter>maxargs) then
           begin
             do_error(false,func,fileinfo);
-            exit(cerrornode.create(compiler));
+            exit(compiler.cerrornode);
           end;
       end;
 
@@ -2454,7 +2454,7 @@ implementation
                        CGMessagePos(left.fileinfo,parser_e_illegal_expression)
                      else
                        CGMessagePos1(left.fileinfo,type_e_integer_expr_expected,left.resultdef.typename);
-                     result:=cerrornode.create(compiler);
+                     result:=compiler.cerrornode;
                      exit;
                    end;
                end;
@@ -2502,7 +2502,7 @@ implementation
                end;
              end;
             if hp=nil then
-              hp:=cerrornode.create(compiler);
+              hp:=compiler.cerrornode;
             result:=hp;
           end
         else
@@ -5640,7 +5640,7 @@ implementation
              assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
            begin
              do_error;
-             exit(cerrornode.create(compiler));
+             exit(compiler.cerrornode);
            end;
          { determine the correct function based on the second parameter }
          firstn:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left;
@@ -5675,7 +5675,7 @@ implementation
                  and not isconstr then
                begin
                  CGMessagePos(fileinfo,type_e_array_required);
-                 exit(cerrornode.create(compiler));
+                 exit(compiler.cerrornode);
                end;
              insertblock:=internalstatements(compiler,insertstatement);
              datatemp:=nil;
@@ -5737,7 +5737,7 @@ implementation
          else
            begin
              do_error;
-             exit(cerrornode.create(compiler));
+             exit(compiler.cerrornode);
            end;
          result:=ccallnode.createintern(procname,left);
          left:=nil;
@@ -5768,7 +5768,7 @@ implementation
              assigned(tcallparanode(tcallparanode(tcallparanode(left).right).right).right) then
            begin
              do_error;
-             exit(cerrornode.create(compiler));
+             exit(compiler.cerrornode);
            end;
          { determine the correct function based on the first parameter }
          firstn:=tcallparanode(tcallparanode(tcallparanode(left).right).right).left;
@@ -5802,7 +5802,7 @@ implementation
          else
            begin
              do_error;
-             exit(cerrornode.create(compiler));
+             exit(compiler.cerrornode);
            end;
          result:=ccallnode.createintern(procname,left);
          left:=nil;
@@ -5833,7 +5833,7 @@ implementation
          if not assigned(left) then
            begin
              do_error;
-             exit(cerrornode.create(compiler));
+             exit(compiler.cerrornode);
            end;
          result:=nil;
          { the arguments are right to left, but we need to work on them from
