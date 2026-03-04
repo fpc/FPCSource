@@ -190,7 +190,7 @@ unit opttail;
                             compiler.ctemprefnode(tempnode),
                             compiler
                             ));
-                        addstatement(copystatements,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                        addstatement(copystatements,compiler.ctempdeletenode_normal_temp(tempnode));
 
                         { reused }
                         paranode.left:=nil;

@@ -5467,7 +5467,7 @@ implementation
            location and type, this is done be referencing the
            temp and converting it first from a persistent temp to
            normal temp }
-         addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+         addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
          addstatement(newstatement,compiler.ctemprefnode(temp));
          result:=newblock;
        end;
@@ -5922,7 +5922,7 @@ implementation
                      tempnode:=compiler.ctempcreatenode(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);
                      addstatement(newstatement,tempnode);
                      addstatement(newstatement,cassignmentnode.create(compiler.ctemprefnode(tempnode),n,compiler));
-                     addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                     addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                      n:=compiler.ctemprefnode(tempnode);
                      { then to a plain pointer for the helper }
                      inserttypeconv_internal(n,voidpointertype,compiler);
@@ -5957,7 +5957,7 @@ implementation
                      cpn
                    )
                  );
-                 addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                 addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                  addstatement(newstatement,compiler.ctemprefnode(tempnode));
                end;
            end
@@ -6280,7 +6280,7 @@ implementation
                cassignmentnode.create(succn,
                  compiler.caddnode(equaln,cmpn,
                    compiler.ctemprefnode(tmp)),compiler));
-             addstatement(stmt,ctempdeletenode.create_normal_temp(tmp,compiler));
+             addstatement(stmt,compiler.ctempdeletenode_normal_temp(tmp));
              addstatement(stmt,compiler.ctemprefnode(tmp));
              result:=n;
            end
@@ -6297,7 +6297,7 @@ implementation
              else
                n2:=compiler.caddnode(subn,result,valn);
              addstatement(stmt,cassignmentnode.create(compiler.ctemprefnode(tmp),n2,compiler));
-             addstatement(stmt,ctempdeletenode.create_normal_temp(tmp,compiler));
+             addstatement(stmt,compiler.ctempdeletenode_normal_temp(tmp));
              addstatement(stmt,compiler.ctemprefnode(tmp));
              result:=n;
            end;

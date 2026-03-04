@@ -1581,7 +1581,7 @@ implementation
                 )
               );
               if assigned(temp) then
-                addstatement(stat,ctempdeletenode.create_normal_temp(temp,compiler));
+                addstatement(stat,compiler.ctempdeletenode_normal_temp(temp));
               addstatement(stat,self.getcopy);
             end;
         end;

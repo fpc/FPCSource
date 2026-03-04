@@ -3595,7 +3595,7 @@ const
                       para
                     )
                   );
-                  addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                  addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                   addstatement(newstatement,compiler.ctemprefnode(tempnode));
                 end;
               { we reused the arguments }
@@ -3722,7 +3722,7 @@ const
                 location and type, this is done be referencing the
                 temp and converting it first from a persistent temp to
                 normal temp }
-              addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+              addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
               addstatement(newstatement,compiler.ctemprefnode(temp));
             end;
         end;
@@ -3811,7 +3811,7 @@ const
                         location and type, this is done be referencing the
                         temp and converting it first from a persistent temp to
                         normal temp }
-                      addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+                      addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
                       addstatement(newstatement,compiler.ctemprefnode(temp));
                     end;
                   tsetelementnode(right).left:=nil;
@@ -3904,7 +3904,7 @@ const
                             location and type, this is done be referencing the
                             temp and converting it first from a persistent temp to
                             normal temp }
-                          addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+                          addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
                           addstatement(newstatement,compiler.ctemprefnode(temp));
                         end;
                       { remove reused parts from original node }
@@ -4010,7 +4010,7 @@ const
                       para
                     )
                   );
-                  addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                  addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                   addstatement(newstatement,compiler.ctemprefnode(tempnode));
                 end;
               { we reused the arguments }

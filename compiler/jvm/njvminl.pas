@@ -613,7 +613,7 @@ implementation
             if assigned(lefttemp) then
               addstatement(newstatement,compiler.ctempdeletenode(lefttemp));
             { return len temp }
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(lentemp));
+            addstatement(newstatement,compiler.ctempdeletenode_normal_temp(lentemp));
             addstatement(newstatement,compiler.ctemprefnode(lentemp));
             result:=newblock;
           end

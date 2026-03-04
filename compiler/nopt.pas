@@ -421,7 +421,7 @@ begin
           para
         )
       );
-      addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+      addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
       addstatement(newstatement,compiler.ctemprefnode(tempnode));
     end;
 end;
@@ -516,7 +516,7 @@ begin
           para
         )
       );
-      addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+      addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
       addstatement(newstatement,compiler.ctemprefnode(tempnode));
     end;
 end;

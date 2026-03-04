@@ -192,7 +192,7 @@ implementation
        addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
          '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
          compiler.ctemprefnode(restemp),nil))));
-       addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+       addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
        addstatement(newstat,compiler.ctemprefnode(restemp));
        result:=newblock;
        left:=nil;

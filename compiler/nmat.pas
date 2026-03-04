@@ -496,7 +496,7 @@ implementation
                compiler
                ));
 
-             addstatement(statements,ctempdeletenode.create_normal_temp(result_data,compiler));
+             addstatement(statements,compiler.ctempdeletenode_normal_temp(result_data));
              addstatement(statements,compiler.ctemprefnode(result_data));
            end;
       end;
@@ -674,7 +674,7 @@ implementation
                           ),compiler),compiler),compiler)
                       );
                     addstatement(statements,compiler.ctempdeletenode(temp));
-                    addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
+                    addstatement(statements,compiler.ctempdeletenode_normal_temp(resulttemp));
                     addstatement(statements,compiler.ctemprefnode(resulttemp));
                     right.Free;
                     right := nil;
@@ -733,7 +733,7 @@ implementation
                 ));
 
                 addstatement(statements,compiler.ctempdeletenode(temp));
-                addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
+                addstatement(statements,compiler.ctempdeletenode_normal_temp(resulttemp));
                 addstatement(statements,compiler.ctemprefnode(resulttemp));
               end
             else

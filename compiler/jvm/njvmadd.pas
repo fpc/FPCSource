@@ -137,7 +137,7 @@ interface
                 compiler.ctemprefnode(temp),result));
               addstatement(stat,ccallnode.createinternmethod(
                 compiler.ctemprefnode(temp),n,paras));
-              addstatement(stat,ctempdeletenode.create_normal_temp(temp));
+              addstatement(stat,compiler.ctempdeletenode_normal_temp(temp));
               addstatement(stat,compiler.ctemprefnode(temp));
               result:=block;
             end

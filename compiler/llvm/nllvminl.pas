@@ -144,7 +144,7 @@ implementation
           )
         );
         addstatement(stat,compiler.ctempdeletenode(lefttemp));
-        addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
+        addstatement(stat,compiler.ctempdeletenode_normal_temp(resulttemp));
         { return resulttemp }
         addstatement(stat,compiler.ctemprefnode(resulttemp));
         { reused }
@@ -211,7 +211,7 @@ implementation
         );
         if assigned(lefttemp) then
           addstatement(stat,compiler.ctempdeletenode(lefttemp));
-        addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
+        addstatement(stat,compiler.ctempdeletenode_normal_temp(resulttemp));
         addstatement(stat,compiler.ctemprefnode(resulttemp));
         left:=nil;
         result:=block;

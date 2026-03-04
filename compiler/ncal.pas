@@ -657,7 +657,7 @@ implementation
         if useresult then
           begin
             { clean up }
-            addstatement(statements,ctempdeletenode.create_normal_temp(result_data,compiler));
+            addstatement(statements,compiler.ctempdeletenode_normal_temp(result_data));
             addstatement(statements,compiler.ctemprefnode(result_data));
           end;
       end;
@@ -1315,7 +1315,7 @@ implementation
                      addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(temp),left,compiler));
                      left:=nil;
                      { release temp after next use }
-                     addstatement(statements,ctempdeletenode.create_normal_temp(temp,compiler));
+                     addstatement(statements,compiler.ctempdeletenode_normal_temp(temp));
                      addstatement(statements,compiler.ctemprefnode(temp));
                      typecheckpass(tnode(block));
                      left:=block;
@@ -2626,7 +2626,7 @@ implementation
                             { self node as a temp node of the result type       }
                             temp:=compiler.ctempcreatenode(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false);
                             add_init_statement(temp);
-                            add_done_statement(ctempdeletenode.create_normal_temp(temp,compiler));
+                            add_done_statement(compiler.ctempdeletenode_normal_temp(temp));
                             selftree:=compiler.ctemprefnode(temp);
                           end
                         else
@@ -3635,7 +3635,7 @@ implementation
                    (cnf_do_inline in callnodeflags) then
                   add_done_statement(compiler.ctempdeletenode(temp))
                 else
-                  add_done_statement(ctempdeletenode.create_normal_temp(temp,compiler));
+                  add_done_statement(compiler.ctempdeletenode_normal_temp(temp));
                 funcretnode:=compiler.ctemprefnode(temp);
                 include(funcretnode.flags,nf_is_funcret);
               end;
@@ -3667,7 +3667,7 @@ implementation
                    { if funcretnode is a temprefnode, we have to keep it intact
                      if it may have been created in maybe_create_funcret_node(),
                      because then it will also be destroyed by a
-                     ctempdeletenode.create_normal_temp() in the cleanup code
+                     compiler.ctempdeletenode_normal_temp() in the cleanup code
                      for this call code. In that case we have to copy this
                      ttemprefnode after the tempdeletenode to reset its
                      tempinfo^.hookoncopy. This is done by copying funcretnode
@@ -4613,7 +4613,7 @@ implementation
                   ctypeconvnode.create_internal(
                     translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
                   procdefinition.returndef,compiler),compiler));
-                addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data,compiler));
+                addstatement(statements,compiler.ctempdeletenode_normal_temp(converted_result_data));
                 addstatement(statements,compiler.ctemprefnode(converted_result_data));
               end
             else
@@ -5548,7 +5548,7 @@ implementation
         addstatement(inlineinitstatement,tempnode);
         isfuncretnode:=nf_is_funcret in para.left.flags;
         if isfuncretnode then
-          addstatement(inlinecleanupstatement,ctempdeletenode.create_normal_temp(tempnode,compiler))
+          addstatement(inlinecleanupstatement,compiler.ctempdeletenode_normal_temp(tempnode))
         else
           addstatement(inlinecleanupstatement,compiler.ctempdeletenode(tempnode));
         { inherit addr_taken flag }

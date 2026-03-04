@@ -2111,7 +2111,7 @@ implementation
                location and type, this is done be referencing the
                temp and converting it first from a persistent temp to
                normal temp }
-             addstatement(newstatement,ctempdeletenode.create_normal_temp(tempresultvariant,compiler));
+             addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempresultvariant));
              addstatement(newstatement,compiler.ctemprefnode(tempresultvariant));
            end;
          p1:=newblock;
@@ -2181,7 +2181,7 @@ implementation
             location and type, this is done be referencing the
             temp and converting it first from a persistent temp to
             normal temp }
-          addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
+          addstatement(newstatement,compiler.ctempdeletenode_normal_temp(arrnode));
           addstatement(newstatement,compiler.ctemprefnode(arrnode));
         end;
 
@@ -2219,7 +2219,7 @@ implementation
                       temp:=compiler.ctempcreatenode(extdef,extdef.size,tt_persistent,false);
                       addstatement(newstatement,temp);
                       addstatement(newstatement,cassignmentnode.create(compiler.ctemprefnode(temp),node,compiler));
-                      addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+                      addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
                       addstatement(newstatement,compiler.ctemprefnode(temp));
                       node:=n;
                       do_typecheckpass(node)

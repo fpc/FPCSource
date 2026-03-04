@@ -716,7 +716,7 @@ implementation
                   'fpc_check_object',paras
                 )
               );
-            addstatement(stat,ctempdeletenode.create_normal_temp(vmt_temp,compiler));
+            addstatement(stat,compiler.ctempdeletenode_normal_temp(vmt_temp));
             addstatement(stat,compiler.ctempdeletenode(self_temp));
             addstatement(stat,compiler.ctemprefnode(vmt_temp));
             result:=block;

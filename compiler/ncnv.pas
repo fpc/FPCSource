@@ -1161,7 +1161,7 @@ implementation
                 ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false,compiler),
               ccallparanode.create(left,ccallparanode.create(
               compiler.ctemprefnode(restemp),nil,compiler),compiler),compiler)));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
             addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end
@@ -1262,7 +1262,7 @@ implementation
         addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
           '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
           compiler.ctemprefnode(restemp),nil,compiler),compiler)));
-        addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+        addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
         addstatement(newstat,compiler.ctemprefnode(restemp));
         result:=newblock;
         left:=nil;
@@ -1809,7 +1809,7 @@ implementation
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
               compiler.ctemprefnode(restemp),nil,compiler),compiler)));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
             addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end
@@ -1886,7 +1886,7 @@ implementation
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pwidechar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
               compiler.ctemprefnode(restemp),nil,compiler),compiler)));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
             addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end
@@ -2046,7 +2046,7 @@ implementation
           location and type, this is done be referencing the
           temp and converting it first from a persistent temp to
           normal temp }
-        addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+        addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
         addstatement(newstatement,compiler.ctemprefnode(temp));
       end;
 
@@ -2140,7 +2140,7 @@ implementation
           location and type, this is done be referencing the
           temp and converting it first from a persistent temp to
           normal temp }
-        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
+        addstatement(newstatement,compiler.ctempdeletenode_normal_temp(arrnode));
         addstatement(newstatement,compiler.ctemprefnode(arrnode));
       end;
 
@@ -2199,7 +2199,7 @@ implementation
           location and type, this is done be referencing the
           temp and converting it first from a persistent temp to
           normal temp }
-        addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
+        addstatement(newstatement,compiler.ctempdeletenode_normal_temp(arrnode));
         addstatement(newstatement,compiler.ctemprefnode(arrnode));
       end;
 
@@ -3179,7 +3179,7 @@ implementation
                                  left:=compiler.ctemprefnode(tempnode);
                                end;
                              addstatement(newstatement,casnode.create(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler),compiler));
-                             addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                             addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                              addstatement(newstatement,ctypeconvnode.create_internal(left,resultdef,compiler));
                              left:=nil;
                              result:=newblock;
@@ -3511,7 +3511,7 @@ implementation
                           compiler
                         )
                       );
-                      addstatement(newstatements,ctempdeletenode.create_normal_temp(tempnode,compiler));
+                      addstatement(newstatements,compiler.ctempdeletenode_normal_temp(tempnode));
                       addstatement(newstatements,compiler.ctemprefnode(tempnode));
                       n:=newblock;
                       do_typecheckpass(n);
@@ -4323,7 +4323,7 @@ implementation
                 { temp := left }
                 addstatement(newstatement,cassignmentnode.create(
                   compiler.ctemprefnode(temp),left,compiler));
-                addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+                addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
                 addstatement(newstatement,compiler.ctemprefnode(temp));
                 left:=result;
                 firstpass(left);
@@ -4342,7 +4342,7 @@ implementation
               ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false,compiler),
               ccallparanode.create(left,nil,compiler),compiler),compiler),compiler),compiler))
             );
-            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
+            addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
             addstatement(newstatement,compiler.ctemprefnode(temp));
             left:=nil;
           end;
@@ -4444,7 +4444,7 @@ implementation
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
               compiler.ctemprefnode(restemp),nil,compiler),compiler)));
-            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
+            addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
             addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end

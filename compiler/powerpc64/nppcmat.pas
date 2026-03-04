@@ -108,7 +108,7 @@ begin
         compiler.caddnode(muln, cmoddivnode.create(divn, compiler.ctemprefnode(temp_left), right.getcopy),
           right.getcopy))));
     end;
-    addstatement(statementnode, ctempdeletenode.create_normal_temp(temp_left));
+    addstatement(statementnode, compiler.ctempdeletenode_normal_temp(temp_left));
     addstatement(statementnode, compiler.ctemprefnode(temp_left));
     result := block;
   end;
