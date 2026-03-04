@@ -143,7 +143,7 @@ implementation
     function replacewithtemp(var orgnode:tnode): ttempcreatenode;
       begin
         if valid_for_var(orgnode,false) then
-          result:=ctempcreatenode.create_reference(
+          result:=compiler.ctempcreatenode_reference(
             orgnode.resultdef,orgnode.resultdef.size,
             tt_persistent,true,orgnode,true)
         else
@@ -371,7 +371,7 @@ implementation
           node does work for any kind of memory reference (and the expectloc
           is LOC_(C)REFERENCE when this routine is called), but is not (yet)
           supported for other targets }
-        tempnode:=ctempcreatenode.create_reference(para.parasym.vardef,para.parasym.vardef.size,
+        tempnode:=compiler.ctempcreatenode_reference(para.parasym.vardef,para.parasym.vardef.size,
           tt_persistent,tparavarsym(para.parasym).is_regvar(false),para.left,false);
         addstatement(inlineinitstatement,tempnode);
         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
