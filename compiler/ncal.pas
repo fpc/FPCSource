@@ -185,7 +185,7 @@ interface
           constructor createinternfromunit(const fromunit, procname: string; params: tnode;acompiler:TCompilerBase);
           constructor createinternres(const name: string; params: tnode; res:tdef;acompiler:TCompilerBase);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef;acompiler:TCompilerBase);
-          constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
+          constructor createinternreturn(const name: string; params: tnode; returnnode : tnode;acompiler:TCompilerBase);
           constructor createinternmethod(mp: tnode; const name: string; params: tnode);
           constructor createinternmethodres(mp: tnode; const name: string; params: tnode; res:tdef);
           destructor destroy;override;
@@ -1706,9 +1706,9 @@ implementation
       end;
 
 
-    constructor tcallnode.createinternreturn(const name: string; params: tnode; returnnode : tnode);
+    constructor tcallnode.createinternreturn(const name: string; params: tnode; returnnode : tnode;acompiler:TCompilerBase);
       begin
-        createintern(name,params,nil);  { TODO: fix node compiler reference!!! }
+        createintern(name,params,acompiler);
         funcretnode:=returnnode;
       end;
 
