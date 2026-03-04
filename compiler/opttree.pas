@@ -88,7 +88,7 @@ unit opttree;
               if assigned(tcallnode(n).callinitblock) then
                 begin
                   { create a new statement node and insert it }
-                  hp:=cstatementnode.create(tcallnode(n).callinitblock,pnode(arg)^,compiler);
+                  hp:=compiler.cstatementnode(tcallnode(n).callinitblock,pnode(arg)^);
                   pnode(arg)^:=hp;
                   { tree moved }
                   tcallnode(n).callinitblock:=nil;
@@ -98,7 +98,7 @@ unit opttree;
               if assigned(tcallnode(n).callcleanupblock) then
                 begin
                   { create a new statement node and append it }
-                  hp:=cstatementnode.create(tcallnode(n).callcleanupblock,tstatementnode(pnode(arg)^).right,compiler);
+                  hp:=compiler.cstatementnode(tcallnode(n).callcleanupblock,tstatementnode(pnode(arg)^).right);
                   tstatementnode(pnode(arg)^).right:=hp;
                   { tree moved }
                   tcallnode(n).callcleanupblock:=nil;
@@ -135,7 +135,7 @@ unit opttree;
                         temprefn:
                           begin
                             { create a new statement node and insert it }
-                            hp:=cstatementnode.create(n,pnode(arg)^,compiler);
+                            hp:=compiler.cstatementnode(n,pnode(arg)^);
                             pnode(arg)^:=hp;
                             { use the result node instead of the block node }
                             n:=res^;

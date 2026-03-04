@@ -395,7 +395,7 @@ implementation
     function internalstatements(compiler: TCompilerBase; out laststatement:tstatementnode):tblocknode;
       begin
         { create dummy initial statement }
-        laststatement := cstatementnode.create(compiler.cnothingnode,nil,compiler);
+        laststatement := compiler.cstatementnode(compiler.cnothingnode,nil);
         result := cblocknode.create(laststatement,compiler);
         Include(result.blocknodeflags, bnf_strippable);
       end;
@@ -416,7 +416,7 @@ implementation
         compiler:=laststatement.compiler;
         if assigned(laststatement.right) then
           internalerror(200204201);
-        laststatement.right:=cstatementnode.create(n,nil,compiler);
+        laststatement.right:=compiler.cstatementnode(n,nil);
         laststatement:=tstatementnode(laststatement.right);
       end;
 

@@ -310,12 +310,11 @@ implementation
            if assigned(defaultconstsym) then
             begin
               b:=tblocknode(arg);
-              b.left:=cstatementnode.create(
+              b.left:=compiler.cstatementnode(
                         cassignmentnode.create(
                             cloadnode.create(tsym(p),tsym(p).owner,compiler),
                             cloadnode.create(defaultconstsym,defaultconstsym.owner,compiler),compiler),
-                        b.left,
-                        compiler);
+                        b.left);
             end
          end;
       end;

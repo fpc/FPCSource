@@ -2049,8 +2049,8 @@ implementation
               initcode:=cassignmentnode.create(
                 csubscriptnode.create(result,cloadnode.create(pd.parentfpstruct,pd.parentfpstruct.owner,compiler),compiler),
                 initcode,compiler);
-              tblocknode(pd.parentfpinitblock).left:=cstatementnode.create
-                (initcode,tblocknode(pd.parentfpinitblock).left,compiler);
+              tblocknode(pd.parentfpinitblock).left:=compiler.cstatementnode
+                (initcode,tblocknode(pd.parentfpinitblock).left);
               current_filepos:=old_filepos;
 
               { also add the associated high para, if any. It may not be accessed

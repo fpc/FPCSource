@@ -118,12 +118,12 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil,compiler);
+                   last:=compiler.cstatementnode(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   last.right:=cstatementnode.create(statement,nil,compiler);
+                   last.right:=compiler.cstatementnode(statement,nil);
                    last:=tstatementnode(last.right);
                 end;
               if not try_to_consume(_SEMICOLON) then
@@ -330,12 +330,12 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil,compiler);
+                   last:=compiler.cstatementnode(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil,compiler);
+                   tstatementnode(last).right:=compiler.cstatementnode(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
               if not try_to_consume(_SEMICOLON) then
@@ -939,12 +939,12 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil,compiler);
+                   last:=compiler.cstatementnode(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil,compiler);
+                   tstatementnode(last).right:=compiler.cstatementnode(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
               if not try_to_consume(_SEMICOLON) then
@@ -1543,7 +1543,7 @@ implementation
                    begin
                      astatement:=statement();
                      typecheckpass(astatement);
-                     p:=cblocknode.create(cstatementnode.create(p,cstatementnode.create(astatement,nil,compiler),compiler),compiler);
+                     p:=cblocknode.create(compiler.cstatementnode(p,compiler.cstatementnode(astatement,nil)),compiler);
                      Include(TBlockNode(p).blocknodeflags, bnf_strippable);
                    end;
                end
@@ -1625,12 +1625,12 @@ implementation
            begin
               if first=nil then
                 begin
-                   last:=cstatementnode.create(statement,nil,compiler);
+                   last:=compiler.cstatementnode(statement,nil);
                    first:=last;
                 end
               else
                 begin
-                   tstatementnode(last).right:=cstatementnode.create(statement,nil,compiler);
+                   tstatementnode(last).right:=compiler.cstatementnode(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
               if ((current_scanner.token=_END) or (current_scanner.token=_FINALIZATION)) then

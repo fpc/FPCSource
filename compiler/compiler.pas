@@ -204,6 +204,7 @@ type
     function cfinalizetempsnode:tfinalizetempsnode; inline;
     function casmnode(p : TAsmList):tasmnode; inline;
     function casmnode_get_position:tasmnode; inline;
+    function cstatementnode(l,r : tnode):tstatementnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -557,6 +558,11 @@ end;
 function TCompilerHelper.casmnode_get_position: tasmnode; inline;
 begin
   result:=nbas.casmnode.create_get_position(self);
+end;
+
+function TCompilerHelper.cstatementnode(l, r: tnode): tstatementnode; inline;
+begin
+  result:=nbas.cstatementnode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
