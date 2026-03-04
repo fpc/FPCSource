@@ -3,12 +3,7 @@ This directory contains the sources of the Free Pascal Compiler
 If you want to compile/modify the compiler, please read first the
 programmers manual.
 
-To recompile the compiler, you can use the batch files :
- + mppc386.bat    if you want to build a cross compiler from i386 to m68k
- + mppcsparc      if you want to build a cross compiler from i386 to SPARC
-
- or
-Use the make utility as following
+To recompile the compiler, you can use the make utility as following:
 
       make OS_TARGET="compiler OS target" \
       CPU_TARGET="compiler CPU target" \
@@ -16,11 +11,17 @@ Use the make utility as following
       PP="compiler used to compile FPC" \
       COMPILER_OPTIONS="Options passed to compiler" \
 
-
 If an option is omitted, then target CPU/OS will be same as current CPU/OS
 
 Possibles targets are : linux go32v2 win32 os2 freebsd beos netbsd amiga haiku
 atari sunos qnx netware openbsd wdosx palmos macos macosx emx
+
+The list might change anytime, including possible target CPUs.
+Almost - if not all - possible target CPUs + OSes are put in Makefile.fpc and Makefile.
+
+To generate HTML documents:
+
+      make htmldocs
 
 Possible compiler switches (* marks a currently required switch):
   -----------------------------------------------------------------
