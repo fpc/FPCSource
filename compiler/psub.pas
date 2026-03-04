@@ -810,7 +810,7 @@ implementation
                   begin
                     include(tocode.flags,nf_block_with_exit);
                     if procdef.proctypeoption<>potype_exceptfilter then
-                      addstatement(newstatement,cfinalizetempsnode.create(compiler));
+                      addstatement(newstatement,compiler.cfinalizetempsnode);
                     compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                     temps_finalized:=true;
                   end;
@@ -980,7 +980,7 @@ implementation
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(compiler,codestatement);
             if procdef.proctypeoption<>potype_exceptfilter then
-              addstatement(codestatement,cfinalizetempsnode.create(compiler));
+              addstatement(codestatement,compiler.cfinalizetempsnode);
             compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);
             temps_finalized:=true;
 
@@ -1014,7 +1014,7 @@ implementation
             if not is_constructor then
               begin
                 if procdef.proctypeoption<>potype_exceptfilter then
-                  addstatement(newstatement,cfinalizetempsnode.create(compiler));
+                  addstatement(newstatement,compiler.cfinalizetempsnode);
                 compiler.nodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                 temps_finalized:=true;
               end;

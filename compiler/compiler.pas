@@ -200,6 +200,7 @@ type
     function cerrornode:terrornode; inline;
     function cspecializenode(l:tnode;g:boolean;s:tsym;u:boolean):tspecializenode; inline;
     function cspecializenode_inherited(l:tnode;g:boolean;s:tsym;i:tdef):tspecializenode; inline;
+    function cfinalizetempsnode:tfinalizetempsnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -538,6 +539,11 @@ function TCompilerHelper.cspecializenode_inherited(l: tnode; g: boolean;
   s: tsym; i: tdef): tspecializenode; inline;
 begin
   result:=nbas.cspecializenode.create_inherited(l,g,s,i,self);
+end;
+
+function TCompilerHelper.cfinalizetempsnode: tfinalizetempsnode; inline;
+begin
+  result:=nbas.cfinalizetempsnode.create(self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
