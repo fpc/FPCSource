@@ -101,6 +101,8 @@ type
       out ASearchResult: TBinarySearchResult): Boolean; overload;
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TCustomArray (bug #24254)
 
+  { TArrayHelper }
+
   TArrayHelper<T> = class(TCustomArrayHelper<T>)
   private
     type
@@ -119,8 +121,19 @@ type
       out AFoundIndex: SizeInt; const AComparer: IComparer<T>;
       AIndex, ACount: SizeInt): Boolean; override; overload;
     class function Concat(const Args: array of TArray<T>): TArray<T>; static;
+    class function IndexOf(const Args: array of T; Const aItem : T; const AComparer: IComparer<T>) : SizeInt; overload;
+    class function IndexOf(const Args: array of T; Const aItem : T) : SizeInt; overload;
+    class function FirstIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): SizeInt; overload;
+    class function FirstIndexOf(const Args: array of T; const aItem: T): SizeInt; overload;
+    class function LastIndexOf(const Args: array of T; Const aItem : T; const AComparer: IComparer<T>) : SizeInt; overload;
+    class function LastIndexOf(const Args: array of T; Const aItem : T) : SizeInt; overload;
+    class function Min(const Args: array of T; const AComparer: IComparer<T>; const aDefault : T) : T; overload;
+    class function Min(const Args: array of T; const aDefault : T) : T; overload;
+    class function Max(const Args: array of T; const AComparer: IComparer<T>; const aDefault : T) : T; overload;
+    class function Max(const Args: array of T; const aDefault : T) : T; overload;
     class procedure Copy(const aSource: array of T; var aDestination: array of T; aCount: NativeInt); overload;
     class procedure Copy(const aSource: array of T; var aDestination: array of T; aSourceIndex, aDestIndex, aCount: SizeInt); overload;
+    class function Contains(const Args: array of T; const aItem: T; const AComparer: IComparer<T>) : Boolean;
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TArray (bug #24254)
 
   TCollectionNotification = (cnAdding, cnAdded, cnDeleting, cnRemoved, cnExtracting,  cnExtracted);
@@ -1304,6 +1317,11 @@ begin
     Move(Pointer(@aSource[aSourceIndex])^, Pointer(@aDestination[aDestIndex])^, SizeOf(T)*aCount);
 end;
 
+class function TArrayHelper<T>.Contains(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): Boolean;
+begin
+  Result:=IndexOf(Args,aItem,aComparer)<>-1;
+end;
+
 class function TArrayHelper<T>.Concat(const Args: array of TArray<T>): TArray<T>;
 
 var
@@ -1326,6 +1344,92 @@ begin
       Inc(Dest,CurLen);
       end;
     end;
+end;
+
+class function TArrayHelper<T>.IndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): SizeInt;
+begin
+  Result:=FirstIndexOf(Args,aItem,aComparer);
+end;
+
+class function TArrayHelper<T>.IndexOf(const Args: array of T; const aItem: T): SizeInt;
+begin
+  Result:=FirstIndexOf(Args,aItem,TComparer<T>.Default);
+end;
+
+class function TArrayHelper<T>.FirstIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): SizeInt;
+var
+  Len : SizeInt;
+begin
+  Result:=0;
+  Len:=Length(Args);
+  While (Result<Len) and (aComparer.Compare(Args[Result],aItem)<>0) do
+    Inc(Result);
+  if Result>=Len then
+    Result:=-1;
+end;
+
+class function TArrayHelper<T>.FirstIndexOf(const Args: array of T; const aItem: T): SizeInt;
+begin
+  Result:=FirstIndexOf(Args,aItem,TComparer<T>.Default);
+end;
+
+class function TArrayHelper<T>.LastIndexOf(const Args: array of T; const aItem: T; const AComparer: IComparer<T>): SizeInt;
+
+begin
+  Result:=Length(Args)-1;
+  While (Result>=0) and (aComparer.Compare(Args[Result],aItem)<>0) do
+    Dec(Result);
+end;
+
+class function TArrayHelper<T>.LastIndexOf(const Args: array of T; const aItem: T): SizeInt;
+begin
+  Result:=LastIndexOf(Args,aItem,TComparer<T>.Default);
+end;
+
+class function TArrayHelper<T>.Min(const Args: array of T; const AComparer: IComparer<T>; const aDefault: T): T;
+var
+  Len : SizeInt;
+begin
+  Len:=Length(Args)-1;
+  if Len>=0 then
+    Result:=Args[Len]
+  else
+    Result:=aDefault;
+  Dec(Len);
+  While Len>=0 do
+    begin
+    if aComparer.Compare(Result,Args[Len])>0 then
+      Result:=Args[Len];
+    Dec(Len);
+    end;
+end;
+
+class function TArrayHelper<T>.Min(const Args: array of T; const aDefault: T): T;
+begin
+  Result:=Min(Args,TComparer<T>.default,aDefault);
+end;
+
+class function TArrayHelper<T>.Max(const Args: array of T; const AComparer: IComparer<T>; const aDefault: T): T;
+var
+  Len : SizeInt;
+begin
+  Len:=Length(Args)-1;
+  if Len>=0 then
+    Result:=Args[Len]
+  else
+    Result:=aDefault;
+  Dec(Len);
+  While Len>=0 do
+    begin
+    if aComparer.Compare(Result,Args[Len])<0 then
+      Result:=Args[Len];
+    Dec(Len);
+    end;
+end;
+
+class function TArrayHelper<T>.Max(const Args: array of T; const aDefault: T): T;
+begin
+  Result:=Max(Args,TComparer<T>.Default,aDefault);
 end;
 
 class function TArrayHelper<T>.BinarySearch(const AValues: array of T; const AItem: T;
