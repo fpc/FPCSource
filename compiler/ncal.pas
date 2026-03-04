@@ -181,7 +181,7 @@ interface
           constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext;acompiler:TCompilerBase);virtual;
           constructor create_procvar(l,r:tnode;acompiler:TCompilerBase);
           constructor createintern(const name: string; params: tnode;acompiler:TCompilerBase);
-          constructor createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode);
+          constructor createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode;acompiler:TCompilerBase);
           constructor createinternfromunit(const fromunit, procname: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; res:tdef);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
@@ -1654,9 +1654,9 @@ implementation
        end;
 
 
-     constructor tcallnode.createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode);
+     constructor tcallnode.createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode;acompiler:TCompilerBase);
        begin
-         createintern(name, params, nil);  { TODO: fix node compiler reference!!! }
+         createintern(name, params, acompiler);
          intrinsiccode := intrinsic;
        end;
 

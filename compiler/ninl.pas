@@ -481,7 +481,7 @@ implementation
         { free the errornode we generated in the beginning }
         result.free;
         { create the call node, }
-        result := ccallnode.createfromintrinsic(intrinsiccode,procname,newparas);
+        result := compiler.ccallnode_fromintrinsic(intrinsiccode,procname,newparas);
       end;
 
 
@@ -1834,9 +1834,9 @@ implementation
         if (destpara.resultdef.typ=enumdef) or
            ((destpara.resultdef.typ=floatdef) and (tfloatdef(destpara.resultdef).floattype=s64comp))
           then
-            tc:=ccallnode.createfromintrinsic(in_val_x,procname,newparas)
+            tc:=compiler.ccallnode_fromintrinsic(in_val_x,procname,newparas)
         else
-          tc:=ctypeconvnode.create(ccallnode.createfromintrinsic(in_val_x,procname,newparas),destpara.left.resultdef,compiler);
+          tc:=ctypeconvnode.create(compiler.ccallnode_fromintrinsic(in_val_x,procname,newparas),destpara.left.resultdef,compiler);
         addstatement(newstatement,cassignmentnode.create(
           destpara.left,ctypeconvnode.create_internal(tc,destpara.left.resultdef,compiler),compiler));
 
