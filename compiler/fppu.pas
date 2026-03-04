@@ -81,6 +81,8 @@ interface
           procedure reload;
           function ppuloadcancontinue(out firstwaiting: tmodule): boolean;
           function is_reload_needed(pu: tdependent_unit): boolean; override;
+          procedure restore_state;
+          procedure store_state;
           procedure recompile_from_sources;
           procedure post_load_or_compile(from_module : tmodule; second_time: boolean);
           procedure discardppu;
@@ -2178,8 +2180,7 @@ var
               {$IFDEF DEBUG_PPU_CYCLES}
               writeln('PPUALGO tppumodule.load_usedunits_section ',modulename^,' ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
               {$ENDIF}
-              if (mf_release in moduleflags) and fromppu then
-                error_release_checksum_changed(pu);
+              check_releaseppu_checksum_changed(pu);
               { Note: the recompile_from_sources is invoked by the caller }
               state:=ms_compile;
               exit(false);
@@ -2224,8 +2225,7 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.ppu_check_used_crcs ',modulename^,' interface uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
             {$ENDIF}
-            if (mf_release in moduleflags) and fromppu then
-              error_release_checksum_changed(pu);
+            check_releaseppu_checksum_changed(pu);
             state:=ms_compile;
             exit;
           end;
@@ -2283,6 +2283,18 @@ var
                 or (pu.in_interface and pu.u.interface_compiled)
         else
           Result:=inherited is_reload_needed(pu);
+      end;
+
+    procedure tppumodule.restore_state;
+      begin
+        set_current_module(self);
+        current_settings:=stored_settings;
+        RestoreLocalVerbosity(current_settings.pmessage);
+      end;
+
+    procedure tppumodule.store_state;
+      begin
+        stored_settings:=current_settings;
       end;
 
     procedure tppumodule.setdefgeneration;
@@ -2474,7 +2486,7 @@ var
           state:=ms_compile;
         end;
 
-        stored_settings:=current_settings;
+        store_state;
         Result:=continueloadppu;
 
         set_current_module(from_module);
@@ -2507,8 +2519,8 @@ var
       begin
         Result:=false;
         old_module:=current_module;
-        set_current_module(self);
-        current_settings:=stored_settings;
+
+        restore_state;
 
         if do_reload then
           Internalerror(2026021017);
@@ -2526,7 +2538,7 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.continueloadppu ',modulename^,' delay state=',statestr);
             {$ENDIF}
-            stored_settings:=current_settings;
+            store_state;
             { loading unfinished or reset, restore current_module }
             set_current_module(old_module);
             exit;
@@ -2546,6 +2558,7 @@ var
           mark_recompile_needed(recompile_reason);
 
         { we are back, restore current_module }
+        store_state;
         set_current_module(old_module);
       end;
 

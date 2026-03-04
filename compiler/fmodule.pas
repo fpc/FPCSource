@@ -332,7 +332,7 @@ interface
         function usedunitsloaded(interface_units: boolean; out firstwaiting : tmodule): boolean;
         function nowaitingforunits(out firstwaiting : tmodule) : Boolean;
         function usedunitsfinalcrc(out firstwaiting : tmodule): boolean;
-        procedure error_release_checksum_changed(uu: tused_unit);
+        procedure check_releaseppu_checksum_changed(uu: tused_unit);
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -1419,8 +1419,11 @@ implementation
       Result:=True;
     end;
 
-    procedure tmodule.error_release_checksum_changed(uu: tused_unit);
+    procedure tmodule.check_releaseppu_checksum_changed(uu: tused_unit);
       begin
+        if not (mf_release in moduleflags) or not fromppu then
+          exit;
+
         if (uu.u.interface_crc<>uu.interface_checksum) then
           writeln('Error: -Ur ppu ',realmodulename^,' interface checksum changed for ',uu.u.realmodulename^)
         else if (uu.u.indirect_crc<>uu.indirect_checksum) then

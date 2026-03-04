@@ -664,8 +664,7 @@ begin
                       else
                         writeln(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.modulename^+' <> '+hexstr(pu.checksum,8)+' in unit '+m.modulename^);
                       {$endif DEBUG_UNIT_CRC_CHANGES}
-                      if (mf_release in m.moduleflags) and m.fromppu then
-                        m.error_release_checksum_changed(pu);
+                      m.check_releaseppu_checksum_changed(pu);
                       recompile_module(m);
                       Result:=true;
                       break;

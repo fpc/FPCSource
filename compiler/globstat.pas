@@ -322,7 +322,7 @@ var
       switchesstatestackpos:=0;
 
       parse_only:=false;
-      current_settings:=default(tsettings);
+      // keep current_settings
       current_asmdata:=nil;
       current_debuginfo:=nil;
 
