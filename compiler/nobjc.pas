@@ -59,7 +59,7 @@ implementation
 
 uses
   globtype,globals,
-  verbose,pass_1,
+  verbose,pass_1,compiler,
   symdef,symconst,
   ncon,ncal,
   objcutil,
@@ -156,7 +156,7 @@ function tobjcprotocolnode.pass_typecheck: tnode;
 
 function tobjcprotocolnode.pass_1: tnode;
   begin
-    result:=ccallnode.createinternresfromunit('OBJC','OBJC_GETPROTOCOL',
+    result:=compiler.ccallnode_internresfromunit('OBJC','OBJC_GETPROTOCOL',
       ccallparanode.create(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^,compiler),nil,compiler),
       resultdef
     );
