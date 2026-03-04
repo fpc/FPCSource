@@ -207,6 +207,7 @@ type
     function cstatementnode(l,r : tnode):tstatementnode; inline;
     function cblocknode(l : tnode):tblocknode; inline;
     function ctempcreatenode(_typedef: tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean):ttempcreatenode; inline;
+    function ctempcreatenode_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode):ttempcreatenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -576,6 +577,14 @@ function TCompilerHelper.ctempcreatenode(_typedef: tdef; _size: tcgint;
   _temptype: ttemptype; allowreg: boolean): ttempcreatenode; inline;
 begin
   result:=nbas.ctempcreatenode.create(_typedef,_size,_temptype,allowreg,self);
+end;
+
+function TCompilerHelper.ctempcreatenode_withnode(_typedef: tdef;
+  _size: tcgint; _temptype: ttemptype; allowreg: boolean; withnode: tnode
+  ): ttempcreatenode; inline;
+begin
+  result:=nbas.ctempcreatenode.create_withnode(_typedef,_size,_temptype,
+    allowreg,withnode,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

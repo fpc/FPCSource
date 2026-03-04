@@ -715,7 +715,7 @@ implementation
                 else
                   hdef:=cpointerdef.create(p.resultdef,compiler);
                 { load address of the value in a temp }
-                tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p,compiler);
+                tempnode:=compiler.ctempcreatenode_withnode(hdef,sizeof(pint),tt_persistent,true,p);
                 typecheckpass(tnode(tempnode));
                 valuenode:=p;
                 refnode:=ctemprefnode.create(tempnode,compiler);
