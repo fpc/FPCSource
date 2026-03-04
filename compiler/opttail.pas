@@ -37,7 +37,7 @@ unit opttail;
       symconst,symsym,
       defcmp,defutil,
       nutils,nbas,nflw,ncal,nld,ncnv,nmem,
-      pass_1,
+      pass_1,compiler,
       paramgr;
 
     procedure do_opttail(var n : tnode;p : tprocdef);
@@ -280,7 +280,7 @@ unit opttail;
 {$endif fix_opttail}
 
         labelsym:=clabelsym.create('$opttail');
-        labelnode:=clabelnode.create(cnothingnode.create(compiler),labelsym,compiler);
+        labelnode:=clabelnode.create(compiler.cnothingnode,labelsym,compiler);
         if find_and_replace_tailcalls(n) then
           begin
 {$ifdef debug_opttail}

@@ -240,7 +240,7 @@ implementation
                  p.free;
                  p := nil;
                  consume(_RKLAMMER);
-                 new_dispose_statement:=cnothingnode.create(compiler);
+                 new_dispose_statement:=compiler.cnothingnode;
                  exit;
               end;
 
@@ -371,7 +371,7 @@ implementation
                       p.free;
                       p := nil;
                       consume(_RKLAMMER);
-                      new_dispose_statement:=cnothingnode.create(compiler);
+                      new_dispose_statement:=compiler.cnothingnode;
                       exit;
                    end
                  else

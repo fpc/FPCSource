@@ -2614,7 +2614,7 @@ implementation
                 else
                  { special handling for Java constructors, handled in
                    tjvmcallnode.extra_pre_call_code }
-                  selftree:=cnothingnode.create(compiler)
+                  selftree:=compiler.cnothingnode
               else
                 begin
                   if methodpointer.nodetype=typen then
@@ -2633,7 +2633,7 @@ implementation
                           begin
                             { special handling for Java constructors, handled in
                               tjvmcallnode.extra_pre_call_code }
-                            selftree:=cnothingnode.create(compiler)
+                            selftree:=compiler.cnothingnode
                           end;
                       end
                     else
@@ -3864,7 +3864,7 @@ implementation
           in the list because it is required for bind_parasym.
           Generate a nothing to keep callparanoed.left valid }
         oldleft.left.free;
-        oldleft.left:=cnothingnode.create(compiler);
+        oldleft.left:=compiler.cnothingnode;
       end;
 
 
@@ -3978,7 +3978,7 @@ implementation
                     hiddentree:=gen_block_context
                 end
               else
-                hiddentree:=cnothingnode.create(compiler);
+                hiddentree:=compiler.cnothingnode;
                 
               pt:=ccallparanode.create(hiddentree,oldppt^,compiler);
               { set correct callnode }
@@ -4212,7 +4212,7 @@ implementation
                       (symtableprocentry.owner.symtabletype=ObjectSymtable) and
                       (po_overload in tprocdef(symtableprocentry.ProcdefList[0]).procoptions) and
                       (symtableprocentry.ProcdefList.Count>=2) then
-                     result:=cnothingnode.create(compiler)
+                     result:=compiler.cnothingnode
                    else
                      begin
                        { in tp mode we can try to convert to procvar if
@@ -4482,7 +4482,7 @@ implementation
                  (cnf_anon_inherited in callnodeflags) then
                  begin
                    CGMessage(cg_h_inherited_ignored);
-                   result:=cnothingnode.create(compiler);
+                   result:=compiler.cnothingnode;
                    exit;
                  end
                else
@@ -4987,7 +4987,7 @@ implementation
              { finally, remove it if no parameter with side effect has been found }
              if para=nil then
                begin
-                 result:=cnothingnode.create(compiler);
+                 result:=compiler.cnothingnode;
                  exit;
                end;
            end;

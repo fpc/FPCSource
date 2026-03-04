@@ -37,7 +37,7 @@ unit optdeadstore;
 
     uses
       verbose,globtype,cdynset,globals,
-      procinfo,pass_1,
+      procinfo,pass_1,compiler,
       nutils,
       nbas,nld,
       optbase,
@@ -96,7 +96,7 @@ unit optdeadstore;
 
                         tstatementnode(n).statement.free;
 
-                        tstatementnode(n).statement:=cnothingnode.create(compiler);
+                        tstatementnode(n).statement:=compiler.cnothingnode;
                         { do not run firstpass on n here, as it will remove the statement node
                           and this will make foreachnodestatic process the wrong nodes as the current statement
                           node will disappear }

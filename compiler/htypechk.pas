@@ -788,7 +788,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage(parser_e_operator_not_overloaded);
-                t:=cnothingnode.create(compiler);
+                t:=compiler.cnothingnode;
               end;
             exit;
           end;
@@ -813,7 +813,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
-                t:=cnothingnode.create(compiler);
+                t:=compiler.cnothingnode;
               end;
             exit;
           end;
@@ -835,7 +835,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
-                t:=cnothingnode.create(compiler);
+                t:=compiler.cnothingnode;
               end;
             exit;
           end;
@@ -992,7 +992,7 @@ implementation
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage(parser_e_operator_not_overloaded);
-                t:=cnothingnode.create(compiler);
+                t:=compiler.cnothingnode;
               end;
             exit;
           end;
@@ -1014,7 +1014,7 @@ implementation
             ppn.free;
             ppn := nil;
             if not (ocf_check_only in ocf) then
-              t:=cnothingnode.create(compiler);
+              t:=compiler.cnothingnode;
             exit;
           end;
 

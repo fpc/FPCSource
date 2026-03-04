@@ -160,7 +160,7 @@ implementation
         begin
           p.free;
           { records/arrays/... are automatically initialised }
-          result:=cnothingnode.create;
+          result:=compiler.cnothingnode;
         end;
     end;
 
@@ -169,7 +169,7 @@ implementation
     begin
       // do nothing
       p.free;
-      result:=cnothingnode.create;
+      result:=compiler.cnothingnode;
     end;
 
 

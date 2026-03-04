@@ -2223,7 +2223,7 @@ implementation
                     );
         end
       else
-        result:=cnothingnode.create(compiler);
+        result:=compiler.cnothingnode;
     end;
 
   procedure generate_attr_constrs(attrs:tfpobjectlist);

@@ -157,7 +157,7 @@ uses
   ,globtype
   ,ngenutil
   ,optloop
-  ,node,nadd;
+  ,node,nadd,nbas;
 
 type
 {****************************************************************************
@@ -195,6 +195,7 @@ type
     { node constructor helpers }
     function caddnode(tt : tnodetype;l,r : tnode):taddnode; inline;
     function caddnode_internal(tt:tnodetype;l,r:tnode):taddnode; inline;
+    function cnothingnode:tnothingnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -512,6 +513,11 @@ end;
 function TCompilerHelper.caddnode_internal(tt: tnodetype; l, r: tnode): taddnode; inline;
 begin
   result:=nadd.caddnode.create_internal(tt,l,r,self);
+end;
+
+function TCompilerHelper.cnothingnode: tnothingnode;
+begin
+  result:=nbas.cnothingnode.create(self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

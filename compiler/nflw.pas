@@ -773,7 +773,7 @@ implementation
         // first check is set is empty and if it so then skip other processing
         if not Assigned(tsetdef(expr.resultdef).elementdef) then
           begin
-            result:=cnothingnode.create(compiler);
+            result:=compiler.cnothingnode;
             // free unused nodes
             hloopvar.free;
             hloopvar := nil;
@@ -995,7 +995,7 @@ implementation
               begin
                 if assigned(hloopbody) then
                   MessagePos(hloopbody.fileinfo,cg_w_unreachable_code);
-                result:=cnothingnode.create(compiler);
+                result:=compiler.cnothingnode;
               end
             else
               begin
@@ -1065,7 +1065,7 @@ implementation
                       setdef:
                         result:=create_set_for_in_loop(hloopvar, hloopbody, expr);
                       undefineddef:
-                        result:=cnothingnode.create(compiler);
+                        result:=compiler.cnothingnode;
                     else
                       begin
                         result:=cerrornode.create(compiler);
@@ -1699,7 +1699,7 @@ implementation
                   if assigned(right) then
                     result:=right
                   else
-                    result:=cnothingnode.create(compiler);
+                    result:=compiler.cnothingnode;
                   right:=nil;
                   if warn and assigned(t1) and not(nf_internal in left.flags) then
                     CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
@@ -1709,7 +1709,7 @@ implementation
                   if assigned(t1) then
                     result:=t1
                   else
-                    result:=cnothingnode.create(compiler);
+                    result:=compiler.cnothingnode;
                   t1:=nil;
                   if warn and assigned(right) and not(nf_internal in left.flags) then
                     CGMessagePos(right.fileinfo,cg_w_unreachable_code);
@@ -1963,7 +1963,7 @@ implementation
               (tordconstnode(right).value>tordconstnode(t1).value)
             )
            ) then
-          result:=cnothingnode.create(compiler);
+          result:=compiler.cnothingnode;
       end;
 
 
@@ -2730,7 +2730,7 @@ implementation
             else
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil,compiler);
-                current_addr:=clabelnode.create(cnothingnode.create(compiler),clabelsym.create('$raiseaddr'),compiler);
+                current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'),compiler);
                 include(current_addr.flags,nf_internal);
                 addstatement(statements,current_addr);
                 right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner,compiler),compiler);
@@ -2808,7 +2808,7 @@ implementation
         result:=nil;
         { empty try -> can never raise exception -> do nothing }
         if has_no_code(left) then
-          result:=cnothingnode.create(compiler);
+          result:=compiler.cnothingnode;
       end;
 
 

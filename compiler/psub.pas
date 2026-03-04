@@ -399,7 +399,7 @@ implementation
                    { We need at least a node, else the entry/exit code is not
                      generated and thus no PASCALMAIN symbol which we need (PFV) }
                    if islibrary then
-                    block:=cnothingnode.create(compiler)
+                    block:=compiler.cnothingnode
                    else
                     block:=nil;
                 end
@@ -1008,7 +1008,7 @@ implementation
             addstatement(newstatement,code);
             current_filepos:=exitpos;
             if assigned(nestedexitlabel) then
-              addstatement(newstatement,clabelnode.create(cnothingnode.create(compiler),nestedexitlabel,compiler));
+              addstatement(newstatement,clabelnode.create(compiler.cnothingnode,nestedexitlabel,compiler));
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then

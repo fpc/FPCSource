@@ -63,7 +63,8 @@ unit optdfa;
       procinfo,
       nutils,htypechk,
       nbas,nflw,ncal,nset,nld,nadd,
-      optbase;
+      optbase,
+      compiler;
 
 
     (*
@@ -651,7 +652,7 @@ unit optdfa;
           end
         else
           begin
-            resultnode:=cnothingnode.create(compiler);
+            resultnode:=compiler.cnothingnode;
             resultnode.allocoptinfo;
           end;
 

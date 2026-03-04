@@ -368,7 +368,7 @@ implementation
       verbose,globals,systems,
       ppu,
       symsym,symconst,symdef,defutil,defcmp,
-      pass_1,
+      pass_1,compiler,
       nutils,nld,ncnv,
       procinfo
 {$ifdef DEBUG_NODE_XML}
@@ -395,7 +395,7 @@ implementation
     function internalstatements(compiler: TCompilerBase; out laststatement:tstatementnode):tblocknode;
       begin
         { create dummy initial statement }
-        laststatement := cstatementnode.create(cnothingnode.create(compiler),nil,compiler);
+        laststatement := cstatementnode.create(compiler.cnothingnode,nil,compiler);
         result := cblocknode.create(laststatement,compiler);
         Include(result.blocknodeflags, bnf_strippable);
       end;

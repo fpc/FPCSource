@@ -258,7 +258,7 @@ implementation
         begin
           p.free;
           p := nil;
-          result:=cnothingnode.create(compiler);
+          result:=compiler.cnothingnode;
         end
       else
         begin
@@ -309,7 +309,7 @@ implementation
         begin
           p.free;
           p := nil;
-          result:=cnothingnode.create(compiler);
+          result:=compiler.cnothingnode;
         end
       else
         begin

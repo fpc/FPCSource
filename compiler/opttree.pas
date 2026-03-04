@@ -50,7 +50,7 @@ unit opttree;
       defutil,
       nbas,nld,ncal,
       nutils,
-      pass_1;
+      pass_1,compiler;
 
     function searchstatements(var n : tnode;arg : pointer) : foreachnoderesult;forward;
 
@@ -140,7 +140,7 @@ unit opttree;
                             { use the result node instead of the block node }
                             n:=res^;
                             { the old statement is not used anymore }
-                            res^:=cnothingnode.create(compiler);
+                            res^:=compiler.cnothingnode;
                             { process the newly generated statement }
                             foreachnodestatic(pnode(arg)^,@searchstatements,nil);
                           end

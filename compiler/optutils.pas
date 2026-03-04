@@ -65,7 +65,7 @@ unit optutils;
 
     uses
       cutils,cdynset,
-      verbose,
+      verbose,compiler,
       optbase,
       ncal,nbas,nflw,nutils,nset,ncon;
 
@@ -280,7 +280,7 @@ unit optutils;
                 result:=p;
                 { the successor of the last node of the for body is the dummy loop iteration node
                   it allows the dfa to inject needed life information into the loop }
-                tfornode(p).loopiteration:=cnothingnode.create(compiler);
+                tfornode(p).loopiteration:=compiler.cnothingnode;
 
                 DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;

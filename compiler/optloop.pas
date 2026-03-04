@@ -204,7 +204,7 @@ type
                     if (counts mod unrolls<>0) and
                       ((counts mod unrolls)=unrolls-i) then
                       begin
-                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create(compiler),clabelsym.create('$optunrol'),compiler);
+                        tfornode(node).entrylabel:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$optunrol'),compiler);
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 

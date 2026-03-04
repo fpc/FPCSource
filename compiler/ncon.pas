@@ -230,7 +230,7 @@ implementation
 
     uses
       cutils,
-      verbose,systems,sysutils,ppu,
+      verbose,systems,sysutils,ppu,compiler,
       defcmp,defutil,procinfo,
       aasmdata,aasmtai,
       cgbase,
@@ -401,7 +401,7 @@ implementation
                 p1:=cguidconstnode.create(pguid(p.value.valueptr)^,compiler);
             end;
           constnone :
-            p1:=cnothingnode.create(compiler)
+            p1:=compiler.cnothingnode
           else
             internalerror(200205103);
         end;

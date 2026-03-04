@@ -208,7 +208,7 @@ implementation
                if current_scanner.token=_COMMA then
                  begin
                    { empty parameter }
-                   p2:=ccallparanode.create(cnothingnode.create(compiler),p2,compiler);
+                   p2:=ccallparanode.create(compiler.cnothingnode,p2,compiler);
                  end
                else
                  begin
@@ -3329,7 +3329,7 @@ implementation
 
           undefinedsym :
             begin
-              result:=cnothingnode.Create(compiler);
+              result:=compiler.cnothingnode;
               result.resultdef:=cundefineddef.create(true,compiler);
               { clean up previously created dummy symbol }
               srsym.free;
@@ -4058,7 +4058,7 @@ implementation
                           else
                             begin
                               { we need to ignore the inherited; }
-                              p1:=cnothingnode.create(compiler);
+                              p1:=compiler.cnothingnode;
                             end;
                         end
                        else

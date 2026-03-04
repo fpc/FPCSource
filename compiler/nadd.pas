@@ -2537,7 +2537,7 @@ const
                   else
                     begin
                       CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                      result:=cnothingnode.create(compiler);
+                      result:=compiler.cnothingnode;
                       exit;
                     end;
                 end;
@@ -2561,7 +2561,7 @@ const
                 else if not(nodetype in [ltn,lten,gtn,gten,unequaln,equaln]) then
                   begin
                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                    result:=cnothingnode.create(compiler);
+                    result:=compiler.cnothingnode;
                     exit;
                   end;
                end

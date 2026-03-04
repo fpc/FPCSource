@@ -810,7 +810,7 @@ implementation
                 if current_scanner.token<>_SEMICOLON then
                   p:=statement
                 else
-                  p:=cnothingnode.create(compiler);
+                  p:=compiler.cnothingnode;
               end;
 
             { remove symtables in reverse order from the stack }
@@ -1458,7 +1458,7 @@ implementation
            _ELSE,
            _UNTIL,
            _END:
-             code:=cnothingnode.create(compiler);
+             code:=compiler.cnothingnode;
            _FAIL :
              begin
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
@@ -1533,7 +1533,7 @@ implementation
                 else
                  begin
                    Message1(sym_e_label_used_and_not_defined,s);
-                   p:=cnothingnode.create(compiler);
+                   p:=compiler.cnothingnode;
                  end;
               end;
 

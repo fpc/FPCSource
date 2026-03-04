@@ -1127,7 +1127,7 @@ implementation
           else
             internalerror(200304253);
         end;
-        result.code:=cnothingnode.create(compiler);
+        result.code:=compiler.cnothingnode;
       end;
 
 

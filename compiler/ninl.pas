@@ -2901,7 +2901,7 @@ implementation
                 begin
                   if not(cs_do_assertion in current_settings.localswitches) then
                     { we need a valid node, so insert a nothingn }
-                    result:=cnothingnode.create(compiler);
+                    result:=compiler.cnothingnode;
                 end;
               in_sar_x,
               in_sar_x_y :
@@ -3360,7 +3360,7 @@ implementation
           { if the size of the arrays is 0 (array of empty records), }
           { do nothing                                               }
           if (source.resultdef.size = 0) then
-            result:=cnothingnode.create(compiler);
+            result:=compiler.cnothingnode;
         end;
 
 
@@ -3756,7 +3756,7 @@ implementation
                            { generic type parameter? }
                            else if is_typeparam(left.resultdef) then
                              begin
-                               result:=cnothingnode.create(compiler);
+                               result:=compiler.cnothingnode;
                                exit;
                              end
                            else
@@ -3823,7 +3823,7 @@ implementation
                       { generic type parameter? }
                       else if is_typeparam(tcallparanode(left).right.resultdef) then
                         begin
-                          result:=cnothingnode.create(compiler);
+                          result:=compiler.cnothingnode;
                           exit;
                         end
                       else
@@ -3851,7 +3851,7 @@ implementation
                       { generic type parameter? }
                       else if is_typeparam(left.resultdef) then
                         begin
-                          result:=cnothingnode.create(compiler);
+                          result:=compiler.cnothingnode;
                           exit;
                         end
                       else

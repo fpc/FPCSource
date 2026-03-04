@@ -888,7 +888,7 @@ implementation
          else
            if blocks.count=0 then
              begin
-               result:=cnothingnode.create(compiler);
+               result:=compiler.cnothingnode;
                exit;
              end;
 
@@ -1050,7 +1050,7 @@ implementation
                 else
                   cgmessage(cg_w_case_incomplete);
                 { no else block, so there is no code to execute at all }
-                result:=cnothingnode.create(compiler);
+                result:=compiler.cnothingnode;
               end;
           end;
       end;
