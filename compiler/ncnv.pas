@@ -1167,7 +1167,7 @@ implementation
           end
         else if (tstringdef(resultdef).stringtype=st_ansistring) then
           begin
-            result:=ccallnode.createinternres(
+            result:=compiler.ccallnode_internres(
                       'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
                       ccallparanode.create(
                         cordconstnode.create(
@@ -1192,7 +1192,7 @@ implementation
                     );
           end
         else
-          result:=ccallnode.createinternres(
+          result:=compiler.ccallnode_internres(
             'fpc_'+chartype+'array_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(cordconstnode.create(
                ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false,compiler),
@@ -1317,7 +1317,7 @@ implementation
                               para:=ccallparanode.create(left,nil,compiler);
                               if tstringdef(resultdef).stringtype=st_ansistring then
                                 para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true,compiler),para,compiler);
-                              result:=ccallnode.createinternres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
+                              result:=compiler.ccallnode_internres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
                                 para,resultdef);
                               left:=nil;
                               exit;
@@ -1385,7 +1385,7 @@ implementation
                procname:=procname+tstringdef(resultdef).stringtypname;
 
                { and finally the call }
-               result:=ccallnode.createinternres(procname,para,resultdef);
+               result:=compiler.ccallnode_internres(procname,para,resultdef);
                left := nil;
              end
            else
@@ -1429,7 +1429,7 @@ implementation
                 (tstringdef(left.resultdef).stringtype=st_ansistring) and
                 (tstringdef(resultdef).encoding<>tstringdef(left.resultdef).encoding) then
           begin
-            result:=ccallnode.createinternres(
+            result:=compiler.ccallnode_internres(
                       'fpc_ansistr_to_ansistr',
                       ccallparanode.create(
                         cordconstnode.create(
@@ -1814,7 +1814,7 @@ implementation
             result:=newblock;
           end
         else if tstringdef(resultdef).stringtype=st_ansistring then
-          result := ccallnode.createinternres(
+          result := compiler.ccallnode_internres(
                       'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
                       ccallparanode.create(
                         cordconstnode.create(getparaencoding(resultdef),u16inttype,true,compiler),
@@ -1824,7 +1824,7 @@ implementation
                       resultdef
                     )
         else
-          result := ccallnode.createinternres(
+          result := compiler.ccallnode_internres(
             'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(left,nil,compiler),resultdef);
         left:=nil;
@@ -1892,7 +1892,7 @@ implementation
           end
         else if tstringdef(resultdef).stringtype=st_ansistring then
           begin
-            result:=ccallnode.createinternres(
+            result:=compiler.ccallnode_internres(
                         'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
                          ccallparanode.create(
                            cordconstnode.create(
@@ -1908,7 +1908,7 @@ implementation
                       );
           end
         else
-          result := ccallnode.createinternres(
+          result := compiler.ccallnode_internres(
             'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(left,nil,compiler),resultdef);
         left:=nil;
@@ -1917,7 +1917,7 @@ implementation
 
     function ttypeconvnode.typecheck_variant_to_dynarray : tnode;
       begin
-        result := ccallnode.createinternres(
+        result := compiler.ccallnode_internres(
           'fpc_variant_to_dynarray',
           ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
             ccallparanode.create(left,nil,compiler),
@@ -1930,7 +1930,7 @@ implementation
 
     function ttypeconvnode.typecheck_dynarray_to_variant : tnode;
       begin
-        result := ccallnode.createinternres(
+        result := compiler.ccallnode_internres(
           'fpc_dynarray_to_variant',
           ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
             ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype,compiler),nil,compiler),compiler
@@ -1943,12 +1943,12 @@ implementation
     function ttypeconvnode.typecheck_variant_to_interface : tnode;
       begin
         if def_is_related(tobjectdef(resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
-          result := ccallnode.createinternres(
+          result := compiler.ccallnode_internres(
             'fpc_variant_to_idispatch',
               ccallparanode.create(left,nil,compiler)
             ,resultdef)
         else
-          result := ccallnode.createinternres(
+          result := compiler.ccallnode_internres(
             'fpc_variant_to_interface',
               ccallparanode.create(left,nil,compiler)
             ,resultdef);
@@ -1960,12 +1960,12 @@ implementation
     function ttypeconvnode.typecheck_interface_to_variant : tnode;
       begin
         if def_is_related(tobjectdef(left.resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
-          result := ccallnode.createinternres(
+          result := compiler.ccallnode_internres(
             'fpc_idispatch_to_variant',
               ccallparanode.create(left,nil,compiler)
             ,resultdef)
         else
-          result := ccallnode.createinternres(
+          result := compiler.ccallnode_internres(
             'fpc_interface_to_variant',
               ccallparanode.create(left,nil,compiler)
             ,resultdef);
@@ -4451,11 +4451,11 @@ implementation
         { encoding parameter required? }
         else if (tstringdef(resultdef).stringtype=st_ansistring) and
                 (tstringdef(left.resultdef).stringtype in [st_widestring,st_unicodestring,st_shortstring,st_ansistring]) then
-            result:=ccallnode.createinternres(procname,
+            result:=compiler.ccallnode_internres(procname,
               ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true,compiler),
               ccallparanode.create(left,nil,compiler),compiler),resultdef)
         else
-          result:=ccallnode.createinternres(procname,ccallparanode.create(left,nil,compiler),resultdef);
+          result:=compiler.ccallnode_internres(procname,ccallparanode.create(left,nil,compiler),resultdef);
 
         left:=nil;
       end;
@@ -5117,7 +5117,7 @@ implementation
                   end;
               end
             else
-              result := ccallnode.createinternres('fpc_do_is',
+              result := compiler.ccallnode_internres('fpc_do_is',
                 ccallparanode.create(left,ccallparanode.create(right,nil,compiler),compiler),
                 resultdef);
           end
@@ -5215,7 +5215,7 @@ implementation
           begin
             if is_class(left.resultdef) and
                (right.resultdef.typ=classrefdef) then
-              call := ccallnode.createinternres('fpc_do_as',
+              call := compiler.ccallnode_internres('fpc_do_as',
                 ccallparanode.create(left,ccallparanode.create(right,nil,compiler),compiler),
                 resultdef)
             else

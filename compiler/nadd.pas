@@ -3756,7 +3756,7 @@ const
                   else
                     internalerror(2013112911);
                 end;
-                result := ccallnode.createinternres(procname,
+                result := compiler.ccallnode_internres(procname,
                   ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false,compiler),
                   ccallparanode.create(right,
                   ccallparanode.create(left,nil,compiler),compiler),compiler),resultdef);

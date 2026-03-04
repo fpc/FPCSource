@@ -5357,7 +5357,7 @@ implementation
 
         if is_ansistring(resultdef) then
           { keep the specific kind of ansistringdef as result }
-          result:=ccallnode.createinternres('fpc_ansistr_copy',paras,resultdef)
+          result:=compiler.ccallnode_internres('fpc_ansistr_copy',paras,resultdef)
         else if is_widestring(resultdef) then
           result:=compiler.ccallnode_intern('fpc_widestr_copy',paras)
         else if is_unicodestring(resultdef) then
@@ -5419,7 +5419,7 @@ implementation
                    ccallparanode.create(lowppn,
                    ccallparanode.create(rttippn,
                    ccallparanode.create(arrayppn,nil,compiler),compiler),compiler),compiler),compiler),compiler),compiler);
-            result:=ccallnode.createinternres('fpc_array_to_dynarray_copy',npara,resultdef);
+            result:=compiler.ccallnode_internres('fpc_array_to_dynarray_copy',npara,resultdef);
 
             ppn.left:=nil;
             paras.free;

@@ -183,7 +183,7 @@ interface
           constructor createintern(const name: string; params: tnode;acompiler:TCompilerBase);
           constructor createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode;acompiler:TCompilerBase);
           constructor createinternfromunit(const fromunit, procname: string; params: tnode;acompiler:TCompilerBase);
-          constructor createinternres(const name: string; params: tnode; res:tdef);
+          constructor createinternres(const name: string; params: tnode; res:tdef;acompiler:TCompilerBase);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
           constructor createinternmethod(mp: tnode; const name: string; params: tnode);
@@ -1674,11 +1674,11 @@ implementation
        end;
 
 
-    constructor tcallnode.createinternres(const name: string; params: tnode; res:tdef);
+    constructor tcallnode.createinternres(const name: string; params: tnode; res:tdef;acompiler:TCompilerBase);
       var
         pd : tprocdef;
       begin
-        createintern(name,params,nil);  { TODO: fix node compiler reference!!! }
+        createintern(name,params,acompiler);
         typedef:=res;
         include(callnodeflags,cnf_typedefset);
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
