@@ -187,7 +187,7 @@ interface
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef;acompiler:TCompilerBase);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode;acompiler:TCompilerBase);
           constructor createinternmethod(mp: tnode; const name: string; params: tnode;acompiler:TCompilerBase);
-          constructor createinternmethodres(mp: tnode; const name: string; params: tnode; res:tdef);
+          constructor createinternmethodres(mp: tnode; const name: string; params: tnode; res:tdef;acompiler:TCompilerBase);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1731,9 +1731,9 @@ implementation
       end;
 
 
-    constructor tcallnode.createinternmethodres(mp: tnode; const name: string; params: tnode; res: tdef);
+    constructor tcallnode.createinternmethodres(mp: tnode; const name: string; params: tnode; res: tdef;acompiler:TCompilerBase);
       begin
-        createinternmethod(mp,name,params,nil);  { TODO: fix node compiler reference!!! }
+        createinternmethod(mp,name,params,acompiler);
         typedef:=res;
         include(callnodeflags,cnf_typedefset)
       end;

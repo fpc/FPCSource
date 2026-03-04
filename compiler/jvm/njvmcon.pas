@@ -213,7 +213,7 @@ implementation
           paras:=ccallparanode.create(
             genintconstnode(tstringdef(resultdef).encoding),paras);
         { since self will be freed, have to make a copy }
-        result:=ccallnode.createinternmethodres(
+        result:=compiler.ccallnode_internmethodres(
           cloadvmtaddrnode.create(ctypenode.create(strclass)),
           'CREATEFROMLITERALSTRINGBYTES',paras,resultdef);
       end;
