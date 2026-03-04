@@ -916,14 +916,14 @@ implementation
         oldfilepos:=current_filepos;
         { Generate code/locations used at start of proc }
         current_filepos:=entrypos;
-        entry_asmnode:=casmnode.create_get_position(compiler);
-        loadpara_asmnode:=casmnode.create_get_position(compiler);
-        stackcheck_asmnode:=casmnode.create_get_position(compiler);
-        init_asmnode:=casmnode.create_get_position(compiler);
+        entry_asmnode:=compiler.casmnode_get_position;
+        loadpara_asmnode:=compiler.casmnode_get_position;
+        stackcheck_asmnode:=compiler.casmnode_get_position;
+        init_asmnode:=compiler.casmnode_get_position;
         bodyentrycode:=generate_bodyentry_block;
         { Generate code/locations used at end of proc }
         current_filepos:=exitpos;
-        exitlabel_asmnode:=casmnode.create_get_position(compiler);
+        exitlabel_asmnode:=compiler.casmnode_get_position;
         temps_finalized:=false;
         bodyexitcode:=generate_bodyexit_block;
         { Check if bodyexitcode is not empty }

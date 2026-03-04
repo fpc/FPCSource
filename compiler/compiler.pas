@@ -203,6 +203,7 @@ type
     function cspecializenode_inherited(l:tnode;g:boolean;s:tsym;i:tdef):tspecializenode; inline;
     function cfinalizetempsnode:tfinalizetempsnode; inline;
     function casmnode(p : TAsmList):tasmnode; inline;
+    function casmnode_get_position:tasmnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -551,6 +552,11 @@ end;
 function TCompilerHelper.casmnode(p: TAsmList): tasmnode; inline;
 begin
   result:=nbas.casmnode.create(p,self);
+end;
+
+function TCompilerHelper.casmnode_get_position: tasmnode; inline;
+begin
+  result:=nbas.casmnode.create_get_position(self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
