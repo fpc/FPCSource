@@ -435,7 +435,7 @@ implementation
                        if might_have_sideeffects(p) then
                          begin
                            { ensure that p gets evaluated only once, in case it is e.g. a call }
-                           temp:=ctempcreatenode.create_value(p.resultdef,p.resultdef.size,tt_persistent,true,p,compiler);
+                           temp:=compiler.ctempcreatenode_value(p.resultdef,p.resultdef.size,tt_persistent,true,p);
                            addstatement(newstatement,temp);
                            addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler)));
                          end

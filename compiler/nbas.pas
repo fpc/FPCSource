@@ -443,7 +443,7 @@ implementation
         if (node_complexity(n)>4) or
            might_have_sideeffects(n) then
           begin
-            result:=ctempcreatenode.create_value(n.resultdef,size,tt_persistent,allowreg,n,compiler);
+            result:=compiler.ctempcreatenode_value(n.resultdef,size,tt_persistent,allowreg,n);
             typecheckpass(tnode(result));
             n:=ctemprefnode.create(result,compiler);
             typecheckpass(n);

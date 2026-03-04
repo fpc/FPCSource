@@ -158,7 +158,7 @@ function tjvmassignmentnode.pass_1: tnode;
               object in the formalpara -> create a temp, assign the value to
               the temp, then assign the address in the temp to the para }
             block:=internalstatements(stat);
-            tempn:=ctempcreatenode.create_value(right.resultdef,right.resultdef.size,
+            tempn:=compiler.ctempcreatenode_value(right.resultdef,right.resultdef.size,
               tt_persistent,false,right);
             addstatement(stat,tempn);
             right:=caddrnode.create(ctemprefnode.create(tempn));

@@ -147,7 +147,7 @@ implementation
             orgnode.resultdef,orgnode.resultdef.size,
             tt_persistent,true,orgnode,true)
         else
-          result:=ctempcreatenode.create_value(
+          result:=compiler.ctempcreatenode_value(
             orgnode.resultdef,orgnode.resultdef.size,
             tt_persistent,true,orgnode);
         { this node is reused while constructing the temp }

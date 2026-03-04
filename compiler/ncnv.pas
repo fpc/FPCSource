@@ -2116,7 +2116,7 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true,compiler),compiler);
+        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true,compiler));
         addstatement(newstatement,temp2);
 
         { create call to fpc_dynarr_setlength }
@@ -2189,7 +2189,7 @@ implementation
           end;
 
         { get temp for array of lengths }
-        temp2:=ctempcreatenode.create_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true,compiler),compiler);
+        temp2:=compiler.ctempcreatenode_value(sinttype,sinttype.size,tt_persistent,false,cordconstnode.create(paracount,s32inttype,true,compiler));
         addstatement(newstatement,temp2);
 
         { add assignment statements }

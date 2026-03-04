@@ -208,6 +208,7 @@ type
     function cblocknode(l : tnode):tblocknode; inline;
     function ctempcreatenode(_typedef: tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean):ttempcreatenode; inline;
     function ctempcreatenode_withnode(_typedef: tdef; _size: tcgint; _temptype: ttemptype; allowreg:boolean; withnode: tnode):ttempcreatenode; inline;
+    function ctempcreatenode_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode):ttempcreatenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -585,6 +586,13 @@ function TCompilerHelper.ctempcreatenode_withnode(_typedef: tdef;
 begin
   result:=nbas.ctempcreatenode.create_withnode(_typedef,_size,_temptype,
     allowreg,withnode,self);
+end;
+
+function TCompilerHelper.ctempcreatenode_value(_typedef: tdef; _size: tcgint;
+  _temptype: ttemptype; allowreg: boolean; templvalue: tnode): ttempcreatenode; inline;
+begin
+  result:=nbas.ctempcreatenode.create_value(_typedef,_size,_temptype,allowreg,
+    templvalue,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

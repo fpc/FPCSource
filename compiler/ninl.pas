@@ -5681,7 +5681,7 @@ implementation
              datatemp:=nil;
              if iscomparray then
                begin
-                 datatemp:=ctempcreatenode.create_value(first,first.size,tt_normal,false,firstn,compiler);
+                 datatemp:=compiler.ctempcreatenode_value(first,first.size,tt_normal,false,firstn);
                  addstatement(insertstatement,datatemp);
                  if is_dynamic_array(first) then
                    datan:=ctypeconvnode.create_internal(ctemprefnode.create(datatemp,compiler),voidpointertype,compiler)
@@ -5692,7 +5692,7 @@ implementation
              else if isconstr then
                begin
                  inserttypeconv(firstn,second,compiler);
-                 datatemp:=ctempcreatenode.create_value(second,second.size,tt_normal,false,firstn,compiler);
+                 datatemp:=compiler.ctempcreatenode_value(second,second.size,tt_normal,false,firstn);
                  addstatement(insertstatement,datatemp);
                  datan:=ctypeconvnode.create_internal(ctemprefnode.create(datatemp,compiler),voidpointertype,compiler);
                  datacountn:=cinlinenode.create(in_length_x,false,ctemprefnode.create(datatemp,compiler),compiler);
@@ -5701,7 +5701,7 @@ implementation
                begin
                  if is_const(firstn) then
                    begin
-                     datatemp:=ctempcreatenode.create_value(tarraydef(second).elementdef,tarraydef(second).elementdef.size,tt_normal,false,firstn,compiler);
+                     datatemp:=compiler.ctempcreatenode_value(tarraydef(second).elementdef,tarraydef(second).elementdef.size,tt_normal,false,firstn);
                      addstatement(insertstatement,datatemp);
                      datan:=caddrnode.create_internal(ctemprefnode.create(datatemp,compiler),compiler);
                    end

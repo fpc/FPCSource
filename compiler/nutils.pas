@@ -630,14 +630,14 @@ implementation
             block:=internalstatements(compiler,stat);
             if is_object(self_resultdef) then
               begin
-                self_temp:=ctempcreatenode.create_value(
+                self_temp:=compiler.ctempcreatenode_value(
                   cpointerdef.getreusable(self_resultdef,compiler),cpointerdef.getreusable(self_resultdef,compiler).size,tt_persistent,true,
-                  caddrnode.create(self_node,compiler),compiler);
+                  caddrnode.create(self_node,compiler));
               end
             else
-              self_temp:=ctempcreatenode.create_value(
+              self_temp:=compiler.ctempcreatenode_value(
                 self_resultdef,self_resultdef.size,tt_persistent,true,
-                self_node,compiler);
+                self_node);
             addstatement(stat,self_temp);
 
             { in case of an object, self can only be nil if it's a dereferenced
@@ -694,7 +694,7 @@ implementation
         if docheck then
           begin
             { add a vmt validity check }
-            vmt_temp:=ctempcreatenode.create_value(result.resultdef,result.resultdef.size,tt_persistent,true,result,compiler);
+            vmt_temp:=compiler.ctempcreatenode_value(result.resultdef,result.resultdef.size,tt_persistent,true,result);
             addstatement(stat,vmt_temp);
             paras:=ccallparanode.create(ctemprefnode.create(vmt_temp,compiler),nil,compiler);
             if cs_check_object in current_settings.localswitches then

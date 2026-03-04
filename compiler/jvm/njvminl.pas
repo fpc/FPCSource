@@ -580,7 +580,7 @@ implementation
               (which must not be evaluated twice) }
             if node_complexity(left)>4 then
               begin
-                lefttemp:=ctempcreatenode.create_value(stringclass,stringclass.size,tt_persistent,true,ctypeconvnode.create_explicit(left,stringclass));
+                lefttemp:=compiler.ctempcreatenode_value(stringclass,stringclass.size,tt_persistent,true,ctypeconvnode.create_explicit(left,stringclass));
                 addstatement(newstatement,lefttemp);
                 stringtemp:=ctemprefnode.create(lefttemp)
               end

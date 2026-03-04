@@ -451,11 +451,11 @@ unit optcse;
                         addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
                         if addrstored then
-                          templist[i]:=ctempcreatenode.create_value(cpointerdef.getreusable(def,compiler),voidpointertype.size,tt_persistent,
-                            true,caddrnode.create_internal(tnode(lists.nodelist[i]),compiler),compiler)
+                          templist[i]:=compiler.ctempcreatenode_value(cpointerdef.getreusable(def,compiler),voidpointertype.size,tt_persistent,
+                            true,caddrnode.create_internal(tnode(lists.nodelist[i]),compiler))
                         else
-                          templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
-                            def.is_intregable or def.is_fpuregable or def.is_const_intregable,tnode(lists.nodelist[i]),compiler);
+                          templist[i]:=compiler.ctempcreatenode_value(def,def.size,tt_persistent,
+                            def.is_intregable or def.is_fpuregable or def.is_const_intregable,tnode(lists.nodelist[i]));
 
                         { the value described by the temp. is immutable and the temp. can be always in register
 
