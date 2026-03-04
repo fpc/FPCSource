@@ -702,6 +702,8 @@ type
     Step: TPRSpecializeStep; // how much of the specialized element has been created
     FirstSpecialize: TPasElement;
     Params: TPasTypeArray;
+    ConstExprs: array of TPasExpr; // nil for type params, expression for const params
+    SyntheticConsts: TObjectList; // owns synthetic TPasConst elements
     SpecializedConstraints: TPasElementArray;
     destructor Destroy; override;
     property SpecializedEl: TPasElement read FSpecializedEl;
@@ -1876,8 +1878,11 @@ type
     procedure CheckTemplateFitsTemplate(ParamTemplType,
       GenTempl: TPasGenericTemplateType; ErrorPos: TPasElement);
     function CreateSpecializedItem(El: TPasElement; GenericEl: TPasElement;
-      const ParamsResolved: TPasTypeArray): TPRSpecializedItem; virtual;
+      const ParamsResolved: TPasTypeArray;
+      const AConstExprs: array of TPasExpr): TPRSpecializedItem; virtual;
     function CreateSpecializedTypeName(Item: TPRSpecializedItem): string; virtual;
+    function CreateConstExprForSpecParam(OrigExpr: TPasExpr;
+      AParent: TPasElement): TPasExpr; virtual;
     procedure InitSpecializeScopes(El: TPasElement; out State: TScopeStashState); virtual;
     procedure RestoreSpecializeScopes(const State: TScopeStashState); virtual;
     procedure SpecializeGenericIntf(SpecializedItem: TPRSpecializedItem); virtual;
@@ -3237,6 +3242,8 @@ end;
 
 destructor TPRSpecializedItem.Destroy;
 begin
+  FreeAndNil(SyntheticConsts);
+  SetLength(ConstExprs,0);
   SetLength(SpecializedConstraints,0);
   inherited Destroy;
 end;
@@ -6736,6 +6743,11 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishGenericTemplateType ',GetObjName(El),' El.Parent=',GetObjName(El.Parent),' Constraints=',length(El.Constraints));
   {$ENDIF}
+  // For const generic params, constraints are type annotations (e.g., ': Integer'),
+  // not type constraints (e.g., ': class'). Skip standard constraint validation.
+  if El.IsConst then
+    exit;
+
   IsClass:=false;
   IsRecord:=false;
   IsConstructor:=false;
@@ -8445,8 +8457,8 @@ begin
       if (AccEl <> nil) and (ClassOrRecScope <> nil)
           and (ClassOrRecScope.Element is TPasClassType)
           and (TPasClassType(ClassOrRecScope.Element).ObjKind in [okRecordHelper, okTypeHelper])
-          and (AccEl.Parent <> ClassOrRecScope.Element)
-          and (AccEl.Parent <> ResolveAliasType(TPasClassType(ClassOrRecScope.Element).HelperForType)) then
+          and (MaximizeFPCCompatibility or (AccEl.Parent <> ResolveAliasType(TPasClassType(ClassOrRecScope.Element).HelperForType)))
+          and (AccEl.Parent <> ClassOrRecScope.Element) then
         RaiseMsg(20260225100010,nIdentifierNotFound,sIdentifierNotFound,
           [AccEl.Name],PropEl.ReadAccessor);
       if (AccEl.ClassType=TPasVariable) or (AccEl.ClassType=TPasConst) then
@@ -8511,8 +8523,8 @@ begin
       if (AccEl <> nil) and (ClassOrRecScope <> nil)
           and (ClassOrRecScope.Element is TPasClassType)
           and (TPasClassType(ClassOrRecScope.Element).ObjKind in [okRecordHelper, okTypeHelper])
-          and (AccEl.Parent <> ClassOrRecScope.Element)
-          and (AccEl.Parent <> ResolveAliasType(TPasClassType(ClassOrRecScope.Element).HelperForType)) then
+          and (MaximizeFPCCompatibility or (AccEl.Parent <> ResolveAliasType(TPasClassType(ClassOrRecScope.Element).HelperForType)))
+          and (AccEl.Parent <> ClassOrRecScope.Element) then
         RaiseMsg(20260225100011,nIdentifierNotFound,sIdentifierNotFound,
           [AccEl.Name],PropEl.WriteAccessor);
       if (AccEl.ClassType=TPasVariable)
@@ -9293,8 +9305,9 @@ begin
     // check if found element is a TCustomAttribute
     if CurEl=nil then
       begin
-      LogMsg(20190221144613,mtWarning,nUnknownCustomAttributeX,sUnknownCustomAttributeX,
-        [AttrName],NameExpr);
+      if MaximizeFPCCompatibility then
+        RaiseMsg(20190221144613,nUnknownCustomAttributeX,sUnknownCustomAttributeX, [AttrName],NameExpr);
+      LogMsg(20190221144613,mtWarning,nUnknownCustomAttributeX,sUnknownCustomAttributeX, [AttrName],NameExpr);
       continue;
       end;
     if not IsCustomAttribute(CurEl) then
@@ -13527,6 +13540,7 @@ var
   LeftResolved, RightResolved: TPasResolverResult;
   Left: TPasExpr;
   SubBin: TBinaryExpr;
+  lFlags : TPasResolverComputeFlags;
 begin
   if (Bin.OpCode=eopSubIdent)
   or ((Bin.OpCode=eopNone) and (Bin.Left is TInheritedExpr)) then
@@ -13539,8 +13553,11 @@ begin
   if Bin.OpCode in [eopEqual,eopNotEqual] then
     begin
     // Try operator overloading first for equality/inequality
-    ComputeElement(Bin.Left,LeftResolved,Flags-[rcNoImplicitProc,rcNoImplicitProcType,rcSetReferenceFlags],StartEl);
-    ComputeElement(Bin.Right,RightResolved,Flags-[rcNoImplicitProc,rcNoImplicitProcType,rcSetReferenceFlags],StartEl);
+    lFlags:=Flags-[rcNoImplicitProc,rcNoImplicitProcType,rcSetReferenceFlags];
+    if MaximizeFPCCompatibility then
+      Include(lFlags,rcSetReferenceFlags);
+    ComputeElement(Bin.Left,LeftResolved,lFlags,StartEl);
+    ComputeElement(Bin.Right,RightResolved,lFlags,StartEl);
     if TryResolveOperatorOverload(Bin,ResolvedEl,LeftResolved,RightResolved) then
       exit;
     // No operator overload found — use standard equality check
@@ -17054,25 +17071,44 @@ var
   ParamTypes: TPasTypeArray;
   ParamType: TPasType;
   ErrorPos: TPasElement;
+  SynthConst: TPasConst;
 begin
   ParamTypes:=SpecializedItem.Params;
   ErrorPos:=SpecializedItem.FirstSpecialize;
   for i:=0 to length(ParamTypes)-1 do
     begin
     TemplType:=TPasGenericTemplateType(GenericTemplateTypes[i]);
-    ParamType:=ParamTypes[i];
 
-    if CheckConstraints then
+    if TemplType.IsConst and (i<length(SpecializedItem.ConstExprs))
+        and (SpecializedItem.ConstExprs[i]<>nil) then
       begin
-      if ParamType is TPasGenericTemplateType then
-        CheckTemplateFitsTemplate(TPasGenericTemplateType(ParamType),
-                                             TemplType,ErrorPos)
-      else
-        CheckTemplateFitsParam(ParamType,TemplType,SpecializedItem,
-                               prtcoAssignToTempl,ErrorPos);
+      // Const param: create synthetic TPasConst
+      SynthConst:=TPasConst.Create(TemplType.Name,SpecializedItem.SpecializedEl);
+      SynthConst.IsConst:=true;
+      SynthConst.VarType:=nil;
+      SynthConst.Expr:=CreateConstExprForSpecParam(
+        SpecializedItem.ConstExprs[i],SynthConst);
+      // Store for lifetime management
+      if SpecializedItem.SyntheticConsts=nil then
+        SpecializedItem.SyntheticConsts:=TObjectList.Create(true);
+      SpecializedItem.SyntheticConsts.Add(SynthConst);
+      AddIdentifier(Scope,TemplType.Name,SynthConst,pikSimple);
+      end
+    else
+      begin
+      // Type param (existing code)
+      ParamType:=ParamTypes[i];
+      if CheckConstraints then
+        begin
+        if ParamType is TPasGenericTemplateType then
+          CheckTemplateFitsTemplate(TPasGenericTemplateType(ParamType),
+                                               TemplType,ErrorPos)
+        else
+          CheckTemplateFitsParam(ParamType,TemplType,SpecializedItem,
+                                 prtcoAssignToTempl,ErrorPos);
+        end;
+      AddIdentifier(Scope,TemplType.Name,ParamTypes[i],pikSimple);
       end;
-
-    AddIdentifier(Scope,TemplType.Name,ParamTypes[i],pikSimple);
     end;
 end;
 
@@ -18012,8 +18048,8 @@ begin
 end;
 
 function TPasResolver.CreateSpecializedItem(El: TPasElement;
-  GenericEl: TPasElement; const ParamsResolved: TPasTypeArray
-  ): TPRSpecializedItem;
+  GenericEl: TPasElement; const ParamsResolved: TPasTypeArray;
+  const AConstExprs: array of TPasExpr): TPRSpecializedItem;
 var
   NewEl: TPasElement;
   GenScope: TPasGenericScope;
@@ -18085,6 +18121,7 @@ var
   NewParent: TPasElement;
   TypeItem: TPRSpecializedTypeItem;
   ProcItem: TPRSpecializedProcItem;
+  i: Integer;
 begin
   Result:=nil;
 
@@ -18114,6 +18151,9 @@ begin
   Result.GenericEl:=GenericEl;
   Result.FirstSpecialize:=El;
   Result.Params:=ParamsResolved;
+  SetLength(Result.ConstExprs,length(AConstExprs));
+  for i:=0 to length(AConstExprs)-1 do
+    Result.ConstExprs[i]:=AConstExprs[i];
   Result.Index:=SpecializedItems.Count;
   SpecializedItems.Add(Result);
   NewName:=CreateSpecializedTypeName(Result);
@@ -18165,6 +18205,40 @@ function TPasResolver.CreateSpecializedTypeName(Item: TPRSpecializedItem): strin
       Result:=Result+'.'+aProc.Name;
   end;
 
+  function GetConstValueStr(Expr: TPasExpr): string;
+  var
+    Val: TResEvalValue;
+  begin
+    Val:=Eval(Expr,[refConst]);
+    try
+      if Val=nil then
+        Result:='?'
+      else
+        case Val.Kind of
+          revkBool:
+            if TResEvalBool(Val).B then Result:='True' else Result:='False';
+          revkInt:
+            Result:=IntToStr(TResEvalInt(Val).Int);
+          revkUInt:
+            Result:=IntToStr(TResEvalUInt(Val).UInt);
+          revkFloat:
+            Result:=FloatToStr(TResEvalFloat(Val).FloatValue);
+          {$ifdef FPC_HAS_CPSTRING}
+          revkString:
+            Result:=''''+TResEvalString(Val).S+'''';
+          {$endif}
+          revkUnicodeString:
+            Result:=''''+String(TResEvalUTF16(Val).S)+'''';
+          revkEnum:
+            Result:=TResEvalEnum(Val).GetEnumName;
+        else
+          Result:=Val.AsString;
+        end;
+    finally
+      ReleaseEvalValue(Val);
+    end;
+  end;
+
   function GetSpecParams(Item: TPRSpecializedItem): string;
   var
     i: Integer;
@@ -18173,7 +18247,10 @@ function TPasResolver.CreateSpecializedTypeName(Item: TPRSpecializedItem): strin
     for i:=0 to length(Item.Params)-1 do
       begin
       if i>0 then Result:=Result+',';
-      Result:=Result+GetTypeName(Item.Params[i]);
+      if (i<length(Item.ConstExprs)) and (Item.ConstExprs[i]<>nil) then
+        Result:=Result+GetConstValueStr(Item.ConstExprs[i])
+      else
+        Result:=Result+GetTypeName(Item.Params[i]);
       end;
     Result:=Result+'>';
   end;
@@ -18221,6 +18298,43 @@ begin
 
   if Pos('><',Result)>0 then
     RaiseNotYetImplemented(20201203140223,Item.SpecializedEl,Result);
+end;
+
+function TPasResolver.CreateConstExprForSpecParam(OrigExpr: TPasExpr;
+  AParent: TPasElement): TPasExpr;
+// Evaluate OrigExpr and create a new self-contained expression node
+// that the evaluator can process without scope lookups.
+var
+  Val: TResEvalValue;
+begin
+  Result:=nil;
+  Val:=Eval(OrigExpr,[refConst]);
+  try
+    if Val=nil then
+      RaiseNotYetImplemented(20260304100001,OrigExpr,'cannot evaluate const generic param');
+    case Val.Kind of
+      revkBool:
+        Result:=TBoolConstExpr.Create(AParent,pekBoolConst,TResEvalBool(Val).B);
+      revkInt:
+        Result:=TPrimitiveExpr.Create(AParent,pekNumber,IntToStr(TResEvalInt(Val).Int));
+      revkUInt:
+        Result:=TPrimitiveExpr.Create(AParent,pekNumber,IntToStr(TResEvalUInt(Val).UInt));
+      revkFloat:
+        Result:=TPrimitiveExpr.Create(AParent,pekNumber,FloatToStr(TResEvalFloat(Val).FloatValue));
+      {$ifdef FPC_HAS_CPSTRING}
+      revkString:
+        Result:=TPrimitiveExpr.Create(AParent,pekString,''''+TResEvalString(Val).S+'''');
+      {$endif}
+      revkUnicodeString:
+        Result:=TPrimitiveExpr.Create(AParent,pekString,''''+String(TResEvalUTF16(Val).S)+'''');
+      revkEnum:
+        Result:=TPrimitiveExpr.Create(AParent,pekNumber,IntToStr(TResEvalEnum(Val).Index));
+    else
+      RaiseNotYetImplemented(20260304100002,OrigExpr,'const generic param kind '+Val.TypeAsString);
+    end;
+  finally
+    ReleaseEvalValue(Val);
+  end;
 end;
 
 procedure TPasResolver.InitSpecializeScopes(El: TPasElement; out
@@ -26313,7 +26427,7 @@ begin
         if CheckProcTypeCompatibility(TPasProcedureType(LHS.LoTypeEl),
             TProcedureExpr(RHS.ExprEl).Proc.ProcType,true,ErrorEl,RaiseOnIncompatible) then
           begin
-          if TPasProcedureType(LHS.LoTypeEl).IsReferenceTo then
+          if MaximizeFPCCompatibility or TPasProcedureType(LHS.LoTypeEl).IsReferenceTo then
             exit(cExact)
           else
             exit(cCompatible);
@@ -30452,6 +30566,7 @@ var
   i, j: Integer;
   Param: TPasElement;
   ParamsResolved: TPasTypeArray;
+  ConstExprsResolved: array of TPasExpr;
   ResolvedEl: TPasResolverResult;
   SpecializedElList: TObjectList;
   Item: TPRSpecializedItem;
@@ -30462,6 +30577,9 @@ var
   GenericType: TPasGenericType;
   GenericProc: TPasProcedure;
   ProcScope: TPasProcedureScope;
+  TemplType: TPasGenericTemplateType;
+  Val1, Val2: TResEvalValue;
+  Match: Boolean;
 begin
   Result:=nil;
   if (El.ClassType=TPasSpecializeType) and (El.CustomData<>nil) then
@@ -30514,14 +30632,45 @@ begin
        GenericEl.Name+GetGenericParamCommas(GenericTemplateList.Count)],El);
 
   SetLength(ParamsResolved{%H-},Params.Count);
+  SetLength(ConstExprsResolved{%H-},Params.Count);
   IsSelf:=true;
   for i:=0 to Params.Count-1 do
     begin
     Param:=TPasElement(Params[i]);
-    ComputeElement(Param,ResolvedEl,[rcType]);
-    ParamsResolved[i]:=ResolvedEl.LoTypeEl;
-    if ResolvedEl.LoTypeEl<>TPasType(GenericTemplateList[i]) then
+    TemplType:=TPasGenericTemplateType(GenericTemplateList[i]);
+    if TemplType.IsConst then
+      begin
+      // Const generic param: resolve as expression
+      if Param is TPasExpr then
+        begin
+        ComputeElement(Param,ResolvedEl,[rcConstant]);
+        ParamsResolved[i]:=ResolvedEl.LoTypeEl;
+        ConstExprsResolved[i]:=TPasExpr(Param);
+        end
+      else
+        begin
+        // Identifier parsed as type - try resolving as constant value
+        ComputeElement(Param,ResolvedEl,[]);
+        ParamsResolved[i]:=ResolvedEl.LoTypeEl;
+        if ResolvedEl.IdentEl is TPasConst then
+          ConstExprsResolved[i]:=TPasConst(ResolvedEl.IdentEl).Expr
+        else
+          ConstExprsResolved[i]:=nil;
+        end;
       IsSelf:=false;
+      end
+    else
+      begin
+      // Type param (existing code)
+      if Param is TPasExpr then
+        RaiseMsg(20260304120001,nXExpectedButYFound,sXExpectedButYFound,
+          ['type','constant expression'],El);
+      ComputeElement(Param,ResolvedEl,[rcType]);
+      ParamsResolved[i]:=ResolvedEl.LoTypeEl;
+      ConstExprsResolved[i]:=nil;
+      if ResolvedEl.LoTypeEl<>TPasType(GenericTemplateList[i]) then
+        IsSelf:=false;
+      end;
     end;
   if IsSelf then
     exit(GenericEl);
@@ -30542,9 +30691,45 @@ begin
     j:=length(Item.Params)-1;
     while j>=0 do
       begin
-      if not IsSameType(Item.Params[j],ParamsResolved[j],prraNone)
-          and (CheckElTypeCompatibility(Item.Params[j],ParamsResolved[j],prraNone)>cExact) then
-        break;
+      TemplType:=TPasGenericTemplateType(GenericTemplateList[j]);
+      if TemplType.IsConst then
+        begin
+        // Compare const values
+        if (j<length(Item.ConstExprs)) and (Item.ConstExprs[j]<>nil)
+            and (ConstExprsResolved[j]<>nil) then
+          begin
+          Val1:=Eval(Item.ConstExprs[j],[refConst]);
+          Val2:=Eval(ConstExprsResolved[j],[refConst]);
+          try
+            Match:=false;
+            if (Val1<>nil) and (Val2<>nil) and (Val1.Kind=Val2.Kind) then
+              case Val1.Kind of
+                revkBool: Match:=TResEvalBool(Val1).B=TResEvalBool(Val2).B;
+                revkInt: Match:=TResEvalInt(Val1).Int=TResEvalInt(Val2).Int;
+                revkUInt: Match:=TResEvalUInt(Val1).UInt=TResEvalUInt(Val2).UInt;
+                revkFloat: Match:=TResEvalFloat(Val1).FloatValue=TResEvalFloat(Val2).FloatValue;
+                {$ifdef FPC_HAS_CPSTRING}
+                revkString: Match:=TResEvalString(Val1).S=TResEvalString(Val2).S;
+                {$endif}
+                revkUnicodeString: Match:=TResEvalUTF16(Val1).S=TResEvalUTF16(Val2).S;
+                revkEnum: Match:=TResEvalEnum(Val1).Index=TResEvalEnum(Val2).Index;
+              end;
+            if not Match then break;
+          finally
+            ReleaseEvalValue(Val1);
+            ReleaseEvalValue(Val2);
+          end;
+          end
+        else
+          break; // mismatch (one has const expr, other doesn't)
+        end
+      else
+        begin
+        // Type param comparison (existing code)
+        if not IsSameType(Item.Params[j],ParamsResolved[j],prraNone)
+            and (CheckElTypeCompatibility(Item.Params[j],ParamsResolved[j],prraNone)>cExact) then
+          break;
+        end;
       dec(j);
       end;
     if j<0 then
@@ -30558,7 +30743,7 @@ begin
     SrcModule:=GenericEl.GetModule;
     SrcModuleScope:=SrcModule.CustomData as TPasModuleScope;
     SrcResolver:=SrcModuleScope.Owner as TPasResolver;
-    Item:=SrcResolver.CreateSpecializedItem(El,GenericEl,ParamsResolved)
+    Item:=SrcResolver.CreateSpecializedItem(El,GenericEl,ParamsResolved,ConstExprsResolved);
     end;
 
   Result:=Item.SpecializedEl;
