@@ -103,7 +103,7 @@ implementation
              seg_node:=cshlshrnode.create(shln,seg_node,cordconstnode.create(16,u8inttype,false));
              inserttypeconv_internal(addr_node,u32inttype);
              left:=nil;
-             result:=caddnode.create(addn,seg_node,addr_node);
+             result:=compiler.caddnode(addn,seg_node,addr_node);
              if addr_node_resultdef.typ=pointerdef then
                inserttypeconv_internal(result,tcpupointerdef.getreusablex86(tpointerdef(addr_node_resultdef).pointeddef,x86pt_far))
              else
@@ -297,7 +297,7 @@ implementation
              hp := cordconstnode.create(elesize,s32inttype,false);
              { extra parameter? }
              if assigned(tcallparanode(left).right) then
-               hp:=caddnode.create(muln,hp,tcallparanode(tcallparanode(left).right).left.getcopy);
+               hp:=compiler.caddnode(muln,hp,tcallparanode(tcallparanode(left).right).left.getcopy);
 
              result:=ccallnode.createintern(procname,
                        ccallparanode.create(hp,

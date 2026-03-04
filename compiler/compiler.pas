@@ -156,7 +156,8 @@ uses
   ,ctask
   ,globtype
   ,ngenutil
-  ,optloop;
+  ,optloop
+  ,node,nadd;
 
 type
 {****************************************************************************
@@ -191,6 +192,9 @@ type
     function GetNodeUtils: TNodeUtils; inline;
     function GetLoopOptimizer: TLoopOptimizer; inline;
   public
+    { node constructor helpers }
+    function caddnode(tt : tnodetype;l,r : tnode):taddnode; inline;
+
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property OptLoop: TLoopOptimizer read GetLoopOptimizer;
@@ -497,6 +501,11 @@ end;
 function TCompilerHelper.GetLoopOptimizer: TLoopOptimizer;
 begin
   Result := TCompiler(Self).OptLoop;
+end;
+
+function TCompilerHelper.caddnode(tt: tnodetype; l, r: tnode): taddnode; inline;
+begin
+  result:=caddnode.create(tt,l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

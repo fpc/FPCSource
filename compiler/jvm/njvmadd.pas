@@ -96,14 +96,14 @@ interface
         if is_dynamic_array(left.resultdef) and
            (right.nodetype=niln) then
           begin
-           result:=caddnode.create(nodetype,cinlinenode.create(in_length_x,false,left),genintconstnode(0));
+           result:=compiler.caddnode(nodetype,cinlinenode.create(in_length_x,false,left),genintconstnode(0));
            left:=nil;
            exit;
           end;
         if is_dynamic_array(right.resultdef) and
            (left.nodetype=niln) then
           begin
-            result:=caddnode.create(nodetype,cinlinenode.create(in_length_x,false,right),genintconstnode(0));
+            result:=compiler.caddnode(nodetype,cinlinenode.create(in_length_x,false,right),genintconstnode(0));
             right:=nil;
             exit;
           end;

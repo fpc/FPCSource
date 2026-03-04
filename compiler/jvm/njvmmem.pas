@@ -391,7 +391,7 @@ implementation
               internalerror(2011031502);
             { Pascal strings are 1-based, Java strings 0-based }
             result:=ccallnode.create(ccallparanode.create(
-              caddnode.create(subn,right,genintconstnode(1)),nil),tprocsym(psym),
+              compiler.caddnode(subn,right,genintconstnode(1)),nil),tprocsym(psym),
               psym.owner,ctypeconvnode.create_explicit(left,stringclass),[],nil);
             left:=nil;
             right:=nil;

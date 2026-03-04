@@ -213,7 +213,7 @@ implementation
               procname:=procname+'_normalized';
 
             if arraydef.elementdef.size>1 then
-              right:=caddnode.create(muln,right,
+              right:=compiler.caddnode(muln,right,
                 cordconstnode.create(arraydef.elementdef.size,s32inttype,true));
 
             result:=ccallnode.createintern(procname,

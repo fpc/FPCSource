@@ -478,7 +478,7 @@ implementation
              hloopvar.getcopy,cnilnode.create(compiler),compiler));
          addstatement(tempstatement,cbreaknode.create(compiler));
          addstatement(outerloopbodystatement,cifnode.create(
-           caddnode.create(equaln,ctemprefnode.create(currentamount,compiler),genintconstnode(0,compiler),compiler),
+           compiler.caddnode(equaln,ctemprefnode.create(currentamount,compiler),genintconstnode(0,compiler)),
            hp,nil,compiler));
         { initial value of mutationcheck }
         hp:=ctemprefnode.create(state,compiler);
@@ -501,19 +501,18 @@ implementation
         addstatement(innerloopbodystatement,hp);
         { if innerloopcounter=currentamount then break to the outer loop }
         addstatement(innerloopbodystatement,cifnode.create(
-          caddnode.create(equaln,
+          compiler.caddnode(equaln,
             ctemprefnode.create(innerloopcounter,compiler),
-            ctemprefnode.create(currentamount,compiler),compiler),
+            ctemprefnode.create(currentamount,compiler)),
           cbreaknode.create(compiler),
           nil,compiler));
         { verify that the collection didn't change in the mean time }
         hp:=ctemprefnode.create(state,compiler);
         typecheckpass(hp);
         addstatement(innerloopbodystatement,cifnode.create(
-          caddnode.create(unequaln,
+          compiler.caddnode(unequaln,
             ctemprefnode.create(mutationcheck,compiler),
-            cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler),
-            compiler
+            cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler)
           ),
           ccallnode.createinternfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
             ccallparanode.create(ctemprefnode.create(expressiontemp,compiler),nil,compiler)),
@@ -545,10 +544,9 @@ implementation
         { create the outer repeat/until and add it to the the main body }
         hp:=cwhilerepeatnode.create(
           { repeat .. until innerloopcounter<currentamount }
-          caddnode.create(ltn,
+          compiler.caddnode(ltn,
             ctemprefnode.create(innerloopcounter,compiler),
-            ctemprefnode.create(currentamount,compiler),
-            compiler),
+            ctemprefnode.create(currentamount,compiler)),
           outerloop,false,true,compiler);
         addstatement(mainstatement,hp);
 
@@ -926,7 +924,7 @@ implementation
               end;
             { if getenumerator <> nil then do the loop }
             whileloopnode:=cifnode.create(
-              caddnode.create(unequaln, ctemprefnode.create(enumvar,compiler), cnilnode.create(compiler),compiler),
+              compiler.caddnode(unequaln, ctemprefnode.create(enumvar,compiler), cnilnode.create(compiler)),
               whileloopnode,
               nil,compiler);
           end;

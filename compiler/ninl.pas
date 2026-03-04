@@ -2687,7 +2687,7 @@ implementation
                      (tcallparanode(left).left.nodetype = pointerconstn) then
                     begin
                       { let an add node figure it out }
-                      result:=caddnode.create(unequaln,tcallparanode(left).left,cnilnode.create(compiler),compiler);
+                      result:=compiler.caddnode(unequaln,tcallparanode(left).left,cnilnode.create(compiler));
                       tcallparanode(left).left := nil;
                     end;
                 end;
@@ -3440,14 +3440,14 @@ implementation
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
                       begin
-                        hp:=caddnode.create(addn,hightree,
-                                         cordconstnode.create(1,sizesinttype,false,compiler),compiler);
+                        hp:=compiler.caddnode(addn,hightree,
+                                         cordconstnode.create(1,sizesinttype,false,compiler));
                         if (left.resultdef.typ=arraydef) then
                           if not is_packed_array(tarraydef(left.resultdef)) then
                             begin
                               if (tarraydef(left.resultdef).elesize<>1) then
-                                hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                                  left.resultdef).elesize,sizesinttype,true,compiler),compiler);
+                                hp:=compiler.caddnode(muln,hp,cordconstnode.create(tarraydef(
+                                  left.resultdef).elesize,sizesinttype,true,compiler));
                             end
                           else if (tarraydef(left.resultdef).elepackedbitsize <> 8) then
                             begin
@@ -3460,8 +3460,8 @@ implementation
                               hp:=
                                  ctypeconvnode.create_explicit(sizesinttype,
                                    cmoddivnode.create(divn,
-                                     caddnode.create(addn,
-                                       caddnode.create(muln,hp,cordconstnode.create(tarraydef(
+                                     compiler.caddnode(addn,
+                                       compiler.caddnode(muln,hp,cordconstnode.create(tarraydef(
                                          left.resultdef).elepackedbitsize,s64inttype,true)),
                                        cordconstnode.create(a,s64inttype,true)),
                                      cordconstnode.create(8,s64inttype,true)),
@@ -3580,8 +3580,8 @@ implementation
                          begin
                            hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                            if assigned(hightree) then
-                             result:=caddnode.create(addn,hightree,
-                               cordconstnode.create(1,sinttype,false,compiler),compiler);
+                             result:=compiler.caddnode(addn,hightree,
+                               cordconstnode.create(1,sinttype,false,compiler));
                            exit;
                          end
                         { Length() for dynamic arrays is inlined }
@@ -3991,7 +3991,7 @@ implementation
                               begin
                                 result:=cinlinenode.create(in_length_x,false,left,compiler);
                                 if cs_zerobasedstrings in current_settings.localswitches then
-                                  result:=caddnode.create(subn,result,cordconstnode.create(1,sinttype,false,compiler),compiler);
+                                  result:=compiler.caddnode(subn,result,cordconstnode.create(1,sinttype,false,compiler));
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
                                 left:=nil;
@@ -4510,9 +4510,9 @@ implementation
 
                   { addition/subtraction depending on succ/pred }
                   if inlinenumber=in_succ_x then
-                    hp:=caddnode.create(addn,left,hp,compiler)
+                    hp:=compiler.caddnode(addn,left,hp)
                   else
-                    hp:=caddnode.create(subn,left,hp,compiler);
+                    hp:=compiler.caddnode(subn,left,hp);
 
                   { the condition above is not tested for jvm, so we need to avoid overflow checks here
                     by setting nf_internal for the add/sub node as well }
@@ -5498,7 +5498,7 @@ implementation
      function tinlinenode.first_assigned: tnode;
        begin
          { Comparison must not call procvars, indicate that with nf_load_procvar flag }
-         result:=caddnode.create(unequaln,tcallparanode(left).left,cnilnode.create(compiler),compiler);
+         result:=compiler.caddnode(unequaln,tcallparanode(left).left,cnilnode.create(compiler));
          include(result.flags,nf_load_procvar);
          tcallparanode(left).left:=nil;
        end;
@@ -5967,7 +5967,7 @@ implementation
              for i:=list.count-1 downto 0 do
                begin
                  if assigned(result) then
-                   result:=caddnode.create(addn,result,tnode(list[i]),compiler)
+                   result:=compiler.caddnode(addn,result,tnode(list[i]))
                  else
                    begin
                      result:=tnode(list[i]);
@@ -6048,8 +6048,8 @@ implementation
          temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange,true,compiler);
          sourcevecindex := ctemprefnode.create(loopvar,compiler);
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype,compiler);
-         targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true,compiler),compiler);
-         targetvecindex := caddnode.create(addn,targetvecindex,ctemprefnode.create(loopvar,compiler),compiler);
+         targetvecindex := compiler.caddnode(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true,compiler));
+         targetvecindex := compiler.caddnode(addn,targetvecindex,ctemprefnode.create(loopvar,compiler));
          targetvecindex := ctypeconvnode.create(targetvecindex,temprangedef,compiler);
          targetvecindex := ctypeconvnode.create_explicit(targetvecindex,tarraydef(unpackednode.resultdef).rangedef,compiler);
 
@@ -6278,8 +6278,8 @@ implementation
              inserttypeconv_internal(cmpn,resultdef,compiler);
              addstatement(stmt,
                cassignmentnode.create(succn,
-                 caddnode.create(equaln,cmpn,
-                   ctemprefnode.create(tmp,compiler),compiler),compiler));
+                 compiler.caddnode(equaln,cmpn,
+                   ctemprefnode.create(tmp,compiler)),compiler));
              addstatement(stmt,ctempdeletenode.create_normal_temp(tmp,compiler));
              addstatement(stmt,ctemprefnode.create(tmp,compiler));
              result:=n;
@@ -6293,9 +6293,9 @@ implementation
              tmp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
              addstatement(stmt,tmp);
              if inlinenumber=in_atomic_inc then
-               n2:=caddnode.create(addn,result,valn,compiler)
+               n2:=compiler.caddnode(addn,result,valn)
              else
-               n2:=caddnode.create(subn,result,valn,compiler);
+               n2:=compiler.caddnode(subn,result,valn);
              addstatement(stmt,cassignmentnode.create(ctemprefnode.create(tmp,compiler),n2,compiler));
              addstatement(stmt,ctempdeletenode.create_normal_temp(tmp,compiler));
              addstatement(stmt,ctemprefnode.create(tmp,compiler));

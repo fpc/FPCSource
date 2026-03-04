@@ -730,7 +730,7 @@ implementation
                   dynamic array itself }
                 npara:=ccallparanode.create(
                          { array length = high + 1 }
-                         caddnode.create(addn,third.getcopy,genintconstnode(1,compiler),compiler),
+                         compiler.caddnode(addn,third.getcopy,genintconstnode(1,compiler)),
                        ccallparanode.create(caddrnode.create_internal
                           (crttinode.create(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal,compiler),compiler),
                        ccallparanode.create(caddrnode.create_internal(
@@ -811,14 +811,13 @@ implementation
                        genintconstnode(0,compiler),
                        compiler
                      );
-                     arraysize:=caddnode.create(muln,
+                     arraysize:=compiler.caddnode(muln,
                        geninlinenode(in_length_x,false,
                          ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp,compiler),
                            temparraydef,compiler),
                          compiler
                        ),
-                       genintconstnode(tarraydef(temparraydef).elementdef.size,compiler),
-                       compiler
+                       genintconstnode(tarraydef(temparraydef).elementdef.size,compiler)
                      );
                    end
                  else
@@ -2427,7 +2426,7 @@ implementation
                       begin
                         {Array slice using slice builtin function.}
                         l:=Tcallparanode(right).left;
-                        hightree:=caddnode.create(subn,geninlinenode(in_ord_x,false,l,compiler),genintconstnode(1,compiler),compiler);
+                        hightree:=compiler.caddnode(subn,geninlinenode(in_ord_x,false,l,compiler),genintconstnode(1,compiler));
                         Tcallparanode(right).left:=nil;
 
                         {Remove the inline node.}
@@ -2448,7 +2447,7 @@ implementation
                           r:=geninlinenode(in_ord_x,false,right,compiler); {Get upper bound.}
                         end;
                       {In the procedure the array range is 0..(upper_bound-lower_bound).}
-                      hightree:=caddnode.create(subn,r,l,compiler);
+                      hightree:=compiler.caddnode(subn,r,l);
 
                       {Replace the rangnode in the tree by its lower_bound, and
                        dispose the rangenode.}
@@ -2482,7 +2481,7 @@ implementation
                       if (temp.nodetype <> ordconstn) or
                          (tordconstnode(temp).value <> 0) then
                         begin
-                          hightree:=caddnode.create(subn,hightree,temp,compiler);
+                          hightree:=compiler.caddnode(subn,hightree,temp);
                           include(hightree.flags,nf_internal);
                         end
                       else
@@ -2523,8 +2522,8 @@ implementation
               else
                 begin
                   maybe_load_in_temp(p);
-                  hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy,compiler),
-                                            cordconstnode.create(1,sizesinttype,false,compiler),compiler);
+                  hightree:=compiler.caddnode(subn,geninlinenode(in_length_x,false,p.getcopy,compiler),
+                                            cordconstnode.create(1,sizesinttype,false,compiler));
                   loadconst:=false;
                 end;
            end;

@@ -93,8 +93,8 @@ begin
       addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_right), right.getcopy));
 
       addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left),
-        caddnode.create(subn, ctemprefnode.create(temp_left),
-        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), ctemprefnode.create(temp_right)),
+        compiler.caddnode(subn, ctemprefnode.create(temp_left),
+        compiler.caddnode(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), ctemprefnode.create(temp_right)),
         ctemprefnode.create(temp_right)))));
 
       addstatement(statementnode, ctempdeletenode.create(temp_right));
@@ -104,8 +104,8 @@ begin
       // fact (and there is no constant propagator/recognizer in the compiler),
       // resulting in suboptimal code.
       addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left),
-        caddnode.create(subn, ctemprefnode.create(temp_left),
-        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), right.getcopy),
+        compiler.caddnode(subn, ctemprefnode.create(temp_left),
+        compiler.caddnode(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), right.getcopy),
           right.getcopy))));
     end;
     addstatement(statementnode, ctempdeletenode.create_normal_temp(temp_left));

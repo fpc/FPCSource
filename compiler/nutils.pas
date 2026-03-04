@@ -229,7 +229,7 @@ implementation
       defcmp,defutil,
       ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,
       cpubase,cgbase,procinfo,
-      pass_1;
+      pass_1,compiler;
 
     type
       ForEachNodeContext = object
@@ -648,13 +648,13 @@ implementation
               begin
                 check_self:=ctemprefnode.create(self_temp,compiler);
                 addstatement(stat,cifnode.create(
-                  caddnode.create(equaln,
+                  compiler.caddnode(equaln,
                     ctypeconvnode.create_explicit(
                       check_self,
                       voidpointertype,
                       compiler
                     ),
-                    cnilnode.create(compiler),compiler),
+                    cnilnode.create(compiler)),
                   ccallnode.createintern('fpc_objecterror',nil),
                   nil,
                   compiler)

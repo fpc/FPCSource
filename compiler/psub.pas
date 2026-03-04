@@ -459,10 +459,10 @@ implementation
         if tstoredsym(p).typ=labelsym then
           begin
             addstatement(tstatementnode(arg^),
-              cifnode.create(caddnode.create(equaln,
+              cifnode.create(compiler.caddnode(equaln,
                 ccallnode.createintern('fpc_setjmp',
                   ccallparanode.create(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil,compiler)),
-                cordconstnode.create(1,search_system_proc('fpc_setjmp').returndef,true,compiler),compiler)
+                cordconstnode.create(1,search_system_proc('fpc_setjmp').returndef,true,compiler))
               ,cgotonode.create(tlabelsym(p),compiler),nil,compiler)
             );
           end;
@@ -585,10 +585,9 @@ implementation
                   there is nothing to dispose (PFV) }
                 if is_class_or_object(current_structdef) then
                   addstatement(newstatement,cifnode.create(
-                    caddnode.create(equaln,
+                    compiler.caddnode(equaln,
                         load_self_pointer_node,
-                        cnilnode.create(compiler),
-                        compiler),
+                        cnilnode.create(compiler)),
                     cexitnode.create(nil,compiler),
                     nil,compiler));
               end;
@@ -603,12 +602,12 @@ implementation
                   begin
                     { if vmt>0 then beforedestruction }
                     addstatement(newstatement,cifnode.create(
-                        caddnode.create(gtn,
+                        compiler.caddnode(gtn,
                             ctypeconvnode.create_internal(
                               load_vmt_pointer_node,ptrsinttype,
                               compiler),
                             ctypeconvnode.create_internal(
-                              cnilnode.create(compiler),ptrsinttype,compiler),compiler),
+                              cnilnode.create(compiler),ptrsinttype,compiler)),
                         ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
                         nil,compiler));
                   end
@@ -653,17 +652,16 @@ implementation
                       begin
                         { if self<>0 and vmt<>0 then freeinstance }
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create(andn,
-                                caddnode.create(unequaln,
+                            compiler.caddnode(andn,
+                                compiler.caddnode(unequaln,
                                     load_self_pointer_node,
-                                    cnilnode.create(compiler),
-                                    compiler),
-                                caddnode.create(unequaln,
+                                    cnilnode.create(compiler)),
+                                compiler.caddnode(unequaln,
                                     ctypeconvnode.create(
                                         load_vmt_pointer_node,
                                         voidpointertype,
                                         compiler),
-                                    cpointerconstnode.create(0,voidpointertype,compiler),compiler),compiler),
+                                    cpointerconstnode.create(0,voidpointertype,compiler))),
                             ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
                             nil,compiler));
                       end
@@ -677,9 +675,9 @@ implementation
                       if is_managed_type(current_structdef) then
                         begin
                           addstatement(newstatement,cifnode.create(
-                            caddnode.create(unequaln,
+                            compiler.caddnode(unequaln,
                               ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype,compiler),
-                              cnilnode.create(compiler),compiler),
+                              cnilnode.create(compiler)),
                             compiler.nodeutils.finalize_data_node(load_self_node),
                             nil,compiler));
                         end;
@@ -826,13 +824,13 @@ implementation
                 { Self can be nil when fail is called }
                 { if self<>nil and vmt<>nil then afterconstruction }
                 addstatement(newstatement,cifnode.create(
-                  caddnode.create(andn,
-                    caddnode.create(unequaln,
+                  compiler.caddnode(andn,
+                    compiler.caddnode(unequaln,
                       load_self_node,
-                      cnilnode.create(compiler),compiler),
-                    caddnode.create(unequaln,
+                      cnilnode.create(compiler)),
+                    compiler.caddnode(unequaln,
                       load_vmt_pointer_node,
-                      cnilnode.create(compiler),compiler),compiler),
+                      cnilnode.create(compiler))),
                     ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
                     nil,compiler));
                 tocode:=constructionblock;
@@ -854,10 +852,9 @@ implementation
                       { if vmt<>0 then call destructor }
                       addstatement(newstatement,
                         cifnode.create(
-                          caddnode.create(unequaln,
+                          compiler.caddnode(unequaln,
                             load_vmt_pointer_node,
-                            cnilnode.create(compiler),
-                            compiler),
+                            cnilnode.create(compiler)),
                           { cnf_create_failed -> don't call BeforeDestruction }
                           ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed],nil,compiler),
                           nil,compiler))

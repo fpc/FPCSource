@@ -117,7 +117,7 @@ implementation
       htypechk,pass_1,
       cgbase,
       ncon,ncnv,ncal,nadd,nld,nbas,nflw,ninl,
-      nutils,ppu;
+      nutils,ppu,compiler;
 
 {****************************************************************************
                               TMODDIVNODE
@@ -456,7 +456,7 @@ implementation
             not(nf_is_currency in flags) and
             is_currency(resultdef) then
           begin
-            hp:=caddnode.create(muln,getcopy,cordconstnode.create(10000,s64currencytype,false,compiler),compiler);
+            hp:=compiler.caddnode(muln,getcopy,cordconstnode.create(10000,s64currencytype,false,compiler));
             include(hp.flags,nf_is_currency);
             result:=hp;
           end;
@@ -646,15 +646,14 @@ implementation
                         )
                     else
                       masknode:=
-                        caddnode.create(andn,
+                        compiler.caddnode(andn,
                           cinlinenode.create(in_sar_x_y,false,
                             ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
                             ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler),compiler),
                             compiler
                           ),
                           cordconstnode.create(tcgint((qword(1) shl power)-1),
-                            right.resultdef,false,compiler),
-                            compiler
+                            right.resultdef,false,compiler)
                         );
 
                     if invertsign then
@@ -662,16 +661,16 @@ implementation
                         cunaryminusnode.create(
                           cinlinenode.create(in_sar_x_y,false,
                             ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
-                            ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp,compiler),
-                              masknode,compiler),nil,compiler
+                            ccallparanode.create(compiler.caddnode(addn,ctemprefnode.create(temp,compiler),
+                              masknode),nil,compiler
                             ),compiler),compiler),compiler),compiler)
                       )
                     else
                       addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
                         cinlinenode.create(in_sar_x_y,false,
                           ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
-                          ccallparanode.create(caddnode.create(addn,ctemprefnode.create(temp,compiler),
-                            masknode,compiler),nil,compiler
+                          ccallparanode.create(compiler.caddnode(addn,ctemprefnode.create(temp,compiler),
+                            masknode),nil,compiler
                           ),compiler),compiler),compiler)
                       );
                     addstatement(statements,ctempdeletenode.create(temp,compiler));
@@ -710,28 +709,26 @@ implementation
                     )
                 else
                   masknode:=
-                    caddnode.create(andn,
+                    compiler.caddnode(andn,
                       cinlinenode.create(in_sar_x_y,false,
                         ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
                         ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler),compiler),
                         compiler
                       ),
                       cordconstnode.create(tcgint((qword(1) shl power)-1),
-                        right.resultdef,false,compiler),
-                        compiler
+                        right.resultdef,false,compiler)
                     );
                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),masknode,compiler));
 
                 { result:=((left+mask) and right)-mask; }
                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
-                  caddnode.create(subn,
-                    caddnode.create(andn,
+                  compiler.caddnode(subn,
+                    compiler.caddnode(andn,
                       right,
-                      caddnode.create(addn,
+                      compiler.caddnode(addn,
                         ctemprefnode.create(temp,compiler),
-                        ctemprefnode.create(resulttemp,compiler),compiler),
-                        compiler),
-                  ctemprefnode.create(resulttemp,compiler),compiler),
+                        ctemprefnode.create(resulttemp,compiler))),
+                  ctemprefnode.create(resulttemp,compiler)),
                   compiler
                 ));
 
@@ -742,7 +739,7 @@ implementation
             else
               begin
                 tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
-                result := caddnode.create(andn,left,right,compiler);
+                result := compiler.caddnode(andn,left,right);
               end;
             { left and right are reused }
             left := nil;
@@ -1060,7 +1057,7 @@ implementation
             }
             if (cs_opt_fastmath in current_settings.optimizerswitches) and (left.nodetype=subn) then
               begin
-                result:=caddnode.create(subn,taddnode(left).right.getcopy,taddnode(left).left.getcopy,compiler);
+                result:=compiler.caddnode(subn,taddnode(left).right.getcopy,taddnode(left).left.getcopy);
                 exit;
               end;
 
@@ -1072,12 +1069,12 @@ implementation
             }
             if (left.nodetype=muln) and ((taddnode(left).left.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(muln,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy,compiler);
+                result:=compiler.caddnode(muln,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy);
                 exit;
               end;
             if (left.nodetype=muln) and ((taddnode(left).right.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(muln,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy,compiler);
+                result:=compiler.caddnode(muln,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy);
                 exit;
               end;
 
@@ -1089,12 +1086,12 @@ implementation
             }
             if (left.nodetype=slashn) and ((taddnode(left).left.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(slashn,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy,compiler);
+                result:=compiler.caddnode(slashn,tunaryminusnode(taddnode(left).left).left.getcopy,taddnode(left).right.getcopy);
                 exit;
               end;
             if (left.nodetype=slashn) and ((taddnode(left).right.nodetype=unaryminusn)) then
               begin
-                result:=caddnode.create(slashn,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy,compiler);
+                result:=compiler.caddnode(slashn,taddnode(left).left.getcopy,tunaryminusnode(taddnode(left).right).left.getcopy);
                 exit;
               end;
 

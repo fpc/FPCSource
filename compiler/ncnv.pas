@@ -332,7 +332,7 @@ implementation
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,nflw,
       psub,
       cgbase,procinfo,
-      htypechk,blockutl,pparautl,procdefutil,pass_1,cpuinfo;
+      htypechk,blockutl,pparautl,procdefutil,pass_1,cpuinfo,compiler;
 
 
 {*****************************************************************************
@@ -678,7 +678,7 @@ implementation
               end;
               { insert the set creation tree }
               if assigned(p4) then
-               result:=caddnode.create(addn,result,p4,compiler);
+               result:=compiler.caddnode(addn,result,p4);
               { load next and dispose current node }
               p2:=hp;
               hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
@@ -1400,12 +1400,12 @@ implementation
                { and word(byte(char) or 256) for big endian machines          }
                left := ctypeconvnode.create_internal(left,exprtype,compiler);
                if (target_info.endian = endian_little) then
-                 left := caddnode.create(orn,
+                 left := compiler.caddnode(orn,
                    cshlshrnode.create(shln,left,cordconstnode.create(8,exprtype,false,compiler),compiler),
-                   cordconstnode.create(1,exprtype,false,compiler),compiler)
+                   cordconstnode.create(1,exprtype,false,compiler))
                else
-                 left := caddnode.create(orn,left,
-                   cordconstnode.create(1 shl 8,exprtype,false,compiler),compiler);
+                 left := compiler.caddnode(orn,left,
+                   cordconstnode.create(1 shl 8,exprtype,false,compiler));
                left := ctypeconvnode.create_internal(left,u16inttype,compiler);
                typecheckpass(left);
              end;
@@ -1569,7 +1569,7 @@ implementation
              it'll get in an infinite loop to convert int->currency }
            else if is_currency(resultdef) then
             begin
-              result:=caddnode.create(muln,getcopy,cordconstnode.create(10000,resultdef,false,compiler),compiler);
+              result:=compiler.caddnode(muln,getcopy,cordconstnode.create(10000,resultdef,false,compiler));
               include(result.flags,nf_is_currency);
               include(taddnode(result).left.flags,nf_internal);
             end
@@ -1613,12 +1613,12 @@ implementation
              it'll get in an infinite loop to convert int->currency }
            else if is_currency(resultdef) then
             begin
-              result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultdef,compiler),compiler);
+              result:=compiler.caddnode(muln,getcopy,crealconstnode.create(10000.0,resultdef,compiler));
               include(result.flags,nf_is_currency);
             end
            else if is_currency(left.resultdef) then
             begin
-              result:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resultdef,compiler),compiler);
+              result:=compiler.caddnode(slashn,getcopy,crealconstnode.create(10000.0,resultdef,compiler));
               include(result.flags,nf_is_currency);
             end;
          end;
@@ -1632,7 +1632,7 @@ implementation
         result:=nil;
         if not(nf_internal in flags) then
           begin
-            left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef,compiler),compiler);
+            left:=compiler.caddnode(muln,left,crealconstnode.create(10000.0,left.resultdef,compiler));
             include(left.flags,nf_is_currency);
             { Convert constants directly, else call Round() }
             if left.nodetype=realconstn then
@@ -1661,14 +1661,14 @@ implementation
            begin
              if is_currency(left.resultdef) and not(is_currency(resultdef)) then
                begin
-                 left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resultdef,compiler),compiler);
+                 left:=compiler.caddnode(slashn,left,crealconstnode.create(10000.0,left.resultdef,compiler));
                  include(left.flags,nf_is_currency);
                  typecheckpass(left);
                end
              else
                if is_currency(resultdef) and not(is_currency(left.resultdef)) then
                  begin
-                   left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resultdef,compiler),compiler);
+                   left:=compiler.caddnode(muln,left,crealconstnode.create(10000.0,left.resultdef,compiler));
                    include(left.flags,nf_is_currency);
                    include(flags,nf_is_currency);
                    typecheckpass(left);

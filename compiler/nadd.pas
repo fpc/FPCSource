@@ -155,7 +155,7 @@ implementation
       nstate,
       {$endif}
       cpuinfo,
-      ppu;
+      ppu,compiler;
 
 const
     swap_relation: array [ltn..unequaln] of Tnodetype=(gtn, gten, ltn, lten, equaln, unequaln);
@@ -1030,7 +1030,7 @@ const
               (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) { and
 	      not(cs_check_overflow in localswitches) } then
               begin
-                result:=caddnode.create(muln,cmoddivnode.create(divn,left,tmoddivnode(right).right.getcopy,compiler),tmoddivnode(right).right,compiler);
+                result:=compiler.caddnode(muln,cmoddivnode.create(divn,left,tmoddivnode(right).right.getcopy,compiler),tmoddivnode(right).right);
                 left:=nil;
                 tmoddivnode(right).right:=nil;
                 exit;
@@ -1100,7 +1100,7 @@ const
                 if (left.nodetype=unaryminusn) then
                   begin
                     t := tunaryminusnode(left).PruneKeepLeft();
-                    result:=caddnode.create(subn,PruneKeepRight(),t,compiler);
+                    result:=compiler.caddnode(subn,PruneKeepRight(),t);
                     exit;
                   end;
 
@@ -1109,7 +1109,7 @@ const
                 if (right.nodetype=unaryminusn) then
                   begin
                     t := tunaryminusnode(right).PruneKeepLeft();
-                    result:=caddnode.create(subn,PruneKeepLeft(),t,compiler);
+                    result:=compiler.caddnode(subn,PruneKeepLeft(),t);
                     exit;
                   end;
               end;
@@ -1119,7 +1119,7 @@ const
             if (nodetype=subn) and (right.nodetype=unaryminusn) then
               begin
                 t := tunaryminusnode(right).PruneKeepLeft();
-                result:=caddnode.create(addn,PruneKeepLeft(),t,compiler);
+                result:=compiler.caddnode(addn,PruneKeepLeft(),t);
                 exit;
               end;
 
@@ -1129,7 +1129,7 @@ const
             if (nodetype in [muln,slashn]) and (left.nodetype=unaryminusn) and (right.nodetype=unaryminusn) then
               begin
                 t := tunaryminusnode(right).PruneKeepLeft();
-                result:=caddnode.create(nodetype,tunaryminusnode(left).PruneKeepLeft(),t,compiler);
+                result:=compiler.caddnode(nodetype,tunaryminusnode(left).PruneKeepLeft(),t);
                 exit;
               end;
 
@@ -1868,9 +1868,9 @@ const
               begin
                 case nodetype of
                   ltn:
-                    result:=caddnode.create(lten,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left,compiler),compiler);
+                    result:=compiler.caddnode(lten,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left,compiler));
                   gten:
-                    result:=caddnode.create(gtn,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left,compiler),compiler);
+                    result:=compiler.caddnode(gtn,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left,compiler));
                   else
                     Internalerror(2024041701);
                 end;
@@ -1893,9 +1893,9 @@ const
               begin
                 case nodetype of
                   gtn:
-                    result:=caddnode.create(gten,cinlinenode.create(in_high_x,false,tinlinenode(left).left,compiler),right,compiler);
+                    result:=compiler.caddnode(gten,cinlinenode.create(in_high_x,false,tinlinenode(left).left,compiler),right);
                   lten:
-                    result:=caddnode.create(ltn,cinlinenode.create(in_high_x,false,tinlinenode(left).left,compiler),right,compiler);
+                    result:=compiler.caddnode(ltn,cinlinenode.create(in_high_x,false,tinlinenode(left).left,compiler),right);
                   else
                     Internalerror(2024041701);
                 end;
@@ -2016,7 +2016,7 @@ const
                           nt:=unequaln
                         else
                           nt:=equaln;
-                        result:=caddnode.create(nt,t,cordconstnode.create(0,vl.resultdef,false,compiler),compiler);
+                        result:=compiler.caddnode(nt,t,cordconstnode.create(0,vl.resultdef,false,compiler));
                         Include(transientflags,tnf_do_not_execute);
                         if t=left then
                           left:=nil
@@ -2466,7 +2466,7 @@ const
                               if not assigned(resultdef) then
                                 resultdef:=rd;
                             end;
-                          result:=ctypeconvnode.create_explicit(caddnode.create(nodetype,left,right,compiler),resultdef,compiler);
+                          result:=ctypeconvnode.create_explicit(compiler.caddnode(nodetype,left,right),resultdef,compiler);
                           ttypeconvnode(result).convtype:=tc_bool_2_bool;
                           left:=nil;
                           right:=nil;
@@ -3246,8 +3246,8 @@ const
                 if (rd.typ=pointerdef) and
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
-                     left:=caddnode.create(muln,left,
-                       cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(right.resultdef).pointer_arithmetic_int_type,true,compiler),compiler);
+                     left:=compiler.caddnode(muln,left,
+                       cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(right.resultdef).pointer_arithmetic_int_type,true,compiler));
                      typecheckpass(left);
                    end;
               end
@@ -3282,16 +3282,16 @@ const
                      CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                    if (tpointerdef(ld).pointeddef.size>1) then
                    begin
-                     right:=caddnode.create(muln,right,
-                       cordconstnode.create(tpointerdef(ld).pointeddef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true,compiler),compiler);
+                     right:=compiler.caddnode(muln,right,
+                       cordconstnode.create(tpointerdef(ld).pointeddef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true,compiler));
                      typecheckpass(right);
                    end
                  end else
                    if is_zero_based_array(ld) and
                       (tarraydef(ld).elementdef.size>1) then
                      begin
-                       right:=caddnode.create(muln,right,
-                         cordconstnode.create(tarraydef(ld).elementdef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true,compiler),compiler);
+                       right:=compiler.caddnode(muln,right,
+                         cordconstnode.create(tarraydef(ld).elementdef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true,compiler));
                        typecheckpass(right);
                      end;
                end
@@ -3394,7 +3394,7 @@ const
               slashn :
                 begin
                   { slashn will only work with floats }
-                  hp:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,s64currencytype,compiler),compiler);
+                  hp:=compiler.caddnode(muln,getcopy,crealconstnode.create(10000.0,s64currencytype,compiler));
                   include(hp.flags,nf_is_currency);
                   result:=hp;
                 end;
@@ -3428,7 +3428,7 @@ const
                         end
                       else
                         begin
-                          hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,s64currencytype,compiler),compiler);
+                          hp:=compiler.caddnode(slashn,getcopy,crealconstnode.create(10000.0,s64currencytype,compiler));
                           include(hp.flags,nf_is_currency);
                         end;
                     end
@@ -3624,9 +3624,9 @@ const
                      (nodetype in [gtn,gten,ltn,lten]) or
                      (target_info.system in systems_managed_vm) then
                     { compare the length with 0 }
-                    result := caddnode.create(nodetype,
+                    result := compiler.caddnode(nodetype,
                       cinlinenode.create(in_length_x,false,left,compiler),
-                      cordconstnode.create(0,s8inttype,false,compiler),compiler)
+                      cordconstnode.create(0,s8inttype,false,compiler))
                   else { nodetype in [equaln,unequaln] }
                     begin
                       if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
@@ -3634,7 +3634,7 @@ const
                           { windows like widestrings requires that we also check the length }
                           result:=cinlinenode.create(in_length_x,false,left,compiler);
                           { and compare its result with 0 }
-                          result:=caddnode.create(equaln,result,cordconstnode.create(0,s8inttype,false,compiler),compiler);
+                          result:=compiler.caddnode(equaln,result,cordconstnode.create(0,s8inttype,false,compiler));
                           if nodetype=unequaln then
                             result:=cnotnode.create(result,compiler);
                         end
@@ -3642,9 +3642,9 @@ const
                         begin
                           { compare the pointer with nil (for ansistrings etc), }
                           { faster than getting the length (JM)                 }
-                          result:= caddnode.create(nodetype,
+                          result:= compiler.caddnode(nodetype,
                             ctypeconvnode.create_internal(left,voidpointertype,compiler),
-                            cpointerconstnode.create(0,voidpointertype,compiler),compiler);
+                            cpointerconstnode.create(0,voidpointertype,compiler));
                         end;
                     end;
                   { left is reused }
@@ -3663,8 +3663,8 @@ const
               result := ccallnode.createintern(cmpfuncname,
                 ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler));
               { and compare its result with 0 according to the original operator }
-              result := caddnode.create(nodetype,result,
-                cordconstnode.create(0,s8inttype,false,compiler),compiler);
+              result := compiler.caddnode(nodetype,result,
+                cordconstnode.create(0,s8inttype,false,compiler));
               left := nil;
               right := nil;
             end;
@@ -3783,9 +3783,9 @@ const
                   is_emptyset(left) then
                 begin
                   { adjust for set base }
-                  tsetelementnode(right).left:=caddnode.create(subn,
+                  tsetelementnode(right).left:=compiler.caddnode(subn,
                     ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
-                    cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler),compiler);
+                    cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                   if no_temp then
                     begin
@@ -3828,14 +3828,14 @@ const
                           if assigned(tsetelementnode(right).right) then
                             begin
                               { adjust for set base }
-                              tsetelementnode(right).left:=caddnode.create(subn,
+                              tsetelementnode(right).left:=compiler.caddnode(subn,
                                 ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
-                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler),compiler);
+                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                               { adjust for set base }
-                              tsetelementnode(right).right:=caddnode.create(subn,
+                              tsetelementnode(right).right:=compiler.caddnode(subn,
                                 ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype,compiler),
-                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler),compiler);
+                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                               result:=ccallnode.createintern('fpc_varset_set_range',
                                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
@@ -3853,9 +3853,9 @@ const
                               else
                                 begin
                                   { adjust for set base }
-                                  tsetelementnode(right).left:=caddnode.create(subn,
+                                  tsetelementnode(right).left:=compiler.caddnode(subn,
                                     ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
-                                    cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler),compiler);
+                                    cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                                   result:=ccallnode.createintern('fpc_varset_set',
                                     ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
@@ -3870,9 +3870,9 @@ const
                       else
                         begin
                           { adjust for set base }
-                          tsetelementnode(right).left:=caddnode.create(subn,
+                          tsetelementnode(right).left:=compiler.caddnode(subn,
                             ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
-                            cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler),compiler);
+                            cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                           result:=internalstatements(compiler,newstatement);
 
@@ -3884,9 +3884,9 @@ const
                           if assigned(tsetelementnode(right).right) then
                             begin
                               { adjust for set base }
-                              tsetelementnode(right).right:=caddnode.create(subn,
+                              tsetelementnode(right).right:=compiler.caddnode(subn,
                                 ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype,compiler),
-                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler),compiler);
+                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
                               addstatement(newstatement,ccallnode.createintern('fpc_varset_set_range',
                                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                                 ccallparanode.create(tsetelementnode(right).right,
@@ -4596,7 +4596,7 @@ const
           this needs to be done before firstpass, else the set additions get already converted into calls }
         if (resultdef.typ=setdef) and (nodetype=addn) and (right.nodetype=addn) and (is_emptyset(taddnode(right).left)) then
           begin
-            result:=caddnode.create(addn,left,taddnode(right).right,compiler);
+            result:=compiler.caddnode(addn,left,taddnode(right).right);
             left:=nil;
             taddnode(right).right:=nil;
             exit;

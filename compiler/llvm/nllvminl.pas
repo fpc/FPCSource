@@ -128,7 +128,7 @@ implementation
         }
         addstatement(stat,
           cifnode.create(
-            caddnode.create(
+            compiler.caddnode(
               gten,
               ctemprefnode.create(lefttemp),
               crealconstnode.create(0.0,left.resultdef)
@@ -192,13 +192,13 @@ implementation
         if inlinenumber=in_bsr_x then
           begin
             cntresult:=
-              caddnode.create(xorn,
+              compiler.caddnode(xorn,
                 cntresult,
                 genintconstnode(leftdef.size*8-1)
               );
           end;
         addstatement(stat,
-          cifnode.create(caddnode.create(unequaln,left.getcopy,genintconstnode(0)),
+          cifnode.create(compiler.caddnode(unequaln,left.getcopy,genintconstnode(0)),
             cassignmentnode.create(
               ctemprefnode.create(resulttemp),
               cntresult

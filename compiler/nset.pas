@@ -164,7 +164,7 @@ implementation
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
       nadd,nbas,ncal,ncnv,nld,nutils,
-      cgbase;
+      cgbase,compiler;
 
 
 {*****************************************************************************
@@ -793,19 +793,19 @@ implementation
                 begin
                   if assigned(check) then
                     begin
-                      check:=caddnode.create(orn,check,nil,compiler);
+                      check:=compiler.caddnode(orn,check,nil);
                       newcheck:=@check.right
                     end
                   else
                     newcheck:=@check;
                   labitem:=TLinkedListCaseLabelItem(lablist[j]).casenode;
-                  newcheck^:=caddnode.create(equaln,left.getcopy,labitem^._low_str.getcopy,compiler);
+                  newcheck^:=compiler.caddnode(equaln,left.getcopy,labitem^._low_str.getcopy);
                   if (labitem^._low_str.fullcompare(labitem^._high_str)<>0) then
                     begin
                       newcheck^.nodetype:=gten;
-                      newcheck^:=caddnode.create(
-                        andn,newcheck^,caddnode.create(
-                          lten,left.getcopy,labitem^._high_str.getcopy,compiler),compiler);
+                      newcheck^:=compiler.caddnode(
+                        andn,newcheck^,compiler.caddnode(
+                          lten,left.getcopy,labitem^._high_str.getcopy));
                     end;
                 end;
               result:=cifnode.create(check,

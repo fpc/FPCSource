@@ -235,7 +235,7 @@ implementation
           the length is <> 0 on other targets, replace this expression here }
         if is_dynamic_array(tcallparanode(left).left.resultdef) then
           begin
-            result:=caddnode.create(unequaln,cinlinenode.create(
+            result:=compiler.caddnode(unequaln,cinlinenode.create(
               in_length_x,false,tcallparanode(left).left),genintconstnode(0));
             tcallparanode(left).left:=nil;
           end

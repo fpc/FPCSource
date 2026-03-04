@@ -279,13 +279,13 @@ implementation
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),caddrnode.create_internal(p1,compiler),compiler));
              addstatement(newstatement,cassignmentnode.create(
                  cderefnode.create(ctemprefnode.create(temp,compiler),compiler),
-                 caddnode.create(ntyp,
+                 compiler.caddnode(ntyp,
                      cderefnode.create(ctemprefnode.create(temp,compiler),compiler),
-                     p2,compiler),compiler));
+                     p2),compiler));
              addstatement(newstatement,ctempdeletenode.create(temp,compiler));
            end
          else
-           result:=cassignmentnode.create(p1,caddnode.create(ntyp,p1.getcopy,p2,compiler),compiler);
+           result:=cassignmentnode.create(p1,compiler.caddnode(ntyp,p1.getcopy,p2),compiler);
        end;
 
 
@@ -477,7 +477,7 @@ implementation
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1,compiler);
                   { no packed bit support for these things }
                   if l=in_bitsizeof_x then
-                    statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler),compiler);
+                    statement_syssym:=compiler.caddnode(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler));
                   { type sym is a generic parameter }
                   if assigned(p1.resultdef.typesym) and (sp_generic_para in p1.resultdef.typesym.symoptions) then
                     include(statement_syssym.flags,nf_generic_para);
@@ -501,7 +501,7 @@ implementation
                    begin
                      statement_syssym:=genintconstnode(p1.resultdef.size,sizesinttype,compiler);
                      if (l = in_bitsizeof_x) then
-                       statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler),compiler);
+                       statement_syssym:=compiler.caddnode(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler));
                    end
                  else
                    statement_syssym:=genintconstnode(p1.resultdef.packedbitsize,sizesinttype,compiler);
@@ -2409,7 +2409,7 @@ implementation
                                p2:=comp_expr([ef_accept_equal]);
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
-                               p2:=caddnode.create(addn,p2,p3);
+                               p2:=compiler.caddnode(addn,p2,p3);
                                case tloadnode(p1).symtableentry.name of
                                  'MEM': p2:=ctypeconvnode.create_internal(p2,bytefarpointertype);
                                  'MEMW': p2:=ctypeconvnode.create_internal(p2,wordfarpointertype);
@@ -2421,12 +2421,12 @@ implementation
 {$elseif defined(i386)}
                                if try_to_consume(_COLON) then
                                 begin
-                                  p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
+                                  p3:=compiler.caddnode(muln,cordconstnode.create($10,s32inttype,false),p2);
                                   p2:=comp_expr([ef_accept_equal]);
-                                  p2:=caddnode.create(addn,p2,p3);
+                                  p2:=compiler.caddnode(addn,p2,p3);
                                   if try_to_consume(_POINTPOINT) then
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
-                                    p2:=crangenode.create(p2,caddnode.create(addn,comp_expr([ef_accept_equal]),p3.getcopy));
+                                    p2:=crangenode.create(p2,compiler.caddnode(addn,comp_expr([ef_accept_equal]),p3.getcopy));
                                   p1:=cvecnode.create(p1,p2);
                                   include(tvecnode(p1).vecnodeflags,vnf_memseg);
                                   include(tvecnode(p1).vecnodeflags,vnf_memindex);
@@ -4783,17 +4783,17 @@ implementation
                p2:=sub_expr(succ(pred_level),flags+[ef_accept_equal],nil);
              case oldt of
                _PLUS :
-                 p1:=caddnode.create(addn,p1,p2,compiler);
+                 p1:=compiler.caddnode(addn,p1,p2);
                _MINUS :
-                 p1:=caddnode.create(subn,p1,p2,compiler);
+                 p1:=compiler.caddnode(subn,p1,p2);
                _STAR :
-                 p1:=caddnode.create(muln,p1,p2,compiler);
+                 p1:=compiler.caddnode(muln,p1,p2);
                _SLASH :
-                 p1:=caddnode.create(slashn,p1,p2,compiler);
+                 p1:=compiler.caddnode(slashn,p1,p2);
                _EQ:
-                 p1:=caddnode.create(equaln,p1,p2,compiler);
+                 p1:=compiler.caddnode(equaln,p1,p2);
                _GT :
-                 p1:=caddnode.create(gtn,p1,p2,compiler);
+                 p1:=compiler.caddnode(gtn,p1,p2);
                _LT :
                  begin
                    if maybe_handle_specialization(p1,p2,filepos) then
@@ -4882,17 +4882,17 @@ implementation
                          end;
 
                        { create the comparison node for "<" }
-                       p1:=caddnode.create(ltn,p1,p2,compiler)
+                       p1:=compiler.caddnode(ltn,p1,p2)
                      end;
                  end;
                _GTE :
-                 p1:=caddnode.create(gten,p1,p2,compiler);
+                 p1:=compiler.caddnode(gten,p1,p2);
                _LTE :
-                 p1:=caddnode.create(lten,p1,p2,compiler);
+                 p1:=compiler.caddnode(lten,p1,p2);
                _SYMDIF :
-                 p1:=caddnode.create(symdifn,p1,p2,compiler);
+                 p1:=compiler.caddnode(symdifn,p1,p2);
                _STARSTAR :
-                 p1:=caddnode.create(starstarn,p1,p2,compiler);
+                 p1:=compiler.caddnode(starstarn,p1,p2);
                _OP_AS,
                _OP_IS :
                  begin
@@ -4937,14 +4937,14 @@ implementation
                _OP_OR,
                _PIPE {macpas only} :
                  begin
-                   p1:=caddnode.create(orn,p1,p2,compiler);
+                   p1:=compiler.caddnode(orn,p1,p2);
                    if (oldt = _PIPE) then
                      include(taddnode(p1).addnodeflags,anf_short_bool);
                  end;
                _OP_AND,
                _AMPERSAND {macpas only} :
                  begin
-                   p1:=caddnode.create(andn,p1,p2,compiler);
+                   p1:=compiler.caddnode(andn,p1,p2);
                    if (oldt = _AMPERSAND) then
                      include(taddnode(p1).addnodeflags,anf_short_bool);
                  end;
@@ -4963,11 +4963,11 @@ implementation
                _OP_SHR :
                  p1:=cshlshrnode.create(shrn,p1,p2,compiler);
                _OP_XOR :
-                 p1:=caddnode.create(xorn,p1,p2,compiler);
+                 p1:=compiler.caddnode(xorn,p1,p2);
                _ASSIGNMENT :
                  p1:=cassignmentnode.create(p1,p2,compiler);
                _NE :
-                 p1:=caddnode.create(unequaln,p1,p2,compiler);
+                 p1:=compiler.caddnode(unequaln,p1,p2);
                else
                  internalerror(2019050529);
              end;

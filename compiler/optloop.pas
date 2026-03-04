@@ -61,7 +61,7 @@ type
       ncgmem,
       pass_1,
       optbase,optutils,
-      procinfo;
+      procinfo,compiler;
 
     constructor TLoopOptimizer.Create(ACompiler: TCompilerBase);
       begin
@@ -457,8 +457,8 @@ type
                              cordconstnode.create(1,nn.resultdef,false,compiler),compiler);
                         end;
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),
-                          caddnode.create(muln,nn,
-                            taddnode(n).right.getcopy,compiler),
+                          compiler.caddnode(muln,nn,
+                            taddnode(n).right.getcopy),
                             compiler
                           )
                         );

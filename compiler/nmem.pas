@@ -195,7 +195,7 @@ implementation
 {$ifdef i8086}
       cpuinfo,
 {$endif i8086}
-      htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo,widestr
+      htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo,widestr,compiler
       ;
 
 {*****************************************************************************
@@ -1567,7 +1567,7 @@ implementation
                 add 1 before comparing (ignoring overflows) }
               htype:=get_unsigned_inttype(right.resultdef);
               inserttypeconv_explicit(hightree,htype,compiler);
-              hightree:=caddnode.create(addn,hightree,genintconstnode(1,compiler),compiler);
+              hightree:=compiler.caddnode(addn,hightree,genintconstnode(1,compiler));
               hightree.localswitches:=hightree.localswitches-[cs_check_range,
                 cs_check_overflow];
               indextree:=ctypeconvnode.create_explicit(right.getcopy,htype,compiler);

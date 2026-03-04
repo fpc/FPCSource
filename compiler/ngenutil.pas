@@ -172,7 +172,7 @@ implementation
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nutils,
       ppu,
-      pass_1,
+      pass_1,compiler,
       export;
 
   constructor tnodeutils.Create(ACompiler: TCompilerBase);
@@ -198,15 +198,13 @@ implementation
             begin
               { if self<>0 and vmt<>0 then freeinstance }
               addstatement(newstatement,cifnode.create(
-                  caddnode.create(andn,
-                      caddnode.create(unequaln,
+                  compiler.caddnode(andn,
+                      compiler.caddnode(unequaln,
                           load_self_pointer_node,
-                          cnilnode.create(compiler),
-                          compiler),
-                      caddnode.create(unequaln,
+                          cnilnode.create(compiler)),
+                      compiler.caddnode(unequaln,
                           load_vmt_pointer_node,
-                          cnilnode.create(compiler),
-                          compiler),compiler),
+                          cnilnode.create(compiler))),
                   ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
                   nil,compiler));
             end
@@ -883,7 +881,7 @@ implementation
                     { open array -> at least size 1. Can also be zero-sized
                       record, so check it's actually an array }
                     if p.vardef.typ=arraydef then
-                      trash_large(stat,trashn,caddnode.create(addn,cinlinenode.create(in_high_x,false,trashn.getcopy,compiler),genintconstnode(1,compiler),compiler),trashintval)
+                      trash_large(stat,trashn,compiler.caddnode(addn,cinlinenode.create(in_high_x,false,trashn.getcopy,compiler),genintconstnode(1,compiler)),trashintval)
                     else
                       trashn.free;
                       trashn := nil;

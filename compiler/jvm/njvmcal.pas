@@ -336,9 +336,9 @@ implementation
                           ctypenode.create(orgparadef),ccallparanode.create(unwrappedele1,nil)))
                       end;
                     addstatement(copybackstat,cifnode.create(
-                      caddnode.create(andn,
-                        caddnode.create(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele0,orgparadef)),
-                        caddnode.create(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele1,orgparadef))),
+                      compiler.caddnode(andn,
+                        compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele0,orgparadef)),
+                        compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele1,orgparadef))),
                       ccallnode.createintern('fpc_var_copyout_mismatch',
                         ccallparanode.create(genintconstnode(fileinfo.column),
                           ccallparanode.create(genintconstnode(fileinfo.line),nil))
