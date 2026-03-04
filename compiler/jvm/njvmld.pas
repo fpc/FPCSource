@@ -199,7 +199,7 @@ function tjvmloadnode.handle_threadvar_access: tnode;
     { get a read/write reference to the threadvar value }
     result:=cloadnode.create(vs,vs.owner);
     typecheckpass(result);
-    result:=ccallnode.createinternmethod(result,'GETREADWRITEREFERENCE',nil);
+    result:=compiler.ccallnode_internmethod(result,'GETREADWRITEREFERENCE',nil);
     if not(tstaticvarsym(symtableentry).vardef.typ in [orddef,floatdef]) and
        not jvmimplicitpointertype(tstaticvarsym(symtableentry).vardef) then
       begin
@@ -312,7 +312,7 @@ procedure tjvmarrayconstructornode.wrapmanagedvarrec(var n: tnode);
     temp:=compiler.ctempcreatenode(varrecdef,varrecdef.size,tt_persistent,false);
     addstatement(stat,temp);
     addstatement(stat,
-      ccallnode.createinternmethod(
+      compiler.ccallnode_internmethod(
         compiler.ctemprefnode(temp),'INIT',ccallparanode.create(n,nil)));
     { note: this will not free the record contents, but just let its reference
       on the stack be reused -- which is ok, because the reference will be

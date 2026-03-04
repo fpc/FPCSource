@@ -376,7 +376,7 @@ implementation
                 left:=caddrnode.create_internal(left);
                 include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 inserttypeconv_explicit(left,setclassdef);
-                result:=ccallnode.createinternmethod(
+                result:=compiler.ccallnode_internmethod(
                   cloadvmtaddrnode.create(ctypenode.create(setclassdef)),
                   helpername,ccallparanode.create(
                     genintconstnode(tsetdef(resultdef).setbase), ccallparanode.create(
@@ -399,7 +399,7 @@ implementation
           exit;
         if not assigned(tcpuprocvardef(resultdef).classdef) then
           tcpuprocvardef(resultdef).classdef:=java_procvarbase;
-        result:=ccallnode.createinternmethod(
+        result:=compiler.ccallnode_internmethod(
           cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
         result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
@@ -480,7 +480,7 @@ implementation
                  if pushaddr then
                    encodedtype:='['+encodedtype;
                  replace(encodedtype,'/','.');
-                 newpara:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(jlclass)),'FORNAME',
+                 newpara:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(jlclass)),'FORNAME',
                    ccallparanode.create(cstringconstnode.createstr(encodedtype),nil));
                end
              else
@@ -504,7 +504,7 @@ implementation
           procdefparas:=carrayconstructornode.create(nil,nil);
         Include(procdefparas.arrayconstructornodeflags, acnf_allow_array_constructor);
         constrparas:=ccallparanode.create(procdefparas,constrparas);
-        result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
+        result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }
         if tprocvardef(resultdef).is_addressonly then
           result:=ctypeconvnode.create_explicit(result,resultdef)
@@ -960,7 +960,7 @@ implementation
               mp:=cloadvmtaddrnode.create(ctypenode.create(enumclassdef));
               helpername:='fpcLongToEnumSet';
               { enumclass.fpcLongToEnumSet(left,setbase,setsize) }
-              result:=ccallnode.createinternmethod(mp,helpername,
+              result:=compiler.ccallnode_internmethod(mp,helpername,
                 ccallparanode.create(genintconstnode(resultdef.size),
                   ccallparanode.create(genintconstnode(tsetdef(resultdef).setbase),
                     ccallparanode.create(left,nil))));
@@ -1004,7 +1004,7 @@ implementation
             end;
           result:=csubscriptnode.create(fsym,left);
           { create destination procvartype with info from source }
-          result:=ccallnode.createinternmethod(
+          result:=compiler.ccallnode_internmethod(
             cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
             'CREATE',ccallparanode.create(result,nil));
           left:=nil;
@@ -1034,7 +1034,7 @@ implementation
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072415);
-          result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
+          result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
             'CREATE',ccallparanode.create(left,nil));
           left:=nil;
         end;

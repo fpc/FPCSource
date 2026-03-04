@@ -121,7 +121,7 @@ interface
           stat: tstatementnode;
           temp: ttempcreatenode;
         begin
-          result:=ccallnode.createinternmethod(left,'CLONE',nil);
+          result:=compiler.ccallnode_internmethod(left,'CLONE',nil);
           if isenum then
             inserttypeconv_explicit(result,java_juenumset)
           else
@@ -135,14 +135,14 @@ interface
               addstatement(stat,temp);
               addstatement(stat,cassignmentnode.create(
                 compiler.ctemprefnode(temp),result));
-              addstatement(stat,ccallnode.createinternmethod(
+              addstatement(stat,compiler.ccallnode_internmethod(
                 compiler.ctemprefnode(temp),n,paras));
               addstatement(stat,compiler.ctempdeletenode_normal_temp(temp));
               addstatement(stat,compiler.ctemprefnode(temp));
               result:=block;
             end
           else
-            result:=ccallnode.createinternmethod(result,n,paras);
+            result:=compiler.ccallnode_internmethod(result,n,paras);
         end;
 
       procedure call_set_helper(const n: string; isenum: boolean);
@@ -216,7 +216,7 @@ interface
                   else
                     internalerror(2013120114);
                 end;
-              result:=ccallnode.createinternmethod(left,procname,ccallparanode.create(right,nil));
+              result:=compiler.ccallnode_internmethod(left,procname,ccallparanode.create(right,nil));
               { for an unequaln, we have to negate the result of equals }
               if nodetype=unequaln then
                 result:=cnotnode.create(result);
@@ -257,7 +257,7 @@ interface
                       tsetelementnode(right).right:=nil;
                     end;
                   right.free;
-                  result:=ccallnode.createinternmethod(result,procname,paras)
+                  result:=compiler.ccallnode_internmethod(result,procname,paras)
                 end
               else
                 begin
@@ -292,7 +292,7 @@ interface
                               inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
                               tmpn:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
                             end;
-                          paras:=ccallparanode.create(ccallnode.createinternmethod(tmpn,'RANGE',ccallparanode.create(tsetelementnode(right).right,paras)),nil);
+                          paras:=ccallparanode.create(compiler.ccallnode_internmethod(tmpn,'RANGE',ccallparanode.create(tsetelementnode(right).right,paras)),nil);
                           tsetelementnode(right).right:=nil;
                         end;
                       call_set_helper_paras(procname,isenum,paras);

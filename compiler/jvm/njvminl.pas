@@ -260,7 +260,7 @@ implementation
         jvmgetboxtype(left.resultdef,boxdef,boxparadef,true);
         { created wrapped instance }
         inserttypeconv_explicit(tcallparanode(left).left,boxparadef);
-        result:=ccallnode.createinternmethod(
+        result:=compiler.ccallnode_internmethod(
           cloadvmtaddrnode.create(ctypenode.create(tobjectdef(boxdef))),'CREATE',left);
         { reused }
         left:=nil;
@@ -279,7 +279,7 @@ implementation
         { typecast to the boxing type }
         val:=ctypeconvnode.create_explicit(val,boxdef);
         { call the unboxing method }
-        val:=ccallnode.createinternmethod(val,jvmgetunboxmethod(resultdef),nil);
+        val:=compiler.ccallnode_internmethod(val,jvmgetunboxmethod(resultdef),nil);
         { add type conversion for shortint -> byte etc }
         inserttypeconv_explicit(val,resultdef);
         result:=val;
@@ -383,7 +383,7 @@ implementation
           procname:='ADD'
         else
           procname:='REMOVE';
-        result:=ccallnode.createinternmethod(setpara,procname,valuepara);
+        result:=compiler.ccallnode_internmethod(setpara,procname,valuepara);
       end;
 
 

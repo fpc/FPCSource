@@ -186,7 +186,7 @@ interface
           constructor createinternres(const name: string; params: tnode; res:tdef;acompiler:TCompilerBase);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef;acompiler:TCompilerBase);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode;acompiler:TCompilerBase);
-          constructor createinternmethod(mp: tnode; const name: string; params: tnode);
+          constructor createinternmethod(mp: tnode; const name: string; params: tnode;acompiler:TCompilerBase);
           constructor createinternmethodres(mp: tnode; const name: string; params: tnode; res:tdef);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -1713,7 +1713,7 @@ implementation
       end;
 
 
-    constructor tcallnode.createinternmethod(mp: tnode; const name: string; params: tnode);
+    constructor tcallnode.createinternmethod(mp: tnode; const name: string; params: tnode;acompiler:TCompilerBase);
       var
         ps: tsym;
         recdef: tabstractrecorddef;
@@ -1727,13 +1727,13 @@ implementation
         if not assigned(ps) or
            (ps.typ<>procsym) then
           internalerror(2011062806);
-        create(params,tprocsym(ps),ps.owner,mp,[],nil,compiler);
+        create(params,tprocsym(ps),ps.owner,mp,[],nil,acompiler);
       end;
 
 
     constructor tcallnode.createinternmethodres(mp: tnode; const name: string; params: tnode; res: tdef);
       begin
-        createinternmethod(mp,name,params);
+        createinternmethod(mp,name,params,nil);  { TODO: fix node compiler reference!!! }
         typedef:=res;
         include(callnodeflags,cnf_typedefset)
       end;

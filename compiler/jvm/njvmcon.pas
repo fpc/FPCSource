@@ -293,7 +293,7 @@ implementation
         if value_set^=[] then
           begin
             mp:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
-            result:=ccallnode.createinternmethod(mp,'CREATE',nil);
+            result:=compiler.ccallnode_internmethod(mp,'CREATE',nil);
             exit;
           end;
         result:=buildsetfromstring('fpc_bitset_from_string',nil);
@@ -320,7 +320,7 @@ implementation
                 enumele:=cloadvmtaddrnode.create(ctypenode.create(tcpuenumdef(tenumdef(eledef).getbasedef).classdef));
                 inserttypeconv_explicit(enumele,search_system_type('JLCLASS').typedef);
                 paras:=ccallparanode.create(enumele,nil);
-                result:=ccallnode.createinternmethod(mp,'NONEOF',paras)
+                result:=compiler.ccallnode_internmethod(mp,'NONEOF',paras)
               end
             else
               begin
@@ -329,12 +329,12 @@ implementation
                   instance }
                 firstpass(startnode);
                 if len=1 then
-                  result:=ccallnode.createinternmethod(mp,'OF',ccallparanode.create(startnode,nil))
+                  result:=compiler.ccallnode_internmethod(mp,'OF',ccallparanode.create(startnode,nil))
                 else
                   begin
                     stopnode:=cordconstnode.create(start+len-1,eledef,false);
                     firstpass(stopnode);
-                    result:=ccallnode.createinternmethod(mp,'RANGE',ccallparanode.create(stopnode,ccallparanode.create(startnode,nil)));
+                    result:=compiler.ccallnode_internmethod(mp,'RANGE',ccallparanode.create(stopnode,ccallparanode.create(startnode,nil)));
                   end
               end
           end

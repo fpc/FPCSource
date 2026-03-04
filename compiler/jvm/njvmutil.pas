@@ -109,7 +109,7 @@ implementation
         begin
           { an explicit call to initialize() }
           if p.resultdef.typ=recorddef then
-            result:=ccallnode.createinternmethod(p,'FPCINITIALIZEREC',nil)
+            result:=compiler.ccallnode_internmethod(p,'FPCINITIALIZEREC',nil)
           else if p.resultdef.typ=arraydef then
             begin
               stat:=nil;
@@ -297,7 +297,7 @@ implementation
             initnode:=ccallparanode.create(ctypeconvnode.create_explicit(initnode,java_jlobject),nil);
           addstatement(stat,cassignmentnode.create(
             cloadnode.create(vs,vs.owner),
-            ccallnode.createinternmethod(
+            compiler.ccallnode_internmethod(
               cloadvmtaddrnode.create(ctypenode.create(vs.vardef)),
               'CREATE',initnode)));
           { deallocate the temp if we allocated one }

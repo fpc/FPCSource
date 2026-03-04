@@ -552,7 +552,7 @@ implementation
         wrapping and typeconversions; first filter out the automatically added
         hidden parameters though }
       remove_hidden_paras;
-      result:=ccallnode.createinternmethod(right,'INVOKE',left);
+      result:=compiler.ccallnode_internmethod(right,'INVOKE',left);
       { reused }
       left:=nil;
       right:=nil;
