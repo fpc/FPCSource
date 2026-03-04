@@ -94,6 +94,7 @@ interface
            they have been resolved only for an older generation, in order to
            avoid endless resolving loops in case of cyclic dependencies. }
           defsgeneration : longint;
+          stored_settings: tsettings;
 
           function check_loadfrompackage: boolean;
           function  openppu(ppufiletime:longint):boolean;
@@ -506,7 +507,6 @@ var
            found : boolean;
            hs,
            newname : TCmdStr;
-           oldmodulename: TSymStr;
          begin
            Found:=false;
            singlepathstring:=FixPath(s,false);
@@ -517,7 +517,6 @@ var
               SetFileName(hs,false);
               if prefix<>'' then
                 begin
-                  oldmodulename:=modulename^;
                   newname:=prefix+'.'+realmodulename^;
                   stringdispose(realmodulename);
                   realmodulename:=stringdup(newname);
@@ -534,7 +533,6 @@ var
            found   : boolean;
            hs,
            newname : TCmdStr;
-           oldmodulename: TSymStr;
          begin
            Found:=false;
            singlepathstring:=FixPath(s,false);
@@ -564,7 +562,6 @@ var
               SetFileName(hs,false);
               if prefix<>'' then
                 begin
-                  oldmodulename:=modulename^;
                   newname:=prefix+'.'+realmodulename^;
                   stringdispose(realmodulename);
                   realmodulename:=stringdup(newname);
@@ -1565,7 +1562,6 @@ var
       var
         b : byte;
         newmodulename : string;
-        oldmodulename: TSymStr;
       begin
        { read interface part }
          repeat
@@ -1577,7 +1573,6 @@ var
                end;
              ibmodulename :
                begin
-                 oldmodulename:=modulename^;
                  newmodulename:=ppufile.getstring;
                  if (cs_check_unit_name in current_settings.globalswitches) and
                     (upper(newmodulename)<>modulename^) then
@@ -2479,6 +2474,7 @@ var
           state:=ms_compile;
         end;
 
+        stored_settings:=current_settings;
         Result:=continueloadppu;
 
         set_current_module(from_module);
@@ -2512,6 +2508,7 @@ var
         Result:=false;
         old_module:=current_module;
         set_current_module(self);
+        current_settings:=stored_settings;
 
         if do_reload then
           Internalerror(2026021017);
@@ -2529,6 +2526,7 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.continueloadppu ',modulename^,' delay state=',statestr);
             {$ENDIF}
+            stored_settings:=current_settings;
             { loading unfinished or reset, restore current_module }
             set_current_module(old_module);
             exit;
