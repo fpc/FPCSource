@@ -5342,7 +5342,7 @@ end;
 function TPasProcedure.GetDeclaration(full: Boolean): TPasTreeString;
 
 begin
-  GetDeclaration(Full,True,Full,False);
+  Result:=GetDeclaration(Full,True,Full,False);
 end;
 
 function TPasProcedure.GetDeclaration(full, AddArgs, AddModifiers, AddParent: Boolean): TPasTreeString;
