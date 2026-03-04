@@ -192,6 +192,37 @@ type
     procedure TestGenMethod_TypeCastParam;
     procedure TestGenMethod_TypeCastIdentDot;
     procedure TestGenMethod_ParamProcVar_Forward_Issue39216;
+
+    // const generic parameters
+    procedure TestGen_ConstGeneric_RecordInt;
+    procedure TestGen_ConstGeneric_RecordBool;
+    procedure TestGen_ConstGeneric_RecordString;
+    procedure TestGen_ConstGeneric_RecordNeg;
+    procedure TestGen_ConstGeneric_RecordMixed;
+    procedure TestGen_ConstGeneric_Dedup;
+    procedure TestGen_ConstGeneric_DedupBool;
+    procedure TestGen_ConstGeneric_DedupString;
+    procedure TestGen_ConstGeneric_DistinctValues;
+    procedure TestGen_ConstGeneric_DelphiClass;
+    procedure TestGen_ConstGeneric_ArraySize;
+    procedure TestGen_ConstGeneric_ArraySizeMultiple;
+    procedure TestGen_ConstGeneric_ArrayBounds;
+    procedure TestGen_ConstGeneric_ExprInBody;
+    procedure TestGen_ConstGeneric_DedupArraySize;
+    procedure TestGen_ConstGeneric_DelphiArraySize;
+    procedure TestGen_ConstGeneric_TwoConstParams;
+    procedure TestGen_ConstGeneric_BoolInBody;
+    procedure TestGen_ConstGeneric_StringInBody;
+    procedure TestGen_ConstGeneric_TypedInteger;
+    procedure TestGen_ConstGeneric_TypedBoolean;
+    procedure TestGen_ConstGeneric_TypedString;
+    procedure TestGen_ConstGeneric_TypedByte;
+    procedure TestGen_ConstGeneric_TypedMixed;
+    procedure TestGen_ConstGeneric_DelphiTypedRecord;
+    procedure TestGen_ConstGeneric_DelphiClassMethod;
+    procedure TestGen_ConstGeneric_RejectExprForTypeParamFail;
+    procedure TestGen_ConstGeneric_MultiTypedArray;
+    procedure TestGen_ConstGeneric_TypedExprArith;
   end;
 
 implementation
@@ -3164,6 +3195,484 @@ begin
   'implementation',
   '']);
   ParseUnit;
+end;
+
+{ === Const generic parameters === }
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_RecordInt;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U> = record',
+  '  end;',
+  '  TMyTest = specialize TTest<42>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_RecordBool;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U> = record',
+  '  end;',
+  '  TA = specialize TTest<true>;',
+  '  TB = specialize TTest<false>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_RecordString;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U> = record',
+  '  end;',
+  '  TMyTest = specialize TTest<''hello''>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_RecordNeg;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U> = record',
+  '  end;',
+  '  TMyTest = specialize TTest<-1>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_RecordMixed;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TTest<T; const U> = record',
+  '    Value: T;',
+  '  end;',
+  '  TMyTest = specialize TTest<Integer, 10>;',
+  'var X: TMyTest;',
+  'begin',
+  '  X.Value := 1;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_Dedup;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U> = record',
+  '  end;',
+  '  TA = specialize TTest<42>;',
+  '  TB = specialize TTest<42>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DedupBool;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U> = record',
+  '  end;',
+  '  TA = specialize TTest<true>;',
+  '  TB = specialize TTest<true>;',
+  '  TC = specialize TTest<false>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DedupString;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U> = record',
+  '  end;',
+  '  TA = specialize TTest<''abc''>;',
+  '  TB = specialize TTest<''abc''>;',
+  '  TC = specialize TTest<''xyz''>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DistinctValues;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TTest<T; const U> = record',
+  '    Value: T;',
+  '  end;',
+  '  TA = specialize TTest<Integer, 10>;',
+  '  TB = specialize TTest<Integer, 20>;',
+  '  TC = specialize TTest<Byte, 10>;',
+  'var A: TA; B: TB; C: TC;',
+  'begin',
+  '  A.Value := 1;',
+  '  B.Value := 2;',
+  '  C.Value := 3;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DelphiClass;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TTest<const N> = class',
+  '  end;',
+  '  TMyTest = TTest<16>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_ArraySize;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TFixedArray<T; const N> = record',
+  '    Data: array[0..N-1] of T;',
+  '  end;',
+  '  TArr5 = specialize TFixedArray<Integer, 5>;',
+  'var A: TArr5;',
+  'begin',
+  '  A.Data[0] := 42;',
+  '  A.Data[4] := 99;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_ArraySizeMultiple;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TBuf<const SIZE> = record',
+  '    Data: array[0..SIZE-1] of Byte;',
+  '  end;',
+  '  TBuf8 = specialize TBuf<8>;',
+  '  TBuf16 = specialize TBuf<16>;',
+  'var A: TBuf8; B: TBuf16;',
+  'begin',
+  '  A.Data[0] := 1;',
+  '  B.Data[15] := 2;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_ArrayBounds;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TArr<const LO; const HI> = record',
+  '    Data: array[LO..HI] of Integer;',
+  '  end;',
+  '  TMyArr = specialize TArr<0, 3>;',
+  'var A: TMyArr;',
+  'begin',
+  '  A.Data[0] := 10;',
+  '  A.Data[3] := 40;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_ExprInBody;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<T; const N> = record',
+  '    Data: array[0..N*2-1] of T;',
+  '  end;',
+  '  TMyTest = specialize TTest<Byte, 4>;',
+  'var X: TMyTest;',
+  'begin',
+  '  X.Data[0] := 1;',
+  '  X.Data[7] := 8;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DedupArraySize;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TBuf<const N> = record',
+  '    Data: array[0..N-1] of Byte;',
+  '  end;',
+  '  TA = specialize TBuf<10>;',
+  '  TB = specialize TBuf<10>;',
+  'var A: TA; B: TB;',
+  'begin',
+  '  A.Data[0] := 1;',
+  '  B.Data[9] := 2;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DelphiArraySize;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TFixedBuf<const N> = record',
+  '    Data: array[0..N-1] of Byte;',
+  '  end;',
+  '  TBuf32 = TFixedBuf<32>;',
+  'var B: TBuf32;',
+  'begin',
+  '  B.Data[0] := 1;',
+  '  B.Data[31] := 2;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TwoConstParams;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TMatrix<const ROWS; const COLS> = record',
+  '    Data: array[0..ROWS*COLS-1] of Integer;',
+  '  end;',
+  '  TMat2x3 = specialize TMatrix<2, 3>;',
+  'var M: TMat2x3;',
+  'begin',
+  '  M.Data[0] := 1;',
+  '  M.Data[5] := 6;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_BoolInBody;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TTest<T; const FLAG> = record',
+  '    Value: T;',
+  '  end;',
+  '  TEnabled = specialize TTest<Integer, true>;',
+  '  TDisabled = specialize TTest<Integer, false>;',
+  'var A: TEnabled; B: TDisabled;',
+  'begin',
+  '  A.Value := 1;',
+  '  B.Value := 0;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_StringInBody;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TTagged<T; const TAG> = record',
+  '    Value: T;',
+  '  end;',
+  '  TTaggedInt = specialize TTagged<Integer, ''myint''>;',
+  'var X: TTaggedInt;',
+  'begin',
+  '  X.Value := 42;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TypedInteger;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TTest<const U: integer> = record',
+  '    Data: array[0..U-1] of Byte;',
+  '  end;',
+  '  T5 = specialize TTest<5>;',
+  'var X: T5;',
+  'begin',
+  '  X.Data[0] := 1;',
+  '  X.Data[4] := 2;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TypedBoolean;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U: boolean> = record',
+  '  end;',
+  '  TA = specialize TTest<true>;',
+  '  TB = specialize TTest<false>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TypedString;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U: string> = record',
+  '  end;',
+  '  TMyTest = specialize TTest<''hello''>;',
+  'begin',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TypedByte;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<const U: byte> = record',
+  '    Data: array[0..U-1] of Byte;',
+  '  end;',
+  '  T10 = specialize TTest<10>;',
+  'var X: T10;',
+  'begin',
+  '  X.Data[9] := 255;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TypedMixed;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TList<T; const N: integer> = record',
+  '    Data: array[0..N-1] of T;',
+  '  end;',
+  '  TIntList = specialize TList<Integer, 8>;',
+  '  TByteList = specialize TList<Byte, 16>;',
+  'var A: TIntList; B: TByteList;',
+  'begin',
+  '  A.Data[0] := 1;',
+  '  B.Data[15] := 2;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DelphiTypedRecord;
+begin
+  StartProgram(true);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TBuf<const N: integer> = record',
+  '    Data: array[0..N-1] of Byte;',
+  '  end;',
+  '  TBuf32 = TBuf<32>;',
+  'var B: TBuf32;',
+  'begin',
+  '  B.Data[0] := 1;',
+  '  B.Data[31] := 2;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DelphiClassMethod;
+begin
+  StartProgram(true);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TList<T; const U> = class',
+  '    list: array[0..U-1] of T;',
+  '    function capacity: integer;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'function TList<T; U>.capacity: integer;',
+  'begin',
+  '  result := U;',
+  'end;',
+  'type',
+  '  TIntList = TList<integer, 16>;',
+  'var L: TIntList;',
+  'begin',
+  '  L := TIntList.Create;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_RejectExprForTypeParamFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  generic TTest<T> = record end;',
+  '  TBad = specialize TTest<42>;',
+  'begin',
+  '']);
+  CheckResolverException('type expected, but constant expression found',
+    nXExpectedButYFound);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_MultiTypedArray;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TGrid<const ROWS: integer; const COLS: integer> = record',
+  '    Data: array[0..ROWS*COLS-1] of Integer;',
+  '  end;',
+  '  TGrid3x4 = specialize TGrid<3, 4>;',
+  'var G: TGrid3x4;',
+  'begin',
+  '  G.Data[0] := 1;',
+  '  G.Data[11] := 12;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_TypedExprArith;
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TBuf<const N: integer> = record',
+  '    Data: array[0..N+N-1] of Byte;',
+  '  end;',
+  '  TBuf4 = specialize TBuf<4>;',
+  'var X: TBuf4;',
+  'begin',
+  '  X.Data[0] := 1;',
+  '  X.Data[7] := 8;',
+  '']);
+  ParseProgram;
 end;
 
 initialization
