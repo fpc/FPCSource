@@ -208,9 +208,9 @@ implementation
            internalerror(2011052401);
         end;
         cst_type:=cst_unicodestring;
-        paras:=ccallparanode.create(self.getcopy,nil);
+        paras:=compiler.ccallparanode(self.getcopy,nil);
         if wasansi then
-          paras:=ccallparanode.create(
+          paras:=compiler.ccallparanode(
             genintconstnode(tstringdef(resultdef).encoding),paras);
         { since self will be freed, have to make a copy }
         result:=compiler.ccallnode_internmethodres(
@@ -281,7 +281,7 @@ implementation
               end;
           end;
         result:=compiler.ccallnode_intern(helpername,
-          ccallparanode.create(cstringconstnode.createunistr(pw),otherparas));
+          compiler.ccallparanode(cstringconstnode.createunistr(pw),otherparas));
         donewidestring(pw);
       end;
 
@@ -319,7 +319,7 @@ implementation
               begin
                 enumele:=cloadvmtaddrnode.create(ctypenode.create(tcpuenumdef(tenumdef(eledef).getbasedef).classdef));
                 inserttypeconv_explicit(enumele,search_system_type('JLCLASS').typedef);
-                paras:=ccallparanode.create(enumele,nil);
+                paras:=compiler.ccallparanode(enumele,nil);
                 result:=compiler.ccallnode_internmethod(mp,'NONEOF',paras)
               end
             else
@@ -329,12 +329,12 @@ implementation
                   instance }
                 firstpass(startnode);
                 if len=1 then
-                  result:=compiler.ccallnode_internmethod(mp,'OF',ccallparanode.create(startnode,nil))
+                  result:=compiler.ccallnode_internmethod(mp,'OF',compiler.ccallparanode(startnode,nil))
                 else
                   begin
                     stopnode:=cordconstnode.create(start+len-1,eledef,false);
                     firstpass(stopnode);
-                    result:=compiler.ccallnode_internmethod(mp,'RANGE',ccallparanode.create(stopnode,ccallparanode.create(startnode,nil)));
+                    result:=compiler.ccallnode_internmethod(mp,'RANGE',compiler.ccallparanode(stopnode,compiler.ccallparanode(startnode,nil)));
                   end
               end
           end
@@ -342,7 +342,7 @@ implementation
           begin
             enumele:=cordconstnode.create(tenumsym(tenumdef(eledef).symtable.symlist[0]).value,eledef,false);
             firstpass(enumele);
-            paras:=ccallparanode.create(enumele,nil);
+            paras:=compiler.ccallparanode(enumele,nil);
             result:=buildsetfromstring('fpc_enumset_from_string',paras);
           end;
       end;

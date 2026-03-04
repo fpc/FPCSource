@@ -380,8 +380,8 @@ implementation
             if not is_currency(source.resultdef) then
               begin
                 rt:=ord(tfloatdef(source.left.resultdef).floattype);
-                newparas.right := ccallparanode.create(cordconstnode.create(
-                  rt,s32inttype,true,compiler),newparas.right,compiler);
+                newparas.right := compiler.ccallparanode(cordconstnode.create(
+                  rt,s32inttype,true,compiler),newparas.right);
                 tmppara:=tcallparanode(newparas.right);
               end
             else
@@ -389,33 +389,33 @@ implementation
             { if necessary, insert a fraction parameter }
             if not assigned(fracpara) then
               begin
-                tmppara.right := ccallparanode.create(
+                tmppara.right := compiler.ccallparanode(
                   cordconstnode.create(int64(-1),s32inttype,false,compiler),
-                   tmppara.right,compiler);
+                   tmppara.right);
                 fracpara := tcallparanode(tmppara.right);
               end;
             { if necessary, insert a length para }
             if not assigned(lenpara) then
-              fracpara.right := ccallparanode.create(
+              fracpara.right := compiler.ccallparanode(
                 cordconstnode.create(int64(-32767),s32inttype,false,compiler),
-                   fracpara.right,compiler);
+                   fracpara.right);
           end
         else if is_enum then
           begin
             {Insert a reference to the ord2string index.}
-            newparas.right:=Ccallparanode.create(
+            newparas.right:=compiler.ccallparanode(
               Caddrnode.create_internal(
                 Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_normal,compiler),
                 compiler
               ),
-              newparas.right,compiler);
+              newparas.right);
             {Insert a reference to the typinfo.}
-            newparas.right:=Ccallparanode.create(
+            newparas.right:=compiler.ccallparanode(
               Caddrnode.create_internal(
                 Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_ord2str,compiler),
                 compiler
               ),
-              newparas.right,compiler);
+              newparas.right);
             {Insert a type conversion from the enumeration to longint.}
             source.left:=Ctypeconvnode.create_internal(source.left,s32inttype,compiler);
             typecheckpass(source.left);
@@ -423,17 +423,16 @@ implementation
             { if necessary, insert a length para }
             if not assigned(lenpara) then
               Tcallparanode(Tcallparanode(newparas.right).right).right:=
-                Ccallparanode.create(
+                compiler.ccallparanode(
                   cordconstnode.create(int64(-1),s32inttype,false,compiler),
-                  Tcallparanode(Tcallparanode(newparas.right).right).right,
-                  compiler
+                  Tcallparanode(Tcallparanode(newparas.right).right).right
                 );
           end
         else
           { for a normal parameter, insert a only length parameter if one is missing }
           if not assigned(lenpara) then
-            newparas.right := ccallparanode.create(cordconstnode.create(int64(-1),s32inttype,false,compiler),
-              newparas.right,compiler);
+            newparas.right := compiler.ccallparanode(cordconstnode.create(int64(-1),s32inttype,false,compiler),
+              newparas.right);
 
         { remove the parameters from the original node so they won't get disposed, }
         { since they're reused                                                     }
@@ -475,8 +474,8 @@ implementation
 
         { for ansistrings insert the encoding argument }
         if is_ansistring(dest.resultdef) then
-          newparas:=ccallparanode.create(cordconstnode.create(
-            getparaencoding(dest.resultdef),u16inttype,true,compiler),newparas,compiler);
+          newparas:=compiler.ccallparanode(cordconstnode.create(
+            getparaencoding(dest.resultdef),u16inttype,true,compiler),newparas);
 
         { free the errornode we generated in the beginning }
         result.free;
@@ -662,17 +661,17 @@ implementation
         { iso mode extension with name? }
         if inlinenumber in [in_reset_typedfile_name,in_rewrite_typedfile_name] then
           begin
-            left := ccallparanode.create(cordconstnode.create(
-              tfiledef(tcallparanode(tcallparanode(left).nextpara).paravalue.resultdef).typedfiledef.size,s32inttype,true,compiler),left,compiler);
+            left := compiler.ccallparanode(cordconstnode.create(
+              tfiledef(tcallparanode(tcallparanode(left).nextpara).paravalue.resultdef).typedfiledef.size,s32inttype,true,compiler),left);
           end
         else
           begin
             { note: for some reason, the parameter of intern procedures with only one }
             {   parameter is gets lifted out of its original tcallparanode (see round }
             {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
-            left := ccallparanode.create(cordconstnode.create(
+            left := compiler.ccallparanode(cordconstnode.create(
               tfiledef(left.resultdef).typedfiledef.size,s32inttype,true,compiler),
-              ccallparanode.create(left,nil,compiler),compiler);
+              compiler.ccallparanode(left,nil));
           end;
         { create the correct call }
         if m_isolike_io in current_settings.modeswitches then
@@ -1050,11 +1049,11 @@ implementation
                       if not assigned(lenpara) then
                         begin
                           if m_isolike_io in current_settings.modeswitches then
-                            lenpara := ccallparanode.create(
-                              cordconstnode.create(-1,s32inttype,false,compiler),nil,compiler)
+                            lenpara := compiler.ccallparanode(
+                              cordconstnode.create(-1,s32inttype,false,compiler),nil)
                           else
-                            lenpara := ccallparanode.create(
-                              cordconstnode.create(0,s32inttype,false,compiler),nil,compiler);
+                            lenpara := compiler.ccallparanode(
+                              cordconstnode.create(0,s32inttype,false,compiler),nil);
                         end
                       else
                         { make sure we don't pass the successive }
@@ -1066,21 +1065,21 @@ implementation
                   else
                     begin
                       if not assigned(lenpara) then
-                        lenpara := ccallparanode.create(
-                          cordconstnode.create(int64(-32767),s32inttype,false,compiler),nil,compiler);
+                        lenpara := compiler.ccallparanode(
+                          cordconstnode.create(int64(-32767),s32inttype,false,compiler),nil);
                       { also create a default fracpara if necessary }
                       if not assigned(fracpara) then
-                        fracpara := ccallparanode.create(
-                          cordconstnode.create(int64(-1),s32inttype,false,compiler),nil,compiler);
+                        fracpara := compiler.ccallparanode(
+                          cordconstnode.create(int64(-1),s32inttype,false,compiler),nil);
                       { add it to the lenpara }
                       lenpara.right := fracpara;
                       if not is_currency(para.left.resultdef) then
                         begin
                           { and add the realtype para (this also removes the link }
                           { to any parameters coming after it)                    }
-                          fracpara.right := ccallparanode.create(
+                          fracpara.right := compiler.ccallparanode(
                               cordconstnode.create(ord(tfloatdef(para.left.resultdef).floattype),
-                              s32inttype,true,compiler),nil,compiler);
+                              s32inttype,true,compiler),nil);
                         end
                       else
                         fracpara.right:=nil;
@@ -1089,17 +1088,17 @@ implementation
                     begin
                       {To write(ln) an enum we need a some extra parameters.}
                       {Insert a reference to the ord2string index.}
-                      indexpara:=Ccallparanode.create(
+                      indexpara:=compiler.ccallparanode(
                         Caddrnode.create_internal(
                           Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_normal,compiler),compiler
                         ),
-                        nil,compiler);
+                        nil);
                       {Insert a reference to the typinfo.}
-                      indexpara:=Ccallparanode.create(
+                      indexpara:=compiler.ccallparanode(
                         Caddrnode.create_internal(
                          Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_ord2str,compiler),compiler
                         ),
-                        indexpara,compiler);
+                        indexpara);
                       {Insert a type conversion to to convert the enum to longint.}
                       para.left:=Ctypeconvnode.create_internal(para.left,s32inttype,compiler);
                       typecheckpass(para.left);
@@ -1111,9 +1110,9 @@ implementation
                   if para.left.resultdef.typ=enumdef then
                     begin
                       {Insert a reference to the string2ord index.}
-                      indexpara:=Ccallparanode.create(Caddrnode.create_internal(
+                      indexpara:=compiler.ccallparanode(Caddrnode.create_internal(
                         Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_str2ord,compiler),compiler
-                      ),nil,compiler);
+                      ),nil);
                       {Insert a type conversion to to convert the enum to longint.}
                       para.left:=Ctypeconvnode.create_internal(para.left,readfunctype,compiler);
                       typecheckpass(para.left);
@@ -1138,8 +1137,8 @@ implementation
                   addstatement(Tstatementnode(newstatement),temp);
 
                   { ... and the file }
-                  p1 := ccallparanode.create(compiler.ctemprefnode(temp),
-                    filepara.getcopy,compiler);
+                  p1 := compiler.ccallparanode(compiler.ctemprefnode(temp),
+                    filepara.getcopy);
                   Tcallparanode(Tcallparanode(p1).right).right:=indexpara;
 
                   { create the call to the helper }
@@ -1186,13 +1185,13 @@ implementation
                     end;
                   { in case of writing a chararray, add whether it's zero-based }
                   if para.left.resultdef.typ=arraydef then
-                    para := ccallparanode.create(cordconstnode.create(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool1type,false,compiler),para,compiler)
+                    para := compiler.ccallparanode(cordconstnode.create(
+                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool1type,false,compiler),para)
                   else
                   { in case of reading an ansistring pass a codepage argument }
                   if do_read and is_ansistring(para.left.resultdef) then
-                    para:=ccallparanode.create(cordconstnode.create(
-                      getparaencoding(para.left.resultdef),u16inttype,true,compiler),para,compiler);
+                    para:=compiler.ccallparanode(cordconstnode.create(
+                      getparaencoding(para.left.resultdef),u16inttype,true,compiler),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     compiler.ccallnode_intern(name,para));
@@ -1269,8 +1268,8 @@ implementation
       temp:=nil;
       { add the typesize to the filepara }
       if filepara.resultdef.typ=filedef then
-        filepara.right := ccallparanode.create(cordconstnode.create(
-          tfiledef(filepara.resultdef).typedfiledef.size,s32inttype,true,compiler),nil,compiler);
+        filepara.right := compiler.ccallparanode(cordconstnode.create(
+          tfiledef(filepara.resultdef).typedfiledef.size,s32inttype,true,compiler),nil);
 
       { check for "no parameters" (you need at least one extra para for typed files) }
       if not assigned(para) then
@@ -1477,17 +1476,17 @@ implementation
             { remove the source/destination string parameter from the }
             { parameter chain                                         }
             left:=filepara.right;
-            filepara.right:=ccallparanode.create(compiler.ctemprefnode(filetemp),nil,compiler);
+            filepara.right:=compiler.ccallparanode(compiler.ctemprefnode(filetemp),nil);
             { in case of a writestr() to an ansistring, also pass the string's
               code page }
             if not do_read and
                is_ansistring(filepara.left.resultdef) then
-              filepara:=ccallparanode.create(genintconstnode(tstringdef(filepara.left.resultdef).encoding,compiler),filepara,compiler);
+              filepara:=compiler.ccallparanode(genintconstnode(tstringdef(filepara.left.resultdef).encoding,compiler),filepara);
             { pass the temp text file and the source/destination string to the
               setup routine, which will store the string's address in the
               textrec }
             addstatement(newstatement,compiler.ccallnode_intern(name,filepara));
-            filepara:=ccallparanode.create(compiler.ctemprefnode(filetemp),nil,compiler);
+            filepara:=compiler.ccallparanode(compiler.ctemprefnode(filetemp),nil);
           end
         { if we don't have a filepara, create one containing the default }
         else if not assigned(filepara) then
@@ -1517,8 +1516,8 @@ implementation
             { (so that we pass the value and not the address of the temp }
             { to the read/write routine)                                 }
             textsym:=search_system_type('TEXT');
-            filepara := ccallparanode.create(ctypeconvnode.create_internal(
-              cderefnode.create(compiler.ctemprefnode(filetemp),compiler),textsym.typedef,compiler),nil,compiler);
+            filepara := compiler.ccallparanode(ctypeconvnode.create_internal(
+              cderefnode.create(compiler.ctemprefnode(filetemp),compiler),textsym.typedef,compiler),nil);
           end
         else
           { remove filepara from the parameter chain }
@@ -1552,8 +1551,8 @@ implementation
                 { create a new fileparameter as follows: file_type(temp^)    }
                 { (so that we pass the value and not the address of the temp }
                 { to the read/write routine)                                 }
-                nextpara := ccallparanode.create(ctypeconvnode.create_internal(
-                  cderefnode.create(compiler.ctemprefnode(filetemp),compiler),filepara.left.resultdef,compiler),nil,compiler);
+                nextpara := compiler.ccallparanode(ctypeconvnode.create_internal(
+                  cderefnode.create(compiler.ctemprefnode(filetemp),compiler),filepara.left.resultdef,compiler),nil);
 
                 { replace the old file para with the new one }
                 filepara.left := nil;
@@ -1744,7 +1743,7 @@ implementation
                 codepara.left := compiler.ctemprefnode(tempcode);
               end
             else
-              codepara := ccallparanode.create(compiler.ctemprefnode(tempcode),nil,compiler);
+              codepara := compiler.ccallparanode(compiler.ctemprefnode(tempcode),nil);
             { we need its resultdef later on }
             codepara.get_paratype;
           end
@@ -1775,8 +1774,8 @@ implementation
                     suffix := get_val_int_func(destpara.resultdef) + '_';
                     { we also need a destsize para in the case of sint or uint }
                     if (suffix = 'sint_') or (suffix = 'uint_') then
-                      sizepara := ccallparanode.create(cordconstnode.create
-                        (destpara.resultdef.size,s32inttype,true,compiler),nil,compiler);
+                      sizepara := compiler.ccallparanode(cordconstnode.create
+                        (destpara.resultdef.size,s32inttype,true,compiler),nil);
                   end;
                 scurrency: suffix := 'currency_';
                 else
@@ -1788,9 +1787,9 @@ implementation
           enumdef:
             begin
               suffix:='enum_';
-              sizepara:=Ccallparanode.create(Caddrnode.create_internal(
+              sizepara:=compiler.ccallparanode(Caddrnode.create_internal(
                 Crttinode.create(Tenumdef(destpara.resultdef),fullrtti,rdt_str2ord,compiler),compiler
-              ),nil,compiler);
+              ),nil);
             end;
           else
             internalerror(2019050515);
@@ -3554,7 +3553,7 @@ implementation
                       begin
                         if is_pchar(left.resultdef) then
                          begin
-                            hp := ccallparanode.create(left,nil,compiler);
+                            hp := compiler.ccallparanode(left,nil);
                             result := compiler.ccallnode_intern('fpc_pchar_length',hp);
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
@@ -3563,7 +3562,7 @@ implementation
                          end
                         else if is_pwidechar(left.resultdef) then
                          begin
-                            hp := ccallparanode.create(left,nil,compiler);
+                            hp := compiler.ccallparanode(left,nil);
                             result := compiler.ccallnode_intern('fpc_pwidechar_length',hp);
                             { make sure the left node doesn't get disposed, since it's }
                             { reused in the new node (JM)                              }
@@ -3875,8 +3874,8 @@ implementation
                     message(parser_e_feature_unsupported_for_vm);
                   resultdef:=voidtype;
                   { now we know the type of buffer }
-                  hp:=ccallparanode.create(cordconstnode.create(
-                     tcallparanode(left).left.resultdef.size,s32inttype,true,compiler),left,compiler);
+                  hp:=compiler.ccallparanode(cordconstnode.create(
+                     tcallparanode(left).left.resultdef.size,s32inttype,true,compiler),left);
                   result:=compiler.ccallnode_intern('SETTEXTBUF',hp);
                   left:=nil;
                 end;
@@ -4825,7 +4824,7 @@ implementation
         else
           temp_pnode := @left;
         result := compiler.ccallnode_intern('fpc_arctan_real',
-                ccallparanode.create(temp_pnode^,nil,compiler));
+                compiler.ccallparanode(temp_pnode^,nil));
         temp_pnode^ := nil;
       end;
 
@@ -4841,7 +4840,7 @@ implementation
         else
           temp_pnode := @left;
         callnode:=compiler.ccallnode_intern('fpc_abs_real',
-                    ccallparanode.create(temp_pnode^,nil,compiler));
+                    compiler.ccallparanode(temp_pnode^,nil));
         result := ctypeconvnode.create(callnode,resultdef,compiler);
         include(callnode.callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
@@ -4864,7 +4863,7 @@ implementation
         else
           temp_pnode := @left;
         callnode:=compiler.ccallnode_intern('fpc_sqr_real',
-                    ccallparanode.create(temp_pnode^,nil,compiler));
+                    compiler.ccallparanode(temp_pnode^,nil));
         result := ctypeconvnode.create(callnode,resultdef,compiler);
         include(callnode.callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
@@ -4904,15 +4903,15 @@ implementation
             else
               internalerror(2014052101);
             end;
-            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,ccallparanode.create(
-               ctypeconvnode.create_internal(temp_pnode^,fdef,compiler),nil,compiler)),resultdef,compiler);
+            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,compiler.ccallparanode(
+               ctypeconvnode.create_internal(temp_pnode^,fdef,compiler),nil)),resultdef,compiler);
           end
         else
           begin
             { create the call to the helper }
             { on entry left node contains the parameter }
             callnode := compiler.ccallnode_intern('fpc_sqrt_real',
-                ccallparanode.create(temp_pnode^,nil,compiler));
+                compiler.ccallparanode(temp_pnode^,nil));
             result := ctypeconvnode.create(callnode,resultdef,compiler);
             include(callnode.callnodeflags,cnf_check_fpu_exceptions);
           end;
@@ -4930,7 +4929,7 @@ implementation
         else
           temp_pnode := @left;
         result := compiler.ccallnode_intern('fpc_ln_real',
-                ccallparanode.create(temp_pnode^,nil,compiler));
+                compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -4946,7 +4945,7 @@ implementation
         else
           temp_pnode := @left;
         result := compiler.ccallnode_intern('fpc_cos_real',
-                ccallparanode.create(temp_pnode^,nil,compiler));
+                compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -4962,7 +4961,7 @@ implementation
         else
           temp_pnode := @left;
         result := compiler.ccallnode_intern('fpc_sin_real',
-                ccallparanode.create(temp_pnode^,nil,compiler));
+                compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -4977,7 +4976,7 @@ implementation
           temp_pnode := @tcallparanode(left).left
         else
           temp_pnode := @left;
-        result := compiler.ccallnode_intern('fpc_exp_real',ccallparanode.create(temp_pnode^,nil,compiler));
+        result := compiler.ccallnode_intern('fpc_exp_real',compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -4992,7 +4991,7 @@ implementation
           temp_pnode := @tcallparanode(left).left
         else
           temp_pnode := @left;
-        result := compiler.ccallnode_intern('fpc_int_real',ccallparanode.create(temp_pnode^,nil,compiler));
+        result := compiler.ccallnode_intern('fpc_int_real',compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -5007,7 +5006,7 @@ implementation
           temp_pnode := @tcallparanode(left).left
         else
           temp_pnode := @left;
-        result := compiler.ccallnode_intern('fpc_frac_real',ccallparanode.create(temp_pnode^,nil,compiler));
+        result := compiler.ccallnode_intern('fpc_frac_real',compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -5022,7 +5021,7 @@ implementation
           temp_pnode := @tcallparanode(left).left
         else
           temp_pnode := @left;
-        result := compiler.ccallnode_intern('fpc_round_real',ccallparanode.create(temp_pnode^,nil,compiler));
+        result := compiler.ccallnode_intern('fpc_round_real',compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -5037,7 +5036,7 @@ implementation
           temp_pnode := @tcallparanode(left).left
         else
           temp_pnode := @left;
-        result := compiler.ccallnode_intern('fpc_trunc_real',ccallparanode.create(temp_pnode^,nil,compiler));
+        result := compiler.ccallnode_intern('fpc_trunc_real',compiler.ccallparanode(temp_pnode^,nil));
         include(tcallnode(result).callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -5247,11 +5246,11 @@ implementation
            if (dims=1) and is_constintvalue(tcallparanode(paras).left, 0) then
              begin
                ppn.left:=nil; { unlink destppn }
-               result:=ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype,compiler),nil,compiler);
+               result:=compiler.ccallparanode(ctypeconvnode.create_internal(destppn,voidpointertype,compiler),nil);
                result:=compiler.ccallnode_intern('fpc_dynarray_clear',
-                 ccallparanode.create(caddrnode.create_internal(
+                 compiler.ccallparanode(caddrnode.create_internal(
                    crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal,compiler),compiler),
-                 result,compiler));
+                 result));
                exit;
              end;
            { create statements with call initialize the arguments and
@@ -5283,17 +5282,17 @@ implementation
            ppn.left:=nil;
 
            { create call to fpc_dynarr_setlength }
-           npara:=ccallparanode.create(caddrnode.create_internal(
+           npara:=compiler.ccallparanode(caddrnode.create_internal(
                      cvecnode.create(
                        compiler.ctemprefnode(temp),
                        genintconstnode(0,compiler),
                        compiler
                      ),compiler),
-                  ccallparanode.create(cordconstnode.create
+                  compiler.ccallparanode(cordconstnode.create
                      (dims,sinttype,true,compiler),
-                  ccallparanode.create(caddrnode.create_internal
+                  compiler.ccallparanode(caddrnode.create_internal
                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal,compiler),compiler),
-                  ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype,compiler),nil,compiler),compiler),compiler),compiler);
+                  compiler.ccallparanode(ctypeconvnode.create_internal(destppn,voidpointertype,compiler),nil))));
            addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',npara));
            addstatement(newstatement,compiler.ctempdeletenode(temp));
          end
@@ -5301,10 +5300,9 @@ implementation
          begin
             newblock:=compiler.ccallnode_intern(
               'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',
-              ccallparanode.create(
+              compiler.ccallparanode(
                 cordconstnode.create(getparaencoding(destppn.resultdef),u16inttype,true,compiler),
-                paras,
-                compiler
+                paras
               )
             );
             { we reused the parameters, make sure we don't release them }
@@ -5351,7 +5349,7 @@ implementation
         { fill up third parameter }
         if counter=2 then
           begin
-            paras:=ccallparanode.create(cordconstnode.create(torddef(sinttype).high,sinttype,false,compiler),paras,compiler);
+            paras:=compiler.ccallparanode(cordconstnode.create(torddef(sinttype).high,sinttype,false,compiler),paras);
             counter:=3;
           end;
 
@@ -5412,13 +5410,13 @@ implementation
             rttippn:=caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler);
 
             { create call to fpc_array_to_dynarray_copy }
-            npara:=ccallparanode.create(eletypeppn,
-                   ccallparanode.create(elesizeppn,
-                   ccallparanode.create(maxcountppn,
-                   ccallparanode.create(countppn,
-                   ccallparanode.create(lowppn,
-                   ccallparanode.create(rttippn,
-                   ccallparanode.create(arrayppn,nil,compiler),compiler),compiler),compiler),compiler),compiler),compiler);
+            npara:=compiler.ccallparanode(eletypeppn,
+                   compiler.ccallparanode(elesizeppn,
+                   compiler.ccallparanode(maxcountppn,
+                   compiler.ccallparanode(countppn,
+                   compiler.ccallparanode(lowppn,
+                   compiler.ccallparanode(rttippn,
+                   compiler.ccallparanode(arrayppn,nil)))))));
             result:=compiler.ccallnode_internres('fpc_array_to_dynarray_copy',npara,resultdef);
 
             ppn.left:=nil;
@@ -5447,8 +5445,8 @@ implementation
          addstatement(newstatement,temp);
 
          { create call to fpc_getmem }
-         para := ccallparanode.create(cordconstnode.create
-             (tpointerdef(left.resultdef).pointeddef.size,s32inttype,true,compiler),nil,compiler);
+         para := compiler.ccallparanode(cordconstnode.create
+             (tpointerdef(left.resultdef).pointeddef.size,s32inttype,true,compiler),nil);
          addstatement(newstatement,cassignmentnode.create(
              compiler.ctemprefnode(temp),
              compiler.ccallnode_intern('fpc_getmem',para),compiler));
@@ -5456,10 +5454,10 @@ implementation
          { create call to fpc_initialize }
          if is_managed_type(tpointerdef(left.resultdef).pointeddef) then
           begin
-            para := ccallparanode.create(caddrnode.create_internal(crttinode.create
+            para := compiler.ccallparanode(caddrnode.create_internal(crttinode.create
                        (tstoreddef(tpointerdef(left.resultdef).pointeddef),initrtti,rdt_normal,compiler),compiler),
-                    ccallparanode.create(compiler.ctemprefnode
-                       (temp),nil,compiler),compiler);
+                    compiler.ccallparanode(compiler.ctemprefnode
+                       (temp),nil));
             addstatement(newstatement,compiler.ccallnode_intern('fpc_initialize',para));
           end;
 
@@ -5509,12 +5507,12 @@ implementation
          paras: tcallparanode;
        begin
          paras:=tcallparanode(tcallparanode(left).right);
-         paras:=ccallparanode.create(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex),compiler),paras,compiler);
-         paras:=ccallparanode.create(genintconstnode(fileinfo.line,compiler),paras,compiler);
+         paras:=compiler.ccallparanode(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex),compiler),paras);
+         paras:=compiler.ccallparanode(genintconstnode(fileinfo.line,compiler),paras);
 {$ifdef SUPPORT_GET_FRAME}
-         paras:=ccallparanode.create(geninlinenode(in_get_frame,false,nil,compiler),paras,compiler);
+         paras:=compiler.ccallparanode(geninlinenode(in_get_frame,false,nil,compiler),paras);
 {$else}
-         paras:=ccallparanode.create(compiler.ccallnode_internfromunit('SYSTEM','GET_FRAME',nil),paras);
+         paras:=compiler.ccallparanode(compiler.ccallnode_internfromunit('SYSTEM','GET_FRAME',nil),paras);
 {$endif}
          result:=cifnode.create(cnotnode.create(tcallparanode(left).left,compiler),
             compiler.ccallnode_intern('fpc_assert',paras),nil,compiler);
@@ -5536,7 +5534,7 @@ implementation
          else
            internalerror(2012082601);
          end;
-         result:=compiler.ccallnode_intern('fpc_popcnt_'+suffix,ccallparanode.create(left,nil,compiler));
+         result:=compiler.ccallnode_intern('fpc_popcnt_'+suffix,compiler.ccallparanode(left,nil));
          left:=nil;
        end;
 
@@ -5571,8 +5569,8 @@ implementation
          if is_64bitint(resultdef) then
            begin
              if (inlinenumber=in_sar_x) then
-               left:=ccallparanode.create(cordconstnode.create(1,u8inttype,false),
-                 ccallparanode.create(left,nil));
+               left:=compiler.ccallparanode(cordconstnode.create(1,u8inttype,false),
+                 compiler.ccallparanode(left,nil));
              result:=compiler.ccallnode_intern('fpc_sarint64',left);
              left:=nil;
            end;
@@ -5715,11 +5713,11 @@ implementation
                end;
              procname:='fpc_dynarray_insert';
              { recreate the parameters as array pointer, source, data, count, typeinfo }
-             newn:=ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(second),initrtti,rdt_normal,compiler),compiler),
-                     ccallparanode.create(datacountn,
-                       ccallparanode.create(datan,
-                         ccallparanode.create(tcallparanode(left).left,
-                           ccallparanode.create(ctypeconvnode.create_internal(secondn,voidpointertype,compiler),nil,compiler),compiler),compiler),compiler),compiler);
+             newn:=compiler.ccallparanode(caddrnode.create_internal(crttinode.create(tstoreddef(second),initrtti,rdt_normal,compiler),compiler),
+                     compiler.ccallparanode(datacountn,
+                       compiler.ccallparanode(datan,
+                         compiler.ccallparanode(tcallparanode(left).left,
+                           compiler.ccallparanode(ctypeconvnode.create_internal(secondn,voidpointertype,compiler),nil)))));
              addstatement(insertstatement,compiler.ccallnode_intern(procname,newn));
              if assigned(datatemp) then
                addstatement(insertstatement,compiler.ctempdeletenode(datatemp));
@@ -5785,11 +5783,11 @@ implementation
            begin
              procname:='fpc_dynarray_delete';
              { recreate the parameters as array pointer, src, count, typeinfo }
-             newn:=ccallparanode.create(caddrnode.create_internal
+             newn:=compiler.ccallparanode(caddrnode.create_internal
                   (crttinode.create(tstoreddef(first),initrtti,rdt_normal,compiler),compiler),
-                    ccallparanode.create(tcallparanode(left).left,
-                      ccallparanode.create(tcallparanode(tcallparanode(left).right).left,
-                        ccallparanode.create(ctypeconvnode.create_internal(firstn,voidpointertype,compiler),nil,compiler),compiler),compiler),compiler);
+                    compiler.ccallparanode(tcallparanode(left).left,
+                      compiler.ccallparanode(tcallparanode(tcallparanode(left).right).left,
+                        compiler.ccallparanode(ctypeconvnode.create_internal(firstn,voidpointertype,compiler),nil))));
              tcallparanode(tcallparanode(tcallparanode(left).right).right).left:=nil;
              tcallparanode(tcallparanode(left).right).left:=nil;
              tcallparanode(left).left:=nil;
@@ -5941,14 +5939,14 @@ implementation
                     is_managed_type(arrn.resultdef) then
                    addstatement(newstatement,cinlinenode.create(in_setlength_x,
                      false,
-                     ccallparanode.create(genintconstnode(0,compiler),
-                       ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
+                     compiler.ccallparanode(genintconstnode(0,compiler),
+                       compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
 
-                 cpn:=ccallparanode.create(
+                 cpn:=compiler.ccallparanode(
                          arrconstr,
-                         ccallparanode.create(
+                         compiler.ccallparanode(
                            caddrnode.create_internal(crttinode.create(tstoreddef(arrn.resultdef),initrtti,rdt_normal,compiler),compiler),
-                             ccallparanode.create(ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidpointertype,compiler),nil,compiler),compiler),compiler
+                             compiler.ccallparanode(ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidpointertype,compiler),nil))
                        );
                  addstatement(
                    newstatement,
@@ -6157,8 +6155,8 @@ implementation
            else
              internalerror(2017041301);
          end;
-         result := compiler.ccallnode_intern(procname,ccallparanode.create(tcallparanode(left).left,
-           ccallparanode.create(tcallparanode(tcallparanode(left).right).left,nil)));
+         result := compiler.ccallnode_intern(procname,compiler.ccallparanode(tcallparanode(left).left,
+           compiler.ccallparanode(tcallparanode(tcallparanode(left).right).left,nil)));
          tcallparanode(tcallparanode(left).right).left := nil;
          tcallparanode(left).left := nil;
          firstpass(result);

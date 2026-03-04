@@ -177,7 +177,7 @@ end;
             else
               begin
                 { otherwise we need the superclass of the metaclass }
-                para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^,compiler),nil,compiler);
+                para:=compiler.ccallparanode(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^,compiler),nil);
                 result:=compiler.ccallnode_internfromunit('OBJC','OBJC_GETMETACLASS',para);
               end
           end

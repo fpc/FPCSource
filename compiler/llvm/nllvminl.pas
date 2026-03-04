@@ -92,7 +92,7 @@ implementation
      function tllvminlinenode.first_get_frame: tnode;
        begin
          result:=compiler.ccallnode_intern('llvm_frameaddress',
-           ccallparanode.create(genintconstnode(0),nil));
+           compiler.ccallparanode(genintconstnode(0),nil));
        end;
 
     { in general, generate regular expression rather than intrinsics: according
@@ -180,8 +180,8 @@ implementation
         cntresult:=
           compiler.ccallnode_intern(
             procname,
-            ccallparanode.create(cordconstnode.create(1,llvmbool1type,false),
-              ccallparanode.create(
+            compiler.ccallparanode(cordconstnode.create(1,llvmbool1type,false),
+              compiler.ccallparanode(
                 ctypeconvnode.create_explicit(left,get_unsigned_inttype(leftdef)),nil
               )
             )
@@ -252,8 +252,8 @@ implementation
             end;
             exceptmode:=llvm_constrainedexceptmodestring;
             result:=compiler.ccallnode_intern(procname,
-              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
-                ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
+              compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
+                compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
                   left
                 )
               )
@@ -294,7 +294,7 @@ implementation
               else
                 internalerror(2018121602);
             end;
-            result:=compiler.ccallnode_intern(intrinsic, ccallparanode.create(left,nil));
+            result:=compiler.ccallnode_intern(intrinsic, compiler.ccallparanode(left,nil));
           end
         else
           begin
@@ -309,9 +309,9 @@ implementation
             end;
             exceptmode:=llvm_constrainedexceptmodestring;
             result:=compiler.ccallnode_intern(intrinsic,
-              ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
-                ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
-                  ccallparanode.create(left,nil)
+              compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
+                compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
+                  compiler.ccallparanode(left,nil)
                 )
               )
             );
@@ -336,7 +336,7 @@ implementation
 
     function tllvminlinenode.first_popcnt: tnode;
       begin
-        result:=ctypeconvnode.create(compiler.ccallnode_intern('LLVM_CTPOP', ccallparanode.create(left,nil)),resultdef);
+        result:=ctypeconvnode.create(compiler.ccallnode_intern('LLVM_CTPOP', compiler.ccallparanode(left,nil)),resultdef);
         left:=nil;
       end;
 

@@ -290,7 +290,7 @@ implementation
                    pointer }
                  if target_info.system in systems_objc_nfabi then
                    begin
-                     result:=compiler.ccallnode_internfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil,compiler));
+                     result:=compiler.ccallnode_internfromunit('OBJC','OBJECT_GETCLASS',compiler.ccallparanode(left,nil));
                      inserttypeconv_explicit(result,resultdef,compiler);
                    end
                  else
@@ -1407,8 +1407,8 @@ implementation
             (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
            begin
              left := ctypeconvnode.create_internal(compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
-               ccallparanode.create(
-                 ctypeconvnode.create_internal(left,voidpointertype,compiler),nil,compiler)),
+               compiler.ccallparanode(
+                 ctypeconvnode.create_internal(left,voidpointertype,compiler),nil)),
                left.resultdef,compiler);
              firstpass(left);
              { double resultdef passes somewhere else may cause this to be }

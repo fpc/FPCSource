@@ -635,10 +635,10 @@ implementation
 
             addstatement(statements,compiler.ccallnode_intern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
-              ccallparanode.create(caddrnode.create(compiler.ctemprefnode(params),compiler),
-              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
-              ccallparanode.create(ctypeconvnode.create_internal(selfpara,vardatadef,compiler),
-              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil,compiler),compiler),compiler),compiler))
+              compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
+              compiler.ccallparanode(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
+              compiler.ccallparanode(ctypeconvnode.create_internal(selfpara,vardatadef,compiler),
+              compiler.ccallparanode(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil)))))
             );
             if assigned(selftemp) then
               addstatement(statements,compiler.ctempdeletenode(selftemp));
@@ -647,10 +647,10 @@ implementation
           begin
             addstatement(statements,compiler.ccallnode_intern('fpc_dispatch_by_id',
               { parameters are passed always reverted, i.e. the last comes first }
-              ccallparanode.create(caddrnode.create(compiler.ctemprefnode(params),compiler),
-              ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
-              ccallparanode.create(ctypeconvnode.create_internal(selfnode,voidpointertype,compiler),
-              ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil,compiler),compiler),compiler),compiler))
+              compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
+              compiler.ccallparanode(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
+              compiler.ccallparanode(ctypeconvnode.create_internal(selfnode,voidpointertype,compiler),
+              compiler.ccallparanode(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil)))))
             );
           end;
         addstatement(statements,compiler.ctempdeletenode(params));
@@ -728,13 +728,13 @@ implementation
                 { passing a (part of, in case of slice) dynamic array as an
                   open array -> finalize the dynamic array contents, not the
                   dynamic array itself }
-                npara:=ccallparanode.create(
+                npara:=compiler.ccallparanode(
                          { array length = high + 1 }
                          compiler.caddnode(addn,third.getcopy,genintconstnode(1,compiler)),
-                       ccallparanode.create(caddrnode.create_internal
+                       compiler.ccallparanode(caddrnode.create_internal
                           (crttinode.create(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal,compiler),compiler),
-                       ccallparanode.create(caddrnode.create_internal(
-                          cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),nil,compiler),compiler),compiler);
+                       compiler.ccallparanode(caddrnode.create_internal(
+                          cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),nil)));
                 callnode.add_init_statement(
                   compiler.ccallnode_intern('fpc_finalize_array',npara));
               end;
@@ -833,8 +833,8 @@ implementation
                    cassignmentnode.create(
                      compiler.ctemprefnode(paratemp),
                      compiler.ccallnode_intern('fpc_getmem',
-                       ccallparanode.create(
-                         arraysize.getcopy,nil,compiler
+                       compiler.ccallparanode(
+                         arraysize.getcopy,nil
                        )
                      ),
                      compiler
@@ -850,16 +850,14 @@ implementation
                        genintconstnode(0,compiler)
                      ),
                      compiler.ccallnode_intern('MOVE',
-                       ccallparanode.create(
+                       compiler.ccallparanode(
                          arraysize,
-                         ccallparanode.create(
+                         compiler.ccallparanode(
                            cderefnode.create(compiler.ctemprefnode(paratemp),compiler),
-                           ccallparanode.create(
-                             arraybegin,nil,compiler
-                           ),
-                           compiler
-                         ),
-                         compiler
+                           compiler.ccallparanode(
+                             arraybegin,nil
+                           )
+                         )
                        )
                      ),
                      nil,
@@ -875,8 +873,8 @@ implementation
                  { free the memory again after the call: freemem(paratemp) }
                  addstatement(finistat,
                    compiler.ccallnode_intern('fpc_freemem',
-                     ccallparanode.create(
-                       compiler.ctemprefnode(paratemp),nil,compiler
+                     compiler.ccallparanode(
+                       compiler.ctemprefnode(paratemp),nil
                      )
                    )
                  );
@@ -911,17 +909,15 @@ implementation
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
                   compiler.ccallnode_intern('fpc_variant_copy_overwrite',
-                    ccallparanode.create(
+                    compiler.ccallparanode(
                       ctypeconvnode.create_explicit(compiler.ctemprefnode(paratemp),
                           vardatatype,
                           compiler
                         ),
-                      ccallparanode.create(ctypeconvnode.create_explicit(left,
+                      compiler.ccallparanode(ctypeconvnode.create_explicit(left,
                         vardatatype,compiler),
-                        nil,
-                        compiler
-                      ),
-                      compiler
+                        nil
+                      )
                     )
                   )
                 );
@@ -1384,7 +1380,7 @@ implementation
                            else if (target_info.system in systems_managed_vm) and
                               (left.resultdef.typ in [orddef,floatdef]) then
                              begin
-                               left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil,compiler),compiler);
+                               left:=cinlinenode.create(in_box_x,false,compiler.ccallparanode(left,nil),compiler);
                                typecheckpass(left);
                              end;
                          end;
@@ -3851,7 +3847,7 @@ implementation
             { update owning callnode of all callparanodes }
             while assigned(hp) do
               begin
-                left:=ccallparanode.create(hp.left,left,compiler);
+                left:=compiler.ccallparanode(hp.left,left);
                 tcallparanode(left).callnode:=self;
                 { set callparanode resultdef and flags }
                 left.resultdef:=hp.left.resultdef;
@@ -3980,7 +3976,7 @@ implementation
               else
                 hiddentree:=compiler.cnothingnode;
                 
-              pt:=ccallparanode.create(hiddentree,oldppt^,compiler);
+              pt:=compiler.ccallparanode(hiddentree,oldppt^);
               { set correct callnode }
               pt.callnode:=self;              
               oldppt^:=pt;
@@ -4371,8 +4367,8 @@ implementation
              begin
                if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                 internalerror(200212142);
-               left:=ccallparanode.create(genconstsymtree(
-                   tconstsym(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)),left,compiler);
+               left:=compiler.ccallparanode(genconstsymtree(
+                   tconstsym(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)),left);
                { set correct callnode }
                tcallparanode(left).callnode:=self;
                { Ignore vs_hidden parameters }

@@ -224,10 +224,10 @@ type
                             { insert incr/decrementation of counter var }
                             if lnf_backward in tfornode(node).loopflags then
                               addstatement(unrollstatement,
-                                geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil,compiler),compiler))
+                                geninlinenode(in_dec_x,false,compiler.ccallparanode(tfornode(node).left.getcopy,nil),compiler))
                             else
                               addstatement(unrollstatement,
-                                geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil,compiler),compiler));
+                                geninlinenode(in_inc_x,false,compiler.ccallparanode(tfornode(node).left.getcopy,nil),compiler));
                           end;
                        end;
                   end;
@@ -437,11 +437,11 @@ type
                       if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           geninlinenode(in_dec_x,false,
-                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler))
+                          compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(taddnode(n).right.getcopy,nil)),compiler))
                       else
                         addstatement(calccodestatements,
                           geninlinenode(in_inc_x,false,
-                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler));
+                          compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(taddnode(n).right.getcopy,nil)),compiler));
 
                       addstatement(initcodestatements,tempnode);
                       nn:=currforloop.right.getcopy;
@@ -515,13 +515,13 @@ type
                       if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_dec_x,false,
-                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil,compiler),compiler),compiler))
+                          compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil)),compiler))
                       else
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_inc_x,false,
-                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil,compiler),compiler),compiler));
+                          compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil)),compiler));
 
                       addstatement(initcodestatements,tempnode);
 

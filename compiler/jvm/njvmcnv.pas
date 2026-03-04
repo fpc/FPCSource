@@ -190,7 +190,7 @@ implementation
        restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
        addstatement(newstat,restemp);
        addstatement(newstat,compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+
-         '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
+         '_to_'+chartype+'array',compiler.ccallparanode(left,compiler.ccallparanode(
          compiler.ctemprefnode(restemp),nil))));
        addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
        addstatement(newstat,compiler.ctemprefnode(restemp));
@@ -356,10 +356,10 @@ implementation
                   helpername:='fpc_bitset_to_bitset'
                 else
                   helpername:='fpc_enumset_to_bitset';
-                result:=compiler.ccallnode_intern(helpername,ccallparanode.create(
-                  genintconstnode(tsetdef(resultdef).setbase), ccallparanode.create(
+                result:=compiler.ccallnode_intern(helpername,compiler.ccallparanode(
+                  genintconstnode(tsetdef(resultdef).setbase), compiler.ccallparanode(
                     genintconstnode(tsetdef(left.resultdef).setbase),
-                      ccallparanode.create(left,nil))));
+                      compiler.ccallparanode(left,nil))));
               end
             else
               begin
@@ -378,10 +378,10 @@ implementation
                 inserttypeconv_explicit(left,setclassdef);
                 result:=compiler.ccallnode_internmethod(
                   cloadvmtaddrnode.create(ctypenode.create(setclassdef)),
-                  helpername,ccallparanode.create(
-                    genintconstnode(tsetdef(resultdef).setbase), ccallparanode.create(
+                  helpername,compiler.ccallparanode(
+                    genintconstnode(tsetdef(resultdef).setbase), compiler.ccallparanode(
                       genintconstnode(tsetdef(left.resultdef).setbase),
-                        ccallparanode.create(left,nil))));
+                        compiler.ccallparanode(left,nil))));
               end;
             inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
             result:=cderefnode.create(result);
@@ -453,11 +453,11 @@ implementation
         if is_nested_pd(procdef) then
           internalerror(2011072607);
         { constructor FpcBaseProcVarType.create(inst: jlobject; const method: unicodestring; const argTypes: array of JLClass); }
-        constrparas:=ccallparanode.create(ctypeconvnode.create_explicit(procload,java_jlobject),nil);
+        constrparas:=compiler.ccallparanode(ctypeconvnode.create_explicit(procload,java_jlobject),nil);
         if not assigned(procdef.import_name) then
-          constrparas:=ccallparanode.create(cstringconstnode.createstr(procdef.procsym.realname),constrparas)
+          constrparas:=compiler.ccallparanode(cstringconstnode.createstr(procdef.procsym.realname),constrparas)
         else
-          constrparas:=ccallparanode.create(cstringconstnode.createstr(procdef.import_name^),constrparas);
+          constrparas:=compiler.ccallparanode(cstringconstnode.createstr(procdef.import_name^),constrparas);
         procdefparas:=nil;
         jlclass:=tobjectdef(search_system_type('JLCLASS').typedef);
         { in reverse to make it easier to build the arrayconstructorn }
@@ -481,7 +481,7 @@ implementation
                    encodedtype:='['+encodedtype;
                  replace(encodedtype,'/','.');
                  newpara:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(jlclass)),'FORNAME',
-                   ccallparanode.create(cstringconstnode.createstr(encodedtype),nil));
+                   compiler.ccallparanode(cstringconstnode.createstr(encodedtype),nil));
                end
              else
                begin
@@ -503,7 +503,7 @@ implementation
         if not assigned(procdefparas) then
           procdefparas:=carrayconstructornode.create(nil,nil);
         Include(procdefparas.arrayconstructornodeflags, acnf_allow_array_constructor);
-        constrparas:=ccallparanode.create(procdefparas,constrparas);
+        constrparas:=compiler.ccallparanode(procdefparas,constrparas);
         result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }
         if tprocvardef(resultdef).is_addressonly then
@@ -538,7 +538,7 @@ implementation
         { AnsistringClass.internChars is a static class method that will either
           return the internal fdata ansichar array of the string, or an array
           with a single #0 }
-        result:=compiler.ccallnode(ccallparanode.create(left,nil),tprocsym(ps),
+        result:=compiler.ccallnode(compiler.ccallparanode(left,nil),tprocsym(ps),
           ps.owner,
           cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[],nil);
         include(result.flags,nf_isproperty);
@@ -877,7 +877,7 @@ implementation
              (psym.typ<>procsym) then
             internalerror(2011012901);
           { call the (static class) method to get the raw bits }
-          result:=compiler.ccallnode(ccallparanode.create(left,nil),
+          result:=compiler.ccallnode(compiler.ccallparanode(left,nil),
             tprocsym(psym),psym.owner,
             cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[],nil);
           { convert the result to the result type of this type conversion node }
@@ -896,7 +896,7 @@ implementation
           if not assigned(psym) or
              (psym.typ<>procsym) then
             internalerror(2011062601);
-          result:=compiler.ccallnode(ccallparanode.create(left,nil),
+          result:=compiler.ccallnode(compiler.ccallparanode(left,nil),
             tprocsym(psym),psym.owner,
             cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[],nil);
           { convert the result to the result type of this type conversion node }
@@ -941,9 +941,9 @@ implementation
            helpername:=helpername+'int'
          else
            helpername:=helpername+'long';
-          result:=compiler.ccallnode_intern(helpername,ccallparanode.create(
-            genintconstnode(left.resultdef.size),ccallparanode.create(genintconstnode(tsetdef(left.resultdef).setbase),
-            ccallparanode.create(ctypeconvnode.create_explicit(left,setconvdef),nil))));
+          result:=compiler.ccallnode_intern(helpername,compiler.ccallparanode(
+            genintconstnode(left.resultdef.size),compiler.ccallparanode(genintconstnode(tsetdef(left.resultdef).setbase),
+            compiler.ccallparanode(ctypeconvnode.create_explicit(left,setconvdef),nil))));
           left:=nil;
         end;
 
@@ -961,9 +961,9 @@ implementation
               helpername:='fpcLongToEnumSet';
               { enumclass.fpcLongToEnumSet(left,setbase,setsize) }
               result:=compiler.ccallnode_internmethod(mp,helpername,
-                ccallparanode.create(genintconstnode(resultdef.size),
-                  ccallparanode.create(genintconstnode(tsetdef(resultdef).setbase),
-                    ccallparanode.create(left,nil))));
+                compiler.ccallparanode(genintconstnode(resultdef.size),
+                  compiler.ccallparanode(genintconstnode(tsetdef(resultdef).setbase),
+                    compiler.ccallparanode(left,nil))));
             end
           else
             begin
@@ -978,9 +978,9 @@ implementation
                   inserttypeconv_explicit(left,s64inttype);
                 end;
               result:=compiler.ccallnode_intern(helpername,
-                ccallparanode.create(genintconstnode(resultdef.size),
-                  ccallparanode.create(genintconstnode(tsetdef(resultdef).setbase),
-                    ccallparanode.create(left,nil))));
+                compiler.ccallparanode(genintconstnode(resultdef.size),
+                  compiler.ccallparanode(genintconstnode(tsetdef(resultdef).setbase),
+                    compiler.ccallparanode(left,nil))));
             end;
         end;
 
@@ -1006,7 +1006,7 @@ implementation
           { create destination procvartype with info from source }
           result:=compiler.ccallnode_internmethod(
             cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
-            'CREATE',ccallparanode.create(result,nil));
+            'CREATE',compiler.ccallparanode(result,nil));
           left:=nil;
         end;
 
@@ -1035,7 +1035,7 @@ implementation
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072415);
           result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
-            'CREATE',ccallparanode.create(left,nil));
+            'CREATE',compiler.ccallparanode(left,nil));
           left:=nil;
         end;
 
@@ -1266,8 +1266,8 @@ implementation
                 if not check_only then
                   begin
                     resnode:=cinlinenode.create(in_unbox_x_y,false,
-                      ccallparanode.create(ctypenode.create(resultdef),
-                        ccallparanode.create(left,nil)));
+                      compiler.ccallparanode(ctypenode.create(resultdef),
+                        compiler.ccallparanode(left,nil)));
                     left:=nil;
                   end;
                 result:=true;
@@ -1520,7 +1520,7 @@ implementation
               if not assigned(ps) or
                  (ps.typ<>procsym) then
                 internalerror(2011041910);
-              call:=compiler.ccallnode(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[],nil);
+              call:=compiler.ccallnode(compiler.ccallparanode(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[],nil);
               node.left:=nil;
               node.right:=nil;
               firstpass(call);

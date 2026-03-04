@@ -702,8 +702,8 @@ const
                   TryVariableShiftPair(tshlshrnode(left).right, tshlshrnode(right).right, bitsize) then
                 begin
                   result:=cinlinenode.create(standard_op,false,
-                    ccallparanode.create(tshlshrnode(left).PruneKeepRight(),
-                    ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil,compiler),compiler),compiler);
+                    compiler.ccallparanode(tshlshrnode(left).PruneKeepRight(),
+                    compiler.ccallparanode(tshlshrnode(left).PruneKeepLeft(),nil)),compiler);
                   Exit;
                 end;
 
@@ -711,8 +711,8 @@ const
               if TryVariableShiftPair(tshlshrnode(right).right, tshlshrnode(left).right, bitsize) then
                 begin
                   result:=cinlinenode.create(reverse_op,false,
-                    ccallparanode.create(tshlshrnode(right).PruneKeepRight(),
-                    ccallparanode.create(tshlshrnode(right).PruneKeepLeft(),nil,compiler),compiler),compiler);
+                    compiler.ccallparanode(tshlshrnode(right).PruneKeepRight(),
+                    compiler.ccallparanode(tshlshrnode(right).PruneKeepLeft(),nil)),compiler);
                   Exit;
                 end;
             end;
@@ -2158,12 +2158,12 @@ const
               end;
 
             { we use the fact that insert() caps the index to avoid a copy }
-            para:=ccallparanode.create(
+            para:=compiler.ccallparanode(
                     cordconstnode.create(index,sizesinttype,false,compiler),
-                    ccallparanode.create(
+                    compiler.ccallparanode(
                       aktassignmentnode.left.getcopy,
-                      ccallparanode.create(
-                        elem,nil,compiler),compiler),compiler);
+                      compiler.ccallparanode(
+                        elem,nil)));
 
             result:=cinlinenode.create(in_insert_x_y_z,false,para,compiler);
             include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
@@ -3522,17 +3522,15 @@ const
                   ) and
                   valid_for_var(aktassignmentnode.left,false) then
                 begin
-                  para:=ccallparanode.create(
+                  para:=compiler.ccallparanode(
                           right,
-                          ccallparanode.create(
+                          compiler.ccallparanode(
                             left,
-                            ccallparanode.create(aktassignmentnode.left.getcopy,nil,compiler),
-                            compiler
-                          ),
-                          compiler
+                            compiler.ccallparanode(aktassignmentnode.left.getcopy,nil)
+                          )
                         );
                   if is_ansistring(resultdef) then
-                    para:=ccallparanode.create(
+                    para:=compiler.ccallparanode(
                             cordconstnode.create(
                               { don't use getparaencoding(), we have to know
                                 when the result is rawbytestring }
@@ -3541,8 +3539,7 @@ const
                               true,
                               compiler
                             ),
-                            para,
-                            compiler
+                            para
                           );
                   result:=compiler.ccallnode_intern(
                             'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
@@ -3564,19 +3561,17 @@ const
                      is_managed_type(resultdef) then
                     addstatement(newstatement,cinlinenode.create(in_setlength_x,
                       false,
-                      ccallparanode.create(genintconstnode(0,compiler),
-                        ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
-                  para:=ccallparanode.create(
+                      compiler.ccallparanode(genintconstnode(0,compiler),
+                        compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+                  para:=compiler.ccallparanode(
                           right,
-                          ccallparanode.create(
+                          compiler.ccallparanode(
                             left,
-                            ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),
-                            compiler
-                          ),
-                          compiler
+                            compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)
+                          )
                         );
                   if is_ansistring(resultdef) then
-                    para:=ccallparanode.create(
+                    para:=compiler.ccallparanode(
                             cordconstnode.create(
                               { don't use getparaencoding(), we have to know
                                 when the result is rawbytestring }
@@ -3585,8 +3580,7 @@ const
                               true,
                               compiler
                             ),
-                            para,
-                            compiler
+                            para
                           );
                   addstatement(
                     newstatement,
@@ -3659,7 +3653,7 @@ const
                 cmpfuncname := cmpfuncname + '_equal';
 
               result := compiler.ccallnode_intern(cmpfuncname,
-                ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler));
+                compiler.ccallparanode(right,compiler.ccallparanode(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := compiler.caddnode(nodetype,result,
                 cordconstnode.create(0,s8inttype,false,compiler));
@@ -3686,10 +3680,10 @@ const
               valid_for_var(aktassignmentnode.left,false) then
             begin
               result:=compiler.ccallnode_intern(n,
-                ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                ccallparanode.create(aktassignmentnode.left.getcopy,
-                ccallparanode.create(right,
-                ccallparanode.create(left,nil,compiler),compiler),compiler),compiler)
+                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                compiler.ccallparanode(right,
+                compiler.ccallparanode(left,nil))))
               );
 
               { remove reused parts from original node }
@@ -3709,10 +3703,10 @@ const
               addstatement(newstatement,temp);
 
               addstatement(newstatement,compiler.ccallnode_intern(n,
-                ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                ccallparanode.create(compiler.ctemprefnode(temp),
-                ccallparanode.create(right,
-                ccallparanode.create(left,nil,compiler),compiler),compiler),compiler))
+                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                compiler.ccallparanode(compiler.ctemprefnode(temp),
+                compiler.ccallparanode(right,
+                compiler.ccallparanode(left,nil)))))
               );
 
               { remove reused parts from original node }
@@ -3757,9 +3751,9 @@ const
                     internalerror(2013112911);
                 end;
                 result := compiler.ccallnode_internres(procname,
-                  ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false,compiler),
-                  ccallparanode.create(right,
-                  ccallparanode.create(left,nil,compiler),compiler),compiler),resultdef);
+                  compiler.ccallparanode(cordconstnode.create(left.resultdef.size,sinttype,false,compiler),
+                  compiler.ccallparanode(right,
+                  compiler.ccallparanode(left,nil))),resultdef);
                 { left and right are reused as parameters }
                 left := nil;
                 right := nil;
@@ -3788,9 +3782,9 @@ const
                   if no_temp then
                     begin
                       result:=compiler.ccallnode_intern('fpc_varset_create_element',
-                        ccallparanode.create(aktassignmentnode.left.getcopy,
-                        ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                        ccallparanode.create(tsetelementnode(right).left,nil,compiler),compiler),compiler));
+                        compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                        compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                        compiler.ccallparanode(tsetelementnode(right).left,nil))));
                       include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                     end
                   else
@@ -3802,9 +3796,9 @@ const
                       addstatement(newstatement,temp);
 
                       addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_create_element',
-                        ccallparanode.create(compiler.ctemprefnode(temp),
-                        ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                        ccallparanode.create(tsetelementnode(right).left,nil,compiler),compiler),compiler))
+                        compiler.ccallparanode(compiler.ctemprefnode(temp),
+                        compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                        compiler.ccallparanode(tsetelementnode(right).left,nil))))
                       );
 
                       { the last statement should return the value as
@@ -3836,18 +3830,18 @@ const
                                 cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                               result:=compiler.ccallnode_intern('fpc_varset_set_range',
-                                ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                                ccallparanode.create(tsetelementnode(right).right,
-                                ccallparanode.create(tsetelementnode(right).left,
-                                ccallparanode.create(aktassignmentnode.left.getcopy,
-                                ccallparanode.create(left,nil,compiler),compiler),compiler),compiler),compiler));
+                                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                                compiler.ccallparanode(tsetelementnode(right).right,
+                                compiler.ccallparanode(tsetelementnode(right).left,
+                                compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                                compiler.ccallparanode(left,nil))))));
                             end
                           else
                             begin
                               { s:=s+[element]; ? }
                               if left.isequal(aktassignmentnode.left) then
-                                result:=cinlinenode.createintern(in_include_x_y,false,ccallparanode.create(aktassignmentnode.left.getcopy,
-                                  ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef,compiler),nil,compiler),compiler),compiler)
+                                result:=cinlinenode.createintern(in_include_x_y,false,compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                                  compiler.ccallparanode(ctypeconvnode.create_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef,compiler),nil)),compiler)
                               else
                                 begin
                                   { adjust for set base }
@@ -3856,10 +3850,10 @@ const
                                     cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                                   result:=compiler.ccallnode_intern('fpc_varset_set',
-                                    ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                                    ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
-                                    ccallparanode.create(aktassignmentnode.left.getcopy,
-                                    ccallparanode.create(left,nil,compiler),compiler),compiler),compiler));
+                                    compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                                    compiler.ccallparanode(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                                    compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                                    compiler.ccallparanode(left,nil)))));
                                 end;
                             end;
 
@@ -3886,19 +3880,19 @@ const
                                 ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype,compiler),
                                 cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
                               addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set_range',
-                                ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                                ccallparanode.create(tsetelementnode(right).right,
-                                ccallparanode.create(tsetelementnode(right).left,
-                                ccallparanode.create(compiler.ctemprefnode(temp),
-                                ccallparanode.create(left,nil,compiler),compiler),compiler),compiler),compiler))
+                                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                                compiler.ccallparanode(tsetelementnode(right).right,
+                                compiler.ccallparanode(tsetelementnode(right).left,
+                                compiler.ccallparanode(compiler.ctemprefnode(temp),
+                                compiler.ccallparanode(left,nil))))))
                               );
                             end
                           else
                             addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set',
-                              ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
-                              ccallparanode.create(compiler.ctemprefnode(temp),
-                              ccallparanode.create(left,nil,compiler),compiler),compiler),compiler))
+                              compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                              compiler.ccallparanode(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                              compiler.ccallparanode(compiler.ctemprefnode(temp),
+                              compiler.ccallparanode(left,nil)))))
                             );
                           { the last statement should return the value as
                             location and type, this is done be referencing the
@@ -3962,15 +3956,15 @@ const
                   (aktassignmentnode.left.resultdef=resultdef) and
                   valid_for_var(aktassignmentnode.left,false) then
                 begin
-                  para:=ccallparanode.create(
+                  para:=compiler.ccallparanode(
                           ctypeconvnode.create_internal(right,voidcodepointertype,compiler),
-                        ccallparanode.create(
+                        compiler.ccallparanode(
                           ctypeconvnode.create_internal(left,voidcodepointertype,compiler),
-                        ccallparanode.create(
+                        compiler.ccallparanode(
                           caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
-                        ccallparanode.create(
-                          ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidcodepointertype,compiler),nil,compiler)
-                        ,compiler),compiler),compiler);
+                        compiler.ccallparanode(
+                          ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidcodepointertype,compiler),nil)
+                        )));
                   result:=compiler.ccallnode_intern(
                             'fpc_dynarray_concat',
                             para
@@ -3991,18 +3985,17 @@ const
                      is_managed_type(resultdef) then
                     addstatement(newstatement,cinlinenode.create(in_setlength_x,
                       false,
-                      ccallparanode.create(genintconstnode(0,compiler),
-                        ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
-                  para:=ccallparanode.create(
+                      compiler.ccallparanode(genintconstnode(0,compiler),
+                        compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+                  para:=compiler.ccallparanode(
                           ctypeconvnode.create_internal(right,voidcodepointertype,compiler),
-                        ccallparanode.create(
+                        compiler.ccallparanode(
                           ctypeconvnode.create_internal(left,voidcodepointertype,compiler),
-                        ccallparanode.create(
+                        compiler.ccallparanode(
                           caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
-                        ccallparanode.create(
-                          ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidcodepointertype,compiler),nil,compiler),
-                          compiler
-                        ),compiler),compiler);
+                        compiler.ccallparanode(
+                          ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidcodepointertype,compiler),nil)
+                        )));
                   addstatement(
                     newstatement,
                     compiler.ccallnode_intern(
@@ -4179,15 +4172,15 @@ const
             if left.nodetype=muln then
               begin
                 if nodetype=subn then
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right,compiler),
-                    ccallparanode.create(taddnode(left).right,
-                    ccallparanode.create(taddnode(left).left,nil,compiler
-                    ),compiler),compiler),compiler)
+                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
+                    compiler.ccallparanode(taddnode(left).right,
+                    compiler.ccallparanode(taddnode(left).left,nil
+                    ))),compiler)
                 else
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
-                    ccallparanode.create(taddnode(left).right,
-                    ccallparanode.create(taddnode(left).left,nil,compiler
-                    ),compiler),compiler),compiler);
+                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(right,
+                    compiler.ccallparanode(taddnode(left).right,
+                    compiler.ccallparanode(taddnode(left).left,nil
+                    ))),compiler);
                 right:=nil;
                 taddnode(left).right:=nil;
                 taddnode(left).left:=nil;
@@ -4195,15 +4188,15 @@ const
             else if right.nodetype=muln then
               begin
                 if nodetype=subn then
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
-                    ccallparanode.create(cunaryminusnode.create(taddnode(right).right,compiler),
-                    ccallparanode.create(taddnode(right).left,nil,compiler
-                    ),compiler),compiler),compiler)
+                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                    compiler.ccallparanode(cunaryminusnode.create(taddnode(right).right,compiler),
+                    compiler.ccallparanode(taddnode(right).left,nil
+                    ))),compiler)
                 else
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
-                    ccallparanode.create(taddnode(right).right,
-                    ccallparanode.create(taddnode(right).left,nil,compiler
-                    ),compiler),compiler),compiler);
+                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                    compiler.ccallparanode(taddnode(right).right,
+                    compiler.ccallparanode(taddnode(right).left,nil
+                    ))),compiler);
                 left:=nil;
                 taddnode(right).right:=nil;
                 taddnode(right).left:=nil;
@@ -4213,15 +4206,15 @@ const
                 if node_complexity(tinlinenode(left).left)=0 then
                   begin
                     if nodetype=subn then
-                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right,compiler),
-                        ccallparanode.create(tinlinenode(left).left.getcopy,
-                        ccallparanode.create(tinlinenode(left).left.getcopy,nil,compiler
-                        ),compiler),compiler),compiler)
+                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
+                        compiler.ccallparanode(tinlinenode(left).left.getcopy,
+                        compiler.ccallparanode(tinlinenode(left).left.getcopy,nil
+                        ))),compiler)
                     else
-                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
-                        ccallparanode.create(tinlinenode(left).left.getcopy,
-                        ccallparanode.create(tinlinenode(left).left.getcopy,nil,compiler
-                        ),compiler),compiler),compiler);
+                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(right,
+                        compiler.ccallparanode(tinlinenode(left).left.getcopy,
+                        compiler.ccallparanode(tinlinenode(left).left.getcopy,nil
+                        ))),compiler);
                     right:=nil;
                   end;
               end
@@ -4231,15 +4224,15 @@ const
                 if node_complexity(tinlinenode(right).left)=0 then
                   begin
                     if nodetype=subn then
-                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
-                        ccallparanode.create(cunaryminusnode.create(tinlinenode(right).left.getcopy,compiler),
-                        ccallparanode.create(tinlinenode(right).left.getcopy,nil,compiler
-                        ),compiler),compiler),compiler)
+                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                        compiler.ccallparanode(cunaryminusnode.create(tinlinenode(right).left.getcopy,compiler),
+                        compiler.ccallparanode(tinlinenode(right).left.getcopy,nil
+                        ))),compiler)
                     else
-                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
-                        ccallparanode.create(tinlinenode(right).left.getcopy,
-                        ccallparanode.create(tinlinenode(right).left.getcopy,nil,compiler
-                        ),compiler),compiler),compiler);
+                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                        compiler.ccallparanode(tinlinenode(right).left.getcopy,
+                        compiler.ccallparanode(tinlinenode(right).left.getcopy,nil
+                        ))),compiler);
                     left:=nil;
                   end;
               end;
@@ -4284,7 +4277,7 @@ const
             else
               procname := 'fpc_mul_dword_to_qword';
 
-            right := ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler);
+            right := compiler.ccallparanode(right,compiler.ccallparanode(left,nil));
             result := compiler.ccallnode_intern(procname,right);
             left := nil;
             right := nil;
@@ -4310,7 +4303,7 @@ const
               end;
 
             { otherwise, create the parameters for the helper }
-            right :=   ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler);
+            right :=   compiler.ccallparanode(right,compiler.ccallparanode(left,nil));
             left := nil;
             { only qword needs the unsigned code, the
               signed code is also used for currency }
@@ -4455,14 +4448,14 @@ const
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
               resultdef:=pasbool1type;
-            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,ccallparanode.create(
+            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,compiler.ccallparanode(
                 ctypeconvnode.create_internal(right,fdef,compiler),
-                ccallparanode.create(
-                  ctypeconvnode.create_internal(left,fdef,compiler),nil,compiler),compiler)),resultdef,compiler);
+                compiler.ccallparanode(
+                  ctypeconvnode.create_internal(left,fdef,compiler),nil))),resultdef,compiler);
           end
         else
-          result:=compiler.ccallnode_intern(procname,ccallparanode.create(right,
-             ccallparanode.create(left,nil,compiler),compiler));
+          result:=compiler.ccallnode_intern(procname,compiler.ccallparanode(right,
+             compiler.ccallparanode(left,nil)));
         left:=nil;
         right:=nil;
 
@@ -4752,8 +4745,8 @@ const
                      if cs_check_overflow in current_settings.localswitches then
                        procname:=procname+'_checkoverflow';
                      result := compiler.ccallnode_intern(procname,
-                       ccallparanode.create(right,
-                       ccallparanode.create(left,nil)));
+                       compiler.ccallparanode(right,
+                       compiler.ccallparanode(left,nil)));
                      left := nil;
                      right := nil;
                      firstpass(result);

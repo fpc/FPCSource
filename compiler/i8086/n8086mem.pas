@@ -217,8 +217,8 @@ implementation
                 cordconstnode.create(arraydef.elementdef.size,s32inttype,true));
 
             result:=compiler.ccallnode_intern(procname,
-              ccallparanode.create(right,
-              ccallparanode.create(ttypeconvnode(left).left,nil)));
+              compiler.ccallparanode(right,
+              compiler.ccallparanode(ttypeconvnode(left).left,nil)));
             inserttypeconv_internal(result,tx86pointerdef(cpointerdef).getreusablex86(arraydef.elementdef,x86pt_huge));
             result:=cderefnode.create(result);
 

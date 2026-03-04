@@ -95,7 +95,7 @@ implementation
             inserttypeconv_explicit(left,s32inttype);
             inserttypeconv_explicit(right,java_jubitset);
           end;
-        result:=compiler.ccallnode_internmethod(right,'CONTAINS',ccallparanode.create(left,nil));
+        result:=compiler.ccallnode_internmethod(right,'CONTAINS',compiler.ccallparanode(left,nil));
         right:=nil;
         left:=nil;
       end;

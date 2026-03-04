@@ -272,9 +272,9 @@ implementation
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
-              ccallparanode.create(third,
-              ccallparanode.create(right,
-              ccallparanode.create(left,nil)))
+              compiler.ccallparanode(third,
+              compiler.ccallparanode(right,
+              compiler.ccallparanode(left,nil)))
               );
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
@@ -329,9 +329,9 @@ implementation
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
-              ccallparanode.create(third,
-              ccallparanode.create(right,
-              ccallparanode.create(left,nil)))
+              compiler.ccallparanode(third,
+              compiler.ccallparanode(right,
+              compiler.ccallparanode(left,nil)))
               );
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
@@ -386,9 +386,9 @@ implementation
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
-              ccallparanode.create(third,
-              ccallparanode.create(right,
-              ccallparanode.create(left,nil)))
+              compiler.ccallparanode(third,
+              compiler.ccallparanode(right,
+              compiler.ccallparanode(left,nil)))
               );
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
@@ -443,9 +443,9 @@ implementation
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
-              ccallparanode.create(third,
-              ccallparanode.create(right,
-              ccallparanode.create(left,nil)))
+              compiler.ccallparanode(third,
+              compiler.ccallparanode(right,
+              compiler.ccallparanode(left,nil)))
               );
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);

@@ -799,7 +799,7 @@ implementation
           ppn:=tcallparanode(tinlinenode(t).left.getcopy)
         else
           begin
-            ppn:=ccallparanode.create(tunarynode(t).left.getcopy,nil,compiler);
+            ppn:=compiler.ccallparanode(tunarynode(t).left.getcopy,nil);
             ppn.get_paratype;
           end;
         candidates.init_operator(optoken,ppn);
@@ -889,7 +889,7 @@ implementation
             candidates : tcallcandidates;
           begin
             { generate parameter nodes }
-            ppn:=ccallparanode.create(tbinarynode(t).right.getcopy,ccallparanode.create(tbinarynode(t).left.getcopy,nil,compiler),compiler);
+            ppn:=compiler.ccallparanode(tbinarynode(t).right.getcopy,compiler.ccallparanode(tbinarynode(t).left.getcopy,nil));
             ppn.get_paratype;
             candidates.init_operator(optoken,ppn);
 

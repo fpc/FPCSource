@@ -267,7 +267,7 @@ implementation
               begin
                 if (left.resultdef.typ in [orddef,floatdef]) then
                   begin
-                    left:=cinlinenode.create(in_box_x,false,ccallparanode.create(left,nil));
+                    left:=cinlinenode.create(in_box_x,false,compiler.ccallparanode(left,nil));
                     typecheckpass(left);
                   end;
                 left:=ctypeconvnode.create_explicit(left,java_jlobject);
@@ -309,8 +309,8 @@ implementation
             if parasym.vardef.typ=formaldef then
               begin
                 if orgparadef.typ in [orddef,floatdef] then
-                  tempn:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
-                    ctypenode.create(orgparadef),ccallparanode.create(tempn,nil)))
+                  tempn:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
+                    ctypenode.create(orgparadef),compiler.ccallparanode(tempn,nil)))
                 else if implicitptrpara then
                   tempn:=ctypeconvnode.create_explicit(tempn,cpointerdef.getreusable(orgparadef))
               end;
@@ -330,18 +330,18 @@ implementation
                     if (parasym.vardef.typ=formaldef) and
                        (orgparadef.typ in [orddef,floatdef]) then
                       begin
-                        unwrappedele0:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
-                          ctypenode.create(orgparadef),ccallparanode.create(unwrappedele0,nil)));
-                        unwrappedele1:=cinlinenode.create(in_unbox_x_y,false,ccallparanode.create(
-                          ctypenode.create(orgparadef),ccallparanode.create(unwrappedele1,nil)))
+                        unwrappedele0:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
+                          ctypenode.create(orgparadef),compiler.ccallparanode(unwrappedele0,nil)));
+                        unwrappedele1:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
+                          ctypenode.create(orgparadef),compiler.ccallparanode(unwrappedele1,nil)))
                       end;
                     addstatement(copybackstat,cifnode.create(
                       compiler.caddnode(andn,
                         compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele0,orgparadef)),
                         compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele1,orgparadef))),
                       compiler.ccallnode_intern('fpc_var_copyout_mismatch',
-                        ccallparanode.create(genintconstnode(fileinfo.column),
-                          ccallparanode.create(genintconstnode(fileinfo.line),nil))
+                        compiler.ccallparanode(genintconstnode(fileinfo.column),
+                          compiler.ccallparanode(genintconstnode(fileinfo.line),nil))
                       ),nil
                     ));
                   end;

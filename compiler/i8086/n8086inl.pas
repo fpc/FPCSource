@@ -300,8 +300,8 @@ implementation
                hp:=compiler.caddnode(muln,hp,tcallparanode(tcallparanode(left).right).left.getcopy);
 
              result:=compiler.ccallnode_intern(procname,
-                       ccallparanode.create(hp,
-                       ccallparanode.create(tcallparanode(left).left.getcopy,nil)));
+                       compiler.ccallparanode(hp,
+                       compiler.ccallparanode(tcallparanode(left).left.getcopy,nil)));
              typecheckpass(result);
              firstpass(result);
            end

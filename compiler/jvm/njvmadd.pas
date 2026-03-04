@@ -147,7 +147,7 @@ interface
 
       procedure call_set_helper(const n: string; isenum: boolean);
         begin
-          call_set_helper_paras(n,isenum,ccallparanode.create(right,nil));
+          call_set_helper_paras(n,isenum,compiler.ccallparanode(right,nil));
         end;
 
       var
@@ -216,7 +216,7 @@ interface
                   else
                     internalerror(2013120114);
                 end;
-              result:=compiler.ccallnode_internmethod(left,procname,ccallparanode.create(right,nil));
+              result:=compiler.ccallnode_internmethod(left,procname,compiler.ccallparanode(right,nil));
               { for an unequaln, we have to negate the result of equals }
               if nodetype=unequaln then
                 result:=cnotnode.create(result);
@@ -240,7 +240,7 @@ interface
                       inserttypeconv_explicit(tsetelementnode(right).left,s32inttype);
                       result:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
                     end;
-                  paras:=ccallparanode.create(tsetelementnode(right).left,nil);
+                  paras:=compiler.ccallparanode(tsetelementnode(right).left,nil);
                   tsetelementnode(right).left:=nil;
                   if assigned(tsetelementnode(right).right) then
                     begin
@@ -253,7 +253,7 @@ interface
                         begin
                           inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
                         end;
-                      paras:=ccallparanode.create(tsetelementnode(right).right,paras);
+                      paras:=compiler.ccallparanode(tsetelementnode(right).right,paras);
                       tsetelementnode(right).right:=nil;
                     end;
                   right.free;
@@ -275,7 +275,7 @@ interface
                           { for boolean, char, etc }
                           inserttypeconv_explicit(tsetelementnode(right).left,s32inttype);
                         end;
-                      paras:=ccallparanode.create(tsetelementnode(right).left,paras);
+                      paras:=compiler.ccallparanode(tsetelementnode(right).left,paras);
                       tsetelementnode(right).left:=nil;
                       if assigned(tsetelementnode(right).right) then
                         begin
@@ -292,7 +292,7 @@ interface
                               inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
                               tmpn:=cloadvmtaddrnode.create(ctypenode.create(java_jubitset));
                             end;
-                          paras:=ccallparanode.create(compiler.ccallnode_internmethod(tmpn,'RANGE',ccallparanode.create(tsetelementnode(right).right,paras)),nil);
+                          paras:=compiler.ccallparanode(compiler.ccallnode_internmethod(tmpn,'RANGE',compiler.ccallparanode(tsetelementnode(right).right,paras)),nil);
                           tsetelementnode(right).right:=nil;
                         end;
                       call_set_helper_paras(procname,isenum,paras);
@@ -309,7 +309,7 @@ interface
                 { "s1 xor s2" is the same as "(s1 + s2) - (s1 * s2)"
                   -> call helper to prevent double evaluations }
                 result:=compiler.ccallnode_intern('fpc_enumset_symdif',
-                  ccallparanode.create(right,ccallparanode.create(left,nil)));
+                  compiler.ccallparanode(right,compiler.ccallparanode(left,nil)));
                 left:=nil;
                 right:=nil;
               end

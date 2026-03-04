@@ -114,7 +114,7 @@ implementation
             // result:=(0-(left and 1)) and (1+(sarlongint(left,31) shl 1))
             result:=compiler.caddnode_internal(andn,compiler.caddnode_internal(subn,cordconstnode.create(0,sinttype,false),compiler.caddnode_internal(andn,left,cordconstnode.create(1,sinttype,false))),
                                          compiler.caddnode_internal(addn,cordconstnode.create(1,sinttype,false),
-                                                              cshlshrnode.create(shln,cinlinenode.create(in_sar_x_y,false,ccallparanode.create(cordconstnode.create(31,sinttype,false),ccallparanode.Create(left.getcopy,nil))),cordconstnode.create(1,sinttype,false))));
+                                                              cshlshrnode.create(shln,cinlinenode.create(in_sar_x_y,false,compiler.ccallparanode(cordconstnode.create(31,sinttype,false),compiler.ccallparanode(left.getcopy,nil))),cordconstnode.create(1,sinttype,false))));
             left:=nil;
             firstpass(result);
           end
@@ -379,9 +379,9 @@ implementation
               else
                 internalerror(2005082801);
             end;
-            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,ccallparanode.create(
+            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,compiler.ccallparanode(
               ctypeconvnode.create_internal(left,fDef),
-              ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
+              compiler.ccallparanode(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
 
             left:=nil;
           end

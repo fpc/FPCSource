@@ -390,7 +390,7 @@ implementation
                (psym.typ<>procsym) then
               internalerror(2011031502);
             { Pascal strings are 1-based, Java strings 0-based }
-            result:=compiler.ccallnode(ccallparanode.create(
+            result:=compiler.ccallnode(compiler.ccallparanode(
               compiler.caddnode(subn,right,genintconstnode(1)),nil),tprocsym(psym),
               psym.owner,ctypeconvnode.create_explicit(left,stringclass),[],nil);
             left:=nil;

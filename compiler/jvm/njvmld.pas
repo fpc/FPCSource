@@ -113,9 +113,9 @@ function tjvmassignmentnode.pass_1: tnode;
         else
           inserttypeconv_explicit(right,cansichartype);
         result:=compiler.ccallnode_intern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
-          ccallparanode.create(right,
-            ccallparanode.create(tvecnode(target).right,
-              ccallparanode.create(tvecnode(target).left.getcopy,nil))));
+          compiler.ccallparanode(right,
+            compiler.ccallparanode(tvecnode(target).right,
+              compiler.ccallparanode(tvecnode(target).left.getcopy,nil))));
         result:=cassignmentnode.create(tvecnode(target).left,result);
         right:=nil;
         tvecnode(target).left:=nil;
@@ -140,8 +140,8 @@ function tjvmassignmentnode.pass_1: tnode;
           internalerror(2011052408);
         result:=
           compiler.ccallnode(
-            ccallparanode.create(right,
-              ccallparanode.create(tvecnode(target).right,nil)),
+            compiler.ccallparanode(right,
+              compiler.ccallparanode(tvecnode(target).right,nil)),
             tprocsym(psym),psym.owner,tvecnode(target).left,[],nil);
         right:=nil;
         tvecnode(target).left:=nil;
@@ -313,7 +313,7 @@ procedure tjvmarrayconstructornode.wrapmanagedvarrec(var n: tnode);
     addstatement(stat,temp);
     addstatement(stat,
       compiler.ccallnode_internmethod(
-        compiler.ctemprefnode(temp),'INIT',ccallparanode.create(n,nil)));
+        compiler.ctemprefnode(temp),'INIT',compiler.ccallparanode(n,nil)));
     { note: this will not free the record contents, but just let its reference
       on the stack be reused -- which is ok, because the reference will be
       stored into the open array parameter }

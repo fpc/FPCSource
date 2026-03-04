@@ -157,7 +157,7 @@ function tobjcprotocolnode.pass_typecheck: tnode;
 function tobjcprotocolnode.pass_1: tnode;
   begin
     result:=compiler.ccallnode_internresfromunit('OBJC','OBJC_GETPROTOCOL',
-      ccallparanode.create(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^,compiler),nil,compiler),
+      compiler.ccallparanode(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^,compiler),nil),
       resultdef
     );
     typecheckpass(result);

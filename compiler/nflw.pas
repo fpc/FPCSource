@@ -444,10 +444,10 @@ implementation
          addstatement(mainstatement,innerloopcounter);
          { initialise the state with 0 }
          addstatement(mainstatement,compiler.ccallnode_internfromunit('SYSTEM','FILLCHAR',
-           ccallparanode.create(genintconstnode(0,compiler),
-             ccallparanode.create(genintconstnode(objc_fastenumerationstate.size,compiler),
-               ccallparanode.create(compiler.ctemprefnode(state),nil,compiler),compiler
-             ),compiler
+           compiler.ccallparanode(genintconstnode(0,compiler),
+             compiler.ccallparanode(genintconstnode(objc_fastenumerationstate.size,compiler),
+               compiler.ccallparanode(compiler.ctemprefnode(state),nil)
+             )
            )
          ));
          { this will also check whether the expression (potentially) conforms
@@ -458,11 +458,10 @@ implementation
          { we add the "repeat..until" afterwards, now just create the body }
          outerloop:=internalstatements(compiler,outerloopbodystatement);
          { the countByEnumeratingWithState_objects_count call }
-         hp:=ccallparanode.create(cinlinenode.create(in_length_x,false,ctypenode.create(itemsarraydef,compiler),compiler),
-               ccallparanode.create(caddrnode.create(compiler.ctemprefnode(items),compiler),
-                 ccallparanode.create(caddrnode.create(compiler.ctemprefnode(state),compiler),nil,compiler),
-                 compiler
-               ),compiler
+         hp:=compiler.ccallparanode(cinlinenode.create(in_length_x,false,ctypenode.create(itemsarraydef,compiler),compiler),
+               compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(items),compiler),
+                 compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(state),compiler),nil)
+               )
              );
          sym:=search_struct_member(objc_fastenumeration,'COUNTBYENUMERATINGWITHSTATE_OBJECTS_COUNT');
          if not assigned(sym) or
@@ -495,8 +494,8 @@ implementation
         { inc(innerloopcounter) without range/overflowchecking (because
           we go from culong(-1) to 0 during the first iteration }
         hp:=cinlinenode.create(
-          in_inc_x,false,ccallparanode.create(
-            compiler.ctemprefnode(innerloopcounter),nil,compiler),compiler);
+          in_inc_x,false,compiler.ccallparanode(
+            compiler.ctemprefnode(innerloopcounter),nil),compiler);
         hp.localswitches:=hp.localswitches-[cs_check_range,cs_check_overflow];
         addstatement(innerloopbodystatement,hp);
         { if innerloopcounter=currentamount then break to the outer loop }
@@ -515,7 +514,7 @@ implementation
             cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler)
           ),
           compiler.ccallnode_internfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
-            ccallparanode.create(compiler.ctemprefnode(expressiontemp),nil,compiler)),
+            compiler.ccallparanode(compiler.ctemprefnode(expressiontemp),nil)),
           nil,compiler));
         { finally: actually get the next element }
         hp:=compiler.ctemprefnode(state);
@@ -859,7 +858,7 @@ implementation
 
         if enumerator_get.proctypeoption=potype_operator then
           begin
-            enum_get_params:=ccallparanode.create(expr.getcopy,nil,compiler);
+            enum_get_params:=compiler.ccallparanode(expr.getcopy,nil);
             enum_get:=compiler.ccallnode(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, [],nil);
             tcallnode(enum_get).procdefinition:=enumerator_get;
             addsymref(enumerator_get.procsym,enumerator_get);
@@ -1842,14 +1841,14 @@ implementation
               thus pass it to the first callparanode call }
             if t1=nil then
               Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
-                cinlinenode.create(in_nr,false,ccallparanode.create(tassignmentnode(thenstmnt).left.getcopy,
-                      ccallparanode.create(tassignmentnode(thenstmnt).right.getcopy,nil,compiler),compiler),compiler),
+                cinlinenode.create(in_nr,false,compiler.ccallparanode(tassignmentnode(thenstmnt).left.getcopy,
+                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil)),compiler),
                       compiler
                 )
             else
               Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
-                cinlinenode.create(in_nr,false,ccallparanode.create(tassignmentnode(elsestmnt).right.getcopy,
-                      ccallparanode.create(tassignmentnode(thenstmnt).right.getcopy,nil,compiler),compiler),compiler),
+                cinlinenode.create(in_nr,false,compiler.ccallparanode(tassignmentnode(elsestmnt).right.getcopy,
+                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil)),compiler),
                       compiler
                 );
             node_reset_pass1_write(Result);
@@ -2502,9 +2501,9 @@ implementation
                     if assigned(labelsym.jumpbuf) then
                       begin
                         result:=compiler.ccallnode_intern('fpc_longjmp',
-                          ccallparanode.create(cordconstnode.create(1,sinttype,true,compiler),
-                          ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner,compiler),
-                        nil,compiler),compiler));
+                          compiler.ccallparanode(cordconstnode.create(1,sinttype,true,compiler),
+                          compiler.ccallparanode(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner,compiler),
+                        nil)));
                       end
                     else
                       CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
@@ -2741,9 +2740,9 @@ implementation
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
-              ccallparanode.create(third,
-              ccallparanode.create(right,
-              ccallparanode.create(left,nil,compiler),compiler),compiler)
+              compiler.ccallparanode(third,
+              compiler.ccallparanode(right,
+              compiler.ccallparanode(left,nil)))
               );
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);

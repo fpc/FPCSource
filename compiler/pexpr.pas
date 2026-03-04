@@ -208,7 +208,7 @@ implementation
                if current_scanner.token=_COMMA then
                  begin
                    { empty parameter }
-                   p2:=ccallparanode.create(compiler.cnothingnode,p2,compiler);
+                   p2:=compiler.ccallparanode(compiler.cnothingnode,p2);
                  end
                else
                  begin
@@ -219,30 +219,30 @@ implementation
                      begin
                        argname:=p1;
                        p1:=comp_expr([ef_accept_equal]);
-                       p2:=ccallparanode.create(p1,p2,compiler);
+                       p2:=compiler.ccallparanode(p1,p2);
                        tcallparanode(p2).parametername:=argname;
                      end
                    else
-                     p2:=ccallparanode.create(p1,p2,compiler);
+                     p2:=compiler.ccallparanode(p1,p2);
                    found_arg_name:=false;
                  end;
              end
            else
              begin
                p1:=comp_expr([ef_accept_equal]);
-               p2:=ccallparanode.create(p1,p2,compiler);
+               p2:=compiler.ccallparanode(p1,p2);
              end;
            { it's for the str(l:5,s); }
            if __colon and (current_scanner.token=_COLON) then
              begin
                consume(_COLON);
                p1:=comp_expr([ef_accept_equal]);
-               p2:=ccallparanode.create(p1,p2,compiler);
+               p2:=compiler.ccallparanode(p1,p2);
                include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                if try_to_consume(_COLON) then
                  begin
                    p1:=comp_expr([ef_accept_equal]);
-                   p2:=ccallparanode.create(p1,p2,compiler);
+                   p2:=compiler.ccallparanode(p1,p2);
                    include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                  end
              end;
@@ -576,7 +576,7 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              p2:=ccallparanode.create(p1,nil,compiler);
+              p2:=compiler.ccallparanode(p1,nil);
               p2:=geninlinenode(l,false,p2,compiler);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -628,7 +628,7 @@ implementation
                err:=true;
               if not err then
                begin
-                 p2:=ccallparanode.create(p1,nil,compiler);
+                 p2:=compiler.ccallparanode(p1,nil);
                  p2:=geninlinenode(in_assigned_x,false,p2,compiler);
                end
               else
@@ -733,10 +733,10 @@ implementation
               in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_COMMA) then
-                p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler)
+                p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
               else
                 p2:=nil;
-              p2:=ccallparanode.create(p1,p2,compiler);
+              p2:=compiler.ccallparanode(p1,p2);
               statement_syssym:=geninlinenode(l,false,p2,compiler);
               consume(_RKLAMMER);
             end;
@@ -761,10 +761,10 @@ implementation
                   p1:=comp_expr([ef_accept_equal]);
                   Consume(_COMMA);
                   if not(codegenerror) then
-                    p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler)
+                    p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
                   else
                     p2:=compiler.cerrornode;
-                  p2:=ccallparanode.create(p1,p2,compiler);
+                  p2:=compiler.ccallparanode(p1,p2);
                   statement_syssym:=geninlinenode(l,false,p2,compiler);
                   consume(_RKLAMMER);
                 end;
@@ -867,11 +867,11 @@ implementation
             Begin
               consume(_LKLAMMER);
               in_args := true;
-              p1:= ccallparanode.create(comp_expr([ef_accept_equal]), nil, compiler);
+              p1:= compiler.ccallparanode(comp_expr([ef_accept_equal]), nil);
               consume(_COMMA);
-              p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p1,compiler);
+              p2 := compiler.ccallparanode(comp_expr([ef_accept_equal]),p1);
               if try_to_consume(_COMMA) then
-                p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p2,compiler);
+                p2 := compiler.ccallparanode(comp_expr([ef_accept_equal]),p2);
               consume(_RKLAMMER);
               p2 := geninlinenode(l,false,p2,compiler);
               statement_syssym := p2;
@@ -885,7 +885,7 @@ implementation
               p1:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil,compiler),compiler),compiler);
+              statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -899,7 +899,7 @@ implementation
               p2:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
               paras:=comp_expr([ef_accept_equal]);
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil,compiler),compiler),compiler),compiler);
+              statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,compiler.ccallparanode(paras,nil))),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -915,7 +915,7 @@ implementation
                  { then insert an empty string }
                  p2:=cstringconstnode.createstr('',compiler);
                end;
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil,compiler),compiler),compiler);
+              statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
               consume(_RKLAMMER);
             end;
           in_get_frame:
@@ -991,11 +991,11 @@ implementation
               p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_COMMA) then
                 begin
-                  p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
+                  p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
                 end
               else
                 p2:=nil;
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,p2,compiler),compiler);
+              statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,p2),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -1006,7 +1006,7 @@ implementation
               p1:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil,compiler),compiler),compiler);
+              statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
               consume(_RKLAMMER);
             end;
 
@@ -1014,14 +1014,14 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              paras:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
+              paras:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
               consume(_COMMA);
-              tcallparanode(paras).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
+              tcallparanode(paras).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
               consume(_COMMA);
-              tcallparanode(tcallparanode(paras).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
+              tcallparanode(tcallparanode(paras).right).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
               if try_to_consume(_COMMA) then
                 begin
-                  tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=ccallparanode.create(comp_expr([ef_accept_equal]),nil,compiler);
+                  tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
                 end;
               statement_syssym:=geninlinenode(l,false,paras,compiler);
               consume(_RKLAMMER);
@@ -1217,11 +1217,11 @@ implementation
                         if assigned(srdef) then
                           { anonymous inherited via msgid calls only require a var parameter for
                             both methods, so we need some type casting here }
-                          para:=ccallparanode.create(ctypeconvnode.create_internal(ctypeconvnode.create_internal(
+                          para:=compiler.ccallparanode(ctypeconvnode.create_internal(ctypeconvnode.create_internal(
                             cloadnode.create(currpara,currpara.owner,compiler),cformaltype,compiler),tparavarsym(tprocdef(srdef).paras[i]).vardef,compiler),
-                          para,compiler)
+                          para)
                         else
-                          para:=ccallparanode.create(cloadnode.create(currpara,currpara.owner,compiler),para,compiler);
+                          para:=compiler.ccallparanode(cloadnode.create(currpara,currpara.owner,compiler),para);
                       end;
                  end;
               end
@@ -1360,7 +1360,7 @@ implementation
          if (ppo_indexed in propsym.propoptions) then
            begin
              p2:=cordconstnode.create(propsym.index,propsym.indexdef,true,compiler);
-             paras:=ccallparanode.create(p2,paras,compiler);
+             paras:=compiler.ccallparanode(p2,paras);
            end;
          { we need only a write property if a := follows }
          { if not(afterassignment) and not(in_args) then }
@@ -1391,7 +1391,7 @@ implementation
                            handle_procvar(getprocvardef,p2)
                          else if assigned(getfuncrefdef) then
                            handle_funcref(getfuncrefdef,p2);
-                         tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left,compiler);
+                         tcallnode(p1).left:=compiler.ccallparanode(p2,tcallnode(p1).left);
                          { mark as property, both the tcallnode and the real call block }
                          include(p1.flags,nf_isproperty);
                          getprocvardef:=nil;
@@ -2078,13 +2078,13 @@ implementation
              p4:=comp_expr([ef_accept_equal]);
 
              { create call to fpc_vararray_put }
-             paras:=ccallparanode.create(cordconstnode.create
+             paras:=compiler.ccallparanode(cordconstnode.create
                    (countindices,s32inttype,true,compiler),
-                ccallparanode.create(caddrnode.create_internal
+                compiler.ccallparanode(caddrnode.create_internal
                (cvecnode.create(compiler.ctemprefnode(temp),genintconstnode(0,compiler),compiler),compiler),
-                ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype,compiler),
-                ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype,compiler)
-                  ,nil,compiler),compiler),compiler),compiler);
+                compiler.ccallparanode(ctypeconvnode.create_internal(p4,cvarianttype,compiler),
+                compiler.ccallparanode(ctypeconvnode.create_internal(p1,cvarianttype,compiler)
+                  ,nil))));
 
              addstatement(newstatement,compiler.ccallnode_intern('fpc_vararray_put',paras));
              addstatement(newstatement,compiler.ctempdeletenode(temp));
@@ -2096,14 +2096,14 @@ implementation
              addstatement(newstatement,tempresultvariant);
 
              { create call to fpc_vararray_get }
-             paras:=ccallparanode.create(cordconstnode.create
+             paras:=compiler.ccallparanode(cordconstnode.create
                    (countindices,s32inttype,true,compiler),
-                ccallparanode.create(caddrnode.create_internal
+                compiler.ccallparanode(caddrnode.create_internal
                (compiler.ctemprefnode(temp),compiler),
-                ccallparanode.create(p1,
-                ccallparanode.create(
+                compiler.ccallparanode(p1,
+                compiler.ccallparanode(
                     compiler.ctemprefnode(tempresultvariant)
-                  ,nil,compiler),compiler),compiler),compiler);
+                  ,nil))));
 
              addstatement(newstatement,compiler.ccallnode_intern('fpc_vararray_get',paras));
              addstatement(newstatement,compiler.ctempdeletenode(temp));
@@ -2161,16 +2161,16 @@ implementation
                  (paracount,s32inttype,true,compiler),compiler));
           { create call to fpc_dynarr_setlength }
           addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
-              ccallparanode.create(caddrnode.create_internal
+              compiler.ccallparanode(caddrnode.create_internal
                     (compiler.ctemprefnode(temp2),compiler),
-                 ccallparanode.create(cordconstnode.create
+                 compiler.ccallparanode(cordconstnode.create
                     (1,s32inttype,true,compiler),
-                 ccallparanode.create(caddrnode.create_internal
+                 compiler.ccallparanode(caddrnode.create_internal
                     (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal,compiler),compiler),
-                 ccallparanode.create(
+                 compiler.ccallparanode(
                    ctypeconvnode.create_internal(
                      compiler.ctemprefnode(arrnode),voidpointertype,compiler),
-                   nil,compiler),compiler),compiler),compiler)
+                   nil))))
 
             ));
           { add assignment statements }
@@ -2296,12 +2296,12 @@ implementation
                    case tfiledef(p1.resultdef).filetyp of
                      ft_text:
                        begin
-                         p1:=cderefnode.create(compiler.ccallnode_intern('fpc_getbuf_text',ccallparanode.create(p1,nil,compiler)),compiler);
+                         p1:=cderefnode.create(compiler.ccallnode_intern('fpc_getbuf_text',compiler.ccallparanode(p1,nil)),compiler);
                          typecheckpass(p1);
                        end;
                      ft_typed:
                        begin
-                         p1:=cderefnode.create(ctypeconvnode.create_internal(compiler.ccallnode_intern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil,compiler)),
+                         p1:=cderefnode.create(ctypeconvnode.create_internal(compiler.ccallnode_intern('fpc_getbuf_typedfile',compiler.ccallparanode(p1,nil)),
                            cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef,compiler),compiler),compiler);
                          typecheckpass(p1);
                        end;
@@ -2781,7 +2781,7 @@ implementation
                                   { read the expression }
                                   p3:=comp_expr([ef_accept_equal]);
                                   { concat value parameter too }
-                                  p2:=ccallparanode.create(p3,p2,compiler);
+                                  p2:=compiler.ccallparanode(p3,p2);
                                   p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
                                 end
                               else

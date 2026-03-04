@@ -460,7 +460,7 @@ implementation
             addstatement(tstatementnode(arg^),
               cifnode.create(compiler.caddnode(equaln,
                 compiler.ccallnode_intern('fpc_setjmp',
-                  ccallparanode.create(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil,compiler)),
+                  compiler.ccallparanode(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil)),
                 cordconstnode.create(1,search_system_proc('fpc_setjmp').returndef,true,compiler))
               ,cgotonode.create(tlabelsym(p),compiler),nil,compiler)
             );
@@ -528,19 +528,19 @@ implementation
                         this is required to allow setting the vmt to -1 to indicate
                         that memory was allocated }
                       { parameter 1 : self pointer }
-                      para:=ccallparanode.create(
+                      para:=compiler.ccallparanode(
                                 cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
-                            ccallparanode.create(
+                            compiler.ccallparanode(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype,
                                     compiler),
-                            ccallparanode.create(
+                            compiler.ccallparanode(
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype,
                                     compiler),
-                            nil,compiler),compiler),compiler);
+                            nil)));
                       addstatement(newstatement,cassignmentnode.create(
                           ctypeconvnode.create_internal(
                               load_self_pointer_node,
@@ -683,19 +683,19 @@ implementation
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
-                      para:=ccallparanode.create(
+                      para:=compiler.ccallparanode(
                                 cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
-                            ccallparanode.create(
+                            compiler.ccallparanode(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype,
                                     compiler),
-                            ccallparanode.create(
+                            compiler.ccallparanode(
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype,
                                     compiler),
-                            nil,compiler),compiler),compiler);
+                            nil)));
                       addstatement(newstatement,
                           compiler.ccallnode_intern('fpc_help_destructor',para));
                     end
@@ -861,19 +861,19 @@ implementation
                       { object without destructor, call 'fail' helper }
                       addstatement(newstatement,
                         compiler.ccallnode_intern('fpc_help_fail',
-                          ccallparanode.create(
+                          compiler.ccallparanode(
                             cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false,compiler),
-                          ccallparanode.create(
+                          compiler.ccallparanode(
                             ctypeconvnode.create_internal(
                               load_vmt_pointer_node,
                               voidpointertype,
                               compiler),
-                          ccallparanode.create(
+                          compiler.ccallparanode(
                             ctypeconvnode.create_internal(
                               load_self_pointer_node,
                               voidpointertype,
                               compiler),
-                          nil,compiler),compiler),compiler))
+                          nil))))
                       );
                     { then re-raise the exception }
                     addstatement(newstatement,craisenode.create(nil,nil,nil,compiler));

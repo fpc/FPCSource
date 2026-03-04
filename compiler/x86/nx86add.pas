@@ -1444,8 +1444,8 @@ unit nx86add;
                                 ConstNode:=cordconstnode.create(shift, u8inttype, False, compiler);
                                 ConstNode.resultdef:=u8inttype;
                                 ThisNode:=cinlinenode.createintern(in_ror_x_y,false,
-                                  ccallparanode.create(ConstNode,
-                                  ccallparanode.create(ThisNode, nil, compiler), compiler), compiler);
+                                  compiler.ccallparanode(ConstNode,
+                                  compiler.ccallparanode(ThisNode, nil)), compiler);
 
                                 ThisNode.resultdef:=ThisDef;
 
@@ -1555,8 +1555,8 @@ unit nx86add;
                                 ConstNode:=cordconstnode.create(shift, u8inttype, False, compiler);
                                 ConstNode.resultdef:=u8inttype;
                                 ThisNode:=cinlinenode.createintern(in_ror_x_y,false,
-                                  ccallparanode.create(ConstNode,
-                                  ccallparanode.create(ThisNode, nil, compiler), compiler), compiler);
+                                  compiler.ccallparanode(ConstNode,
+                                  compiler.ccallparanode(ThisNode, nil)), compiler);
 
                                 ThisNode.resultdef:=ThisDef;
 

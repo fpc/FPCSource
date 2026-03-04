@@ -86,7 +86,7 @@ implementation
             else if not is_signed(left.resultdef) then
               begin
                 fname := 'fpc_qword_to_double';
-                result := compiler.ccallnode_intern(fname,ccallparanode.create(left,nil));
+                result := compiler.ccallnode_intern(fname,compiler.ccallparanode(left,nil));
                 left:=nil;
                 if (tfloatdef(resultdef).floattype=s32real) then
                   inserttypeconv(result,s32floattype);

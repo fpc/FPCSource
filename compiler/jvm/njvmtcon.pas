@@ -112,10 +112,10 @@ implementation
           end;
         // (const s: unicodestring; var arr: array of shortint; startintdex, len: longint);
         addstatement(statmnt,compiler.ccallnode_intern('fpc_tcon_'+procvariant+'_array_from_string',
-          ccallparanode.create(genintconstnode(arrstringdata.arrdatalen),
-            ccallparanode.create(genintconstnode(arrstringdata.arrdatastart),
-              ccallparanode.create(arrstringdata.arraybase.getcopy,
-                ccallparanode.create(cstringconstnode.createunistr(wstr),nil))))));
+          compiler.ccallparanode(genintconstnode(arrstringdata.arrdatalen),
+            compiler.ccallparanode(genintconstnode(arrstringdata.arrdatastart),
+              compiler.ccallparanode(arrstringdata.arraybase.getcopy,
+                compiler.ccallparanode(cstringconstnode.createunistr(wstr),nil))))));
 
         inc(arrstringdata.arrdatastart,arrstringdata.arrdatalen);
         arrstringdata.arrstring:='';

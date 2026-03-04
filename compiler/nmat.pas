@@ -536,8 +536,8 @@ implementation
             internalerror(2015070501);
         end;
 
-        result := compiler.ccallnode_intern(procname,ccallparanode.create(left,
-          ccallparanode.create(right,nil)));
+        result := compiler.ccallnode_intern(procname,compiler.ccallparanode(left,
+          compiler.ccallparanode(right,nil)));
         left := nil;
         right := nil;
         firstpass(result);
@@ -582,8 +582,8 @@ implementation
         else
           procname := procname + 'qword';
 
-        result := compiler.ccallnode_intern(procname,ccallparanode.create(left,
-          ccallparanode.create(right,nil,compiler),compiler));
+        result := compiler.ccallnode_intern(procname,compiler.ccallparanode(left,
+          compiler.ccallparanode(right,nil)));
         left := nil;
         right := nil;
         firstpass(result);
@@ -648,8 +648,8 @@ implementation
                       masknode:=
                         compiler.caddnode(andn,
                           cinlinenode.create(in_sar_x_y,false,
-                            ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
-                            ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler),compiler),
+                            compiler.ccallparanode(cordconstnode.create(shiftval,u8inttype,false,compiler),
+                            compiler.ccallparanode(compiler.ctemprefnode(temp),nil)),
                             compiler
                           ),
                           cordconstnode.create(tcgint((qword(1) shl power)-1),
@@ -660,18 +660,18 @@ implementation
                       addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                         cunaryminusnode.create(
                           cinlinenode.create(in_sar_x_y,false,
-                            ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
-                            ccallparanode.create(compiler.caddnode(addn,compiler.ctemprefnode(temp),
-                              masknode),nil,compiler
-                            ),compiler),compiler),compiler),compiler)
+                            compiler.ccallparanode(cordconstnode.create(power,u8inttype,false,compiler),
+                            compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
+                              masknode),nil
+                            )),compiler),compiler),compiler)
                       )
                     else
                       addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                         cinlinenode.create(in_sar_x_y,false,
-                          ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
-                          ccallparanode.create(compiler.caddnode(addn,compiler.ctemprefnode(temp),
-                            masknode),nil,compiler
-                          ),compiler),compiler),compiler)
+                          compiler.ccallparanode(cordconstnode.create(power,u8inttype,false,compiler),
+                          compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
+                            masknode),nil
+                          )),compiler),compiler)
                       );
                     addstatement(statements,compiler.ctempdeletenode(temp));
                     addstatement(statements,compiler.ctempdeletenode_normal_temp(resulttemp));
@@ -711,8 +711,8 @@ implementation
                   masknode:=
                     compiler.caddnode(andn,
                       cinlinenode.create(in_sar_x_y,false,
-                        ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
-                        ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler),compiler),
+                        compiler.ccallparanode(cordconstnode.create(shiftval,u8inttype,false,compiler),
+                        compiler.ccallparanode(compiler.ctemprefnode(temp),nil)),
                         compiler
                       ),
                       cordconstnode.create(tcgint((qword(1) shl power)-1),
@@ -990,8 +990,8 @@ implementation
           procname := 'fpc_shr_'+procname;
         { this order of parameters works at least for the arm,
           however it should work for any calling conventions (FK) }
-        result := compiler.ccallnode_intern(procname,ccallparanode.create(right,
-          ccallparanode.create(left,nil)));
+        result := compiler.ccallnode_intern(procname,compiler.ccallparanode(right,
+          compiler.ccallparanode(left,nil)));
         left := nil;
         right := nil;
         firstpass(result);
@@ -1233,7 +1233,7 @@ implementation
                   else
                     internalerror(2005082802);
                 end;
-                result:=compiler.ccallnode_intern(procname,ccallparanode.create(left,nil,compiler));
+                result:=compiler.ccallnode_intern(procname,compiler.ccallparanode(left,nil));
               end;
 
             left:=nil;

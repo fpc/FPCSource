@@ -233,7 +233,7 @@ function taddsstringcsstringoptnode.pass_1: tnode;
 begin
   { create the call to the concat routine both strings as arguments }
   result := compiler.ccallnode_intern('fpc_shortstr_append_shortstr',
-    ccallparanode.create(left,ccallparanode.create(right,nil,compiler),compiler));
+    compiler.ccallparanode(left,compiler.ccallparanode(right,nil)));
   left:=nil;
   right:=nil;
 end;
@@ -357,13 +357,12 @@ begin
      ) and
      valid_for_var(aktassignmentnode.left,false) then
     begin
-      para:=ccallparanode.create(
+      para:=compiler.ccallparanode(
               arrp,
-              ccallparanode.create(aktassignmentnode.left.getcopy,nil,compiler),
-              compiler
+              compiler.ccallparanode(aktassignmentnode.left.getcopy,nil)
             );
       if is_ansistring(p.resultdef) then
-        para:=ccallparanode.create(
+        para:=compiler.ccallparanode(
                 cordconstnode.create(
                   { don't use getparaencoding(), we have to know
                     when the result is rawbytestring }
@@ -372,8 +371,7 @@ begin
                   true,
                   compiler
                 ),
-                para,
-                compiler
+                para
               );
       result:=compiler.ccallnode_intern(
                 'fpc_'+tstringdef(p.resultdef).stringtypname+'_concat_multi',
@@ -394,15 +392,14 @@ begin
          is_managed_type(p.resultdef) then
         addstatement(newstatement,cinlinenode.create(in_setlength_x,
           false,
-          ccallparanode.create(genintconstnode(0,compiler),
-            ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
-      para:=ccallparanode.create(
+          compiler.ccallparanode(genintconstnode(0,compiler),
+            compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+      para:=compiler.ccallparanode(
               arrp,
-              ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),
-              compiler
+              compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)
             );
       if is_ansistring(p.resultdef) then
-        para:=ccallparanode.create(
+        para:=compiler.ccallparanode(
                 cordconstnode.create(
                   { don't use getparaencoding(), we have to know
                     when the result is rawbytestring }
@@ -411,8 +408,7 @@ begin
                   true,
                   compiler
                 ),
-                para,
-                compiler
+                para
               );
       addstatement(
         newstatement,
@@ -472,14 +468,13 @@ begin
      (aktassignmentnode.left.resultdef=p.resultdef) and
      valid_for_var(aktassignmentnode.left,false) then
     begin
-      para:=ccallparanode.create(
+      para:=compiler.ccallparanode(
               arrp,
-            ccallparanode.create(
+            compiler.ccallparanode(
               caddrnode.create_internal(crttinode.create(tstoreddef(p.resultdef),initrtti,rdt_normal,compiler),compiler),
-            ccallparanode.create(
-              ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidpointertype,compiler),nil,compiler),
-            compiler
-          ),compiler);
+            compiler.ccallparanode(
+              ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidpointertype,compiler),nil)
+          ));
       result:=compiler.ccallnode_intern(
                 'fpc_dynarray_concat_multi',
                 para
@@ -499,16 +494,15 @@ begin
          is_managed_type(p.resultdef) then
         addstatement(newstatement,cinlinenode.create(in_setlength_x,
           false,
-          ccallparanode.create(genintconstnode(0,compiler),
-            ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
-      para:=ccallparanode.create(
+          compiler.ccallparanode(genintconstnode(0,compiler),
+            compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+      para:=compiler.ccallparanode(
               arrp,
-            ccallparanode.create(
+            compiler.ccallparanode(
               caddrnode.create_internal(crttinode.create(tstoreddef(p.resultdef),initrtti,rdt_normal,compiler),compiler),
-            ccallparanode.create(
-              ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidpointertype,compiler),nil,compiler),
-            compiler
-          ),compiler);
+            compiler.ccallparanode(
+              ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidpointertype,compiler),nil)
+          ));
       addstatement(
         newstatement,
         compiler.ccallnode_intern(

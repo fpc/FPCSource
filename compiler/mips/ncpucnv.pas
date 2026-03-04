@@ -91,7 +91,7 @@ begin
         fname := 'fpc_int64_to_double'
       else
         fname := 'fpc_qword_to_double';
-      result := compiler.ccallnode_intern(fname,ccallparanode.create(
+      result := compiler.ccallnode_intern(fname,compiler.ccallparanode(
         left,nil));
       left:=nil;
       if (tfloatdef(resultdef).floattype=s32real) then

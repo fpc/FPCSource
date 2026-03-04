@@ -351,12 +351,12 @@ interface
 
         if is_hugepointer(left.resultdef) then
           result := compiler.ccallnode_intern(procname,
-            ccallparanode.create(right,
-            ccallparanode.create(left,nil)))
+            compiler.ccallparanode(right,
+            compiler.ccallparanode(left,nil)))
         else
           result := compiler.ccallnode_intern(procname,
-            ccallparanode.create(left,
-            ccallparanode.create(right,nil)));
+            compiler.ccallparanode(left,
+            compiler.ccallparanode(right,nil)));
         left := nil;
         right := nil;
         firstpass(result);
@@ -404,8 +404,8 @@ interface
         end;
 
         result := compiler.ccallnode_intern(procname,
-          ccallparanode.create(right,
-          ccallparanode.create(left,nil)));
+          compiler.ccallparanode(right,
+          compiler.ccallparanode(left,nil)));
         left := nil;
         right := nil;
         firstpass(result);

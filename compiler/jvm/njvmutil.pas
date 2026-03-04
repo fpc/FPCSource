@@ -102,8 +102,8 @@ implementation
             interpret them correctly.
           }
           result:=cinlinenode.create(in_setlength_x,false,
-            ccallparanode.create(genintconstnode(0),
-              ccallparanode.create(p,nil)));
+            compiler.ccallparanode(genintconstnode(0),
+              compiler.ccallparanode(p,nil)));
         end
       else if force then
         begin
@@ -128,9 +128,9 @@ implementation
                   p:=caddrnode.create(p);
                   include(taddrnode(p).addrnodeflags,anf_typedaddr);
                 end;
-              paras:=ccallparanode.create(ctypeconvnode.create_explicit(p,
+              paras:=compiler.ccallparanode(ctypeconvnode.create_explicit(p,
                 search_system_type('TJOBJECTARRAY').typedef),nil);
-              paras:=ccallparanode.create(genintconstnode(normaldim),paras);
+              paras:=compiler.ccallparanode(genintconstnode(normaldim),paras);
               if is_wide_or_unicode_string(def) then
                 proc:='fpc_initialize_array_unicodestring'
               else if is_ansistring(def) then
@@ -142,7 +142,7 @@ implementation
                   result:=internalstatements(stat);
                   temp:=compiler.ctempcreatenode(def,def.size,tt_persistent,true);
                   addstatement(stat,temp);
-                  paras:=ccallparanode.create(compiler.ctemprefnode(temp),paras);
+                  paras:=compiler.ccallparanode(compiler.ctemprefnode(temp),paras);
                   proc:='fpc_initialize_array_record'
                 end;
               if assigned(stat) then
@@ -248,14 +248,14 @@ implementation
             begin
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
-              initnode:=ccallparanode.create(
+              initnode:=compiler.ccallparanode(
                 ctypeconvnode.create_explicit(
                   caddrnode.create_internal(compiler.ctemprefnode(temp)),
                   java_jlobject),
                 nil);
               jvmgetarraydimdef(sym.vardef,eledef,ndim);
-              initnode:=ccallparanode.create(genintconstnode(ndim),initnode);
-              initnode:=ccallparanode.create(
+              initnode:=compiler.ccallparanode(genintconstnode(ndim),initnode);
+              initnode:=compiler.ccallparanode(
                 cordconstnode.create(ord(jvmarrtype_setlength(eledef)),
                   cwidechartype,false),
                 initnode);
@@ -285,8 +285,8 @@ implementation
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,cinlinenode.create(in_setlength_x,false,
-                ccallparanode.create(genintconstnode(0),
-                  ccallparanode.create(compiler.ctemprefnode(temp),nil))
+                compiler.ccallparanode(genintconstnode(0),
+                  compiler.ccallparanode(compiler.ctemprefnode(temp),nil))
                 )
               );
               initnode:=compiler.ctemprefnode(temp);
@@ -294,7 +294,7 @@ implementation
 
           if assigned(initnode) and
              not initnodefinished then
-            initnode:=ccallparanode.create(ctypeconvnode.create_explicit(initnode,java_jlobject),nil);
+            initnode:=compiler.ccallparanode(ctypeconvnode.create_explicit(initnode,java_jlobject),nil);
           addstatement(stat,cassignmentnode.create(
             cloadnode.create(vs,vs.owner),
             compiler.ccallnode_internmethod(

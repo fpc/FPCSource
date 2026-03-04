@@ -47,7 +47,7 @@ unit optloadmodifystore;
 
     uses
       globtype,globals,verbose,nutils,compinnr,
-      defutil,defcmp,htypechk,pass_1,constexp,
+      defutil,defcmp,htypechk,pass_1,constexp,compiler,
       nadd,ncal,ncon,ncnv,ninl,nmat,
       symdef;
 
@@ -79,8 +79,8 @@ unit optloadmodifystore;
                 else
                   newinlinenodetype:=in_dec_x;
                 result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ccallparanode.create(
-                  tinlinenode(right).left,nil,compiler),compiler);
+                  newinlinenodetype,false,compiler.ccallparanode(
+                  tinlinenode(right).left,nil),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -117,12 +117,12 @@ unit optloadmodifystore;
                 end;
                 if right.nodetype in [addn,subn] then
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    taddnode(right).left,ccallparanode.create(taddnode(right).right,nil,compiler),compiler),compiler)
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    taddnode(right).left,compiler.ccallparanode(taddnode(right).right,nil)),compiler)
                 else
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    taddnode(right).right,ccallparanode.create(taddnode(right).left,nil,compiler),compiler),compiler);
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    taddnode(right).right,compiler.ccallparanode(taddnode(right).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -174,12 +174,12 @@ unit optloadmodifystore;
                 inserttypeconv_internal(taddnode(ttypeconvnode(right).left).right,left.resultdef,compiler);
                 if ttypeconvnode(right).left.nodetype in [addn,subn] then
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,ccallparanode.create(taddnode(ttypeconvnode(right).left).right,nil,compiler),compiler),compiler)
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,compiler.ccallparanode(taddnode(ttypeconvnode(right).left).right,nil)),compiler)
                 else
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    taddnode(ttypeconvnode(right).left).right,ccallparanode.create(ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,nil,compiler),compiler),compiler);
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    taddnode(ttypeconvnode(right).left).right,compiler.ccallparanode(ttypeconvnode(taddnode(ttypeconvnode(right).left).left).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -214,12 +214,12 @@ unit optloadmodifystore;
                 end;
                 if right.nodetype=addn then
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    taddnode(right).right,ccallparanode.create(taddnode(right).left,nil,compiler),compiler),compiler)
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    taddnode(right).right,compiler.ccallparanode(taddnode(right).left,nil)),compiler)
                 else
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    taddnode(right).left,ccallparanode.create(taddnode(right).right,nil,compiler),compiler),compiler);
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    taddnode(right).left,compiler.ccallparanode(taddnode(right).right,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -268,12 +268,12 @@ unit optloadmodifystore;
                 inserttypeconv_internal(taddnode(ttypeconvnode(right).left).left,left.resultdef,compiler);
                 if ttypeconvnode(right).left.nodetype=addn then
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    ttypeconvnode(taddnode(ttypeconvnode(right).left).right).left,ccallparanode.create(taddnode(ttypeconvnode(right).left).left,nil,compiler),compiler),compiler)
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    ttypeconvnode(taddnode(ttypeconvnode(right).left).right).left,compiler.ccallparanode(taddnode(ttypeconvnode(right).left).left,nil)),compiler)
                 else
                   result:=cinlinenode.createintern(
-                    newinlinenodetype,false,ccallparanode.create(
-                    taddnode(ttypeconvnode(right).left).left,ccallparanode.create(ttypeconvnode(taddnode(ttypeconvnode(right).left).right).left,nil,compiler),compiler),compiler);
+                    newinlinenodetype,false,compiler.ccallparanode(
+                    taddnode(ttypeconvnode(right).left).left,compiler.ccallparanode(ttypeconvnode(taddnode(ttypeconvnode(right).left).right).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -372,8 +372,8 @@ unit optloadmodifystore;
                     internalerror(2017051201);
                 end;
                 result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ccallparanode.create(
-                  tshlshrnode(right).right,ccallparanode.create(tshlshrnode(right).left,nil,compiler),compiler),compiler);
+                  newinlinenodetype,false,compiler.ccallparanode(
+                  tshlshrnode(right).right,compiler.ccallparanode(tshlshrnode(right).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -420,8 +420,8 @@ unit optloadmodifystore;
                 end;
                 inserttypeconv_internal(tshlshrnode(ttypeconvnode(right).left).right,left.resultdef,compiler);
                 result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ccallparanode.create(
-                  tshlshrnode(ttypeconvnode(right).left).right,ccallparanode.create(ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left,nil,compiler),compiler),compiler);
+                  newinlinenodetype,false,compiler.ccallparanode(
+                  tshlshrnode(ttypeconvnode(right).left).right,compiler.ccallparanode(ttypeconvnode(tshlshrnode(ttypeconvnode(right).left).left).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -466,8 +466,8 @@ unit optloadmodifystore;
                     internalerror(2017071701);
                 end;
                 result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ccallparanode.create(
-                  cordconstnode.create(1,u8inttype,false,compiler),ccallparanode.create(tinlinenode(right).left,nil,compiler),compiler),compiler);
+                  newinlinenodetype,false,compiler.ccallparanode(
+                  cordconstnode.create(1,u8inttype,false,compiler),compiler.ccallparanode(tinlinenode(right).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -517,9 +517,9 @@ unit optloadmodifystore;
                     internalerror(2017071801);
                 end;
                 result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ccallparanode.create(
-                  cordconstnode.create(1,u8inttype,false,compiler),ccallparanode.create(
-                  ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left,nil,compiler),compiler),compiler);
+                  newinlinenodetype,false,compiler.ccallparanode(
+                  cordconstnode.create(1,u8inttype,false,compiler),compiler.ccallparanode(
+                  ttypeconvnode(tinlinenode(ttypeconvnode(right).left).left).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -562,9 +562,9 @@ unit optloadmodifystore;
                     internalerror(2017071702);
                 end;
                 result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ccallparanode.create(
+                  newinlinenodetype,false,compiler.ccallparanode(
                   tcallparanode(tinlinenode(right).left).left,
-                  ccallparanode.create(tcallparanode(tcallparanode(tinlinenode(right).left).right).left,nil,compiler),compiler),compiler);
+                  compiler.ccallparanode(tcallparanode(tcallparanode(tinlinenode(right).left).right).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;
@@ -617,9 +617,9 @@ unit optloadmodifystore;
                     internalerror(2017072002);
                 end;
                 result:=cinlinenode.createintern(
-                  newinlinenodetype,false,ccallparanode.create(
+                  newinlinenodetype,false,compiler.ccallparanode(
                   tcallparanode(tinlinenode(ttypeconvnode(right).left).left).left,
-                  ccallparanode.create(ttypeconvnode(tcallparanode(tcallparanode(tinlinenode(ttypeconvnode(right).left).left).right).left).left,nil,compiler),compiler),compiler);
+                  compiler.ccallparanode(ttypeconvnode(tcallparanode(tcallparanode(tinlinenode(ttypeconvnode(right).left).left).right).left).left,nil)),compiler);
                 result.localswitches:=localswitches;
                 result.fileinfo:=fileinfo;
                 result.verbosity:=verbosity;

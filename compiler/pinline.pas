@@ -406,8 +406,8 @@ implementation
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
-                     para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true,compiler),nil,compiler);
+                     para := compiler.ccallparanode(cordconstnode.create
+                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true,compiler),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          compiler.ctemprefnode(temp),
                          compiler.ccallnode_intern('fpc_getmem',para),compiler));
@@ -446,9 +446,9 @@ implementation
 
                      { create call to fpc_freemem }
                      if not assigned(temp) then
-                       para := ccallparanode.create(p,nil,compiler)
+                       para := compiler.ccallparanode(p,nil)
                      else
-                       para := ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler);
+                       para := compiler.ccallparanode(compiler.ctemprefnode(temp),nil);
                      addstatement(newstatement,compiler.ccallnode_intern('fpc_freemem',para));
                      if assigned(temp) then
                        addstatement(newstatement,compiler.ctempdeletenode(temp));
@@ -592,7 +592,7 @@ implementation
                     cp:=tstringdef(strpara.resultdef).encoding;
                     if (cp=globals.CP_NONE) then
                       cp:=0;
-                    paras:=ccallparanode.create(genintconstnode(cp,compiler),paras,compiler);
+                    paras:=compiler.ccallparanode(genintconstnode(cp,compiler),paras);
                   end;
                 procname:='fpc_setstring_'+tstringdef(strpara.resultdef).stringtypname;
                 { decide which version to call based on the second parameter }
@@ -651,12 +651,12 @@ implementation
          begin
            destppn:=tcallparanode(ppn.right);
            { create call to fpc_initialize/finalize_array }
-           npara:=ccallparanode.create(ctypeconvnode.create
+           npara:=compiler.ccallparanode(ctypeconvnode.create
                      (ppn.left,s32inttype,compiler),
-                  ccallparanode.create(caddrnode.create_internal
+                  compiler.ccallparanode(caddrnode.create_internal
                      (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal,compiler),compiler),
-                  ccallparanode.create(caddrnode.create_internal
-                     (destppn.left,compiler),nil,compiler),compiler),compiler);
+                  compiler.ccallparanode(caddrnode.create_internal
+                     (destppn.left,compiler),nil)));
            if isinit then
              newblock:=compiler.ccallnode_intern('fpc_initialize_array',npara)
            else

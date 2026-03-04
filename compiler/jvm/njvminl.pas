@@ -139,7 +139,7 @@ implementation
                   the last array an array of length 0 }
                 if not assigned(para.right) then
                   begin
-                    para.right:=ccallparanode.create(
+                    para.right:=compiler.ccallparanode(
                       cordconstnode.create(0,s32inttype,false),nil);
                     tcallparanode(para.right).get_paratype;
                     break;
@@ -211,11 +211,11 @@ implementation
             { construct the call to
                 fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar) }
             result:=compiler.ccallnode_intern('FPC_DYNARRAY_COPY',
-              ccallparanode.create(cordconstnode.create(ord(finaltype),cwidechartype,false),
-                ccallparanode.create(genintconstnode(ndims),
-                  ccallparanode.create(len,
-                    ccallparanode.create(start,
-                      ccallparanode.create(ctypeconvnode.create_explicit(arr,java_jlobject),nil)
+              compiler.ccallparanode(cordconstnode.create(ord(finaltype),cwidechartype,false),
+                compiler.ccallparanode(genintconstnode(ndims),
+                  compiler.ccallparanode(len,
+                    compiler.ccallparanode(start,
+                      compiler.ccallparanode(ctypeconvnode.create_explicit(arr,java_jlobject),nil)
                     )
                   )
                 )
@@ -424,13 +424,13 @@ implementation
           begin
             inc(ndims);
             tcallparanode(ppn).right:=
-              ccallparanode.create(
+              compiler.ccallparanode(
                 genintconstnode(tarraydef(eledef).elecount),nil);
             ppn:=tcallparanode(ppn).right;
             eledef:=tarraydef(eledef).elementdef;
           end;
         { prepend type parameter for the array }
-        newparas:=ccallparanode.create(ctypenode.create(left.resultdef),newparas);
+        newparas:=compiler.ccallparanode(ctypenode.create(left.resultdef),newparas);
         ttypenode(tcallparanode(newparas).left).allowed:=true;
         { node to create the new array }
         newnode:=cinlinenode.create(in_new_x,false,newparas);
@@ -486,9 +486,9 @@ implementation
         tcallparanode(newparas).left:=ctypeconvnode.create_explicit(tcallparanode(newparas).left,objarraydef);
         newnode:=ctypeconvnode.create_explicit(newnode,objarraydef);
         { prepend new }
-        newparas:=ccallparanode.create(newnode,newparas);
+        newparas:=compiler.ccallparanode(newnode,newparas);
         { prepend deepcopy }
-        newparas:=ccallparanode.create(cordconstnode.create(0,pasbool1type,false),newparas);
+        newparas:=compiler.ccallparanode(cordconstnode.create(0,pasbool1type,false),newparas);
         { call the right setlength helper }
         if ndims>1 then
           begin
@@ -496,9 +496,9 @@ implementation
                eletype=finaltype, ndim=ndims, deepcopy=false, new=newnode,
                assignmenttarget=tcallparanode(left).left }
             { prepend ndim }
-            newparas:=ccallparanode.create(cordconstnode.create(ndims,s32inttype,false),newparas);
+            newparas:=compiler.ccallparanode(cordconstnode.create(ndims,s32inttype,false),newparas);
             { prepend eletype }
-            newparas:=ccallparanode.create(cordconstnode.create(ord(finaltype),cwidechartype,false),newparas);
+            newparas:=compiler.ccallparanode(cordconstnode.create(ord(finaltype),cwidechartype,false),newparas);
           end
         else
           begin
@@ -594,7 +594,7 @@ implementation
             addstatement(newstatement,lentemp);
             { if-condition: assigned(stringclass(stringvar))? }
             ifcond:=cinlinenode.create(in_assigned_x,false,
-              ccallparanode.create(stringtemp.getcopy,nil));
+              compiler.ccallparanode(stringtemp.getcopy,nil));
             { then-path: call length() method }
             psym:=search_struct_member(tabstractrecorddef(stringclass),'LENGTH');
             if not assigned(psym) or

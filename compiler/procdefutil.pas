@@ -827,7 +827,7 @@ implementation
             para:=tparavarsym(pd.paras[i]);
             if vo_is_hidden_para in para.varoptions then
               continue;
-            result:=ccallparanode.create(cloadnode.create(para,pd.parast,compiler),result,compiler);
+            result:=compiler.ccallparanode(cloadnode.create(para,pd.parast,compiler),result);
           end;
       end;
 
@@ -1565,7 +1565,7 @@ implementation
                   begin
                     if not (vo_is_hidden_para in paraold.parasym.varoptions) then
                       begin
-                        paranew:=ccallparanode.create(paraold.left,paranew,compiler);
+                        paranew:=compiler.ccallparanode(paraold.left,paranew);
                         paraold.left:=nil;
                       end;
                     paraold:=tcallparanode(paraold.right);

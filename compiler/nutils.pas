@@ -696,13 +696,12 @@ implementation
             { add a vmt validity check }
             vmt_temp:=compiler.ctempcreatenode_value(result.resultdef,result.resultdef.size,tt_persistent,true,result);
             addstatement(stat,vmt_temp);
-            paras:=ccallparanode.create(compiler.ctemprefnode(vmt_temp),nil,compiler);
+            paras:=compiler.ccallparanode(compiler.ctemprefnode(vmt_temp),nil);
             if cs_check_object in current_settings.localswitches then
               begin
-                paras:=ccallparanode.create(
+                paras:=compiler.ccallparanode(
                   cloadvmtaddrnode.create(ctypenode.create(obj_def,compiler),compiler),
-                  paras,
-                  compiler
+                  paras
                 );
                 addstatement(stat,
                   compiler.ccallnode_intern(

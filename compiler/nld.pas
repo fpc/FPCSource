@@ -765,7 +765,7 @@ implementation
                 values need to be boxed first }
               if (right.resultdef.typ in [orddef,floatdef]) then
                 begin
-                  right:=cinlinenode.create(in_box_x,false,ccallparanode.create(right,nil,compiler),compiler);
+                  right:=cinlinenode.create(in_box_x,false,compiler.ccallparanode(right,nil),compiler);
                   typecheckpass(right);
                 end;
             end;
@@ -797,8 +797,8 @@ implementation
            { generate a setlength node so it can be intercepted by
              target-specific code }
            result:=cinlinenode.create(in_setlength_x,false,
-             ccallparanode.create(genintconstnode(0,compiler),
-               ccallparanode.create(left,nil,compiler),compiler),compiler);
+             compiler.ccallparanode(genintconstnode(0,compiler),
+               compiler.ccallparanode(left,nil)),compiler);
            left:=nil;
            exit;
          end;
@@ -902,13 +902,13 @@ implementation
                { tf_winlikewidestring assignments below                 }
                exclude(left.flags,nf_isproperty);
                hp:=
-                 ccallparanode.create(
+                 compiler.ccallparanode(
                    cguidconstnode.create(tobjectdef(left.resultdef).iidguid^,compiler),
-                 ccallparanode.create(
+                 compiler.ccallparanode(
                    ctypeconvnode.create_internal(right,voidpointertype,compiler),
-                 ccallparanode.create(
+                 compiler.ccallparanode(
                    ctypeconvnode.create_internal(left,voidpointertype,compiler),
-                   nil,compiler),compiler),compiler);
+                   nil)));
                result:=compiler.ccallnode_intern('fpc_intf_assign_by_iid',hp);
                left:=nil;
                right:=nil;
@@ -1000,9 +1000,9 @@ implementation
                  { remove property flag to avoid errors, see comments for }
                  { tf_winlikewidestring assignments below                 }
                  exclude(left.flags, nf_isproperty);
-                 hp:=ccallparanode.create
+                 hp:=compiler.ccallparanode
                        (right,
-                  ccallparanode.create(left,nil,compiler),compiler);
+                  compiler.ccallparanode(left,nil));
                  result:=compiler.ccallnode_intern('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp);
                  firstpass(result);
                  left:=nil;
@@ -1019,13 +1019,13 @@ implementation
             not is_const(left) and
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
-           hp:=ccallparanode.create(caddrnode.create_internal(
+           hp:=compiler.ccallparanode(caddrnode.create_internal(
                   crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
-               ccallparanode.create(ctypeconvnode.create_internal(
+               compiler.ccallparanode(ctypeconvnode.create_internal(
                  caddrnode.create_internal(left,compiler),voidpointertype,compiler),
-               ccallparanode.create(ctypeconvnode.create_internal(
+               compiler.ccallparanode(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right,compiler),voidpointertype,compiler),
-               nil,compiler),compiler),compiler);
+               nil)));
            if tempreturnfromcall then
              result:=compiler.ccallnode_intern('fpc_copy_with_move_semantics_proc',hp)
            else
@@ -1045,11 +1045,11 @@ implementation
            { tf_winlikewidestring assignments below                 }
            exclude(left.flags,nf_isproperty);
            hdef:=search_system_type('TVARDATA').typedef;
-           hp:=ccallparanode.create(ctypeconvnode.create_internal(
+           hp:=compiler.ccallparanode(ctypeconvnode.create_internal(
                  right,hdef,compiler),
-               ccallparanode.create(ctypeconvnode.create_internal(
+               compiler.ccallparanode(ctypeconvnode.create_internal(
                  left,hdef,compiler),
-               nil,compiler),compiler);
+               nil));
            result:=compiler.ccallnode_intern('fpc_variant_copy',hp);
            firstpass(result);
            left:=nil;
@@ -1095,14 +1095,14 @@ implementation
         {     is a property which refers to a field without a setter call, we will not get }
         {     an error about trying to pass a property as a var parameter                  }
         exclude(left.flags,nf_isproperty);
-        hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype,compiler),
-            ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype,compiler),
-            nil,compiler),compiler);
+        hp:=compiler.ccallparanode(ctypeconvnode.create_internal(right,voidpointertype,compiler),
+            compiler.ccallparanode(ctypeconvnode.create_internal(left,voidpointertype,compiler),
+            nil));
         if needrtti then
-          hp:=ccallparanode.create(
+          hp:=compiler.ccallparanode(
             caddrnode.create_internal(
               crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
-            hp,compiler);
+            hp);
         result:=compiler.ccallnode_intern(hs,hp);
         firstpass(result);
         left:=nil;

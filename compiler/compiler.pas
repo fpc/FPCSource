@@ -226,6 +226,7 @@ type
     function ccallnode_internreturn(const name: string; params: tnode; returnnode : tnode):tcallnode; inline;
     function ccallnode_internmethod(mp: tnode; const name: string; params: tnode):tcallnode; inline;
     function ccallnode_internmethodres(mp: tnode; const name: string; params: tnode; res:tdef):tcallnode; inline;
+    function ccallparanode(expr,next : tnode):tcallparanode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -695,6 +696,11 @@ function TCompilerHelper.ccallnode_internmethodres(mp: tnode;
   const name: string; params: tnode; res: tdef): tcallnode; inline;
 begin
   result:=ncal.ccallnode.createinternmethodres(mp,name,params,res,self);
+end;
+
+function TCompilerHelper.ccallparanode(expr, next: tnode): tcallparanode; inline;
+begin
+  result:=ncal.ccallparanode.create(expr,next,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

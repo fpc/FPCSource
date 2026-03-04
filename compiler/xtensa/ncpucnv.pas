@@ -61,7 +61,7 @@ implementation
               s32real:
                 case tfloatdef(resultdef).floattype of
                   s64real:
-                    result:=ctypeconvnode.create_explicit(compiler.ccallnode_intern('float32_to_float64',ccallparanode.create(
+                    result:=ctypeconvnode.create_explicit(compiler.ccallnode_intern('float32_to_float64',compiler.ccallparanode(
                       ctypeconvnode.create_internal(left,search_system_type('FLOAT32REC').typedef),nil)),resultdef);
                   s32real:
                     begin
@@ -74,7 +74,7 @@ implementation
               s64real:
                 case tfloatdef(resultdef).floattype of
                   s32real:
-                    result:=ctypeconvnode.create_explicit(compiler.ccallnode_intern('float64_to_float32',ccallparanode.create(
+                    result:=ctypeconvnode.create_explicit(compiler.ccallnode_intern('float64_to_float32',compiler.ccallparanode(
                       ctypeconvnode.create_internal(left,search_system_type('FLOAT64').typedef),nil)),resultdef);
                   s64real:
                     begin
