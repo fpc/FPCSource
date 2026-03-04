@@ -195,8 +195,10 @@ type
     function GetLoopOptimizer: TLoopOptimizer; inline;
   public
     { node constructor helpers }
+    { nadd }
     function caddnode(tt : tnodetype;l,r : tnode):taddnode; inline;
     function caddnode_internal(tt:tnodetype;l,r:tnode):taddnode; inline;
+    { nbas }
     function cnothingnode:tnothingnode; inline;
     function cerrornode:terrornode; inline;
     function cspecializenode(l:tnode;g:boolean;s:tsym;u:boolean):tspecializenode; inline;
