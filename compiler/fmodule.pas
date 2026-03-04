@@ -115,7 +115,7 @@ interface
       end;
       tderefmaparray = array of tderefmaprec;
 
-      tqueue_module_event = procedure(m: tmodule) of object;
+      tfinish_module_event = procedure(m: tmodule) of object;
       trename_module_event = procedure(m: tmodule; const oldname: TSymStr) of object;
 
       { tused_unit }
@@ -323,9 +323,7 @@ interface
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
         function are_all_used_units_compiled: boolean;
-        class var finish_module: tqueue_module_event;
-        class var queue_module: tqueue_module_event;
-        class var rename_module: trename_module_event;
+        class var finish_module: tfinish_module_event;
         procedure addimportedsym(sym:TSymEntry; check_if_exists: boolean = true);
         procedure derefimportedsymbols;
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
@@ -1646,7 +1644,6 @@ implementation
         stringdispose(realmodulename);
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
-        rename_module(self,oldname);
         { also update asmlibrary names }
         current_asmdata.name:=modulename;
       end;

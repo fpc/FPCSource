@@ -523,7 +523,6 @@ var
                   realmodulename:=stringdup(newname);
                   stringdispose(modulename);
                   modulename:=stringdup(upper(newname));
-                  rename_module(self,oldmodulename);
                 end;
               Found:=openppufile;
             End;
@@ -571,7 +570,6 @@ var
                   realmodulename:=stringdup(newname);
                   stringdispose(modulename);
                   modulename:=stringdup(upper(newname));
-                  rename_module(self,oldmodulename);
                 end;
             end
            else
@@ -1588,7 +1586,6 @@ var
                  stringdispose(realmodulename);
                  modulename:=stringdup(upper(newmodulename));
                  realmodulename:=stringdup(newmodulename);
-                 rename_module(self,oldmodulename);
                end;
              ibextraheader:
                begin
@@ -2389,7 +2386,6 @@ var
         state:=ms_compile;
         if was_interfaced_compiled then
           setdefgeneration;
-        queue_module(self);  // save state
       end;
 
     procedure tppumodule.mark_recompile_needed(reason: trecompile_reason);
@@ -2533,7 +2529,6 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.continueloadppu ',modulename^,' delay state=',statestr);
             {$ENDIF}
-            queue_module(self); { save state }
             { loading unfinished or reset, restore current_module }
             set_current_module(old_module);
             exit;
@@ -2600,7 +2595,7 @@ var
           if do_reload then
           begin
             writeln('tppumodule.reload_module ',modulename^,' ',statestr,' RELOAD FAILED');
-            Internalerror(2026022411);
+            Internalerror(2026022413);
           end;
           exit;
         end;

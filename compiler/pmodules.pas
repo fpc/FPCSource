@@ -2361,6 +2361,9 @@ type
               linker.AddModuleFiles(sysinitmod);
             { Does any unit use checkpointer function }
             program_uses_checkpointer:=false;
+            { before freeing modules, free used_units }
+            curr.used_units.free;
+            curr.used_units:=TLinkedList.Create;
             { insert all .o files from all loaded units and
               unload the units, we don't need them anymore.
               Keep the curr because that is still needed }
