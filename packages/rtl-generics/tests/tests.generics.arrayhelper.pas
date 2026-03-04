@@ -50,6 +50,7 @@ type
     procedure Test_Min;
     procedure Test_Max;
     procedure Test_Contains;
+    procedure Test_Reverse;
   end;
 
 implementation
@@ -161,6 +162,24 @@ begin
   AssertFalse('Does not have 15',TArrayHelper<Integer>.Contains(A,14,TComparer<Integer>.Default));
   a:=[];
   AssertFalse('Empty does not have 15', TArrayHelper<Integer>.Contains(A,15,TComparer<Integer>.Default));
+end;
+
+procedure TTestArrayHelper.Test_Reverse;
+var
+  b,a: TArray<Integer>;
+  len,I : integer;
+begin
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  len:=Length(a);
+  TArrayHelper<Integer>.Reverse(a,b);
+  for I:=0 to Length(a)-1 do
+    AssertEquals('At index i',a[len-i-1],b[i]);
+  a := TArray<Integer>.Create(1,3,5,7,9,11,13,15,20);
+  b:=a;
+  len:=Length(a);
+  TArrayHelper<Integer>.Reverse(a,a);
+  for I:=0 to Length(b)-1 do
+    AssertEquals('At index i',a[len-i-1],b[i]);
 end;
 
 begin
