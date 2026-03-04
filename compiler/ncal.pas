@@ -641,7 +641,7 @@ implementation
               ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil,compiler),compiler),compiler),compiler))
             );
             if assigned(selftemp) then
-              addstatement(statements,ctempdeletenode.create(selftemp,compiler));
+              addstatement(statements,compiler.ctempdeletenode(selftemp));
           end
         else
           begin
@@ -653,7 +653,7 @@ implementation
               ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil,compiler),compiler),compiler),compiler))
             );
           end;
-        addstatement(statements,ctempdeletenode.create(params,compiler));
+        addstatement(statements,compiler.ctempdeletenode(params));
         if useresult then
           begin
             { clean up }
@@ -740,7 +740,7 @@ implementation
               end;
             left:=cderefnode.create(compiler.ctemprefnode(temp),compiler);
             firstpass(left);
-            callnode.add_done_statement(ctempdeletenode.create(temp,compiler));
+            callnode.add_done_statement(compiler.ctempdeletenode(temp));
           end;
       end;
 
@@ -795,7 +795,7 @@ implementation
                      { get its address }
                      lefttemp:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                      addstatement(initstat,lefttemp);
-                     addstatement(finistat,ctempdeletenode.create(lefttemp,compiler));
+                     addstatement(finistat,compiler.ctempdeletenode(lefttemp));
                      addstatement(initstat,
                        cassignmentnode.create(
                          compiler.ctemprefnode(lefttemp),
@@ -958,7 +958,7 @@ implementation
                 left:=compiler.ctemprefnode(paratemp);
               end;
             { add the finish statements to the call cleanup block }
-            addstatement(finistat,ctempdeletenode.create(paratemp,compiler));
+            addstatement(finistat,compiler.ctempdeletenode(paratemp));
             callnode.add_done_statement(finiblock);
 
             firstpass(fparainit);
@@ -2370,7 +2370,7 @@ implementation
                 compiler.ctemprefnode(ptemp),
                 loadp,
                 compiler));
-            add_done_statement(ctempdeletenode.create(ptemp,compiler));
+            add_done_statement(compiler.ctempdeletenode(ptemp));
             { new tree is only a temp reference }
             p:=refp;
             typecheckpass(p);
@@ -3633,7 +3633,7 @@ implementation
                   a tempdeletenode and not after converting it to a normal temp }
                 if not(cnf_return_value_used in callnodeflags) and
                    (cnf_do_inline in callnodeflags) then
-                  add_done_statement(ctempdeletenode.create(temp,compiler))
+                  add_done_statement(compiler.ctempdeletenode(temp))
                 else
                   add_done_statement(ctempdeletenode.create_normal_temp(temp,compiler));
                 funcretnode:=compiler.ctemprefnode(temp);
@@ -5264,7 +5264,7 @@ implementation
             if localvartrashing <> -1 then
               compiler.nodeutils.maybe_trash_variable(inlineinitstatement,tabstractnormalvarsym(p),compiler.ctemprefnode(tempnode));
 
-            addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
+            addstatement(inlinecleanupstatement,compiler.ctempdeletenode(tempnode));
             { inherit addr_taken flag }
             if (tabstractvarsym(p).addr_taken) then
               tempnode.includetempflag(ti_addr_taken);
@@ -5465,7 +5465,7 @@ implementation
               tt_persistent,tparavarsym(para.parasym).is_regvar(false));
             addstatement(inlineinitstatement,tempnode);
 
-            addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
+            addstatement(inlinecleanupstatement,compiler.ctempdeletenode(tempnode));
 
             addstatement(inlineinitstatement,cassignmentnode.create(compiler.ctemprefnode(tempnode),
               para.left,compiler));
@@ -5550,7 +5550,7 @@ implementation
         if isfuncretnode then
           addstatement(inlinecleanupstatement,ctempdeletenode.create_normal_temp(tempnode,compiler))
         else
-          addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
+          addstatement(inlinecleanupstatement,compiler.ctempdeletenode(tempnode));
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           tempnode.includetempflag(ti_addr_taken);

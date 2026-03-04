@@ -856,7 +856,7 @@ implementation
              tempcaseexpr :=
                compiler.ctempcreatenode(
                  left.resultdef, left.resultdef.size, tt_persistent, true);
-             temp_cleanup := ctempdeletenode.create(tempcaseexpr,compiler);
+             temp_cleanup := compiler.ctempdeletenode(tempcaseexpr);
              typecheckpass(tnode(tempcaseexpr));
 
              addstatement(stmt, tempcaseexpr);
@@ -986,7 +986,7 @@ implementation
                  init_block:=internalstatements(compiler,stmt);
                  tempcaseexpr:=compiler.ctempcreatenode(
                    left.resultdef,left.resultdef.size,tt_persistent,true);
-                 temp_cleanup:=ctempdeletenode.create(tempcaseexpr,compiler);
+                 temp_cleanup:=compiler.ctempdeletenode(tempcaseexpr);
                  typecheckpass(tnode(tempcaseexpr));
 
                  addstatement(stmt,tempcaseexpr);

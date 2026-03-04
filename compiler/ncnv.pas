@@ -2032,7 +2032,7 @@ implementation
                  nil,compiler),compiler),compiler),compiler)
 
           ));
-        addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
+        addstatement(newstatement,compiler.ctempdeletenode(temp2));
 
         { copy ... }
         addstatement(newstatement,cassignmentnode.create(
@@ -2134,7 +2134,7 @@ implementation
 
           ));
         { add assignment statements }
-        addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
+        addstatement(newstatement,compiler.ctempdeletenode(temp2));
         addstatement(newstatement,assnode);
         { the last statement should return the value as
           location and type, this is done be referencing the
@@ -2193,7 +2193,7 @@ implementation
         addstatement(newstatement,temp2);
 
         { add assignment statements }
-        addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
+        addstatement(newstatement,compiler.ctempdeletenode(temp2));
         addstatement(newstatement,assnode);
         { the last statement should return the value as
           location and type, this is done be referencing the

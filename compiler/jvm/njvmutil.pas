@@ -148,7 +148,7 @@ implementation
               if assigned(stat) then
                 begin
                   addstatement(stat,ccallnode.createintern(proc,paras));
-                  addstatement(stat,ctempdeletenode.create(temp));
+                  addstatement(stat,compiler.ctempdeletenode(temp));
                 end
               else
                 result:=ccallnode.createintern(proc,paras);
@@ -302,7 +302,7 @@ implementation
               'CREATE',initnode)));
           { deallocate the temp if we allocated one }
           if assigned(temp) then
-            addstatement(stat,ctempdeletenode.create(temp));
+            addstatement(stat,compiler.ctempdeletenode(temp));
         end;
     end;
 

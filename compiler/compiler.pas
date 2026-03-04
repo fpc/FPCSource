@@ -211,6 +211,7 @@ type
     function ctempcreatenode_value(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode):ttempcreatenode; inline;
     function ctempcreatenode_reference(_typedef:tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode; readonly: boolean):ttempcreatenode; inline;
     function ctemprefnode(const temp: ttempcreatenode):ttemprefnode; inline;
+    function ctempdeletenode(const temp: ttempcreatenode):ttempdeletenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -609,6 +610,12 @@ function TCompilerHelper.ctemprefnode(const temp: ttempcreatenode
   ): ttemprefnode; inline;
 begin
   result:=nbas.ctemprefnode.create(temp,self);
+end;
+
+function TCompilerHelper.ctempdeletenode(const temp: ttempcreatenode
+  ): ttempdeletenode; inline;
+begin
+  result:=nbas.ctempdeletenode.create(temp,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

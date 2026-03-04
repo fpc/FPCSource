@@ -673,7 +673,7 @@ implementation
                             masknode),nil,compiler
                           ),compiler),compiler),compiler)
                       );
-                    addstatement(statements,ctempdeletenode.create(temp,compiler));
+                    addstatement(statements,compiler.ctempdeletenode(temp));
                     addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
                     addstatement(statements,compiler.ctemprefnode(resulttemp));
                     right.Free;
@@ -732,7 +732,7 @@ implementation
                   compiler
                 ));
 
-                addstatement(statements,ctempdeletenode.create(temp,compiler));
+                addstatement(statements,compiler.ctempdeletenode(temp));
                 addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
                 addstatement(statements,compiler.ctemprefnode(resulttemp));
               end

@@ -143,7 +143,7 @@ implementation
             )
           )
         );
-        addstatement(stat,ctempdeletenode.create(lefttemp));
+        addstatement(stat,compiler.ctempdeletenode(lefttemp));
         addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
         { return resulttemp }
         addstatement(stat,compiler.ctemprefnode(resulttemp));
@@ -210,7 +210,7 @@ implementation
           )
         );
         if assigned(lefttemp) then
-          addstatement(stat,ctempdeletenode.create(lefttemp));
+          addstatement(stat,compiler.ctempdeletenode(lefttemp));
         addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
         addstatement(stat,compiler.ctemprefnode(resulttemp));
         left:=nil;

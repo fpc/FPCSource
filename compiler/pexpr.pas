@@ -282,7 +282,7 @@ implementation
                  compiler.caddnode(ntyp,
                      cderefnode.create(compiler.ctemprefnode(temp),compiler),
                      p2),compiler));
-             addstatement(newstatement,ctempdeletenode.create(temp,compiler));
+             addstatement(newstatement,compiler.ctempdeletenode(temp));
            end
          else
            result:=cassignmentnode.create(p1,compiler.caddnode(ntyp,p1.getcopy,p2),compiler);
@@ -2087,7 +2087,7 @@ implementation
                   ,nil,compiler),compiler),compiler),compiler);
 
              addstatement(newstatement,ccallnode.createintern('fpc_vararray_put',paras));
-             addstatement(newstatement,ctempdeletenode.create(temp,compiler));
+             addstatement(newstatement,compiler.ctempdeletenode(temp));
            end
          else
            begin
@@ -2106,7 +2106,7 @@ implementation
                   ,nil,compiler),compiler),compiler),compiler);
 
              addstatement(newstatement,ccallnode.createintern('fpc_vararray_get',paras));
-             addstatement(newstatement,ctempdeletenode.create(temp,compiler));
+             addstatement(newstatement,compiler.ctempdeletenode(temp));
              { the last statement should return the value as
                location and type, this is done be referencing the
                temp and converting it first from a persistent temp to
@@ -2174,7 +2174,7 @@ implementation
 
             ));
           { add assignment statements }
-          addstatement(newstatement,ctempdeletenode.create(temp2,compiler));
+          addstatement(newstatement,compiler.ctempdeletenode(temp2));
           if assigned(assnode) then
             addstatement(newstatement,assnode);
           { the last statement should return the value as

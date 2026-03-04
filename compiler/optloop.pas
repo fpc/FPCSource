@@ -467,7 +467,7 @@ type
                       n:=compiler.ctemprefnode(tempnode);
 
                       { ... and add a temp. release node }
-                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode,compiler));
+                      addstatement(deletecodestatements,compiler.ctempdeletenode(tempnode));
                     end;
                   { set types }
                   do_firstpass(n);
@@ -549,8 +549,8 @@ type
 
                       { ... and add a temp. release node }
                       if startvaltemp<>nil then
-                        addstatement(deletecodestatements,ctempdeletenode.create(startvaltemp,compiler));
-                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode,compiler));
+                        addstatement(deletecodestatements,compiler.ctempdeletenode(startvaltemp));
+                      addstatement(deletecodestatements,compiler.ctempdeletenode(tempnode));
                     end;
                   { Copy the nf_write,nf_modify flags to the new deref node of the temp.
                     Otherwise assignments to vector elements will be removed. }

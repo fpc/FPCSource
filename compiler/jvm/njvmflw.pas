@@ -106,7 +106,7 @@ implementation
                 olditerator.resultdef)));
             addstatement(newbodystat,t2);
             addstatement(stat,cfornode.create(left,right,t1,newbody,lnf_backward in loopflags));
-            addstatement(stat,ctempdeletenode.create(iteratortmp));
+            addstatement(stat,compiler.ctempdeletenode(iteratortmp));
             left:=nil;
             right:=nil;
             t1:=nil;

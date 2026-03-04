@@ -824,9 +824,9 @@ implementation
              begin
                addstatement(newstatement,p);
                if assigned(tempnode) then
-                 addstatement(newstatement,ctempdeletenode.create(tempnode,compiler));
+                 addstatement(newstatement,compiler.ctempdeletenode(tempnode));
                if assigned(calltempnode) then
-                 addstatement(newstatement,ctempdeletenode.create(calltempnode,compiler));
+                 addstatement(newstatement,compiler.ctempdeletenode(calltempnode));
                p:=newblock;
              end;
             result:=p;

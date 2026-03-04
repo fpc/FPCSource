@@ -513,7 +513,7 @@ implementation
         if assigned(lefttemp) then
           begin
             addstatement(newstatement,result);
-            addstatement(newstatement,ctempdeletenode.create(lefttemp));
+            addstatement(newstatement,compiler.ctempdeletenode(lefttemp));
             result:=newblock;
           end;
       end;
@@ -611,7 +611,7 @@ implementation
             addstatement(newstatement,cifnode.create(ifcond,stringnonnull,stringnull));
             { free lefttemp }
             if assigned(lefttemp) then
-              addstatement(newstatement,ctempdeletenode.create(lefttemp));
+              addstatement(newstatement,compiler.ctempdeletenode(lefttemp));
             { return len temp }
             addstatement(newstatement,ctempdeletenode.create_normal_temp(lentemp));
             addstatement(newstatement,compiler.ctemprefnode(lentemp));

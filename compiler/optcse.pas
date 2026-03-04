@@ -470,7 +470,7 @@ unit optcse;
                         addstatement(creates,tnode(templist[i]));
 
                         { the delete node has no semantic use yet, it is just used to clean up memory }
-                        deletetemp:=ctempdeletenode.create(ttempcreatenode(templist[i]),compiler);
+                        deletetemp:=compiler.ctempdeletenode(ttempcreatenode(templist[i]));
                         deletetemp.includetempflag(ti_cleanup_only);
                         addstatement(tstatementnode(arg^),deletetemp);
 

@@ -97,7 +97,7 @@ begin
         compiler.caddnode(muln, cmoddivnode.create(divn, compiler.ctemprefnode(temp_left), compiler.ctemprefnode(temp_right)),
         compiler.ctemprefnode(temp_right)))));
 
-      addstatement(statementnode, ctempdeletenode.create(temp_right));
+      addstatement(statementnode, compiler.ctempdeletenode(temp_right));
     end else begin
       // in case this is a modulo by a constant operation, do not use a temp for the
       // right hand side, because otherwise the div optimization will not recognize this

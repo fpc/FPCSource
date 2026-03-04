@@ -200,13 +200,13 @@ implementation
               begin
                 realparatemp:=replacewithtemp(tvecnode(realpara).left);
                 addstatement(initstat,realparatemp);
-                addstatement(finistat,ctempdeletenode.create(realparatemp));
+                addstatement(finistat,compiler.ctempdeletenode(realparatemp));
               end;
             if node_complexity(tvecnode(realpara).right)>1 then
               begin
                 realparatemp:=replacewithtemp(tvecnode(realpara).right);
                 addstatement(initstat,realparatemp);
-                addstatement(finistat,ctempdeletenode.create(realparatemp));
+                addstatement(finistat,compiler.ctempdeletenode(realparatemp));
               end;
           end
         else
@@ -217,7 +217,7 @@ implementation
               begin
                 realparatemp:=replacewithtemp(realparaparent.left);
                 addstatement(initstat,realparatemp);
-                addstatement(finistat,ctempdeletenode.create(realparatemp));
+                addstatement(finistat,compiler.ctempdeletenode(realparatemp));
               end;
           end;
         { create a copy of the original left (with temps already substituted),
@@ -236,7 +236,7 @@ implementation
           of elements" in the JVM temp generator }
         arraytemp:=compiler.ctempcreatenode(arrdef,-1,tt_persistent,true);
         addstatement(initstat,arraytemp);
-        addstatement(finistat,ctempdeletenode.create(arraytemp));
+        addstatement(finistat,compiler.ctempdeletenode(arraytemp));
 
         { we can also check out-parameters if we are certain that they'll be
           valid according to the JVM. That's basically everything except for
@@ -374,7 +374,7 @@ implementation
         tempnode:=compiler.ctempcreatenode_reference(para.parasym.vardef,para.parasym.vardef.size,
           tt_persistent,tparavarsym(para.parasym).is_regvar(false),para.left,false);
         addstatement(inlineinitstatement,tempnode);
-        addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
+        addstatement(inlinecleanupstatement,compiler.ctempdeletenode(tempnode));
         para.left:=compiler.ctemprefnode(tempnode);
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then

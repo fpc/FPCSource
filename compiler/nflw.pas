@@ -551,12 +551,12 @@ implementation
         addstatement(mainstatement,hp);
 
         { release the temps }
-        addstatement(mainstatement,ctempdeletenode.create(state,compiler));
-        addstatement(mainstatement,ctempdeletenode.create(mutationcheck,compiler));
-        addstatement(mainstatement,ctempdeletenode.create(currentamount,compiler));
-        addstatement(mainstatement,ctempdeletenode.create(innerloopcounter,compiler));
-        addstatement(mainstatement,ctempdeletenode.create(items,compiler));
-        addstatement(mainstatement,ctempdeletenode.create(expressiontemp,compiler));
+        addstatement(mainstatement,compiler.ctempdeletenode(state));
+        addstatement(mainstatement,compiler.ctempdeletenode(mutationcheck));
+        addstatement(mainstatement,compiler.ctempdeletenode(currentamount));
+        addstatement(mainstatement,compiler.ctempdeletenode(innerloopcounter));
+        addstatement(mainstatement,compiler.ctempdeletenode(items));
+        addstatement(mainstatement,compiler.ctempdeletenode(expressiontemp));
       end;
 
 
@@ -618,9 +618,9 @@ implementation
 
         addstatement(loopstatement,forloopnode);
         { free the loop counter }
-        addstatement(loopstatement,ctempdeletenode.create(loopvar,compiler));
+        addstatement(loopstatement,compiler.ctempdeletenode(loopvar));
         { free the temp variable for expression }
-        addstatement(loopstatement,ctempdeletenode.create(stringvar,compiler));
+        addstatement(loopstatement,compiler.ctempdeletenode(stringvar));
       end;
 
 
@@ -755,10 +755,10 @@ implementation
 
         addstatement(loopstatement,forloopnode);
         { free the loop counter }
-        addstatement(loopstatement,ctempdeletenode.create(loopvar,compiler));
+        addstatement(loopstatement,compiler.ctempdeletenode(loopvar));
         { free the temp variable for expression if needed }
         if arrayvar<>nil then
-          addstatement(loopstatement,ctempdeletenode.create(arrayvar,compiler));
+          addstatement(loopstatement,compiler.ctempdeletenode(arrayvar));
       end;
 
 
@@ -825,9 +825,9 @@ implementation
 
         addstatement(loopstatement,forloopnode);
         { free the loop counter }
-        addstatement(loopstatement,ctempdeletenode.create(loopvar,compiler));
+        addstatement(loopstatement,compiler.ctempdeletenode(loopvar));
         { free the temp variable for expression }
-        addstatement(loopstatement,ctempdeletenode.create(setvar,compiler));
+        addstatement(loopstatement,compiler.ctempdeletenode(setvar));
       end;
 
 
@@ -944,7 +944,7 @@ implementation
           end;
 
         { free the temp variable for enumerator }
-        addstatement(loopstatement,ctempdeletenode.create(enumvar,compiler));
+        addstatement(loopstatement,compiler.ctempdeletenode(enumvar));
       end;
 
 
@@ -2252,9 +2252,9 @@ implementation
                 fromexpr,toexpr),ifblock,nil,compiler));
 
             if usetotemp then
-              addstatement(statements,ctempdeletenode.create(totemp,compiler));
+              addstatement(statements,compiler.ctempdeletenode(totemp));
             if usefromtemp then
-              addstatement(statements,ctempdeletenode.create(fromtemp,compiler));
+              addstatement(statements,compiler.ctempdeletenode(fromtemp));
           end
         else
           begin

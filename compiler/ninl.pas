@@ -1153,7 +1153,7 @@ implementation
                       compiler.ctemprefnode(temp),compiler));
 
                   { release the temp location }
-                  addstatement(Tstatementnode(newstatement),ctempdeletenode.create(temp,compiler));
+                  addstatement(Tstatementnode(newstatement),compiler.ctempdeletenode(temp));
 
                   { statement of para is used }
                   para.left := nil;
@@ -1349,7 +1349,7 @@ implementation
 
           { if we used a temp, free it }
           if para.left.nodetype = temprefn then
-            addstatement(Tstatementnode(newstatement),ctempdeletenode.create(temp,compiler));
+            addstatement(Tstatementnode(newstatement),compiler.ctempdeletenode(temp));
 
           { process next parameter }
           para := nextpara;
@@ -1591,7 +1591,7 @@ implementation
               Note: this might happen legitimately when parsing a generic that
                     passes an undefined type to Write/Read }
             if assigned(filetemp) then
-              ctempdeletenode.create(filetemp,compiler).free; // no nil needed
+              compiler.ctempdeletenode(filetemp).free; // no nil needed
             newblock.free;
             newblock := nil;
           end
@@ -1599,7 +1599,7 @@ implementation
           begin
             { deallocate the temp for the file para if we used one }
             if assigned(filetemp) then
-              addstatement(newstatement,ctempdeletenode.create(filetemp,compiler));
+              addstatement(newstatement,compiler.ctempdeletenode(filetemp));
             { otherwise return the newly generated block of instructions, }
             { but first free the errornode we generated at the beginning }
             result.free;
@@ -1856,7 +1856,7 @@ implementation
 
         { release the temp if we allocated one }
         if assigned(tempcode) then
-          addstatement(newstatement,ctempdeletenode.create(tempcode,compiler));
+          addstatement(newstatement,compiler.ctempdeletenode(tempcode));
 
         { free the errornode }
         result.free;
@@ -5170,7 +5170,7 @@ implementation
 
          { deallocate the temp }
          if assigned(tempnode) then
-           addstatement(newstatement,ctempdeletenode.create(tempnode,compiler));
+           addstatement(newstatement,compiler.ctempdeletenode(tempnode));
          { firstpass it }
          firstpass(tnode(newblock));
          { return new node }
@@ -5295,7 +5295,7 @@ implementation
                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal,compiler),compiler),
                   ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype,compiler),nil,compiler),compiler),compiler),compiler);
            addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
-           addstatement(newstatement,ctempdeletenode.create(temp,compiler));
+           addstatement(newstatement,compiler.ctempdeletenode(temp));
          end
         else if is_ansistring(destppn.resultdef) then
          begin
@@ -5722,7 +5722,7 @@ implementation
                            ccallparanode.create(ctypeconvnode.create_internal(secondn,voidpointertype,compiler),nil,compiler),compiler),compiler),compiler),compiler);
              addstatement(insertstatement,ccallnode.createintern(procname,newn));
              if assigned(datatemp) then
-               addstatement(insertstatement,ctempdeletenode.create(datatemp,compiler));
+               addstatement(insertstatement,compiler.ctempdeletenode(datatemp));
              tcallparanode(tcallparanode(tcallparanode(left).right).right).left:=nil; // insert idx
              tcallparanode(tcallparanode(left).right).left:=nil; // dyn array
              tcallparanode(left).left:=nil; // insert element/array
@@ -6078,7 +6078,7 @@ implementation
            compiler);
          addstatement(loopstatement,tempnode);
          { free the loop counter }
-         addstatement(loopstatement,ctempdeletenode.create(loopvar,compiler));
+         addstatement(loopstatement,compiler.ctempdeletenode(loopvar));
          result := loop;
        end;
 

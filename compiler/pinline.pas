@@ -425,7 +425,7 @@ implementation
                      ReadVariantRecordConstants;
 
                      { release temp }
-                     addstatement(newstatement,ctempdeletenode.create(temp,compiler));
+                     addstatement(newstatement,compiler.ctempdeletenode(temp));
                    end
                   else
                    begin
@@ -451,7 +451,7 @@ implementation
                        para := ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler);
                      addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
                      if assigned(temp) then
-                       addstatement(newstatement,ctempdeletenode.create(temp,compiler));
+                       addstatement(newstatement,compiler.ctempdeletenode(temp));
                    end;
                end;
           end;
