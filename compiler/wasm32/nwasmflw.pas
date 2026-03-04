@@ -268,7 +268,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
-                  right:=caddnode.create_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
             raisenode:=ccallnode.createintern('fpc_raiseexception',
@@ -325,7 +325,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
-                  right:=caddnode.create_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
             raisenode:=ccallnode.createintern('fpc_raiseexception',
@@ -382,7 +382,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
-                  right:=caddnode.create_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
             raisenode:=ccallnode.createintern('fpc_raiseexception',
@@ -439,7 +439,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
-                  right:=caddnode.create_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
+                  right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
             raisenode:=ccallnode.createintern('fpc_raiseexception',

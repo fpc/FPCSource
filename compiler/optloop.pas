@@ -453,8 +453,8 @@ type
                             nt:=addn
                           else
                             nt:=subn;
-                          nn:=caddnode.create_internal(nt,nn,
-                             cordconstnode.create(1,nn.resultdef,false,compiler),compiler);
+                          nn:=compiler.caddnode_internal(nt,nn,
+                             cordconstnode.create(1,nn.resultdef,false,compiler));
                         end;
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),
                           compiler.caddnode(muln,nn,
@@ -538,9 +538,9 @@ type
                             nt:=addn
                           else
                             nt:=subn;
-                          nn:=caddnode.create_internal(nt,
+                          nn:=compiler.caddnode_internal(nt,
                              ctypeconvnode.create_internal(nn,voidpointertype,compiler),
-                             cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),compiler);
+                             cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler));
                         end;
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),nn,compiler));
 
@@ -709,9 +709,9 @@ type
 {$endif DEBUG_OPTFORLOOP}
                 include(tfornode(n).loopflags,lnf_backward);
                 tfornode(n).right:=ctypeconvnode.create_internal(
-                  caddnode.create_internal(addn,caddnode.create_internal(subn,
-                    tfornode(n).t1,tfornode(n).right,compiler),
-                    cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler),compiler),
+                  compiler.caddnode_internal(addn,compiler.caddnode_internal(subn,
+                    tfornode(n).t1,tfornode(n).right),
+                    cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler)),
                   tfornode(n).left.resultdef,compiler);
                 tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler);
                 include(tfornode(n).loopflags,lnf_counter_not_used);

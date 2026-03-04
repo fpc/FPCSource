@@ -206,7 +206,7 @@ implementation
               (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
               begin
                 { re-use the current node so we get the result type right }
-                right:=caddnode.create_internal(muln,right,tmoddivnode(left).right.getcopy,compiler);
+                right:=compiler.caddnode_internal(muln,right,tmoddivnode(left).right.getcopy);
                 hp:=tmoddivnode(left).left.getcopy;
                 left.Free;
                 left:=hp;
@@ -468,7 +468,7 @@ implementation
              result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
 
              { right <=0? }
-             addstatement(statements,cifnode.create_internal(caddnode.create_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false,compiler),compiler),
+             addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false,compiler)),
                { then: result:=left mod right }
                ccallnode.createintern('fpc_divbyzero',nil),
                nil,
@@ -479,16 +479,16 @@ implementation
              { result:=(-left) mod right }
              addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data,compiler),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy,compiler),compiler));
              { result<>0? }
-             addstatement(else_statements,cifnode.create_internal(caddnode.create_internal(unequaln,ctemprefnode.create(result_data,compiler),cordconstnode.create(0,resultdef,false,compiler),compiler),
+             addstatement(else_statements,cifnode.create_internal(compiler.caddnode_internal(unequaln,ctemprefnode.create(result_data,compiler),cordconstnode.create(0,resultdef,false,compiler)),
                { then: result:=right-result }
-               cassignmentnode.create_internal(ctemprefnode.create(result_data,compiler),caddnode.create_internal(subn,right.getcopy,ctemprefnode.create(result_data,compiler),compiler),compiler),
+               cassignmentnode.create_internal(ctemprefnode.create(result_data,compiler),compiler.caddnode_internal(subn,right.getcopy,ctemprefnode.create(result_data,compiler)),compiler),
                nil,
                compiler
                ));
 
              addstatement(statements,result_data);
              { if left>=0 }
-             addstatement(statements,cifnode.create_internal(caddnode.create_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false,compiler),compiler),
+             addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false,compiler)),
                { then: result:=left mod right }
                cassignmentnode.create_internal(ctemprefnode.create(result_data,compiler),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler),compiler),
                { else block }

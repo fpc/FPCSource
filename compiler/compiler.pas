@@ -194,6 +194,7 @@ type
   public
     { node constructor helpers }
     function caddnode(tt : tnodetype;l,r : tnode):taddnode; inline;
+    function caddnode_internal(tt:tnodetype;l,r:tnode):taddnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -505,7 +506,12 @@ end;
 
 function TCompilerHelper.caddnode(tt: tnodetype; l, r: tnode): taddnode; inline;
 begin
-  result:=caddnode.create(tt,l,r,self);
+  result:=nadd.caddnode.create(tt,l,r,self);
+end;
+
+function TCompilerHelper.caddnode_internal(tt: tnodetype; l, r: tnode): taddnode; inline;
+begin
+  result:=nadd.caddnode.create_internal(tt,l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

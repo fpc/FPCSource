@@ -5115,9 +5115,9 @@ implementation
 
          { addition/subtraction depending on inc/dec }
          if inlinenumber = in_inc_x then
-           hpp := caddnode.create_internal(addn,hp,hpp,compiler)
+           hpp := compiler.caddnode_internal(addn,hp,hpp)
          else
-           hpp := caddnode.create_internal(subn,hp,hpp,compiler);
+           hpp := compiler.caddnode_internal(subn,hp,hpp);
 
          { assign result of addition }
 

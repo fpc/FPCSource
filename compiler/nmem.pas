@@ -1574,7 +1574,7 @@ implementation
               { range error if index >= hightree+1 }
               addstatement(stat,
                 cifnode.create_internal(
-                  caddnode.create_internal(gten,indextree,hightree,compiler),
+                  compiler.caddnode_internal(gten,indextree,hightree),
                   ccallnode.createintern('fpc_rangeerror',nil),
                   nil,
                   compiler

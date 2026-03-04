@@ -2229,10 +2229,10 @@ implementation
               (countermin<tordconstnode(toexpr).value) then
               begin
                 tordconstnode(toexpr).value:=tordconstnode(toexpr).value-1;
-                addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(equaln,leftcopy,toexpr,compiler),loopblock,false,true,compiler))
+                addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(equaln,leftcopy,toexpr),loopblock,false,true,compiler))
               end
             else
-              addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,leftcopy,toexpr,compiler),loopblock,false,true,compiler));
+              addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(cond,leftcopy,toexpr),loopblock,false,true,compiler));
 
             if usefromtemp then
               fromexpr:=ctemprefnode.create(fromtemp,compiler)
@@ -2245,11 +2245,11 @@ implementation
               toexpr:=t1.getcopy;
 
             if lnf_backward in loopflags then
-              addstatement(statements,cifnode.create(caddnode.create_internal(gten,
-                fromexpr,toexpr,compiler),ifblock,nil,compiler))
+              addstatement(statements,cifnode.create(compiler.caddnode_internal(gten,
+                fromexpr,toexpr),ifblock,nil,compiler))
             else
-              addstatement(statements,cifnode.create(caddnode.create_internal(lten,
-                fromexpr,toexpr,compiler),ifblock,nil,compiler));
+              addstatement(statements,cifnode.create(compiler.caddnode_internal(lten,
+                fromexpr,toexpr),ifblock,nil,compiler));
 
             if usetotemp then
               addstatement(statements,ctempdeletenode.create(totemp,compiler));
@@ -2260,10 +2260,10 @@ implementation
           begin
             { is a simple comparison for equality sufficient? }
             if do_loopvar_at_end and (lnf_backward in loopflags) and (lnf_counter_not_used in loopflags) then
-              addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(equaln,leftcopy,
-                caddnode.create_internal(subn,t1.getcopy,cordconstnode.create(1,t1.resultdef,false,compiler),compiler),compiler),loopblock,false,true,compiler))
+              addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(equaln,leftcopy,
+                compiler.caddnode_internal(subn,t1.getcopy,cordconstnode.create(1,t1.resultdef,false,compiler))),loopblock,false,true,compiler))
             else
-              addstatement(ifstatements,cwhilerepeatnode.create(caddnode.create_internal(cond,leftcopy,t1.getcopy,compiler),loopblock,false,true,compiler));
+              addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(cond,leftcopy,t1.getcopy),loopblock,false,true,compiler));
             addstatement(statements,ifblock);
           end;
         current_filepos:=storefilepos;
@@ -2737,7 +2737,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
-                  right:=caddnode.create_internal(addn,right,cordconstnode.create(1,sizesinttype,false,compiler),compiler);
+                  right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false,compiler));
               end;
 
             raisenode:=ccallnode.createintern('fpc_raiseexception',

@@ -844,11 +844,10 @@ implementation
                    we replace left afterwards) }
                  addstatement(initstat,
                    cifnode.create_internal(
-                     caddnode.create_internal(
+                     compiler.caddnode_internal(
                        unequaln,
                        arraysize.getcopy,
-                       genintconstnode(0,compiler),
-                       compiler
+                       genintconstnode(0,compiler)
                      ),
                      ccallnode.createintern('MOVE',
                        ccallparanode.create(

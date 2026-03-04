@@ -82,7 +82,7 @@ unit nx86add;
       tgobj,ncgutil,nutils,
       ncon,nset,ninl,ncnv,ncal,nmat,
       defutil,defcmp,constexp,
-      pass_1,pass_2,htypechk;
+      pass_1,pass_2,htypechk,compiler;
 
 { Range check must be disabled explicitly as the code serves
   on three different architecture sizes }
@@ -1423,7 +1423,7 @@ unit nx86add;
                             ConstNode:=cordconstnode.create(reciprocal, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            ThisNode:=caddnode.create_internal(muln, ThisNode, ConstNode, compiler);
+                            ThisNode:=compiler.caddnode_internal(muln, ThisNode, ConstNode);
                             ThisNode.resultdef:=ThisDef;
 
 {$push}
@@ -1436,7 +1436,7 @@ unit nx86add;
                             ConstNode:=cordconstnode.create(comparison, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            ThisNode:=caddnode.create_internal(addn, ThisNode, ConstNode, compiler);
+                            ThisNode:=compiler.caddnode_internal(addn, ThisNode, ConstNode);
                             ThisNode.resultdef:=ThisDef;
 
                             if shift>0 then
@@ -1456,7 +1456,7 @@ unit nx86add;
 
                             ConstNode.resultdef:=ThisDef;
 
-                            Result:=CAddNode.create_internal(ThisType, ThisNode, ConstNode, compiler);
+                            Result:=compiler.caddnode_internal(ThisType, ThisNode, ConstNode);
                             Result.resultdef:=resultdef;
                             Exit;
                           end;
@@ -1545,7 +1545,7 @@ unit nx86add;
                             ConstNode:=cordconstnode.create(reciprocal, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            ThisNode:=caddnode.create_internal(muln, TModDivNode(t).left, ConstNode, compiler);
+                            ThisNode:=compiler.caddnode_internal(muln, TModDivNode(t).left, ConstNode);
                             ThisNode.resultdef:=ThisDef;
 
                             TModDivNode(t).left:=nil;
@@ -1575,7 +1575,7 @@ unit nx86add;
                             ConstNode:=cordconstnode.create(comparison, ThisDef, False, compiler);
                             ConstNode.resultdef:=ThisDef;
 
-                            Result:=CAddNode.create_internal(ThisType, ThisNode, ConstNode, compiler);
+                            Result:=compiler.caddnode_internal(ThisType, ThisNode, ConstNode);
                             Result.resultdef:=resultdef;
                             Exit;
                           end;

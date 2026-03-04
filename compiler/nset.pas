@@ -969,16 +969,15 @@ implementation
              if flabels^._low=flabels^._high then
                begin
                  result:=cifnode.create_internal(
-                   caddnode.create_internal(equaln,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler),compiler),
+                   compiler.caddnode_internal(equaln,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler)),
                    pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
                end
              else if not(might_have_sideeffects(left,[mhs_exceptions])) and (node_complexity(left)<=1) then
                begin
                  result:=cifnode.create_internal(
-                   caddnode.create_internal(andn,
-                     caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler),compiler),
-                     caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler),compiler),
-                     compiler
+                   compiler.caddnode_internal(andn,
+                     compiler.caddnode_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler)),
+                     compiler.caddnode_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler))
                    ),
                    pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
                end
@@ -998,10 +997,9 @@ implementation
                  typecheckpass(left);
 
                  addstatement(stmt,cifnode.create_internal(
-                   caddnode.create_internal(andn,
-                     caddnode.create_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler),compiler),
-                     caddnode.create_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler),compiler),
-                     compiler
+                   compiler.caddnode_internal(andn,
+                     compiler.caddnode_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler)),
+                     compiler.caddnode_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler))
                    ),
                    pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler));
                  addstatement(stmt,temp_cleanup);

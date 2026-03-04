@@ -3498,7 +3498,7 @@ implementation
                       tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true,compiler);
                       addstatement(newstatements,tempnode);
                       addstatement(newstatements,cifnode.create_internal(
-                        caddnode.create_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false,compiler),compiler),
+                        compiler.caddnode_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false,compiler)),
                           cassignmentnode.create_internal(
                             ctemprefnode.create(tempnode,compiler),
                             cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,cordconstnode.create(-1,tbinarynode(originaldivtree).right.resultdef,false,compiler),compiler),
@@ -5098,10 +5098,9 @@ implementation
                     tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
                     addstatement(statement,tempnode);
                     addstatement(statement,cassignmentnode.create_internal(ctemprefnode.create(tempnode,compiler),left,compiler));
-                    addstatement(statement,caddnode.create_internal(andn,
-                      caddnode.create_internal(unequaln,ctemprefnode.create(tempnode,compiler),cnilnode.create(compiler),compiler),
-                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(ctemprefnode.create(tempnode,compiler),compiler),right,compiler),
-                      compiler
+                    addstatement(statement,compiler.caddnode_internal(andn,
+                      compiler.caddnode_internal(unequaln,ctemprefnode.create(tempnode,compiler),cnilnode.create(compiler)),
+                      compiler.caddnode_internal(equaln,cloadvmtaddrnode.create(ctemprefnode.create(tempnode,compiler),compiler),right)
                       )
                     );
 
@@ -5110,10 +5109,9 @@ implementation
                   end
                 else
                   begin
-                    result:=caddnode.create_internal(andn,
-                      caddnode.create_internal(unequaln,left.getcopy,cnilnode.create(compiler),compiler),
-                      caddnode.create_internal(equaln,cloadvmtaddrnode.create(left.getcopy,compiler),right,compiler),
-                      compiler
+                    result:=compiler.caddnode_internal(andn,
+                      compiler.caddnode_internal(unequaln,left.getcopy,cnilnode.create(compiler)),
+                      compiler.caddnode_internal(equaln,cloadvmtaddrnode.create(left.getcopy,compiler),right)
                       );
                     right:=nil;
                   end;

@@ -505,11 +505,11 @@ implementation
                             [],nil,compiler);
                         include(call.callnodeflags,cnf_ignore_devirt_wpo);
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create_internal(equaln,
+                            compiler.caddnode_internal(equaln,
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype,compiler),
-                                cpointerconstnode.create(1,voidpointertype,compiler),compiler),
+                                cpointerconstnode.create(1,voidpointertype,compiler)),
                             cassignmentnode.create(
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,

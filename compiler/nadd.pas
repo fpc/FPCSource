@@ -510,25 +510,24 @@ const
           if op in [equaln,unequaln,gtn,lten] then
             begin
               { “pointer(L.left) = nil”. Steal L.left instead of getcopy, zero a bit later. }
-              resn:=caddnode.create_internal(equaln,ctypeconvnode.create_internal(tinlinenode(L).left,voidpointertype,compiler),
-                 cpointerconstnode.create(0,voidpointertype,compiler),compiler);
+              resn:=compiler.caddnode_internal(equaln,ctypeconvnode.create_internal(tinlinenode(L).left,voidpointertype,compiler),
+                 cpointerconstnode.create(0,voidpointertype,compiler));
 
               { COM widestrings have 32-bit lengths, and can explicitly have 0 while being non-nil. }
               if is_widestring(tinlinenode(L).left.resultdef) and (tf_winlikewidestring in target_info.flags) then
                 begin
                   { Expand to “(pointer(L.left) = nil) or (PUint32(L.left)[-1] = 0)”. }
-                  resn:=caddnode.create_internal(orn,
+                  resn:=compiler.caddnode_internal(orn,
                       resn,
-                      caddnode.create_internal(equaln,
+                      compiler.caddnode_internal(equaln,
                         ctypeconvnode.create_internal(
                           cderefnode.create(
-                            caddnode.create_internal(subn,ctypeconvnode.create_internal(tinlinenode(L).left.getcopy,voidpointertype,compiler),
-                              cordconstnode.create(sizeof(uint32),ptruinttype,false,compiler),compiler),
+                            compiler.caddnode_internal(subn,ctypeconvnode.create_internal(tinlinenode(L).left.getcopy,voidpointertype,compiler),
+                              cordconstnode.create(sizeof(uint32),ptruinttype,false,compiler)),
                               compiler
                           ),u32inttype,compiler
                         ),
-                        cordconstnode.create(0,u32inttype,false,compiler),compiler),
-                        compiler
+                        cordconstnode.create(0,u32inttype,false,compiler))
                     );
                   include(taddnode(resn).addnodeflags,anf_short_bool);
                 end;
@@ -574,8 +573,8 @@ const
 
       function TransformAndOrAndNot(n1,n2,n3,n4 : tnode): tnode;
         begin
-          result:=caddnode.create_internal(xorn,n3.getcopy,
-            caddnode.create_internal(andn,caddnode.create_internal(xorn,n3.getcopy,n1.getcopy,compiler),n2.getcopy,compiler),compiler);
+          result:=compiler.caddnode_internal(xorn,n3.getcopy,
+            compiler.caddnode_internal(andn,compiler.caddnode_internal(xorn,n3.getcopy,n1.getcopy),n2.getcopy));
         end;
 
 
@@ -1177,7 +1176,7 @@ const
                     else if (trealconstnode(left).value_real=2) and (nodetype=muln) and not(might_have_sideeffects(right,[mhs_exceptions])) and
                       (node_complexity(right)<=1) then
                       begin
-                        result:=caddnode.create_internal(addn,right.getcopy,right.getcopy,compiler);
+                        result:=compiler.caddnode_internal(addn,right.getcopy,right.getcopy);
                         exit;
                       end;
                   end
@@ -1210,7 +1209,7 @@ const
                     else if (trealconstnode(right).value_real=2) and (nodetype=muln) and not(might_have_sideeffects(left,[mhs_exceptions])) and
                       (node_complexity(left)<=1) then
                       begin
-                        result:=caddnode.create_internal(addn,left.getcopy,left.getcopy,compiler);
+                        result:=compiler.caddnode_internal(addn,left.getcopy,left.getcopy);
                         exit;
                       end;
                   end
@@ -1698,9 +1697,9 @@ const
                     else
                       nt:=lten;
 
-                    result:=caddnode.create_internal(nt,
-                              ctypeconvnode.create_internal(caddnode.create_internal(subn,vl,cordconstnode.create(cl,hdef,false,compiler),compiler),hdef,compiler),
-                              cordconstnode.create(cr-cl,hdef,false,compiler),compiler);
+                    result:=compiler.caddnode_internal(nt,
+                              ctypeconvnode.create_internal(compiler.caddnode_internal(subn,vl,cordconstnode.create(cl,hdef,false,compiler)),hdef,compiler),
+                              cordconstnode.create(cr-cl,hdef,false,compiler));
 
                     exit;
                   end;
@@ -1757,15 +1756,14 @@ const
                              Internalerror(2020060101);
                          end;
 
-                         result:=caddnode.create_internal(equaln,
-                           caddnode.create_internal(orn,
-                             caddnode.create_internal(xorn,ctypeconvnode.create_internal(v1p^.getcopy,inttype,compiler),
-                               ctypeconvnode.create_internal(c1p^.getcopy,inttype,compiler),compiler),
-                             caddnode.create_internal(xorn,ctypeconvnode.create_internal(v2p^.getcopy,inttype,compiler),
-                               ctypeconvnode.create_internal(c2p^.getcopy,inttype,compiler),compiler),
-                               compiler
+                         result:=compiler.caddnode_internal(equaln,
+                           compiler.caddnode_internal(orn,
+                             compiler.caddnode_internal(xorn,ctypeconvnode.create_internal(v1p^.getcopy,inttype,compiler),
+                               ctypeconvnode.create_internal(c1p^.getcopy,inttype,compiler)),
+                             compiler.caddnode_internal(xorn,ctypeconvnode.create_internal(v2p^.getcopy,inttype,compiler),
+                               ctypeconvnode.create_internal(c2p^.getcopy,inttype,compiler))
                            ),
-                           cordconstnode.create(0,inttype,false,compiler),compiler);
+                           cordconstnode.create(0,inttype,false,compiler));
                        end;
                    end;
                 { even when short circuit boolean evaluation is active, this
@@ -4580,7 +4578,7 @@ const
                          begin
                            tempn:=cinnode.create(cordconstnode.create(i,tsetdef(constsetnode.resultdef).elementdef,false,compiler),varsetnode.getcopy,compiler);
                            if assigned(result) then
-                             result:=caddnode.create_internal(orn,result,tempn,compiler)
+                             result:=compiler.caddnode_internal(orn,result,tempn)
                            else
                              result:=tempn;
                          end;

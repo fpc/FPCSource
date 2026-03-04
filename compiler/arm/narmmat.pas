@@ -97,10 +97,10 @@ implementation
               ispowerof2(tordconstnode(right).value,power) and
               (tordconstnode(right).value<=256) and
               (tordconstnode(right).value>0) then
-              result:=caddnode.create_internal(andn,left,cordconstnode.create(tordconstnode(right).value-1,sinttype,false))
+              result:=compiler.caddnode_internal(andn,left,cordconstnode.create(tordconstnode(right).value-1,sinttype,false))
             else
               begin
-                result:=caddnode.create_internal(subn,left,caddnode.create_internal(muln,right,cmoddivnode.Create(divn,left.getcopy,right.getcopy)));
+                result:=compiler.caddnode_internal(subn,left,compiler.caddnode_internal(muln,right,cmoddivnode.Create(divn,left.getcopy,right.getcopy)));
                 right:=nil;
               end;
             left:=nil;
@@ -112,8 +112,8 @@ implementation
           (tordconstnode(right).value=2) then
           begin
             // result:=(0-(left and 1)) and (1+(sarlongint(left,31) shl 1))
-            result:=caddnode.create_internal(andn,caddnode.create_internal(subn,cordconstnode.create(0,sinttype,false),caddnode.create_internal(andn,left,cordconstnode.create(1,sinttype,false))),
-                                         caddnode.create_internal(addn,cordconstnode.create(1,sinttype,false),
+            result:=compiler.caddnode_internal(andn,compiler.caddnode_internal(subn,cordconstnode.create(0,sinttype,false),compiler.caddnode_internal(andn,left,cordconstnode.create(1,sinttype,false))),
+                                         compiler.caddnode_internal(addn,cordconstnode.create(1,sinttype,false),
                                                               cshlshrnode.create(shln,cinlinenode.create(in_sar_x_y,false,ccallparanode.create(cordconstnode.create(31,sinttype,false),ccallparanode.Create(left.getcopy,nil))),cordconstnode.create(1,sinttype,false))));
             left:=nil;
             firstpass(result);
