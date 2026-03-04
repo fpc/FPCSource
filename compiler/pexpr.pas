@@ -4022,7 +4022,7 @@ implementation
                        end;
                        if mightbegeneric then
                          begin
-                           p1:=cspecializenode.create_inherited(p1,getaddr,srsym,hclassdef,compiler);
+                           p1:=compiler.cspecializenode_inherited(p1,getaddr,srsym,hclassdef);
                          end
                        else
                          begin

@@ -199,6 +199,7 @@ type
     function cnothingnode:tnothingnode; inline;
     function cerrornode:terrornode; inline;
     function cspecializenode(l:tnode;g:boolean;s:tsym;u:boolean):tspecializenode; inline;
+    function cspecializenode_inherited(l:tnode;g:boolean;s:tsym;i:tdef):tspecializenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -531,6 +532,12 @@ end;
 function TCompilerHelper.cspecializenode(l: tnode; g: boolean; s: tsym; u: boolean): tspecializenode; inline;
 begin
   result:=nbas.cspecializenode.create(l,g,s,u,self);
+end;
+
+function TCompilerHelper.cspecializenode_inherited(l: tnode; g: boolean;
+  s: tsym; i: tdef): tspecializenode; inline;
+begin
+  result:=nbas.cspecializenode.create_inherited(l,g,s,i,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
