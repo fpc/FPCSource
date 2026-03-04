@@ -2086,7 +2086,7 @@ implementation
                 ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype,compiler)
                   ,nil,compiler),compiler),compiler),compiler);
 
-             addstatement(newstatement,ccallnode.createintern('fpc_vararray_put',paras));
+             addstatement(newstatement,compiler.ccallnode_intern('fpc_vararray_put',paras));
              addstatement(newstatement,compiler.ctempdeletenode(temp));
            end
          else
@@ -2105,7 +2105,7 @@ implementation
                     compiler.ctemprefnode(tempresultvariant)
                   ,nil,compiler),compiler),compiler),compiler);
 
-             addstatement(newstatement,ccallnode.createintern('fpc_vararray_get',paras));
+             addstatement(newstatement,compiler.ccallnode_intern('fpc_vararray_get',paras));
              addstatement(newstatement,compiler.ctempdeletenode(temp));
              { the last statement should return the value as
                location and type, this is done be referencing the
@@ -2160,7 +2160,7 @@ implementation
               cordconstnode.create
                  (paracount,s32inttype,true,compiler),compiler));
           { create call to fpc_dynarr_setlength }
-          addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
+          addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
               ccallparanode.create(caddrnode.create_internal
                     (compiler.ctemprefnode(temp2),compiler),
                  ccallparanode.create(cordconstnode.create
@@ -2296,12 +2296,12 @@ implementation
                    case tfiledef(p1.resultdef).filetyp of
                      ft_text:
                        begin
-                         p1:=cderefnode.create(ccallnode.createintern('fpc_getbuf_text',ccallparanode.create(p1,nil,compiler)),compiler);
+                         p1:=cderefnode.create(compiler.ccallnode_intern('fpc_getbuf_text',ccallparanode.create(p1,nil,compiler)),compiler);
                          typecheckpass(p1);
                        end;
                      ft_typed:
                        begin
-                         p1:=cderefnode.create(ctypeconvnode.create_internal(ccallnode.createintern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil,compiler)),
+                         p1:=cderefnode.create(ctypeconvnode.create_internal(compiler.ccallnode_intern('fpc_getbuf_typedfile',ccallparanode.create(p1,nil,compiler)),
                            cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef,compiler),compiler),compiler);
                          typecheckpass(p1);
                        end;

@@ -459,7 +459,7 @@ implementation
           begin
             addstatement(tstatementnode(arg^),
               cifnode.create(compiler.caddnode(equaln,
-                ccallnode.createintern('fpc_setjmp',
+                compiler.ccallnode_intern('fpc_setjmp',
                   ccallparanode.create(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil,compiler)),
                 cordconstnode.create(1,search_system_proc('fpc_setjmp').returndef,true,compiler))
               ,cgotonode.create(tlabelsym(p),compiler),nil,compiler)
@@ -546,7 +546,7 @@ implementation
                               load_self_pointer_node,
                               voidpointertype,
                               compiler),
-                          ccallnode.createintern('fpc_help_constructor',para),compiler));
+                          compiler.ccallnode_intern('fpc_help_constructor',para),compiler));
                     end
                 else
                   if is_javaclass(current_structdef) or
@@ -697,7 +697,7 @@ implementation
                                     compiler),
                             nil,compiler),compiler),compiler);
                       addstatement(newstatement,
-                          ccallnode.createintern('fpc_help_destructor',para));
+                          compiler.ccallnode_intern('fpc_help_destructor',para));
                     end
                 else if is_javaclass(current_structdef) then
                   begin
@@ -860,7 +860,7 @@ implementation
                     else
                       { object without destructor, call 'fail' helper }
                       addstatement(newstatement,
-                        ccallnode.createintern('fpc_help_fail',
+                        compiler.ccallnode_intern('fpc_help_fail',
                           ccallparanode.create(
                             cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false,compiler),
                           ccallparanode.create(

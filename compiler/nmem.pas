@@ -1406,7 +1406,7 @@ implementation
              is_unicodestring(left.resultdef) or
             (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
            begin
-             left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
+             left := ctypeconvnode.create_internal(compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                ccallparanode.create(
                  ctypeconvnode.create_internal(left,voidpointertype,compiler),nil,compiler)),
                left.resultdef,compiler);
@@ -1575,7 +1575,7 @@ implementation
               addstatement(stat,
                 cifnode.create_internal(
                   compiler.caddnode_internal(gten,indextree,hightree),
-                  ccallnode.createintern('fpc_rangeerror',nil),
+                  compiler.ccallnode_intern('fpc_rangeerror',nil),
                   nil,
                   compiler
                 )

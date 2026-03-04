@@ -86,7 +86,7 @@ implementation
               fname := 'fpc_int64_to_double'
             else
               fname := 'fpc_qword_to_double';
-            result := ccallnode.createintern(fname,ccallparanode.create(
+            result := compiler.ccallnode_intern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
             firstpass(result);

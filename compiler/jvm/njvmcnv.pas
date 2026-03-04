@@ -189,7 +189,7 @@ implementation
        newblock:=internalstatements(newstat);
        restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
        addstatement(newstat,restemp);
-       addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
+       addstatement(newstat,compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+
          '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
          compiler.ctemprefnode(restemp),nil))));
        addstatement(newstat,compiler.ctempdeletenode_normal_temp(restemp));
@@ -356,7 +356,7 @@ implementation
                   helpername:='fpc_bitset_to_bitset'
                 else
                   helpername:='fpc_enumset_to_bitset';
-                result:=ccallnode.createintern(helpername,ccallparanode.create(
+                result:=compiler.ccallnode_intern(helpername,ccallparanode.create(
                   genintconstnode(tsetdef(resultdef).setbase), ccallparanode.create(
                     genintconstnode(tsetdef(left.resultdef).setbase),
                       ccallparanode.create(left,nil))));
@@ -941,7 +941,7 @@ implementation
            helpername:=helpername+'int'
          else
            helpername:=helpername+'long';
-          result:=ccallnode.createintern(helpername,ccallparanode.create(
+          result:=compiler.ccallnode_intern(helpername,ccallparanode.create(
             genintconstnode(left.resultdef.size),ccallparanode.create(genintconstnode(tsetdef(left.resultdef).setbase),
             ccallparanode.create(ctypeconvnode.create_explicit(left,setconvdef),nil))));
           left:=nil;
@@ -977,7 +977,7 @@ implementation
                   helpername:='fpc_long_to_bitset';
                   inserttypeconv_explicit(left,s64inttype);
                 end;
-              result:=ccallnode.createintern(helpername,
+              result:=compiler.ccallnode_intern(helpername,
                 ccallparanode.create(genintconstnode(resultdef.size),
                   ccallparanode.create(genintconstnode(tsetdef(resultdef).setbase),
                     ccallparanode.create(left,nil))));

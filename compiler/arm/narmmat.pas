@@ -379,7 +379,7 @@ implementation
               else
                 internalerror(2005082801);
             end;
-            result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,ccallparanode.create(
               ctypeconvnode.create_internal(left,fDef),
               ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
 

@@ -470,7 +470,7 @@ implementation
              { right <=0? }
              addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false,compiler)),
                { then: result:=left mod right }
-               ccallnode.createintern('fpc_divbyzero',nil),
+               compiler.ccallnode_intern('fpc_divbyzero',nil),
                nil,
                compiler
                ));
@@ -536,7 +536,7 @@ implementation
             internalerror(2015070501);
         end;
 
-        result := ccallnode.createintern(procname,ccallparanode.create(left,
+        result := compiler.ccallnode_intern(procname,ccallparanode.create(left,
           ccallparanode.create(right,nil)));
         left := nil;
         right := nil;
@@ -582,7 +582,7 @@ implementation
         else
           procname := procname + 'qword';
 
-        result := ccallnode.createintern(procname,ccallparanode.create(left,
+        result := compiler.ccallnode_intern(procname,ccallparanode.create(left,
           ccallparanode.create(right,nil,compiler),compiler));
         left := nil;
         right := nil;
@@ -990,7 +990,7 @@ implementation
           procname := 'fpc_shr_'+procname;
         { this order of parameters works at least for the arm,
           however it should work for any calling conventions (FK) }
-        result := ccallnode.createintern(procname,ccallparanode.create(right,
+        result := compiler.ccallnode_intern(procname,ccallparanode.create(right,
           ccallparanode.create(left,nil)));
         left := nil;
         right := nil;
@@ -1233,7 +1233,7 @@ implementation
                   else
                     internalerror(2005082802);
                 end;
-                result:=ccallnode.createintern(procname,ccallparanode.create(left,nil,compiler));
+                result:=compiler.ccallnode_intern(procname,ccallparanode.create(left,nil,compiler));
               end;
 
             left:=nil;

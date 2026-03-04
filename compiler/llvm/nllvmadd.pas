@@ -101,7 +101,7 @@ implementation
                   inserttypeconv_internal(right,s80floattype);
                 end;
               exceptmode:=llvm_constrainedexceptmodestring;
-              result:=ccallnode.createintern(intrname,
+              result:=compiler.ccallnode_intern(intrname,
                 ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
                   ccallparanode.create(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
                     ccallparanode.create(right,

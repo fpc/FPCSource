@@ -231,7 +231,7 @@ implementation
                           compiler),
                   nil,compiler),compiler),compiler);
             addstatement(newstatement,
-                ccallnode.createintern('fpc_help_fail',para));
+                compiler.ccallnode_intern('fpc_help_fail',para));
           end
       else
         internalerror(200305132);
@@ -277,14 +277,14 @@ implementation
             end
           else if (p.resultdef.typ=variantdef) then
             begin
-              result:=ccallnode.createintern('fpc_variant_init',
+              result:=compiler.ccallnode_intern('fpc_variant_init',
                 ccallparanode.create(
                   ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef,compiler),
                 nil,compiler));
             end
           else
             begin
-              result:=ccallnode.createintern('fpc_initialize',
+              result:=compiler.ccallnode_intern('fpc_initialize',
                     ccallparanode.create(
                         caddrnode.create_internal(
                             crttinode.create(
@@ -328,19 +328,19 @@ implementation
           else
             hs:='';
           if hs<>'' then
-            result:=ccallnode.createintern(hs,
+            result:=compiler.ccallnode_intern(hs,
                ccallparanode.create(
                  ctypeconvnode.create_internal(p,voidpointertype,compiler),
                  nil,compiler))
           else if p.resultdef.typ=variantdef then
             begin
-              result:=ccallnode.createintern('fpc_variant_clear',
+              result:=compiler.ccallnode_intern('fpc_variant_clear',
                 ccallparanode.create(
                   ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef,compiler),
                 nil,compiler));
             end
           else
-            result:=ccallnode.createintern('fpc_finalize',
+            result:=compiler.ccallnode_intern('fpc_finalize',
                   ccallparanode.create(
                       caddrnode.create_internal(
                           crttinode.create(
@@ -596,7 +596,7 @@ implementation
           ft_text:
             begin
               if cs_transparent_file_names in current_settings.globalswitches then
-                addstatement(stat^,ccallnode.createintern('fpc_textinit_filename_iso',
+                addstatement(stat^,compiler.ccallnode_intern('fpc_textinit_filename_iso',
                   ccallparanode.create(
                     cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
                   ccallparanode.create(
@@ -605,7 +605,7 @@ implementation
                     cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                   nil,compiler),compiler),compiler)))
               else
-                addstatement(stat^,ccallnode.createintern('fpc_textinit_iso',
+                addstatement(stat^,compiler.ccallnode_intern('fpc_textinit_iso',
                   ccallparanode.create(
                     cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
                   ccallparanode.create(
@@ -615,7 +615,7 @@ implementation
           ft_typed:
             begin
               if cs_transparent_file_names in current_settings.globalswitches then
-                addstatement(stat^,ccallnode.createintern('fpc_typedfile_init_filename_iso',
+                addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_init_filename_iso',
                   ccallparanode.create(
                     cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
                   ccallparanode.create(
@@ -624,7 +624,7 @@ implementation
                     cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                   nil,compiler),compiler),compiler)))
               else
-                addstatement(stat^,ccallnode.createintern('fpc_typedfile_init_iso',
+                addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_init_iso',
                   ccallparanode.create(
                     cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
                   ccallparanode.create(
@@ -647,14 +647,14 @@ implementation
         case tfiledef(tstaticvarsym(p).vardef).filetyp of
           ft_text:
             begin
-              addstatement(stat^,ccallnode.createintern('fpc_textclose_iso',
+              addstatement(stat^,compiler.ccallnode_intern('fpc_textclose_iso',
                 ccallparanode.create(
                   cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                 nil,compiler)));
             end;
           ft_typed:
             begin
-              addstatement(stat^,ccallnode.createintern('fpc_typedfile_close_iso',
+              addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_close_iso',
                 ccallparanode.create(
                   cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                 nil,compiler)));
@@ -941,7 +941,7 @@ implementation
 
   procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
     begin
-      addstatement(stat,ccallnode.createintern('fpc_fillmem',
+      addstatement(stat,compiler.ccallnode_intern('fpc_fillmem',
         ccallparanode.Create(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false,compiler),
         ccallparanode.Create(sizen,
         ccallparanode.Create(trashn,nil,compiler),compiler),compiler)

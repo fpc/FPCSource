@@ -3544,7 +3544,7 @@ const
                             para,
                             compiler
                           );
-                  result:=ccallnode.createintern(
+                  result:=compiler.ccallnode_intern(
                             'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
                             para
                           );
@@ -3590,7 +3590,7 @@ const
                           );
                   addstatement(
                     newstatement,
-                    ccallnode.createintern(
+                    compiler.ccallnode_intern(
                       'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
                       para
                     )
@@ -3658,7 +3658,7 @@ const
               if nodetype in [equaln,unequaln] then
                 cmpfuncname := cmpfuncname + '_equal';
 
-              result := ccallnode.createintern(cmpfuncname,
+              result := compiler.ccallnode_intern(cmpfuncname,
                 ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler));
               { and compare its result with 0 according to the original operator }
               result := compiler.caddnode(nodetype,result,
@@ -3685,7 +3685,7 @@ const
               (aktassignmentnode.left.resultdef=resultdef) and
               valid_for_var(aktassignmentnode.left,false) then
             begin
-              result:=ccallnode.createintern(n,
+              result:=compiler.ccallnode_intern(n,
                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                 ccallparanode.create(aktassignmentnode.left.getcopy,
                 ccallparanode.create(right,
@@ -3708,7 +3708,7 @@ const
               temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
               addstatement(newstatement,temp);
 
-              addstatement(newstatement,ccallnode.createintern(n,
+              addstatement(newstatement,compiler.ccallnode_intern(n,
                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                 ccallparanode.create(compiler.ctemprefnode(temp),
                 ccallparanode.create(right,
@@ -3787,7 +3787,7 @@ const
 
                   if no_temp then
                     begin
-                      result:=ccallnode.createintern('fpc_varset_create_element',
+                      result:=compiler.ccallnode_intern('fpc_varset_create_element',
                         ccallparanode.create(aktassignmentnode.left.getcopy,
                         ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                         ccallparanode.create(tsetelementnode(right).left,nil,compiler),compiler),compiler));
@@ -3801,7 +3801,7 @@ const
                       temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                       addstatement(newstatement,temp);
 
-                      addstatement(newstatement,ccallnode.createintern('fpc_varset_create_element',
+                      addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_create_element',
                         ccallparanode.create(compiler.ctemprefnode(temp),
                         ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                         ccallparanode.create(tsetelementnode(right).left,nil,compiler),compiler),compiler))
@@ -3835,7 +3835,7 @@ const
                                 ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype,compiler),
                                 cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
-                              result:=ccallnode.createintern('fpc_varset_set_range',
+                              result:=compiler.ccallnode_intern('fpc_varset_set_range',
                                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                                 ccallparanode.create(tsetelementnode(right).right,
                                 ccallparanode.create(tsetelementnode(right).left,
@@ -3855,7 +3855,7 @@ const
                                     ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
                                     cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
-                                  result:=ccallnode.createintern('fpc_varset_set',
+                                  result:=compiler.ccallnode_intern('fpc_varset_set',
                                     ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                                     ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
                                     ccallparanode.create(aktassignmentnode.left.getcopy,
@@ -3885,7 +3885,7 @@ const
                               tsetelementnode(right).right:=compiler.caddnode(subn,
                                 ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype,compiler),
                                 cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
-                              addstatement(newstatement,ccallnode.createintern('fpc_varset_set_range',
+                              addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set_range',
                                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                                 ccallparanode.create(tsetelementnode(right).right,
                                 ccallparanode.create(tsetelementnode(right).left,
@@ -3894,7 +3894,7 @@ const
                               );
                             end
                           else
-                            addstatement(newstatement,ccallnode.createintern('fpc_varset_set',
+                            addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set',
                               ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                               ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
                               ccallparanode.create(compiler.ctemprefnode(temp),
@@ -3971,7 +3971,7 @@ const
                         ccallparanode.create(
                           ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidcodepointertype,compiler),nil,compiler)
                         ,compiler),compiler),compiler);
-                  result:=ccallnode.createintern(
+                  result:=compiler.ccallnode_intern(
                             'fpc_dynarray_concat',
                             para
                           );
@@ -4005,7 +4005,7 @@ const
                         ),compiler),compiler);
                   addstatement(
                     newstatement,
-                    ccallnode.createintern(
+                    compiler.ccallnode_intern(
                       'fpc_dynarray_concat',
                       para
                     )
@@ -4285,7 +4285,7 @@ const
               procname := 'fpc_mul_dword_to_qword';
 
             right := ccallparanode.create(right,ccallparanode.create(left,nil,compiler),compiler);
-            result := ccallnode.createintern(procname,right);
+            result := compiler.ccallnode_intern(procname,right);
             left := nil;
             right := nil;
           end
@@ -4321,7 +4321,7 @@ const
             if cs_check_overflow in current_settings.localswitches then
               procname := procname + '_checkoverflow';
 
-            result := ccallnode.createintern(procname,right);
+            result := compiler.ccallnode_intern(procname,right);
             right := nil;
           end;
       end;
@@ -4455,13 +4455,13 @@ const
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
               resultdef:=pasbool1type;
-            result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,ccallparanode.create(
                 ctypeconvnode.create_internal(right,fdef,compiler),
                 ccallparanode.create(
                   ctypeconvnode.create_internal(left,fdef,compiler),nil,compiler),compiler)),resultdef,compiler);
           end
         else
-          result:=ccallnode.createintern(procname,ccallparanode.create(right,
+          result:=compiler.ccallnode_intern(procname,ccallparanode.create(right,
              ccallparanode.create(left,nil,compiler),compiler));
         left:=nil;
         right:=nil;
@@ -4751,7 +4751,7 @@ const
                      end;
                      if cs_check_overflow in current_settings.localswitches then
                        procname:=procname+'_checkoverflow';
-                     result := ccallnode.createintern(procname,
+                     result := compiler.ccallnode_intern(procname,
                        ccallparanode.create(right,
                        ccallparanode.create(left,nil)));
                      left := nil;

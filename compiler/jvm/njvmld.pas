@@ -112,7 +112,7 @@ function tjvmassignmentnode.pass_1: tnode;
           inserttypeconv_explicit(right,cwidechartype)
         else
           inserttypeconv_explicit(right,cansichartype);
-        result:=ccallnode.createintern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
+        result:=compiler.ccallnode_intern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
           ccallparanode.create(right,
             ccallparanode.create(tvecnode(target).right,
               ccallparanode.create(tvecnode(target).left.getcopy,nil))));

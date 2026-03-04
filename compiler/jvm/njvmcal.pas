@@ -339,7 +339,7 @@ implementation
                       compiler.caddnode(andn,
                         compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele0,orgparadef)),
                         compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele1,orgparadef))),
-                      ccallnode.createintern('fpc_var_copyout_mismatch',
+                      compiler.ccallnode_intern('fpc_var_copyout_mismatch',
                         ccallparanode.create(genintconstnode(fileinfo.column),
                           ccallparanode.create(genintconstnode(fileinfo.line),nil))
                       ),nil

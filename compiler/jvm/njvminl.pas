@@ -210,7 +210,7 @@ implementation
             finaltype:=jvmarrtype_setlength(eledef);
             { construct the call to
                 fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar) }
-            result:=ccallnode.createintern('FPC_DYNARRAY_COPY',
+            result:=compiler.ccallnode_intern('FPC_DYNARRAY_COPY',
               ccallparanode.create(cordconstnode.create(ord(finaltype),cwidechartype,false),
                 ccallparanode.create(genintconstnode(ndims),
                   ccallparanode.create(len,
@@ -506,7 +506,7 @@ implementation
                deepcopy=false, new=newnode, assignmenttarget=tcallparnode(left).left
               -> already done in common part above }
           end;
-        result:=ccallnode.createintern(setlenroutine,newparas);
+        result:=compiler.ccallnode_intern(setlenroutine,newparas);
         { assign result back to org (no call-by-reference for Java) }
         result:=cassignmentnode.create(assignmenttarget,
           ctypeconvnode.create_explicit(result,assignmenttarget.resultdef));

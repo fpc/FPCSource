@@ -280,7 +280,7 @@ implementation
                 concatwidestringchar(pw,wc);
               end;
           end;
-        result:=ccallnode.createintern(helpername,
+        result:=compiler.ccallnode_intern(helpername,
           ccallparanode.create(cstringconstnode.createunistr(pw),otherparas));
         donewidestring(pw);
       end;

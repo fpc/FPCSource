@@ -111,7 +111,7 @@ implementation
               internalerror(2011111302);
           end;
         // (const s: unicodestring; var arr: array of shortint; startintdex, len: longint);
-        addstatement(statmnt,ccallnode.createintern('fpc_tcon_'+procvariant+'_array_from_string',
+        addstatement(statmnt,compiler.ccallnode_intern('fpc_tcon_'+procvariant+'_array_from_string',
           ccallparanode.create(genintconstnode(arrstringdata.arrdatalen),
             ccallparanode.create(genintconstnode(arrstringdata.arrdatastart),
               ccallparanode.create(arrstringdata.arraybase.getcopy,

@@ -147,11 +147,11 @@ implementation
                 end;
               if assigned(stat) then
                 begin
-                  addstatement(stat,ccallnode.createintern(proc,paras));
+                  addstatement(stat,compiler.ccallnode_intern(proc,paras));
                   addstatement(stat,compiler.ctempdeletenode(temp));
                 end
               else
-                result:=ccallnode.createintern(proc,paras);
+                result:=compiler.ccallnode_intern(proc,paras);
             end
           else
             result:=cassignmentnode.create(p,cnilnode.create);

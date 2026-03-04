@@ -180,7 +180,7 @@ interface
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext;acompiler:TCompilerBase);virtual;
           constructor create_procvar(l,r:tnode;acompiler:TCompilerBase);
-          constructor createintern(const name: string; params: tnode);
+          constructor createintern(const name: string; params: tnode;acompiler:TCompilerBase);
           constructor createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode);
           constructor createinternfromunit(const fromunit, procname: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; res:tdef);
@@ -633,7 +633,7 @@ implementation
             else
               selfpara:=selfnode;
 
-            addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
+            addstatement(statements,compiler.ccallnode_intern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
               ccallparanode.create(caddrnode.create(compiler.ctemprefnode(params),compiler),
               ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
@@ -645,7 +645,7 @@ implementation
           end
         else
           begin
-            addstatement(statements,ccallnode.createintern('fpc_dispatch_by_id',
+            addstatement(statements,compiler.ccallnode_intern('fpc_dispatch_by_id',
               { parameters are passed always reverted, i.e. the last comes first }
               ccallparanode.create(caddrnode.create(compiler.ctemprefnode(params),compiler),
               ccallparanode.create(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
@@ -736,7 +736,7 @@ implementation
                        ccallparanode.create(caddrnode.create_internal(
                           cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),nil,compiler),compiler),compiler);
                 callnode.add_init_statement(
-                  ccallnode.createintern('fpc_finalize_array',npara));
+                  compiler.ccallnode_intern('fpc_finalize_array',npara));
               end;
             left:=cderefnode.create(compiler.ctemprefnode(temp),compiler);
             firstpass(left);
@@ -832,7 +832,7 @@ implementation
                  addstatement(initstat,
                    cassignmentnode.create(
                      compiler.ctemprefnode(paratemp),
-                     ccallnode.createintern('fpc_getmem',
+                     compiler.ccallnode_intern('fpc_getmem',
                        ccallparanode.create(
                          arraysize.getcopy,nil,compiler
                        )
@@ -849,7 +849,7 @@ implementation
                        arraysize.getcopy,
                        genintconstnode(0,compiler)
                      ),
-                     ccallnode.createintern('MOVE',
+                     compiler.ccallnode_intern('MOVE',
                        ccallparanode.create(
                          arraysize,
                          ccallparanode.create(
@@ -874,7 +874,7 @@ implementation
 
                  { free the memory again after the call: freemem(paratemp) }
                  addstatement(finistat,
-                   ccallnode.createintern('fpc_freemem',
+                   compiler.ccallnode_intern('fpc_freemem',
                      ccallparanode.create(
                        compiler.ctemprefnode(paratemp),nil,compiler
                      )
@@ -910,7 +910,7 @@ implementation
                 paratemp:=compiler.ctempcreatenode(vardatatype,vardatatype.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
-                  ccallnode.createintern('fpc_variant_copy_overwrite',
+                  compiler.ccallnode_intern('fpc_variant_copy_overwrite',
                     ccallparanode.create(
                       ctypeconvnode.create_explicit(compiler.ctemprefnode(paratemp),
                           vardatatype,
@@ -1635,7 +1635,7 @@ implementation
       end;
 
 
-     constructor tcallnode.createintern(const name: string; params: tnode);
+     constructor tcallnode.createintern(const name: string; params: tnode;acompiler:TCompilerBase);
        var
          srsym: tsym;
        begin
@@ -1650,13 +1650,13 @@ implementation
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,name);
-         create(params,tprocsym(srsym),srsym.owner,nil,[],nil,compiler);
+         create(params,tprocsym(srsym),srsym.owner,nil,[],nil,acompiler);
        end;
 
 
      constructor tcallnode.createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode);
        begin
-         createintern(name, params);
+         createintern(name, params, nil);  { TODO: fix node compiler reference!!! }
          intrinsiccode := intrinsic;
        end;
 
@@ -1678,7 +1678,7 @@ implementation
       var
         pd : tprocdef;
       begin
-        createintern(name,params);
+        createintern(name,params,nil);  { TODO: fix node compiler reference!!! }
         typedef:=res;
         include(callnodeflags,cnf_typedefset);
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
@@ -1708,7 +1708,7 @@ implementation
 
     constructor tcallnode.createinternreturn(const name: string; params: tnode; returnnode : tnode);
       begin
-        createintern(name,params);
+        createintern(name,params,nil);  { TODO: fix node compiler reference!!! }
         funcretnode:=returnnode;
       end;
 

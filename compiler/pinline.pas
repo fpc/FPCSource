@@ -410,7 +410,7 @@ implementation
                          (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true,compiler),nil,compiler);
                      addstatement(newstatement,cassignmentnode.create(
                          compiler.ctemprefnode(temp),
-                         ccallnode.createintern('fpc_getmem',para),compiler));
+                         compiler.ccallnode_intern('fpc_getmem',para),compiler));
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
@@ -449,7 +449,7 @@ implementation
                        para := ccallparanode.create(p,nil,compiler)
                      else
                        para := ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler);
-                     addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
+                     addstatement(newstatement,compiler.ccallnode_intern('fpc_freemem',para));
                      if assigned(temp) then
                        addstatement(newstatement,compiler.ctempdeletenode(temp));
                    end;
@@ -615,7 +615,7 @@ implementation
             procname:='fpc_setstring_ansistr_pansichar'
           else
             procname:='fpc_setstring_shortstr';
-        result:=ccallnode.createintern(procname,paras)
+        result:=compiler.ccallnode_intern(procname,paras)
       end;
 
 
@@ -658,9 +658,9 @@ implementation
                   ccallparanode.create(caddrnode.create_internal
                      (destppn.left,compiler),nil,compiler),compiler),compiler);
            if isinit then
-             newblock:=ccallnode.createintern('fpc_initialize_array',npara)
+             newblock:=compiler.ccallnode_intern('fpc_initialize_array',npara)
            else
-             newblock:=ccallnode.createintern('fpc_finalize_array',npara);
+             newblock:=compiler.ccallnode_intern('fpc_finalize_array',npara);
            destppn.left:=nil;
          end
         else

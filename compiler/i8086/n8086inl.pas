@@ -299,7 +299,7 @@ implementation
              if assigned(tcallparanode(left).right) then
                hp:=compiler.caddnode(muln,hp,tcallparanode(tcallparanode(left).right).left.getcopy);
 
-             result:=ccallnode.createintern(procname,
+             result:=compiler.ccallnode_intern(procname,
                        ccallparanode.create(hp,
                        ccallparanode.create(tcallparanode(left).left.getcopy,nil)));
              typecheckpass(result);

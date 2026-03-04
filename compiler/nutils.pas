@@ -655,7 +655,7 @@ implementation
                       compiler
                     ),
                     cnilnode.create(compiler)),
-                  ccallnode.createintern('fpc_objecterror',nil),
+                  compiler.ccallnode_intern('fpc_objecterror',nil),
                   nil,
                   compiler)
                 );
@@ -705,14 +705,14 @@ implementation
                   compiler
                 );
                 addstatement(stat,
-                  ccallnode.createintern(
+                  compiler.ccallnode_intern(
                     'fpc_check_object_ext',paras
                   )
                 );
               end
             else
               addstatement(stat,
-                ccallnode.createintern(
+                compiler.ccallnode_intern(
                   'fpc_check_object',paras
                 )
               );

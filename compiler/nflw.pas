@@ -2501,7 +2501,7 @@ implementation
 
                     if assigned(labelsym.jumpbuf) then
                       begin
-                        result:=ccallnode.createintern('fpc_longjmp',
+                        result:=compiler.ccallnode_intern('fpc_longjmp',
                           ccallparanode.create(cordconstnode.create(1,sinttype,true,compiler),
                           ccallparanode.create(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner,compiler),
                         nil,compiler),compiler));
@@ -2740,7 +2740,7 @@ implementation
                   right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false,compiler));
               end;
 
-            raisenode:=ccallnode.createintern('fpc_raiseexception',
+            raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
               ccallparanode.create(third,
               ccallparanode.create(right,
               ccallparanode.create(left,nil,compiler),compiler),compiler)
@@ -2750,8 +2750,8 @@ implementation
           end
         else
           begin
-            addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
-            raisenode:=ccallnode.createintern('fpc_reraise',nil);
+            addstatement(statements,compiler.ccallnode_intern('fpc_popaddrstack',nil));
+            raisenode:=compiler.ccallnode_intern('fpc_reraise',nil);
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
           end;

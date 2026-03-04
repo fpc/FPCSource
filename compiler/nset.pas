@@ -1329,7 +1329,7 @@ implementation
                 { in Standard/Extended Pascal, this is a dynamic violation error if it actually happens }
                 if ([m_extpas,m_iso]*current_settings.modeswitches)<>[] then
                   begin
-                    elseblock:=ccallnode.createintern('fpc_rangeerror',nil);
+                    elseblock:=compiler.ccallnode_intern('fpc_rangeerror',nil);
                     typecheckpass(elseblock);
                   end;
               end

@@ -308,7 +308,7 @@ interface
               begin
                 { "s1 xor s2" is the same as "(s1 + s2) - (s1 * s2)"
                   -> call helper to prevent double evaluations }
-                result:=ccallnode.createintern('fpc_enumset_symdif',
+                result:=compiler.ccallnode_intern('fpc_enumset_symdif',
                   ccallparanode.create(right,ccallparanode.create(left,nil)));
                 left:=nil;
                 right:=nil;

@@ -218,6 +218,7 @@ type
     { ncal }
     function ccallnode(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext):tcallnode; inline;
     function ccallnode_procvar(l,r:tnode):tcallnode; inline;
+    function ccallnode_intern(const name: string; params: tnode):tcallnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -639,6 +640,12 @@ end;
 function TCompilerHelper.ccallnode_procvar(l, r: tnode): tcallnode; inline;
 begin
   result:=ncal.ccallnode.create_procvar(l,r,self);
+end;
+
+function TCompilerHelper.ccallnode_intern(const name: string; params: tnode
+  ): tcallnode; inline;
+begin
+  result:=ncal.ccallnode.createintern(name,params,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

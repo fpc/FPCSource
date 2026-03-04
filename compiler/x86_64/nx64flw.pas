@@ -79,7 +79,7 @@ function tx64raisenode.pass_1 : tnode;
     else
       begin
         result:=internalstatements(compiler,statements);
-        raisenode:=ccallnode.createintern('fpc_reraise',nil);
+        raisenode:=compiler.ccallnode_intern('fpc_reraise',nil);
         include(raisenode.callnodeflags,cnf_call_never_returns);
         addstatement(statements,raisenode);
       end;

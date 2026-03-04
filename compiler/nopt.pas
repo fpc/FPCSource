@@ -232,7 +232,7 @@ end;
 function taddsstringcsstringoptnode.pass_1: tnode;
 begin
   { create the call to the concat routine both strings as arguments }
-  result := ccallnode.createintern('fpc_shortstr_append_shortstr',
+  result := compiler.ccallnode_intern('fpc_shortstr_append_shortstr',
     ccallparanode.create(left,ccallparanode.create(right,nil,compiler),compiler));
   left:=nil;
   right:=nil;
@@ -375,7 +375,7 @@ begin
                 para,
                 compiler
               );
-      result:=ccallnode.createintern(
+      result:=compiler.ccallnode_intern(
                 'fpc_'+tstringdef(p.resultdef).stringtypname+'_concat_multi',
                 para
               );
@@ -416,7 +416,7 @@ begin
               );
       addstatement(
         newstatement,
-        ccallnode.createintern(
+        compiler.ccallnode_intern(
           'fpc_'+tstringdef(p.resultdef).stringtypname+'_concat_multi',
           para
         )
@@ -480,7 +480,7 @@ begin
               ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidpointertype,compiler),nil,compiler),
             compiler
           ),compiler);
-      result:=ccallnode.createintern(
+      result:=compiler.ccallnode_intern(
                 'fpc_dynarray_concat_multi',
                 para
               );
@@ -511,7 +511,7 @@ begin
           ),compiler);
       addstatement(
         newstatement,
-        ccallnode.createintern(
+        compiler.ccallnode_intern(
           'fpc_dynarray_concat_multi',
           para
         )

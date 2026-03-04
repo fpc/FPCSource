@@ -271,7 +271,7 @@ implementation
                   right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
-            raisenode:=ccallnode.createintern('fpc_raiseexception',
+            raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
               ccallparanode.create(third,
               ccallparanode.create(right,
               ccallparanode.create(left,nil)))
@@ -281,8 +281,8 @@ implementation
           end
         else
           begin
-            addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
-            raisenode:=ccallnode.createintern('fpc_reraise',nil);
+            addstatement(statements,compiler.ccallnode_intern('fpc_popaddrstack',nil));
+            raisenode:=compiler.ccallnode_intern('fpc_reraise',nil);
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
           end;
@@ -328,7 +328,7 @@ implementation
                   right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
-            raisenode:=ccallnode.createintern('fpc_raiseexception',
+            raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
               ccallparanode.create(third,
               ccallparanode.create(right,
               ccallparanode.create(left,nil)))
@@ -338,8 +338,8 @@ implementation
           end
         else
           begin
-            //addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
-            raisenode:=ccallnode.createintern('fpc_reraise2',nil);
+            //addstatement(statements,compiler.ccallnode_intern('fpc_popaddrstack',nil));
+            raisenode:=compiler.ccallnode_intern('fpc_reraise2',nil);
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
           end;
@@ -385,7 +385,7 @@ implementation
                   right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
-            raisenode:=ccallnode.createintern('fpc_raiseexception',
+            raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
               ccallparanode.create(third,
               ccallparanode.create(right,
               ccallparanode.create(left,nil)))
@@ -395,8 +395,8 @@ implementation
           end
         else
           begin
-            //addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
-            raisenode:=ccallnode.createintern('fpc_reraise2',nil);
+            //addstatement(statements,compiler.ccallnode_intern('fpc_popaddrstack',nil));
+            raisenode:=compiler.ccallnode_intern('fpc_reraise2',nil);
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
           end;
@@ -442,7 +442,7 @@ implementation
                   right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false));
               end;
 
-            raisenode:=ccallnode.createintern('fpc_raiseexception',
+            raisenode:=compiler.ccallnode_intern('fpc_raiseexception',
               ccallparanode.create(third,
               ccallparanode.create(right,
               ccallparanode.create(left,nil)))
@@ -452,8 +452,8 @@ implementation
           end
         else
           begin
-            //addstatement(statements,ccallnode.createintern('fpc_popaddrstack',nil));
-            raisenode:=ccallnode.createintern('fpc_reraise2',nil);
+            //addstatement(statements,compiler.ccallnode_intern('fpc_popaddrstack',nil));
+            raisenode:=compiler.ccallnode_intern('fpc_reraise2',nil);
             include(raisenode.callnodeflags,cnf_call_never_returns);
             addstatement(statements,raisenode);
           end;

@@ -909,7 +909,7 @@ implementation
                  ccallparanode.create(
                    ctypeconvnode.create_internal(left,voidpointertype,compiler),
                    nil,compiler),compiler),compiler);
-               result:=ccallnode.createintern('fpc_intf_assign_by_iid',hp);
+               result:=compiler.ccallnode_intern('fpc_intf_assign_by_iid',hp);
                left:=nil;
                right:=nil;
                exit;
@@ -1003,7 +1003,7 @@ implementation
                  hp:=ccallparanode.create
                        (right,
                   ccallparanode.create(left,nil,compiler),compiler);
-                 result:=ccallnode.createintern('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp);
+                 result:=compiler.ccallnode_intern('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp);
                  firstpass(result);
                  left:=nil;
                  right:=nil;
@@ -1027,9 +1027,9 @@ implementation
                  caddrnode.create_internal(right,compiler),voidpointertype,compiler),
                nil,compiler),compiler),compiler);
            if tempreturnfromcall then
-             result:=ccallnode.createintern('fpc_copy_with_move_semantics_proc',hp)
+             result:=compiler.ccallnode_intern('fpc_copy_with_move_semantics_proc',hp)
            else
-             result:=ccallnode.createintern('fpc_copy_proc',hp);
+             result:=compiler.ccallnode_intern('fpc_copy_proc',hp);
            firstpass(result);
            left:=nil;
            right:=nil;
@@ -1050,7 +1050,7 @@ implementation
                ccallparanode.create(ctypeconvnode.create_internal(
                  left,hdef,compiler),
                nil,compiler),compiler);
-           result:=ccallnode.createintern('fpc_variant_copy',hp);
+           result:=compiler.ccallnode_intern('fpc_variant_copy',hp);
            firstpass(result);
            left:=nil;
            right:=nil;
@@ -1103,7 +1103,7 @@ implementation
             caddrnode.create_internal(
               crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
             hp,compiler);
-        result:=ccallnode.createintern(hs,hp);
+        result:=compiler.ccallnode_intern(hs,hp);
         firstpass(result);
         left:=nil;
         right:=nil;

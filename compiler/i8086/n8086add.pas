@@ -350,11 +350,11 @@ interface
           end;
 
         if is_hugepointer(left.resultdef) then
-          result := ccallnode.createintern(procname,
+          result := compiler.ccallnode_intern(procname,
             ccallparanode.create(right,
             ccallparanode.create(left,nil)))
         else
-          result := ccallnode.createintern(procname,
+          result := compiler.ccallnode_intern(procname,
             ccallparanode.create(left,
             ccallparanode.create(right,nil)));
         left := nil;
@@ -403,7 +403,7 @@ interface
             internalerror(2014070401);
         end;
 
-        result := ccallnode.createintern(procname,
+        result := compiler.ccallnode_intern(procname,
           ccallparanode.create(right,
           ccallparanode.create(left,nil)));
         left := nil;
