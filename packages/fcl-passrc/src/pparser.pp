@@ -347,6 +347,7 @@ type
   private
     FCurModule: TPasModule;
     FCurTokenEscaped: Boolean;
+    FEndExprTokenExtra: set of TToken;
     FFailOnModuleErors: Boolean;
     FFileResolver: TBaseFileResolver;
     FIdentifierPos: TPasSourcePos;
@@ -2373,7 +2374,9 @@ const
     tkdo, tkdownto, tkelse, tkend, tkof, tkthen, tkto, tkotherwise
   ];
 begin
-  if (CurToken in EndExprToken) or (CheckHints and IsCurTokenHint) then
+  if (CurToken in EndExprToken)
+      or (CurToken in FEndExprTokenExtra)
+      or (CheckHints and IsCurTokenHint) then
     exit(true);
   if AllowEqual and (CurToken=tkEqual) then
     exit(true);
@@ -3005,7 +3008,7 @@ Var
   SrcPos: TPasSourcePos;
 
 begin
-  AllowedBinaryOps:=BinaryOP;
+  AllowedBinaryOps:=BinaryOP-FEndExprTokenExtra;
   if Not AllowEqual then
     Exclude(AllowedBinaryOps,tkEqual);
   {$ifdef VerbosePasParserWriteln}
@@ -4501,11 +4504,24 @@ Var
   T : TPasGenericTemplateType;
   Expr: TPasExpr;
   TypeEl: TPasType;
+  GroupIsConst: Boolean;
 begin
   ExpectToken(tkLessThan);
+  GroupIsConst:=False;
   repeat
-    N:=ExpectIdentifier;
+    NextToken;
+    if CurToken=tkconst then
+      begin
+      GroupIsConst:=True;
+      N:=ExpectIdentifier;
+      end
+    else
+      begin
+      CheckToken(tkIdentifier);
+      N:=CurTokenString;
+      end;
     T:=TPasGenericTemplateType(CreateElement(TPasGenericTemplateType,N,Parent));
+    T.IsConst:=GroupIsConst;
     List.Add(T);
     NextToken;
     if Curtoken = tkColon then
@@ -4533,6 +4549,8 @@ begin
         end;
       until CurToken<>tkComma;
     Engine.FinishScope(stTypeDef,T);
+    if CurToken=tkSemicolon then
+      GroupIsConst:=False;
   until not (CurToken in [tkSemicolon,tkComma]);
   if Not (CurToken in [tkGreaterThan,tkGreaterEqualThan]) then
     ParseExcExpectedAorB(TokenInfos[tkComma], TokenInfos[tkGreaterThan])
@@ -4548,14 +4566,37 @@ procedure TPasParser.ReadSpecializeArguments(Parent: TPasElement;
 // after parsing CurToken is on tkGreaterThan
 Var
   TypeEl: TPasType;
+  Expr: TPasExpr;
+  OldExtra: set of TToken;
 begin
   //writeln('START TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
   CheckToken(tkLessThan);
   repeat
     //writeln('ARG TPasParser.ReadSpecializeArguments ',CurTokenText,' ',CurTokenString);
-    TypeEl:=ParseType(Parent,CurTokenPos,'');
-    Params.Add(TypeEl);
     NextToken;
+    case CurToken of
+      tkNumber, tkString, tkChar, tktrue, tkfalse, tknil,
+      tkSquaredBraceOpen, tkMinus, tkPlus, tknot:
+        begin
+        // Const generic argument - parse as expression
+        OldExtra:=FEndExprTokenExtra;
+        FEndExprTokenExtra:=FEndExprTokenExtra+[tkGreaterThan,tkshr];
+        try
+          Expr:=DoParseExpression(Parent);
+          Params.Add(Expr);
+        finally
+          FEndExprTokenExtra:=OldExtra;
+        end;
+        end;
+    else
+      begin
+      // Type argument or identifier - existing behavior
+      UngetToken;
+      TypeEl:=ParseType(Parent,CurTokenPos,'');
+      Params.Add(TypeEl);
+      NextToken;
+      end;
+    end;
     if CurToken=tkComma then
       continue
     else if CurToken=tkshr then

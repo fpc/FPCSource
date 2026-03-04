@@ -601,6 +601,7 @@ type
     procedure AddConstraint(El: TPasElement);
     procedure ClearTypeReferences(aType: TPasElement); override;
   Public
+    IsConst: Boolean; // true for const generic parameters
     TypeConstraint: TPasTreeString deprecated; // deprecated in fpc 3.3.1
     Constraints: TPasElementArray; // list of TPasExpr or TPasType, can be nil!
   end;
@@ -2152,6 +2153,8 @@ var
   i: Integer;
 begin
   Result:=inherited GetDeclaration(full);
+  if IsConst then
+    Result:='const '+Result;
   if length(Constraints)>0 then
     begin
     Result:=Result+': ';

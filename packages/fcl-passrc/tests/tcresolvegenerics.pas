@@ -1982,6 +1982,8 @@ begin
 end;
 
 procedure TTestResolveGenerics.TestGen_HelperForArray;
+var
+  i : integer;
 begin
   StartProgram(false);
   Add([
@@ -1999,6 +2001,8 @@ begin
   'begin',
   '  a.Fly(3);',
   '']);
+  for I:=0 to Resolvers.Count-1 do
+    TTestEnginePasResolver(Resolvers[i]).MaximizeFPCCompatibility:=True;
   CheckResolverException('helper for specialized generic type is not supported',nXIsNotSupported);
 end;
 

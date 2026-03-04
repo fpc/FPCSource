@@ -167,6 +167,7 @@ type
     procedure RaiseErrorAtSrc(Msg: string; const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
     procedure HandleError(CurEngine: TTestEnginePasResolver; E: Exception);
+    property Resolvers : TObjectList Read FResolvers;
   Public
     constructor Create; override;
     destructor Destroy; override;
@@ -18675,6 +18676,8 @@ begin
 end;
 
 procedure TTestResolver.TestRecordHelper_ForByteFail;
+var
+  i : integer;
 begin
   StartProgram(false);
   Add([
@@ -18685,6 +18688,8 @@ begin
   '  end;',
   'begin',
   '']);
+  for I:=0 to FResolvers.Count-1 do
+    TTestEnginePasResolver(FResolvers[i]).MaximizeFPCCompatibility:=True;
   CheckResolverException('record helper without modeswitch advancedrecords is not supported',nXIsNotSupported);
 end;
 
