@@ -157,6 +157,7 @@ uses
   ,globtype
   ,ngenutil
   ,optloop
+  ,aasmdata
   ,symtype
   ,node,nadd,nbas;
 
@@ -201,6 +202,7 @@ type
     function cspecializenode(l:tnode;g:boolean;s:tsym;u:boolean):tspecializenode; inline;
     function cspecializenode_inherited(l:tnode;g:boolean;s:tsym;i:tdef):tspecializenode; inline;
     function cfinalizetempsnode:tfinalizetempsnode; inline;
+    function casmnode(p : TAsmList):tasmnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -544,6 +546,11 @@ end;
 function TCompilerHelper.cfinalizetempsnode: tfinalizetempsnode; inline;
 begin
   result:=nbas.cfinalizetempsnode.create(self);
+end;
+
+function TCompilerHelper.casmnode(p: TAsmList): tasmnode; inline;
+begin
+  result:=nbas.casmnode.create(p,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

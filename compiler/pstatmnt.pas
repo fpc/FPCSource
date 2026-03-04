@@ -1115,7 +1115,7 @@ implementation
                  hl.insert(tai_marker.create(mark_asmblockstart));
                  hl.concat(tai_marker.create(mark_asmblockend));
                end;
-             asmstat:=casmnode.create(hl,compiler);
+             asmstat:=compiler.casmnode(hl);
              asmstat.fileinfo:=entrypos;
              asmreader.free;
              asmreader := nil;
@@ -1228,7 +1228,7 @@ implementation
         consume(_INLINE);
         consume(_LKLAMMER);
         hl:=TAsmList.create;
-        asmstat:=casmnode.create(hl,compiler);
+        asmstat:=compiler.casmnode(hl);
         asmstat.fileinfo:=current_filepos;
         tokenbuf:=tdynamicarray.Create(16);
         cur_line:=0;
