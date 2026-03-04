@@ -318,7 +318,7 @@ implementation
                       compiler.parser.pexpr.do_member_read(classh,false,sym,p2,again,[callflag],nil)
                     else
                       begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil,compiler);
+                        p2:=compiler.ccallnode(nil,tprocsym(sym),sym.owner,p2,[callflag],nil);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin

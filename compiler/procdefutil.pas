@@ -1080,7 +1080,7 @@ implementation
       fieldsym:=nil;
       if assigned(pinested) then
         begin
-          n1:=ccallnode.create(create_paras(pinested.procdef),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner,compiler),[],nil,compiler);
+          n1:=compiler.ccallnode(create_paras(pinested.procdef),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner,compiler),[],nil);
           { captured variables cannot be in registers }
           make_not_regable(tcallnode(n1).methodpointer,[ra_addr_regable,ra_addr_taken]);
         end
@@ -1107,7 +1107,7 @@ implementation
             internalerror(2022032401);
           if tloadnode(n).symtableentry.typ<>procsym then
             internalerror(2022032402);
-          n1:=ccallnode.create(create_paras(pd),tprocsym(tloadnode(n).symtableentry),tloadnode(n).symtable,tloadnode(n).left,[],nil,compiler);
+          n1:=compiler.ccallnode(create_paras(pd),tprocsym(tloadnode(n).symtableentry),tloadnode(n).symtable,tloadnode(n).left,[],nil);
           tloadnode(n).left:=nil;
         end;
       if assigned(pd.returndef) and not is_void(pd.returndef) then
@@ -1351,7 +1351,7 @@ implementation
 
       { Insert "Capturer := TCapturer.Create()" as the first statement of the routine }
       result:=cloadvmtaddrnode.create(ctypenode.create(capturer_def,compiler),compiler);
-      result:=ccallnode.create(nil,ctor,capturer_def.symtable,result,[],nil,compiler);
+      result:=compiler.ccallnode(nil,ctor,capturer_def.symtable,result,[],nil);
       result:=cassignmentnode.create(load_capturer(capturer_sym),result,compiler);
     end;
 
@@ -1575,7 +1575,7 @@ implementation
                   internalerror(2023120802);
                 cnf:=tcallnode(n).callnodeflags;
                 n.free;
-                n:=ccallnode.create(paranew,tprocsym(mapping^.newsym),mapping^.newsym.owner,mapping^.selfnode.getcopy,cnf,nil,compiler);
+                n:=compiler.ccallnode(paranew,tprocsym(mapping^.newsym),mapping^.newsym.owner,mapping^.selfnode.getcopy,cnf,nil);
                 if loadprocvar then
                   include(n.flags,nf_load_procvar);
                 typecheckpass(n);

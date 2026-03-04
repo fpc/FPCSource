@@ -235,7 +235,7 @@ function ti386tryfinallynode.dogetcopy: tnode;
         if assigned(finalizepi.code) then
           begin
             n.finalizepi.code:=finalizepi.code.getcopy;
-            n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
+            n.right:=compiler.ccallnode(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
             firstpass(n.right);
           end;
       end;
@@ -253,7 +253,7 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
       begin
         finalizepi.code:=right;
         foreachnodestatic(right,@copy_parasize,finalizepi);
-        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
+        right:=compiler.ccallnode(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
         firstpass(right);
         { For implicit frames, no actual code is available at this time,
           it is added later in assembler form. So store the nested procinfo

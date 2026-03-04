@@ -1242,10 +1242,10 @@ implementation
                begin
                  if not (st.symtabletype in [ObjectSymtable,recordsymtable]) then
                    internalerror(200310031);
-                 p1:=ccallnode.create(para,tprocsym(sym),obj.symtable,p1,callflags,spezcontext,compiler);
+                 p1:=compiler.ccallnode(para,tprocsym(sym),obj.symtable,p1,callflags,spezcontext);
                end
              else
-               p1:=ccallnode.create(para,tprocsym(sym),st,p1,callflags,spezcontext,compiler);
+               p1:=compiler.ccallnode(para,tprocsym(sym),st,p1,callflags,spezcontext);
              { in case of calling an anonymous function we already know the concrete
                procdef that is going to be called }
              if (tprocsym(sym).ProcdefList.count=1) and (po_anonymous in tprocdef(tprocsym(sym).procdeflist[0]).procoptions) then
@@ -1377,7 +1377,7 @@ implementation
                          membercall:=maybe_load_methodpointer(st,p1);
                          if membercall then
                            include(callflags,cnf_member_call);
-                         p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags,nil,compiler);
+                         p1:=compiler.ccallnode(paras,tprocsym(sym),st,p1,callflags,nil);
                          addsymref(sym);
                          paras:=nil;
                          consume(_ASSIGNMENT);
@@ -1453,7 +1453,7 @@ implementation
                           membercall:=maybe_load_methodpointer(st,p1);
                           if membercall then
                             include(callflags,cnf_member_call);
-                          p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags,nil,compiler);
+                          p1:=compiler.ccallnode(paras,tprocsym(sym),st,p1,callflags,nil);
                           paras:=nil;
                           include(p1.flags,nf_isproperty);
                           include(p1.flags,nf_no_lvalue);

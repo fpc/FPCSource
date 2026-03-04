@@ -468,7 +468,7 @@ implementation
          if not assigned(sym) or
             (sym.typ<>procsym) then
            internalerror(2010061901);
-         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,compiler.ctemprefnode(expressiontemp),[],nil,compiler);
+         hp:=compiler.ccallnode(hp,tprocsym(sym),sym.owner,compiler.ctemprefnode(expressiontemp),[],nil);
          addstatement(outerloopbodystatement,cassignmentnode.create(
            compiler.ctemprefnode(currentamount),hp,compiler));
          { if currentamount = 0, bail out (use copy of hloopvar, because we
@@ -860,12 +860,12 @@ implementation
         if enumerator_get.proctypeoption=potype_operator then
           begin
             enum_get_params:=ccallparanode.create(expr.getcopy,nil,compiler);
-            enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, [],nil,compiler);
+            enum_get:=compiler.ccallnode(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, [],nil);
             tcallnode(enum_get).procdefinition:=enumerator_get;
             addsymref(enumerator_get.procsym,enumerator_get);
           end
         else
-          enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, [],nil,compiler);
+          enum_get:=compiler.ccallnode(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, [],nil);
 
         addstatement(loopstatement,
           cassignmentnode.create(
@@ -889,7 +889,7 @@ implementation
                procsym :
                  begin
                    { generate the method call }
-                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,compiler.ctemprefnode(enumvar),[],nil,compiler);
+                   enum_current:=compiler.ccallnode(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,compiler.ctemprefnode(enumvar),[],nil);
                    include(enum_current.flags,nf_isproperty);
                  end
                else
@@ -908,7 +908,7 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, compiler.ctemprefnode(enumvar), [],nil,compiler);
+        enum_move:=compiler.ccallnode(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, compiler.ctemprefnode(enumvar), [],nil);
         whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false,compiler);
 
         if enumerator_is_class then
@@ -919,8 +919,8 @@ implementation
               begin
                 whileloopnode:=ctryfinallynode.create(
                   whileloopnode, // try node
-                  ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
-                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil,compiler),compiler);
+                  compiler.ccallnode(nil,tprocsym(enumerator_destructor.procsym), // finally node
+                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil),compiler);
               end;
             { if getenumerator <> nil then do the loop }
             whileloopnode:=cifnode.create(
@@ -938,8 +938,8 @@ implementation
             if assigned(enumerator_destructor) then
               begin
                 addstatement(loopstatement,
-                  ccallnode.create(nil,tprocsym(enumerator_destructor.procsym),
-                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil,compiler));
+                  compiler.ccallnode(nil,tprocsym(enumerator_destructor.procsym),
+                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil));
               end;
           end;
 

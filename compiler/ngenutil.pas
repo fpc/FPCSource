@@ -205,7 +205,7 @@ implementation
                       compiler.caddnode(unequaln,
                           load_vmt_pointer_node,
                           cnilnode.create(compiler))),
-                  ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil,compiler),
+                  compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                   nil,compiler));
             end
           else
@@ -509,7 +509,7 @@ implementation
             begin
               { class constructors are private -> ignore visibility checks }
               addstatement(stat,
-                ccallnode.create(nil,tprocsym(pd.procsym),pd.owner,nil,[cnf_ignore_visibility],nil,compiler))
+                compiler.ccallnode(nil,tprocsym(pd.procsym),pd.owner,nil,[cnf_ignore_visibility],nil))
             end;
         end;
       structlist.free;
@@ -741,8 +741,8 @@ implementation
                     if (psym.typ<>procsym) or
                        (tprocsym(psym).procdeflist.count<>1) then
                       internalerror(2011040301);
-                    addstatement(stat,ccallnode.create(nil,tprocsym(psym),
-                      pd.struct.symtable,nil,[],nil,compiler));
+                    addstatement(stat,compiler.ccallnode(nil,tprocsym(psym),
+                      pd.struct.symtable,nil,[],nil));
                   end;
                 addstatement(stat,result);
                 result:=block

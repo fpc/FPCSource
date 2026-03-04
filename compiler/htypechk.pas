@@ -866,7 +866,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil,compiler);
+        t:=compiler.ccallnode(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.pass_typecheck }
@@ -1030,7 +1030,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil,compiler);
+        ht:=compiler.ccallnode(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.pass_typecheck }

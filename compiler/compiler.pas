@@ -155,11 +155,11 @@ uses
 {$endif aix}
   ,ctask
   ,globtype
-  ,ngenutil
+  ,ngenutil,pgentype
   ,optloop
   ,aasmdata
-  ,symtype
-  ,node,nadd,nbas;
+  ,symbase,symtype,symsym
+  ,node,nadd,nbas,ncal;
 
 type
 {****************************************************************************
@@ -215,6 +215,8 @@ type
     function ctemprefnode(const temp: ttempcreatenode):ttemprefnode; inline;
     function ctempdeletenode(const temp: ttempcreatenode):ttempdeletenode; inline;
     function ctempdeletenode_normal_temp(const temp: ttempcreatenode):ttempdeletenode; inline;
+    { ncal }
+    function ccallnode(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext):tcallnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -622,9 +624,15 @@ begin
 end;
 
 function TCompilerHelper.ctempdeletenode_normal_temp(const temp: ttempcreatenode
-  ): ttempdeletenode;
+  ): ttempdeletenode; inline;
 begin
   result:=nbas.ctempdeletenode.create_normal_temp(temp,self);
+end;
+
+function TCompilerHelper.ccallnode(l: tnode; v: tprocsym; st: TSymtable;
+  mp: tnode; callflags: tcallnodeflags; sc: tspecializationcontext): tcallnode; inline;
+begin
+  result:=ncal.ccallnode.create(l,v,st,mp,callflags,sc,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

@@ -57,7 +57,7 @@ implementation
     nbas,ncal,nutils,
     symconst,symsym,symdef,
     cgbase,cgobj,cgutils,tgobj,
-    cpubase,htypechk,
+    cpubase,htypechk,compiler,
     pass_1,pass_2,
     aasmbase,aasmtai,aasmdata,aasmcpu,
     procinfo,cpupi,procdefutil;
@@ -212,7 +212,7 @@ function tx64tryfinallynode.dogetcopy: tnode;
         if assigned(finalizepi.code) then
           begin
             n.finalizepi.code:=finalizepi.code.getcopy;
-            n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil,compiler);
+            n.right:=compiler.ccallnode(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
             firstpass(n.right);
           end;
       end;
@@ -232,7 +232,7 @@ function tx64tryfinallynode.simplify(forinline: boolean): tnode;
           begin
             finalizepi.code:=right;
             foreachnodestatic(right,@copy_parasize,finalizepi);
-            right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil,compiler);
+            right:=compiler.ccallnode(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
             firstpass(right);
             { For implicit frames, no actual code is available at this time,
               it is added later in assembler form. So store the nested procinfo

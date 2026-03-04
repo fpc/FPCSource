@@ -602,7 +602,7 @@ implementation
               internalerror(2011031403);
             stringnonnull:=cassignmentnode.create(
               compiler.ctemprefnode(lentemp),
-              ccallnode.create(nil,tprocsym(psym),psym.owner,stringtemp,[],nil));
+              compiler.ccallnode(nil,tprocsym(psym),psym.owner,stringtemp,[],nil));
             { else-path: length is 0 }
             stringnull:=cassignmentnode.create(
               compiler.ctemprefnode(lentemp),
@@ -624,7 +624,7 @@ implementation
                (psym.typ<>procsym) then
               internalerror(2011052402);
             result:=
-              ccallnode.create(nil,tprocsym(psym),psym.owner,
+              compiler.ccallnode(nil,tprocsym(psym),psym.owner,
                 ctypeconvnode.create_explicit(caddrnode.create_internal(left),java_shortstring),[],nil);
             { reused }
             left:=nil;

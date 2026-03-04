@@ -139,7 +139,7 @@ function tjvmassignmentnode.pass_1: tnode;
            (psym.typ<>procsym) then
           internalerror(2011052408);
         result:=
-          ccallnode.create(
+          compiler.ccallnode(
             ccallparanode.create(right,
               ccallparanode.create(tvecnode(target).right,nil)),
             tprocsym(psym),psym.owner,tvecnode(target).left,[],nil);

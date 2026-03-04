@@ -2994,7 +2994,7 @@ implementation
                 begin
                   include(current_procinfo.flags,pi_do_call);
                   addsymref(aprocdef.procsym,aprocdef);
-                  hp:=ccallnode.create(ccallparanode.create(left,nil,compiler),Tprocsym(aprocdef.procsym),nil,nil,[],nil,compiler);
+                  hp:=compiler.ccallnode(ccallparanode.create(left,nil,compiler),Tprocsym(aprocdef.procsym),nil,nil,[],nil);
                   { tell explicitly which def we must use !! (PM) }
                   tcallnode(hp).procdefinition:=aprocdef;
                   left:=nil;
@@ -4401,9 +4401,9 @@ implementation
                          { TODO: generating a call to TObject.GetInterface instead could yield
                            smaller code size. OTOH, refcounting gotchas are possible that way. }
                          { constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags); }
-                         result:=ccallnode.create(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
+                         result:=compiler.ccallnode(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
                            tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym).owner,
-                           left,[],nil,compiler);
+                           left,[],nil);
                          addsymref(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym);
                          { if it is a class, process it further in a similar way }
                          if not is_interface(result.resultdef) then

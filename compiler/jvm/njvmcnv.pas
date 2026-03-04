@@ -538,7 +538,7 @@ implementation
         { AnsistringClass.internChars is a static class method that will either
           return the internal fdata ansichar array of the string, or an array
           with a single #0 }
-        result:=ccallnode.create(ccallparanode.create(left,nil),tprocsym(ps),
+        result:=compiler.ccallnode(ccallparanode.create(left,nil),tprocsym(ps),
           ps.owner,
           cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[],nil);
         include(result.flags,nf_isproperty);
@@ -877,7 +877,7 @@ implementation
              (psym.typ<>procsym) then
             internalerror(2011012901);
           { call the (static class) method to get the raw bits }
-          result:=ccallnode.create(ccallparanode.create(left,nil),
+          result:=compiler.ccallnode(ccallparanode.create(left,nil),
             tprocsym(psym),psym.owner,
             cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[],nil);
           { convert the result to the result type of this type conversion node }
@@ -896,7 +896,7 @@ implementation
           if not assigned(psym) or
              (psym.typ<>procsym) then
             internalerror(2011062601);
-          result:=ccallnode.create(ccallparanode.create(left,nil),
+          result:=compiler.ccallnode(ccallparanode.create(left,nil),
             tprocsym(psym),psym.owner,
             cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[],nil);
           { convert the result to the result type of this type conversion node }
@@ -915,7 +915,7 @@ implementation
           if not assigned(psym) or
              (psym.typ<>procsym) then
             internalerror(2011062602);
-          result:=ccallnode.create(nil,tprocsym(psym),psym.owner,left,[],nil);
+          result:=compiler.ccallnode(nil,tprocsym(psym),psym.owner,left,[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -1520,7 +1520,7 @@ implementation
               if not assigned(ps) or
                  (ps.typ<>procsym) then
                 internalerror(2011041910);
-              call:=ccallnode.create(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[],nil);
+              call:=compiler.ccallnode(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[],nil);
               node.left:=nil;
               node.right:=nil;
               firstpass(call);
