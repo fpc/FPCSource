@@ -590,7 +590,7 @@ implementation
                 stringtemp:=ctypeconvnode.create_explicit(left,stringclass);
               end;
             left:=nil;
-            lentemp:=ctempcreatenode.create(s32inttype,s32inttype.size,tt_persistent,true);
+            lentemp:=compiler.ctempcreatenode(s32inttype,s32inttype.size,tt_persistent,true);
             addstatement(newstatement,lentemp);
             { if-condition: assigned(stringclass(stringvar))? }
             ifcond:=cinlinenode.create(in_assigned_x,false,

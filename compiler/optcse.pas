@@ -57,7 +57,7 @@ unit optcse;
       paramgr,
       cpubase,
       symconst,symdef,symsym,symtable,symtype,
-      defutil,
+      defutil,compiler,
       optbase;
 
     const
@@ -808,8 +808,8 @@ unit optcse;
                         createblock:=internalstatements(compiler,creates);
                         deleteblock:=internalstatements(compiler,deletes);
                       end;
-                     constentries[i].temp:=ctempcreatenode.create(constentries[i].valuenode.resultdef,
-                       constentries[i].valuenode.resultdef.size,tt_persistent,true,compiler);
+                     constentries[i].temp:=compiler.ctempcreatenode(constentries[i].valuenode.resultdef,
+                       constentries[i].valuenode.resultdef.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp,compiler),constentries[i].valuenode,compiler));
                      current_filepos:=old_current_filepos;
@@ -832,8 +832,8 @@ unit optcse;
                         createblock:=internalstatements(compiler,creates);
                         deleteblock:=internalstatements(compiler,deletes);
                       end;
-                     constentries[i].temp:=ctempcreatenode.create(cpointerdef.getreusable(constentries[i].valuenode.resultdef,compiler),
-                       voidpointertype.size,tt_persistent,true,compiler);
+                     constentries[i].temp:=compiler.ctempcreatenode(cpointerdef.getreusable(constentries[i].valuenode.resultdef,compiler),
+                       voidpointertype.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp,compiler),
                        caddrnode.create_internal(constentries[i].valuenode,compiler),compiler));

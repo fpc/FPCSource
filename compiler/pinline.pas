@@ -402,7 +402,7 @@ implementation
                   if is_new then
                    begin
                      { create temp for result }
-                     temp := ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true,compiler);
+                     temp := compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent,true);
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }

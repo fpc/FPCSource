@@ -89,7 +89,7 @@ var
 implementation
 
 uses cutils, systems,
-     htypechk, defutil, defcmp, globtype, globals, cpubase, compinnr,
+     htypechk, defutil, defcmp, globtype, globals, cpubase, compinnr, compiler,
      ncnv, ncon, ncal, ninl, nld, nmem,
      verbose, symconst,symdef, cgbase, procinfo;
 
@@ -384,7 +384,7 @@ begin
   else
     begin
       result:=internalstatements(compiler,newstatement);
-      tempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent ,true,compiler);
+      tempnode:=compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent ,true);
       addstatement(newstatement,tempnode);
       { initialize the temp, since it will be passed to a
         var-parameter (and finalization, which is performed by the
@@ -489,7 +489,7 @@ begin
   else
     begin
       result:=internalstatements(compiler,newstatement);
-      tempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent ,true,compiler);
+      tempnode:=compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent ,true);
       addstatement(newstatement,tempnode);
       { initialize the temp, since it will be passed to a
         var-parameter (and finalization, which is performed by the

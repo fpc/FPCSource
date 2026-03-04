@@ -149,7 +149,7 @@ unit opttree;
                             { replace the last node of the block by an assignment to a temp, and move the block out
                               of the expression }
                             newblock:=internalstatements(compiler,statements);
-                            tempcreatenode:=ctempcreatenode.create(res^.resultdef,res^.resultdef.size,tt_persistent,true,compiler);
+                            tempcreatenode:=compiler.ctempcreatenode(res^.resultdef,res^.resultdef.size,tt_persistent,true);
                             addstatement(statements,tempcreatenode);
                             addstatement(statements,n);
 

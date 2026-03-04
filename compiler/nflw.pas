@@ -417,29 +417,29 @@ implementation
 
          result:=internalstatements(compiler,mainstatement);
          { the fast enumeration state }
-         state:=ctempcreatenode.create(objc_fastenumerationstate,objc_fastenumerationstate.size,tt_persistent,false,compiler);
+         state:=compiler.ctempcreatenode(objc_fastenumerationstate,objc_fastenumerationstate.size,tt_persistent,false);
          typecheckpass(tnode(state));
          addstatement(mainstatement,state);
          { the temporary items array }
          itemsarraydef:=carraydef.create(1,16,u32inttype,compiler);
          itemsarraydef.elementdef:=objc_idtype;
-         items:=ctempcreatenode.create(itemsarraydef,itemsarraydef.size,tt_persistent,false,compiler);
+         items:=compiler.ctempcreatenode(itemsarraydef,itemsarraydef.size,tt_persistent,false);
          addstatement(mainstatement,items);
          typecheckpass(tnode(items));
          { temp for the expression/collection through which we iterate }
-         expressiontemp:=ctempcreatenode.create(objc_fastenumeration,objc_fastenumeration.size,tt_persistent,true,compiler);
+         expressiontemp:=compiler.ctempcreatenode(objc_fastenumeration,objc_fastenumeration.size,tt_persistent,true);
          addstatement(mainstatement,expressiontemp);
          { currentamount temp (not really clean: we use ptruint instead of
            culong) }
-         currentamount:=ctempcreatenode.create(ptruinttype,ptruinttype.size,tt_persistent,true,compiler);
+         currentamount:=compiler.ctempcreatenode(ptruinttype,ptruinttype.size,tt_persistent,true);
          typecheckpass(tnode(currentamount));
          addstatement(mainstatement,currentamount);
          { mutationcheck temp (idem) }
-         mutationcheck:=ctempcreatenode.create(ptruinttype,ptruinttype.size,tt_persistent,true,compiler);
+         mutationcheck:=compiler.ctempcreatenode(ptruinttype,ptruinttype.size,tt_persistent,true);
          typecheckpass(tnode(mutationcheck));
          addstatement(mainstatement,mutationcheck);
          { innerloopcounter temp (idem) }
-         innerloopcounter:=ctempcreatenode.create(ptruinttype,ptruinttype.size,tt_persistent,true,compiler);
+         innerloopcounter:=compiler.ctempcreatenode(ptruinttype,ptruinttype.size,tt_persistent,true);
          typecheckpass(tnode(innerloopcounter));
          addstatement(mainstatement,innerloopcounter);
          { initialise the state with 0 }
@@ -572,19 +572,19 @@ implementation
         result:=internalstatements(compiler,loopstatement);
 
         { create a temp variable for expression }
-        stringvar := ctempcreatenode.create(
+        stringvar := compiler.ctempcreatenode(
           expr.resultdef,
           expr.resultdef.size,
-          tt_persistent,true,compiler);
+          tt_persistent,true);
 
         addstatement(loopstatement,stringvar);
         addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(stringvar,compiler),expr.getcopy,compiler));
 
         { create a loop counter: signed integer with size of string length }
-        loopvar := ctempcreatenode.create(
+        loopvar := compiler.ctempcreatenode(
           sinttype,
           sinttype.size,
-          tt_persistent,true,compiler);
+          tt_persistent,true);
 
         addstatement(loopstatement,loopvar);
 
@@ -670,10 +670,10 @@ implementation
           not(is_open_array(expression.resultdef)) and not(is_array_of_const(expression.resultdef)) then
           begin
             { create a temp variable for expression }
-            arrayvar := ctempcreatenode.create(
+            arrayvar := compiler.ctempcreatenode(
               expression.resultdef,
               expression.resultdef.size,
-              tt_persistent,true,compiler);
+              tt_persistent,true);
 
             if is_string then
               begin
@@ -725,10 +725,10 @@ implementation
           end;
 
         { create a loop counter }
-        loopvar := ctempcreatenode.create(
+        loopvar := compiler.ctempcreatenode(
           tarraydef(expression.resultdef).rangedef,
           tarraydef(expression.resultdef).rangedef.size,
-          tt_persistent,true,compiler);
+          tt_persistent,true);
 
         addstatement(loopstatement,loopvar);
 
@@ -785,19 +785,19 @@ implementation
         result:=internalstatements(compiler,loopstatement);
 
         { create a temp variable for expression }
-        setvar := ctempcreatenode.create(
+        setvar := compiler.ctempcreatenode(
           expr.resultdef,
           expr.resultdef.size,
-          tt_persistent,true,compiler);
+          tt_persistent,true);
 
         addstatement(loopstatement,setvar);
         addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(setvar,compiler),expr.getcopy,compiler));
 
         { create a loop counter }
-        loopvar := ctempcreatenode.create(
+        loopvar := compiler.ctempcreatenode(
           tsetdef(expr.resultdef).elementdef,
           tsetdef(expr.resultdef).elementdef.size,
-          tt_persistent,true,compiler);
+          tt_persistent,true);
 
         addstatement(loopstatement,loopvar);
 
@@ -850,10 +850,10 @@ implementation
         enumerator_is_class := is_class(enumerator_get.returndef);
 
         { create a temp variable for enumerator }
-        enumvar := ctempcreatenode.create(
+        enumvar := compiler.ctempcreatenode(
           enumerator_get.returndef,
           enumerator_get.returndef.size,
-          tt_persistent,true,compiler);
+          tt_persistent,true);
 
         addstatement(loopstatement,enumvar);
 
@@ -2141,7 +2141,7 @@ implementation
               no side effect might change it }
             if usefromtemp then
               begin
-                fromtemp:=ctempcreatenode.create(right.resultdef,right.resultdef.size,tt_persistent,true,compiler);
+                fromtemp:=compiler.ctempcreatenode(right.resultdef,right.resultdef.size,tt_persistent,true);
                 { the if block might be optimized out, so we put the deletetempnode after the if-block, however,
                   this causes a long life time of the fromtemp. If the final regsync is left away, the reg. allocator
                   figures out the needed life time. As their are no loops involved between the uses of the fromtemp,
@@ -2155,7 +2155,7 @@ implementation
 
             if usetotemp then
               begin
-                totemp:=ctempcreatenode.create(t1.resultdef,t1.resultdef.size,tt_persistent,true,compiler);
+                totemp:=compiler.ctempcreatenode(t1.resultdef,t1.resultdef.size,tt_persistent,true);
                 addstatement(statements,totemp);
                 addstatement(statements,cassignmentnode.create_internal(ctemprefnode.create(totemp,compiler),t1.getcopy,compiler));
               end;

@@ -94,7 +94,7 @@ implementation
         if left.resultdef.typ=enumdef then
           begin
             block:=internalstatements(stat);
-            iteratortmp:=ctempcreatenode.create(s32inttype,left.resultdef.size,tt_persistent,true);
+            iteratortmp:=compiler.ctempcreatenode(s32inttype,left.resultdef.size,tt_persistent,true);
             addstatement(stat,iteratortmp);
             olditerator:=left;
             left:=ctemprefnode.create(iteratortmp);

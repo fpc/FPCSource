@@ -206,6 +206,7 @@ type
     function casmnode_get_position:tasmnode; inline;
     function cstatementnode(l,r : tnode):tstatementnode; inline;
     function cblocknode(l : tnode):tblocknode; inline;
+    function ctempcreatenode(_typedef: tdef; _size: tcgint; _temptype: ttemptype;allowreg:boolean):ttempcreatenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -569,6 +570,12 @@ end;
 function TCompilerHelper.cblocknode(l: tnode): tblocknode; inline;
 begin
   result:=nbas.cblocknode.create(l,self);
+end;
+
+function TCompilerHelper.ctempcreatenode(_typedef: tdef; _size: tcgint;
+  _temptype: ttemptype; allowreg: boolean): ttempcreatenode; inline;
+begin
+  result:=nbas.ctempcreatenode.create(_typedef,_size,_temptype,allowreg,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

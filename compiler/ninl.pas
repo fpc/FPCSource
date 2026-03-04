@@ -1134,7 +1134,7 @@ implementation
                   valid_for_var(para.left,true);
 
                   { create the parameter list: the temp ... }
-                  temp := ctempcreatenode.create(readfunctype,readfunctype.size,tt_persistent,false,compiler);
+                  temp := compiler.ctempcreatenode(readfunctype,readfunctype.size,tt_persistent,false);
                   addstatement(Tstatementnode(newstatement),temp);
 
                   { ... and the file }
@@ -1327,8 +1327,8 @@ implementation
           if not(do_read) and (para.left.nodetype <> loadn) then
             begin
               { create temp for result }
-              temp := ctempcreatenode.create(para.left.resultdef,
-                para.left.resultdef.size,tt_persistent,false,compiler);
+              temp := compiler.ctempcreatenode(para.left.resultdef,
+                para.left.resultdef.size,tt_persistent,false);
               addstatement(Tstatementnode(newstatement),temp);
               { assign result to temp }
               addstatement(Tstatementnode(newstatement),
@@ -1462,7 +1462,7 @@ implementation
               writestr that are function calls to functions that also call
               readstr/writestr) }
             textsym:=search_system_type('TEXT');
-            filetemp:=ctempcreatenode.create(textsym.typedef,textsym.typedef.size,tt_persistent,false,compiler);
+            filetemp:=compiler.ctempcreatenode(textsym.typedef,textsym.typedef.size,tt_persistent,false);
             addstatement(newstatement,filetemp);
 
             if (do_read) then
@@ -1494,7 +1494,7 @@ implementation
           begin
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
-            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+            filetemp := compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
             addstatement(newstatement,filetemp);
 
             { make sure the resultdef of the temp (and as such of the }
@@ -1532,7 +1532,7 @@ implementation
             if (filepara.left.nodetype <> loadn) then
               begin
                 { create a temp which will hold a pointer to the file }
-                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+                filetemp := compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
 
                 { add it to the statements }
                 addstatement(newstatement,filetemp);
@@ -1731,7 +1731,7 @@ implementation
         if not assigned(codepara) or
            (codepara.resultdef.size<>valsinttype.size) then
           begin
-            tempcode := ctempcreatenode.create(valsinttype,valsinttype.size,tt_persistent,false,compiler);
+            tempcode := compiler.ctempcreatenode(valsinttype,valsinttype.size,tt_persistent,false);
             addstatement(newstatement,tempcode);
             { set the resultdef of the temp (needed to be able to get }
             { the resultdef of the tempref used in the new code para) }
@@ -5089,7 +5089,7 @@ implementation
            Value of 3 corresponds to subscript nodes, i.e. record field. }
          if node_complexity(tcallparanode(left).left) > 3 then
            begin
-             tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+             tempnode := compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
              addstatement(newstatement,tempnode);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),
                caddrnode.create_internal(tcallparanode(left).left.getcopy,compiler),compiler));
@@ -5259,7 +5259,7 @@ implementation
            newblock:=internalstatements(compiler,newstatement);
 
            { get temp for array of lengths }
-           temp:=ctempcreatenode.create(carraydef.getreusable(sinttype,dims,compiler),dims*sinttype.size,tt_persistent,false,compiler);
+           temp:=compiler.ctempcreatenode(carraydef.getreusable(sinttype,dims,compiler),dims*sinttype.size,tt_persistent,false);
            addstatement(newstatement,temp);
 
            { load array of lengths }
@@ -5443,7 +5443,7 @@ implementation
          newblock:=internalstatements(compiler,newstatement);
 
          { create temp for result }
-         temp := ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
+         temp := compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
          addstatement(newstatement,temp);
 
          { create call to fpc_getmem }
@@ -5919,7 +5919,7 @@ implementation
                        inserttypeconv(n,arrn.resultdef,compiler);
                      { we need to ensure that we get a reference counted
                        assignment for the temp array }
-                     tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true,compiler);
+                     tempnode:=compiler.ctempcreatenode(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);
                      addstatement(newstatement,tempnode);
                      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),n,compiler));
                      addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
@@ -5931,7 +5931,7 @@ implementation
                  Include(arrconstr.arrayconstructornodeflags,acnf_allow_array_constructor);
 
                  { based on the code from nopt.genmultistringadd() }
-                 tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true,compiler);
+                 tempnode:=compiler.ctempcreatenode(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);
                  addstatement(newstatement,tempnode);
                  { initialize the temp, since it will be passed to a
                    var-parameter (and finalization, which is performed by the
@@ -6029,10 +6029,10 @@ implementation
          index := tcallparanode(index).left;
 
          loop := internalstatements(compiler,loopstatement);
-         loopvar := ctempcreatenode.create(
+         loopvar := compiler.ctempcreatenode(
            tarraydef(packednode.resultdef).rangedef,
            tarraydef(packednode.resultdef).rangedef.size,
-           tt_persistent,true,compiler);
+           tt_persistent,true);
          addstatement(loopstatement,loopvar);
 
          { For range checking: we have to convert to an integer type (in case the index type }
@@ -6271,7 +6271,7 @@ implementation
                comparand which means that the Succeeded parameter needs to be
                True (otherwise it needs to be False). }
              n:=internalstatements(compiler,stmt);
-             tmp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+             tmp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
              addstatement(stmt,tmp);
              addstatement(stmt,cassignmentnode.create(ctemprefnode.create(tmp,compiler),result,compiler));
              cmpn:=cmpn.getcopy;
@@ -6290,7 +6290,7 @@ implementation
                existing Interlocked* implementations, but the intrinsics need to return the
                resulting value so we add/sub the Value to/from the result }
              n:=internalstatements(compiler,stmt);
-             tmp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+             tmp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
              addstatement(stmt,tmp);
              if inlinenumber=in_atomic_inc then
                n2:=compiler.caddnode(addn,result,valn)

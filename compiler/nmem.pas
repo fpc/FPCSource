@@ -1546,7 +1546,7 @@ implementation
                 already been firstpassed }
               if not is_const(right) then
                 begin
-                  temp:=ctempcreatenode.create(right.resultdef,right.resultdef.size,tt_persistent,true,compiler);
+                  temp:=compiler.ctempcreatenode(right.resultdef,right.resultdef.size,tt_persistent,true);
                   addstatement(stat,temp);
                   { needed so we can typecheck its temprefnodes }
                   typecheckpass(tnode(temp));

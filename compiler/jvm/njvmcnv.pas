@@ -187,7 +187,7 @@ implementation
        else
          chartype:='char';
        newblock:=internalstatements(newstat);
-       restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+       restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
        addstatement(newstat,restemp);
        addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
          '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(

@@ -309,7 +309,7 @@ procedure tjvmarrayconstructornode.wrapmanagedvarrec(var n: tnode);
   begin
     varrecdef:=trecorddef(search_system_type('TVARREC').typedef);
     block:=internalstatements(stat);
-    temp:=ctempcreatenode.create(varrecdef,varrecdef.size,tt_persistent,false);
+    temp:=compiler.ctempcreatenode(varrecdef,varrecdef.size,tt_persistent,false);
     addstatement(stat,temp);
     addstatement(stat,
       ccallnode.createinternmethod(

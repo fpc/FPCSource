@@ -430,8 +430,8 @@ type
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
-                      tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,
-                        tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable,compiler);
+                      tempnode:=compiler.ctempcreatenode(n.resultdef,n.resultdef.size,tt_persistent,
+                        tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable);
                       addinduction(tempnode,n);
 
                       if lnf_backward in currforloop.loopflags then
@@ -509,7 +509,7 @@ type
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
-                      tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+                      tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                       addinduction(tempnode,n);
 
                       if lnf_backward in currforloop.loopflags then

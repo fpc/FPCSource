@@ -1154,7 +1154,7 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(compiler,newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
+            restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_'+chartype+'array_to_shortstr',
               ccallparanode.create(cordconstnode.create(
@@ -1257,7 +1257,7 @@ implementation
         else
           chartype:='char';
         newblock:=internalstatements(compiler,newstat);
-        restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
+        restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
         addstatement(newstat,restemp);
         addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
           '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
@@ -1805,7 +1805,7 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(compiler,newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
+            restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
               ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
@@ -1882,7 +1882,7 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(compiler,newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
+            restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pwidechar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
               ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
@@ -2006,11 +2006,11 @@ implementation
         result:=internalstatements(compiler,newstatement);
 
         { create temp for result }
-        temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+        temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
         addstatement(newstatement,temp);
 
         { get temp for array of lengths }
-        temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false,compiler);
+        temp2:=compiler.ctempcreatenode(sinttype,sinttype.size,tt_persistent,false);
         addstatement(newstatement,temp2);
 
         { one dimensional }
@@ -2086,7 +2086,7 @@ implementation
 
         result:=internalstatements(compiler,newstatement);
         { create temp for result }
-        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true,compiler);
+        arrnode:=compiler.ctempcreatenode(totypedef,totypedef.size,tt_persistent,true);
         addstatement(newstatement,arrnode);
 
         paracount:=0;
@@ -2159,7 +2159,7 @@ implementation
 
         result:=internalstatements(compiler,newstatement);
         { create temp for result }
-        arrnode:=ctempcreatenode.create(totypedef,totypedef.size,tt_persistent,true,compiler);
+        arrnode:=compiler.ctempcreatenode(totypedef,totypedef.size,tt_persistent,true);
         addstatement(newstatement,arrnode);
 
         paracount:=0;
@@ -3162,7 +3162,7 @@ implementation
                              newblock:=internalstatements(compiler,newstatement);
                              if (valid_for_var(left,false)) then
                                begin
-                                 tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+                                 tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                                  addstatement(newstatement,tempnode);
                                  addstatement(newstatement,cassignmentnode.create(
                                    ctemprefnode.create(tempnode,compiler),
@@ -3171,7 +3171,7 @@ implementation
                                end
                              else
                                begin
-                                 tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
+                                 tempnode:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
                                  addstatement(newstatement,tempnode);
                                  addstatement(newstatement,cassignmentnode.create(
                                    ctemprefnode.create(tempnode,compiler),
@@ -3495,7 +3495,7 @@ implementation
                   if NeedMinus1Check then
                     begin
                       newblock:=internalstatements(compiler,newstatements);
-                      tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,true,compiler);
+                      tempnode:=compiler.ctempcreatenode(n.resultdef,n.resultdef.size,tt_persistent,true);
                       addstatement(newstatements,tempnode);
                       addstatement(newstatements,cifnode.create_internal(
                         compiler.caddnode_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false,compiler)),
@@ -4318,7 +4318,7 @@ implementation
             { accept set addn's -> assign to a temp first and pass the temp   }
             if not(left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]) then
               begin
-                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false,compiler);
+                temp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,false);
                 addstatement(newstatement,temp);
                 { temp := left }
                 addstatement(newstatement,cassignmentnode.create(
@@ -4332,7 +4332,7 @@ implementation
               end;
 
             { create temp for result }
-            temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+            temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
             addstatement(newstatement,temp);
 
             addstatement(newstatement,ccallnode.createintern('fpc_varset_load',
@@ -4440,7 +4440,7 @@ implementation
         if tstringdef(resultdef).stringtype=st_shortstring then
           begin
             newblock:=internalstatements(compiler,newstat);
-            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false,compiler);
+            restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
               ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
@@ -5095,7 +5095,7 @@ implementation
                   (node_complexity(left)>2) then
                   begin
                     result:=internalstatements(compiler,statement);
-                    tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
+                    tempnode:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
                     addstatement(statement,tempnode);
                     addstatement(statement,cassignmentnode.create_internal(ctemprefnode.create(tempnode,compiler),left,compiler));
                     addstatement(statement,compiler.caddnode_internal(andn,

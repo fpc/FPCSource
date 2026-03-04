@@ -131,7 +131,7 @@ interface
               { all enum instance methods return a boolean, while we are
                 interested in the resulting set }
               block:=internalstatements(stat);
-              temp:=ctempcreatenode.create(java_juenumset,4,tt_persistent,true);
+              temp:=compiler.ctempcreatenode(java_juenumset,4,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,cassignmentnode.create(
                 ctemprefnode.create(temp),result));

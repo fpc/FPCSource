@@ -80,7 +80,7 @@ begin
   if (nodetype = modn) then begin
     block := internalstatements(statementnode);
 
-    temp_left := ctempcreatenode.create(left.resultdef, left.resultdef.size, tt_persistent, true);
+    temp_left := compiler.ctempcreatenode(left.resultdef, left.resultdef.size, tt_persistent, true);
     addstatement(statementnode, temp_left);
     addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left), left.getcopy));
 
@@ -88,7 +88,7 @@ begin
       // implemented optimization: use temps to store the right value, otherwise
       // it is calculated twice when simply copying it which might result in side
       // effects
-      temp_right := ctempcreatenode.create(right.resultdef, right.resultdef.size, tt_persistent, true);
+      temp_right := compiler.ctempcreatenode(right.resultdef, right.resultdef.size, tt_persistent, true);
       addstatement(statementnode, temp_right);
       addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_right), right.getcopy));
 

@@ -234,7 +234,7 @@ implementation
         arrdef:=carraydef.getreusable(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches));
         { the -1 means "use the array's element count to determine the number
           of elements" in the JVM temp generator }
-        arraytemp:=ctempcreatenode.create(arrdef,-1,tt_persistent,true);
+        arraytemp:=compiler.ctempcreatenode(arrdef,-1,tt_persistent,true);
         addstatement(initstat,arraytemp);
         addstatement(finistat,ctempdeletenode.create(arraytemp));
 

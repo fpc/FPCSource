@@ -453,7 +453,7 @@ implementation
         if useresult then
           begin
             { get temp for the result }
-            result_data:=ctempcreatenode.create(colevarianttype,colevarianttype.size,tt_persistent,true,compiler);
+            result_data:=compiler.ctempcreatenode(colevarianttype,colevarianttype.size,tt_persistent,true);
             addstatement(statements,result_data);
           end;
 
@@ -502,7 +502,7 @@ implementation
         { create a temp to store parameter values }
         vardispatchparadef:=crecorddef.create_global_internal('',voidpointertype.size,voidpointertype.size,compiler);
         { the size will be set once the vardistpatchparadef record has been completed }
-        params:=ctempcreatenode.create(vardispatchparadef,0,tt_persistent,false,compiler);
+        params:=compiler.ctempcreatenode(vardispatchparadef,0,tt_persistent,false);
         addstatement(statements,params);
 
         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
@@ -625,7 +625,7 @@ implementation
               see issues #26773 and #27044 }
             if not valid_for_var(selfnode,false) then
               begin
-                selftemp:=ctempcreatenode.create(selfnode.resultdef,selfnode.resultdef.size,tt_persistent,false,compiler);
+                selftemp:=compiler.ctempcreatenode(selfnode.resultdef,selfnode.resultdef.size,tt_persistent,false);
                 addstatement(statements,selftemp);
                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(selftemp,compiler),selfnode,compiler));
                 selfpara:=ctemprefnode.create(selftemp,compiler);
@@ -705,8 +705,8 @@ implementation
               end;
             paraaddrtype:=cpointerdef.getreusable(orgparadef,compiler);
             { create temp with address of the parameter }
-            temp:=ctempcreatenode.create(
-              paraaddrtype,paraaddrtype.size,tt_persistent,true,compiler);
+            temp:=compiler.ctempcreatenode(
+              paraaddrtype,paraaddrtype.size,tt_persistent,true);
             { put this code in the init/done statement of the call node, because
               we should finalize all out parameters before other parameters
               are evaluated (in case e.g. a managed out parameter is also
@@ -781,7 +781,7 @@ implementation
                (is_dynamic_array(left.resultdef) and
                 is_open_array(parasym.vardef)) then
               begin
-                 paratemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+                 paratemp:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                  if is_dynamic_array(left.resultdef) then
                    begin
                       { note that in insert_typeconv, this dynamic array was
@@ -793,7 +793,7 @@ implementation
                      temparraydef:=left.resultdef;
                      left.resultdef:=resultdef;
                      { get its address }
-                     lefttemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+                     lefttemp:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                      addstatement(initstat,lefttemp);
                      addstatement(finistat,ctempdeletenode.create(lefttemp,compiler));
                      addstatement(initstat,
@@ -891,7 +891,7 @@ implementation
               begin
                 { the shortstring parameter may have a different size than the
                   parameter type -> assign and truncate/extend }
-                paratemp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,tt_persistent,false,compiler);
+                paratemp:=compiler.ctempcreatenode(parasym.vardef,parasym.vardef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 { assign shortstring }
                 addstatement(initstat,
@@ -907,7 +907,7 @@ implementation
             else if parasym.vardef.typ=variantdef then
               begin
                 vardatatype:=search_system_type('TVARDATA').typedef;
-                paratemp:=ctempcreatenode.create(vardatatype,vardatatype.size,tt_persistent,false,compiler);
+                paratemp:=compiler.ctempcreatenode(vardatatype,vardatatype.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
                   ccallnode.createintern('fpc_variant_copy_overwrite',
@@ -935,7 +935,7 @@ implementation
                   the callee (see (*) above) -> typecast to array of byte
                   for the assignment to the temp }
                 temparraydef:=carraydef.getreusable(u8inttype,left.resultdef.size,compiler);
-                paratemp:=ctempcreatenode.create(temparraydef,temparraydef.size,tt_persistent,false,compiler);
+                paratemp:=compiler.ctempcreatenode(temparraydef,temparraydef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
                   cassignmentnode.create(
@@ -948,7 +948,7 @@ implementation
               end
             else
               begin
-                paratemp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false,compiler);
+                paratemp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
                   cassignmentnode.create(ctemprefnode.create(paratemp,compiler),left,compiler)
@@ -1308,8 +1308,8 @@ implementation
                    begin
                      block:=internalstatements(compiler,statements);
                      { temp for the new string }
-                     temp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,
-                       tt_persistent,true,compiler);
+                     temp:=compiler.ctempcreatenode(parasym.vardef,parasym.vardef.size,
+                       tt_persistent,true);
                      addstatement(statements,temp);
                      { assign parameter to temp }
                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),left,compiler));
@@ -2351,7 +2351,7 @@ implementation
             else
               hdef:=p.resultdef;
 
-            ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true,compiler);
+            ptemp:=compiler.ctempcreatenode(hdef,hdef.size,tt_persistent,true);
             if usederef then
               begin
                 loadp:=caddrnode.create_internal(p,compiler);
@@ -2624,7 +2624,7 @@ implementation
                           begin
                             { TSomeRecord.Constructor call. We need to allocate }
                             { self node as a temp node of the result type       }
-                            temp:=ctempcreatenode.create(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false,compiler);
+                            temp:=compiler.ctempcreatenode(methodpointer.resultdef,methodpointer.resultdef.size,tt_persistent,false);
                             add_init_statement(temp);
                             add_done_statement(ctempdeletenode.create_normal_temp(temp,compiler));
                             selftree:=ctemprefnode.create(temp,compiler);
@@ -3220,7 +3220,7 @@ implementation
              if (objcsupertype.typ<>recorddef) then
                internalerror(2009032901);
              { temp for the for the objc_super record }
-             temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false,compiler);
+             temp:=compiler.ctempcreatenode(objcsupertype,objcsupertype.size,tt_persistent,false);
              addstatement(statements,temp);
              { initialize objc_super record }
              selftree:=safe_call_self_node.getcopy;
@@ -3618,9 +3618,9 @@ implementation
               end
             else
               begin
-                temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,
+                temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,
                   (cnf_do_inline in callnodeflags) and
-                  not(tabstractvarsym(tprocdef(procdefinition).funcretsym).varregable in [vr_none,vr_addr]),compiler);
+                  not(tabstractvarsym(tprocdef(procdefinition).funcretsym).varregable in [vr_none,vr_addr]));
                 include(temp.flags,nf_is_funcret);
                 { if a managed type is returned by reference, assigning something
                   to the result on the caller side will take care of decreasing
@@ -4606,8 +4606,8 @@ implementation
             if (cnf_return_value_used in callnodeflags) and not is_void(procdefinition.returndef) then
               begin
                 result:=internalstatements(compiler,statements);
-                converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),
-                  tt_persistent,true,compiler);
+                converted_result_data:=compiler.ctempcreatenode(procdefinition.returndef,sizeof(procdefinition.returndef),
+                  tt_persistent,true);
                 addstatement(statements,converted_result_data);
                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data,compiler),
                   ctypeconvnode.create_internal(
@@ -5257,8 +5257,8 @@ implementation
           end
         else
           begin
-            tempnode :=ctempcreatenode.create(tabstractvarsym(p).vardef,
-              tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false),compiler);
+            tempnode :=compiler.ctempcreatenode(tabstractvarsym(p).vardef,
+              tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
             addstatement(inlineinitstatement,tempnode);
 
             if localvartrashing <> -1 then
@@ -5461,8 +5461,8 @@ implementation
           with the temp everywhere in the function                  }
         if paraneedsinlinetemp(para,pushconstaddr,complexpara) then
           begin
-            tempnode:=ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,
-              tt_persistent,tparavarsym(para.parasym).is_regvar(false),compiler);
+            tempnode:=compiler.ctempcreatenode(para.parasym.vardef,para.parasym.vardef.size,
+              tt_persistent,tparavarsym(para.parasym).is_regvar(false));
             addstatement(inlineinitstatement,tempnode);
 
             addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode,compiler));
@@ -5544,7 +5544,7 @@ implementation
         isfuncretnode : boolean;
       begin
         ptrtype:=cpointerdef.getreusable(para.left.resultdef,compiler);
-        tempnode:=ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,true,compiler);
+        tempnode:=compiler.ctempcreatenode(ptrtype,ptrtype.size,tt_persistent,true);
         addstatement(inlineinitstatement,tempnode);
         isfuncretnode:=nf_is_funcret in para.left.flags;
         if isfuncretnode then

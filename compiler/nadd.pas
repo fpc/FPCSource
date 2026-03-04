@@ -3554,7 +3554,7 @@ const
               else
                 begin
                   result:=internalstatements(compiler,newstatement);
-                  tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+                  tempnode:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                   addstatement(newstatement,tempnode);
                   { initialize the temp, since it will be passed to a
                     var-parameter (and finalization, which is performed by the
@@ -3705,7 +3705,7 @@ const
               result:=internalstatements(compiler,newstatement);
 
               { create temp for result }
-              temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+              temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
               addstatement(newstatement,temp);
 
               addstatement(newstatement,ccallnode.createintern(n,
@@ -3798,7 +3798,7 @@ const
                       result:=internalstatements(compiler,newstatement);
 
                       { create temp for result }
-                      temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+                      temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                       addstatement(newstatement,temp);
 
                       addstatement(newstatement,ccallnode.createintern('fpc_varset_create_element',
@@ -3875,7 +3875,7 @@ const
                           result:=internalstatements(compiler,newstatement);
 
                           { create temp for result }
-                          temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+                          temp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                           addstatement(newstatement,temp);
 
                           { add a range or a single element? }
@@ -3981,7 +3981,7 @@ const
               else
                 begin
                   result:=internalstatements(compiler,newstatement);
-                  tempnode:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+                  tempnode:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                   addstatement(newstatement,tempnode);
                   { initialize the temp, since it will be passed to a
                     var-parameter (and finalization, which is performed by the

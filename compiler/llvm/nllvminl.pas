@@ -109,9 +109,9 @@ implementation
         stat: tstatementnode;
       begin
         result:=internalstatements(stat);
-        lefttemp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+        lefttemp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
         { assigned twice -> will be spilled if put in register }
-        resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+        resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
 
         addstatement(stat,lefttemp);
         addstatement(stat,resulttemp);
@@ -174,7 +174,7 @@ implementation
           procname:='LLVM_CTTZ';
         leftdef:=left.resultdef;
         block:=internalstatements(stat);
-        resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+        resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
         addstatement(stat,resulttemp);
         lefttemp:=maybereplacewithtemp(compiler,left,block,stat,left.resultdef.size,true);
         cntresult:=

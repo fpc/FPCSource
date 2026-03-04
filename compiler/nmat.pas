@@ -465,7 +465,7 @@ implementation
            begin
              result:=internalstatements(compiler,statements);
              else_block:=internalstatements(compiler,else_statements);
-             result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+             result_data:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
 
              { right <=0? }
              addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false,compiler)),
@@ -627,8 +627,8 @@ implementation
                       shiftval:=left.resultdef.size*8-1;
 
                     result:=internalstatements(compiler,statements);
-                    temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
-                    resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+                    temp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
+                    resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                     addstatement(statements,resulttemp);
                     addstatement(statements,temp);
                     addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),
@@ -694,8 +694,8 @@ implementation
                 tordconstnode(right).value.uvalue:=qword((qword(1) shl power)-1);
 
                 result:=internalstatements(compiler,statements);
-                temp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true,compiler);
-                resulttemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true,compiler);
+                temp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
+                resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                 addstatement(statements,resulttemp);
                 addstatement(statements,temp);
                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),left,compiler));

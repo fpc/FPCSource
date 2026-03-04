@@ -54,7 +54,7 @@ implementation
     aasmdata,
     nbas,ncon,nmem,nutils,
     symbase,symconst,symtable,symsym,symcreat,objcutil,defutil,
-    paramgr;
+    paramgr,compiler;
 
 
   function get_block_literal_type_for_proc(pd: tabstractprocdef): trecorddef;
@@ -279,7 +279,7 @@ implementation
     begin
       result:=internalstatements(compiler,statement);
       { create new block literal structure }
-      literaltemp:=ctempcreatenode.create(blockliteraldef,blockliteraldef.size,tt_persistent,false,compiler);
+      literaltemp:=compiler.ctempcreatenode(blockliteraldef,blockliteraldef.size,tt_persistent,false);
       addstatement(statement,literaltemp);
       { temp.base.isa:=@blockisasym }
       addstatement(statement,cassignmentnode.create(

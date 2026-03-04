@@ -156,7 +156,7 @@ unit opttail;
                           is_open_array(paranode.parasym.vardef));
                         if useaddr then
                           begin
-                            tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true,compiler);
+                            tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
                               cassignmentnode.create(
@@ -167,7 +167,7 @@ unit opttail;
                           end
                         else
                           begin
-                            tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true,compiler);
+                            tempnode:=compiler.ctempcreatenode(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
                               cassignmentnode.create_internal(

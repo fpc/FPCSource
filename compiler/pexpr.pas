@@ -274,7 +274,7 @@ implementation
              typecheckpass(p1);
              result:=internalstatements(compiler,newstatement);
              hdef:=cpointerdef.getreusable(p1.resultdef,compiler);
-             temp:=ctempcreatenode.create(hdef,sizeof(pint),tt_persistent,false,compiler);
+             temp:=compiler.ctempcreatenode(hdef,sizeof(pint),tt_persistent,false);
              addstatement(newstatement,temp);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),caddrnode.create_internal(p1,compiler),compiler));
              addstatement(newstatement,cassignmentnode.create(
@@ -2049,7 +2049,7 @@ implementation
          until not try_to_consume(_COMMA);
 
          arraydef:=carraydef.getreusable(s32inttype,elements.count,compiler);
-         temp:=ctempcreatenode.create(arraydef,arraydef.size,tt_persistent,false,compiler);
+         temp:=compiler.ctempcreatenode(arraydef,arraydef.size,tt_persistent,false);
          addstatement(newstatement,temp);
          for countindices:=0 to elements.count-1 do
            begin
@@ -2092,7 +2092,7 @@ implementation
          else
            begin
              { create temp for result }
-             tempresultvariant:=ctempcreatenode.create(cvarianttype,cvarianttype.size,tt_persistent,true,compiler);
+             tempresultvariant:=compiler.ctempcreatenode(cvarianttype,cvarianttype.size,tt_persistent,true);
              addstatement(newstatement,tempresultvariant);
 
              { create call to fpc_vararray_get }
@@ -2127,7 +2127,7 @@ implementation
         begin
           result:=internalstatements(compiler,newstatement);
           { create temp for result }
-          arrnode:=ctempcreatenode.create(arrdef,arrdef.size,tt_persistent,true,compiler);
+          arrnode:=compiler.ctempcreatenode(arrdef,arrdef.size,tt_persistent,true);
           addstatement(newstatement,arrnode);
 
           paracount:=0;
@@ -2151,7 +2151,7 @@ implementation
             assnode:=nil;
 
           { get temp for array of lengths }
-          temp2:=ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false,compiler);
+          temp2:=compiler.ctempcreatenode(sinttype,sinttype.size,tt_persistent,false);
           addstatement(newstatement,temp2);
 
           { one dimensional }
@@ -2216,7 +2216,7 @@ implementation
                       extdef:=tobjectdef(srsymtable.defowner).extendeddef;
                       newstatement:=nil;
                       n:=internalstatements(compiler,newstatement);
-                      temp:=ctempcreatenode.create(extdef,extdef.size,tt_persistent,false,compiler);
+                      temp:=compiler.ctempcreatenode(extdef,extdef.size,tt_persistent,false);
                       addstatement(newstatement,temp);
                       addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),node,compiler));
                       addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));

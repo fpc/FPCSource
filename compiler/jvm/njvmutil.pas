@@ -140,7 +140,7 @@ implementation
               else if is_record(def) then
                 begin
                   result:=internalstatements(stat);
-                  temp:=ctempcreatenode.create(def,def.size,tt_persistent,true);
+                  temp:=compiler.ctempcreatenode(def,def.size,tt_persistent,true);
                   addstatement(stat,temp);
                   paras:=ccallparanode.create(ctemprefnode.create(temp),paras);
                   proc:='fpc_initialize_array_record'
@@ -246,7 +246,7 @@ implementation
           else if (sym.vardef.typ=arraydef) and
              not is_dynamic_array(sym.vardef) then
             begin
-              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               initnode:=ccallparanode.create(
                 ctypeconvnode.create_explicit(
@@ -264,7 +264,7 @@ implementation
           { implicitpointertype -> allocate (get temp and assign address) }
           else if jvmimplicitpointertype(sym.vardef) then
             begin
-              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               initnode:=caddrnode.create_internal(ctemprefnode.create(temp));
             end
@@ -272,7 +272,7 @@ implementation
           else if is_wide_or_unicode_string(sym.vardef) or
              is_ansistring(sym.vardef) then
             begin
-              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,cassignmentnode.create(
                 ctemprefnode.create(temp),
@@ -282,7 +282,7 @@ implementation
           { dynamic array -> empty array }
           else if is_dynamic_array(sym.vardef) then
             begin
-              temp:=ctempcreatenode.create(sym.vardef,sym.vardef.size,tt_persistent,true);
+              temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,cinlinenode.create(in_setlength_x,false,
                 ccallparanode.create(genintconstnode(0),

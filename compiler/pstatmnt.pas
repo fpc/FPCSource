@@ -689,7 +689,7 @@ implementation
                 { since we may need its address later on                 }
                 if not valid_for_addr(p,false) then
                   begin
-                    calltempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true,compiler);
+                    calltempnode:=compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent,true);
                     addstatement(newstatement,calltempnode);
                     addstatement(newstatement,cassignmentnode.create(
                         ctemprefnode.create(calltempnode,compiler),
