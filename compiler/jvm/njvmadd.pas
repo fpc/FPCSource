@@ -134,11 +134,11 @@ interface
               temp:=compiler.ctempcreatenode(java_juenumset,4,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,cassignmentnode.create(
-                ctemprefnode.create(temp),result));
+                compiler.ctemprefnode(temp),result));
               addstatement(stat,ccallnode.createinternmethod(
-                ctemprefnode.create(temp),n,paras));
+                compiler.ctemprefnode(temp),n,paras));
               addstatement(stat,ctempdeletenode.create_normal_temp(temp));
-              addstatement(stat,ctemprefnode.create(temp));
+              addstatement(stat,compiler.ctemprefnode(temp));
               result:=block;
             end
           else

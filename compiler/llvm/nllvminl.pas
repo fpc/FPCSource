@@ -118,7 +118,7 @@ implementation
 
         { lefttemp:=left }
         addstatement(stat,
-          cassignmentnode.create(ctemprefnode.create(lefttemp),left)
+          cassignmentnode.create(compiler.ctemprefnode(lefttemp),left)
         );
 
         { if lefttemp>=0 then
@@ -130,23 +130,23 @@ implementation
           cifnode.create(
             compiler.caddnode(
               gten,
-              ctemprefnode.create(lefttemp),
+              compiler.ctemprefnode(lefttemp),
               crealconstnode.create(0.0,left.resultdef)
             ),
             cassignmentnode.create(
-              ctemprefnode.create(resulttemp),
-              ctemprefnode.create(lefttemp)
+              compiler.ctemprefnode(resulttemp),
+              compiler.ctemprefnode(lefttemp)
             ),
             cassignmentnode.create(
-              ctemprefnode.create(resulttemp),
-              cunaryminusnode.create(ctemprefnode.create(lefttemp))
+              compiler.ctemprefnode(resulttemp),
+              cunaryminusnode.create(compiler.ctemprefnode(lefttemp))
             )
           )
         );
         addstatement(stat,ctempdeletenode.create(lefttemp));
         addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
         { return resulttemp }
-        addstatement(stat,ctemprefnode.create(resulttemp));
+        addstatement(stat,compiler.ctemprefnode(resulttemp));
         { reused }
         left:=nil;
       end;
@@ -200,11 +200,11 @@ implementation
         addstatement(stat,
           cifnode.create(compiler.caddnode(unequaln,left.getcopy,genintconstnode(0)),
             cassignmentnode.create(
-              ctemprefnode.create(resulttemp),
+              compiler.ctemprefnode(resulttemp),
               cntresult
             ),
             cassignmentnode.create(
-              ctemprefnode.create(resulttemp),
+              compiler.ctemprefnode(resulttemp),
               genintconstnode(255)
             )
           )
@@ -212,7 +212,7 @@ implementation
         if assigned(lefttemp) then
           addstatement(stat,ctempdeletenode.create(lefttemp));
         addstatement(stat,ctempdeletenode.create_normal_temp(resulttemp));
-        addstatement(stat,ctemprefnode.create(resulttemp));
+        addstatement(stat,compiler.ctemprefnode(resulttemp));
         left:=nil;
         result:=block;
       end;

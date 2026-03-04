@@ -276,11 +276,11 @@ implementation
              hdef:=cpointerdef.getreusable(p1.resultdef,compiler);
              temp:=compiler.ctempcreatenode(hdef,sizeof(pint),tt_persistent,false);
              addstatement(newstatement,temp);
-             addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),caddrnode.create_internal(p1,compiler),compiler));
+             addstatement(newstatement,cassignmentnode.create(compiler.ctemprefnode(temp),caddrnode.create_internal(p1,compiler),compiler));
              addstatement(newstatement,cassignmentnode.create(
-                 cderefnode.create(ctemprefnode.create(temp,compiler),compiler),
+                 cderefnode.create(compiler.ctemprefnode(temp),compiler),
                  compiler.caddnode(ntyp,
-                     cderefnode.create(ctemprefnode.create(temp,compiler),compiler),
+                     cderefnode.create(compiler.ctemprefnode(temp),compiler),
                      p2),compiler));
              addstatement(newstatement,ctempdeletenode.create(temp,compiler));
            end
@@ -2056,7 +2056,7 @@ implementation
              addstatement(newstatement,
                cassignmentnode.create(
                  cvecnode.create(
-                   ctemprefnode.create(temp,compiler),
+                   compiler.ctemprefnode(temp),
                    genintconstnode(countindices,compiler),
                    compiler
                  ),
@@ -2081,7 +2081,7 @@ implementation
              paras:=ccallparanode.create(cordconstnode.create
                    (countindices,s32inttype,true,compiler),
                 ccallparanode.create(caddrnode.create_internal
-               (cvecnode.create(ctemprefnode.create(temp,compiler),genintconstnode(0,compiler),compiler),compiler),
+               (cvecnode.create(compiler.ctemprefnode(temp),genintconstnode(0,compiler),compiler),compiler),
                 ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype,compiler),
                 ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype,compiler)
                   ,nil,compiler),compiler),compiler),compiler);
@@ -2099,10 +2099,10 @@ implementation
              paras:=ccallparanode.create(cordconstnode.create
                    (countindices,s32inttype,true,compiler),
                 ccallparanode.create(caddrnode.create_internal
-               (ctemprefnode.create(temp,compiler),compiler),
+               (compiler.ctemprefnode(temp),compiler),
                 ccallparanode.create(p1,
                 ccallparanode.create(
-                    ctemprefnode.create(tempresultvariant,compiler)
+                    compiler.ctemprefnode(tempresultvariant)
                   ,nil,compiler),compiler),compiler),compiler);
 
              addstatement(newstatement,ccallnode.createintern('fpc_vararray_get',paras));
@@ -2112,7 +2112,7 @@ implementation
                temp and converting it first from a persistent temp to
                normal temp }
              addstatement(newstatement,ctempdeletenode.create_normal_temp(tempresultvariant,compiler));
-             addstatement(newstatement,ctemprefnode.create(tempresultvariant,compiler));
+             addstatement(newstatement,compiler.ctemprefnode(tempresultvariant));
            end;
          p1:=newblock;
        end;
@@ -2140,7 +2140,7 @@ implementation
                 addstatement(assstatement,
                   cassignmentnode.create(
                     cvecnode.create(
-                      ctemprefnode.create(arrnode,compiler),
+                      compiler.ctemprefnode(arrnode),
                       cordconstnode.create(paracount,arrdef.rangedef,false,compiler),compiler),
                     comp_expr([ef_accept_equal]),compiler));
                 inc(paracount);
@@ -2156,20 +2156,20 @@ implementation
 
           { one dimensional }
           addstatement(newstatement,cassignmentnode.create(
-              ctemprefnode.create(temp2,compiler),
+              compiler.ctemprefnode(temp2),
               cordconstnode.create
                  (paracount,s32inttype,true,compiler),compiler));
           { create call to fpc_dynarr_setlength }
           addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
               ccallparanode.create(caddrnode.create_internal
-                    (ctemprefnode.create(temp2,compiler),compiler),
+                    (compiler.ctemprefnode(temp2),compiler),
                  ccallparanode.create(cordconstnode.create
                     (1,s32inttype,true,compiler),
                  ccallparanode.create(caddrnode.create_internal
                     (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal,compiler),compiler),
                  ccallparanode.create(
                    ctypeconvnode.create_internal(
-                     ctemprefnode.create(arrnode,compiler),voidpointertype,compiler),
+                     compiler.ctemprefnode(arrnode),voidpointertype,compiler),
                    nil,compiler),compiler),compiler),compiler)
 
             ));
@@ -2182,7 +2182,7 @@ implementation
             temp and converting it first from a persistent temp to
             normal temp }
           addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
-          addstatement(newstatement,ctemprefnode.create(arrnode,compiler));
+          addstatement(newstatement,compiler.ctemprefnode(arrnode));
         end;
 
       function try_type_helper(var node:tnode;def:tdef):boolean;
@@ -2218,9 +2218,9 @@ implementation
                       n:=internalstatements(compiler,newstatement);
                       temp:=compiler.ctempcreatenode(extdef,extdef.size,tt_persistent,false);
                       addstatement(newstatement,temp);
-                      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp,compiler),node,compiler));
+                      addstatement(newstatement,cassignmentnode.create(compiler.ctemprefnode(temp),node,compiler));
                       addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
-                      addstatement(newstatement,ctemprefnode.create(temp,compiler));
+                      addstatement(newstatement,compiler.ctemprefnode(temp));
                       node:=n;
                       do_typecheckpass(node)
                     end;

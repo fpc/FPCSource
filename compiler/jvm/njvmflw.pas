@@ -97,12 +97,12 @@ implementation
             iteratortmp:=compiler.ctempcreatenode(s32inttype,left.resultdef.size,tt_persistent,true);
             addstatement(stat,iteratortmp);
             olditerator:=left;
-            left:=ctemprefnode.create(iteratortmp);
+            left:=compiler.ctemprefnode(iteratortmp);
             inserttypeconv_explicit(right,s32inttype);
             inserttypeconv_explicit(t1,s32inttype);
             newbody:=internalstatements(newbodystat);
             addstatement(newbodystat,cassignmentnode.create(olditerator,
-              ctypeconvnode.create_explicit(ctemprefnode.create(iteratortmp),
+              ctypeconvnode.create_explicit(compiler.ctemprefnode(iteratortmp),
                 olditerator.resultdef)));
             addstatement(newbodystat,t2);
             addstatement(stat,cfornode.create(left,right,t1,newbody,lnf_backward in loopflags));

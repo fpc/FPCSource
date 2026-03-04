@@ -1160,9 +1160,9 @@ implementation
               ccallparanode.create(cordconstnode.create(
                 ord(tarraydef(left.resultdef).lowrange=0),pasbool1type,false,compiler),
               ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp,compiler),nil,compiler),compiler),compiler)));
+              compiler.ctemprefnode(restemp),nil,compiler),compiler),compiler)));
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
-            addstatement(newstat,ctemprefnode.create(restemp,compiler));
+            addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end
         else if (tstringdef(resultdef).stringtype=st_ansistring) then
@@ -1261,9 +1261,9 @@ implementation
         addstatement(newstat,restemp);
         addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
           '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
-          ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+          compiler.ctemprefnode(restemp),nil,compiler),compiler)));
         addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
-        addstatement(newstat,ctemprefnode.create(restemp,compiler));
+        addstatement(newstat,compiler.ctemprefnode(restemp));
         result:=newblock;
         left:=nil;
       end;
@@ -1808,9 +1808,9 @@ implementation
             restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pchar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+              compiler.ctemprefnode(restemp),nil,compiler),compiler)));
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
-            addstatement(newstat,ctemprefnode.create(restemp,compiler));
+            addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end
         else if tstringdef(resultdef).stringtype=st_ansistring then
@@ -1885,9 +1885,9 @@ implementation
             restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern('fpc_pwidechar_to_shortstr',ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+              compiler.ctemprefnode(restemp),nil,compiler),compiler)));
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
-            addstatement(newstat,ctemprefnode.create(restemp,compiler));
+            addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end
         else if tstringdef(resultdef).stringtype=st_ansistring then
@@ -2015,20 +2015,20 @@ implementation
 
         { one dimensional }
         addstatement(newstatement,cassignmentnode.create(
-            ctemprefnode.create(temp2,compiler),
+            compiler.ctemprefnode(temp2),
             cordconstnode.create
                (tarraydef(left.resultdef).highrange+1,s32inttype,true,compiler),compiler));
         { create call to fpc_dynarr_setlength }
         addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
             ccallparanode.create(caddrnode.create_internal
-                  (ctemprefnode.create(temp2,compiler),compiler),
+                  (compiler.ctemprefnode(temp2),compiler),
                ccallparanode.create(cordconstnode.create
                   (1,s32inttype,true,compiler),
                ccallparanode.create(caddrnode.create_internal
                   (crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
                ccallparanode.create(
                  ctypeconvnode.create_internal(
-                   ctemprefnode.create(temp,compiler),voidpointertype,compiler),
+                   compiler.ctemprefnode(temp),voidpointertype,compiler),
                  nil,compiler),compiler),compiler),compiler)
 
           ));
@@ -2036,7 +2036,7 @@ implementation
 
         { copy ... }
         addstatement(newstatement,cassignmentnode.create(
-          ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(ctemprefnode.create(temp,compiler),voidpointertype,compiler),compiler),left.resultdef,compiler),
+          ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(compiler.ctemprefnode(temp),voidpointertype,compiler),compiler),left.resultdef,compiler),
           left,
           compiler
         ));
@@ -2047,7 +2047,7 @@ implementation
           temp and converting it first from a persistent temp to
           normal temp }
         addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
-        addstatement(newstatement,ctemprefnode.create(temp,compiler));
+        addstatement(newstatement,compiler.ctemprefnode(temp));
       end;
 
 
@@ -2104,7 +2104,7 @@ implementation
             addstatement(assstatement,
               cassignmentnode.create(
                 cvecnode.create(
-                  ctemprefnode.create(arrnode,compiler),
+                  compiler.ctemprefnode(arrnode),
                   cordconstnode.create(paracount,tarraydef(totypedef).rangedef,false,compiler),compiler),
                 elemnode.left,
                 compiler));
@@ -2122,14 +2122,14 @@ implementation
         { create call to fpc_dynarr_setlength }
         addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',
             ccallparanode.create(caddrnode.create_internal
-                  (ctemprefnode.create(temp2,compiler),compiler),
+                  (compiler.ctemprefnode(temp2),compiler),
                ccallparanode.create(cordconstnode.create
                   (1,s32inttype,true,compiler),
                ccallparanode.create(caddrnode.create_internal
                   (crttinode.create(tstoreddef(totypedef),initrtti,rdt_normal,compiler),compiler),
                ccallparanode.create(
                  ctypeconvnode.create_internal(
-                   ctemprefnode.create(arrnode,compiler),voidpointertype,compiler),
+                   compiler.ctemprefnode(arrnode),voidpointertype,compiler),
                  nil,compiler),compiler),compiler),compiler)
 
           ));
@@ -2141,7 +2141,7 @@ implementation
           temp and converting it first from a persistent temp to
           normal temp }
         addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
-        addstatement(newstatement,ctemprefnode.create(arrnode,compiler));
+        addstatement(newstatement,compiler.ctemprefnode(arrnode));
       end;
 
 
@@ -2177,7 +2177,7 @@ implementation
             addstatement(assstatement,
               cassignmentnode.create(
                 cvecnode.create(
-                  ctemprefnode.create(arrnode,compiler),
+                  compiler.ctemprefnode(arrnode),
                   cordconstnode.create(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false,compiler),compiler),
                 elemnode.left,
                 compiler));
@@ -2200,7 +2200,7 @@ implementation
           temp and converting it first from a persistent temp to
           normal temp }
         addstatement(newstatement,ctempdeletenode.create_normal_temp(arrnode,compiler));
-        addstatement(newstatement,ctemprefnode.create(arrnode,compiler));
+        addstatement(newstatement,compiler.ctemprefnode(arrnode));
       end;
 
 
@@ -3165,18 +3165,18 @@ implementation
                                  tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                                  addstatement(newstatement,tempnode);
                                  addstatement(newstatement,cassignmentnode.create(
-                                   ctemprefnode.create(tempnode,compiler),
+                                   compiler.ctemprefnode(tempnode),
                                    caddrnode.create_internal(left,compiler),compiler));
-                                 left:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode,compiler),compiler),left.resultdef,compiler);
+                                 left:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),left.resultdef,compiler);
                                end
                              else
                                begin
                                  tempnode:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
                                  addstatement(newstatement,tempnode);
                                  addstatement(newstatement,cassignmentnode.create(
-                                   ctemprefnode.create(tempnode,compiler),
+                                   compiler.ctemprefnode(tempnode),
                                    left,compiler));
-                                 left:=ctemprefnode.create(tempnode,compiler);
+                                 left:=compiler.ctemprefnode(tempnode);
                                end;
                              addstatement(newstatement,casnode.create(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler),compiler));
                              addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
@@ -3500,19 +3500,19 @@ implementation
                       addstatement(newstatements,cifnode.create_internal(
                         compiler.caddnode_internal(equaln,tbinarynode(n).right.getcopy,cordconstnode.create(-1,n.resultdef,false,compiler)),
                           cassignmentnode.create_internal(
-                            ctemprefnode.create(tempnode,compiler),
+                            compiler.ctemprefnode(tempnode),
                             cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,cordconstnode.create(-1,tbinarynode(originaldivtree).right.resultdef,false,compiler),compiler),
                             compiler
                           ),
                           cassignmentnode.create_internal(
-                            ctemprefnode.create(tempnode,compiler),n,
+                            compiler.ctemprefnode(tempnode),n,
                             compiler
                           ),
                           compiler
                         )
                       );
                       addstatement(newstatements,ctempdeletenode.create_normal_temp(tempnode,compiler));
-                      addstatement(newstatements,ctemprefnode.create(tempnode,compiler));
+                      addstatement(newstatements,compiler.ctemprefnode(tempnode));
                       n:=newblock;
                       do_typecheckpass(n);
                       originaldivtree.free;
@@ -4322,9 +4322,9 @@ implementation
                 addstatement(newstatement,temp);
                 { temp := left }
                 addstatement(newstatement,cassignmentnode.create(
-                  ctemprefnode.create(temp,compiler),left,compiler));
+                  compiler.ctemprefnode(temp),left,compiler));
                 addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
-                addstatement(newstatement,ctemprefnode.create(temp,compiler));
+                addstatement(newstatement,compiler.ctemprefnode(temp));
                 left:=result;
                 firstpass(left);
                 { recreate the result's internalstatements list }
@@ -4338,12 +4338,12 @@ implementation
             addstatement(newstatement,ccallnode.createintern('fpc_varset_load',
               ccallparanode.create(cordconstnode.create(tsetdef(left.resultdef).setbase div 8 - tsetdef(resultdef).setbase div 8,sinttype,false,compiler),
               ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-              ccallparanode.create(ctemprefnode.create(temp,compiler),
+              ccallparanode.create(compiler.ctemprefnode(temp),
               ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false,compiler),
               ccallparanode.create(left,nil,compiler),compiler),compiler),compiler),compiler))
             );
             addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
-            addstatement(newstatement,ctemprefnode.create(temp,compiler));
+            addstatement(newstatement,compiler.ctemprefnode(temp));
             left:=nil;
           end;
       end;
@@ -4443,9 +4443,9 @@ implementation
             restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
             addstatement(newstat,restemp);
             addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
-              ctemprefnode.create(restemp,compiler),nil,compiler),compiler)));
+              compiler.ctemprefnode(restemp),nil,compiler),compiler)));
             addstatement(newstat,ctempdeletenode.create_normal_temp(restemp,compiler));
-            addstatement(newstat,ctemprefnode.create(restemp,compiler));
+            addstatement(newstat,compiler.ctemprefnode(restemp));
             result:=newblock;
           end
         { encoding parameter required? }
@@ -5097,10 +5097,10 @@ implementation
                     result:=internalstatements(compiler,statement);
                     tempnode:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
                     addstatement(statement,tempnode);
-                    addstatement(statement,cassignmentnode.create_internal(ctemprefnode.create(tempnode,compiler),left,compiler));
+                    addstatement(statement,cassignmentnode.create_internal(compiler.ctemprefnode(tempnode),left,compiler));
                     addstatement(statement,compiler.caddnode_internal(andn,
-                      compiler.caddnode_internal(unequaln,ctemprefnode.create(tempnode,compiler),cnilnode.create(compiler)),
-                      compiler.caddnode_internal(equaln,cloadvmtaddrnode.create(ctemprefnode.create(tempnode,compiler),compiler),right)
+                      compiler.caddnode_internal(unequaln,compiler.ctemprefnode(tempnode),cnilnode.create(compiler)),
+                      compiler.caddnode_internal(equaln,cloadvmtaddrnode.create(compiler.ctemprefnode(tempnode),compiler),right)
                       )
                     );
 

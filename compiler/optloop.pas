@@ -356,9 +356,9 @@ type
               begin
                 case n.nodetype of
                   muln:
-                    hp:=ctemprefnode.create(inductions[i].temp,compiler);
+                    hp:=compiler.ctemprefnode(inductions[i].temp);
                   vecn:
-                    hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(inductions[i].temp,compiler),compiler),n.resultdef,compiler);
+                    hp:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(inductions[i].temp),compiler),n.resultdef,compiler);
                   else
                     internalerror(200809211);
                 end;
@@ -437,11 +437,11 @@ type
                       if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           geninlinenode(in_dec_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler))
+                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler))
                       else
                         addstatement(calccodestatements,
                           geninlinenode(in_inc_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler));
+                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil,compiler),compiler),compiler));
 
                       addstatement(initcodestatements,tempnode);
                       nn:=currforloop.right.getcopy;
@@ -456,7 +456,7 @@ type
                           nn:=compiler.caddnode_internal(nt,nn,
                              cordconstnode.create(1,nn.resultdef,false,compiler));
                         end;
-                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),
+                      addstatement(initcodestatements,cassignmentnode.create(compiler.ctemprefnode(tempnode),
                           compiler.caddnode(muln,nn,
                             taddnode(n).right.getcopy),
                             compiler
@@ -464,7 +464,7 @@ type
                         );
 
                       { finally replace the node by a temp. ref }
-                      n:=ctemprefnode.create(tempnode,compiler);
+                      n:=compiler.ctemprefnode(tempnode);
 
                       { ... and add a temp. release node }
                       addstatement(deletecodestatements,ctempdeletenode.create(tempnode,compiler));
@@ -515,12 +515,12 @@ type
                       if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_dec_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(
+                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(
                           cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil,compiler),compiler),compiler))
                       else
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_inc_x,false,
-                          ccallparanode.create(ctemprefnode.create(tempnode,compiler),ccallparanode.create(
+                          ccallparanode.create(compiler.ctemprefnode(tempnode),ccallparanode.create(
                           cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil,compiler),compiler),compiler));
 
                       addstatement(initcodestatements,tempnode);
@@ -542,10 +542,10 @@ type
                              ctypeconvnode.create_internal(nn,voidpointertype,compiler),
                              cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler));
                         end;
-                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode,compiler),nn,compiler));
+                      addstatement(initcodestatements,cassignmentnode.create(compiler.ctemprefnode(tempnode),nn,compiler));
 
                       { finally replace the node by a temp. ref }
-                      n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode,compiler),compiler),n.resultdef,compiler);
+                      n:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),n.resultdef,compiler);
 
                       { ... and add a temp. release node }
                       if startvaltemp<>nil then

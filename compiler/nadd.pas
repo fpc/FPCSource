@@ -3565,12 +3565,12 @@ const
                     addstatement(newstatement,cinlinenode.create(in_setlength_x,
                       false,
                       ccallparanode.create(genintconstnode(0,compiler),
-                        ccallparanode.create(ctemprefnode.create(tempnode,compiler),nil,compiler),compiler),compiler));
+                        ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
                   para:=ccallparanode.create(
                           right,
                           ccallparanode.create(
                             left,
-                            ccallparanode.create(ctemprefnode.create(tempnode,compiler),nil,compiler),
+                            ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),
                             compiler
                           ),
                           compiler
@@ -3596,7 +3596,7 @@ const
                     )
                   );
                   addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
-                  addstatement(newstatement,ctemprefnode.create(tempnode,compiler));
+                  addstatement(newstatement,compiler.ctemprefnode(tempnode));
                 end;
               { we reused the arguments }
               left := nil;
@@ -3710,7 +3710,7 @@ const
 
               addstatement(newstatement,ccallnode.createintern(n,
                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                ccallparanode.create(ctemprefnode.create(temp,compiler),
+                ccallparanode.create(compiler.ctemprefnode(temp),
                 ccallparanode.create(right,
                 ccallparanode.create(left,nil,compiler),compiler),compiler),compiler))
               );
@@ -3723,7 +3723,7 @@ const
                 temp and converting it first from a persistent temp to
                 normal temp }
               addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
-              addstatement(newstatement,ctemprefnode.create(temp,compiler));
+              addstatement(newstatement,compiler.ctemprefnode(temp));
             end;
         end;
 
@@ -3802,7 +3802,7 @@ const
                       addstatement(newstatement,temp);
 
                       addstatement(newstatement,ccallnode.createintern('fpc_varset_create_element',
-                        ccallparanode.create(ctemprefnode.create(temp,compiler),
+                        ccallparanode.create(compiler.ctemprefnode(temp),
                         ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                         ccallparanode.create(tsetelementnode(right).left,nil,compiler),compiler),compiler))
                       );
@@ -3812,7 +3812,7 @@ const
                         temp and converting it first from a persistent temp to
                         normal temp }
                       addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
-                      addstatement(newstatement,ctemprefnode.create(temp,compiler));
+                      addstatement(newstatement,compiler.ctemprefnode(temp));
                     end;
                   tsetelementnode(right).left:=nil;
                 end
@@ -3889,7 +3889,7 @@ const
                                 ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                                 ccallparanode.create(tsetelementnode(right).right,
                                 ccallparanode.create(tsetelementnode(right).left,
-                                ccallparanode.create(ctemprefnode.create(temp,compiler),
+                                ccallparanode.create(compiler.ctemprefnode(temp),
                                 ccallparanode.create(left,nil,compiler),compiler),compiler),compiler),compiler))
                               );
                             end
@@ -3897,7 +3897,7 @@ const
                             addstatement(newstatement,ccallnode.createintern('fpc_varset_set',
                               ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false,compiler),
                               ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
-                              ccallparanode.create(ctemprefnode.create(temp,compiler),
+                              ccallparanode.create(compiler.ctemprefnode(temp),
                               ccallparanode.create(left,nil,compiler),compiler),compiler),compiler))
                             );
                           { the last statement should return the value as
@@ -3905,7 +3905,7 @@ const
                             temp and converting it first from a persistent temp to
                             normal temp }
                           addstatement(newstatement,ctempdeletenode.create_normal_temp(temp,compiler));
-                          addstatement(newstatement,ctemprefnode.create(temp,compiler));
+                          addstatement(newstatement,compiler.ctemprefnode(temp));
                         end;
                       { remove reused parts from original node }
                       tsetelementnode(right).right:=nil;
@@ -3992,7 +3992,7 @@ const
                     addstatement(newstatement,cinlinenode.create(in_setlength_x,
                       false,
                       ccallparanode.create(genintconstnode(0,compiler),
-                        ccallparanode.create(ctemprefnode.create(tempnode,compiler),nil,compiler),compiler),compiler));
+                        ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
                   para:=ccallparanode.create(
                           ctypeconvnode.create_internal(right,voidcodepointertype,compiler),
                         ccallparanode.create(
@@ -4000,7 +4000,7 @@ const
                         ccallparanode.create(
                           caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
                         ccallparanode.create(
-                          ctypeconvnode.create_internal(ctemprefnode.create(tempnode,compiler),voidcodepointertype,compiler),nil,compiler),
+                          ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidcodepointertype,compiler),nil,compiler),
                           compiler
                         ),compiler),compiler);
                   addstatement(
@@ -4011,7 +4011,7 @@ const
                     )
                   );
                   addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
-                  addstatement(newstatement,ctemprefnode.create(tempnode,compiler));
+                  addstatement(newstatement,compiler.ctemprefnode(tempnode));
                 end;
               { we reused the arguments }
               left := nil;

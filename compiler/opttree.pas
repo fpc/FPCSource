@@ -154,13 +154,13 @@ unit opttree;
                             addstatement(statements,n);
 
                             { replace the old result node of the block by an assignment to the newly generated temp }
-                            res^:=cassignmentnode.create_internal(ctemprefnode.create(tempcreatenode,compiler),res^,compiler);
+                            res^:=cassignmentnode.create_internal(compiler.ctemprefnode(tempcreatenode),res^,compiler);
                             do_firstpass(res^);
                             addstatement(statements,ctempdeletenode.create_normal_temp(tempcreatenode,compiler));
                             addstatement(statements,pnode(arg)^);
 
                             { use the temp. ref instead of the block node }
-                            n:=ctemprefnode.create(tempcreatenode,compiler);
+                            n:=compiler.ctemprefnode(tempcreatenode);
                             { replace the statement with the block }
                             pnode(arg)^:=newblock;
                             { first pass the newly generated block }

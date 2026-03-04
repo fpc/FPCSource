@@ -446,21 +446,21 @@ implementation
          addstatement(mainstatement,ccallnode.createinternfromunit('SYSTEM','FILLCHAR',
            ccallparanode.create(genintconstnode(0,compiler),
              ccallparanode.create(genintconstnode(objc_fastenumerationstate.size,compiler),
-               ccallparanode.create(ctemprefnode.create(state,compiler),nil,compiler),compiler
+               ccallparanode.create(compiler.ctemprefnode(state),nil,compiler),compiler
              ),compiler
            )
          ));
          { this will also check whether the expression (potentially) conforms
            to the NSFastEnumeration protocol (use expr.getcopy, because the
            caller will free expr) }
-         addstatement(mainstatement,cassignmentnode.create(ctemprefnode.create(expressiontemp,compiler),expr.getcopy,compiler));
+         addstatement(mainstatement,cassignmentnode.create(compiler.ctemprefnode(expressiontemp),expr.getcopy,compiler));
 
          { we add the "repeat..until" afterwards, now just create the body }
          outerloop:=internalstatements(compiler,outerloopbodystatement);
          { the countByEnumeratingWithState_objects_count call }
          hp:=ccallparanode.create(cinlinenode.create(in_length_x,false,ctypenode.create(itemsarraydef,compiler),compiler),
-               ccallparanode.create(caddrnode.create(ctemprefnode.create(items,compiler),compiler),
-                 ccallparanode.create(caddrnode.create(ctemprefnode.create(state,compiler),compiler),nil,compiler),
+               ccallparanode.create(caddrnode.create(compiler.ctemprefnode(items),compiler),
+                 ccallparanode.create(caddrnode.create(compiler.ctemprefnode(state),compiler),nil,compiler),
                  compiler
                ),compiler
              );
@@ -468,9 +468,9 @@ implementation
          if not assigned(sym) or
             (sym.typ<>procsym) then
            internalerror(2010061901);
-         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,ctemprefnode.create(expressiontemp,compiler),[],nil,compiler);
+         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,compiler.ctemprefnode(expressiontemp),[],nil,compiler);
          addstatement(outerloopbodystatement,cassignmentnode.create(
-           ctemprefnode.create(currentamount,compiler),hp,compiler));
+           compiler.ctemprefnode(currentamount),hp,compiler));
          { if currentamount = 0, bail out (use copy of hloopvar, because we
            have to use it again below) }
          hp:=internalstatements(compiler,tempstatement);
@@ -478,17 +478,17 @@ implementation
              hloopvar.getcopy,cnilnode.create(compiler),compiler));
          addstatement(tempstatement,cbreaknode.create(compiler));
          addstatement(outerloopbodystatement,cifnode.create(
-           compiler.caddnode(equaln,ctemprefnode.create(currentamount,compiler),genintconstnode(0,compiler)),
+           compiler.caddnode(equaln,compiler.ctemprefnode(currentamount),genintconstnode(0,compiler)),
            hp,nil,compiler));
         { initial value of mutationcheck }
-        hp:=ctemprefnode.create(state,compiler);
+        hp:=compiler.ctemprefnode(state);
         typecheckpass(hp);
         hp:=cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler);
         addstatement(outerloopbodystatement,cassignmentnode.create(
-          ctemprefnode.create(mutationcheck,compiler),hp,compiler));
+          compiler.ctemprefnode(mutationcheck),hp,compiler));
         { initialise innerloopcounter }
         addstatement(outerloopbodystatement,cassignmentnode.create(
-          ctemprefnode.create(innerloopcounter,compiler),cordconstnode.create(-1,ptruinttype,false,compiler),compiler));
+          compiler.ctemprefnode(innerloopcounter),cordconstnode.create(-1,ptruinttype,false,compiler),compiler));
 
         { and now the inner loop, again adding the repeat/until afterwards }
         innerloop:=internalstatements(compiler,innerloopbodystatement);
@@ -496,29 +496,29 @@ implementation
           we go from culong(-1) to 0 during the first iteration }
         hp:=cinlinenode.create(
           in_inc_x,false,ccallparanode.create(
-            ctemprefnode.create(innerloopcounter,compiler),nil,compiler),compiler);
+            compiler.ctemprefnode(innerloopcounter),nil,compiler),compiler);
         hp.localswitches:=hp.localswitches-[cs_check_range,cs_check_overflow];
         addstatement(innerloopbodystatement,hp);
         { if innerloopcounter=currentamount then break to the outer loop }
         addstatement(innerloopbodystatement,cifnode.create(
           compiler.caddnode(equaln,
-            ctemprefnode.create(innerloopcounter,compiler),
-            ctemprefnode.create(currentamount,compiler)),
+            compiler.ctemprefnode(innerloopcounter),
+            compiler.ctemprefnode(currentamount)),
           cbreaknode.create(compiler),
           nil,compiler));
         { verify that the collection didn't change in the mean time }
-        hp:=ctemprefnode.create(state,compiler);
+        hp:=compiler.ctemprefnode(state);
         typecheckpass(hp);
         addstatement(innerloopbodystatement,cifnode.create(
           compiler.caddnode(unequaln,
-            ctemprefnode.create(mutationcheck,compiler),
+            compiler.ctemprefnode(mutationcheck),
             cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler)
           ),
           ccallnode.createinternfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
-            ccallparanode.create(ctemprefnode.create(expressiontemp,compiler),nil,compiler)),
+            ccallparanode.create(compiler.ctemprefnode(expressiontemp),nil,compiler)),
           nil,compiler));
         { finally: actually get the next element }
-        hp:=ctemprefnode.create(state,compiler);
+        hp:=compiler.ctemprefnode(state);
         typecheckpass(hp);
         hp:=genloadfield(hp,'ITEMSPTR');
         typecheckpass(hp);
@@ -528,7 +528,7 @@ implementation
           internalerror(2010061904);
         inserttypeconv(hp,
           carraydef.create_from_pointer(tpointerdef(hp.resultdef)),compiler);
-        hp:=cvecnode.create(hp,ctemprefnode.create(innerloopcounter,compiler),compiler);
+        hp:=cvecnode.create(hp,compiler.ctemprefnode(innerloopcounter),compiler);
         addstatement(innerloopbodystatement,
           cassignmentnode.create(hloopvar,hp,compiler));
         { the actual loop body! }
@@ -545,8 +545,8 @@ implementation
         hp:=cwhilerepeatnode.create(
           { repeat .. until innerloopcounter<currentamount }
           compiler.caddnode(ltn,
-            ctemprefnode.create(innerloopcounter,compiler),
-            ctemprefnode.create(currentamount,compiler)),
+            compiler.ctemprefnode(innerloopcounter),
+            compiler.ctemprefnode(currentamount)),
           outerloop,false,true,compiler);
         addstatement(mainstatement,hp);
 
@@ -578,7 +578,7 @@ implementation
           tt_persistent,true);
 
         addstatement(loopstatement,stringvar);
-        addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(stringvar,compiler),expr.getcopy,compiler));
+        addstatement(loopstatement,cassignmentnode.create(compiler.ctemprefnode(stringvar),expr.getcopy,compiler));
 
         { create a loop counter: signed integer with size of string length }
         loopvar := compiler.ctempcreatenode(
@@ -588,12 +588,12 @@ implementation
 
         addstatement(loopstatement,loopvar);
 
-        stringindex:=ctemprefnode.create(loopvar,compiler);
+        stringindex:=compiler.ctemprefnode(loopvar);
 
         loopbody:=internalstatements(compiler,loopbodystatement);
         // for-in loop variable := string_expression[index]
         addstatement(loopbodystatement,
-          cassignmentnode.create(hloopvar, cvecnode.create(ctemprefnode.create(stringvar,compiler),stringindex,compiler),compiler));
+          cassignmentnode.create(hloopvar, cvecnode.create(compiler.ctemprefnode(stringvar),stringindex,compiler),compiler));
 
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
@@ -601,15 +601,15 @@ implementation
         if tstringdef(expr.resultdef).stringtype=st_shortstring then
           begin
             fromn:=genintconstnode(1,compiler);
-            ton:=cinlinenode.create(in_length_x,false,ctemprefnode.create(stringvar,compiler),compiler);
+            ton:=cinlinenode.create(in_length_x,false,compiler.ctemprefnode(stringvar),compiler);
           end
         else
           begin
-             fromn:=cinlinenode.createintern(in_low_x,false,ctemprefnode.create(stringvar,compiler),compiler);
-             ton:= cinlinenode.create(in_high_x,false,ctemprefnode.create(stringvar,compiler),compiler);
+             fromn:=cinlinenode.createintern(in_low_x,false,compiler.ctemprefnode(stringvar),compiler);
+             ton:= cinlinenode.create(in_high_x,false,compiler.ctemprefnode(stringvar),compiler);
            end;
 
-        forloopnode:=cfornode.create(ctemprefnode.create(loopvar,compiler),
+        forloopnode:=cfornode.create(compiler.ctemprefnode(loopvar),
           fromn,
           ton,
           loopbody,
@@ -678,7 +678,7 @@ implementation
             if is_string then
               begin
                 lowbound:=genintconstnode(1,compiler);
-                highbound:=cinlinenode.create(in_length_x,false,ctemprefnode.create(arrayvar,compiler),compiler)
+                highbound:=cinlinenode.create(in_length_x,false,compiler.ctemprefnode(arrayvar),compiler)
               end
             else
               begin
@@ -691,13 +691,13 @@ implementation
                   end
                 else
                   begin
-                    lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar,compiler),compiler);
-                    highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar,compiler),compiler);
+                    lowbound:=cinlinenode.create(in_low_x,false,compiler.ctemprefnode(arrayvar),compiler);
+                    highbound:=cinlinenode.create(in_high_x,false,compiler.ctemprefnode(arrayvar),compiler);
                   end;
               end;
 
             addstatement(loopstatement,arrayvar);
-            addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(arrayvar,compiler),expression.getcopy,compiler));
+            addstatement(loopstatement,cassignmentnode.create(compiler.ctemprefnode(arrayvar),expression.getcopy,compiler));
           end
         else
           begin
@@ -732,13 +732,13 @@ implementation
 
         addstatement(loopstatement,loopvar);
 
-        arrayindex:=ctemprefnode.create(loopvar,compiler);
+        arrayindex:=compiler.ctemprefnode(loopvar);
 
         loopbody:=internalstatements(compiler,loopbodystatement);
         // for-in loop variable := array_expression[index]
         if assigned(arrayvar) then
           addstatement(loopbodystatement,
-            cassignmentnode.create(hloopvar,cvecnode.create(ctemprefnode.create(arrayvar,compiler),arrayindex,compiler),compiler))
+            cassignmentnode.create(hloopvar,cvecnode.create(compiler.ctemprefnode(arrayvar),arrayindex,compiler),compiler))
         else
           addstatement(loopbodystatement,
             cassignmentnode.create(hloopvar,cvecnode.create(expression.getcopy,arrayindex,compiler),compiler));
@@ -746,7 +746,7 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        forloopnode:=cfornode.create(ctemprefnode.create(loopvar,compiler),
+        forloopnode:=cfornode.create(compiler.ctemprefnode(loopvar),
           lowbound,
           highbound,
           loopbody,
@@ -791,7 +791,7 @@ implementation
           tt_persistent,true);
 
         addstatement(loopstatement,setvar);
-        addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(setvar,compiler),expr.getcopy,compiler));
+        addstatement(loopstatement,cassignmentnode.create(compiler.ctemprefnode(setvar),expr.getcopy,compiler));
 
         { create a loop counter }
         loopvar := compiler.ctempcreatenode(
@@ -808,17 +808,17 @@ implementation
         // end
 
         loopbody:=cifnode.create(
-          cinnode.create(ctemprefnode.create(loopvar,compiler),ctemprefnode.create(setvar,compiler),compiler),
+          cinnode.create(compiler.ctemprefnode(loopvar),compiler.ctemprefnode(setvar),compiler),
           internalstatements(compiler,loopbodystatement),
           nil,compiler);
 
-        addstatement(loopbodystatement,cassignmentnode.create(hloopvar,ctemprefnode.create(loopvar,compiler),compiler));
+        addstatement(loopbodystatement,cassignmentnode.create(hloopvar,compiler.ctemprefnode(loopvar),compiler));
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        forloopnode:=cfornode.create(ctemprefnode.create(loopvar,compiler),
-          cinlinenode.create(in_low_x,false,ctemprefnode.create(setvar,compiler),compiler),
-          cinlinenode.create(in_high_x,false,ctemprefnode.create(setvar,compiler),compiler),
+        forloopnode:=cfornode.create(compiler.ctemprefnode(loopvar),
+          cinlinenode.create(in_low_x,false,compiler.ctemprefnode(setvar),compiler),
+          cinlinenode.create(in_high_x,false,compiler.ctemprefnode(setvar),compiler),
           loopbody,
           false,
           compiler);
@@ -869,7 +869,7 @@ implementation
 
         addstatement(loopstatement,
           cassignmentnode.create(
-            ctemprefnode.create(enumvar,compiler),
+            compiler.ctemprefnode(enumvar),
             enum_get,
             compiler
           ));
@@ -882,14 +882,14 @@ implementation
                fieldvarsym :
                  begin
                    { generate access code }
-                   enum_current:=ctemprefnode.create(enumvar,compiler);
+                   enum_current:=compiler.ctemprefnode(enumvar);
                    propaccesslist_to_node(enum_current,enumerator_current.owner,propaccesslist);
                    include(enum_current.flags,nf_isproperty);
                  end;
                procsym :
                  begin
                    { generate the method call }
-                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar,compiler),[],nil,compiler);
+                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,compiler.ctemprefnode(enumvar),[],nil,compiler);
                    include(enum_current.flags,nf_isproperty);
                  end
                else
@@ -908,7 +908,7 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar,compiler), [],nil,compiler);
+        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, compiler.ctemprefnode(enumvar), [],nil,compiler);
         whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false,compiler);
 
         if enumerator_is_class then
@@ -920,11 +920,11 @@ implementation
                 whileloopnode:=ctryfinallynode.create(
                   whileloopnode, // try node
                   ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
-                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar,compiler),[],nil,compiler),compiler);
+                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil,compiler),compiler);
               end;
             { if getenumerator <> nil then do the loop }
             whileloopnode:=cifnode.create(
-              compiler.caddnode(unequaln, ctemprefnode.create(enumvar,compiler), cnilnode.create(compiler)),
+              compiler.caddnode(unequaln, compiler.ctemprefnode(enumvar), cnilnode.create(compiler)),
               whileloopnode,
               nil,compiler);
           end;
@@ -939,7 +939,7 @@ implementation
               begin
                 addstatement(loopstatement,
                   ccallnode.create(nil,tprocsym(enumerator_destructor.procsym),
-                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar,compiler),[],nil,compiler));
+                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil,compiler));
               end;
           end;
 
@@ -2150,19 +2150,19 @@ implementation
                 addstatement(statements,fromtemp);
                 { while it would be beneficial to fold the initial reverse succ/pred into this assignment, this is
                   not possible because it might wrap around and the if check later on goes wrong }
-                addstatement(statements,cassignmentnode.create_internal(ctemprefnode.create(fromtemp,compiler),right.getcopy,compiler));
+                addstatement(statements,cassignmentnode.create_internal(compiler.ctemprefnode(fromtemp),right.getcopy,compiler));
               end;
 
             if usetotemp then
               begin
                 totemp:=compiler.ctempcreatenode(t1.resultdef,t1.resultdef.size,tt_persistent,true);
                 addstatement(statements,totemp);
-                addstatement(statements,cassignmentnode.create_internal(ctemprefnode.create(totemp,compiler),t1.getcopy,compiler));
+                addstatement(statements,cassignmentnode.create_internal(compiler.ctemprefnode(totemp),t1.getcopy,compiler));
               end;
 
             if usefromtemp then
               begin
-                addstatement(ifstatements,cassignmentnode.create_internal(left.getcopy,ctemprefnode.create(fromtemp,compiler),compiler));
+                addstatement(ifstatements,cassignmentnode.create_internal(left.getcopy,compiler.ctemprefnode(fromtemp),compiler));
                 if not(do_loopvar_at_end) then
                   iterate_counter(ifstatements,lnf_backward in loopflags);
               end
@@ -2219,7 +2219,7 @@ implementation
         if needsifblock then
           begin
             if usetotemp then
-              toexpr:=ctemprefnode.create(totemp,compiler)
+              toexpr:=compiler.ctemprefnode(totemp)
             else
               toexpr:=t1.getcopy;
 
@@ -2235,12 +2235,12 @@ implementation
               addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(cond,leftcopy,toexpr),loopblock,false,true,compiler));
 
             if usefromtemp then
-              fromexpr:=ctemprefnode.create(fromtemp,compiler)
+              fromexpr:=compiler.ctemprefnode(fromtemp)
             else
               fromexpr:=right.getcopy;
 
             if usetotemp then
-              toexpr:=ctemprefnode.create(totemp,compiler)
+              toexpr:=compiler.ctemprefnode(totemp)
             else
               toexpr:=t1.getcopy;
 

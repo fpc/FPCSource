@@ -395,10 +395,10 @@ begin
         addstatement(newstatement,cinlinenode.create(in_setlength_x,
           false,
           ccallparanode.create(genintconstnode(0,compiler),
-            ccallparanode.create(ctemprefnode.create(tempnode,compiler),nil,compiler),compiler),compiler));
+            ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
       para:=ccallparanode.create(
               arrp,
-              ccallparanode.create(ctemprefnode.create(tempnode,compiler),nil,compiler),
+              ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),
               compiler
             );
       if is_ansistring(p.resultdef) then
@@ -422,7 +422,7 @@ begin
         )
       );
       addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
-      addstatement(newstatement,ctemprefnode.create(tempnode,compiler));
+      addstatement(newstatement,compiler.ctemprefnode(tempnode));
     end;
 end;
 
@@ -500,13 +500,13 @@ begin
         addstatement(newstatement,cinlinenode.create(in_setlength_x,
           false,
           ccallparanode.create(genintconstnode(0,compiler),
-            ccallparanode.create(ctemprefnode.create(tempnode,compiler),nil,compiler),compiler),compiler));
+            ccallparanode.create(compiler.ctemprefnode(tempnode),nil,compiler),compiler),compiler));
       para:=ccallparanode.create(
               arrp,
             ccallparanode.create(
               caddrnode.create_internal(crttinode.create(tstoreddef(p.resultdef),initrtti,rdt_normal,compiler),compiler),
             ccallparanode.create(
-              ctypeconvnode.create_internal(ctemprefnode.create(tempnode,compiler),voidpointertype,compiler),nil,compiler),
+              ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidpointertype,compiler),nil,compiler),
             compiler
           ),compiler);
       addstatement(
@@ -517,7 +517,7 @@ begin
         )
       );
       addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode,compiler));
-      addstatement(newstatement,ctemprefnode.create(tempnode,compiler));
+      addstatement(newstatement,compiler.ctemprefnode(tempnode));
     end;
 end;
 

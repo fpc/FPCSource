@@ -429,7 +429,7 @@ implementation
           begin
             result:=compiler.ctempcreatenode_reference(n.resultdef,size,tt_persistent,true,n,readonly);
             typecheckpass(tnode(result));
-            n:=ctemprefnode.create(result,compiler);
+            n:=compiler.ctemprefnode(result);
             typecheckpass(n);
             if not assigned(stat) then
               block:=internalstatements(compiler,stat);
@@ -445,7 +445,7 @@ implementation
           begin
             result:=compiler.ctempcreatenode_value(n.resultdef,size,tt_persistent,allowreg,n);
             typecheckpass(tnode(result));
-            n:=ctemprefnode.create(result,compiler);
+            n:=compiler.ctemprefnode(result);
             typecheckpass(n);
             if not assigned(stat) then
               block:=internalstatements(compiler,stat);
@@ -1397,7 +1397,7 @@ implementation
         // store in ppuwrite
         ftemplvalue:=templvalue;
         // create from stored ftemplvalue in ppuload
-        tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self,compiler),ftemplvalue,acompiler);
+        tempinfo^.tempinitcode:=cassignmentnode.create(compiler.ctemprefnode(self),ftemplvalue,acompiler);
       end;
 
 
@@ -1500,7 +1500,7 @@ implementation
         if assigned(ftemplvalue) then
           begin
             ftemplvalue.derefimpl;
-            tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self,compiler),ftemplvalue,compiler);
+            tempinfo^.tempinitcode:=cassignmentnode.create(compiler.ctemprefnode(self),ftemplvalue,compiler);
           end;
       end;
 

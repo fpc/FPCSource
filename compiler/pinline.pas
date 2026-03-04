@@ -133,7 +133,7 @@ implementation
                                 { setup variant selector }
                                 addstatement(newstatement,cassignmentnode.create(
                                     csubscriptnode.create(variantselectsymbol,
-                                      cderefnode.create(ctemprefnode.create(temp,compiler),compiler),compiler),
+                                      cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),
                                     p2,compiler));
                             end;
                         end
@@ -409,18 +409,18 @@ implementation
                      para := ccallparanode.create(cordconstnode.create
                          (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true,compiler),nil,compiler);
                      addstatement(newstatement,cassignmentnode.create(
-                         ctemprefnode.create(temp,compiler),
+                         compiler.ctemprefnode(temp),
                          ccallnode.createintern('fpc_getmem',para),compiler));
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
                        ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
-                       addstatement(newstatement,compiler.nodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler),false));
+                       addstatement(newstatement,compiler.nodeutils.initialize_data_node(cderefnode.create(compiler.ctemprefnode(temp),compiler),false));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,cassignmentnode.create(
                          p,
-                         ctemprefnode.create(temp,compiler),compiler));
+                         compiler.ctemprefnode(temp),compiler));
 
                      ReadVariantRecordConstants;
 
@@ -437,7 +437,7 @@ implementation
                            { ensure that p gets evaluated only once, in case it is e.g. a call }
                            temp:=compiler.ctempcreatenode_value(p.resultdef,p.resultdef.size,tt_persistent,true,p);
                            addstatement(newstatement,temp);
-                           addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp,compiler),compiler)));
+                           addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(compiler.ctemprefnode(temp),compiler)));
                          end
                        else
                          addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(p.getcopy,compiler)));
@@ -448,7 +448,7 @@ implementation
                      if not assigned(temp) then
                        para := ccallparanode.create(p,nil,compiler)
                      else
-                       para := ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler);
+                       para := ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler);
                      addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
                      if assigned(temp) then
                        addstatement(newstatement,ctempdeletenode.create(temp,compiler));

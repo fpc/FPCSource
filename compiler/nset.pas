@@ -862,9 +862,9 @@ implementation
              addstatement(stmt, tempcaseexpr);
              addstatement(
                stmt, cassignmentnode.create(
-                 ctemprefnode.create(tempcaseexpr,compiler), left, compiler));
+                 compiler.ctemprefnode(tempcaseexpr), left, compiler));
 
-             left := ctemprefnode.create(tempcaseexpr,compiler);
+             left := compiler.ctemprefnode(tempcaseexpr);
              typecheckpass(left);
            end;
 
@@ -991,9 +991,9 @@ implementation
 
                  addstatement(stmt,tempcaseexpr);
                  addstatement(stmt,cassignmentnode.create(
-                   ctemprefnode.create(tempcaseexpr,compiler),left.getcopy,compiler));
+                   compiler.ctemprefnode(tempcaseexpr),left.getcopy,compiler));
 
-                 left:=ctemprefnode.create(tempcaseexpr,compiler);
+                 left:=compiler.ctemprefnode(tempcaseexpr);
                  typecheckpass(left);
 
                  addstatement(stmt,cifnode.create_internal(

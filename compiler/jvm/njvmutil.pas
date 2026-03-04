@@ -142,7 +142,7 @@ implementation
                   result:=internalstatements(stat);
                   temp:=compiler.ctempcreatenode(def,def.size,tt_persistent,true);
                   addstatement(stat,temp);
-                  paras:=ccallparanode.create(ctemprefnode.create(temp),paras);
+                  paras:=ccallparanode.create(compiler.ctemprefnode(temp),paras);
                   proc:='fpc_initialize_array_record'
                 end;
               if assigned(stat) then
@@ -250,7 +250,7 @@ implementation
               addstatement(stat,temp);
               initnode:=ccallparanode.create(
                 ctypeconvnode.create_explicit(
-                  caddrnode.create_internal(ctemprefnode.create(temp)),
+                  caddrnode.create_internal(compiler.ctemprefnode(temp)),
                   java_jlobject),
                 nil);
               jvmgetarraydimdef(sym.vardef,eledef,ndim);
@@ -266,7 +266,7 @@ implementation
             begin
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
-              initnode:=caddrnode.create_internal(ctemprefnode.create(temp));
+              initnode:=caddrnode.create_internal(compiler.ctemprefnode(temp));
             end
           { unicodestring/ansistring -> empty string }
           else if is_wide_or_unicode_string(sym.vardef) or
@@ -275,9 +275,9 @@ implementation
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,cassignmentnode.create(
-                ctemprefnode.create(temp),
+                compiler.ctemprefnode(temp),
                 cstringconstnode.createstr('')));
-              initnode:=ctemprefnode.create(temp);
+              initnode:=compiler.ctemprefnode(temp);
             end
           { dynamic array -> empty array }
           else if is_dynamic_array(sym.vardef) then
@@ -286,10 +286,10 @@ implementation
               addstatement(stat,temp);
               addstatement(stat,cinlinenode.create(in_setlength_x,false,
                 ccallparanode.create(genintconstnode(0),
-                  ccallparanode.create(ctemprefnode.create(temp),nil))
+                  ccallparanode.create(compiler.ctemprefnode(temp),nil))
                 )
               );
-              initnode:=ctemprefnode.create(temp);
+              initnode:=compiler.ctemprefnode(temp);
             end;
 
           if assigned(initnode) and

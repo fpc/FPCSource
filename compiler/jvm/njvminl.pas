@@ -443,7 +443,7 @@ implementation
         lefttemp:=maybereplacewithtempref(compiler,tcallparanode(left).left,newblock,newstatement,tcallparanode(left).left.resultdef.size,false);
         if assigned(lefttemp) then
           begin
-            assignmenttarget:=ctemprefnode.create(lefttemp);
+            assignmenttarget:=compiler.ctemprefnode(lefttemp);
             typecheckpass(tnode(assignmenttarget));
           end
         else
@@ -582,7 +582,7 @@ implementation
               begin
                 lefttemp:=compiler.ctempcreatenode_value(stringclass,stringclass.size,tt_persistent,true,ctypeconvnode.create_explicit(left,stringclass));
                 addstatement(newstatement,lefttemp);
-                stringtemp:=ctemprefnode.create(lefttemp)
+                stringtemp:=compiler.ctemprefnode(lefttemp)
               end
             else
               begin
@@ -601,11 +601,11 @@ implementation
                (psym.typ<>procsym) then
               internalerror(2011031403);
             stringnonnull:=cassignmentnode.create(
-              ctemprefnode.create(lentemp),
+              compiler.ctemprefnode(lentemp),
               ccallnode.create(nil,tprocsym(psym),psym.owner,stringtemp,[],nil));
             { else-path: length is 0 }
             stringnull:=cassignmentnode.create(
-              ctemprefnode.create(lentemp),
+              compiler.ctemprefnode(lentemp),
               genintconstnode(0));
             { complete if-statement }
             addstatement(newstatement,cifnode.create(ifcond,stringnonnull,stringnull));
@@ -614,7 +614,7 @@ implementation
               addstatement(newstatement,ctempdeletenode.create(lefttemp));
             { return len temp }
             addstatement(newstatement,ctempdeletenode.create_normal_temp(lentemp));
-            addstatement(newstatement,ctemprefnode.create(lentemp));
+            addstatement(newstatement,compiler.ctemprefnode(lentemp));
             result:=newblock;
           end
         else if is_shortstring(left.resultdef) then

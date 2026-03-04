@@ -283,31 +283,31 @@ implementation
       addstatement(statement,literaltemp);
       { temp.base.isa:=@blockisasym }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'ISA'),
+        genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'ISA'),
         caddrnode.create(cloadnode.create(blockisasym,blockisasym.owner,compiler),compiler),compiler));
       { temp.base.flags:=blockflags }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'FLAGS'),
+        genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'FLAGS'),
         genintconstnode(blockflags,compiler),compiler));
       { temp.base.reserved:=0 }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'RESERVED'),
+        genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'RESERVED'),
         genintconstnode(0,compiler),compiler));
       { temp.base.invoke:=tmethod(@invokepd) }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'INVOKE'),
+        genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'INVOKE'),
         ctypeconvnode.create_proc_to_procvar(
           cloadnode.create_procvar(invokepd.procsym,invokepd,invokepd.owner,compiler),compiler),compiler));
       { temp.base.descriptor:=@descriptor }
       addstatement(statement,cassignmentnode.create(
-        genloadfield(genloadfield(ctemprefnode.create(literaltemp,compiler),'BASE'),'DESCRIPTOR'),
+        genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'DESCRIPTOR'),
         caddrnode.create(cloadnode.create(descriptor,descriptor.owner,compiler),compiler),compiler));
       { temp.pv:=tmethod(@orgpd) }
       addstatement(statement,cassignmentnode.create(
-        ctypeconvnode.create_explicit(genloadfield(ctemprefnode.create(literaltemp,compiler),'PV'),orgpv,compiler),
+        ctypeconvnode.create_explicit(genloadfield(compiler.ctemprefnode(literaltemp),'PV'),orgpv,compiler),
           procvarnode.getcopy,compiler));
       { and return the address of the temp }
-      addstatement(statement,caddrnode.create(ctemprefnode.create(literaltemp,compiler),compiler));
+      addstatement(statement,caddrnode.create(compiler.ctemprefnode(literaltemp),compiler));
       { typecheck this now, because the current source may be written in TP/
         Delphi/MacPas mode and the above node tree has been constructed for
         ObjFPC mode, which has been set by replace_scanner (in Delphi, the

@@ -160,7 +160,7 @@ unit opttail;
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
                               cassignmentnode.create(
-                                ctemprefnode.create(tempnode,compiler),
+                                compiler.ctemprefnode(tempnode),
                                 caddrnode.create_internal(paranode.left,compiler),
                                 compiler
                                 ));
@@ -171,7 +171,7 @@ unit opttail;
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
                               cassignmentnode.create_internal(
-                                ctemprefnode.create(tempnode,compiler),
+                                compiler.ctemprefnode(tempnode),
                                 paranode.left,
                                 compiler
                                 ));
@@ -187,7 +187,7 @@ unit opttail;
                         addstatement(copystatements,
                           cassignmentnode.create_internal(
                             loadnode,
-                            ctemprefnode.create(tempnode,compiler),
+                            compiler.ctemprefnode(tempnode),
                             compiler
                             ));
                         addstatement(copystatements,ctempdeletenode.create_normal_temp(tempnode,compiler));

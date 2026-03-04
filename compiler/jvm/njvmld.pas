@@ -161,11 +161,11 @@ function tjvmassignmentnode.pass_1: tnode;
             tempn:=compiler.ctempcreatenode_value(right.resultdef,right.resultdef.size,
               tt_persistent,false,right);
             addstatement(stat,tempn);
-            right:=caddrnode.create(ctemprefnode.create(tempn));
+            right:=caddrnode.create(compiler.ctemprefnode(tempn));
             inserttypeconv_explicit(right,java_jlobject);
             addstatement(stat,ctempdeletenode.create_normal_temp(tempn));
             addstatement(stat,ctypeconvnode.create_explicit(
-              caddrnode.create(ctemprefnode.create(tempn)),java_jlobject));
+              caddrnode.create(compiler.ctemprefnode(tempn)),java_jlobject));
             right:=block;
           end;
         typecheckpass(right);
@@ -313,12 +313,12 @@ procedure tjvmarrayconstructornode.wrapmanagedvarrec(var n: tnode);
     addstatement(stat,temp);
     addstatement(stat,
       ccallnode.createinternmethod(
-        ctemprefnode.create(temp),'INIT',ccallparanode.create(n,nil)));
+        compiler.ctemprefnode(temp),'INIT',ccallparanode.create(n,nil)));
     { note: this will not free the record contents, but just let its reference
       on the stack be reused -- which is ok, because the reference will be
       stored into the open array parameter }
     addstatement(stat,ctempdeletenode.create_normal_temp(temp));
-    addstatement(stat,ctemprefnode.create(temp));
+    addstatement(stat,compiler.ctemprefnode(temp));
     n:=block;
     firstpass(n);
   end;

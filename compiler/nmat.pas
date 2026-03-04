@@ -477,11 +477,11 @@ implementation
 
              { prepare else block }
              { result:=(-left) mod right }
-             addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data,compiler),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy,compiler),compiler));
+             addstatement(else_statements,cassignmentnode.create(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy,compiler),compiler));
              { result<>0? }
-             addstatement(else_statements,cifnode.create_internal(compiler.caddnode_internal(unequaln,ctemprefnode.create(result_data,compiler),cordconstnode.create(0,resultdef,false,compiler)),
+             addstatement(else_statements,cifnode.create_internal(compiler.caddnode_internal(unequaln,compiler.ctemprefnode(result_data),cordconstnode.create(0,resultdef,false,compiler)),
                { then: result:=right-result }
-               cassignmentnode.create_internal(ctemprefnode.create(result_data,compiler),compiler.caddnode_internal(subn,right.getcopy,ctemprefnode.create(result_data,compiler)),compiler),
+               cassignmentnode.create_internal(compiler.ctemprefnode(result_data),compiler.caddnode_internal(subn,right.getcopy,compiler.ctemprefnode(result_data)),compiler),
                nil,
                compiler
                ));
@@ -490,14 +490,14 @@ implementation
              { if left>=0 }
              addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false,compiler)),
                { then: result:=left mod right }
-               cassignmentnode.create_internal(ctemprefnode.create(result_data,compiler),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler),compiler),
+               cassignmentnode.create_internal(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler),compiler),
                { else block }
                else_block,
                compiler
                ));
 
              addstatement(statements,ctempdeletenode.create_normal_temp(result_data,compiler));
-             addstatement(statements,ctemprefnode.create(result_data,compiler));
+             addstatement(statements,compiler.ctemprefnode(result_data));
            end;
       end;
 
@@ -631,7 +631,7 @@ implementation
                     resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                     addstatement(statements,resulttemp);
                     addstatement(statements,temp);
-                    addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),
+                    addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(temp),
                      left,compiler));
                     left:=nil;
 
@@ -640,7 +640,7 @@ implementation
                     if power=1 then
                       masknode:=
                         cshlshrnode.create(shrn,
-                          ctemprefnode.create(temp,compiler),
+                          compiler.ctemprefnode(temp),
                           cordconstnode.create(shiftval,u8inttype,false,compiler),
                           compiler
                         )
@@ -649,7 +649,7 @@ implementation
                         compiler.caddnode(andn,
                           cinlinenode.create(in_sar_x_y,false,
                             ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
-                            ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler),compiler),
+                            ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler),compiler),
                             compiler
                           ),
                           cordconstnode.create(tcgint((qword(1) shl power)-1),
@@ -657,25 +657,25 @@ implementation
                         );
 
                     if invertsign then
-                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
+                      addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                         cunaryminusnode.create(
                           cinlinenode.create(in_sar_x_y,false,
                             ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
-                            ccallparanode.create(compiler.caddnode(addn,ctemprefnode.create(temp,compiler),
+                            ccallparanode.create(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                               masknode),nil,compiler
                             ),compiler),compiler),compiler),compiler)
                       )
                     else
-                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
+                      addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                         cinlinenode.create(in_sar_x_y,false,
                           ccallparanode.create(cordconstnode.create(power,u8inttype,false,compiler),
-                          ccallparanode.create(compiler.caddnode(addn,ctemprefnode.create(temp,compiler),
+                          ccallparanode.create(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                             masknode),nil,compiler
                           ),compiler),compiler),compiler)
                       );
                     addstatement(statements,ctempdeletenode.create(temp,compiler));
                     addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
-                    addstatement(statements,ctemprefnode.create(resulttemp,compiler));
+                    addstatement(statements,compiler.ctemprefnode(resulttemp));
                     right.Free;
                     right := nil;
                   end
@@ -698,12 +698,12 @@ implementation
                 resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
                 addstatement(statements,resulttemp);
                 addstatement(statements,temp);
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(temp,compiler),left,compiler));
+                addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(temp),left,compiler));
                 { mask:=sar(left,sizeof(left)*8-1) and ((1 shl power)-1); }
                 if power=1 then
                   masknode:=
                     cshlshrnode.create(shrn,
-                      ctemprefnode.create(temp,compiler),
+                      compiler.ctemprefnode(temp),
                       cordconstnode.create(shiftval,u8inttype,false,compiler),
                       compiler
                     )
@@ -712,29 +712,29 @@ implementation
                     compiler.caddnode(andn,
                       cinlinenode.create(in_sar_x_y,false,
                         ccallparanode.create(cordconstnode.create(shiftval,u8inttype,false,compiler),
-                        ccallparanode.create(ctemprefnode.create(temp,compiler),nil,compiler),compiler),
+                        ccallparanode.create(compiler.ctemprefnode(temp),nil,compiler),compiler),
                         compiler
                       ),
                       cordconstnode.create(tcgint((qword(1) shl power)-1),
                         right.resultdef,false,compiler)
                     );
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),masknode,compiler));
+                addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),masknode,compiler));
 
                 { result:=((left+mask) and right)-mask; }
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(resulttemp,compiler),
+                addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                   compiler.caddnode(subn,
                     compiler.caddnode(andn,
                       right,
                       compiler.caddnode(addn,
-                        ctemprefnode.create(temp,compiler),
-                        ctemprefnode.create(resulttemp,compiler))),
-                  ctemprefnode.create(resulttemp,compiler)),
+                        compiler.ctemprefnode(temp),
+                        compiler.ctemprefnode(resulttemp))),
+                  compiler.ctemprefnode(resulttemp)),
                   compiler
                 ));
 
                 addstatement(statements,ctempdeletenode.create(temp,compiler));
                 addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp,compiler));
-                addstatement(statements,ctemprefnode.create(resulttemp,compiler));
+                addstatement(statements,compiler.ctemprefnode(resulttemp));
               end
             else
               begin

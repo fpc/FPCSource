@@ -151,7 +151,7 @@ implementation
             orgnode.resultdef,orgnode.resultdef.size,
             tt_persistent,true,orgnode);
         { this node is reused while constructing the temp }
-        orgnode:=ctemprefnode.create(result);
+        orgnode:=compiler.ctemprefnode(result);
         typecheckpass(orgnode);
       end;
 
@@ -274,18 +274,18 @@ implementation
               end;
             { put the parameter value in the array }
             addstatement(initstat,cassignmentnode.create(
-              cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0)),
+              cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0)),
               left));
             { and the copy for checking }
             if (cs_check_var_copyout in current_settings.localswitches) then
               addstatement(initstat,cassignmentnode.create(
-                cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(1)),
-                cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0))));
+                cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(1)),
+                cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0))));
           end
         else
           left.free;
         { replace the parameter with the temp array }
-        left:=ctemprefnode.create(arraytemp);
+        left:=compiler.ctemprefnode(arraytemp);
         { generate the code to copy back the changed value into the original
           parameter in case of var/out.
 
@@ -303,7 +303,7 @@ implementation
           begin
             { add the extraction of the parameter and assign it back to the
               original location }
-            tempn:=ctemprefnode.create(arraytemp);
+            tempn:=compiler.ctemprefnode(arraytemp);
             tempn:=cvecnode.create(tempn,genintconstnode(0));
             { unbox if necessary }
             if parasym.vardef.typ=formaldef then
@@ -325,8 +325,8 @@ implementation
                     verifyout) and
                    (cs_check_var_copyout in current_settings.localswitches) then
                   begin
-                    unwrappedele0:=cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(0));
-                    unwrappedele1:=cvecnode.create(ctemprefnode.create(arraytemp),genintconstnode(1));
+                    unwrappedele0:=cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0));
+                    unwrappedele1:=cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(1));
                     if (parasym.vardef.typ=formaldef) and
                        (orgparadef.typ in [orddef,floatdef]) then
                       begin
@@ -375,7 +375,7 @@ implementation
           tt_persistent,tparavarsym(para.parasym).is_regvar(false),para.left,false);
         addstatement(inlineinitstatement,tempnode);
         addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
-        para.left:=ctemprefnode.create(tempnode);
+        para.left:=compiler.ctemprefnode(tempnode);
         { inherit addr_taken flag }
         if (tabstractvarsym(para.parasym).addr_taken) then
           tempnode.includetempflag(ti_addr_taken);

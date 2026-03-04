@@ -646,7 +646,7 @@ implementation
             if not is_object(self_resultdef) or
                (actualtargetnode(@self_node)^.nodetype=derefn) then
               begin
-                check_self:=ctemprefnode.create(self_temp,compiler);
+                check_self:=compiler.ctemprefnode(self_temp);
                 addstatement(stat,cifnode.create(
                   compiler.caddnode(equaln,
                     ctypeconvnode.create_explicit(
@@ -661,9 +661,9 @@ implementation
                 );
               end;
             if is_object(self_resultdef) then
-              self_node:=cderefnode.create(ctemprefnode.create(self_temp,compiler),compiler)
+              self_node:=cderefnode.create(compiler.ctemprefnode(self_temp),compiler)
             else
-              self_node:=ctemprefnode.create(self_temp,compiler)
+              self_node:=compiler.ctemprefnode(self_temp)
           end;
         { in case of a classref, the "instance" is a pointer
           to pointer to a VMT and there is no vmt field }
@@ -696,7 +696,7 @@ implementation
             { add a vmt validity check }
             vmt_temp:=compiler.ctempcreatenode_value(result.resultdef,result.resultdef.size,tt_persistent,true,result);
             addstatement(stat,vmt_temp);
-            paras:=ccallparanode.create(ctemprefnode.create(vmt_temp,compiler),nil,compiler);
+            paras:=ccallparanode.create(compiler.ctemprefnode(vmt_temp),nil,compiler);
             if cs_check_object in current_settings.localswitches then
               begin
                 paras:=ccallparanode.create(
@@ -718,7 +718,7 @@ implementation
               );
             addstatement(stat,ctempdeletenode.create_normal_temp(vmt_temp,compiler));
             addstatement(stat,ctempdeletenode.create(self_temp,compiler));
-            addstatement(stat,ctemprefnode.create(vmt_temp,compiler));
+            addstatement(stat,compiler.ctemprefnode(vmt_temp));
             result:=block;
           end
       end;

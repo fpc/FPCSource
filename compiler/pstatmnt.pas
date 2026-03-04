@@ -692,10 +692,10 @@ implementation
                     calltempnode:=compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent,true);
                     addstatement(newstatement,calltempnode);
                     addstatement(newstatement,cassignmentnode.create(
-                        ctemprefnode.create(calltempnode,compiler),
+                        compiler.ctemprefnode(calltempnode),
                         p,
                         compiler));
-                    p:=ctemprefnode.create(calltempnode,compiler);
+                    p:=compiler.ctemprefnode(calltempnode);
                     typecheckpass(p);
                   end;
                 { several object types have implicit dereferencing }
@@ -718,7 +718,7 @@ implementation
                 tempnode:=compiler.ctempcreatenode_withnode(hdef,sizeof(pint),tt_persistent,true,p);
                 typecheckpass(tnode(tempnode));
                 valuenode:=p;
-                refnode:=ctemprefnode.create(tempnode,compiler);
+                refnode:=compiler.ctemprefnode(tempnode);
                 fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                 { add address call for valuenode and deref for refnode if this
                   is not done implicitly }
@@ -731,7 +731,7 @@ implementation
                   end;
                 addstatement(newstatement,tempnode);
                 addstatement(newstatement,cassignmentnode.create(
-                    ctemprefnode.create(tempnode,compiler),
+                    compiler.ctemprefnode(tempnode),
                     valuenode,compiler));
                 typecheckpass(refnode);
               end;

@@ -482,9 +482,9 @@ unit optcse;
                         templist[i]:=hp;
 
                         if addrstored then
-                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[i]),compiler),compiler)
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(compiler.ctemprefnode(ttempcreatenode(templist[i])),compiler)
                         else
-                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]),compiler);
+                          pnode(lists.locationlist[i])^:=compiler.ctemprefnode(ttempcreatenode(templist[i]));
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -512,9 +512,9 @@ unit optcse;
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
                         if addrstored then
-                          pnode(lists.locationlist[i])^:=cderefnode.Create(ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]),compiler),compiler)
+                          pnode(lists.locationlist[i])^:=cderefnode.Create(compiler.ctemprefnode(ttempcreatenode(templist[ptrint(lists.equalto[i])])),compiler)
                         else
-                          pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]),compiler);
+                          pnode(lists.locationlist[i])^:=compiler.ctemprefnode(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
 
                         { make debugging easier and set temp. location to the original location }
                         pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
@@ -684,11 +684,11 @@ unit optcse;
             { shall we take the address? }
             if CSEOnReference(pconstentry(arg)^.valuenode) then
               begin
-                hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp,compiler),compiler),pconstentry(arg)^.valuenode.resultdef,compiler);
+                hp:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(pconstentry(arg)^.temp),compiler),pconstentry(arg)^.valuenode.resultdef,compiler);
                 ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
               end
             else
-              hp:=ctemprefnode.create(pconstentry(arg)^.temp,compiler);
+              hp:=compiler.ctemprefnode(pconstentry(arg)^.temp);
 
             hp.fileinfo:=n.fileinfo;
             n.Free;
@@ -811,7 +811,7 @@ unit optcse;
                      constentries[i].temp:=compiler.ctempcreatenode(constentries[i].valuenode.resultdef,
                        constentries[i].valuenode.resultdef.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
-                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp,compiler),constentries[i].valuenode,compiler));
+                     addstatement(creates,cassignmentnode.create_internal(compiler.ctemprefnode(constentries[i].temp),constentries[i].valuenode,compiler));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(fpu_regs_assigned);
@@ -835,7 +835,7 @@ unit optcse;
                      constentries[i].temp:=compiler.ctempcreatenode(cpointerdef.getreusable(constentries[i].valuenode.resultdef,compiler),
                        voidpointertype.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
-                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp,compiler),
+                     addstatement(creates,cassignmentnode.create_internal(compiler.ctemprefnode(constentries[i].temp),
                        caddrnode.create_internal(constentries[i].valuenode,compiler),compiler));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
