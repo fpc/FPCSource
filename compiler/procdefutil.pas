@@ -1099,7 +1099,7 @@ implementation
           if not assigned(selfsym) then
             internalerror(2022052301);
           selfinfo.ignore:=selfsym;
-          n1:=ccallnode.create_procvar(create_paras(pd),csubscriptnode.create(fieldsym,cloadnode.create(selfsym,selfsym.owner,compiler),compiler),compiler);
+          n1:=compiler.ccallnode_procvar(create_paras(pd),csubscriptnode.create(fieldsym,cloadnode.create(selfsym,selfsym.owner,compiler),compiler));
         end
       else
         begin

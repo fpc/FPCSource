@@ -831,7 +831,7 @@ implementation
           { support writeln(procvar) }
           if para.left.resultdef.typ=procvardef then
             begin
-              p1:=ccallnode.create_procvar(nil,para.left,compiler);
+              p1:=compiler.ccallnode_procvar(nil,para.left);
               typecheckpass(p1);
               para.left:=p1;
             end;
@@ -1292,7 +1292,7 @@ implementation
           { support writeln(procvar) }
           if (para.left.resultdef.typ=procvardef) then
             begin
-              p1:=ccallnode.create_procvar(nil,para.left,compiler);
+              p1:=compiler.ccallnode_procvar(nil,para.left);
               typecheckpass(p1);
               para.left:=p1;
             end;

@@ -2285,7 +2285,7 @@ implementation
                   (p1.resultdef.typ=procvardef) and
                   (tprocvardef(p1.resultdef).returndef.typ=pointerdef) then
                  begin
-                   p1:=ccallnode.create_procvar(nil,p1,compiler);
+                   p1:=compiler.ccallnode_procvar(nil,p1);
                    typecheckpass(p1);
                  end;
 
@@ -2331,7 +2331,7 @@ implementation
                   (p1.resultdef.typ=procvardef) and
                   (tprocvardef(p1.resultdef).returndef.typ=arraydef) then
                  begin
-                   p1:=ccallnode.create_procvar(nil,p1,compiler);
+                   p1:=compiler.ccallnode_procvar(nil,p1);
                    typecheckpass(p1);
                  end;
 
@@ -3007,7 +3007,7 @@ implementation
                         begin
                           p2:=parse_paras(false,false,_RKLAMMER);
                           consume(_RKLAMMER);
-                          p1:=ccallnode.create_procvar(p2,p1,compiler);
+                          p1:=compiler.ccallnode_procvar(p2,p1);
                           { proc():= is never possible }
                           if current_scanner.token=_ASSIGNMENT then
                             begin

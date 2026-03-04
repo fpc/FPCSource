@@ -217,6 +217,7 @@ type
     function ctempdeletenode_normal_temp(const temp: ttempcreatenode):ttempdeletenode; inline;
     { ncal }
     function ccallnode(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext):tcallnode; inline;
+    function ccallnode_procvar(l,r:tnode):tcallnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -633,6 +634,11 @@ function TCompilerHelper.ccallnode(l: tnode; v: tprocsym; st: TSymtable;
   mp: tnode; callflags: tcallnodeflags; sc: tspecializationcontext): tcallnode; inline;
 begin
   result:=ncal.ccallnode.create(l,v,st,mp,callflags,sc,self);
+end;
+
+function TCompilerHelper.ccallnode_procvar(l, r: tnode): tcallnode; inline;
+begin
+  result:=ncal.ccallnode.create_procvar(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

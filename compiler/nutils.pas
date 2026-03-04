@@ -470,7 +470,7 @@ implementation
         { a tempref is used when it is loaded from a withsymtable }
         if (hp.nodetype in [calln,loadn,temprefn]) then
           begin
-            hp:=ccallnode.create_procvar(nil,p1,compiler);
+            hp:=compiler.ccallnode_procvar(nil,p1);
             typecheckpass(hp);
             p1:=hp;
             result:=true;
