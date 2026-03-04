@@ -1872,7 +1872,7 @@ implementation
                             not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,savedfilepos)
                         else
-                          result:=cspecializenode.create(result,getaddr,srsym,false,compiler);
+                          result:=compiler.cspecializenode(result,getaddr,srsym,false);
                         erroroutresult:=false;
                       end
                     else
@@ -2646,7 +2646,7 @@ implementation
                                      not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                  else
-                                   p1:=cspecializenode.create(p1,getaddr,srsym,false,compiler);
+                                   p1:=compiler.cspecializenode(p1,getaddr,srsym,false);
                                  erroroutp1:=false;
                                end
                              else
@@ -2828,7 +2828,7 @@ implementation
                                       not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                   else
-                                    p1:=cspecializenode.create(p1,getaddr,srsym,false,compiler);
+                                    p1:=compiler.cspecializenode(p1,getaddr,srsym,false);
                                   erroroutp1:=false;
                                 end
                               else
@@ -2882,7 +2882,7 @@ implementation
                                        not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                    else
-                                     p1:=cspecializenode.create(p1,getaddr,srsym,false,compiler);
+                                     p1:=compiler.cspecializenode(p1,getaddr,srsym,false);
                                    erroroutp1:=false;
                                 end
                               else
@@ -3187,7 +3187,7 @@ implementation
                            end;
                        end
                      else
-                       result:=cspecializenode.create(nil,getaddr,srsym,unit_found,compiler)
+                       result:=compiler.cspecializenode(nil,getaddr,srsym,unit_found)
                    end
                  else
                    begin
@@ -3227,7 +3227,7 @@ implementation
                   (sp_generic_dummy in srsym.symoptions) and
                   (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                 begin
-                  result:=cspecializenode.create(nil,getaddr,srsym,unit_found,compiler)
+                  result:=compiler.cspecializenode(nil,getaddr,srsym,unit_found)
                 end
               { check if it's a method/class method }
               else if is_member_read(srsym,srsymtable,result,hdef) then

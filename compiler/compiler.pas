@@ -157,6 +157,7 @@ uses
   ,globtype
   ,ngenutil
   ,optloop
+  ,symtype
   ,node,nadd,nbas;
 
 type
@@ -197,6 +198,7 @@ type
     function caddnode_internal(tt:tnodetype;l,r:tnode):taddnode; inline;
     function cnothingnode:tnothingnode; inline;
     function cerrornode:terrornode; inline;
+    function cspecializenode(l:tnode;g:boolean;s:tsym;u:boolean):tspecializenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -524,6 +526,11 @@ end;
 function TCompilerHelper.cerrornode: terrornode; inline;
 begin
   result:=nbas.cerrornode.create(self);
+end;
+
+function TCompilerHelper.cspecializenode(l: tnode; g: boolean; s: tsym; u: boolean): tspecializenode; inline;
+begin
+  result:=nbas.cspecializenode.create(l,g,s,u,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
