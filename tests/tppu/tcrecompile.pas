@@ -14,6 +14,7 @@ type
   TTestRecompile = class(TTestCase)
   private
     FCompiled: TStringList;
+    FIncPath: string;
     FMainSrc: string;
     FOptionUr: boolean;
     FOutDir: string;
@@ -29,8 +30,10 @@ type
     procedure CheckCompiled(const Must: TStringArray; const Optional: TStringArray = []);
     procedure TouchFile(const aFilename: string);
     procedure MakeDateDiffer(const File1, File2: string);
+    procedure MakeDateSame(const File1, File2: string);
     property PP: string read FPP write FPP;
     property UnitPath: string read FUnitPath write FUnitPath;
+    property IncPath: string read FIncPath write FIncPath;
     property OutDir: string read FOutDir write FOutDir;
     property MainSrc: string read FMainSrc write FMainSrc;
     property Compiled: TStringList read FCompiled write FCompiled;
@@ -60,7 +63,9 @@ type
     procedure TestPrgNameClash1; // prg name clash with unit
 
     // -Ur Generate release unit files (never automatically recompile ppu)
-    procedure TestUr_cycle2;
+    procedure TestUr_ignoreinclude1; // ant->bird, change bird.inc
+    procedure TestUr_newmainsrc1; // ant->bird, change bird.pas
+    procedure TestUr_cycle2; //  ant->bird, bird.impl->ant
 
     // inline
     procedure TestInline1; // ant->bird->cat, cat inline body changes
@@ -94,6 +99,7 @@ procedure TTestRecompile.SetUp;
 begin
   inherited SetUp;
   UnitPath:='';
+  IncPath:='';
   OutDir:='';
   MainSrc:='';
   OptionUr:=false;
@@ -175,6 +181,8 @@ begin
   Params:=TStringList.Create;
   try
     Params.Add('-Fu'+UnitPath);
+    if IncPath>'' then
+      Params.Add('-Fi'+IncPath);
     Params.Add('-FE'+OutDir);
     if OptionUr then
       Params.Add('-Ur');
@@ -244,6 +252,20 @@ begin
     Fail('file not found "'+File2+'"');
   if Age1<>Age2 then exit;
   FileSetDate(File2,Age2-2);
+end;
+
+procedure TTestRecompile.MakeDateSame(const File1, File2: string);
+var
+  Age1, Age2: Int64;
+begin
+  Age1:=FileAge(File1);
+  if Age1<0 then
+    Fail('file not found "'+File1+'"');
+  Age2:=FileAge(File2);
+  if Age2<0 then
+    Fail('file not found "'+File2+'"');
+  if Age1=Age2 then exit;
+  FileSetDate(File2,Age1);
 end;
 
 constructor TTestRecompile.Create;
@@ -403,6 +425,91 @@ begin
   Compile;
   // the main src is always compiled
   CheckCompiled(['prgnameclash1_prg.pas']);
+end;
+
+procedure TTestRecompile.TestUr_ignoreinclude1;
+// ant->bird, change bird.inc
+var
+  Dir: String;
+begin
+  Dir:='ur_ignoreinclude1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'ur_ignoreinclude1_ant.pas';
+  OptionUr:=true;
+
+  // compile with src1, having bird.pas
+  Step:='First compile';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  IncPath:=Dir+PathDelim+'src1';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ur_ignoreinclude1_ant.pas','ur_ignoreinclude1_bird.pas']);
+
+  // compile again, no bird.pas in unitpath and changed bird.inc in path
+  Step:='Second compile';
+  UnitPath:=Dir;
+  IncPath:=Dir+PathDelim+'src2';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'ur_ignoreinclude1_bird.inc',
+    Dir+PathDelim+'src2'+PathDelim+'ur_ignoreinclude1_bird.inc');
+  Compile;
+  // the main src is always compiled, bird.inc changed, but is ignored due to -Ur and no bird.pas in path
+  CheckCompiled(['ur_ignoreinclude1_ant.pas']);
+end;
+
+procedure TTestRecompile.TestUr_newmainsrc1;
+// ant->bird, change bird.inc
+var
+  Dir: String;
+begin
+  Dir:='ur_newmainsrc1';
+  MainSrc:=Dir+PathDelim+'ur_newmainsrc1_ant.pas';
+  OptionUr:=true;
+
+  // compile with src1/bird.pas and create ppus1/bird.ppu
+  Step:='First compile';
+  OutDir:=Dir+PathDelim+'ppus1';
+  UnitPath:=Dir+PathDelim+'src1';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ur_newmainsrc1_ant.pas','ur_newmainsrc1_bird.pas']);
+
+  // compile with src2/bird.pp and ppus1 in unitpath and create ppus2/bird.ppu
+  Step:='Second compile';
+  OutDir:=Dir+PathDelim+'ppus2';
+  UnitPath:=Dir+PathDelim+'src2'+';'+Dir+PathDelim+'ppus1';
+  CleanOutputDir;
+  Compile;
+  // the main src is always compiled, main source of bird changed from bird.pas to bird.pp
+  CheckCompiled(['ur_newmainsrc1_ant.pas','ur_newmainsrc1_bird.pp']);
+end;
+
+procedure TTestRecompile.TestUr_cycle2;
+// ant->bird, bird.impl->ant
+var
+  Dir: String;
+begin
+  Dir:='ur_cycle2';
+  UnitPath:=Dir;
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'ur_cycle2_ant.pas';
+  OptionUr:=true;
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ur_cycle2_ant.pas','ur_cycle2_bird.pas']);
+
+  Step:='Second compile, only ant';
+  Compile;
+  // the main src is always compiled, bird is kept even though it is part of the cycle
+  CheckCompiled(['ur_cycle2_ant.pas']);
+
+  Step:='Third compile, only bird';
+  MainSrc:=Dir+PathDelim+'ur_cycle2_bird.pas';
+  Compile;
+  // the main src is always compiled, ant is kept even though it is part of the cycle
+  CheckCompiled(['ur_cycle2_bird.pas']);
 end;
 
 procedure TTestRecompile.TestCycle2_ChangeB;
@@ -585,34 +692,6 @@ begin
   // so ant either needs a reload or a recompile
   CheckCompiled(['cycle32_changec_prg.pas','cycle32_changec_ant.pas',
                  'cycle32_changec_bird.pas','cycle32_changec_cat.pas']);
-end;
-
-procedure TTestRecompile.TestUr_cycle2;
-// ant->bird, bird.impl->ant
-var
-  Dir: String;
-begin
-  Dir:='ur_cycle2';
-  UnitPath:=Dir;
-  OutDir:=Dir+PathDelim+'ppus';
-  MainSrc:=Dir+PathDelim+'ur_cycle2_ant.pas';
-  OptionUr:=true;
-
-  Step:='First compile';
-  CleanOutputDir;
-  Compile;
-  CheckCompiled(['ur_cycle2_ant.pas','ur_cycle2_bird.pas']);
-
-  Step:='Second compile, only ant';
-  Compile;
-  // the main src is always compiled, bird is kept even though it is part of the cycle
-  CheckCompiled(['ur_cycle2_ant.pas']);
-
-  Step:='Third compile, only bird';
-  MainSrc:=Dir+PathDelim+'ur_cycle2_bird.pas';
-  Compile;
-  // the main src is always compiled, ant is kept even though it is part of the cycle
-  CheckCompiled(['ur_cycle2_bird.pas']);
 end;
 
 procedure TTestRecompile.TestChangeInlineBody;
