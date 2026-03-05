@@ -2544,6 +2544,10 @@ var
               shortCutKey := enh[2];
               if shortCutKey < 0 then
                 shortCutKey := nKey;
+
+              if nKey=34 then
+                shortCutKey:=nKey; { exception for " }
+
               BuildKeyEvent(modifier, nKey, shortCutKey);
            end;
            arrayind:=0;
