@@ -3403,7 +3403,7 @@ end;
 
 class constructor TOrdinalComparer<T, THashFactory>.Create;
 begin
-  if THashFactory.InheritsFrom(TExtendedHashService) then
+  if THashFactory.InheritsFrom(TExtendedHashFactory) then
   begin
     FExtendedEqualityComparer := TExtendedEqualityComparer<T>.Default(TExtendedHashFactoryClass(THashFactory));
     FEqualityComparer := IEqualityComparer<T>(FExtendedEqualityComparer);
