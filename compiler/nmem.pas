@@ -598,7 +598,7 @@ implementation
 
             if not isprocvar then
               begin
-                left:=ctypeconvnode.create_proc_to_procvar(left,compiler);
+                left:=compiler.ctypeconvnode_proc_to_procvar(left);
                 if need_conv_to_voidptr then
                   include(ttypeconvnode(left).convnodeflags,tcnf_proc_2_procvar_2_voidpointer);
                 if anf_ofs in addrnodeflags then

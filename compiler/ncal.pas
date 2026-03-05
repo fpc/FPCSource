@@ -1344,7 +1344,7 @@ implementation
                            a procedure, which means that the type conversion
                            below will type convert the first instruction
                            bytes of the procedure -> convert to a procvar }
-                         left:=ctypeconvnode.create_proc_to_procvar(left,compiler);
+                         left:=compiler.ctypeconvnode_proc_to_procvar(left);
                          typecheckpass(left);
                        end;
                      inserttypeconv_explicit(left,parasym.vardef,compiler);

@@ -903,7 +903,7 @@ implementation
            (proc_to_procvar_equal(tprocdef(ttypeconvnode(fromnode).left.resultdef),tprocvardef(todef),false)>=te_convert_l1) then
           begin
             hp:=fromnode;
-            fromnode:=ctypeconvnode.create_proc_to_procvar(ttypeconvnode(fromnode).left,compiler);
+            fromnode:=compiler.ctypeconvnode_proc_to_procvar(ttypeconvnode(fromnode).left);
             ttypeconvnode(fromnode).totypedef:=todef;
             typecheckpass(fromnode);
             ttypeconvnode(hp).left:=nil;
@@ -938,7 +938,7 @@ implementation
             if (fromnode.nodetype=loadn) and
                not assigned(tloadnode(fromnode).left) then
               tloadnode(fromnode).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(fromnode).symtable.defowner),compiler),compiler));
-            fromnode:=ctypeconvnode.create_proc_to_procvar(fromnode,compiler);
+            fromnode:=compiler.ctypeconvnode_proc_to_procvar(fromnode);
             ttypeconvnode(fromnode).totypedef:=todef;
             typecheckpass(fromnode);
             ttypeconvnode(hp).left:=nil;
@@ -2733,7 +2733,7 @@ implementation
             if (left.nodetype=loadn) and
                not assigned(tloadnode(left).left) then
               tloadnode(left).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(left).symtable.defowner),compiler),compiler));
-            left:=ctypeconvnode.create_proc_to_procvar(left,compiler);
+            left:=compiler.ctypeconvnode_proc_to_procvar(left);
             ttypeconvnode(left).totypedef:=resultdef;
             typecheckpass(left);
             ttypeconvnode(hp).left:=nil;

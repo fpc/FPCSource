@@ -296,8 +296,8 @@ implementation
       { temp.base.invoke:=tmethod(@invokepd) }
       addstatement(statement,cassignmentnode.create(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'INVOKE'),
-        ctypeconvnode.create_proc_to_procvar(
-          cloadnode.create_procvar(invokepd.procsym,invokepd,invokepd.owner,compiler),compiler),compiler));
+        compiler.ctypeconvnode_proc_to_procvar(
+          cloadnode.create_procvar(invokepd.procsym,invokepd,invokepd.owner,compiler)),compiler));
       { temp.base.descriptor:=@descriptor }
       addstatement(statement,cassignmentnode.create(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'DESCRIPTOR'),
@@ -352,7 +352,7 @@ implementation
       { def representing the original function }
       orgpd:=tprocdef(procloadnode.resultdef);
       { def representing the corresponding procvar type }
-      procvarnode:=ctypeconvnode.create_proc_to_procvar(procloadnode.getcopy,compiler);
+      procvarnode:=compiler.ctypeconvnode_proc_to_procvar(procloadnode.getcopy);
       typecheckpass(procvarnode);
       orgpv:=tprocvardef(procvarnode.resultdef);
       { get blockdef for this kind of procdef }

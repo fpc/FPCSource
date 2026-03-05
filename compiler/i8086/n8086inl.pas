@@ -148,7 +148,7 @@ implementation
                begin
                  if current_settings.x86memorymodel in x86_far_code_models then
                    begin
-                     left:=ctypeconvnode.create_proc_to_procvar(left);
+                     left:=compiler.ctypeconvnode_proc_to_procvar(left);
                      if need_conv_to_voidptr then
                        include(ttypeconvnode(left).convnodeflags,tcnf_proc_2_procvar_2_voidpointer);
                      left.fileinfo:=fileinfo;
