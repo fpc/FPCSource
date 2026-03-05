@@ -1109,9 +1109,17 @@ begin
 end;
 
 function TPasTreeContainer.NeedArrayValues(El: TPasElement): boolean;
+var
+  V: TPasVariable;
 begin
   Result:=false;
-  if El=nil then ;  // avoid compiler warning
+  if El=nil then exit;
+  if (El.ClassType=TPasConst) or (El.ClassType=TPasVariable) then
+    begin
+    V:=TPasVariable(El);
+    if V.VarType=nil then exit;
+    Result:=V.VarType.ClassType=TPasArrayType;
+    end;
 end;
 
 function TPasTreeContainer.GetDefaultClassVisibility(AClass: TPasClassType
@@ -3156,7 +3164,37 @@ var
   n : String;
   r : TRecordValues;
 begin
-  if CurToken <> tkBraceOpen then
+  if CurToken = tkSquaredBraceOpen then
+    begin
+    if Engine.NeedArrayValues(AParent) then
+      begin
+      // Peek at first element to decide parsing strategy
+      NextToken;
+      if CurToken = tkSquaredBraceClose then
+        begin
+        // Empty array: []
+        Result:=CreateArrayValues(AParent);
+        NextToken;
+        Exit;
+        end;
+      if CurToken = tkBraceOpen then
+        begin
+        // First element starts with ( - record elements [(field:value), ...]
+        UngetToken;
+        ReadArrayValues(nil);
+        if CurToken <> tkSquaredBraceClose then
+          ParseExc(nParserExpectedCommaRBracket,SParserExpectedCommaRBracket);
+        NextToken;
+        Exit;
+        end;
+      // Not record elements, fall through to expression parser
+      UngetToken;
+      end;
+    // Parse [...] as expression (set/array literal)
+    Result:=DoParseExpression(AParent);
+    Exit;
+    end
+  else if CurToken <> tkBraceOpen then
     Result:=DoParseExpression(AParent)
   else begin
     Result:=nil;
