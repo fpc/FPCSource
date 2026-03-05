@@ -4856,6 +4856,7 @@ var
   RecordEl: TPasRecordType;
   ArrEl: TPasArrayType;
   AObjKind: TPasObjKind;
+  PM: TPackMode;
 begin
   Result:=nil;
   TypeName := CurTokenString;
@@ -4865,6 +4866,18 @@ begin
     ReadGenericArguments(TypeParams,Parent);
     ExpectToken(tkEqual);
     NextToken;
+    // Handle packed/bitpacked modifier
+    PM:=pmNone;
+    if CurToken=tkPacked then
+      begin
+      PM:=pmPacked;
+      NextToken;
+      end
+    else if CurToken=tkbitpacked then
+      begin
+      PM:=pmBitPacked;
+      NextToken;
+      end;
     Case CurToken of
       tkObject,
       tkClass,
@@ -4882,6 +4895,7 @@ begin
         ClassEl := TPasClassType(CreateElement(TPasClassType,
           TypeName, Parent, visDefault, NamePos, TypeParams));
         ClassEl.ObjKind:=AObjKind;
+        ClassEl.PackMode:=PM;
         if AObjKind=okInterface then
           if SameText(Scanner.CurrentValueSwitch[vsInterfaces],'CORBA') then
             ClassEl.InterfaceType:=citCorba;
@@ -4903,6 +4917,7 @@ begin
        begin
        RecordEl := TPasRecordType(CreateElement(TPasRecordType,
          TypeName, Parent, visDefault, NamePos, TypeParams));
+       RecordEl.PackMode:=PM;
        RecordEl.RTTIVisibility:=RTTIVisibility;
        if AddToParent and (Parent is TPasDeclarations) then
          TPasDeclarations(Parent).Classes.Add(RecordEl);
@@ -4924,6 +4939,7 @@ begin
        begin
        ArrEl := TPasArrayType(CreateElement(TPasArrayType,
          TypeName, Parent, visDefault, NamePos, TypeParams));
+       ArrEl.PackMode:=PM;
        if AddToParent and (Parent is TPasDeclarations) then
          TPasDeclarations(Parent).Types.Add(ArrEl);
        InitGenericType(ArrEl,TypeParams);
@@ -4932,10 +4948,16 @@ begin
        Engine.FinishScope(stTypeDef,ArrEl);
        end;
     tkprocedure,tkfunction:
+      begin
+      if PM<>pmNone then
+        ParseExcTokenError('ARRAY, RECORD, OBJECT or CLASS');
       ParseProcType(TypeName,NamePos,TypeParams,false);
+      end;
     tkIdentifier:
       if CurTokenIsIdentifier('reference') then
         begin
+        if PM<>pmNone then
+          ParseExcTokenError('ARRAY, RECORD, OBJECT or CLASS');
         NextToken;
         CheckToken(tkto);
         NextToken;

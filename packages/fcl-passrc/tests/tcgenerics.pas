@@ -58,6 +58,12 @@ Type
     Procedure TestConstGeneric_SpecializeMixed;
     Procedure TestConstGeneric_SpecializeNeg;
     Procedure TestConstGeneric_SpecializeSet;
+
+    // packed generic types (bug #38134)
+    Procedure TestPackedGenericObject;
+    Procedure TestPackedGenericObjectDelphi;
+    Procedure TestPackedGenericRecord;
+    Procedure TestPackedGenericRecordDelphi;
   end;
 
 implementation
@@ -629,6 +635,82 @@ begin
   S:=TPasSpecializeType(Declarations.Types[0]);
   AssertEquals('1 param',1,S.Params.Count);
   AssertTrue('Param is TPasExpr',TObject(S.Params[0]) is TPasExpr);
+end;
+
+procedure TTestGenerics.TestPackedGenericObject;
+var
+  T: TPasClassType;
+begin
+  Add([
+    'Type',
+    'Generic TSomeClass<T> = packed object',
+    '  b : T;',
+    'end;',
+    '']);
+  ParseDeclarations;
+  AssertEquals('One class',1,Declarations.Classes.Count);
+  T:=TPasClassType(Declarations.Classes[0]);
+  AssertEquals('Object kind',Ord(okObject),Ord(T.ObjKind));
+  AssertEquals('Is packed',Ord(pmPacked),Ord(T.PackMode));
+  AssertNotNull('have generic templates',T.GenericTemplateTypes);
+  AssertEquals('1 template type',1,T.GenericTemplateTypes.Count);
+end;
+
+procedure TTestGenerics.TestPackedGenericObjectDelphi;
+var
+  T: TPasClassType;
+begin
+  Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches;
+  Add([
+    'Type',
+    'TSomeClass<T>=packed object',
+    '  b : T;',
+    'end;',
+    '']);
+  ParseDeclarations;
+  AssertEquals('One class',1,Declarations.Classes.Count);
+  T:=TPasClassType(Declarations.Classes[0]);
+  AssertEquals('Object kind',Ord(okObject),Ord(T.ObjKind));
+  AssertEquals('Is packed',Ord(pmPacked),Ord(T.PackMode));
+  AssertNotNull('have generic templates',T.GenericTemplateTypes);
+  AssertEquals('1 template type',1,T.GenericTemplateTypes.Count);
+end;
+
+procedure TTestGenerics.TestPackedGenericRecord;
+var
+  R: TPasRecordType;
+begin
+  Add([
+    'Type',
+    'Generic TSomeRecord<T> = packed record',
+    '  b : T;',
+    'end;',
+    '']);
+  ParseDeclarations;
+  AssertEquals('One class',1,Declarations.Classes.Count);
+  R:=TPasRecordType(Declarations.Classes[0]);
+  AssertEquals('Is packed',Ord(pmPacked),Ord(R.PackMode));
+  AssertNotNull('have generic templates',R.GenericTemplateTypes);
+  AssertEquals('1 template type',1,R.GenericTemplateTypes.Count);
+end;
+
+procedure TTestGenerics.TestPackedGenericRecordDelphi;
+var
+  R: TPasRecordType;
+begin
+  Scanner.CurrentModeSwitches:=[msDelphi]+Scanner.CurrentModeSwitches;
+  Add([
+    'Type',
+    'TSomeRecord<T>=packed record',
+    '  b : T;',
+    'end;',
+    '']);
+  ParseDeclarations;
+  AssertEquals('One type',1,Declarations.Types.Count);
+  R:=TPasRecordType(Declarations.Types[0]);
+  AssertEquals('Is packed',Ord(pmPacked),Ord(R.PackMode));
+  AssertNotNull('have generic templates',R.GenericTemplateTypes);
+  AssertEquals('1 template type',1,R.GenericTemplateTypes.Count);
 end;
 
 initialization
