@@ -236,6 +236,14 @@ type
     function casnode_internal(l,r : tnode):tasnode; inline;
     function cisnode(l,r : tnode):tisnode; inline;
     function cisnode_internal(l,r : tnode):tisnode; inline;
+    { ncon }
+    // TODO:crealconstnode
+    // TODO:cordconstnode
+    // TODO:cpointerconstnode
+    // TODO:cstringconstnode
+    // TODO:csetconstnode
+    // TODO:cguidconstnode
+    // TODO:cnilnode
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
