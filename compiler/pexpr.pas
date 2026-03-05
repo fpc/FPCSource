@@ -4925,7 +4925,7 @@ implementation
                    { now generate the "is" or "as" node }
                    case oldt of
                      _OP_AS:
-                       p1:=casnode.create(p1,p2,compiler);
+                       p1:=compiler.casnode(p1,p2);
                      _OP_IS:
                        p1:=cisnode.create(p1,p2,compiler);
                      else

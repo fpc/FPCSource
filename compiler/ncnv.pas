@@ -3172,7 +3172,7 @@ implementation
                                    left,compiler));
                                  left:=compiler.ctemprefnode(tempnode);
                                end;
-                             addstatement(newstatement,casnode.create(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler),compiler));
+                             addstatement(newstatement,compiler.casnode(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler)));
                              addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                              addstatement(newstatement,compiler.ctypeconvnode_internal(left,resultdef));
                              left:=nil;
