@@ -19,6 +19,14 @@ unit keyboard;
 
 {$inline on}
 
+{$ifdef BSD}
+  {$ifndef DARWIN}
+    { For unknown reason in BSD (tested GostBSD) terminal emulators mouse
+      wheel buttons are crocked. Disable mouse scroll. }
+    {$define DISABLE_MOUSE_SCROLL}
+  {$endif}
+{$endif}
+
 {*****************************************************************************}
                                   interface
 {*****************************************************************************}
@@ -692,6 +700,10 @@ const
          MouseEvent.Action:=MouseActionUp;
        end;
 *)
+{$ifdef DISABLE_MOUSE_SCROLL}
+     if (MouseEvent.buttons and (MouseButton4 or MouseButton5)) <> 0 then
+       exit; { ignore this event }
+{$endif}
      PutMouseEvent(MouseEvent);
      if (MouseEvent.buttons and (MouseButton4 or MouseButton5)) <> 0 then
        GenFakeReleaseEvent(MouseEvent);
@@ -783,6 +795,10 @@ const
       exit;
     if (Y<(Low(MouseEvent.Y)+1)) or (Y>(High(MouseEvent.Y)+1)) then
       exit;
+{$ifdef DISABLE_MOUSE_SCROLL}
+     if buttonval>=64 then
+       exit; { ignore this event }
+{$endif}
     case buttonval and (67 or 128) of
       0 : {left button press}
         ButtonMask:=MouseLeftButton;
