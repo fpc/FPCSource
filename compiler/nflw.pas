@@ -1557,7 +1557,7 @@ implementation
                    begin
                      prefetchcode := internalstatements(prefetchstatements);
                      addstatement(prefetchstatements,geninlinenode(in_prefetch_var,false,
-                       cderefnode.create(ctypeconvnode.create(assignmentnode.right.getcopy,voidpointertype))));
+                       cderefnode.create(compiler.ctypeconvnode(assignmentnode.right.getcopy,voidpointertype))));
                      addstatement(prefetchstatements,right);
                      right := prefetchcode;
                      typecheckpass(right);
@@ -2279,7 +2279,7 @@ implementation
         if assigned(left) then
           begin
             { add assignment to funcretsym }
-            left:=ctypeconvnode.create(left,current_procinfo.procdef.returndef,acompiler);
+            left:=acompiler.ctypeconvnode(left,current_procinfo.procdef.returndef);
             left:=cassignmentnode.create(
               cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner,compiler),
               left,

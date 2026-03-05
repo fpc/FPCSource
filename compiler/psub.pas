@@ -656,10 +656,9 @@ implementation
                                     load_self_pointer_node,
                                     cnilnode.create(compiler)),
                                 compiler.caddnode(unequaln,
-                                    ctypeconvnode.create(
+                                    compiler.ctypeconvnode(
                                         load_vmt_pointer_node,
-                                        voidpointertype,
-                                        compiler),
+                                        voidpointertype),
                                     cpointerconstnode.create(0,voidpointertype,compiler))),
                             compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                             nil,compiler));

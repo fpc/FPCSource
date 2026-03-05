@@ -182,7 +182,7 @@ implementation
             procname,
             compiler.ccallparanode(cordconstnode.create(1,llvmbool1type,false),
               compiler.ccallparanode(
-                ctypeconvnode.create_explicit(left,get_unsigned_inttype(leftdef)),nil
+                compiler.ctypeconvnode_explicit(left,get_unsigned_inttype(leftdef)),nil
               )
             )
           );
@@ -336,7 +336,7 @@ implementation
 
     function tllvminlinenode.first_popcnt: tnode;
       begin
-        result:=ctypeconvnode.create(compiler.ccallnode_intern('LLVM_CTPOP', compiler.ccallparanode(left,nil)),resultdef);
+        result:=compiler.ctypeconvnode(compiler.ccallnode_intern('LLVM_CTPOP', compiler.ccallparanode(left,nil)),resultdef);
         left:=nil;
       end;
 

@@ -164,7 +164,7 @@ function tjvmassignmentnode.pass_1: tnode;
             right:=caddrnode.create(compiler.ctemprefnode(tempn));
             inserttypeconv_explicit(right,java_jlobject);
             addstatement(stat,compiler.ctempdeletenode_normal_temp(tempn));
-            addstatement(stat,ctypeconvnode.create_explicit(
+            addstatement(stat,compiler.ctypeconvnode_explicit(
               caddrnode.create(compiler.ctemprefnode(tempn)),java_jlobject));
             right:=block;
           end;
@@ -217,11 +217,11 @@ function tjvmloadnode.handle_threadvar_access: tnode;
           cases.
         }
         result:=cderefnode.create(result);
-        result:=ctypeconvnode.create_explicit(result,resultdef);
+        result:=compiler.ctypeconvnode_explicit(result,resultdef);
       end
     else
       begin
-        result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
+        result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
         result:=cderefnode.create(result);
       end;
   end;

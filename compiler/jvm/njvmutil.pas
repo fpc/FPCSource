@@ -128,7 +128,7 @@ implementation
                   p:=caddrnode.create(p);
                   include(taddrnode(p).addrnodeflags,anf_typedaddr);
                 end;
-              paras:=compiler.ccallparanode(ctypeconvnode.create_explicit(p,
+              paras:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(p,
                 search_system_type('TJOBJECTARRAY').typedef),nil);
               paras:=compiler.ccallparanode(genintconstnode(normaldim),paras);
               if is_wide_or_unicode_string(def) then
@@ -249,7 +249,7 @@ implementation
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               initnode:=compiler.ccallparanode(
-                ctypeconvnode.create_explicit(
+                compiler.ctypeconvnode_explicit(
                   caddrnode.create_internal(compiler.ctemprefnode(temp)),
                   java_jlobject),
                 nil);
@@ -294,7 +294,7 @@ implementation
 
           if assigned(initnode) and
              not initnodefinished then
-            initnode:=compiler.ccallparanode(ctypeconvnode.create_explicit(initnode,java_jlobject),nil);
+            initnode:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(initnode,java_jlobject),nil);
           addstatement(stat,cassignmentnode.create(
             cloadnode.create(vs,vs.owner),
             compiler.ccallnode_internmethod(

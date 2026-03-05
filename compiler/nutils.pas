@@ -649,10 +649,9 @@ implementation
                 check_self:=compiler.ctemprefnode(self_temp);
                 addstatement(stat,cifnode.create(
                   compiler.caddnode(equaln,
-                    ctypeconvnode.create_explicit(
+                    compiler.ctypeconvnode_explicit(
                       check_self,
-                      voidpointertype,
-                      compiler
+                      voidpointertype
                     ),
                     cnilnode.create(compiler)),
                   compiler.ccallnode_intern('fpc_objecterror',nil),
@@ -679,17 +678,15 @@ implementation
           { in case of an interface/classref, the "instance" is a pointer
             to pointer to a VMT and there is no vmt field }
           result:=cderefnode.create(
-            ctypeconvnode.create_explicit(
+            compiler.ctypeconvnode_explicit(
               self_node,
-              cpointerdef.getreusable(voidpointertype,compiler),
-              compiler
+              cpointerdef.getreusable(voidpointertype,compiler)
             ),
             compiler
           );
-        result:=ctypeconvnode.create_explicit(
+        result:=compiler.ctypeconvnode_explicit(
           result,
-          cpointerdef.getreusable(obj_def.vmt_def,compiler),
-          compiler);
+          cpointerdef.getreusable(obj_def.vmt_def,compiler));
         typecheckpass(result);
         if docheck then
           begin
@@ -1196,10 +1193,10 @@ implementation
                  p1:=csubscriptnode.create(plist^.sym,p1,compiler);
                end;
              sl_typeconv :
-               p1:=ctypeconvnode.create_explicit(p1,plist^.def,compiler);
+               p1:=compiler.ctypeconvnode_explicit(p1,plist^.def);
              sl_absolutetype :
                begin
-                 p1:=ctypeconvnode.create(p1,plist^.def,compiler);
+                 p1:=compiler.ctypeconvnode(p1,plist^.def);
                  include(p1.flags,nf_absolute);
                end;
              sl_vec :

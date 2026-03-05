@@ -1835,7 +1835,7 @@ implementation
           then
             tc:=compiler.ccallnode_fromintrinsic(in_val_x,procname,newparas)
         else
-          tc:=ctypeconvnode.create(compiler.ccallnode_fromintrinsic(in_val_x,procname,newparas),destpara.left.resultdef,compiler);
+          tc:=compiler.ctypeconvnode(compiler.ccallnode_fromintrinsic(in_val_x,procname,newparas),destpara.left.resultdef);
         addstatement(newstatement,cassignmentnode.create(
           destpara.left,ctypeconvnode.create_internal(tc,destpara.left.resultdef,compiler),compiler));
 
@@ -3457,7 +3457,7 @@ implementation
                               hp := cordconstnode.create(left.resultdef.size,sizesinttype,true,compiler);
 {
                               hp:=
-                                 ctypeconvnode.create_explicit(sizesinttype,
+                                 compiler.ctypeconvnode_explicit(sizesinttype,
                                    cmoddivnode.create(divn,
                                      compiler.caddnode(addn,
                                        compiler.caddnode(muln,hp,cordconstnode.create(tarraydef(
@@ -4841,7 +4841,7 @@ implementation
           temp_pnode := @left;
         callnode:=compiler.ccallnode_intern('fpc_abs_real',
                     compiler.ccallparanode(temp_pnode^,nil));
-        result := ctypeconvnode.create(callnode,resultdef,compiler);
+        result := compiler.ctypeconvnode(callnode,resultdef);
         include(callnode.callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -4864,7 +4864,7 @@ implementation
           temp_pnode := @left;
         callnode:=compiler.ccallnode_intern('fpc_sqr_real',
                     compiler.ccallparanode(temp_pnode^,nil));
-        result := ctypeconvnode.create(callnode,resultdef,compiler);
+        result := compiler.ctypeconvnode(callnode,resultdef);
         include(callnode.callnodeflags,cnf_check_fpu_exceptions);
         temp_pnode^ := nil;
       end;
@@ -4912,7 +4912,7 @@ implementation
             { on entry left node contains the parameter }
             callnode := compiler.ccallnode_intern('fpc_sqrt_real',
                 compiler.ccallparanode(temp_pnode^,nil));
-            result := ctypeconvnode.create(callnode,resultdef,compiler);
+            result := compiler.ctypeconvnode(callnode,resultdef);
             include(callnode.callnodeflags,cnf_check_fpu_exceptions);
           end;
         temp_pnode^ := nil;
@@ -6048,8 +6048,8 @@ implementation
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype,compiler);
          targetvecindex := compiler.caddnode(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true,compiler));
          targetvecindex := compiler.caddnode(addn,targetvecindex,compiler.ctemprefnode(loopvar));
-         targetvecindex := ctypeconvnode.create(targetvecindex,temprangedef,compiler);
-         targetvecindex := ctypeconvnode.create_explicit(targetvecindex,tarraydef(unpackednode.resultdef).rangedef,compiler);
+         targetvecindex := compiler.ctypeconvnode(targetvecindex,temprangedef);
+         targetvecindex := compiler.ctypeconvnode_explicit(targetvecindex,tarraydef(unpackednode.resultdef).rangedef);
 
          if (inlinenumber = in_pack_x_y_z) then
            begin

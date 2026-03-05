@@ -215,7 +215,7 @@ implementation
                 compiler.ccallparanode(genintconstnode(ndims),
                   compiler.ccallparanode(len,
                     compiler.ccallparanode(start,
-                      compiler.ccallparanode(ctypeconvnode.create_explicit(arr,java_jlobject),nil)
+                      compiler.ccallparanode(compiler.ctypeconvnode_explicit(arr,java_jlobject),nil)
                     )
                   )
                 )
@@ -277,7 +277,7 @@ implementation
         val:=tcallparanode(tcallparanode(left).right).left;
         tcallparanode(tcallparanode(left).right).left:=nil;
         { typecast to the boxing type }
-        val:=ctypeconvnode.create_explicit(val,boxdef);
+        val:=compiler.ctypeconvnode_explicit(val,boxdef);
         { call the unboxing method }
         val:=compiler.ccallnode_internmethod(val,jvmgetunboxmethod(resultdef),nil);
         { add type conversion for shortint -> byte etc }
@@ -483,8 +483,8 @@ implementation
                 end
               end;
           end;
-        tcallparanode(newparas).left:=ctypeconvnode.create_explicit(tcallparanode(newparas).left,objarraydef);
-        newnode:=ctypeconvnode.create_explicit(newnode,objarraydef);
+        tcallparanode(newparas).left:=compiler.ctypeconvnode_explicit(tcallparanode(newparas).left,objarraydef);
+        newnode:=compiler.ctypeconvnode_explicit(newnode,objarraydef);
         { prepend new }
         newparas:=compiler.ccallparanode(newnode,newparas);
         { prepend deepcopy }
@@ -509,7 +509,7 @@ implementation
         result:=compiler.ccallnode_intern(setlenroutine,newparas);
         { assign result back to org (no call-by-reference for Java) }
         result:=cassignmentnode.create(assignmenttarget,
-          ctypeconvnode.create_explicit(result,assignmenttarget.resultdef));
+          compiler.ctypeconvnode_explicit(result,assignmenttarget.resultdef));
         if assigned(lefttemp) then
           begin
             addstatement(newstatement,result);
@@ -580,14 +580,14 @@ implementation
               (which must not be evaluated twice) }
             if node_complexity(left)>4 then
               begin
-                lefttemp:=compiler.ctempcreatenode_value(stringclass,stringclass.size,tt_persistent,true,ctypeconvnode.create_explicit(left,stringclass));
+                lefttemp:=compiler.ctempcreatenode_value(stringclass,stringclass.size,tt_persistent,true,compiler.ctypeconvnode_explicit(left,stringclass));
                 addstatement(newstatement,lefttemp);
                 stringtemp:=compiler.ctemprefnode(lefttemp)
               end
             else
               begin
                 lefttemp:=nil;
-                stringtemp:=ctypeconvnode.create_explicit(left,stringclass);
+                stringtemp:=compiler.ctypeconvnode_explicit(left,stringclass);
               end;
             left:=nil;
             lentemp:=compiler.ctempcreatenode(s32inttype,s32inttype.size,tt_persistent,true);
@@ -625,7 +625,7 @@ implementation
               internalerror(2011052402);
             result:=
               compiler.ccallnode(nil,tprocsym(psym),psym.owner,
-                ctypeconvnode.create_explicit(caddrnode.create_internal(left),java_shortstring),[],nil);
+                compiler.ctypeconvnode_explicit(caddrnode.create_internal(left),java_shortstring),[],nil);
             { reused }
             left:=nil;
           end

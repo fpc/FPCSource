@@ -304,7 +304,7 @@ implementation
         caddrnode.create(cloadnode.create(descriptor,descriptor.owner,compiler),compiler),compiler));
       { temp.pv:=tmethod(@orgpd) }
       addstatement(statement,cassignmentnode.create(
-        ctypeconvnode.create_explicit(genloadfield(compiler.ctemprefnode(literaltemp),'PV'),orgpv,compiler),
+        compiler.ctypeconvnode_explicit(genloadfield(compiler.ctemprefnode(literaltemp),'PV'),orgpv),
           procvarnode.getcopy,compiler));
       { and return the address of the temp }
       addstatement(statement,caddrnode.create(compiler.ctemprefnode(literaltemp),compiler));

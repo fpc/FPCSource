@@ -2013,7 +2013,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             orgbase:=basenode;
             for i:=def.lowrange to def.highrange-1 do
               begin
-                basenode:=cvecnode.create(orgbase.getcopy,ctypeconvnode.create_explicit(genintconstnode(i,compiler),tarraydef(def).rangedef,compiler),compiler);
+                basenode:=cvecnode.create(orgbase.getcopy,compiler.ctypeconvnode_explicit(genintconstnode(i,compiler),tarraydef(def).rangedef),compiler);
                 read_typed_const_data(def.elementdef);
                 if current_scanner.token=_RKLAMMER then
                   begin
@@ -2024,7 +2024,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 else
                   consume(_COMMA);
               end;
-            basenode:=cvecnode.create(orgbase,ctypeconvnode.create_explicit(genintconstnode(def.highrange,compiler),tarraydef(def).rangedef,compiler),compiler);
+            basenode:=cvecnode.create(orgbase,compiler.ctypeconvnode_explicit(genintconstnode(def.highrange,compiler),tarraydef(def).rangedef),compiler);
             read_typed_const_data(def.elementdef);
             consume(_RKLAMMER);
           end

@@ -1652,7 +1652,7 @@ implementation
                       begin
                         p1:=comp_expr([ef_accept_equal]);
                         consume(_RKLAMMER);
-                        p1:=ctypeconvnode.create_explicit(p1,ttypesym(sym).typedef,compiler);
+                        p1:=compiler.ctypeconvnode_explicit(p1,ttypesym(sym).typedef);
                       end
                      else
                        begin
@@ -1782,7 +1782,7 @@ implementation
               Message(parser_e_no_category_as_types)
               { recovery by not creating a conversion node }
             else
-              result:=ctypeconvnode.create_explicit(result,hdef,compiler);
+              result:=compiler.ctypeconvnode_explicit(result,hdef);
           end
          { not LKLAMMER }
          else if (current_scanner.token=_POINT) and
@@ -2996,7 +2996,7 @@ implementation
                         begin
                           p1:=comp_expr([ef_accept_equal]);
                           consume(_RKLAMMER);
-                          p1:=ctypeconvnode.create_explicit(p1,p1.resultdef,compiler);
+                          p1:=compiler.ctypeconvnode_explicit(p1,p1.resultdef);
                         end
                       else
                         again:=false
@@ -3087,7 +3087,7 @@ implementation
                 begin
                   result:=nil;
                   propaccesslist_to_node(result,nil,tabsolutevarsym(srsym).ref);
-                  result:=ctypeconvnode.create(result,tabsolutevarsym(srsym).vardef,compiler);
+                  result:=compiler.ctypeconvnode(result,tabsolutevarsym(srsym).vardef);
                   include(result.flags,nf_absolute);
                 end
               else
@@ -4155,7 +4155,7 @@ implementation
                   begin
                     p1:=comp_expr([ef_accept_equal]);
                     consume(_RKLAMMER);
-                    p1:=ctypeconvnode.create_explicit(p1,hdef,compiler);
+                    p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
                     postfixoperators(p1,again,getaddr);
@@ -4181,7 +4181,7 @@ implementation
                   begin
                     p1:=comp_expr([ef_accept_equal]);
                     consume(_RKLAMMER);
-                    p1:=ctypeconvnode.create_explicit(p1,hdef,compiler);
+                    p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
                     postfixoperators(p1,again,getaddr);

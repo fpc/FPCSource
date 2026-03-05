@@ -380,9 +380,9 @@ implementation
          begin
            case convtype of
              tct_implicit:
-               p:=ctypeconvnode.create(p,def,acompiler);
+               p:=acompiler.ctypeconvnode(p,def);
              tct_explicit:
-               p:=ctypeconvnode.create_explicit(p,def,acompiler);
+               p:=acompiler.ctypeconvnode_explicit(p,def);
              tct_internal:
                p:=ctypeconvnode.create_internal(p,def,acompiler);
            end;
@@ -816,7 +816,7 @@ implementation
                 if is_integer(p.resultdef) and
                    not(is_64bitint(p.resultdef)) then
                   if not(m_delphi in current_settings.modeswitches) then
-                    p:=ctypeconvnode.create(p,s32inttype,compiler)
+                    p:=compiler.ctypeconvnode(p,s32inttype)
                   else
                     { delphi doesn't generate a range error when passing a
                       cardinal >= $80000000, but since these are seen as
@@ -829,13 +829,13 @@ implementation
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
                     and (current_settings.fputype<>fpu_none) then
-                  p:=ctypeconvnode.create(p,s64floattype,compiler);
+                  p:=compiler.ctypeconvnode(p,s64floattype);
               end;
             floatdef :
               if not(iscvarargs) then
                 begin
                   if not(is_currency(p.resultdef)) then
-                    p:=ctypeconvnode.create(p,pbestrealtype^,compiler);
+                    p:=compiler.ctypeconvnode(p,pbestrealtype^);
                 end
               else
                 begin
@@ -845,13 +845,13 @@ implementation
                   if (tfloatdef(p.resultdef).floattype in [s32real,s64currency]) or
                      (is_constrealnode(p) and
                       not(nf_explicit in p.flags)) then
-                    p:=ctypeconvnode.create(p,s64floattype,compiler);
+                    p:=compiler.ctypeconvnode(p,s64floattype);
                 end;
             procvardef :
-              p:=ctypeconvnode.create(p,voidpointertype,compiler);
+              p:=compiler.ctypeconvnode(p,voidpointertype);
             stringdef:
               if iscvarargs then
-                p:=ctypeconvnode.create(p,charpointertype,compiler);
+                p:=compiler.ctypeconvnode(p,charpointertype);
             variantdef:
               if iscvarargs then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
@@ -863,10 +863,10 @@ implementation
               ;
             classrefdef:
               if iscvarargs then
-                p:=ctypeconvnode.create(p,voidpointertype,compiler);
+                p:=compiler.ctypeconvnode(p,voidpointertype);
             objectdef :
               if is_objc_class_or_protocol(p.resultdef) then
-                p:=ctypeconvnode.create(p,voidpointertype,compiler)
+                p:=compiler.ctypeconvnode(p,voidpointertype)
               else if iscvarargs or
                  is_object(p.resultdef) then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
@@ -1765,11 +1765,11 @@ implementation
             { the set might contain a subrange element (e.g. through a variable),
               thus we need to insert another type conversion }
             if nf_explicit in flags then
-              result:=ctypeconvnode.create_explicit(hp,totypedef,compiler)
+              result:=compiler.ctypeconvnode_explicit(hp,totypedef)
             else if nf_internal in flags then
               result:=ctypeconvnode.create_internal(hp,totypedef,compiler)
             else
-              result:=ctypeconvnode.create(hp,totypedef,compiler);
+              result:=compiler.ctypeconvnode(hp,totypedef);
           end
         else
           result:=hp;
@@ -1927,7 +1927,7 @@ implementation
         result := compiler.ccallnode_internres(
           'fpc_dynarray_to_variant',
           compiler.ccallparanode(caddrnode.create_internal(crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
-            compiler.ccallparanode(ctypeconvnode.create_explicit(left,voidpointertype,compiler),nil)
+            compiler.ccallparanode(compiler.ctypeconvnode_explicit(left,voidpointertype),nil)
           ),resultdef);
         typecheckpass(result);
         left:=nil;
@@ -4095,7 +4095,7 @@ implementation
                   s32real:
                     case tfloatdef(resultdef).floattype of
                       s64real:
-                        result:=ctypeconvnode.create_explicit(compiler.ccallnode_intern('float32_to_float64',compiler.ccallparanode(
+                        result:=compiler.ctypeconvnode_explicit(compiler.ccallnode_intern('float32_to_float64',compiler.ccallparanode(
                           ctypeconvnode.create_internal(left,search_system_type('FLOAT32REC').typedef),nil)),resultdef);
                       s32real:
                         begin
@@ -4108,7 +4108,7 @@ implementation
                   s64real:
                     case tfloatdef(resultdef).floattype of
                       s32real:
-                        result:=ctypeconvnode.create_explicit(compiler.ccallnode_intern('float64_to_float32',compiler.ccallparanode(
+                        result:=compiler.ctypeconvnode_explicit(compiler.ccallnode_intern('float64_to_float32',compiler.ccallparanode(
                           ctypeconvnode.create_internal(left,search_system_type('FLOAT64').typedef),nil)),resultdef);
                       s64real:
                         begin

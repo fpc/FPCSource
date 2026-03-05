@@ -205,9 +205,9 @@ implementation
        if (maybe_find_real_class_definition(resultdef,false)=java_jlstring) or
           (maybe_find_real_class_definition(left.resultdef,false)=java_jlstring) then
          begin
-           left:=ctypeconvnode.create(left,cunicodestringtype);
+           left:=compiler.ctypeconvnode(left,cunicodestringtype);
            left.flags:=flags;
-           result:=ctypeconvnode.create(left,resultdef);
+           result:=compiler.ctypeconvnode(left,resultdef);
            result.flags:=flags;
            left:=nil;
          end
@@ -322,7 +322,7 @@ implementation
             if not assigned(vs) then
               internalerror(2012052605);
             result:=caddrnode.create(cloadnode.create(vs,vs.owner));
-            result:=ctypeconvnode.create_explicit(result,resultdef);
+            result:=compiler.ctypeconvnode_explicit(result,resultdef);
           end;
       end;
 
@@ -402,7 +402,7 @@ implementation
         result:=compiler.ccallnode_internmethod(
           cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
-        result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
+        result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
         result:=cderefnode.create(result);
       end;
 
@@ -453,7 +453,7 @@ implementation
         if is_nested_pd(procdef) then
           internalerror(2011072607);
         { constructor FpcBaseProcVarType.create(inst: jlobject; const method: unicodestring; const argTypes: array of JLClass); }
-        constrparas:=compiler.ccallparanode(ctypeconvnode.create_explicit(procload,java_jlobject),nil);
+        constrparas:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(procload,java_jlobject),nil);
         if not assigned(procdef.import_name) then
           constrparas:=compiler.ccallparanode(cstringconstnode.createstr(procdef.procsym.realname),constrparas)
         else
@@ -496,7 +496,7 @@ implementation
                    end
                  else
                    newpara:=cloadvmtaddrnode.create(ctypenode.create(corrclass));
-                 newpara:=ctypeconvnode.create_explicit(newpara,jlclass);
+                 newpara:=compiler.ctypeconvnode_explicit(newpara,jlclass);
                end;
             procdefparas:=carrayconstructornode.create(newpara,procdefparas);
           end;
@@ -507,10 +507,10 @@ implementation
         result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }
         if tprocvardef(resultdef).is_addressonly then
-          result:=ctypeconvnode.create_explicit(result,resultdef)
+          result:=compiler.ctypeconvnode_explicit(result,resultdef)
         else
           begin
-            result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
+            result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
             result:=cderefnode.create(result)
           end;
         { reused }
@@ -542,7 +542,7 @@ implementation
           ps.owner,
           cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[],nil);
         include(result.flags,nf_isproperty);
-        result:=ctypeconvnode.create_explicit(result,resultdef);
+        result:=compiler.ctypeconvnode_explicit(result,resultdef);
         { reused }
         left:=nil;
       end;
@@ -943,7 +943,7 @@ implementation
            helpername:=helpername+'long';
           result:=compiler.ccallnode_intern(helpername,compiler.ccallparanode(
             genintconstnode(left.resultdef.size),compiler.ccallparanode(genintconstnode(tsetdef(left.resultdef).setbase),
-            compiler.ccallparanode(ctypeconvnode.create_explicit(left,setconvdef),nil))));
+            compiler.ccallparanode(compiler.ctypeconvnode_explicit(left,setconvdef),nil))));
           left:=nil;
         end;
 
@@ -998,7 +998,7 @@ implementation
           { can either be a procvar or a procvarclass }
           if fromdef.typ=procvardef then
             begin
-              left:=ctypeconvnode.create_explicit(left,tcpuprocvardef(fromdef).classdef);
+              left:=compiler.ctypeconvnode_explicit(left,tcpuprocvardef(fromdef).classdef);
               include(left.flags,nf_load_procvar);
               typecheckpass(left);
             end;
@@ -1279,7 +1279,7 @@ implementation
                   a proper checkcast is inserted }
                 if not check_only then
                   begin
-                    resnode:=ctypeconvnode.create_explicit(left,cpointerdef.getreusable(resultdef));
+                    resnode:=compiler.ctypeconvnode_explicit(left,cpointerdef.getreusable(resultdef));
                     resnode:=cderefnode.create(resnode);
                     left:=nil;
                   end;
@@ -1520,7 +1520,7 @@ implementation
               if not assigned(ps) or
                  (ps.typ<>procsym) then
                 internalerror(2011041910);
-              call:=compiler.ccallnode(compiler.ccallparanode(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[],nil);
+              call:=compiler.ccallnode(compiler.ccallparanode(node.left,nil),tprocsym(ps),ps.owner,compiler.ctypeconvnode_explicit(node.right,jlclass),[],nil);
               node.left:=nil;
               node.right:=nil;
               firstpass(call);

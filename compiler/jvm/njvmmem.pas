@@ -226,7 +226,7 @@ implementation
                     { an internal address node will observe "normal" address
                       operator semantics (= take the actual address!) }
                     result:=caddrnode.create_internal(taddrnode(left).left);
-                    result:=ctypeconvnode.create_explicit(result,tcpuprocvardef(taddrnode(left).left.resultdef).classdef);
+                    result:=compiler.ctypeconvnode_explicit(result,tcpuprocvardef(taddrnode(left).left.resultdef).classdef);
                     taddrnode(left).left:=nil;
                  end;
               end
@@ -236,7 +236,7 @@ implementation
                   begin
                     { the "code" field from the procvar }
                     result:=caddrnode.create_internal(left);
-                    result:=ctypeconvnode.create_explicit(result,tcpuprocvardef(left.resultdef).classdef);
+                    result:=compiler.ctypeconvnode_explicit(result,tcpuprocvardef(left.resultdef).classdef);
                     { procvarclass.method }
                     fsym:=search_struct_member(tcpuprocvardef(left.resultdef).classdef,'METHOD');
                     if not assigned(fsym) or
@@ -254,7 +254,7 @@ implementation
                 else
                   { convert contents to plain pointer }
                   begin
-                    result:=ctypeconvnode.create_explicit(left,java_jlobject);
+                    result:=compiler.ctypeconvnode_explicit(left,java_jlobject);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end;
@@ -392,7 +392,7 @@ implementation
             { Pascal strings are 1-based, Java strings 0-based }
             result:=compiler.ccallnode(compiler.ccallparanode(
               compiler.caddnode(subn,right,genintconstnode(1)),nil),tprocsym(psym),
-              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[],nil);
+              psym.owner,compiler.ctypeconvnode_explicit(left,stringclass),[],nil);
             left:=nil;
             right:=nil;
             exit;

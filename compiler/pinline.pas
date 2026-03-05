@@ -651,8 +651,8 @@ implementation
          begin
            destppn:=tcallparanode(ppn.right);
            { create call to fpc_initialize/finalize_array }
-           npara:=compiler.ccallparanode(ctypeconvnode.create
-                     (ppn.left,s32inttype,compiler),
+           npara:=compiler.ccallparanode(compiler.ctypeconvnode
+                     (ppn.left,s32inttype),
                   compiler.ccallparanode(caddrnode.create_internal
                      (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal,compiler),compiler),
                   compiler.ccallparanode(caddrnode.create_internal

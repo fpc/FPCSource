@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym
-  ,node,nadd,nbas,ncal;
+  ,node,nadd,nbas,ncal,ncnv;
 
 type
 {****************************************************************************
@@ -227,6 +227,9 @@ type
     function ccallnode_internmethod(mp: tnode; const name: string; params: tnode):tcallnode; inline;
     function ccallnode_internmethodres(mp: tnode; const name: string; params: tnode; res:tdef):tcallnode; inline;
     function ccallparanode(expr,next : tnode):tcallparanode; inline;
+    { ncnv }
+    function ctypeconvnode(node : tnode;def:tdef):ttypeconvnode; inline;
+    function ctypeconvnode_explicit(node : tnode;def:tdef):ttypeconvnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -701,6 +704,17 @@ end;
 function TCompilerHelper.ccallparanode(expr, next: tnode): tcallparanode; inline;
 begin
   result:=ncal.ccallparanode.create(expr,next,self);
+end;
+
+function TCompilerHelper.ctypeconvnode(node: tnode; def: tdef): ttypeconvnode; inline;
+begin
+  result:=ncnv.ctypeconvnode.create(node,def,self);
+end;
+
+function TCompilerHelper.ctypeconvnode_explicit(node: tnode; def: tdef
+  ): ttypeconvnode; inline;
+begin
+  result:=ncnv.ctypeconvnode.create_explicit(node,def,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

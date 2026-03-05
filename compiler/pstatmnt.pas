@@ -189,14 +189,14 @@ implementation
                begin
                   if (p.nodetype=rangen) then
                     begin
-                       trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype,compiler);
-                       trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype,compiler);
+                       trangenode(p).left:=compiler.ctypeconvnode(trangenode(p).left,cwidechartype);
+                       trangenode(p).right:=compiler.ctypeconvnode(trangenode(p).right,cwidechartype);
                        do_typecheckpass(trangenode(p).left);
                        do_typecheckpass(trangenode(p).right);
                     end
                   else
                     begin
-                       p:=ctypeconvnode.create(p,cwidechartype,compiler);
+                       p:=compiler.ctypeconvnode(p,cwidechartype);
                        do_typecheckpass(p);
                     end;
                end
@@ -206,13 +206,13 @@ implementation
                    begin
                       if (p.nodetype=ordconstn) then
                         begin
-                           p:=ctypeconvnode.create(p,cansichartype,compiler);
+                           p:=compiler.ctypeconvnode(p,cansichartype);
                            do_typecheckpass(p);
                         end
                       else if (p.nodetype=rangen) then
                         begin
-                           trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cansichartype,compiler);
-                           trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cansichartype,compiler);
+                           trangenode(p).left:=compiler.ctypeconvnode(trangenode(p).left,cansichartype);
+                           trangenode(p).right:=compiler.ctypeconvnode(trangenode(p).right,cansichartype);
                            do_typecheckpass(trangenode(p).left);
                            do_typecheckpass(trangenode(p).right);
                         end;

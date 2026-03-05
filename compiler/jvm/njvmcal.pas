@@ -270,7 +270,7 @@ implementation
                     left:=cinlinenode.create(in_box_x,false,compiler.ccallparanode(left,nil));
                     typecheckpass(left);
                   end;
-                left:=ctypeconvnode.create_explicit(left,java_jlobject);
+                left:=compiler.ctypeconvnode_explicit(left,java_jlobject);
               end;
             { put the parameter value in the array }
             addstatement(initstat,cassignmentnode.create(
@@ -312,7 +312,7 @@ implementation
                   tempn:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
                     ctypenode.create(orgparadef),compiler.ccallparanode(tempn,nil)))
                 else if implicitptrpara then
-                  tempn:=ctypeconvnode.create_explicit(tempn,cpointerdef.getreusable(orgparadef))
+                  tempn:=compiler.ctypeconvnode_explicit(tempn,cpointerdef.getreusable(orgparadef))
               end;
             if implicitptrpara then
               tempn:=cderefnode.create(tempn)
@@ -337,8 +337,8 @@ implementation
                       end;
                     addstatement(copybackstat,cifnode.create(
                       compiler.caddnode(andn,
-                        compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele0,orgparadef)),
-                        compiler.caddnode(unequaln,leftcopy.getcopy,ctypeconvnode.create_explicit(unwrappedele1,orgparadef))),
+                        compiler.caddnode(unequaln,leftcopy.getcopy,compiler.ctypeconvnode_explicit(unwrappedele0,orgparadef)),
+                        compiler.caddnode(unequaln,leftcopy.getcopy,compiler.ctypeconvnode_explicit(unwrappedele1,orgparadef))),
                       compiler.ccallnode_intern('fpc_var_copyout_mismatch',
                         compiler.ccallparanode(genintconstnode(fileinfo.column),
                           compiler.ccallparanode(genintconstnode(fileinfo.line),nil))
@@ -347,7 +347,7 @@ implementation
                   end;
               end;
             addstatement(copybackstat,cassignmentnode.create(leftcopy,
-              ctypeconvnode.create_explicit(tempn,orgparadef)));
+              compiler.ctypeconvnode_explicit(tempn,orgparadef)));
           end
         else
           leftcopy.free;
@@ -544,7 +544,7 @@ implementation
           right:=caddrnode.create_internal(right);
           include(taddrnode(right).addrnodeflags,anf_typedaddr);
         end;
-      right:=ctypeconvnode.create_explicit(right,pdclass);
+      right:=compiler.ctypeconvnode_explicit(right,pdclass);
       include(right.flags,nf_load_procvar);
       typecheckpass(right);
 

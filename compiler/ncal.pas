@@ -806,15 +806,15 @@ implementation
                      { now treat that address (correctly) as the original
                        dynamic array to get its start and length }
                      arraybegin:=cvecnode.create(
-                       ctypeconvnode.create_explicit(compiler.ctemprefnode(lefttemp),
-                         temparraydef,compiler),
+                       compiler.ctypeconvnode_explicit(compiler.ctemprefnode(lefttemp),
+                         temparraydef),
                        genintconstnode(0,compiler),
                        compiler
                      );
                      arraysize:=compiler.caddnode(muln,
                        geninlinenode(in_length_x,false,
-                         ctypeconvnode.create_explicit(compiler.ctemprefnode(lefttemp),
-                           temparraydef,compiler),
+                         compiler.ctypeconvnode_explicit(compiler.ctemprefnode(lefttemp),
+                           temparraydef),
                          compiler
                        ),
                        genintconstnode(tarraydef(temparraydef).elementdef.size,compiler)
@@ -910,12 +910,11 @@ implementation
                 addstatement(initstat,
                   compiler.ccallnode_intern('fpc_variant_copy_overwrite',
                     compiler.ccallparanode(
-                      ctypeconvnode.create_explicit(compiler.ctemprefnode(paratemp),
-                          vardatatype,
-                          compiler
+                      compiler.ctypeconvnode_explicit(compiler.ctemprefnode(paratemp),
+                          vardatatype
                         ),
-                      compiler.ccallparanode(ctypeconvnode.create_explicit(left,
-                        vardatatype,compiler),
+                      compiler.ccallparanode(compiler.ctypeconvnode_explicit(left,
+                        vardatatype),
                         nil
                       )
                     )
@@ -923,7 +922,7 @@ implementation
                 );
                 { replace parameter with temp (don't free left, it has been
                   reused above) }
-                left:=ctypeconvnode.create_explicit(compiler.ctemprefnode(paratemp),parasym.vardef,compiler);
+                left:=compiler.ctypeconvnode_explicit(compiler.ctemprefnode(paratemp),parasym.vardef);
               end
             else if is_managed_type(left.resultdef) then
               begin
@@ -940,7 +939,7 @@ implementation
                     compiler
                   )
                 );
-                left:=ctypeconvnode.create_explicit(compiler.ctemprefnode(paratemp),left.resultdef,compiler);
+                left:=compiler.ctypeconvnode_explicit(compiler.ctemprefnode(paratemp),left.resultdef);
               end
             else
               begin

@@ -2449,7 +2449,7 @@ const
                           resultdef:=nil;
                           if is_cbool(ld) then
                             begin
-                              left:=ctypeconvnode.create(left,pasbool8type,compiler);
+                              left:=compiler.ctypeconvnode(left,pasbool8type);
                               ttypeconvnode(left).convtype:=tc_bool_2_bool;
                               firstpass(left);
                               if not is_cbool(rd) or
@@ -2458,13 +2458,13 @@ const
                             end;
                           if is_cbool(rd) then
                             begin
-                              right:=ctypeconvnode.Create(right,pasbool8type,compiler);
+                              right:=compiler.ctypeconvnode(right,pasbool8type);
                               ttypeconvnode(right).convtype:=tc_bool_2_bool;
                               firstpass(right);
                               if not assigned(resultdef) then
                                 resultdef:=rd;
                             end;
-                          result:=ctypeconvnode.create_explicit(compiler.caddnode(nodetype,left,right),resultdef,compiler);
+                          result:=compiler.ctypeconvnode_explicit(compiler.caddnode(nodetype,left,right),resultdef);
                           ttypeconvnode(result).convtype:=tc_bool_2_bool;
                           left:=nil;
                           right:=nil;

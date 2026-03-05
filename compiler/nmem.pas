@@ -1570,7 +1570,7 @@ implementation
               hightree:=compiler.caddnode(addn,hightree,genintconstnode(1,compiler));
               hightree.localswitches:=hightree.localswitches-[cs_check_range,
                 cs_check_overflow];
-              indextree:=ctypeconvnode.create_explicit(right.getcopy,htype,compiler);
+              indextree:=compiler.ctypeconvnode_explicit(right.getcopy,htype);
               { range error if index >= hightree+1 }
               addstatement(stat,
                 cifnode.create_internal(
