@@ -235,6 +235,7 @@ type
     function casnode(l,r : tnode):tasnode; inline;
     function casnode_internal(l,r : tnode):tasnode; inline;
     function cisnode(l,r : tnode):tisnode; inline;
+    function cisnode_internal(l,r : tnode):tisnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -747,6 +748,11 @@ end;
 function TCompilerHelper.cisnode(l, r: tnode): tisnode; inline;
 begin
   result:=ncnv.cisnode.create(l,r,self);
+end;
+
+function TCompilerHelper.cisnode_internal(l, r: tnode): tisnode; inline;
+begin
+  result:=ncnv.cisnode.create_internal(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
