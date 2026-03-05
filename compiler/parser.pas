@@ -473,44 +473,35 @@ implementation
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
          try
-           try
-             if (current_scanner.token=_UNIT) or (not module.is_initial) then
-               begin
-                 module.is_unit:=true;
-                 finished:=proc_unit(module);
-               end
-             else if (current_scanner.token=_ID) and (current_scanner.idtoken=_PACKAGE) then
-               begin
-                 module.IsPackage:=true;
-                 finished:=proc_package(module);
-               end
-             else
-               finished:=proc_program(module,current_scanner.token=_LIBRARY);
-           except
-             on ECompilerAbort do
+           if (current_scanner.token=_UNIT) or (not module.is_initial) then
+             begin
+               module.is_unit:=true;
+               finished:=proc_unit(module);
+             end
+           else if (current_scanner.token=_ID) and (current_scanner.idtoken=_PACKAGE) then
+             begin
+               module.IsPackage:=true;
+               finished:=proc_package(module);
+             end
+           else
+             finished:=proc_program(module,current_scanner.token=_LIBRARY);
+         except
+           on ECompilerAbort do
+             raise;
+           on Exception do
+             begin
+               { Generate exception_raised message,
+                 but avoid multiple messages by
+                 guarding with exception_raised global variable }
+               if not exception_raised then
+                 begin
+                   exception_raised:=true;
+                   Message(general_e_exception_raised);
+                 end;
                raise;
-             on Exception do
-               begin
-                 { Generate exception_raised message,
-                   but avoid multiple messages by
-                   guarding with exception_raised global variable }
-                 if not exception_raised then
-                   begin
-                     exception_raised:=true;
-                     Message(general_e_exception_raised);
-                   end;
-                 raise;
-               end;
-           end;
-           Result:=Finished;
-           { the program or the unit at the command line should not need to wait
-             for other units }
-           // if (module.is_initial) and not finished then
-           //  internalerror(2012091901);
-         finally
-            if finished then
-              parsing_done(module);
+             end;
          end;
+         Result:=Finished;
     end;
 
 end.
