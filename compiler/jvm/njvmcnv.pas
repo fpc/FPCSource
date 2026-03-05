@@ -1241,7 +1241,7 @@ implementation
                         resnode:=ctypenode.create(resultdef);
                         if resultdef.typ=objectdef then
                           resnode:=cloadvmtaddrnode.create(resnode);
-                        resnode:=casnode.create_internal(left,resnode);
+                        resnode:=compiler.casnode_internal(left,resnode);
                         if resultdef.typ=classrefdef then
                           tjvmasnode(resnode).classreftypecast:=true;
                         left:=nil;
