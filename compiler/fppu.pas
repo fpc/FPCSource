@@ -84,6 +84,7 @@ interface
           procedure restore_state;
           procedure store_state;
           procedure recompile_from_sources;
+          procedure check_sources_for_recompile;
           procedure post_load_or_compile(from_module : tmodule; second_time: boolean);
           procedure discardppu;
           procedure setdefgeneration;
@@ -2180,7 +2181,6 @@ var
               {$IFDEF DEBUG_PPU_CYCLES}
               writeln('PPUALGO tppumodule.load_usedunits_section ',modulename^,' ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
               {$ENDIF}
-              check_releaseppu_checksum_changed(pu);
               { Note: the recompile_from_sources is invoked by the caller }
               state:=ms_compile;
               exit(false);
@@ -2225,7 +2225,6 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.ppu_check_used_crcs ',modulename^,' interface uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
             {$ENDIF}
-            check_releaseppu_checksum_changed(pu);
             state:=ms_compile;
             exit;
           end;
@@ -2337,11 +2336,37 @@ var
     procedure tppumodule.recompile_from_sources;
 
       var
-        pu : tused_unit;
         was_interfaced_compiled: Boolean;
       begin
         set_current_module(self);
+        check_sources_for_recompile;
 
+        {$IFDEF DEBUG_PPU_CYCLES}
+        writeln('PPUALGO tppumodule.recompile_from_sources ',modulename^,' old=',statestr,' new=',ms_compile);
+        {$ENDIF}
+        was_interfaced_compiled:=interface_compiled;
+        { disconnect used modules }
+        disconnect_depending_modules;
+        if fromppu then
+          ppu_discarded:=true;
+        { Flag modules to reload }
+        flagdependent;
+        { Reset stack, parser, scanner, etc }
+        if not fromppu then
+          end_of_parsing;
+        { Reset the module }
+        reset(true);
+
+        { mark this module for recompilation }
+        state:=ms_compile;
+        if was_interfaced_compiled then
+          setdefgeneration;
+      end;
+
+    procedure tppumodule.check_sources_for_recompile;
+      var
+        pu: tused_unit;
+      begin
         { recompile the unit or give a fatal error if sources not available }
         if not sources_avail then
          begin
@@ -2373,26 +2398,6 @@ var
           comments.free;
           comments:=nil;
         end;
-        {$IFDEF DEBUG_PPU_CYCLES}
-        writeln('PPUALGO tppumodule.recompile_from_sources ',modulename^,' old=',statestr,' new=',ms_compile);
-        {$ENDIF}
-        was_interfaced_compiled:=interface_compiled;
-        { disconnect used modules }
-        disconnect_depending_modules;
-        if fromppu then
-          ppu_discarded:=true;
-        { Flag modules to reload }
-        flagdependent;
-        { Reset stack, parser, scanner, etc }
-        if not fromppu then
-          end_of_parsing;
-        { Reset the module }
-        reset(true);
-
-        { mark this module for recompilation }
-        state:=ms_compile;
-        if was_interfaced_compiled then
-          setdefgeneration;
       end;
 
     procedure tppumodule.mark_recompile_needed(reason: trecompile_reason);

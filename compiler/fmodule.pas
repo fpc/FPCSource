@@ -332,7 +332,6 @@ interface
         function usedunitsloaded(interface_units: boolean; out firstwaiting : tmodule): boolean;
         function nowaitingforunits(out firstwaiting : tmodule) : Boolean;
         function usedunitsfinalcrc(out firstwaiting : tmodule): boolean;
-        procedure check_releaseppu_checksum_changed(uu: tused_unit);
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
@@ -375,7 +374,7 @@ implementation
     uses
       SysUtils,globals,
       verbose,systems,
-      scanner,ppu,dbgbase,
+      scanner,dbgbase,
       procinfo,symdef,symtype;
 
 {$ifdef MEMDEBUG}
@@ -1419,20 +1418,6 @@ implementation
       Result:=True;
     end;
 
-    procedure tmodule.check_releaseppu_checksum_changed(uu: tused_unit);
-      begin
-        if not (mf_release in moduleflags) or not fromppu then
-          exit;
-
-        if (uu.u.interface_crc<>uu.interface_checksum) then
-          writeln('Error: -Ur ppu ',realmodulename^,' interface checksum changed for ',uu.u.realmodulename^)
-        else if (uu.u.indirect_crc<>uu.indirect_checksum) then
-          writeln('Error: -Ur ppu ',realmodulename^,' indirect checksum changed for ',uu.u.realmodulename^)
-        else
-          writeln('Error: -Ur ppu ',realmodulename^,' implementation checksum changed for ',uu.u.realmodulename^);
-        Internalerror(2026030311);
-      end;
-
     function tmodule.usesmodule_in_interface(m: tmodule): boolean;
 
       var
@@ -1639,10 +1624,7 @@ implementation
 
 
     procedure tmodule.setmodulename(const s:string);
-      var
-        oldname: TSymStr;
       begin
-        oldname:=modulename^;
         stringdispose(modulename);
         stringdispose(realmodulename);
         modulename:=stringdup(upper(s));

@@ -543,7 +543,6 @@ begin
   MainSrc:=Pkg1Dir+'src2'+PathDelim+'ur_pkg1_ant.pas';
   UnitPath:=Pkg1Dir+'src2';
   OutDir:=Pkg1Dir+'ppus';
-  CleanOutputDir;
   Compile;
   CheckCompiled(['ur_pkg1_ant.pas']);
 
@@ -551,7 +550,6 @@ begin
   MainSrc:=Pkg2Dir+'ur_pkg1_bird.pas';
   UnitPath:=Pkg1Dir+'ppus'+';'+Pkg2Dir;
   OutDir:=Pkg2Dir+'ppus';
-  CleanOutputDir;
   Compile;
   // the main src bird is always compiled,
   // cat must be recompiled because cat.pas is available and used ant.ppu changed

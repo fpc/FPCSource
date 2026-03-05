@@ -28,7 +28,7 @@ unit ctask;
 interface
 
 uses
-  finput, fmodule, cclasses, globals, globtype, globstat;
+  finput, fmodule, cclasses, globals, globstat;
 
 type
   { ttask
@@ -664,7 +664,6 @@ begin
                       else
                         writeln(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.modulename^+' <> '+hexstr(pu.checksum,8)+' in unit '+m.modulename^);
                       {$endif DEBUG_UNIT_CRC_CHANGES}
-                      m.check_releaseppu_checksum_changed(pu);
                       recompile_module(m);
                       Result:=true;
                       break;
@@ -858,11 +857,6 @@ begin
     begin
       writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr);
       Internalerror(2026022411);
-    end;
-  if (mf_release in m.moduleflags) and m.fromppu then
-    begin
-      writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr,' unit was compiled with Ur');
-      Internalerror(2026022412);
     end;
 
   Result:=restore_state(m);
