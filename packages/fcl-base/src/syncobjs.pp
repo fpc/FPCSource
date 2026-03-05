@@ -841,7 +841,7 @@ end;
 
 function TSemaphore.WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult;
 
-{$IFDEF wasm32}
+{$IFDEF CPUWASM32}
 var
   Res : Boolean;
 {$ENDIF}
