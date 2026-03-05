@@ -4927,7 +4927,7 @@ implementation
                      _OP_AS:
                        p1:=compiler.casnode(p1,p2);
                      _OP_IS:
-                       p1:=cisnode.create(p1,p2,compiler);
+                       p1:=compiler.cisnode(p1,p2);
                      else
                        internalerror(2019050528);
                    end;
