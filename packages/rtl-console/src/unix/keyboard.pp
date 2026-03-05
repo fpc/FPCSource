@@ -1031,7 +1031,7 @@ type  key_sequence=packed record
         st:string[10];
       end;
 
-const key_sequences:array[0..425] of key_sequence=(
+const key_sequences:array[0..435] of key_sequence=(
        (AnsiChar:0;scan:$39;shift:[essCtrl];st:#0),         { xterm, Ctrl+Space }
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
@@ -1365,6 +1365,10 @@ const key_sequences:array[0..425] of key_sequence=(
        (AnsiChar:0;scan:kbDown;shift:[essShift];st:#27'[1;2B'),  {xterm}
        (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'[1;2C'), {xterm}
        (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'[1;2D'),  {xterm}
+       (AnsiChar:0;scan:kbUp;shift:[essShift];st:#27'O2A'),      {haiku-xterm}
+       (AnsiChar:0;scan:kbDown;shift:[essShift];st:#27'O2B'),    {haiku-xterm}
+       (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'O2C'),   {haiku-xterm}
+       (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'O2D'),    {haiku-xterm}
        (AnsiChar:0;scan:kbCenter;shift:[essShift];st:#27'[1;2E'),{xterm}
        (AnsiChar:0;scan:kbPgUp;shift:[essShift];st:#27'[5;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
        (AnsiChar:0;scan:kbPgDn;shift:[essShift];st:#27'[6;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
@@ -1373,8 +1377,10 @@ const key_sequences:array[0..425] of key_sequence=(
        (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'[c'),    {rxvt}
        (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'[d'),     {rxvt}
        (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'[1;2F'),   {xterm}
+       (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'O2F'),     {haiku-xterm}
        (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'[8$'),     {rxvt}
        (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[1;2H'),  {xterm}
+       (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'O2H'),    {haiku-xterm}
        (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[7$'),    {rxvt}
        (AnsiChar:0;scan:kbShiftIns;shift:[essShift];st:#27'Op'), {rxvt - on numpad}
        (AnsiChar:0;scan:kbShiftDel;shift:[essShift];st:#27'On'), {rxvt - on numpad}
@@ -1397,6 +1403,10 @@ const key_sequences:array[0..425] of key_sequence=(
        (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[1;5B'),    {xterm}
        (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[1;5C'),   {xterm}
        (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'[1;5D'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'O5A'),        {haiku-xterm}
+       (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'O5B'),      {haiku-xterm}
+       (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'O5C'),     {haiku-xterm}
+       (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'O5D'),      {haiku-xterm}
        (AnsiChar:0;scan:kbCtrlCenter;shift:[essCtrl];st:#27'[1;5E'),  {xterm}
        (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'[Oa'),        {rxvt}
        (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[Ob'),      {rxvt}
