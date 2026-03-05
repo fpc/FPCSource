@@ -461,7 +461,7 @@ implementation
               cifnode.create(compiler.caddnode(equaln,
                 compiler.ccallnode_intern('fpc_setjmp',
                   compiler.ccallparanode(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil)),
-                cordconstnode.create(1,search_system_proc('fpc_setjmp').returndef,true,compiler))
+                compiler.cordconstnode(1,search_system_proc('fpc_setjmp').returndef,true))
               ,cgotonode.create(tlabelsym(p),compiler),nil,compiler)
             );
           end;
@@ -528,7 +528,7 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=compiler.ccallparanode(
-                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
+                                compiler.cordconstnode(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
@@ -678,7 +678,7 @@ implementation
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=compiler.ccallparanode(
-                                cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
+                                compiler.cordconstnode(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                             compiler.ccallparanode(
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
@@ -854,7 +854,7 @@ implementation
                       addstatement(newstatement,
                         compiler.ccallnode_intern('fpc_help_fail',
                           compiler.ccallparanode(
-                            cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false,compiler),
+                            compiler.cordconstnode(tobjectdef(procdef.struct).vmt_offset,s32inttype,false),
                           compiler.ccallparanode(
                             compiler.ctypeconvnode_internal(
                               load_vmt_pointer_node,

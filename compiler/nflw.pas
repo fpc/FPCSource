@@ -487,7 +487,7 @@ implementation
           compiler.ctemprefnode(mutationcheck),hp,compiler));
         { initialise innerloopcounter }
         addstatement(outerloopbodystatement,cassignmentnode.create(
-          compiler.ctemprefnode(innerloopcounter),cordconstnode.create(-1,ptruinttype,false,compiler),compiler));
+          compiler.ctemprefnode(innerloopcounter),compiler.cordconstnode(-1,ptruinttype,false),compiler));
 
         { and now the inner loop, again adding the repeat/until afterwards }
         innerloop:=internalstatements(compiler,innerloopbodystatement);
@@ -537,7 +537,7 @@ implementation
           one }
         hp:=cwhilerepeatnode.create(
           { repeat .. until false }
-          cordconstnode.create(0,pasbool1type,false,compiler),innerloop,false,true,compiler);
+          compiler.cordconstnode(0,pasbool1type,false),innerloop,false,true,compiler);
         addstatement(outerloopbodystatement,hp);
 
         { create the outer repeat/until and add it to the the main body }
@@ -1653,7 +1653,7 @@ implementation
             end;
         if not is_constboolnode(condition) then
             aktstate.store_fact(condition,
-             cordconstnode.create(byte(checknegate),pasbool1type,true))
+             compiler.cordconstnode(byte(checknegate),pasbool1type,true))
         else
             condition.free; // no nil needed
     end;
@@ -2260,7 +2260,7 @@ implementation
             { is a simple comparison for equality sufficient? }
             if do_loopvar_at_end and (lnf_backward in loopflags) and (lnf_counter_not_used in loopflags) then
               addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(equaln,leftcopy,
-                compiler.caddnode_internal(subn,t1.getcopy,cordconstnode.create(1,t1.resultdef,false,compiler))),loopblock,false,true,compiler))
+                compiler.caddnode_internal(subn,t1.getcopy,compiler.cordconstnode(1,t1.resultdef,false))),loopblock,false,true,compiler))
             else
               addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(cond,leftcopy,t1.getcopy),loopblock,false,true,compiler));
             addstatement(statements,ifblock);
@@ -2501,7 +2501,7 @@ implementation
                     if assigned(labelsym.jumpbuf) then
                       begin
                         result:=compiler.ccallnode_intern('fpc_longjmp',
-                          compiler.ccallparanode(cordconstnode.create(1,sinttype,true,compiler),
+                          compiler.ccallparanode(compiler.cordconstnode(1,sinttype,true),
                           compiler.ccallparanode(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner,compiler),
                         nil)));
                       end
@@ -2736,7 +2736,7 @@ implementation
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
-                  right:=compiler.caddnode_internal(addn,right,cordconstnode.create(1,sizesinttype,false,compiler));
+                  right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
               end;
 
             raisenode:=compiler.ccallnode_intern('fpc_raiseexception',

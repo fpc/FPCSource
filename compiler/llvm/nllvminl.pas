@@ -180,7 +180,7 @@ implementation
         cntresult:=
           compiler.ccallnode_intern(
             procname,
-            compiler.ccallparanode(cordconstnode.create(1,llvmbool1type,false),
+            compiler.ccallparanode(compiler.cordconstnode(1,llvmbool1type,false),
               compiler.ccallparanode(
                 compiler.ctypeconvnode_explicit(left,get_unsigned_inttype(leftdef)),nil
               )

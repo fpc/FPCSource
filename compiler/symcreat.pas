@@ -2218,7 +2218,7 @@ implementation
           insert_funcret_local(pd);
           result:=cassignmentnode.create(
                       cloadnode.create(pd.funcretsym,pd.localst,compiler),
-                      cordconstnode.create(1,bool32type,false,compiler),
+                      compiler.cordconstnode(1,bool32type,false),
                       compiler
                     );
         end

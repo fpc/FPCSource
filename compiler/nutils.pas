@@ -1141,7 +1141,7 @@ implementation
         if not forinline then
           result:=genintconstnode(value,compiler)
         else
-          result:=cordconstnode.create(value,def,rangecheck,compiler);
+          result:=compiler.cordconstnode(value,def,rangecheck);
       end;
 
 
@@ -1200,7 +1200,7 @@ implementation
                  include(p1.flags,nf_absolute);
                end;
              sl_vec :
-               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuedef,true,compiler),compiler);
+               p1:=cvecnode.create(p1,compiler.cordconstnode(plist^.value,plist^.valuedef,true),compiler);
              else
                internalerror(200110205);
            end;

@@ -124,7 +124,7 @@ type
             if n.flags*[nf_modify,nf_write,nf_address_taken]<>[] then
               internalerror(2012090402);
             n.free;
-            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false,compiler);
+            n:=compiler.cordconstnode(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);
             do_firstpass(n);
           end;
         result:=fen_false;
@@ -454,7 +454,7 @@ type
                           else
                             nt:=subn;
                           nn:=compiler.caddnode_internal(nt,nn,
-                             cordconstnode.create(1,nn.resultdef,false,compiler));
+                             compiler.cordconstnode(1,nn.resultdef,false));
                         end;
                       addstatement(initcodestatements,cassignmentnode.create(compiler.ctemprefnode(tempnode),
                           compiler.caddnode(muln,nn,
@@ -516,12 +516,12 @@ type
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_dec_x,false,
                           compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil)),compiler))
+                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil)),compiler))
                       else
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_inc_x,false,
                           compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
-                          cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler),nil)),compiler));
+                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil)),compiler));
 
                       addstatement(initcodestatements,tempnode);
 
@@ -540,7 +540,7 @@ type
                             nt:=subn;
                           nn:=compiler.caddnode_internal(nt,
                              compiler.ctypeconvnode_internal(nn,voidpointertype),
-                             cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler));
+                             compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false));
                         end;
                       addstatement(initcodestatements,cassignmentnode.create(compiler.ctemprefnode(tempnode),nn,compiler));
 
@@ -711,9 +711,9 @@ type
                 tfornode(n).right:=compiler.ctypeconvnode_internal(
                   compiler.caddnode_internal(addn,compiler.caddnode_internal(subn,
                     tfornode(n).t1,tfornode(n).right),
-                    cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler)),
+                    compiler.cordconstnode(1,tfornode(n).left.resultdef,false)),
                   tfornode(n).left.resultdef);
-                tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler);
+                tfornode(n).t1:=compiler.cordconstnode(1,tfornode(n).left.resultdef,false);
                 include(tfornode(n).loopflags,lnf_counter_not_used);
                 exclude(n.transientflags,tnf_pass1_done);
                 do_firstpass(n);

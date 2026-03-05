@@ -324,7 +324,7 @@ implementation
               end
             else
               begin
-                startnode:=cordconstnode.create(start,eledef,false);
+                startnode:=compiler.cordconstnode(start,eledef,false);
                 { immediately firstpass so the enum gets translated into a JLEnum
                   instance }
                 firstpass(startnode);
@@ -332,7 +332,7 @@ implementation
                   result:=compiler.ccallnode_internmethod(mp,'OF',compiler.ccallparanode(startnode,nil))
                 else
                   begin
-                    stopnode:=cordconstnode.create(start+len-1,eledef,false);
+                    stopnode:=compiler.cordconstnode(start+len-1,eledef,false);
                     firstpass(stopnode);
                     result:=compiler.ccallnode_internmethod(mp,'RANGE',compiler.ccallparanode(stopnode,compiler.ccallparanode(startnode,nil)));
                   end
@@ -340,7 +340,7 @@ implementation
           end
         else
           begin
-            enumele:=cordconstnode.create(tenumsym(tenumdef(eledef).symtable.symlist[0]).value,eledef,false);
+            enumele:=compiler.cordconstnode(tenumsym(tenumdef(eledef).symtable.symlist[0]).value,eledef,false);
             firstpass(enumele);
             paras:=compiler.ccallparanode(enumele,nil);
             result:=buildsetfromstring('fpc_enumset_from_string',paras);

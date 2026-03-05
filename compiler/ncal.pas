@@ -2517,7 +2517,7 @@ implementation
                 begin
                   maybe_load_in_temp(p);
                   hightree:=compiler.caddnode(subn,geninlinenode(in_length_x,false,p.getcopy,compiler),
-                                            cordconstnode.create(1,sizesinttype,false,compiler));
+                                            compiler.cordconstnode(1,sizesinttype,false));
                   loadconst:=false;
                 end;
            end;
@@ -2525,7 +2525,7 @@ implementation
           len:=0;
         end;
         if loadconst then
-          hightree:=cordconstnode.create(len,sizesinttype,true,compiler)
+          hightree:=compiler.cordconstnode(len,sizesinttype,true)
         else
           begin
             if not assigned(hightree) then
@@ -3051,7 +3051,7 @@ implementation
                             NewStatements,
                             CAssignmentNode.Create_Internal(
                               outnode.getcopy(), { The original will get destroyed }
-                              COrdConstNode.Create(ValCode, outnode.ResultDef, False, compiler),
+                              compiler.cordconstnode(ValCode, outnode.ResultDef, False),
                               compiler
                             )
                           );
@@ -3059,7 +3059,7 @@ implementation
                           { Now actually create the function result }
                           case resultdef.typ of
                             orddef:
-                              valnode := COrdConstNode.Create(ValOutput, resultdef, False, compiler);
+                              valnode := compiler.cordconstnode(ValOutput, resultdef, False);
                             else
                               Internalerror(2024011401);
                           end;
@@ -3703,12 +3703,12 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool1type,false,compiler);
+                     para.left:=compiler.cordconstnode(Ord(cs_check_range in current_settings.localswitches),pasbool1type,false);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),pasbool1type,false,compiler);
+                     para.left:=compiler.cordconstnode(Ord(cs_check_overflow in current_settings.localswitches),pasbool1type,false);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then

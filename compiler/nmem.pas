@@ -1462,22 +1462,20 @@ implementation
                   in theory for a 64 bit target the string could be longer than 2^32,
                   it does not matter as a 32 bit host cannot handle such long strings anyways due to memory limitations
                 }
-                Result := COrdConstNode.create(
+                Result := compiler.cordconstnode(
                   TStringConstNode(left).valuews.data[PtrUInt(TOrdConstNode(right).value.uvalue) - 1],
                   resultdef,
-                  False,
-                  compiler
+                  False
                 );
               else
                 { while the conversion to PtrUInt is not correct when compiling from an 32 bit to a 64 bit platform because
                   in theory for a 64 bit target the string could be longer than 2^32,
                   it does not matter as a 32 bit host cannot handle such long strings anyways due to memory limitations
                 }
-                Result := COrdConstNode.create(
+                Result := compiler.cordconstnode(
                   Byte(TStringConstNode(left).valueas[PtrUInt(TOrdConstNode(right).value.uvalue) - 1]),
                   resultdef,
-                  False,
-                  compiler
+                  False
                 );
             end;
           end;

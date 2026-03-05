@@ -154,7 +154,7 @@ uses
   ,i_aix
 {$endif aix}
   ,ctask
-  ,globtype,compinnr,cpuinfo
+  ,globtype,compinnr,cpuinfo,constexp
   ,ngenutil,pgentype
   ,optloop
   ,aasmdata
@@ -238,7 +238,7 @@ type
     function cisnode_internal(l,r : tnode):tisnode; inline;
     { ncon }
     function crealconstnode(v : bestreal;def:tdef):trealconstnode; inline;
-    // TODO:cordconstnode
+    function cordconstnode(const v : tconstexprint;def:tdef; _rangecheck : boolean):tordconstnode; inline;
     // TODO:cpointerconstnode
     // TODO:cstringconstnode
     // TODO:csetconstnode
@@ -766,6 +766,12 @@ end;
 function TCompilerHelper.crealconstnode(v: bestreal; def: tdef): trealconstnode; inline;
 begin
   result:=ncon.crealconstnode.create(v,def,self);
+end;
+
+function TCompilerHelper.cordconstnode(const v: tconstexprint; def: tdef;
+  _rangecheck: boolean): tordconstnode; inline;
+begin
+  result:=ncon.cordconstnode.create(v,def,_rangecheck,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

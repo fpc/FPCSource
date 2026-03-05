@@ -477,7 +477,7 @@ implementation
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1,compiler);
                   { no packed bit support for these things }
                   if l=in_bitsizeof_x then
-                    statement_syssym:=compiler.caddnode(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler));
+                    statement_syssym:=compiler.caddnode(muln,statement_syssym,compiler.cordconstnode(8,sizesinttype,true));
                   { type sym is a generic parameter }
                   if assigned(p1.resultdef.typesym) and (sp_generic_para in p1.resultdef.typesym.symoptions) then
                     include(statement_syssym.flags,nf_generic_para);
@@ -501,7 +501,7 @@ implementation
                    begin
                      statement_syssym:=genintconstnode(p1.resultdef.size,sizesinttype,compiler);
                      if (l = in_bitsizeof_x) then
-                       statement_syssym:=compiler.caddnode(muln,statement_syssym,cordconstnode.create(8,sizesinttype,true,compiler));
+                       statement_syssym:=compiler.caddnode(muln,statement_syssym,compiler.cordconstnode(8,sizesinttype,true));
                    end
                  else
                    statement_syssym:=genintconstnode(p1.resultdef.packedbitsize,sizesinttype,compiler);
@@ -1359,7 +1359,7 @@ implementation
          { indexed property }
          if (ppo_indexed in propsym.propoptions) then
            begin
-             p2:=cordconstnode.create(propsym.index,propsym.indexdef,true,compiler);
+             p2:=compiler.cordconstnode(propsym.index,propsym.indexdef,true);
              paras:=compiler.ccallparanode(p2,paras);
            end;
          { we need only a write property if a := follows }
@@ -2078,8 +2078,8 @@ implementation
              p4:=comp_expr([ef_accept_equal]);
 
              { create call to fpc_vararray_put }
-             paras:=compiler.ccallparanode(cordconstnode.create
-                   (countindices,s32inttype,true,compiler),
+             paras:=compiler.ccallparanode(compiler.cordconstnode
+                   (countindices,s32inttype,true),
                 compiler.ccallparanode(caddrnode.create_internal
                (cvecnode.create(compiler.ctemprefnode(temp),genintconstnode(0,compiler),compiler),compiler),
                 compiler.ccallparanode(compiler.ctypeconvnode_internal(p4,cvarianttype),
@@ -2096,8 +2096,8 @@ implementation
              addstatement(newstatement,tempresultvariant);
 
              { create call to fpc_vararray_get }
-             paras:=compiler.ccallparanode(cordconstnode.create
-                   (countindices,s32inttype,true,compiler),
+             paras:=compiler.ccallparanode(compiler.cordconstnode
+                   (countindices,s32inttype,true),
                 compiler.ccallparanode(caddrnode.create_internal
                (compiler.ctemprefnode(temp),compiler),
                 compiler.ccallparanode(p1,
@@ -2141,7 +2141,7 @@ implementation
                   cassignmentnode.create(
                     cvecnode.create(
                       compiler.ctemprefnode(arrnode),
-                      cordconstnode.create(paracount,arrdef.rangedef,false,compiler),compiler),
+                      compiler.cordconstnode(paracount,arrdef.rangedef,false),compiler),
                     comp_expr([ef_accept_equal]),compiler));
                 inc(paracount);
               until not try_to_consume(_COMMA);
@@ -2157,14 +2157,14 @@ implementation
           { one dimensional }
           addstatement(newstatement,cassignmentnode.create(
               compiler.ctemprefnode(temp2),
-              cordconstnode.create
-                 (paracount,s32inttype,true,compiler),compiler));
+              compiler.cordconstnode
+                 (paracount,s32inttype,true),compiler));
           { create call to fpc_dynarr_setlength }
           addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
               compiler.ccallparanode(caddrnode.create_internal
                     (compiler.ctemprefnode(temp2),compiler),
-                 compiler.ccallparanode(cordconstnode.create
-                    (1,s32inttype,true,compiler),
+                 compiler.ccallparanode(compiler.cordconstnode
+                    (1,s32inttype,true),
                  compiler.ccallparanode(caddrnode.create_internal
                     (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal,compiler),compiler),
                  compiler.ccallparanode(
@@ -2405,7 +2405,7 @@ implementation
                                consume(_COLON);
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
-                               p3:=cshlshrnode.create(shln,p2,cordconstnode.create($10,s16inttype,false));
+                               p3:=cshlshrnode.create(shln,p2,compiler.cordconstnode($10,s16inttype,false));
                                p2:=comp_expr([ef_accept_equal]);
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
@@ -2421,7 +2421,7 @@ implementation
 {$elseif defined(i386)}
                                if try_to_consume(_COLON) then
                                 begin
-                                  p3:=compiler.caddnode(muln,cordconstnode.create($10,s32inttype,false),p2);
+                                  p3:=compiler.caddnode(muln,compiler.cordconstnode($10,s32inttype,false),p2);
                                   p2:=comp_expr([ef_accept_equal]);
                                   p2:=compiler.caddnode(addn,p2,p3);
                                   if try_to_consume(_POINTPOINT) then
@@ -4094,7 +4094,7 @@ implementation
                    begin
                       consume(_INTCONST);
                       int_to_type(ic,hdef);
-                      p1:=cordconstnode.create(ic,hdef,true,compiler);
+                      p1:=compiler.cordconstnode(ic,hdef,true);
                    end
                  else
                    begin
@@ -4104,7 +4104,7 @@ implementation
                        begin
                           consume(_INTCONST);
                           int_to_type(qc,hdef);
-                          p1:=cordconstnode.create(qc,hdef,true,compiler);
+                          p1:=compiler.cordconstnode(qc,hdef,true);
                        end;
                    end;
                  if code<>0 then
@@ -4116,7 +4116,7 @@ implementation
                           Message(parser_e_invalid_integer);
                           consume(_INTCONST);
                           l:=1;
-                          p1:=cordconstnode.create(l,sinttype,true,compiler);
+                          p1:=compiler.cordconstnode(l,sinttype,true);
                        end
                      else
                        begin
@@ -4205,7 +4205,7 @@ implementation
 
              _CCHAR :
                begin
-                 p1:=cordconstnode.create(ord(current_scanner.pattern[1]),cansichartype,true,compiler);
+                 p1:=compiler.cordconstnode(ord(current_scanner.pattern[1]),cansichartype,true);
                  consume(_CCHAR);
                  if current_scanner.token=_POINT then
                    begin
@@ -4217,7 +4217,7 @@ implementation
              _CWSTRING:
                begin
                  if getlengthwidestring(current_scanner.patternw)=1 then
-                   p1:=cordconstnode.create(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true,compiler)
+                   p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true)
                  else
                    p1:=cstringconstnode.createunistr(current_scanner.patternw,compiler);
                  consume(_CWSTRING);
@@ -4230,7 +4230,7 @@ implementation
 
              _CWCHAR:
                begin
-                 p1:=cordconstnode.create(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true,compiler);
+                 p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true);
                  consume(_CWCHAR);
                  if current_scanner.token=_POINT then
                    begin

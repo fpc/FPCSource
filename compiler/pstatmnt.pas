@@ -172,7 +172,7 @@ implementation
             CGMessage(type_e_ordinal_or_string_expr_expected);
             { create a correct tree }
             caseexpr.free;
-            caseexpr:=cordconstnode.create(0,u32inttype,false,compiler);
+            caseexpr:=compiler.cordconstnode(0,u32inttype,false);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;

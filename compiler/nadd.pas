@@ -523,11 +523,11 @@ const
                         compiler.ctypeconvnode_internal(
                           cderefnode.create(
                             compiler.caddnode_internal(subn,compiler.ctypeconvnode_internal(tinlinenode(L).left.getcopy,voidpointertype),
-                              cordconstnode.create(sizeof(uint32),ptruinttype,false,compiler)),
+                              compiler.cordconstnode(sizeof(uint32),ptruinttype,false)),
                               compiler
                           ),u32inttype
                         ),
-                        cordconstnode.create(0,u32inttype,false,compiler))
+                        compiler.cordconstnode(0,u32inttype,false))
                     );
                   include(taddnode(resn).addnodeflags,anf_short_bool);
                 end;
@@ -549,7 +549,7 @@ const
           { Length < 0 is always false, Length >= 0 is always true. }
           if not might_have_sideeffects(tinlinenode(L).left) then { Could somehow remove the check but keep the F() even in Length(F()) >= 0... }
             begin
-              resn:=cordconstnode.create(ord(op=gten),resultdef,true,compiler);
+              resn:=compiler.cordconstnode(ord(op=gten),resultdef,true);
               exit(true);
             end;
         end;
@@ -619,7 +619,7 @@ const
             end
           else if tpointerdef(resultdef).pointeddef.size>1 then
           { the constants were already multiplied by the pointer element size }
-            left:=cmoddivnode.create(divn,left,cordconstnode.create(tpointerdef(resultdef).pointeddef.size,left.resultdef,false,compiler),compiler);
+            left:=cmoddivnode.create(divn,left,compiler.cordconstnode(tpointerdef(resultdef).pointeddef.size,left.resultdef,false),compiler);
           right:=left;
           left:=hp;
           result:=GetCopyAndTypeCheck;
@@ -824,7 +824,7 @@ const
                      if is_integer(ld) then
                        t := create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches,compiler)
                      else
-                       t := cordconstnode.create(v,resultdef,(ld.typ<>enumdef),compiler);
+                       t := compiler.cordconstnode(v,resultdef,(ld.typ<>enumdef));
                  end;
                subn :
                  begin
@@ -851,7 +851,7 @@ const
                      if is_integer(ld) then
                        t:=create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches,compiler)
                      else
-                       t:=cordconstnode.create(v,resultdef,(ld.typ<>enumdef),compiler);
+                       t:=compiler.cordconstnode(v,resultdef,(ld.typ<>enumdef));
                  end;
                muln :
                  begin
@@ -869,29 +869,29 @@ const
                  if is_integer(ld) then
                    t := create_simplified_ord_const(lv xor rv,resultdef,forinline,false,compiler)
                  else
-                   t:=cordconstnode.create(lv xor rv,resultdef,true,compiler);
+                   t:=compiler.cordconstnode(lv xor rv,resultdef,true);
                orn :
                  if is_integer(ld) then
                    t:=create_simplified_ord_const(lv or rv,resultdef,forinline,false,compiler)
                  else
-                   t:=cordconstnode.create(lv or rv,resultdef,true,compiler);
+                   t:=compiler.cordconstnode(lv or rv,resultdef,true);
                andn :
                  if is_integer(ld) then
                    t:=create_simplified_ord_const(lv and rv,resultdef,forinline,false,compiler)
                  else
-                   t:=cordconstnode.create(lv and rv,resultdef,true,compiler);
+                   t:=compiler.cordconstnode(lv and rv,resultdef,true);
                ltn :
-                 t:=cordconstnode.create(ord(lv<rv),pasbool1type,true,compiler);
+                 t:=compiler.cordconstnode(ord(lv<rv),pasbool1type,true);
                lten :
-                 t:=cordconstnode.create(ord(lv<=rv),pasbool1type,true,compiler);
+                 t:=compiler.cordconstnode(ord(lv<=rv),pasbool1type,true);
                gtn :
-                 t:=cordconstnode.create(ord(lv>rv),pasbool1type,true,compiler);
+                 t:=compiler.cordconstnode(ord(lv>rv),pasbool1type,true);
                gten :
-                 t:=cordconstnode.create(ord(lv>=rv),pasbool1type,true,compiler);
+                 t:=compiler.cordconstnode(ord(lv>=rv),pasbool1type,true);
                equaln :
-                 t:=cordconstnode.create(ord(lv=rv),pasbool1type,true,compiler);
+                 t:=compiler.cordconstnode(ord(lv=rv),pasbool1type,true);
                unequaln :
-                 t:=cordconstnode.create(ord(lv<>rv),pasbool1type,true,compiler);
+                 t:=compiler.cordconstnode(ord(lv<>rv),pasbool1type,true);
                slashn :
                  begin
                    { int/int becomes a real }
@@ -908,9 +908,9 @@ const
         else if cmp_of_disjunct_ranges(res) then
           begin
             if res then
-              t:=Cordconstnode.create(1,pasbool1type,true,compiler)
+              t:=compiler.cordconstnode(1,pasbool1type,true)
             else
-              t:=Cordconstnode.create(0,pasbool1type,true,compiler);
+              t:=compiler.cordconstnode(0,pasbool1type,true);
             { don't do this optimization, if the variable expression might
               have a side effect }
             if (is_constintnode(left) and might_have_sideeffects(right)) or
@@ -938,7 +938,7 @@ const
                     begin
                       if (cs_opt_level4 in current_settings.optimizerswitches) or
                          not might_have_sideeffects(left) then
-                        result:=cordconstnode.create(0,resultdef,true,compiler);
+                        result:=compiler.cordconstnode(0,resultdef,true);
                     end
                   else
                     ;
@@ -1070,17 +1070,17 @@ const
                 slashn :
                   t:=compiler.crealconstnode(lvd/rvd,resultrealdef);
                 ltn :
-                  t:=cordconstnode.create(ord(lvd<rvd),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(ord(lvd<rvd),pasbool1type,true);
                 lten :
-                  t:=cordconstnode.create(ord(lvd<=rvd),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(ord(lvd<=rvd),pasbool1type,true);
                 gtn :
-                  t:=cordconstnode.create(ord(lvd>rvd),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(ord(lvd>rvd),pasbool1type,true);
                 gten :
-                  t:=cordconstnode.create(ord(lvd>=rvd),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(ord(lvd>=rvd),pasbool1type,true);
                 equaln :
-                  t:=cordconstnode.create(ord(lvd=rvd),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(ord(lvd=rvd),pasbool1type,true);
                 unequaln :
-                  t:=cordconstnode.create(ord(lvd<>rvd),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(ord(lvd<>rvd),pasbool1type,true);
                 else
                   internalerror(2008022102);
              end;
@@ -1299,17 +1299,17 @@ const
                      t:=cstringconstnode.createunistr(ws1,compiler);
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<0),pasbool1type,true);
                 lten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<=0),pasbool1type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)>0),pasbool1type,true);
                 gten :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)>=0),pasbool1type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)=0),pasbool1type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<>0),pasbool1type,true);
                 else
                   internalerror(2008022103);
              end;
@@ -1379,17 +1379,17 @@ const
                       tstringconstnode(t).changestringtype(getansistringdef)
                   end;
                 ltn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool1type,true);
                 lten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<=0),pasbool1type,true);
                 gtn :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)>0),pasbool1type,true);
                 gten :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)>=0),pasbool1type,true);
                 equaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)=0),pasbool1type,true);
                 unequaln :
-                  t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),pasbool1type,true,compiler);
+                  t:=compiler.cordconstnode(byte(compareansistrings(s1,s2,l1,l2)<>0),pasbool1type,true);
                 else
                   internalerror(2008022104);
              end;
@@ -1427,22 +1427,22 @@ const
                unequaln :
                   begin
                     b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool1type,true,compiler);
+                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
                   end;
                equaln :
                   begin
                     b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool1type,true,compiler);
+                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
                   end;
                lten :
                   begin
                     b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool1type,true,compiler);
+                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
                   end;
                gten :
                   begin
                     b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),pasbool1type,true,compiler);
+                    t:=compiler.cordconstnode(byte(b),pasbool1type,true);
                   end;
                 else
                   internalerror(2008022105);
@@ -1510,7 +1510,7 @@ const
           (ttypeconvnode(ttypeconvnode(left).left).left.resultdef.typ=procdef) and
           left.isequal(right) then
           begin
-            result:=cordconstnode.create(ord(nodetype=equaln),resultdef,false,compiler);
+            result:=compiler.cordconstnode(ord(nodetype=equaln),resultdef,false);
             exit;
           end;
 
@@ -1527,9 +1527,9 @@ const
           begin
             case nodetype of
               equaln:
-                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef=tinlinenode(righttarget).left.resultdef),resultdef,false,compiler);
+                result:=compiler.cordconstnode(ord(tinlinenode(lefttarget).left.resultdef=tinlinenode(righttarget).left.resultdef),resultdef,false);
               unequaln:
-                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef<>tinlinenode(righttarget).left.resultdef),resultdef,false,compiler);
+                result:=compiler.cordconstnode(ord(tinlinenode(lefttarget).left.resultdef<>tinlinenode(righttarget).left.resultdef),resultdef,false);
               else
                 Internalerror(2020092901);
             end;
@@ -1546,17 +1546,17 @@ const
               p2:=tpointerconstnode(right).value;
             case nodetype of
               equaln:
-                result:=cordconstnode.create(ord(p1=p2),bool8type,false,compiler);
+                result:=compiler.cordconstnode(ord(p1=p2),bool8type,false);
               unequaln:
-                result:=cordconstnode.create(ord(p1<>p2),bool8type,false,compiler);
+                result:=compiler.cordconstnode(ord(p1<>p2),bool8type,false);
               gtn:
-                result:=cordconstnode.create(ord(p1>p2),bool8type,false,compiler);
+                result:=compiler.cordconstnode(ord(p1>p2),bool8type,false);
               ltn:
-                result:=cordconstnode.create(ord(p1<p2),bool8type,false,compiler);
+                result:=compiler.cordconstnode(ord(p1<p2),bool8type,false);
               gten:
-                result:=cordconstnode.create(ord(p1>=p2),bool8type,false,compiler);
+                result:=compiler.cordconstnode(ord(p1>=p2),bool8type,false);
               lten:
-                result:=cordconstnode.create(ord(p1<=p2),bool8type,false,compiler);
+                result:=compiler.cordconstnode(ord(p1<=p2),bool8type,false);
               else
                 Internalerror(2020100101);
             end;
@@ -1698,8 +1698,8 @@ const
                       nt:=lten;
 
                     result:=compiler.caddnode_internal(nt,
-                              compiler.ctypeconvnode_internal(compiler.caddnode_internal(subn,vl,cordconstnode.create(cl,hdef,false,compiler)),hdef),
-                              cordconstnode.create(cr-cl,hdef,false,compiler));
+                              compiler.ctypeconvnode_internal(compiler.caddnode_internal(subn,vl,compiler.cordconstnode(cl,hdef,false)),hdef),
+                              compiler.cordconstnode(cr-cl,hdef,false));
 
                     exit;
                   end;
@@ -1763,7 +1763,7 @@ const
                              compiler.caddnode_internal(xorn,compiler.ctypeconvnode_internal(v2p^.getcopy,inttype),
                                compiler.ctypeconvnode_internal(c2p^.getcopy,inttype))
                            ),
-                           cordconstnode.create(0,inttype,false,compiler));
+                           compiler.cordconstnode(0,inttype,false));
                        end;
                    end;
                 { even when short circuit boolean evaluation is active, this
@@ -1782,7 +1782,7 @@ const
                       {
                       xorn:
                         begin
-                          result:=cordconstnode.create(0,resultdef,true);
+                          result:=compiler.cordconstnode(0,resultdef,true);
                           exit;
                         end;
                       }
@@ -1831,14 +1831,14 @@ const
                       ltn,
                       gtn:
                         begin
-                          result:=cordconstnode.create(0,resultdef,true,compiler);
+                          result:=compiler.cordconstnode(0,resultdef,true);
                           exit;
                         end;
                       equaln,
                       lten,
                       gten:
                         begin
-                          result:=cordconstnode.create(1,resultdef,true,compiler);
+                          result:=compiler.cordconstnode(1,resultdef,true);
                           exit;
                         end;
                       else
@@ -2014,7 +2014,7 @@ const
                           nt:=unequaln
                         else
                           nt:=equaln;
-                        result:=compiler.caddnode(nt,t,cordconstnode.create(0,vl.resultdef,false,compiler));
+                        result:=compiler.caddnode(nt,t,compiler.cordconstnode(0,vl.resultdef,false));
                         Include(transientflags,tnf_do_not_execute);
                         if t=left then
                           left:=nil
@@ -2159,7 +2159,7 @@ const
 
             { we use the fact that insert() caps the index to avoid a copy }
             para:=compiler.ccallparanode(
-                    cordconstnode.create(index,sizesinttype,false,compiler),
+                    compiler.cordconstnode(index,sizesinttype,false),
                     compiler.ccallparanode(
                       aktassignmentnode.left.getcopy,
                       compiler.ccallparanode(
@@ -2928,7 +2928,7 @@ const
                         hp:=getcopy;
                         include(taddnode(hp).addnodeflags, anf_has_pointerdiv);
                         result:=cmoddivnode.create(divn,hp,
-                          cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(rd).pointer_subtraction_result_type,false,compiler),compiler);
+                          compiler.cordconstnode(tpointerdef(rd).pointeddef.size,tpointerdef(rd).pointer_subtraction_result_type,false),compiler);
                       end;
                     resultdef:=tpointerdef(rd).pointer_subtraction_result_type;
                     exit;
@@ -3245,7 +3245,7 @@ const
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
                      left:=compiler.caddnode(muln,left,
-                       cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(right.resultdef).pointer_arithmetic_int_type,true,compiler));
+                       compiler.cordconstnode(tpointerdef(rd).pointeddef.size,tpointerdef(right.resultdef).pointer_arithmetic_int_type,true));
                      typecheckpass(left);
                    end;
               end
@@ -3281,7 +3281,7 @@ const
                    if (tpointerdef(ld).pointeddef.size>1) then
                    begin
                      right:=compiler.caddnode(muln,right,
-                       cordconstnode.create(tpointerdef(ld).pointeddef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true,compiler));
+                       compiler.cordconstnode(tpointerdef(ld).pointeddef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true));
                      typecheckpass(right);
                    end
                  end else
@@ -3289,7 +3289,7 @@ const
                       (tarraydef(ld).elementdef.size>1) then
                      begin
                        right:=compiler.caddnode(muln,right,
-                         cordconstnode.create(tarraydef(ld).elementdef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true,compiler));
+                         compiler.cordconstnode(tarraydef(ld).elementdef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true));
                        typecheckpass(right);
                      end;
                end
@@ -3462,7 +3462,7 @@ const
                         end
                       else
                         begin
-                          hp:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,s64currencytype,false,compiler),compiler);
+                          hp:=cmoddivnode.create(divn,getcopy,compiler.cordconstnode(10000,s64currencytype,false),compiler);
                           include(hp.flags,nf_is_currency);
                         end
                     end;
@@ -3531,13 +3531,12 @@ const
                         );
                   if is_ansistring(resultdef) then
                     para:=compiler.ccallparanode(
-                            cordconstnode.create(
+                            compiler.cordconstnode(
                               { don't use getparaencoding(), we have to know
                                 when the result is rawbytestring }
                               tstringdef(resultdef).encoding,
                               u16inttype,
-                              true,
-                              compiler
+                              true
                             ),
                             para
                           );
@@ -3572,13 +3571,12 @@ const
                         );
                   if is_ansistring(resultdef) then
                     para:=compiler.ccallparanode(
-                            cordconstnode.create(
+                            compiler.cordconstnode(
                               { don't use getparaencoding(), we have to know
                                 when the result is rawbytestring }
                               tstringdef(resultdef).encoding,
                               u16inttype,
-                              true,
-                              compiler
+                              true
                             ),
                             para
                           );
@@ -3618,7 +3616,7 @@ const
                     { compare the length with 0 }
                     result := compiler.caddnode(nodetype,
                       cinlinenode.create(in_length_x,false,left,compiler),
-                      cordconstnode.create(0,s8inttype,false,compiler))
+                      compiler.cordconstnode(0,s8inttype,false))
                   else { nodetype in [equaln,unequaln] }
                     begin
                       if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
@@ -3626,7 +3624,7 @@ const
                           { windows like widestrings requires that we also check the length }
                           result:=cinlinenode.create(in_length_x,false,left,compiler);
                           { and compare its result with 0 }
-                          result:=compiler.caddnode(equaln,result,cordconstnode.create(0,s8inttype,false,compiler));
+                          result:=compiler.caddnode(equaln,result,compiler.cordconstnode(0,s8inttype,false));
                           if nodetype=unequaln then
                             result:=cnotnode.create(result,compiler);
                         end
@@ -3656,7 +3654,7 @@ const
                 compiler.ccallparanode(right,compiler.ccallparanode(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := compiler.caddnode(nodetype,result,
-                cordconstnode.create(0,s8inttype,false,compiler));
+                compiler.cordconstnode(0,s8inttype,false));
               left := nil;
               right := nil;
             end;
@@ -3680,7 +3678,7 @@ const
               valid_for_var(aktassignmentnode.left,false) then
             begin
               result:=compiler.ccallnode_intern(n,
-                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                 compiler.ccallparanode(aktassignmentnode.left.getcopy,
                 compiler.ccallparanode(right,
                 compiler.ccallparanode(left,nil))))
@@ -3703,7 +3701,7 @@ const
               addstatement(newstatement,temp);
 
               addstatement(newstatement,compiler.ccallnode_intern(n,
-                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                 compiler.ccallparanode(compiler.ctemprefnode(temp),
                 compiler.ccallparanode(right,
                 compiler.ccallparanode(left,nil)))))
@@ -3751,7 +3749,7 @@ const
                     internalerror(2013112911);
                 end;
                 result := compiler.ccallnode_internres(procname,
-                  compiler.ccallparanode(cordconstnode.create(left.resultdef.size,sinttype,false,compiler),
+                  compiler.ccallparanode(compiler.cordconstnode(left.resultdef.size,sinttype,false),
                   compiler.ccallparanode(right,
                   compiler.ccallparanode(left,nil))),resultdef);
                 { left and right are reused as parameters }
@@ -3777,13 +3775,13 @@ const
                   { adjust for set base }
                   tsetelementnode(right).left:=compiler.caddnode(subn,
                     compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                    cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
+                    compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
 
                   if no_temp then
                     begin
                       result:=compiler.ccallnode_intern('fpc_varset_create_element',
                         compiler.ccallparanode(aktassignmentnode.left.getcopy,
-                        compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                        compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                         compiler.ccallparanode(tsetelementnode(right).left,nil))));
                       include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                     end
@@ -3797,7 +3795,7 @@ const
 
                       addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_create_element',
                         compiler.ccallparanode(compiler.ctemprefnode(temp),
-                        compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                        compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                         compiler.ccallparanode(tsetelementnode(right).left,nil))))
                       );
 
@@ -3822,15 +3820,15 @@ const
                               { adjust for set base }
                               tsetelementnode(right).left:=compiler.caddnode(subn,
                                 compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
+                                compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
 
                               { adjust for set base }
                               tsetelementnode(right).right:=compiler.caddnode(subn,
                                 compiler.ctypeconvnode_internal(tsetelementnode(right).right,sinttype),
-                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
+                                compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
 
                               result:=compiler.ccallnode_intern('fpc_varset_set_range',
-                                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                                 compiler.ccallparanode(tsetelementnode(right).right,
                                 compiler.ccallparanode(tsetelementnode(right).left,
                                 compiler.ccallparanode(aktassignmentnode.left.getcopy,
@@ -3847,10 +3845,10 @@ const
                                   { adjust for set base }
                                   tsetelementnode(right).left:=compiler.caddnode(subn,
                                     compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                                    cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
+                                    compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
 
                                   result:=compiler.ccallnode_intern('fpc_varset_set',
-                                    compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                                    compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                                     compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                                     compiler.ccallparanode(aktassignmentnode.left.getcopy,
                                     compiler.ccallparanode(left,nil)))));
@@ -3864,7 +3862,7 @@ const
                           { adjust for set base }
                           tsetelementnode(right).left:=compiler.caddnode(subn,
                             compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                            cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
+                            compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
 
                           result:=internalstatements(compiler,newstatement);
 
@@ -3878,9 +3876,9 @@ const
                               { adjust for set base }
                               tsetelementnode(right).right:=compiler.caddnode(subn,
                                 compiler.ctypeconvnode_internal(tsetelementnode(right).right,sinttype),
-                                cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
+                                compiler.cordconstnode(tsetdef(resultdef).setbase,sinttype,false));
                               addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set_range',
-                                compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                                compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                                 compiler.ccallparanode(tsetelementnode(right).right,
                                 compiler.ccallparanode(tsetelementnode(right).left,
                                 compiler.ccallparanode(compiler.ctemprefnode(temp),
@@ -3889,7 +3887,7 @@ const
                             end
                           else
                             addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set',
-                              compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
+                              compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                               compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                               compiler.ccallparanode(compiler.ctemprefnode(temp),
                               compiler.ccallparanode(left,nil)))))
@@ -4569,7 +4567,7 @@ const
                      for i:=low(tconstset) to high(tconstset) do
                        if i in constsetnode.value_set^ then
                          begin
-                           tempn:=cinnode.create(cordconstnode.create(i,tsetdef(constsetnode.resultdef).elementdef,false,compiler),varsetnode.getcopy,compiler);
+                           tempn:=cinnode.create(compiler.cordconstnode(i,tsetdef(constsetnode.resultdef).elementdef,false),varsetnode.getcopy,compiler);
                            if assigned(result) then
                              result:=compiler.caddnode_internal(orn,result,tempn)
                            else

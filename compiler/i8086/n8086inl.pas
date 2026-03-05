@@ -100,7 +100,7 @@ implementation
            begin
              seg_node:=geninlinenode(in_seg_x,false,left.getcopy);
              inserttypeconv_internal(seg_node,u32inttype);
-             seg_node:=cshlshrnode.create(shln,seg_node,cordconstnode.create(16,u8inttype,false));
+             seg_node:=cshlshrnode.create(shln,seg_node,compiler.cordconstnode(16,u8inttype,false));
              inserttypeconv_internal(addr_node,u32inttype);
              left:=nil;
              result:=compiler.caddnode(addn,seg_node,addr_node);
@@ -294,7 +294,7 @@ implementation
              else
                elesize:=tpointerdef(tcallparanode(left).left.resultdef).pointeddef.size;
 
-             hp := cordconstnode.create(elesize,s32inttype,false);
+             hp := compiler.cordconstnode(elesize,s32inttype,false);
              { extra parameter? }
              if assigned(tcallparanode(left).right) then
                hp:=compiler.caddnode(muln,hp,tcallparanode(tcallparanode(left).right).left.getcopy);

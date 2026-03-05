@@ -363,13 +363,12 @@ begin
             );
       if is_ansistring(p.resultdef) then
         para:=compiler.ccallparanode(
-                cordconstnode.create(
+                compiler.cordconstnode(
                   { don't use getparaencoding(), we have to know
                     when the result is rawbytestring }
                   tstringdef(p.resultdef).encoding,
                   u16inttype,
-                  true,
-                  compiler
+                  true
                 ),
                 para
               );
@@ -400,13 +399,12 @@ begin
             );
       if is_ansistring(p.resultdef) then
         para:=compiler.ccallparanode(
-                cordconstnode.create(
+                compiler.cordconstnode(
                   { don't use getparaencoding(), we have to know
                     when the result is rawbytestring }
                   tstringdef(p.resultdef).encoding,
                   u16inttype,
-                  true,
-                  compiler
+                  true
                 ),
                 para
               );

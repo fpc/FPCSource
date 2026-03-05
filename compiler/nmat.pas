@@ -159,7 +159,7 @@ implementation
               begin
                 case nodetype of
                   modn:
-                    result := cordconstnode.create(0,left.resultdef,true,compiler);
+                    result := compiler.cordconstnode(0,left.resultdef,true);
                   divn:
                     result := left.getcopy;
                   else
@@ -196,7 +196,7 @@ implementation
             else if (rv=-1) and
               (nodetype=modn) then
               begin
-                result:=cordconstnode.create(0,left.resultdef,true,compiler);
+                result:=compiler.cordconstnode(0,left.resultdef,true);
                 left:=nil;
                 exit;
               end;
@@ -456,7 +456,7 @@ implementation
             not(nf_is_currency in flags) and
             is_currency(resultdef) then
           begin
-            hp:=compiler.caddnode(muln,getcopy,cordconstnode.create(10000,s64currencytype,false,compiler));
+            hp:=compiler.caddnode(muln,getcopy,compiler.cordconstnode(10000,s64currencytype,false));
             include(hp.flags,nf_is_currency);
             result:=hp;
           end;
@@ -468,7 +468,7 @@ implementation
              result_data:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,true);
 
              { right <=0? }
-             addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false,compiler)),
+             addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(lten,right.getcopy,compiler.cordconstnode(0,resultdef,false)),
                { then: result:=left mod right }
                compiler.ccallnode_intern('fpc_divbyzero',nil),
                nil,
@@ -479,7 +479,7 @@ implementation
              { result:=(-left) mod right }
              addstatement(else_statements,cassignmentnode.create(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy,compiler),compiler));
              { result<>0? }
-             addstatement(else_statements,cifnode.create_internal(compiler.caddnode_internal(unequaln,compiler.ctemprefnode(result_data),cordconstnode.create(0,resultdef,false,compiler)),
+             addstatement(else_statements,cifnode.create_internal(compiler.caddnode_internal(unequaln,compiler.ctemprefnode(result_data),compiler.cordconstnode(0,resultdef,false)),
                { then: result:=right-result }
                cassignmentnode.create_internal(compiler.ctemprefnode(result_data),compiler.caddnode_internal(subn,right.getcopy,compiler.ctemprefnode(result_data)),compiler),
                nil,
@@ -488,7 +488,7 @@ implementation
 
              addstatement(statements,result_data);
              { if left>=0 }
-             addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false,compiler)),
+             addstatement(statements,cifnode.create_internal(compiler.caddnode_internal(gten,left.getcopy,compiler.cordconstnode(0,resultdef,false)),
                { then: result:=left mod right }
                cassignmentnode.create_internal(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler),compiler),
                { else block }
@@ -641,26 +641,26 @@ implementation
                       masknode:=
                         cshlshrnode.create(shrn,
                           compiler.ctemprefnode(temp),
-                          cordconstnode.create(shiftval,u8inttype,false,compiler),
+                          compiler.cordconstnode(shiftval,u8inttype,false),
                           compiler
                         )
                     else
                       masknode:=
                         compiler.caddnode(andn,
                           cinlinenode.create(in_sar_x_y,false,
-                            compiler.ccallparanode(cordconstnode.create(shiftval,u8inttype,false,compiler),
+                            compiler.ccallparanode(compiler.cordconstnode(shiftval,u8inttype,false),
                             compiler.ccallparanode(compiler.ctemprefnode(temp),nil)),
                             compiler
                           ),
-                          cordconstnode.create(tcgint((qword(1) shl power)-1),
-                            right.resultdef,false,compiler)
+                          compiler.cordconstnode(tcgint((qword(1) shl power)-1),
+                            right.resultdef,false)
                         );
 
                     if invertsign then
                       addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                         cunaryminusnode.create(
                           cinlinenode.create(in_sar_x_y,false,
-                            compiler.ccallparanode(cordconstnode.create(power,u8inttype,false,compiler),
+                            compiler.ccallparanode(compiler.cordconstnode(power,u8inttype,false),
                             compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                               masknode),nil
                             )),compiler),compiler),compiler)
@@ -668,7 +668,7 @@ implementation
                     else
                       addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                         cinlinenode.create(in_sar_x_y,false,
-                          compiler.ccallparanode(cordconstnode.create(power,u8inttype,false,compiler),
+                          compiler.ccallparanode(compiler.cordconstnode(power,u8inttype,false),
                           compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                             masknode),nil
                           )),compiler),compiler)
@@ -704,19 +704,19 @@ implementation
                   masknode:=
                     cshlshrnode.create(shrn,
                       compiler.ctemprefnode(temp),
-                      cordconstnode.create(shiftval,u8inttype,false,compiler),
+                      compiler.cordconstnode(shiftval,u8inttype,false),
                       compiler
                     )
                 else
                   masknode:=
                     compiler.caddnode(andn,
                       cinlinenode.create(in_sar_x_y,false,
-                        compiler.ccallparanode(cordconstnode.create(shiftval,u8inttype,false,compiler),
+                        compiler.ccallparanode(compiler.cordconstnode(shiftval,u8inttype,false),
                         compiler.ccallparanode(compiler.ctemprefnode(temp),nil)),
                         compiler
                       ),
-                      cordconstnode.create(tcgint((qword(1) shl power)-1),
-                        right.resultdef,false,compiler)
+                      compiler.cordconstnode(tcgint((qword(1) shl power)-1),
+                        right.resultdef,false)
                     );
                 addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),masknode,compiler));
 
@@ -878,7 +878,7 @@ implementation
             if (lvalue=0) and
                ((cs_opt_level4 in current_settings.optimizerswitches) or
                 not might_have_sideeffects(right)) then
-              result:=cordconstnode.create(0,resultdef,true,compiler);
+              result:=compiler.cordconstnode(0,resultdef,true);
           end;
       end;
 
@@ -1395,11 +1395,11 @@ implementation
                generator using the size of left
                }
              if not(forinline) then
-               t:=cordconstnode.create(v,def,false,compiler)
+               t:=compiler.cordconstnode(v,def,false)
              else
                begin
                  { cut off the value if necessary }
-                 t:=cordconstnode.create(v,left.resultdef,false,compiler);
+                 t:=compiler.cordconstnode(v,left.resultdef,false);
                  { now convert to node's resultdef }
                  inserttypeconv_explicit(t,def,compiler);
                end;

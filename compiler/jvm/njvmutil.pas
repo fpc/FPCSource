@@ -256,7 +256,7 @@ implementation
               jvmgetarraydimdef(sym.vardef,eledef,ndim);
               initnode:=compiler.ccallparanode(genintconstnode(ndim),initnode);
               initnode:=compiler.ccallparanode(
-                cordconstnode.create(ord(jvmarrtype_setlength(eledef)),
+                compiler.cordconstnode(ord(jvmarrtype_setlength(eledef)),
                   cwidechartype,false),
                 initnode);
               initnodefinished:=true;
@@ -351,7 +351,7 @@ implementation
       if trashable and
          is_widechar(tabstractvarsym(p).vardef) then
         trash_small(stat,trashn,
-          cordconstnode.create(word(trashintval),tabstractvarsym(p).vardef,false))
+          compiler.cordconstnode(word(trashintval),tabstractvarsym(p).vardef,false))
       { enums are class instances in the JVM -> create a valid instance }
       else if trashable and
          is_enum(tabstractvarsym(p).vardef) then
@@ -361,7 +361,7 @@ implementation
           if not assigned(enumdef.int2enumsym(trashenumval)) then
             trashintval:=longint(enumdef.min);
           trash_small(stat,trashn,
-            cordconstnode.create(trashintval,enumdef,false))
+            compiler.cordconstnode(trashintval,enumdef,false))
         end
       { can't init pointers with arbitrary values; procvardef and objectdef are
         always pointer-sized here because tjvmnodeutils.trashablesym returns
@@ -379,10 +379,10 @@ implementation
           is_cbool(tabstractvarsym(p).vardef) or
           is_anychar(tabstractvarsym(p).vardef) or
           is_currency(tabstractvarsym(p).vardef)) then
-        trash_small(stat,trashn,cordconstnode.create(trashintval,tabstractvarsym(p).vardef,false))
+        trash_small(stat,trashn,compiler.cordconstnode(trashintval,tabstractvarsym(p).vardef,false))
       else if trashable and
          is_pasbool(tabstractvarsym(p).vardef) then
-        trash_small(stat,trashn,cordconstnode.create(trashintval and 1,tabstractvarsym(p).vardef,false))
+        trash_small(stat,trashn,compiler.cordconstnode(trashintval and 1,tabstractvarsym(p).vardef,false))
       else
         inherited;
     end;

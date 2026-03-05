@@ -241,7 +241,7 @@ implementation
         htype : tdef;
       begin
          int_to_type(v,htype);
-         genintconstnode:=cordconstnode.create(v,htype,true,acompiler);
+         genintconstnode:=acompiler.cordconstnode(v,htype,true);
       end;
 
 
@@ -252,7 +252,7 @@ implementation
         int_to_type(v,htype);
         if htype.size<preferredinttype.size then
           htype:=preferredinttype;
-        result:=cordconstnode.create(v,htype,true,acompiler);
+        result:=acompiler.cordconstnode(v,htype,true);
       end;
 
 
@@ -261,7 +261,7 @@ implementation
         htype : tdef;
       begin
          htype:=v.definition;
-         genenumnode:=cordconstnode.create(int64(v.value),htype,true,acompiler);
+         genenumnode:=acompiler.cordconstnode(int64(v.value),htype,true);
       end;
 
 
@@ -343,7 +343,7 @@ implementation
                 internalerror(200403232);
               { no range checking; if it has a fixed type, the necessary value
                 truncation was already performed at the declaration time }
-              p1:=cordconstnode.create(p.value.valueord,p.constdef,false,compiler);
+              p1:=compiler.cordconstnode(p.value.valueord,p.constdef,false);
             end;
           conststring :
             begin

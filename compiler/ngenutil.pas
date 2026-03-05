@@ -218,7 +218,7 @@ implementation
             { parameter 2 : pointer to vmt }
             { parameter 1 : self pointer }
             para:=compiler.ccallparanode(
-                      cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
+                      compiler.cordconstnode(tobjectdef(current_structdef).vmt_offset,s32inttype,false),
                   compiler.ccallparanode(
                       compiler.ctypeconvnode_internal(
                           load_vmt_pointer_node,
@@ -598,14 +598,14 @@ implementation
                   compiler.ccallparanode(
                     cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
                   compiler.ccallparanode(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
                     cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                   nil)))))
               else
                 addstatement(stat^,compiler.ccallnode_intern('fpc_textinit_iso',
                   compiler.ccallparanode(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
                     cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                   nil))));
@@ -617,14 +617,14 @@ implementation
                   compiler.ccallparanode(
                     cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
                   compiler.ccallparanode(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
                     cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                   nil)))))
               else
                 addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_init_iso',
                   compiler.ccallparanode(
-                    cordconstnode.create(tstaticvarsym(p).isoindex,uinttype,false,compiler),
+                    compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
                     cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
                   nil))));
@@ -907,10 +907,10 @@ implementation
               { an open string has at least size 2                      }
               trash_small(stat,
                 cvecnode.create(trashn.getcopy,genintconstnode(0,compiler),compiler),
-                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false,compiler));
+                compiler.cordconstnode(tconstexprint(byte(trashintval)),cansichartype,false));
               trash_small(stat,
                 cvecnode.create(trashn,genintconstnode(1,compiler),compiler),
-                cordconstnode.create(tconstexprint(byte(trashintval)),cansichartype,false,compiler));
+                compiler.cordconstnode(tconstexprint(byte(trashintval)),cansichartype,false));
             end;
         end
       else
@@ -940,7 +940,7 @@ implementation
   procedure tnodeutils.trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64);
     begin
       addstatement(stat,compiler.ccallnode_intern('fpc_fillmem',
-        compiler.ccallparanode(cordconstnode.create(tconstexprint(byte(trashintval)),u8inttype,false,compiler),
+        compiler.ccallparanode(compiler.cordconstnode(tconstexprint(byte(trashintval)),u8inttype,false),
         compiler.ccallparanode(sizen,
         compiler.ccallparanode(trashn,nil)))
         ));

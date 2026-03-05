@@ -336,7 +336,7 @@ implementation
             ((right.nodetype = setconstn) and
              (tnormalset(tsetconstnode(right).value_set^) = [])) then
           begin
-            t:=cordconstnode.create(0,pasbool1type,false,compiler);
+            t:=compiler.cordconstnode(0,pasbool1type,false);
             typecheckpass(t);
             result:=t;
             exit;
@@ -363,11 +363,11 @@ implementation
                  { value > high(longint) if we don't take the signedness    }
                  { into account                                             }
                  if Tordconstnode(left).value.signed then
-                   t:=cordconstnode.create(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
-                     pasbool1type,true,compiler)
+                   t:=compiler.cordconstnode(byte(tordconstnode(left).value.svalue in Tsetconstnode(right).value_set^),
+                     pasbool1type,true)
                  else
-                   t:=cordconstnode.create(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
-                     pasbool1type,true,compiler);
+                   t:=compiler.cordconstnode(byte(tordconstnode(left).value.uvalue in Tsetconstnode(right).value_set^),
+                     pasbool1type,true);
                  typecheckpass(t);
                  result:=t;
                  exit;
@@ -377,7 +377,7 @@ implementation
                  if (Tordconstnode(left).value<int64(tsetdef(right.resultdef).setbase)) or
                     (Tordconstnode(left).value>int64(Tsetdef(right.resultdef).setmax)) then
                    begin
-                     t:=cordconstnode.create(0, pasbool1type, true, compiler);
+                     t:=compiler.cordconstnode(0, pasbool1type, true);
                      typecheckpass(t);
                      result:=t;
                      exit;
@@ -398,7 +398,7 @@ implementation
            ) and
            not(might_have_sideeffects(left,[mhs_exceptions])) then
            begin
-             t:=cordconstnode.create(1, pasbool1type, true, compiler);
+             t:=compiler.cordconstnode(1, pasbool1type, true);
              typecheckpass(t);
              result:=t;
              exit;
@@ -407,7 +407,7 @@ implementation
          else if is_emptyset(right) and
            not(might_have_sideeffects(left,[mhs_exceptions])) then
            begin
-             t:=cordconstnode.create(1, pasbool1type, false, compiler);
+             t:=compiler.cordconstnode(1, pasbool1type, false);
              typecheckpass(t);
              result:=t;
              exit;
@@ -969,15 +969,15 @@ implementation
              if flabels^._low=flabels^._high then
                begin
                  result:=cifnode.create_internal(
-                   compiler.caddnode_internal(equaln,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler)),
+                   compiler.caddnode_internal(equaln,left.getcopy,compiler.cordconstnode(flabels^._low,left.resultdef,false)),
                    pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
                end
              else if not(might_have_sideeffects(left,[mhs_exceptions])) and (node_complexity(left)<=1) then
                begin
                  result:=cifnode.create_internal(
                    compiler.caddnode_internal(andn,
-                     compiler.caddnode_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler)),
-                     compiler.caddnode_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler))
+                     compiler.caddnode_internal(gten,left.getcopy,compiler.cordconstnode(flabels^._low,left.resultdef,false)),
+                     compiler.caddnode_internal(lten,left.getcopy,compiler.cordconstnode(flabels^._high,left.resultdef,false))
                    ),
                    pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
                end
@@ -998,8 +998,8 @@ implementation
 
                  addstatement(stmt,cifnode.create_internal(
                    compiler.caddnode_internal(andn,
-                     compiler.caddnode_internal(gten,left.getcopy,cordconstnode.create(flabels^._low,left.resultdef,false,compiler)),
-                     compiler.caddnode_internal(lten,left.getcopy,cordconstnode.create(flabels^._high,left.resultdef,false,compiler))
+                     compiler.caddnode_internal(gten,left.getcopy,compiler.cordconstnode(flabels^._low,left.resultdef,false)),
+                     compiler.caddnode_internal(lten,left.getcopy,compiler.cordconstnode(flabels^._high,left.resultdef,false))
                    ),
                    pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler));
                  addstatement(stmt,temp_cleanup);

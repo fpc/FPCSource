@@ -380,8 +380,8 @@ implementation
             if not is_currency(source.resultdef) then
               begin
                 rt:=ord(tfloatdef(source.left.resultdef).floattype);
-                newparas.right := compiler.ccallparanode(cordconstnode.create(
-                  rt,s32inttype,true,compiler),newparas.right);
+                newparas.right := compiler.ccallparanode(compiler.cordconstnode(
+                  rt,s32inttype,true),newparas.right);
                 tmppara:=tcallparanode(newparas.right);
               end
             else
@@ -390,14 +390,14 @@ implementation
             if not assigned(fracpara) then
               begin
                 tmppara.right := compiler.ccallparanode(
-                  cordconstnode.create(int64(-1),s32inttype,false,compiler),
+                  compiler.cordconstnode(int64(-1),s32inttype,false),
                    tmppara.right);
                 fracpara := tcallparanode(tmppara.right);
               end;
             { if necessary, insert a length para }
             if not assigned(lenpara) then
               fracpara.right := compiler.ccallparanode(
-                cordconstnode.create(int64(-32767),s32inttype,false,compiler),
+                compiler.cordconstnode(int64(-32767),s32inttype,false),
                    fracpara.right);
           end
         else if is_enum then
@@ -424,14 +424,14 @@ implementation
             if not assigned(lenpara) then
               Tcallparanode(Tcallparanode(newparas.right).right).right:=
                 compiler.ccallparanode(
-                  cordconstnode.create(int64(-1),s32inttype,false,compiler),
+                  compiler.cordconstnode(int64(-1),s32inttype,false),
                   Tcallparanode(Tcallparanode(newparas.right).right).right
                 );
           end
         else
           { for a normal parameter, insert a only length parameter if one is missing }
           if not assigned(lenpara) then
-            newparas.right := compiler.ccallparanode(cordconstnode.create(int64(-1),s32inttype,false,compiler),
+            newparas.right := compiler.ccallparanode(compiler.cordconstnode(int64(-1),s32inttype,false),
               newparas.right);
 
         { remove the parameters from the original node so they won't get disposed, }
@@ -474,8 +474,8 @@ implementation
 
         { for ansistrings insert the encoding argument }
         if is_ansistring(dest.resultdef) then
-          newparas:=compiler.ccallparanode(cordconstnode.create(
-            getparaencoding(dest.resultdef),u16inttype,true,compiler),newparas);
+          newparas:=compiler.ccallparanode(compiler.cordconstnode(
+            getparaencoding(dest.resultdef),u16inttype,true),newparas);
 
         { free the errornode we generated in the beginning }
         result.free;
@@ -575,7 +575,7 @@ implementation
               TRange1 = -10..-5;
               TRange2 = 5..10;
               TEnum = (a:=5;b:=10); }
-            result:=cordconstnode.create(0,def,false,compiler);
+            result:=compiler.cordconstnode(0,def,false);
           classrefdef,
           pointerdef:
             result:=cpointerconstnode.create(0,def,compiler);
@@ -661,16 +661,16 @@ implementation
         { iso mode extension with name? }
         if inlinenumber in [in_reset_typedfile_name,in_rewrite_typedfile_name] then
           begin
-            left := compiler.ccallparanode(cordconstnode.create(
-              tfiledef(tcallparanode(tcallparanode(left).nextpara).paravalue.resultdef).typedfiledef.size,s32inttype,true,compiler),left);
+            left := compiler.ccallparanode(compiler.cordconstnode(
+              tfiledef(tcallparanode(tcallparanode(left).nextpara).paravalue.resultdef).typedfiledef.size,s32inttype,true),left);
           end
         else
           begin
             { note: for some reason, the parameter of intern procedures with only one }
             {   parameter is gets lifted out of its original tcallparanode (see round }
             {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
-            left := compiler.ccallparanode(cordconstnode.create(
-              tfiledef(left.resultdef).typedfiledef.size,s32inttype,true,compiler),
+            left := compiler.ccallparanode(compiler.cordconstnode(
+              tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
               compiler.ccallparanode(left,nil));
           end;
         { create the correct call }
@@ -1050,10 +1050,10 @@ implementation
                         begin
                           if m_isolike_io in current_settings.modeswitches then
                             lenpara := compiler.ccallparanode(
-                              cordconstnode.create(-1,s32inttype,false,compiler),nil)
+                              compiler.cordconstnode(-1,s32inttype,false),nil)
                           else
                             lenpara := compiler.ccallparanode(
-                              cordconstnode.create(0,s32inttype,false,compiler),nil);
+                              compiler.cordconstnode(0,s32inttype,false),nil);
                         end
                       else
                         { make sure we don't pass the successive }
@@ -1066,11 +1066,11 @@ implementation
                     begin
                       if not assigned(lenpara) then
                         lenpara := compiler.ccallparanode(
-                          cordconstnode.create(int64(-32767),s32inttype,false,compiler),nil);
+                          compiler.cordconstnode(int64(-32767),s32inttype,false),nil);
                       { also create a default fracpara if necessary }
                       if not assigned(fracpara) then
                         fracpara := compiler.ccallparanode(
-                          cordconstnode.create(int64(-1),s32inttype,false,compiler),nil);
+                          compiler.cordconstnode(int64(-1),s32inttype,false),nil);
                       { add it to the lenpara }
                       lenpara.right := fracpara;
                       if not is_currency(para.left.resultdef) then
@@ -1078,8 +1078,8 @@ implementation
                           { and add the realtype para (this also removes the link }
                           { to any parameters coming after it)                    }
                           fracpara.right := compiler.ccallparanode(
-                              cordconstnode.create(ord(tfloatdef(para.left.resultdef).floattype),
-                              s32inttype,true,compiler),nil);
+                              compiler.cordconstnode(ord(tfloatdef(para.left.resultdef).floattype),
+                              s32inttype,true),nil);
                         end
                       else
                         fracpara.right:=nil;
@@ -1185,13 +1185,13 @@ implementation
                     end;
                   { in case of writing a chararray, add whether it's zero-based }
                   if para.left.resultdef.typ=arraydef then
-                    para := compiler.ccallparanode(cordconstnode.create(
-                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool1type,false,compiler),para)
+                    para := compiler.ccallparanode(compiler.cordconstnode(
+                      ord(tarraydef(para.left.resultdef).lowrange=0),pasbool1type,false),para)
                   else
                   { in case of reading an ansistring pass a codepage argument }
                   if do_read and is_ansistring(para.left.resultdef) then
-                    para:=compiler.ccallparanode(cordconstnode.create(
-                      getparaencoding(para.left.resultdef),u16inttype,true,compiler),para);
+                    para:=compiler.ccallparanode(compiler.cordconstnode(
+                      getparaencoding(para.left.resultdef),u16inttype,true),para);
                   { create the call statement }
                   addstatement(Tstatementnode(newstatement),
                     compiler.ccallnode_intern(name,para));
@@ -1268,8 +1268,8 @@ implementation
       temp:=nil;
       { add the typesize to the filepara }
       if filepara.resultdef.typ=filedef then
-        filepara.right := compiler.ccallparanode(cordconstnode.create(
-          tfiledef(filepara.resultdef).typedfiledef.size,s32inttype,true,compiler),nil);
+        filepara.right := compiler.ccallparanode(compiler.cordconstnode(
+          tfiledef(filepara.resultdef).typedfiledef.size,s32inttype,true),nil);
 
       { check for "no parameters" (you need at least one extra para for typed files) }
       if not assigned(para) then
@@ -1774,8 +1774,8 @@ implementation
                     suffix := get_val_int_func(destpara.resultdef) + '_';
                     { we also need a destsize para in the case of sint or uint }
                     if (suffix = 'sint_') or (suffix = 'uint_') then
-                      sizepara := compiler.ccallparanode(cordconstnode.create
-                        (destpara.resultdef.size,s32inttype,true,compiler),nil);
+                      sizepara := compiler.ccallparanode(compiler.cordconstnode
+                        (destpara.resultdef.size,s32inttype,true),nil);
                   end;
                 scurrency: suffix := 'currency_';
                 else
@@ -2103,7 +2103,7 @@ implementation
                     v:=torddef(def).low
                   else
                     v:=torddef(def).high;
-                  hp:=cordconstnode.create(v,def,true,compiler);
+                  hp:=compiler.cordconstnode(v,def,true);
                   typecheckpass(hp);
                   do_lowhigh:=hp;
                end;
@@ -2248,11 +2248,11 @@ implementation
 {$push}
 {$r-,q-}
               if shift=0 then
-                result:=cordconstnode.create(vl2.svalue,def,false,compiler)
+                result:=compiler.cordconstnode(vl2.svalue,def,false)
               else if vl2.svalue<0 then
-                result:=cordconstnode.create(((vl2.svalue shr shift) or (mask shl (bits-shift))) and mask,def,false,compiler)
+                result:=compiler.cordconstnode(((vl2.svalue shr shift) or (mask shl (bits-shift))) and mask,def,false)
               else
-                result:=cordconstnode.create((vl2.svalue shr shift) and mask,def,false,compiler);
+                result:=compiler.cordconstnode((vl2.svalue shr shift) and mask,def,false);
 {$pop}
             end
           else if (left.nodetype=callparan) and assigned(tcallparanode(left).right) and
@@ -2271,9 +2271,9 @@ implementation
                   not might_have_sideeffects(tcallparanode(left).left)) then
                 begin
                   if vl2=0 then
-                    result:=cordconstnode.create(0,resultdef,true,compiler)
+                    result:=compiler.cordconstnode(0,resultdef,true)
                   else
-                    result:=cordconstnode.create(-1,resultdef,true,compiler);
+                    result:=compiler.cordconstnode(-1,resultdef,true);
                 end;
             end;
         end;
@@ -2334,32 +2334,32 @@ implementation
 {$push}
 {$r-,q-}
               if shift=0 then
-                result:=cordconstnode.create(vl2.svalue,def,false,compiler)
+                result:=compiler.cordconstnode(vl2.svalue,def,false)
               else
                 case inlinenumber of
                   in_ror_x,in_ror_x_y:
                     case def.size of
                       1:
-                        result:=cordconstnode.create(RorByte(Byte(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RorByte(Byte(vl2.svalue),shift),def,false);
                       2:
-                        result:=cordconstnode.create(RorWord(Word(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RorWord(Word(vl2.svalue),shift),def,false);
                       4:
-                        result:=cordconstnode.create(RorDWord(DWord(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RorDWord(DWord(vl2.svalue),shift),def,false);
                       8:
-                        result:=cordconstnode.create(RorQWord(QWord(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RorQWord(QWord(vl2.svalue),shift),def,false);
                       else
                         internalerror(2011061903);
                     end;
                   in_rol_x,in_rol_x_y:
                     case def.size of
                       1:
-                        result:=cordconstnode.create(RolByte(Byte(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RolByte(Byte(vl2.svalue),shift),def,false);
                       2:
-                        result:=cordconstnode.create(RolWord(Word(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RolWord(Word(vl2.svalue),shift),def,false);
                       4:
-                        result:=cordconstnode.create(RolDWord(DWord(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RolDWord(DWord(vl2.svalue),shift),def,false);
                       8:
-                        result:=cordconstnode.create(RolQWord(QWord(vl2.svalue),shift),def,false,compiler);
+                        result:=compiler.cordconstnode(RolQWord(QWord(vl2.svalue),shift),def,false);
                       else
                         internalerror(2011061902);
                     end;
@@ -2395,7 +2395,7 @@ implementation
                   ((resultdef.size=8) and (vl2.uvalue=qword($ffffffffffffffff)))) and
                  ((cs_opt_level4 in current_settings.optimizerswitches) or
                   not might_have_sideeffects(tcallparanode(left).left)) then
-                result:=cordconstnode.create(vl2,resultdef,true,compiler);
+                result:=compiler.cordconstnode(vl2,resultdef,true);
             end;
         end;
 
@@ -2469,13 +2469,13 @@ implementation
                    else
                      hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline,false,compiler);
                  in_const_odd :
-                   hp:=cordconstnode.create(qword(odd(int64(vl))),pasbool1type,true,compiler);
+                   hp:=compiler.cordconstnode(qword(odd(int64(vl))),pasbool1type,true);
                  in_const_swap_word :
-                   hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resultdef,true,compiler);
+                   hp:=compiler.cordconstnode((vl and $ff) shl 8+(vl shr 8),left.resultdef,true);
                  in_const_swap_long :
-                   hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resultdef,true,compiler);
+                   hp:=compiler.cordconstnode((vl and $ffff) shl 16+(vl shr 16),left.resultdef,true);
                  in_const_swap_qword :
-                   hp:=cordconstnode.create((vl and $ffffffff) shl 32+(vl shr 32),left.resultdef,true,compiler);
+                   hp:=compiler.cordconstnode((vl and $ffffffff) shl 32+(vl shr 32),left.resultdef,true);
                  in_const_ptr:
                    begin
                      {Don't construct pointers from negative values.}
@@ -2518,17 +2518,17 @@ implementation
                     begin
                       case inlinenumber of
                         in_lo_word :
-                          result:=cordconstnode.create(tordconstnode(left).value and $ff,u8inttype,true,compiler);
+                          result:=compiler.cordconstnode(tordconstnode(left).value and $ff,u8inttype,true);
                         in_hi_word :
-                          result:=cordconstnode.create(tordconstnode(left).value shr 8,u8inttype,true,compiler);
+                          result:=compiler.cordconstnode(tordconstnode(left).value shr 8,u8inttype,true);
                         in_lo_long :
-                          result:=cordconstnode.create(tordconstnode(left).value and $ffff,u16inttype,true,compiler);
+                          result:=compiler.cordconstnode(tordconstnode(left).value and $ffff,u16inttype,true);
                         in_hi_long :
-                          result:=cordconstnode.create(tordconstnode(left).value shr 16,u16inttype,true,compiler);
+                          result:=compiler.cordconstnode(tordconstnode(left).value shr 16,u16inttype,true);
                         in_lo_qword :
-                          result:=cordconstnode.create(tordconstnode(left).value and $ffffffff,u32inttype,true,compiler);
+                          result:=compiler.cordconstnode(tordconstnode(left).value and $ffffffff,u32inttype,true);
                         in_hi_qword :
-                          result:=cordconstnode.create(tordconstnode(left).value shr 32,u32inttype,true,compiler);
+                          result:=compiler.cordconstnode(tordconstnode(left).value shr 32,u32inttype,true);
                         else
                           internalerror(2019050514);
                       end;
@@ -2610,7 +2610,7 @@ implementation
                       begin
                         { we just create a constant 0 here, that's marked as a
                           parameter }
-                        result:=cordconstnode.create(0,s32inttype,false,compiler);
+                        result:=compiler.cordconstnode(0,s32inttype,false);
                         include(result.flags,nf_generic_para);
                         left:=nil;
                       end;
@@ -2628,12 +2628,12 @@ implementation
 (*
                   if (left.nodetype=ordconstn) then
                      begin
-                       result:=cordconstnode.create(
+                       result:=compiler.cordconstnode(
                          tordconstnode(left).value,sinttype,true);
                      end
                    else if (m_mac in current_settings.modeswitches) and
                            (left.ndoetype=pointerconstn) then
-                       result:=cordconstnode.create(
+                       result:=compiler.cordconstnode(
                          tpointerconstnode(left).value,ptruinttype,true);
 *)
                 end;
@@ -2650,8 +2650,8 @@ implementation
                       begin
                         if (left.nodetype=stringconstn) then
                           begin
-                            result:=cordconstnode.create(
-                              tstringconstnode(left).len,sinttype,true,compiler);
+                            result:=compiler.cordconstnode(
+                              tstringconstnode(left).len,sinttype,true);
                           end;
                       end;
                     orddef :
@@ -2660,15 +2660,15 @@ implementation
                         if is_char(left.resultdef) or
                            is_widechar(left.resultdef) then
                          begin
-                           result:=cordconstnode.create(1,sinttype,false,compiler);
+                           result:=compiler.cordconstnode(1,sinttype,false);
                          end
                       end;
                     arraydef :
                       begin
                         if (left.nodetype=stringconstn) then
                           begin
-                            result:=cordconstnode.create(
-                              tstringconstnode(left).len,sinttype,true,compiler);
+                            result:=compiler.cordconstnode(
+                              tstringconstnode(left).len,sinttype,true);
                           end
                         else if not is_open_array(left.resultdef) and
                            not is_array_of_const(left.resultdef) and
@@ -2707,7 +2707,7 @@ implementation
                           result:=create_simplified_ord_const(vl,resultdef,forinline,cs_check_range in localswitches,compiler)
                         else
                           { check the range for enums, chars, booleans }
-                          result:=cordconstnode.create(vl,left.resultdef,not(nf_internal in flags),compiler);
+                          result:=compiler.cordconstnode(vl,left.resultdef,not(nf_internal in flags));
                         result.flags:=result.flags+(flags*[nf_internal]);
                       end;
                     addn,
@@ -2761,14 +2761,14 @@ implementation
                       begin
                         if (inlinenumber=in_low_x) then
                           begin
-                            result:=cordconstnode.create(int64(tarraydef(
-                             left.resultdef).lowrange),tarraydef(left.resultdef).rangedef,true,compiler);
+                            result:=compiler.cordconstnode(int64(tarraydef(
+                             left.resultdef).lowrange),tarraydef(left.resultdef).rangedef,true);
                           end
                         else if not is_open_array(left.resultdef) and
                                 not is_array_of_const(left.resultdef) and
                                 not is_dynamic_array(left.resultdef) then
-                          result:=cordconstnode.create(int64(tarraydef(left.resultdef).highrange),
-                            tarraydef(left.resultdef).rangedef,true,compiler);
+                          result:=compiler.cordconstnode(int64(tarraydef(left.resultdef).highrange),
+                            tarraydef(left.resultdef).rangedef,true);
                       end;
                     stringdef:
                       begin
@@ -2776,16 +2776,16 @@ implementation
                           begin
                             if is_dynamicstring(left.resultdef) and
                               not(cs_zerobasedstrings in current_settings.localswitches) then
-                              result:=cordconstnode.create(1,u8inttype,false,compiler)
+                              result:=compiler.cordconstnode(1,u8inttype,false)
                             else
-                              result:=cordconstnode.create(0,u8inttype,false,compiler);
+                              result:=compiler.cordconstnode(0,u8inttype,false);
                           end
                         else if not is_dynamicstring(left.resultdef) then
-                          result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true,compiler)
+                          result:=compiler.cordconstnode(tstringdef(left.resultdef).len,u8inttype,true)
                       end;
                     undefineddef:
                       begin
-                        result:=cordconstnode.create(0,u8inttype,false,compiler);
+                        result:=compiler.cordconstnode(0,u8inttype,false);
                       end;
                     errordef:
                       ;
@@ -2814,10 +2814,10 @@ implementation
                       if (vr>=9223372036854775807.99) or (vr<=-9223372036854775808.0) then
                         begin
                           message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.0','9223372036854775807.99..');
-                          result:=cordconstnode.create(1,s64inttype,false,compiler)
+                          result:=compiler.cordconstnode(1,s64inttype,false)
                         end
                       else
-                        result:=cordconstnode.create(trunc(vr),s64inttype,true,compiler)
+                        result:=compiler.cordconstnode(trunc(vr),s64inttype,true)
                     end
                 end;
               in_round_real :
@@ -2830,10 +2830,10 @@ implementation
                       if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
                         begin
                           message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.49..','9223372036854775807.49..');
-                          result:=cordconstnode.create(1,s64inttype,false,compiler)
+                          result:=compiler.cordconstnode(1,s64inttype,false)
                         end
                       else
-                        result:=cordconstnode.create(round(vr),s64inttype,true,compiler)
+                        result:=compiler.cordconstnode(round(vr),s64inttype,true)
                     end
                 end;
               in_frac_real :
@@ -2876,9 +2876,9 @@ implementation
                   if left.nodetype=ordconstn then
                     begin
                       if tordconstnode(left).value<0 then
-                        result:=cordconstnode.create((-tordconstnode(left).value),resultdef,false,compiler)
+                        result:=compiler.cordconstnode((-tordconstnode(left).value),resultdef,false)
                       else
-                        result:=cordconstnode.create((tordconstnode(left).value),resultdef,false,compiler);
+                        result:=compiler.cordconstnode((tordconstnode(left).value),resultdef,false);
                     end
                 end;
               in_sqr_real :
@@ -2918,13 +2918,13 @@ implementation
                     begin
                       case left.resultdef.size of
                         1:
-                          result:=cordconstnode.create(BsfByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsfByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false);
                         2:
-                          result:=cordconstnode.create(BsfWord(Word(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsfWord(Word(tordconstnode(left).value.uvalue)),resultdef,false);
                         4:
-                          result:=cordconstnode.create(BsfDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsfDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false);
                         8:
-                          result:=cordconstnode.create(BsfQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsfQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
                         else
                           internalerror(2017042401);
                       end;
@@ -2936,13 +2936,13 @@ implementation
                     begin
                       case left.resultdef.size of
                         1:
-                          result:=cordconstnode.create(BsrByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsrByte(Byte(tordconstnode(left).value.uvalue)),resultdef,false);
                         2:
-                          result:=cordconstnode.create(BsrWord(Word(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsrWord(Word(tordconstnode(left).value.uvalue)),resultdef,false);
                         4:
-                          result:=cordconstnode.create(BsrDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsrDWord(DWord(tordconstnode(left).value.uvalue)),resultdef,false);
                         8:
-                          result:=cordconstnode.create(BsrQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false,compiler);
+                          result:=compiler.cordconstnode(BsrQWord(QWord(tordconstnode(left).value.uvalue)),resultdef,false);
                         else
                           internalerror(2017042402);
                       end;
@@ -2952,7 +2952,7 @@ implementation
                 begin
                   if left.nodetype=ordconstn then
                     begin
-                      result:=cordconstnode.create(PopCnt(tordconstnode(left).value),resultdef,false,compiler);
+                      result:=compiler.cordconstnode(PopCnt(tordconstnode(left).value),resultdef,false);
                     end;
                 end;
               in_min_single,
@@ -3063,15 +3063,15 @@ implementation
                               { Both actual parameters are constants, so take
                                 the smaller of the two right now }
                               if inlinenumber=in_min_longint then
-                                result:=cordconstnode.create(min(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false,compiler)
+                                result:=compiler.cordconstnode(min(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false)
                               else
-                                result:=cordconstnode.create(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false,compiler);
+                                result:=compiler.cordconstnode(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
 
                           if is_minmax_deterministic(tordconstnode(hp), False, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp).value,resultdef,false)
                               else
                                 result:=hp2.getcopy();
                             end;
@@ -3081,7 +3081,7 @@ implementation
                           if is_minmax_deterministic(tordconstnode(hp2), False, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp2).value,resultdef,false)
                               else
                                 result:=hp.getcopy();
                             end;
@@ -3104,15 +3104,15 @@ implementation
                               { Both actual parameters are constants, so take
                                 the larger of the two right now }
                               if inlinenumber=in_max_longint then
-                                result:=cordconstnode.create(max(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false,compiler)
+                                result:=compiler.cordconstnode(max(LongInt(tordconstnode(hp).value.svalue),LongInt(tordconstnode(hp2).value.svalue)),resultdef,false)
                               else
-                                result:=cordconstnode.create(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false,compiler);
+                                result:=compiler.cordconstnode(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
 
                           if is_minmax_deterministic(tordconstnode(hp), True, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp).value,resultdef,false)
                               else
                                 result:=hp2.getcopy();
                             end;
@@ -3122,7 +3122,7 @@ implementation
                           if is_minmax_deterministic(tordconstnode(hp2), True, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp2).value,resultdef,false)
                               else
                                 result:=hp.getcopy();
                             end;
@@ -3145,15 +3145,15 @@ implementation
                               { Both actual parameters are constants, so take
                                 the smaller of the two right now }
                               if inlinenumber=in_min_dword then
-                                result:=cordconstnode.create(min(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false,compiler)
+                                result:=compiler.cordconstnode(min(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false)
                               else
-                                result:=cordconstnode.create(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false,compiler);
+                                result:=compiler.cordconstnode(min(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
 
                           if is_minmax_deterministic(tordconstnode(hp), False, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp).value,resultdef,false)
                               else
                                 result:=hp2.getcopy();
                             end;
@@ -3163,7 +3163,7 @@ implementation
                           if is_minmax_deterministic(tordconstnode(hp2), False, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp2).value,resultdef,false)
                               else
                                 result:=hp.getcopy();
                             end;
@@ -3186,15 +3186,15 @@ implementation
                               { Both actual parameters are constants, so take
                                 the larger of the two right now }
                               if inlinenumber=in_max_dword then
-                                result:=cordconstnode.create(max(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false,compiler)
+                                result:=compiler.cordconstnode(max(DWord(tordconstnode(hp).value.uvalue),DWord(tordconstnode(hp2).value.uvalue)),resultdef,false)
                               else
-                                result:=cordconstnode.create(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false,compiler);
+                                result:=compiler.cordconstnode(max(tordconstnode(hp).value,tordconstnode(hp2).value),resultdef,false);
                             end;
 
                           if is_minmax_deterministic(tordconstnode(hp), True, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp).value,resultdef,false)
                               else
                                 result:=hp2.getcopy();
                             end;
@@ -3204,7 +3204,7 @@ implementation
                           if is_minmax_deterministic(tordconstnode(hp2), True, helperres) then
                             begin
                               if helperres then
-                                result:=cordconstnode.create(tordconstnode(hp2).value,resultdef,false,compiler)
+                                result:=compiler.cordconstnode(tordconstnode(hp2).value,resultdef,false)
                               else
                                 result:=hp.getcopy();
                             end;
@@ -3440,13 +3440,13 @@ implementation
                      if assigned(hightree) then
                       begin
                         hp:=compiler.caddnode(addn,hightree,
-                                         cordconstnode.create(1,sizesinttype,false,compiler));
+                                         compiler.cordconstnode(1,sizesinttype,false));
                         if (left.resultdef.typ=arraydef) then
                           if not is_packed_array(tarraydef(left.resultdef)) then
                             begin
                               if (tarraydef(left.resultdef).elesize<>1) then
-                                hp:=compiler.caddnode(muln,hp,cordconstnode.create(tarraydef(
-                                  left.resultdef).elesize,sizesinttype,true,compiler));
+                                hp:=compiler.caddnode(muln,hp,compiler.cordconstnode(tarraydef(
+                                  left.resultdef).elesize,sizesinttype,true));
                             end
                           else if (tarraydef(left.resultdef).elepackedbitsize <> 8) then
                             begin
@@ -3454,16 +3454,16 @@ implementation
                               if (hp.nodetype <> ordconstn) then
                                 internalerror(2006081511);
                               hp.free;
-                              hp := cordconstnode.create(left.resultdef.size,sizesinttype,true,compiler);
+                              hp := compiler.cordconstnode(left.resultdef.size,sizesinttype,true);
 {
                               hp:=
                                  compiler.ctypeconvnode_explicit(sizesinttype,
                                    cmoddivnode.create(divn,
                                      compiler.caddnode(addn,
-                                       compiler.caddnode(muln,hp,cordconstnode.create(tarraydef(
+                                       compiler.caddnode(muln,hp,compiler.cordconstnode(tarraydef(
                                          left.resultdef).elepackedbitsize,s64inttype,true)),
-                                       cordconstnode.create(a,s64inttype,true)),
-                                     cordconstnode.create(8,s64inttype,true)),
+                                       compiler.cordconstnode(a,s64inttype,true)),
+                                     compiler.cordconstnode(8,s64inttype,true)),
                                    sizesinttype);
 }
                             end;
@@ -3580,7 +3580,7 @@ implementation
                            hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                            if assigned(hightree) then
                              result:=compiler.caddnode(addn,hightree,
-                               cordconstnode.create(1,sinttype,false,compiler));
+                               compiler.cordconstnode(1,sinttype,false));
                            exit;
                          end
                         { Length() for dynamic arrays is inlined }
@@ -3874,8 +3874,8 @@ implementation
                     message(parser_e_feature_unsupported_for_vm);
                   resultdef:=voidtype;
                   { now we know the type of buffer }
-                  hp:=compiler.ccallparanode(cordconstnode.create(
-                     tcallparanode(left).left.resultdef.size,s32inttype,true,compiler),left);
+                  hp:=compiler.ccallparanode(compiler.cordconstnode(
+                     tcallparanode(left).left.resultdef.size,s32inttype,true),left);
                   result:=compiler.ccallnode_intern('SETTEXTBUF',hp);
                   left:=nil;
                 end;
@@ -3990,7 +3990,7 @@ implementation
                               begin
                                 result:=cinlinenode.create(in_length_x,false,left,compiler);
                                 if cs_zerobasedstrings in current_settings.localswitches then
-                                  result:=compiler.caddnode(subn,result,cordconstnode.create(1,sinttype,false,compiler));
+                                  result:=compiler.caddnode(subn,result,compiler.cordconstnode(1,sinttype,false));
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
                                 left:=nil;
@@ -4390,7 +4390,7 @@ implementation
               end;
               if shiftconst <> 0 then
                 result := compiler.ctypeconvnode_internal(cshlshrnode.create(shrn,left,
-                    cordconstnode.create(shiftconst,sinttype,false,compiler),compiler),resultdef)
+                    compiler.cordconstnode(shiftconst,sinttype,false),compiler),resultdef)
               else
                 result := compiler.ctypeconvnode_internal(left,resultdef);
               left := nil;
@@ -4465,17 +4465,17 @@ implementation
           in_ismanagedtype_x:
             begin
               if left.resultdef.needs_inittable then
-                result:=cordconstnode.create(1,resultdef,false,compiler)
+                result:=compiler.cordconstnode(1,resultdef,false)
               else
-                result:=cordconstnode.create(0,resultdef,false,compiler);
+                result:=compiler.cordconstnode(0,resultdef,false);
             end;
 
           in_isconstvalue_x:
             begin
               if is_constnode(left) then
-                result:=cordconstnode.create(1,resultdef,false,compiler)
+                result:=compiler.cordconstnode(1,resultdef,false)
               else
-                result:=cordconstnode.create(0,resultdef,false,compiler);
+                result:=compiler.cordconstnode(0,resultdef,false);
             end;
 
           in_assigned_x:
@@ -4498,7 +4498,7 @@ implementation
                   range_to_type(
                     min(1,get_min_value(left.resultdef)),
                     max(1,get_max_value(left.resultdef)),hdef);
-                  hp:=cordconstnode.create(1,hdef,false,compiler);
+                  hp:=compiler.cordconstnode(1,hdef,false);
                   typecheckpass(hp);
                   if not is_integer(hp.resultdef) then
                     inserttypeconv_internal(hp,sinttype,compiler);
@@ -5074,7 +5074,7 @@ implementation
              range_to_type(
                min(1,get_min_value(tcallparanode(left).left.resultdef)),
                max(1,get_max_value(tcallparanode(left).left.resultdef)),hdef);
-             hpp:=cordconstnode.create(1,hdef,false,compiler)
+             hpp:=compiler.cordconstnode(1,hdef,false)
            end;
          typecheckpass(hpp);
 
@@ -5288,8 +5288,8 @@ implementation
                        genintconstnode(0,compiler),
                        compiler
                      ),compiler),
-                  compiler.ccallparanode(cordconstnode.create
-                     (dims,sinttype,true,compiler),
+                  compiler.ccallparanode(compiler.cordconstnode
+                     (dims,sinttype,true),
                   compiler.ccallparanode(caddrnode.create_internal
                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal,compiler),compiler),
                   compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,voidpointertype),nil))));
@@ -5301,7 +5301,7 @@ implementation
             newblock:=compiler.ccallnode_intern(
               'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',
               compiler.ccallparanode(
-                cordconstnode.create(getparaencoding(destppn.resultdef),u16inttype,true,compiler),
+                compiler.cordconstnode(getparaencoding(destppn.resultdef),u16inttype,true),
                 paras
               )
             );
@@ -5349,7 +5349,7 @@ implementation
         { fill up third parameter }
         if counter=2 then
           begin
-            paras:=compiler.ccallparanode(cordconstnode.create(torddef(sinttype).high,sinttype,false,compiler),paras);
+            paras:=compiler.ccallparanode(compiler.cordconstnode(torddef(sinttype).high,sinttype,false),paras);
             counter:=3;
           end;
 
@@ -5367,24 +5367,24 @@ implementation
         else if is_dynamic_array(resultdef) then
           begin
             { create statements with call }
-            elesizeppn:=cordconstnode.create(tarraydef(paradef).elesize,sinttype,false,compiler);
+            elesizeppn:=compiler.cordconstnode(tarraydef(paradef).elesize,sinttype,false);
             if is_managed_type(tarraydef(paradef).elementdef) then
               eletypeppn:=caddrnode.create_internal(
                 crttinode.create(tstoreddef(tarraydef(paradef).elementdef),initrtti,rdt_normal,compiler),compiler)
             else
-              eletypeppn:=cordconstnode.create(0,voidpointertype,false,compiler);
+              eletypeppn:=compiler.cordconstnode(0,voidpointertype,false);
             maxcountppn:=geninlinenode(in_length_x,false,ppn.left.getcopy,compiler);
             case counter of
               1:
                 begin
                   { copy the whole array using [0..high(sizeint)] range }
-                  countppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false,compiler);
-                  lowppn:=cordconstnode.create(0,sinttype,false,compiler);
+                  countppn:=compiler.cordconstnode(torddef(sinttype).high,sinttype,false);
+                  lowppn:=compiler.cordconstnode(0,sinttype,false);
                 end;
               2:
                 begin
                   { copy the array using [low..high(sizeint)] range }
-                  countppn:=cordconstnode.create(torddef(sinttype).high,sinttype,false,compiler);
+                  countppn:=compiler.cordconstnode(torddef(sinttype).high,sinttype,false);
                   lowppn:=tcallparanode(paras).left.getcopy;
                 end;
               3:
@@ -5445,8 +5445,8 @@ implementation
          addstatement(newstatement,temp);
 
          { create call to fpc_getmem }
-         para := compiler.ccallparanode(cordconstnode.create
-             (tpointerdef(left.resultdef).pointeddef.size,s32inttype,true,compiler),nil);
+         para := compiler.ccallparanode(compiler.cordconstnode
+             (tpointerdef(left.resultdef).pointeddef.size,s32inttype,true),nil);
          addstatement(newstatement,cassignmentnode.create(
              compiler.ctemprefnode(temp),
              compiler.ccallnode_intern('fpc_getmem',para),compiler));
@@ -5550,7 +5550,7 @@ implementation
          if target_info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
          set_varstate(left,vs_read,[]);
-         result:=cordconstnode.create(0,s32inttype,false,compiler);
+         result:=compiler.cordconstnode(0,s32inttype,false);
        end;
 
 
@@ -5569,7 +5569,7 @@ implementation
          if is_64bitint(resultdef) then
            begin
              if (inlinenumber=in_sar_x) then
-               left:=compiler.ccallparanode(cordconstnode.create(1,u8inttype,false),
+               left:=compiler.ccallparanode(compiler.cordconstnode(1,u8inttype,false),
                  compiler.ccallparanode(left,nil));
              result:=compiler.ccallnode_intern('fpc_sarint64',left);
              left:=nil;
@@ -5684,7 +5684,7 @@ implementation
                  if is_dynamic_array(first) then
                    datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),voidpointertype)
                  else
-                   datan:=caddrnode.create_internal(cvecnode.create(compiler.ctemprefnode(datatemp),cordconstnode.create(0,sizesinttype,false,compiler),compiler),compiler);
+                   datan:=caddrnode.create_internal(cvecnode.create(compiler.ctemprefnode(datatemp),compiler.cordconstnode(0,sizesinttype,false),compiler),compiler);
                  datacountn:=cinlinenode.create(in_length_x,false,compiler.ctemprefnode(datatemp),compiler);
                end
              else if isconstr then
@@ -5709,7 +5709,7 @@ implementation
                      inserttypeconv(datan,tarraydef(second).elementdef,compiler);
                      datan:=caddrnode.create_internal(datan,compiler);
                    end;
-                 datacountn:=cordconstnode.create(1,sizesinttype,false,compiler);
+                 datacountn:=compiler.cordconstnode(1,sizesinttype,false);
                end;
              procname:='fpc_dynarray_insert';
              { recreate the parameters as array pointer, source, data, count, typeinfo }
@@ -6046,7 +6046,7 @@ implementation
          temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange,true,compiler);
          sourcevecindex := compiler.ctemprefnode(loopvar);
          targetvecindex := compiler.ctypeconvnode_internal(index.getcopy,sinttype);
-         targetvecindex := compiler.caddnode(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true,compiler));
+         targetvecindex := compiler.caddnode(subn,targetvecindex,compiler.cordconstnode(plorange,sinttype,true));
          targetvecindex := compiler.caddnode(addn,targetvecindex,compiler.ctemprefnode(loopvar));
          targetvecindex := compiler.ctypeconvnode(targetvecindex,temprangedef);
          targetvecindex := compiler.ctypeconvnode_explicit(targetvecindex,tarraydef(unpackednode.resultdef).rangedef);

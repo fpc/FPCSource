@@ -140,7 +140,7 @@ implementation
                 if not assigned(para.right) then
                   begin
                     para.right:=compiler.ccallparanode(
-                      cordconstnode.create(0,s32inttype,false),nil);
+                      compiler.cordconstnode(0,s32inttype,false),nil);
                     tcallparanode(para.right).get_paratype;
                     break;
                   end
@@ -211,7 +211,7 @@ implementation
             { construct the call to
                 fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar) }
             result:=compiler.ccallnode_intern('FPC_DYNARRAY_COPY',
-              compiler.ccallparanode(cordconstnode.create(ord(finaltype),cwidechartype,false),
+              compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),cwidechartype,false),
                 compiler.ccallparanode(genintconstnode(ndims),
                   compiler.ccallparanode(len,
                     compiler.ccallparanode(start,
@@ -488,7 +488,7 @@ implementation
         { prepend new }
         newparas:=compiler.ccallparanode(newnode,newparas);
         { prepend deepcopy }
-        newparas:=compiler.ccallparanode(cordconstnode.create(0,pasbool1type,false),newparas);
+        newparas:=compiler.ccallparanode(compiler.cordconstnode(0,pasbool1type,false),newparas);
         { call the right setlength helper }
         if ndims>1 then
           begin
@@ -496,9 +496,9 @@ implementation
                eletype=finaltype, ndim=ndims, deepcopy=false, new=newnode,
                assignmenttarget=tcallparanode(left).left }
             { prepend ndim }
-            newparas:=compiler.ccallparanode(cordconstnode.create(ndims,s32inttype,false),newparas);
+            newparas:=compiler.ccallparanode(compiler.cordconstnode(ndims,s32inttype,false),newparas);
             { prepend eletype }
-            newparas:=compiler.ccallparanode(cordconstnode.create(ord(finaltype),cwidechartype,false),newparas);
+            newparas:=compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),cwidechartype,false),newparas);
           end
         else
           begin

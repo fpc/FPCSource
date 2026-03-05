@@ -406,8 +406,8 @@ implementation
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
-                     para := compiler.ccallparanode(cordconstnode.create
-                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true,compiler),nil);
+                     para := compiler.ccallparanode(compiler.cordconstnode
+                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          compiler.ctemprefnode(temp),
                          compiler.ccallnode_intern('fpc_getmem',para),compiler));
