@@ -4727,6 +4727,13 @@ begin
   try
     OldForceCaret:=Scanner.SetForceCaret(True);
     IsDelphiGenericType:=false;
+    if (CurToken=tkGeneric) and not (msDelphi in CurrentModeswitches) then
+      begin
+      NextToken;
+      CheckToken(tkIdentifier);
+      Result:=ParseGenericTypeDecl(Parent,false);
+      Exit;
+      end;
     if (msDelphi in CurrentModeswitches) then
       begin
       NextToken;
