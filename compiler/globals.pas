@@ -1738,6 +1738,7 @@ implementation
         do_release:=false;
         do_make:=true;
         codegenerror:=false;
+        global_unit_count:=0;
 
         { Output }
         OutputFileName:='';
