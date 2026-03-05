@@ -2966,8 +2966,10 @@ begin
         end
       else if envInput = 'kitty' then
         begin
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
           write(#27'[>31u');
           KittyKeyAvailability;
+{$endif HAIKU}
         end
       else if envInput = 'legacy' then
         begin
@@ -2975,11 +2977,13 @@ begin
         end
       else // TV_INPUT not set or incorrect, use default logic
         begin
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
           if kitty_keys_yes or (kitty_keys_yes=kitty_keys_no) then
              write(#27'[>31u'); { try to set up kitty keys }
           KittyKeyAvailability;
           if not isKittyKeys then
             write(#27'[>4;2m'); { xterm ->  modifyOtherKeys }
+{$endif HAIKU}
           write(#27'[?9001h'); // Try to enable win32-input-mode
         end;
 {$ifdef linux}
@@ -2997,6 +3001,7 @@ begin
   unpatchkeyboard;
 {$endif linux}
   write(#27'[?9001l'); // Disable win32-input-mode
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
   if not isKittyKeys then
     write(#27'[>4m'); { xterm -> reset to default modifyOtherKeys }
   if kitty_keys_yes then
@@ -3005,6 +3010,7 @@ begin
     waitAndReadAfterArtifacts;
     isKittyKeys:=false;
   end;
+{$endif HAIKU}
 
   if copy(fpgetenv('TERM'),1,5)='xterm' then
      {Restore the old alt key behaviour.}
