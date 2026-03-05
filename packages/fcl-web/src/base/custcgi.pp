@@ -394,9 +394,6 @@ begin
   R:=UpCase(Method);
   if (R='POST') or (R='PUT') or (ContentLength>0) then
     ReadContent;
-  I:=pos('?',ScriptURI);
-//  if i>1 then
-//    ScriptURI:=Copy(ScriptURI,1,I-1); // Property, do not use setlength trick.
 end;
 
 procedure TCGIRequest.ReadContent;
