@@ -2941,7 +2941,7 @@ implementation
 
                                       result := cassignmentnode.create(
                                         outnode.getcopy,
-                                        cstringconstnode.createstr(StringLiteral,compiler),
+                                        compiler.cstringconstnode_str(StringLiteral),
                                         compiler
                                       );
                                     end;
@@ -3713,7 +3713,7 @@ implementation
                 else
                   if vo_is_msgsel in para.parasym.varoptions then
                     begin
-                      para.left:=cobjcselectornode.create(cstringconstnode.createstr(tprocdef(procdefinition).messageinf.str^,compiler),compiler);
+                      para.left:=cobjcselectornode.create(compiler.cstringconstnode_str(tprocdef(procdefinition).messageinf.str^),compiler);
                     end;
               end;
             if not assigned(para.left) then

@@ -596,7 +596,7 @@ implementation
               if cs_transparent_file_names in current_settings.globalswitches then
                 addstatement(stat^,compiler.ccallnode_intern('fpc_textinit_filename_iso',
                   compiler.ccallparanode(
-                    cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
+                    compiler.cstringconstnode_str(tstaticvarsym(p).Name),
                   compiler.ccallparanode(
                     compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
@@ -615,7 +615,7 @@ implementation
               if cs_transparent_file_names in current_settings.globalswitches then
                 addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_init_filename_iso',
                   compiler.ccallparanode(
-                    cstringconstnode.createstr(tstaticvarsym(p).Name,compiler),
+                    compiler.cstringconstnode_str(tstaticvarsym(p).Name),
                   compiler.ccallparanode(
                     compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
@@ -851,10 +851,9 @@ implementation
               if is_string(p.vardef) then
                 begin
                   stringres:=
-                    cstringconstnode.createstr(
+                    compiler.cstringconstnode_str(
                       'uninitialized function result in '+
-                      tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker]),
-                      compiler
+                      tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker])
                     );
                   { prevent attempts to convert the string to the specified
                     code page at compile time, as it may not be available (and

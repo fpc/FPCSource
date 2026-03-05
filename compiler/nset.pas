@@ -441,7 +441,7 @@ implementation
            begin
              value := char(tordconstnode(r).value.uvalue) + ''#0;
              r.free;
-             r := cstringconstnode.createstr(value,acompiler);
+             r := acompiler.cstringconstnode_str(value);
              do_typecheckpass(r);
            end;
          inherited create(rangen,l,r,acompiler);

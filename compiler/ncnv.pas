@@ -1309,7 +1309,7 @@ implementation
                               // using a helper routine. This is not delphi compatible behavior.
                               // Delphi converts UniocodeChar to ansistring at the compile time
                               // old behavior:
-                              // hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                              // hp:=compiler.cstringconstnode_str(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
                               para:=compiler.ccallparanode(left,nil);
                               if tstringdef(resultdef).stringtype=st_ansistring then
                                 para:=compiler.ccallparanode(compiler.cordconstnode(getparaencoding(resultdef),u16inttype,true),para);
@@ -1319,7 +1319,7 @@ implementation
                               exit;
                             end
                           else
-                            hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)),compiler);
+                            hp:=compiler.cstringconstnode_str(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
                         end
                       else
                         begin
@@ -1327,7 +1327,7 @@ implementation
                           SetLength(sa,5);
                           l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
                           SetLength(sa,l-1);
-                          hp:=cstringconstnode.createstr(sa,compiler);
+                          hp:=compiler.cstringconstnode_str(sa);
                           { explicitly set the type of string constant to avoid unnecessary conversion }
                           if (tstringdef(resultdef).stringtype=st_ansistring) and
                              (tstringdef(resultdef).encoding=CP_UTF8) then
@@ -1338,7 +1338,7 @@ implementation
                         end
                     end
                   else
-                    hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue),compiler);
+                    hp:=compiler.cstringconstnode_str(chr(tordconstnode(left).value.uvalue));
                   { output string consts in local ansistring encoding }
                   if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0) or (tstringdef(resultdef).encoding=globals.CP_NONE)) then
                     tstringconstnode(hp).changestringtype(getansistringdef)
@@ -1830,7 +1830,7 @@ implementation
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
-            result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^,compiler);
+            result:=compiler.cstringconstnode_str(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
           end
         else
@@ -5013,7 +5013,7 @@ implementation
                       begin
                         if assigned(tobjectdef(right.resultdef).iidstr) then
                           begin
-                            hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^, compiler);
+                            hp:=compiler.cstringconstnode_str(tobjectdef(right.resultdef).iidstr^);
                             tstringconstnode(hp).changestringtype(cshortstringtype);
                             right.free;
                             right:=hp;

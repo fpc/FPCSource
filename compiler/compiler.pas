@@ -240,7 +240,7 @@ type
     function crealconstnode(v : bestreal;def:tdef):trealconstnode; inline;
     function cordconstnode(const v : tconstexprint;def:tdef; _rangecheck : boolean):tordconstnode; inline;
     function cpointerconstnode(v : TConstPtrUInt;def:tdef):tpointerconstnode; inline;
-    // TODO:cstringconstnode
+    function cstringconstnode_str(const s : string):tstringconstnode; inline;
     // TODO:csetconstnode
     // TODO:cguidconstnode
     // TODO:cnilnode
@@ -778,6 +778,12 @@ function TCompilerHelper.cpointerconstnode(v: TConstPtrUInt; def: tdef
   ): tpointerconstnode; inline;
 begin
   result:=ncon.cpointerconstnode.create(v,def,self);
+end;
+
+function TCompilerHelper.cstringconstnode_str(const s: string
+  ): tstringconstnode; inline;
+begin
+  result:=ncon.cstringconstnode.createstr(s,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

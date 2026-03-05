@@ -455,9 +455,9 @@ implementation
         { constructor FpcBaseProcVarType.create(inst: jlobject; const method: unicodestring; const argTypes: array of JLClass); }
         constrparas:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(procload,java_jlobject),nil);
         if not assigned(procdef.import_name) then
-          constrparas:=compiler.ccallparanode(cstringconstnode.createstr(procdef.procsym.realname),constrparas)
+          constrparas:=compiler.ccallparanode(compiler.cstringconstnode_str(procdef.procsym.realname),constrparas)
         else
-          constrparas:=compiler.ccallparanode(cstringconstnode.createstr(procdef.import_name^),constrparas);
+          constrparas:=compiler.ccallparanode(compiler.cstringconstnode_str(procdef.import_name^),constrparas);
         procdefparas:=nil;
         jlclass:=tobjectdef(search_system_type('JLCLASS').typedef);
         { in reverse to make it easier to build the arrayconstructorn }
@@ -481,7 +481,7 @@ implementation
                    encodedtype:='['+encodedtype;
                  replace(encodedtype,'/','.');
                  newpara:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(jlclass)),'FORNAME',
-                   compiler.ccallparanode(cstringconstnode.createstr(encodedtype),nil));
+                   compiler.ccallparanode(compiler.cstringconstnode_str(encodedtype),nil));
                end
              else
                begin

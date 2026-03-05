@@ -2082,7 +2082,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 inserttypeconv(n,rec_tguid,compiler);
                 if n.nodetype=guidconstn then
                   begin
-                    n2:=cstringconstnode.createstr(guid2string(tguidconstnode(n).value),compiler);
+                    n2:=compiler.cstringconstnode_str(guid2string(tguidconstnode(n).value));
                     n.free;
                     n:=n2;
                     handle_stringconstn;

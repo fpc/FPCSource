@@ -585,7 +585,7 @@ implementation
             else
               result:=compiler.cpointerconstnode(0,def);
           stringdef:
-            result:=cstringconstnode.createstr('',compiler);
+            result:=compiler.cstringconstnode_str('');
           floatdef:
             result:=compiler.crealconstnode(0,def);
           objectdef:
@@ -5507,7 +5507,7 @@ implementation
          paras: tcallparanode;
        begin
          paras:=tcallparanode(tcallparanode(left).right);
-         paras:=compiler.ccallparanode(cstringconstnode.createstr(current_module.sourcefiles.get_file_name(current_filepos.fileindex),compiler),paras);
+         paras:=compiler.ccallparanode(compiler.cstringconstnode_str(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
          paras:=compiler.ccallparanode(genintconstnode(fileinfo.line,compiler),paras);
 {$ifdef SUPPORT_GET_FRAME}
          paras:=compiler.ccallparanode(geninlinenode(in_get_frame,false,nil,compiler),paras);

@@ -291,7 +291,7 @@ implementation
           begin
             SetLength(stringVal,1);
             stringVal[1]:=char(tordconstnode(p).value.uvalue);
-            result:=cstringconstnode.createstr(stringVal,compiler);
+            result:=compiler.cstringconstnode_str(stringVal);
           end
         else if is_constwidecharnode(p) then
           begin
@@ -305,7 +305,7 @@ implementation
           begin
             Message(type_e_string_expr_expected);
             stringVal:='';
-            result:=cstringconstnode.createstr(stringVal,compiler);
+            result:=compiler.cstringconstnode_str(stringVal);
           end;
         result.changestringtype(def);
       end;

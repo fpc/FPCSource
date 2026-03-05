@@ -913,7 +913,7 @@ implementation
               else
                begin
                  { then insert an empty string }
-                 p2:=cstringconstnode.createstr('',compiler);
+                 p2:=compiler.cstringconstnode_str('');
                end;
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
               consume(_RKLAMMER);
@@ -3491,7 +3491,7 @@ implementation
                   (current_scanner.token=_ASSIGNMENT) then
                   begin
                     found_arg_name:=true;
-                    p1:=cstringconstnode.createstr(orgstoredpattern,compiler);
+                    p1:=compiler.cstringconstnode_str(orgstoredpattern);
                     consume(_ASSIGNMENT);
                     exit;
                   end;

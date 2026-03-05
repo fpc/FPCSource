@@ -276,7 +276,7 @@ implementation
               addstatement(stat,temp);
               addstatement(stat,cassignmentnode.create(
                 compiler.ctemprefnode(temp),
-                cstringconstnode.createstr('')));
+                compiler.cstringconstnode_str('')));
               initnode:=compiler.ctemprefnode(temp);
             end
           { dynamic array -> empty array }
