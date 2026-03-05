@@ -79,7 +79,7 @@ Type
     procedure Execute;
     procedure ReworkUses(aUses,aNewUses : TStrings);
     class function ExtractPrefix(const aRule: String): String;
-    class function ApplyRule(const aFile,aCasedName,aRule : String; PrettyPrint : Boolean) : String;
+    class function ApplyRule(const aFile,aCasedName: String; aRule : String; PrettyPrint : Boolean) : String;
     class function ApplyAliasRule(const aName, aRule: String): String;
     // Create backups of created/changed files  ?
     Property CreateBackups : Boolean Read FCreateBackups Write FCreateBackups;
@@ -406,8 +406,12 @@ end;
 procedure TPrefixer.CorrectUnitName(aName : String; aLineNr : Integer);
 
 Var
-  aLine,aReplace,aNewName : string;
-  Idx : Integer;
+  aLine: String;
+  aReplace: String;
+  aNewName: String;
+  StartDefine: String;
+  EndDefine: String;
+  Idx: Integer;
 
 begin
   aNewName:=DestUnitName;
@@ -423,19 +427,21 @@ begin
   inmIfndef:
     begin
     // Look for ;
+    StartDefine := '{$IFNDEF '+DEFINE+'}';
+    EndDefine := '{$ENDIF '+DEFINE+'}';
     idx:=aLineNr-1;
     While (Idx<FSources.Count) and (Pos(';',FSources[Idx])=0) do
       Inc(Idx);
-    if (Idx<FSources.Count-1) then
-      FSources.Insert(Idx+1,'{$ENDIF '+DEFINE+'}');
+    if (Idx<FSources.Count-1) and (FSources[Succ(Idx)] <> EndDefine) then
+      FSources.Insert(Idx+1, EndDefine);
     // Look for unit
     idx:=aLineNr;
     if Idx>=FSources.Count then
       Idx:=FSources.Count-1;
     While (Idx>=0) and Not FindWord('unit',FSources[Idx]) do
       Dec(Idx);
-    if Idx>=0 then
-      FSources.Insert(Idx,'{$IFNDEF '+DEFINE+'}');
+    if (Idx>=0) and (FSources[Pred(Idx)] <> StartDefine) then
+      FSources.Insert(Idx, StartDefine);
     end;
   end;
 end;
@@ -789,8 +795,7 @@ begin
     Result:=aName;
 end;
 
-class function TPrefixer.ApplyRule(const aFile, aCasedName,aRule: String;
-  PrettyPrint: Boolean): String;
+class function TPrefixer.ApplyRule(const aFile, aCasedName: String; aRule: String; PrettyPrint: Boolean): String;
 
 Var
   p,len : Integer;
@@ -806,6 +811,15 @@ begin
   // Prefix,*UnitSuffix
   // Prefix,-DeleteFromOriginalAtStart
   // Prefix,DeleteFromOriginalAtEnd-
+  // @FileExtension
+  P:=Pos('@',aRule);
+  if P > 0 then
+  begin
+    aExt := '.' + Copy(aRule, Succ(P));
+
+    Delete(aRule, P, Length(aRule));
+  end;
+
   P:=Pos(',',aRule);
   if P=0 then
     begin
@@ -825,7 +839,7 @@ begin
     if Len>0 then
       begin
       Case aName[1] of
-        '*' : Result:=Copy(aName,2)+ExtractFileExt(Result);
+        '*' : Result:=Copy(aName,2)+aExt;
         '-' : if Pos(Copy(aName,2),Result)=1 then
                Delete(Result,1,Len-1);
       else
