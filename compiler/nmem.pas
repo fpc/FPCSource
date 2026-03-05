@@ -297,7 +297,7 @@ implementation
                    result:=objcloadbasefield(left,'ISA');
                end
              else
-               result:=ctypeconvnode.create_internal(load_vmt_for_self_node(left),resultdef,compiler);
+               result:=compiler.ctypeconvnode_internal(load_vmt_for_self_node(left),resultdef);
              { reused }
              left:=nil;
            end
@@ -615,9 +615,9 @@ implementation
                 if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
                     if anf_ofs in addrnodeflags then
-                      result:=ctypeconvnode.create_internal(left,tabstractprocdef(left.resultdef).ofs_address_type,compiler)
+                      result:=compiler.ctypeconvnode_internal(left,tabstractprocdef(left.resultdef).ofs_address_type)
                     else
-                      result:=ctypeconvnode.create_internal(left,voidcodepointertype,compiler);
+                      result:=compiler.ctypeconvnode_internal(left,voidcodepointertype);
                     include(result.flags,nf_load_procvar);
                     left:=nil;
                   end
@@ -639,7 +639,7 @@ implementation
                         { Load tmehodpointer(left).proc }
                         result:=csubscriptnode.create(
                                      hsym,
-                                     ctypeconvnode.create_internal(left,procpointertype,compiler),compiler);
+                                     compiler.ctypeconvnode_internal(left,procpointertype),compiler);
                         left:=nil;
                       end
                     else
@@ -1406,10 +1406,10 @@ implementation
              is_unicodestring(left.resultdef) or
             (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
            begin
-             left := ctypeconvnode.create_internal(compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
+             left := compiler.ctypeconvnode_internal(compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                compiler.ccallparanode(
-                 ctypeconvnode.create_internal(left,voidpointertype,compiler),nil)),
-               left.resultdef,compiler);
+                 compiler.ctypeconvnode_internal(left,voidpointertype),nil)),
+               left.resultdef);
              firstpass(left);
              { double resultdef passes somewhere else may cause this to be }
              { reset though :/                                             }

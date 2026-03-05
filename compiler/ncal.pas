@@ -560,11 +560,11 @@ implementation
             if assignmenttype=voidpointertype then
               addstatement(statements,cassignmentnode.create(
                 csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
-                ctypeconvnode.create_internal(caddrnode.create_internal(para.left,compiler),voidpointertype,compiler),compiler))
+                compiler.ctypeconvnode_internal(caddrnode.create_internal(para.left,compiler),voidpointertype),compiler))
             else
               addstatement(statements,cassignmentnode.create(
               csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
-                ctypeconvnode.create_internal(para.left,assignmenttype,compiler),compiler));
+                compiler.ctypeconvnode_internal(para.left,assignmenttype),compiler));
 
             inc(paramssize,max(voidpointertype.size,assignmenttype.size));
             tcb.emit_ord_const(restype,u8inttype);
@@ -637,8 +637,8 @@ implementation
               { parameters are passed always reverted, i.e. the last comes first }
               compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
               compiler.ccallparanode(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
-              compiler.ccallparanode(ctypeconvnode.create_internal(selfpara,vardatadef,compiler),
-              compiler.ccallparanode(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil)))))
+              compiler.ccallparanode(compiler.ctypeconvnode_internal(selfpara,vardatadef),
+              compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
             if assigned(selftemp) then
               addstatement(statements,compiler.ctempdeletenode(selftemp));
@@ -649,8 +649,8 @@ implementation
               { parameters are passed always reverted, i.e. the last comes first }
               compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
               compiler.ccallparanode(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
-              compiler.ccallparanode(ctypeconvnode.create_internal(selfnode,voidpointertype,compiler),
-              compiler.ccallparanode(ctypeconvnode.create_internal(resultvalue,pvardatadef,compiler),nil)))))
+              compiler.ccallparanode(compiler.ctypeconvnode_internal(selfnode,voidpointertype),
+              compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
           end;
         addstatement(statements,compiler.ctempdeletenode(params));
@@ -881,9 +881,9 @@ implementation
                  { replace the original parameter with a dereference of the
                    temp typecasted to the same type as the original parameter
                    (don't free left, it has been reused above) }
-                 left:=ctypeconvnode.create_internal(
+                 left:=compiler.ctypeconvnode_internal(
                    cderefnode.create(compiler.ctemprefnode(paratemp),compiler),
-                   left.resultdef,compiler);
+                   left.resultdef);
               end
             else if is_shortstring(parasym.vardef) then
               begin
@@ -935,7 +935,7 @@ implementation
                 addstatement(initstat,
                   cassignmentnode.create(
                     compiler.ctemprefnode(paratemp),
-                    ctypeconvnode.create_internal(left,temparraydef,compiler),
+                    compiler.ctypeconvnode_internal(left,temparraydef),
                     compiler
                   )
                 );
@@ -2531,7 +2531,7 @@ implementation
             if not assigned(hightree) then
               internalerror(200304071);
             { Need to use explicit, because it can also be a enum }
-            hightree:=ctypeconvnode.create_internal(hightree,sizesinttype,compiler);
+            hightree:=compiler.ctypeconvnode_internal(hightree,sizesinttype);
           end;
         result:=hightree;
       end;
@@ -2540,8 +2540,8 @@ implementation
     function tcallnode.gen_procvar_context_tree_self:tnode;
       begin
         { Load tmehodpointer(right).self }
-        result:=genloadfield(ctypeconvnode.create_internal(
-          right.getcopy,methodpointertype,compiler),
+        result:=genloadfield(compiler.ctypeconvnode_internal(
+          right.getcopy,methodpointertype),
           'self');
       end;
 
@@ -2549,8 +2549,8 @@ implementation
     function tcallnode.gen_procvar_context_tree_parentfp: tnode;
       begin
         { Load tnestedprocpointer(right).parentfp }
-        result:=genloadfield(ctypeconvnode.create_internal(
-          right.getcopy,nestedprocpointertype,compiler),
+        result:=genloadfield(compiler.ctypeconvnode_internal(
+          right.getcopy,nestedprocpointertype),
           'parentfp');
       end;
 
@@ -3259,8 +3259,8 @@ implementation
                )
              );
              { result of this block is the address of this temp }
-             addstatement(statements,ctypeconvnode.create_internal(
-               caddrnode.create_internal(compiler.ctemprefnode(temp),compiler),selfrestype,compiler)
+             addstatement(statements,compiler.ctypeconvnode_internal(
+               caddrnode.create_internal(compiler.ctemprefnode(temp),compiler),selfrestype)
              );
              { replace the method pointer with the address of this temp }
              methodpointer.free;
@@ -3394,7 +3394,7 @@ implementation
             else
               { destructor called from exception block in constructor }
               if (cnf_create_failed in callnodeflags) then
-                vmttree:=ctypeconvnode.create_internal(call_vmt_node.getcopy,voidpointertype,compiler)
+                vmttree:=compiler.ctypeconvnode_internal(call_vmt_node.getcopy,voidpointertype)
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
@@ -4605,9 +4605,9 @@ implementation
                   tt_persistent,true);
                 addstatement(statements,converted_result_data);
                 addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(converted_result_data),
-                  ctypeconvnode.create_internal(
+                  compiler.ctypeconvnode_internal(
                     translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
-                  procdefinition.returndef,compiler),compiler));
+                  procdefinition.returndef),compiler));
                 addstatement(statements,compiler.ctempdeletenode_normal_temp(converted_result_data));
                 addstatement(statements,compiler.ctemprefnode(converted_result_data));
               end
@@ -5641,7 +5641,7 @@ implementation
           exit;
 
         { we made it! }
-        result:=ctypeconvnode.create_internal(tassignmentnode(resassign).right.getcopy,hp2.resultdef,compiler);
+        result:=compiler.ctypeconvnode_internal(tassignmentnode(resassign).right.getcopy,hp2.resultdef);
         node_reset_flags(result,[],[tnf_pass1_done]);
         firstpass(result);
       end;

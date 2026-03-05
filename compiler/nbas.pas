@@ -897,7 +897,7 @@ implementation
             { ensure the node is first passed, so the resultdef does not get changed if the
               the type conv. below is merged }
             firstpass(result);
-            result:=ctypeconvnode.create_internal(result,ttemprefnode(a[3].left).resultdef);
+            result:=compiler.ctypeconvnode_internal(result,ttemprefnode(a[3].left).resultdef);
             firstpass(result);
             exit;
           end;

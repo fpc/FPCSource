@@ -179,7 +179,7 @@ implementation
                          { Load tmehodpointer(left).proc }
                          result:=csubscriptnode.create(
                                       hsym,
-                                      ctypeconvnode.create_internal(left,procpointertype));
+                                      compiler.ctypeconvnode_internal(left,procpointertype));
                          left:=nil;
                        end
                      else

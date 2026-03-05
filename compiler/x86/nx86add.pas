@@ -1413,7 +1413,7 @@ unit nx86add;
                                   <comparison constant shr (b - 1)>
                             }
 
-                            ThisNode:=ctypeconvnode.create_internal(TModDivNode(t).left, ThisDef,compiler);
+                            ThisNode:=compiler.ctypeconvnode_internal(TModDivNode(t).left, ThisDef);
                             TTypeConvNode(ThisNode).convtype:=tc_int_2_int;
                             ThisDef:=get_unsigned_inttype(ThisDef);
                             ThisNode.resultdef:=ThisDef;

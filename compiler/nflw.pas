@@ -659,7 +659,7 @@ implementation
                 convertdef:=carraydef.create(0,elementcount-1,s32inttype,compiler);
                 tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
                 expression:=expr.getcopy;
-                expression:=ctypeconvnode.create_internal(expression,convertdef,compiler);
+                expression:=compiler.ctypeconvnode_internal(expression,convertdef);
                 typecheckpass(expression);
                 addstatement(loopstatement,expression);
               end;

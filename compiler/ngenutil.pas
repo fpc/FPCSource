@@ -220,15 +220,13 @@ implementation
             para:=compiler.ccallparanode(
                       cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
                   compiler.ccallparanode(
-                      ctypeconvnode.create_internal(
+                      compiler.ctypeconvnode_internal(
                           load_vmt_pointer_node,
-                          voidpointertype,
-                          compiler),
+                          voidpointertype),
                   compiler.ccallparanode(
-                      ctypeconvnode.create_internal(
+                      compiler.ctypeconvnode_internal(
                           load_self_pointer_node,
-                          voidpointertype,
-                          compiler),
+                          voidpointertype),
                   nil)));
             addstatement(newstatement,
                 compiler.ccallnode_intern('fpc_help_fail',para));
@@ -270,7 +268,7 @@ implementation
              is_dynamic_array(p.resultdef) then
             begin
               result:=cassignmentnode.create(
-                 ctypeconvnode.create_internal(p,voidpointertype,compiler),
+                 compiler.ctypeconvnode_internal(p,voidpointertype),
                  cnilnode.create(compiler),
                  compiler
                  );
@@ -279,7 +277,7 @@ implementation
             begin
               result:=compiler.ccallnode_intern('fpc_variant_init',
                 compiler.ccallparanode(
-                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef,compiler),
+                  compiler.ctypeconvnode_internal(p,search_system_type('TVARDATA').typedef),
                 nil));
             end
           else
@@ -330,13 +328,13 @@ implementation
           if hs<>'' then
             result:=compiler.ccallnode_intern(hs,
                compiler.ccallparanode(
-                 ctypeconvnode.create_internal(p,voidpointertype,compiler),
+                 compiler.ctypeconvnode_internal(p,voidpointertype),
                  nil))
           else if p.resultdef.typ=variantdef then
             begin
               result:=compiler.ccallnode_intern('fpc_variant_clear',
                 compiler.ccallparanode(
-                  ctypeconvnode.create_internal(p,search_system_type('TVARDATA').typedef,compiler),
+                  compiler.ctypeconvnode_internal(p,search_system_type('TVARDATA').typedef),
                 nil));
             end
           else
@@ -887,16 +885,16 @@ implementation
                       trashn := nil;
                   end;
                 1: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s8inttype,compiler),
+                  compiler.ctypeconvnode_internal(trashn,s8inttype),
                     genintconstnode(shortint(trashintval),compiler));
                 2: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s16inttype,compiler),
+                  compiler.ctypeconvnode_internal(trashn,s16inttype),
                     genintconstnode(smallint(trashintval),compiler));
                 4: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s32inttype,compiler),
+                  compiler.ctypeconvnode_internal(trashn,s32inttype),
                     genintconstnode(longint(trashintval),compiler));
                 8: trash_small(stat,
-                  ctypeconvnode.create_internal(trashn,s64inttype,compiler),
+                  compiler.ctypeconvnode_internal(trashn,s64inttype),
                     genintconstnode(int64(trashintval),compiler));
                 else
                   trash_large(stat,trashn,genintconstnode(size,compiler),trashintval);

@@ -684,7 +684,7 @@ unit optcse;
             { shall we take the address? }
             if CSEOnReference(pconstentry(arg)^.valuenode) then
               begin
-                hp:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(pconstentry(arg)^.temp),compiler),pconstentry(arg)^.valuenode.resultdef,compiler);
+                hp:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(pconstentry(arg)^.temp),compiler),pconstentry(arg)^.valuenode.resultdef);
                 ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
               end
             else

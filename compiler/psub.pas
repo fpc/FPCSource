@@ -500,20 +500,19 @@ implementation
                         { if vmt=1 then newinstance }
                         call:=
                           compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,
-                            ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef,compiler),compiler),
+                            compiler.ctypeconvnode_internal(load_self_pointer_node,cclassrefdef.create(current_structdef,compiler)),
                             [],nil);
                         include(call.callnodeflags,cnf_ignore_devirt_wpo);
                         addstatement(newstatement,cifnode.create(
                             compiler.caddnode_internal(equaln,
-                                ctypeconvnode.create_internal(
+                                compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype,compiler),
+                                    voidpointertype),
                                 cpointerconstnode.create(1,voidpointertype,compiler)),
                             cassignmentnode.create(
-                                ctypeconvnode.create_internal(
+                                compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
-                                    voidpointertype,
-                                    compiler),
+                                    voidpointertype),
                                 call,compiler),
                             nil,compiler));
                       end
@@ -531,21 +530,18 @@ implementation
                       para:=compiler.ccallparanode(
                                 cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
                             compiler.ccallparanode(
-                                ctypeconvnode.create_internal(
+                                compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype,
-                                    compiler),
+                                    voidpointertype),
                             compiler.ccallparanode(
-                                ctypeconvnode.create_internal(
+                                compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
-                                    voidpointertype,
-                                    compiler),
+                                    voidpointertype),
                             nil)));
                       addstatement(newstatement,cassignmentnode.create(
-                          ctypeconvnode.create_internal(
+                          compiler.ctypeconvnode_internal(
                               load_self_pointer_node,
-                              voidpointertype,
-                              compiler),
+                              voidpointertype),
                           compiler.ccallnode_intern('fpc_help_constructor',para),compiler));
                     end
                 else
@@ -602,11 +598,10 @@ implementation
                     { if vmt>0 then beforedestruction }
                     addstatement(newstatement,cifnode.create(
                         compiler.caddnode(gtn,
-                            ctypeconvnode.create_internal(
-                              load_vmt_pointer_node,ptrsinttype,
-                              compiler),
-                            ctypeconvnode.create_internal(
-                              cnilnode.create(compiler),ptrsinttype,compiler)),
+                            compiler.ctypeconvnode_internal(
+                              load_vmt_pointer_node,ptrsinttype),
+                            compiler.ctypeconvnode_internal(
+                              cnilnode.create(compiler),ptrsinttype)),
                         compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                         nil,compiler));
                   end
@@ -674,7 +669,7 @@ implementation
                         begin
                           addstatement(newstatement,cifnode.create(
                             compiler.caddnode(unequaln,
-                              ctypeconvnode.create_internal(load_vmt_pointer_node,voidpointertype,compiler),
+                              compiler.ctypeconvnode_internal(load_vmt_pointer_node,voidpointertype),
                               cnilnode.create(compiler)),
                             compiler.nodeutils.finalize_data_node(load_self_node),
                             nil,compiler));
@@ -685,15 +680,13 @@ implementation
                       para:=compiler.ccallparanode(
                                 cordconstnode.create(tobjectdef(current_structdef).vmt_offset,s32inttype,false,compiler),
                             compiler.ccallparanode(
-                                ctypeconvnode.create_internal(
+                                compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
-                                    voidpointertype,
-                                    compiler),
+                                    voidpointertype),
                             compiler.ccallparanode(
-                                ctypeconvnode.create_internal(
+                                compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
-                                    voidpointertype,
-                                    compiler),
+                                    voidpointertype),
                             nil)));
                       addstatement(newstatement,
                           compiler.ccallnode_intern('fpc_help_destructor',para));
@@ -863,15 +856,13 @@ implementation
                           compiler.ccallparanode(
                             cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false,compiler),
                           compiler.ccallparanode(
-                            ctypeconvnode.create_internal(
+                            compiler.ctypeconvnode_internal(
                               load_vmt_pointer_node,
-                              voidpointertype,
-                              compiler),
+                              voidpointertype),
                           compiler.ccallparanode(
-                            ctypeconvnode.create_internal(
+                            compiler.ctypeconvnode_internal(
                               load_self_pointer_node,
-                              voidpointertype,
-                              compiler),
+                              voidpointertype),
                           nil))))
                       );
                     { then re-raise the exception }

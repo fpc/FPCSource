@@ -384,7 +384,7 @@ implementation
              tct_explicit:
                p:=acompiler.ctypeconvnode_explicit(p,def);
              tct_internal:
-               p:=ctypeconvnode.create_internal(p,def,acompiler);
+               p:=acompiler.ctypeconvnode_internal(p,def);
            end;
            p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
@@ -796,18 +796,18 @@ implementation
            (p.nodetype=stringconstn) and
            { don't cast to AnsiString if already casted to Wide/UnicodeString, issue #18266 }
            (tstringconstnode(p).cst_type in [cst_conststring,cst_shortstring,cst_longstring]) then
-          p:=ctypeconvnode.create_internal(p,getansistringdef,compiler)
+          p:=compiler.ctypeconvnode_internal(p,getansistringdef)
         else
           case p.resultdef.typ of
             enumdef :
-              p:=ctypeconvnode.create_internal(p,s32inttype,compiler);
+              p:=compiler.ctypeconvnode_internal(p,s32inttype);
             arraydef :
               begin
                 if is_chararray(p.resultdef) then
-                  p:=ctypeconvnode.create_internal(p,charpointertype,compiler)
+                  p:=compiler.ctypeconvnode_internal(p,charpointertype)
                 else
                   if is_widechararray(p.resultdef) then
-                    p:=ctypeconvnode.create_internal(p,widecharpointertype,compiler)
+                    p:=compiler.ctypeconvnode_internal(p,widecharpointertype)
                 else
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
               end;
@@ -824,7 +824,7 @@ implementation
                       as a result, we require an explicit longint()
                       typecast in FPC mode on the caller side if range
                       checking should be disabled, but not in Delphi mode }
-                    p:=ctypeconvnode.create_internal(p,s32inttype,compiler)
+                    p:=compiler.ctypeconvnode_internal(p,s32inttype)
                 else if is_void(p.resultdef) then
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
@@ -1396,7 +1396,7 @@ implementation
 {$endif cpu8bitalu}
                { create word(byte(char) shl 8 or 1) for little endian machines}
                { and word(byte(char) or 256) for big endian machines          }
-               left := ctypeconvnode.create_internal(left,exprtype,compiler);
+               left := compiler.ctypeconvnode_internal(left,exprtype);
                if (target_info.endian = endian_little) then
                  left := compiler.caddnode(orn,
                    cshlshrnode.create(shln,left,cordconstnode.create(8,exprtype,false,compiler),compiler),
@@ -1404,7 +1404,7 @@ implementation
                else
                  left := compiler.caddnode(orn,left,
                    cordconstnode.create(1 shl 8,exprtype,false,compiler));
-               left := ctypeconvnode.create_internal(left,u16inttype,compiler);
+               left := compiler.ctypeconvnode_internal(left,u16inttype);
                typecheckpass(left);
              end;
       end;
@@ -1638,7 +1638,7 @@ implementation
               begin
                 result:=cinlinenode.create(in_round_real,false,left,compiler);
                 { Internal type cast to currency }
-                result:=ctypeconvnode.create_internal(result,s64currencytype,compiler);
+                result:=compiler.ctypeconvnode_internal(result,s64currencytype);
                 left:=nil;
               end
           end
@@ -1767,7 +1767,7 @@ implementation
             if nf_explicit in flags then
               result:=compiler.ctypeconvnode_explicit(hp,totypedef)
             else if nf_internal in flags then
-              result:=ctypeconvnode.create_internal(hp,totypedef,compiler)
+              result:=compiler.ctypeconvnode_internal(hp,totypedef)
             else
               result:=compiler.ctypeconvnode(hp,totypedef);
           end
@@ -1860,7 +1860,7 @@ implementation
           CGMessage(type_e_no_addr_of_constant);
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
-        result:=ctypeconvnode.create_internal(left,cpointerdef.getreusable(resultdef,compiler),compiler);
+        result:=compiler.ctypeconvnode_internal(left,cpointerdef.getreusable(resultdef,compiler));
         typecheckpass(result);
         { left is reused }
         left:=nil;
@@ -1971,8 +1971,8 @@ implementation
     function ttypeconvnode.typecheck_variant_to_enum : tnode;
 
       begin
-        result := ctypeconvnode.create_internal(left,sinttype,compiler);
-        result := ctypeconvnode.create_internal(result,resultdef,compiler);
+        result := compiler.ctypeconvnode_internal(left,sinttype);
+        result := compiler.ctypeconvnode_internal(result,resultdef);
         typecheckpass(result);
         { left is reused }
         left := nil;
@@ -1982,8 +1982,8 @@ implementation
     function ttypeconvnode.typecheck_enum_to_variant : tnode;
 
       begin
-        result := ctypeconvnode.create_internal(left,sinttype,compiler);
-        result := ctypeconvnode.create_internal(result,cvarianttype,compiler);
+        result := compiler.ctypeconvnode_internal(left,sinttype);
+        result := compiler.ctypeconvnode_internal(result,cvarianttype);
         typecheckpass(result);
         { left is reused }
         left := nil;
@@ -2021,8 +2021,8 @@ implementation
                compiler.ccallparanode(caddrnode.create_internal
                   (crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
                compiler.ccallparanode(
-                 ctypeconvnode.create_internal(
-                   compiler.ctemprefnode(temp),voidpointertype,compiler),
+                 compiler.ctypeconvnode_internal(
+                   compiler.ctemprefnode(temp),voidpointertype),
                  nil))))
 
           ));
@@ -2030,7 +2030,7 @@ implementation
 
         { copy ... }
         addstatement(newstatement,cassignmentnode.create(
-          ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(compiler.ctemprefnode(temp),voidpointertype,compiler),compiler),left.resultdef,compiler),
+          compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctypeconvnode_internal(compiler.ctemprefnode(temp),voidpointertype),compiler),left.resultdef),
           left,
           compiler
         ));
@@ -2122,8 +2122,8 @@ implementation
                compiler.ccallparanode(caddrnode.create_internal
                   (crttinode.create(tstoreddef(totypedef),initrtti,rdt_normal,compiler),compiler),
                compiler.ccallparanode(
-                 ctypeconvnode.create_internal(
-                   compiler.ctemprefnode(arrnode),voidpointertype,compiler),
+                 compiler.ctypeconvnode_internal(
+                   compiler.ctemprefnode(arrnode),voidpointertype),
                  nil))))
 
           ));
@@ -2748,11 +2748,11 @@ implementation
               ld:=cloadnode.create(capturer,capturer.owner,compiler)
             else
               ld:=cnilnode.create(compiler);
-            result:=ctypeconvnode.create_internal(
-                      ctypeconvnode.create_internal(
+            result:=compiler.ctypeconvnode_internal(
+                      compiler.ctypeconvnode_internal(
                         ld,
-                        intfdef,compiler),
-                      totypedef,compiler);
+                        intfdef),
+                      totypedef);
             if assigned(hp) then
               begin
                 blck:=internalstatements(compiler,stmt);
@@ -2780,11 +2780,11 @@ implementation
               ldnode:=cloadnode.create(capturer,capturer.owner,compiler)
             else
               ldnode:=cnilnode.create(compiler);
-            result:=ctypeconvnode.create_internal(
-                      ctypeconvnode.create_internal(
+            result:=compiler.ctypeconvnode_internal(
+                      compiler.ctypeconvnode_internal(
                         ldnode,
-                        intfdef,compiler),
-                      totypedef,compiler);
+                        intfdef),
+                      totypedef);
           end
         else
           result:=compiler.cerrornode;
@@ -3161,7 +3161,7 @@ implementation
                                  addstatement(newstatement,cassignmentnode.create(
                                    compiler.ctemprefnode(tempnode),
                                    caddrnode.create_internal(left,compiler),compiler));
-                                 left:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),left.resultdef,compiler);
+                                 left:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),left.resultdef);
                                end
                              else
                                begin
@@ -3174,7 +3174,7 @@ implementation
                                end;
                              addstatement(newstatement,casnode.create(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler),compiler));
                              addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
-                             addstatement(newstatement,ctypeconvnode.create_internal(left,resultdef,compiler));
+                             addstatement(newstatement,compiler.ctypeconvnode_internal(left,resultdef));
                              left:=nil;
                              result:=newblock;
                              exit;
@@ -4041,8 +4041,8 @@ implementation
               fname:=fname+'float64'
             else
               fname:=fname+'float32';
-            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(fname,compiler.ccallparanode(
-              left,nil)),resultdef,compiler);
+            result:=compiler.ctypeconvnode_internal(compiler.ccallnode_intern(fname,compiler.ccallparanode(
+              left,nil)),resultdef);
             left:=nil;
             firstpass(result);
             exit;
@@ -4096,7 +4096,7 @@ implementation
                     case tfloatdef(resultdef).floattype of
                       s64real:
                         result:=compiler.ctypeconvnode_explicit(compiler.ccallnode_intern('float32_to_float64',compiler.ccallparanode(
-                          ctypeconvnode.create_internal(left,search_system_type('FLOAT32REC').typedef),nil)),resultdef);
+                          compiler.ctypeconvnode_internal(left,search_system_type('FLOAT32REC').typedef),nil)),resultdef);
                       s32real:
                         begin
                           result:=left;
@@ -4109,7 +4109,7 @@ implementation
                     case tfloatdef(resultdef).floattype of
                       s32real:
                         result:=compiler.ctypeconvnode_explicit(compiler.ccallnode_intern('float64_to_float32',compiler.ccallparanode(
-                          ctypeconvnode.create_internal(left,search_system_type('FLOAT64').typedef),nil)),resultdef);
+                          compiler.ctypeconvnode_internal(left,search_system_type('FLOAT64').typedef),nil)),resultdef);
                       s64real:
                         begin
                           result:=left;
@@ -4200,7 +4200,7 @@ implementation
             (left.resultdef.size<>resultdef.size)
             and is_cbool(resultdef) then
            begin
-             left:=ctypeconvnode.create_internal(left,s32inttype,compiler);
+             left:=compiler.ctypeconvnode_internal(left,s32inttype);
              firstpass(left);
              exit;
            end;
@@ -5127,8 +5127,8 @@ implementation
                 procname := 'fpc_intf_is_class'
               else
                 procname := 'fpc_intf_is';
-            result := ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,
-               compiler.ccallparanode(right,compiler.ccallparanode(left,nil))),resultdef,compiler);
+            result := compiler.ctypeconvnode_internal(compiler.ccallnode_intern(procname,
+               compiler.ccallparanode(right,compiler.ccallparanode(left,nil))),resultdef);
           end;
         left := nil;
         right := nil;
@@ -5224,8 +5224,8 @@ implementation
                     procname := 'fpc_intf_as_class'
                   else
                     procname := 'fpc_intf_as';
-                call := ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,
-                   compiler.ccallparanode(right,compiler.ccallparanode(left,nil))),resultdef,compiler);
+                call := compiler.ctypeconvnode_internal(compiler.ccallnode_intern(procname,
+                   compiler.ccallparanode(right,compiler.ccallparanode(left,nil))),resultdef);
               end;
             left := nil;
             right := nil;

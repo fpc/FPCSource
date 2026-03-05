@@ -510,7 +510,7 @@ const
           if op in [equaln,unequaln,gtn,lten] then
             begin
               { “pointer(L.left) = nil”. Steal L.left instead of getcopy, zero a bit later. }
-              resn:=compiler.caddnode_internal(equaln,ctypeconvnode.create_internal(tinlinenode(L).left,voidpointertype,compiler),
+              resn:=compiler.caddnode_internal(equaln,compiler.ctypeconvnode_internal(tinlinenode(L).left,voidpointertype),
                  cpointerconstnode.create(0,voidpointertype,compiler));
 
               { COM widestrings have 32-bit lengths, and can explicitly have 0 while being non-nil. }
@@ -520,12 +520,12 @@ const
                   resn:=compiler.caddnode_internal(orn,
                       resn,
                       compiler.caddnode_internal(equaln,
-                        ctypeconvnode.create_internal(
+                        compiler.ctypeconvnode_internal(
                           cderefnode.create(
-                            compiler.caddnode_internal(subn,ctypeconvnode.create_internal(tinlinenode(L).left.getcopy,voidpointertype,compiler),
+                            compiler.caddnode_internal(subn,compiler.ctypeconvnode_internal(tinlinenode(L).left.getcopy,voidpointertype),
                               cordconstnode.create(sizeof(uint32),ptruinttype,false,compiler)),
                               compiler
-                          ),u32inttype,compiler
+                          ),u32inttype
                         ),
                         cordconstnode.create(0,u32inttype,false,compiler))
                     );
@@ -559,7 +559,7 @@ const
         begin
           result:=getcopy;
           result.resultdef:=nil;
-          result:=ctypeconvnode.create_internal(result,resultdef,compiler);
+          result:=compiler.ctypeconvnode_internal(result,resultdef);
           do_typecheckpass(result);
         end;
 
@@ -590,7 +590,7 @@ const
             begin
               { ensure that the constant is not expanded to a larger type due to overflow,
                 but this is only useful if no pointer operation is done }
-              left:=ctypeconvnode.create_internal(left,resultdef,compiler);
+              left:=compiler.ctypeconvnode_internal(left,resultdef);
               do_typecheckpass(left);
             end;
           result:=GetCopyAndTypeCheck;
@@ -614,7 +614,7 @@ const
             begin
               { ensure that the constant is not expanded to a larger type due to overflow,
                 but this is only useful if no pointer operation is done }
-              left:=ctypeconvnode.create_internal(left,resultdef,compiler);
+              left:=compiler.ctypeconvnode_internal(left,resultdef);
               do_typecheckpass(left);
             end
           else if tpointerdef(resultdef).pointeddef.size>1 then
@@ -645,7 +645,7 @@ const
             begin
               { ensure that the constant is not expanded to a larger type due to overflow,
                 but this is only useful if no pointer operation is done }
-              right:=ctypeconvnode.create_internal(right,resultdef,compiler);
+              right:=compiler.ctypeconvnode_internal(right,resultdef);
               do_typecheckpass(right);
             end;
           left:=right;
@@ -949,7 +949,7 @@ const
               { insert type conversion in case it is a 32*32 to 64 bit multiplication optimization,
                 the type conversion does not hurt because it is normally removed later on
               }
-              result := ctypeconvnode.create_internal(PruneKeepLeft(),resultdef,compiler)
+              result := compiler.ctypeconvnode_internal(PruneKeepLeft(),resultdef)
 
             { try to fold
                           op                         op
@@ -997,7 +997,7 @@ const
             { multiplication by -1? Convert it into an unary minus if the other conversions before failed, don't do
               it before the folding above, see #40448 }
             if (tordconstnode(right).value = -1) and (nodetype=muln) then
-              result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepLeft(),compiler),ld,compiler);
+              result := compiler.ctypeconvnode_internal(cunaryminusnode.create(PruneKeepLeft(),compiler),ld);
 
             if assigned(result) then
               exit;
@@ -1017,12 +1017,12 @@ const
             else if is_constintnode(left) and (is_integer(right.resultdef) or is_pointer(right.resultdef)) then
               begin
                 if (tordconstnode(left).value = 0) then
-                  result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy,compiler),right.resultdef,compiler);
+                  result := compiler.ctypeconvnode_internal(cunaryminusnode.create(right.getcopy,compiler),right.resultdef);
               end
 
             { change "nil - val" to "-val" }
             else if (left.nodetype=niln) and is_pointer(right.resultdef) then
-              result := ctypeconvnode.create_internal(cunaryminusnode.create(ctypeconvnode.create_internal(right.getcopy,resultdef,compiler),compiler),resultdef,compiler)
+              result := compiler.ctypeconvnode_internal(cunaryminusnode.create(compiler.ctypeconvnode_internal(right.getcopy,resultdef),compiler),resultdef)
 
             { convert n - n mod const into n div const*const }
             else if (right.nodetype=modn) and is_constintnode(tmoddivnode(right).right) and
@@ -1161,7 +1161,7 @@ const
                           subn:
                             begin
                               t := PruneKeepRight();
-                              result:=ctypeconvnode.create_internal(cunaryminusnode.create(t,compiler),rd,compiler);
+                              result:=compiler.ctypeconvnode_internal(cunaryminusnode.create(t,compiler),rd);
                               exit;
                             end;
                           else
@@ -1686,7 +1686,7 @@ const
                    (vl.resultdef.typ in [orddef,enumdef]) then
                   begin
                     hdef:=get_unsigned_inttype(vl.resultdef);
-                    vl:=ctypeconvnode.create_internal(vl.getcopy,hdef,compiler);
+                    vl:=compiler.ctypeconvnode_internal(vl.getcopy,hdef);
 
                     { If the condition is of the inverted form (v<x) or (v>y),
                       we have to invert the conditional result as well, since
@@ -1698,7 +1698,7 @@ const
                       nt:=lten;
 
                     result:=compiler.caddnode_internal(nt,
-                              ctypeconvnode.create_internal(compiler.caddnode_internal(subn,vl,cordconstnode.create(cl,hdef,false,compiler)),hdef,compiler),
+                              compiler.ctypeconvnode_internal(compiler.caddnode_internal(subn,vl,cordconstnode.create(cl,hdef,false,compiler)),hdef),
                               cordconstnode.create(cr-cl,hdef,false,compiler));
 
                     exit;
@@ -1758,10 +1758,10 @@ const
 
                          result:=compiler.caddnode_internal(equaln,
                            compiler.caddnode_internal(orn,
-                             compiler.caddnode_internal(xorn,ctypeconvnode.create_internal(v1p^.getcopy,inttype,compiler),
-                               ctypeconvnode.create_internal(c1p^.getcopy,inttype,compiler)),
-                             compiler.caddnode_internal(xorn,ctypeconvnode.create_internal(v2p^.getcopy,inttype,compiler),
-                               ctypeconvnode.create_internal(c2p^.getcopy,inttype,compiler))
+                             compiler.caddnode_internal(xorn,compiler.ctypeconvnode_internal(v1p^.getcopy,inttype),
+                               compiler.ctypeconvnode_internal(c1p^.getcopy,inttype)),
+                             compiler.caddnode_internal(xorn,compiler.ctypeconvnode_internal(v2p^.getcopy,inttype),
+                               compiler.ctypeconvnode_internal(c2p^.getcopy,inttype))
                            ),
                            cordconstnode.create(0,inttype,false,compiler));
                        end;
@@ -2254,7 +2254,7 @@ const
                (right.resultdef.typ=orddef) then
              begin
                { insert explicit typecast to default signed int }
-               left:=ctypeconvnode.create_internal(left,sinttype,compiler);
+               left:=compiler.ctypeconvnode_internal(left,sinttype);
                typecheckpass(left);
              end
             else
@@ -2262,7 +2262,7 @@ const
                 (right.resultdef.typ=enumdef) then
               begin
                 { insert explicit typecast to default signed int }
-                right:=ctypeconvnode.create_internal(right,sinttype,compiler);
+                right:=compiler.ctypeconvnode_internal(right,sinttype);
                 typecheckpass(right);
               end;
           end;
@@ -2474,14 +2474,14 @@ const
                       if (torddef(left.resultdef).size>torddef(right.resultdef).size) or
                         (is_cbool(left.resultdef) and not is_cbool(right.resultdef)) then
                         begin
-                          right:=ctypeconvnode.create_internal(right,left.resultdef,compiler);
+                          right:=compiler.ctypeconvnode_internal(right,left.resultdef);
                           ttypeconvnode(right).convtype:=tc_bool_2_bool;
                           typecheckpass(right);
                         end
                       else if (torddef(left.resultdef).size<torddef(right.resultdef).size) or
                         (not is_cbool(left.resultdef) and is_cbool(right.resultdef)) then
                         begin
-                          left:=ctypeconvnode.create_internal(left,right.resultdef,compiler);
+                          left:=compiler.ctypeconvnode_internal(left,right.resultdef);
                           ttypeconvnode(left).convtype:=tc_bool_2_bool;
                           typecheckpass(left);
                         end;
@@ -3128,7 +3128,7 @@ const
               begin
                 right:=csubscriptnode.create(
                            hsym,
-                           ctypeconvnode.create_internal(right,methodpointertype,compiler),compiler);
+                           compiler.ctypeconvnode_internal(right,methodpointertype),compiler);
                 typecheckpass(right);
                end;
             if (ld.typ=procvardef) and
@@ -3136,7 +3136,7 @@ const
               begin
                 left:=csubscriptnode.create(
                           hsym,
-                          ctypeconvnode.create_internal(left,methodpointertype,compiler),compiler);
+                          compiler.ctypeconvnode_internal(left,methodpointertype),compiler);
                 typecheckpass(left);
               end;
             if lt=niln then
@@ -3317,11 +3317,11 @@ const
                     { Compare tmehodpointer(left).proc }
                     right:=csubscriptnode.create(
                                  hsym,
-                                 ctypeconvnode.create_internal(right,methodpointertype,compiler),compiler);
+                                 compiler.ctypeconvnode_internal(right,methodpointertype),compiler);
                     typecheckpass(right);
                     left:=csubscriptnode.create(
                                  hsym,
-                                 ctypeconvnode.create_internal(left,methodpointertype,compiler),compiler);
+                                 compiler.ctypeconvnode_internal(left,methodpointertype),compiler);
                      typecheckpass(left);
                   end;
               end
@@ -3635,7 +3635,7 @@ const
                           { compare the pointer with nil (for ansistrings etc), }
                           { faster than getting the length (JM)                 }
                           result:= compiler.caddnode(nodetype,
-                            ctypeconvnode.create_internal(left,voidpointertype,compiler),
+                            compiler.ctypeconvnode_internal(left,voidpointertype),
                             cpointerconstnode.create(0,voidpointertype,compiler));
                         end;
                     end;
@@ -3776,7 +3776,7 @@ const
                 begin
                   { adjust for set base }
                   tsetelementnode(right).left:=compiler.caddnode(subn,
-                    ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                    compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                     cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                   if no_temp then
@@ -3821,12 +3821,12 @@ const
                             begin
                               { adjust for set base }
                               tsetelementnode(right).left:=compiler.caddnode(subn,
-                                ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                                compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                                 cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                               { adjust for set base }
                               tsetelementnode(right).right:=compiler.caddnode(subn,
-                                ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype,compiler),
+                                compiler.ctypeconvnode_internal(tsetelementnode(right).right,sinttype),
                                 cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                               result:=compiler.ccallnode_intern('fpc_varset_set_range',
@@ -3841,17 +3841,17 @@ const
                               { s:=s+[element]; ? }
                               if left.isequal(aktassignmentnode.left) then
                                 result:=cinlinenode.createintern(in_include_x_y,false,compiler.ccallparanode(aktassignmentnode.left.getcopy,
-                                  compiler.ccallparanode(ctypeconvnode.create_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef,compiler),nil)),compiler)
+                                  compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef),nil)),compiler)
                               else
                                 begin
                                   { adjust for set base }
                                   tsetelementnode(right).left:=compiler.caddnode(subn,
-                                    ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                                    compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                                     cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                                   result:=compiler.ccallnode_intern('fpc_varset_set',
                                     compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                                    compiler.ccallparanode(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                                    compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                                     compiler.ccallparanode(aktassignmentnode.left.getcopy,
                                     compiler.ccallparanode(left,nil)))));
                                 end;
@@ -3863,7 +3863,7 @@ const
                         begin
                           { adjust for set base }
                           tsetelementnode(right).left:=compiler.caddnode(subn,
-                            ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                            compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                             cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
 
                           result:=internalstatements(compiler,newstatement);
@@ -3877,7 +3877,7 @@ const
                             begin
                               { adjust for set base }
                               tsetelementnode(right).right:=compiler.caddnode(subn,
-                                ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype,compiler),
+                                compiler.ctypeconvnode_internal(tsetelementnode(right).right,sinttype),
                                 cordconstnode.create(tsetdef(resultdef).setbase,sinttype,false,compiler));
                               addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set_range',
                                 compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
@@ -3890,7 +3890,7 @@ const
                           else
                             addstatement(newstatement,compiler.ccallnode_intern('fpc_varset_set',
                               compiler.ccallparanode(cordconstnode.create(resultdef.size,sinttype,false,compiler),
-                              compiler.ccallparanode(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype,compiler),
+                              compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
                               compiler.ccallparanode(compiler.ctemprefnode(temp),
                               compiler.ccallparanode(left,nil)))))
                             );
@@ -3957,13 +3957,13 @@ const
                   valid_for_var(aktassignmentnode.left,false) then
                 begin
                   para:=compiler.ccallparanode(
-                          ctypeconvnode.create_internal(right,voidcodepointertype,compiler),
+                          compiler.ctypeconvnode_internal(right,voidcodepointertype),
                         compiler.ccallparanode(
-                          ctypeconvnode.create_internal(left,voidcodepointertype,compiler),
+                          compiler.ctypeconvnode_internal(left,voidcodepointertype),
                         compiler.ccallparanode(
                           caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
                         compiler.ccallparanode(
-                          ctypeconvnode.create_internal(aktassignmentnode.left.getcopy,voidcodepointertype,compiler),nil)
+                          compiler.ctypeconvnode_internal(aktassignmentnode.left.getcopy,voidcodepointertype),nil)
                         )));
                   result:=compiler.ccallnode_intern(
                             'fpc_dynarray_concat',
@@ -3988,13 +3988,13 @@ const
                       compiler.ccallparanode(genintconstnode(0,compiler),
                         compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
                   para:=compiler.ccallparanode(
-                          ctypeconvnode.create_internal(right,voidcodepointertype,compiler),
+                          compiler.ctypeconvnode_internal(right,voidcodepointertype),
                         compiler.ccallparanode(
-                          ctypeconvnode.create_internal(left,voidcodepointertype,compiler),
+                          compiler.ctypeconvnode_internal(left,voidcodepointertype),
                         compiler.ccallparanode(
                           caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
                         compiler.ccallparanode(
-                          ctypeconvnode.create_internal(compiler.ctemprefnode(tempnode),voidcodepointertype,compiler),nil)
+                          compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),voidcodepointertype),nil)
                         )));
                   addstatement(
                     newstatement,
@@ -4448,10 +4448,10 @@ const
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
               resultdef:=pasbool1type;
-            result:=ctypeconvnode.create_internal(compiler.ccallnode_intern(procname,compiler.ccallparanode(
-                ctypeconvnode.create_internal(right,fdef,compiler),
+            result:=compiler.ctypeconvnode_internal(compiler.ccallnode_intern(procname,compiler.ccallparanode(
+                compiler.ctypeconvnode_internal(right,fdef),
                 compiler.ccallparanode(
-                  ctypeconvnode.create_internal(left,fdef,compiler),nil))),resultdef,compiler);
+                  compiler.ctypeconvnode_internal(left,fdef),nil))),resultdef);
           end
         else
           result:=compiler.ccallnode_intern(procname,compiler.ccallparanode(right,

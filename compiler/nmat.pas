@@ -212,7 +212,7 @@ implementation
                 left:=hp;
                 Result:=getcopy;
                 Result.resultdef:=nil;
-                Result:=ctypeconvnode.create_internal(Result,resultdef,compiler);
+                Result:=compiler.ctypeconvnode_internal(Result,resultdef);
                 exit;
               end;
 

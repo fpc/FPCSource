@@ -1217,8 +1217,8 @@ implementation
                         if assigned(srdef) then
                           { anonymous inherited via msgid calls only require a var parameter for
                             both methods, so we need some type casting here }
-                          para:=compiler.ccallparanode(ctypeconvnode.create_internal(ctypeconvnode.create_internal(
-                            cloadnode.create(currpara,currpara.owner,compiler),cformaltype,compiler),tparavarsym(tprocdef(srdef).paras[i]).vardef,compiler),
+                          para:=compiler.ccallparanode(compiler.ctypeconvnode_internal(compiler.ctypeconvnode_internal(
+                            cloadnode.create(currpara,currpara.owner,compiler),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vardef),
                           para)
                         else
                           para:=compiler.ccallparanode(cloadnode.create(currpara,currpara.owner,compiler),para);
@@ -2082,8 +2082,8 @@ implementation
                    (countindices,s32inttype,true,compiler),
                 compiler.ccallparanode(caddrnode.create_internal
                (cvecnode.create(compiler.ctemprefnode(temp),genintconstnode(0,compiler),compiler),compiler),
-                compiler.ccallparanode(ctypeconvnode.create_internal(p4,cvarianttype,compiler),
-                compiler.ccallparanode(ctypeconvnode.create_internal(p1,cvarianttype,compiler)
+                compiler.ccallparanode(compiler.ctypeconvnode_internal(p4,cvarianttype),
+                compiler.ccallparanode(compiler.ctypeconvnode_internal(p1,cvarianttype)
                   ,nil))));
 
              addstatement(newstatement,compiler.ccallnode_intern('fpc_vararray_put',paras));
@@ -2168,8 +2168,8 @@ implementation
                  compiler.ccallparanode(caddrnode.create_internal
                     (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal,compiler),compiler),
                  compiler.ccallparanode(
-                   ctypeconvnode.create_internal(
-                     compiler.ctemprefnode(arrnode),voidpointertype,compiler),
+                   compiler.ctypeconvnode_internal(
+                     compiler.ctemprefnode(arrnode),voidpointertype),
                    nil))))
 
             ));
@@ -2301,8 +2301,8 @@ implementation
                        end;
                      ft_typed:
                        begin
-                         p1:=cderefnode.create(ctypeconvnode.create_internal(compiler.ccallnode_intern('fpc_getbuf_typedfile',compiler.ccallparanode(p1,nil)),
-                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef,compiler),compiler),compiler);
+                         p1:=cderefnode.create(compiler.ctypeconvnode_internal(compiler.ccallnode_intern('fpc_getbuf_typedfile',compiler.ccallparanode(p1,nil)),
+                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef,compiler)),compiler);
                          typecheckpass(p1);
                        end;
                      else
@@ -2411,9 +2411,9 @@ implementation
                                inserttypeconv_internal(p2,u32inttype);
                                p2:=compiler.caddnode(addn,p2,p3);
                                case tloadnode(p1).symtableentry.name of
-                                 'MEM': p2:=ctypeconvnode.create_internal(p2,bytefarpointertype);
-                                 'MEMW': p2:=ctypeconvnode.create_internal(p2,wordfarpointertype);
-                                 'MEML': p2:=ctypeconvnode.create_internal(p2,longintfarpointertype);
+                                 'MEM': p2:=compiler.ctypeconvnode_internal(p2,bytefarpointertype);
+                                 'MEMW': p2:=compiler.ctypeconvnode_internal(p2,wordfarpointertype);
+                                 'MEML': p2:=compiler.ctypeconvnode_internal(p2,longintfarpointertype);
                                  else
                                    internalerror(2013053102);
                                end;
@@ -4002,7 +4002,7 @@ implementation
                                    hdef:=cclassrefdef.create(hdef,compiler);
                                  if useself then
                                    begin
-                                     p1:=ctypeconvnode.create_internal(load_self_node,hdef,compiler);
+                                     p1:=compiler.ctypeconvnode_internal(load_self_node,hdef);
                                    end
                                  else
                                    begin

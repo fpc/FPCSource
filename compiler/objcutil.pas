@@ -124,18 +124,17 @@ end;
            (vs.typ<>fieldvarsym) then
           internalerror(200911301);
         if fieldname='ISA' then
-          result:=ctypeconvnode.create_internal(
+          result:=compiler.ctypeconvnode_internal(
             cderefnode.create(
-              ctypeconvnode.create_internal(n,
-                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype,compiler),compiler),
-                compiler
+              compiler.ctypeconvnode_internal(n,
+                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype,compiler),compiler)
               ),
               compiler
-            ),tfieldvarsym(vs).vardef,compiler
+            ),tfieldvarsym(vs).vardef
           )
         else
           begin
-            result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype,compiler),compiler);
+            result:=cderefnode.create(compiler.ctypeconvnode_internal(n,objc_idtype),compiler);
             result:=csubscriptnode.create(vs,result,compiler);
           end;
       end;

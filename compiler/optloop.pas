@@ -358,7 +358,7 @@ type
                   muln:
                     hp:=compiler.ctemprefnode(inductions[i].temp);
                   vecn:
-                    hp:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(inductions[i].temp),compiler),n.resultdef,compiler);
+                    hp:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(inductions[i].temp),compiler),n.resultdef);
                   else
                     internalerror(200809211);
                 end;
@@ -527,7 +527,7 @@ type
 
                       startvaltemp:=maybereplacewithtemp(compiler,currforloop.right,initcode,initcodestatements,currforloop.right.resultdef.size,true);
                       nn:=caddrnode.create(
-                          cvecnode.create(tvecnode(n).left.getcopy,ctypeconvnode.create_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef,compiler),compiler),
+                          cvecnode.create(tvecnode(n).left.getcopy,compiler.ctypeconvnode_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef),compiler),
                           compiler
                         );
                       { If the calculation is not performed at the end
@@ -539,13 +539,13 @@ type
                           else
                             nt:=subn;
                           nn:=compiler.caddnode_internal(nt,
-                             ctypeconvnode.create_internal(nn,voidpointertype,compiler),
+                             compiler.ctypeconvnode_internal(nn,voidpointertype),
                              cordconstnode.create(tcgvecnode(n).get_mul_size,sizeuinttype,false,compiler));
                         end;
                       addstatement(initcodestatements,cassignmentnode.create(compiler.ctemprefnode(tempnode),nn,compiler));
 
                       { finally replace the node by a temp. ref }
-                      n:=ctypeconvnode.create_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),n.resultdef,compiler);
+                      n:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),n.resultdef);
 
                       { ... and add a temp. release node }
                       if startvaltemp<>nil then
@@ -708,11 +708,11 @@ type
                 writeln('**********************************************************************************');
 {$endif DEBUG_OPTFORLOOP}
                 include(tfornode(n).loopflags,lnf_backward);
-                tfornode(n).right:=ctypeconvnode.create_internal(
+                tfornode(n).right:=compiler.ctypeconvnode_internal(
                   compiler.caddnode_internal(addn,compiler.caddnode_internal(subn,
                     tfornode(n).t1,tfornode(n).right),
                     cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler)),
-                  tfornode(n).left.resultdef,compiler);
+                  tfornode(n).left.resultdef);
                 tfornode(n).t1:=cordconstnode.create(1,tfornode(n).left.resultdef,false,compiler);
                 include(tfornode(n).loopflags,lnf_counter_not_used);
                 exclude(n.transientflags,tnf_pass1_done);

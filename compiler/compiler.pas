@@ -230,6 +230,7 @@ type
     { ncnv }
     function ctypeconvnode(node : tnode;def:tdef):ttypeconvnode; inline;
     function ctypeconvnode_explicit(node : tnode;def:tdef):ttypeconvnode; inline;
+    function ctypeconvnode_internal(node : tnode;def:tdef):ttypeconvnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -715,6 +716,12 @@ function TCompilerHelper.ctypeconvnode_explicit(node: tnode; def: tdef
   ): ttypeconvnode; inline;
 begin
   result:=ncnv.ctypeconvnode.create_explicit(node,def,self);
+end;
+
+function TCompilerHelper.ctypeconvnode_internal(node: tnode; def: tdef
+  ): ttypeconvnode; inline;
+begin
+  result:=ncnv.ctypeconvnode.create_internal(node,def,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

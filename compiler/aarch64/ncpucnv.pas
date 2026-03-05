@@ -83,7 +83,7 @@ implementation
         begin
           { convert the equivalent int64 value to double without conversion
             (internal typecast -> will set nf_is_currency flag) }
-          result:=ctypeconvnode.create_internal(left,s64floattype);
+          result:=compiler.ctypeconvnode_internal(left,s64floattype);
           { turn into currency with conversion, which will divide by 10000
             (regular typecast) }
           result:=compiler.ctypeconvnode(result,s64currencytype);

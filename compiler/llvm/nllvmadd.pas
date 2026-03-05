@@ -112,7 +112,7 @@ implementation
               );
               if iscompcurrency then
                 begin
-                  result:=ctypeconvnode.create_internal(result,resultdef);
+                  result:=compiler.ctypeconvnode_internal(result,resultdef);
                 end;
               left:=nil;
               right:=nil;
