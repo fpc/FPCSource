@@ -135,8 +135,8 @@ function tllvmtypeconvnode.first_int_to_real: tnode;
         { in case rounding may have to be applied, use the intrinsic }
         exceptmode:=llvm_constrainedexceptmodestring;
         result:=compiler.ccallnode_intern('llvm_experimental_constrained_'+intrinfix[is_signed(left.resultdef)]+llvmfloatintrinsicsuffix(tfloatdef(resultdef))+'_i'+tostr(left.resultdef.size*8),
-          compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
-            compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
+          compiler.ccallparanode(compiler.cstringconstnode_pchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
+            compiler.ccallparanode(compiler.cstringconstnode_pchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
               compiler.ccallparanode(left,nil)
             )
           )

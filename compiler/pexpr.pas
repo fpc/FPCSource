@@ -4194,7 +4194,7 @@ implementation
 
              _CSTRING :
                begin
-                 p1:=cstringconstnode.createpchar(pchar(current_scanner.cstringpattern),length(current_scanner.cstringpattern),nil,compiler);
+                 p1:=compiler.cstringconstnode_pchar(pchar(current_scanner.cstringpattern),length(current_scanner.cstringpattern),nil);
                  consume(_CSTRING);
                  if current_scanner.token in postfixoperator_tokens then
                    begin

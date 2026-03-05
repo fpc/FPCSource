@@ -3371,7 +3371,7 @@ implementation
           encodedtype:='';
           if not objctryencodetype(left.resultdef,encodedtype,errordef) then
             Message1(type_e_objc_type_unsupported,errordef.typename);
-          result:=cstringconstnode.createpchar(pchar(encodedtype),length(encodedtype),nil,compiler);
+          result:=compiler.cstringconstnode_pchar(pchar(encodedtype),length(encodedtype),nil);
         end;
 
       var

@@ -102,8 +102,8 @@ implementation
                 end;
               exceptmode:=llvm_constrainedexceptmodestring;
               result:=compiler.ccallnode_intern(intrname,
-                compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
-                  compiler.ccallparanode(cstringconstnode.createpchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
+                compiler.ccallparanode(compiler.cstringconstnode_pchar(ansistring2pchar(exceptmode),length(exceptmode),llvm_metadatatype),
+                  compiler.ccallparanode(compiler.cstringconstnode_pchar(ansistring2pchar('round.dynamic'),length('round.dynamic'),llvm_metadatatype),
                     compiler.ccallparanode(right,
                       compiler.ccallparanode(left,nil)
                     )

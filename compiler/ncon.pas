@@ -356,7 +356,7 @@ implementation
               getmem(pc,len+1);
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
-              p1:=cstringconstnode.createpchar(pc,len,p.constdef,compiler);
+              p1:=compiler.cstringconstnode_pchar(pc,len,p.constdef);
               freemem(pc);
             end;
           constwstring :

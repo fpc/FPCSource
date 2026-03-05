@@ -1231,7 +1231,7 @@ implementation
                    begin
                      pchtemp:=concatansistrings(tstringconstnode(left).asconstpchar,pchar(StringOfChar(#0,arrsize-tstringconstnode(left).len)),tstringconstnode(left).len,arrsize-tstringconstnode(left).len);
                      left.free;
-                     left:=cstringconstnode.createpchar(pchtemp,arrsize,nil,compiler);
+                     left:=compiler.cstringconstnode_pchar(pchtemp,arrsize,nil);
                      freemem(pchtemp);
                      typecheckpass(left);
                    end;

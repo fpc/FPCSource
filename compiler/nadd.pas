@@ -1369,7 +1369,7 @@ const
                 addn :
                   begin
                     stmp:=concatansistrings(s1,s2,l1,l2);
-                    t:=cstringconstnode.createpchar(stmp,l1+l2,nil,compiler);
+                    t:=compiler.cstringconstnode_pchar(stmp,l1+l2,nil);
                     Freemem(stmp);
                     typecheckpass(t);
                     if not is_ansistring(resultdef) or
