@@ -39,7 +39,7 @@ interface
     uses
       cmsgs,verbose,
       cutils,cclasses,cstreams,
-      globtype,globals,fpchash,finput,fmodule,
+      globtype,globals,globstat,fpchash,finput,fmodule,
       symbase,ppu,symtype;
 
     type
@@ -97,7 +97,7 @@ interface
            they have been resolved only for an older generation, in order to
            avoid endless resolving loops in case of cyclic dependencies. }
           defsgeneration : longint;
-          stored_settings: tsettings;
+          stored_state: tglobalstate;
 
           function check_loadfrompackage: boolean;
           function  openppu(ppufiletime:longint):boolean;
@@ -2287,13 +2287,16 @@ var
     procedure tppumodule.restore_state;
       begin
         set_current_module(self);
-        current_settings:=stored_settings;
-        RestoreLocalVerbosity(current_settings.pmessage);
+        if stored_state<>nil then
+          stored_state.restore;
       end;
 
     procedure tppumodule.store_state;
       begin
-        stored_settings:=current_settings;
+        if stored_state=nil then
+          stored_state:=tglobalstate.Create(true)
+        else
+          stored_state.save(true);
       end;
 
     procedure tppumodule.setdefgeneration;
@@ -2491,7 +2494,6 @@ var
           state:=ms_compile;
         end;
 
-        store_state;
         Result:=continueloadppu;
 
         set_current_module(from_module);
