@@ -66,6 +66,7 @@ type
     procedure TestUr_ignoreinclude1; // ant->bird, change bird.inc
     procedure TestUr_newmainsrc1; // ant->bird, change bird.pas
     procedure TestUr_cycle2; //  ant->bird, bird.impl->ant
+    procedure TestUr_pkg1; // pkg2 uses pkg1, pk1 changes
 
     // inline
     procedure TestInline1; // ant->bird->cat, cat inline body changes
@@ -510,6 +511,51 @@ begin
   Compile;
   // the main src is always compiled, ant is kept even though it is part of the cycle
   CheckCompiled(['ur_cycle2_bird.pas']);
+end;
+
+procedure TTestRecompile.TestUr_pkg1;
+// pkg2 uses pkg1, pk1 changes
+var
+  Dir, Pkg1Dir, Pkg2Dir: String;
+begin
+  OptionUr:=true;
+  Dir:='ur_pkg1'+PathDelim;
+  Pkg1Dir:=Dir+'pkg1'+PathDelim;
+  Pkg2Dir:=Dir+'pkg2'+PathDelim;
+
+  Step:='Step 1: compile pkg1 with src1';
+  MainSrc:=Pkg1Dir+'src1'+PathDelim+'ur_pkg1_ant.pas';
+  UnitPath:=Pkg1Dir+'src1';
+  OutDir:=Pkg1Dir+'ppus';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ur_pkg1_ant.pas']);
+
+  Step:='Step 2: first compile of pkg2';
+  MainSrc:=Pkg2Dir+'ur_pkg1_bird.pas';
+  UnitPath:=Pkg1Dir+'ppus'+';'+Pkg2Dir;
+  OutDir:=Pkg2Dir+'ppus';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ur_pkg1_bird.pas','ur_pkg1_cat.pas']);
+
+  Step:='Step 3: compile pkg1 with src2';
+  MainSrc:=Pkg1Dir+'src2'+PathDelim+'ur_pkg1_ant.pas';
+  UnitPath:=Pkg1Dir+'src2';
+  OutDir:=Pkg1Dir+'ppus';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['ur_pkg1_ant.pas']);
+
+  Step:='Step 4: second compile of pkg2';
+  MainSrc:=Pkg2Dir+'ur_pkg1_bird.pas';
+  UnitPath:=Pkg1Dir+'ppus'+';'+Pkg2Dir;
+  OutDir:=Pkg2Dir+'ppus';
+  CleanOutputDir;
+  Compile;
+  // the main src bird is always compiled,
+  // cat must be recompiled because cat.pas is available and used ant.ppu changed
+  CheckCompiled(['ur_pkg1_bird.pas','ur_pkg1_cat.pas']);
 end;
 
 procedure TTestRecompile.TestCycle2_ChangeB;
