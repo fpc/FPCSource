@@ -131,7 +131,7 @@ implementation
             compiler.caddnode(
               gten,
               compiler.ctemprefnode(lefttemp),
-              crealconstnode.create(0.0,left.resultdef)
+              compiler.crealconstnode(0.0,left.resultdef)
             ),
             cassignmentnode.create(
               compiler.ctemprefnode(resulttemp),

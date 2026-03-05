@@ -371,7 +371,7 @@ implementation
         trash_small(stat,trashn,cnilnode.create)
       else if trashable and
          is_real(tabstractvarsym(p).vardef) then
-        trash_small(stat,trashn,crealconstnode.create(trashintval,tabstractvarsym(p).vardef))
+        trash_small(stat,trashn,compiler.crealconstnode(trashintval,tabstractvarsym(p).vardef))
       { don't use inherited routines because it typecasts left to the target
         type, and that doesn't always work in the JVM }
       else if trashable and

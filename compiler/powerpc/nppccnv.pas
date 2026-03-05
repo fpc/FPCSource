@@ -151,11 +151,11 @@ implementation
         { we need a certain constant for the conversion, so create it here }
         if signed then
           tempconst :=
-            crealconstnode.create(double(tdummyarray(dummy1)),
+            compiler.crealconstnode(double(tdummyarray(dummy1)),
             pbestrealtype^)
         else
           tempconst :=
-            crealconstnode.create(double(tdummyarray(dummy2)),
+            compiler.crealconstnode(double(tdummyarray(dummy2)),
             pbestrealtype^);
 
         typecheckpass(tempconst);

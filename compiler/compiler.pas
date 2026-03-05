@@ -154,12 +154,12 @@ uses
   ,i_aix
 {$endif aix}
   ,ctask
-  ,globtype,compinnr
+  ,globtype,compinnr,cpuinfo
   ,ngenutil,pgentype
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym
-  ,node,nadd,nbas,ncal,ncnv;
+  ,node,nadd,nbas,ncal,ncnv,ncon;
 
 type
 {****************************************************************************
@@ -237,7 +237,7 @@ type
     function cisnode(l,r : tnode):tisnode; inline;
     function cisnode_internal(l,r : tnode):tisnode; inline;
     { ncon }
-    // TODO:crealconstnode
+    function crealconstnode(v : bestreal;def:tdef):trealconstnode; inline;
     // TODO:cordconstnode
     // TODO:cpointerconstnode
     // TODO:cstringconstnode
@@ -761,6 +761,11 @@ end;
 function TCompilerHelper.cisnode_internal(l, r: tnode): tisnode; inline;
 begin
   result:=ncnv.cisnode.create_internal(l,r,self);
+end;
+
+function TCompilerHelper.crealconstnode(v: bestreal; def: tdef): trealconstnode; inline;
+begin
+  result:=ncon.crealconstnode.create(v,def,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

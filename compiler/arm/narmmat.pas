@@ -381,7 +381,7 @@ implementation
             end;
             result:=compiler.ctypeconvnode_internal(compiler.ccallnode_intern(procname,compiler.ccallparanode(
               compiler.ctypeconvnode_internal(left,fDef),
-              compiler.ccallparanode(compiler.ctypeconvnode_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
+              compiler.ccallparanode(compiler.ctypeconvnode_internal(compiler.crealconstnode(0,resultdef),fdef),nil))),resultdef);
 
             left:=nil;
           end

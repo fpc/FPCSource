@@ -364,9 +364,9 @@ implementation
           constreal :
             begin
               if (sp_generic_para in p.symoptions) and not (sp_generic_const in p.symoptions) then
-                p1:=crealconstnode.create(default(bestreal),p.constdef,compiler)
+                p1:=compiler.crealconstnode(default(bestreal),p.constdef)
               else
-                p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,p.constdef,compiler);
+                p1:=compiler.crealconstnode(pbestreal(p.value.valueptr)^,p.constdef);
             end;
           constset :
             begin

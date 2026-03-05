@@ -587,7 +587,7 @@ implementation
           stringdef:
             result:=cstringconstnode.createstr('',compiler);
           floatdef:
-            result:=crealconstnode.create(0,def,compiler);
+            result:=compiler.crealconstnode(0,def);
           objectdef:
             begin
               if is_implicit_pointer_object_type(def) then
@@ -2148,7 +2148,7 @@ implementation
 
       procedure setconstrealvalue(r : bestreal);
         begin
-           result:=crealconstnode.create(r,pbestrealtype^,compiler);
+           result:=compiler.crealconstnode(r,pbestrealtype^);
         end;
 
 
@@ -2157,18 +2157,18 @@ implementation
           if r<=0.0 then
             if floating_point_range_check_error then
                begin
-                 result:=crealconstnode.create(0,pbestrealtype^,compiler);
+                 result:=compiler.crealconstnode(0,pbestrealtype^);
                  CGMessage(type_e_wrong_math_argument)
                end
             else
               begin
                 if r=0.0 then
-                  result:=crealconstnode.create(MathNegInf.Value,pbestrealtype^,compiler)
+                  result:=compiler.crealconstnode(MathNegInf.Value,pbestrealtype^)
                 else
-                  result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^,compiler)
+                  result:=compiler.crealconstnode(MathQNaN.Value,pbestrealtype^)
               end
           else
-            result:=crealconstnode.create(ln(r),pbestrealtype^,compiler)
+            result:=compiler.crealconstnode(ln(r),pbestrealtype^)
         end;
 
 
@@ -2177,13 +2177,13 @@ implementation
           if r<0.0 then
             if floating_point_range_check_error then
                begin
-                 result:=crealconstnode.create(0,pbestrealtype^,compiler);
+                 result:=compiler.crealconstnode(0,pbestrealtype^);
                  CGMessage(type_e_wrong_math_argument)
                end
             else
-              result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^,compiler)
+              result:=compiler.crealconstnode(MathQNaN.Value,pbestrealtype^)
           else
-            result:=crealconstnode.create(sqrt(r),pbestrealtype^,compiler)
+            result:=compiler.crealconstnode(sqrt(r),pbestrealtype^)
         end;
 
 
@@ -2797,11 +2797,11 @@ implementation
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                     begin
-                      result:=crealconstnode.create(exp(getconstrealvalue),pbestrealtype^,compiler);
+                      result:=compiler.crealconstnode(exp(getconstrealvalue),pbestrealtype^);
                       if (trealconstnode(result).value_real=MathInf.Value) and
                          floating_point_range_check_error then
                         begin
-                          result:=crealconstnode.create(0,pbestrealtype^,compiler);
+                          result:=compiler.crealconstnode(0,pbestrealtype^);
                           CGMessage(parser_e_range_check_error);
                         end;
                     end
@@ -2972,7 +2972,7 @@ implementation
                             result:=hp2.getcopy()
                           else if (trealconstnode(hp).value_real = MathNegInf.value) then
                             { Nothing is less than than -oo }
-                            result:=crealconstnode.create(MathNegInf.value,resultdef,compiler)
+                            result:=compiler.crealconstnode(MathNegInf.value,resultdef)
                           else if (trealconstnode(hp).value_real = MathInf.value) then
                             { Everything is less than +oo }
                             result:=hp2.getcopy()
@@ -2981,9 +2981,9 @@ implementation
                               { Both actual parameters are constants, so take
                                 the smaller of the two right now }
                               if (trealconstnode(hp).value_real < trealconstnode(hp2).value_real) then
-                                result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef,compiler)
+                                result:=compiler.crealconstnode(trealconstnode(hp).value_real,resultdef)
                               else
-                                result:=crealconstnode.create(trealconstnode(hp2).value_real,resultdef,compiler);
+                                result:=compiler.crealconstnode(trealconstnode(hp2).value_real,resultdef);
                             end;
                         end
                       else if (hp2.nodetype=realconstn) then
@@ -2991,10 +2991,10 @@ implementation
                           if (trealconstnode(hp2).value_real = MathQNaN.value) then
                             { If one of the inputs is NaN, the second parameter
                               is taken (even if it is NaN) }
-                            result:=crealconstnode.create(MathQNaN.value,resultdef,compiler)
+                            result:=compiler.crealconstnode(MathQNaN.value,resultdef)
                           else if (trealconstnode(hp2).value_real = MathNegInf.value) then
                             { Nothing is less than than -oo }
-                            result:=crealconstnode.create(MathNegInf.value,resultdef,compiler)
+                            result:=compiler.crealconstnode(MathNegInf.value,resultdef)
                           else if (trealconstnode(hp2).value_real = MathInf.value) then
                             { Everything is less than +oo }
                             result:=hp.getcopy();
@@ -3021,15 +3021,15 @@ implementation
                             result:=hp2.getcopy()
                           else if (trealconstnode(hp).value_real = MathInf.value) then
                             { Nothing is greater than +oo }
-                            result:=crealconstnode.create(MathInf.value,resultdef,compiler)
+                            result:=compiler.crealconstnode(MathInf.value,resultdef)
                           else if (hp2.nodetype=realconstn) then
                             begin
                               { Both actual parameters are constants, so take
                                 the larger of the two right now }
                               if (trealconstnode(hp).value_real > trealconstnode(hp2).value_real) then
-                                result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef,compiler)
+                                result:=compiler.crealconstnode(trealconstnode(hp).value_real,resultdef)
                               else
-                                result:=crealconstnode.create(trealconstnode(hp2).value_real,resultdef,compiler)
+                                result:=compiler.crealconstnode(trealconstnode(hp2).value_real,resultdef)
                             end;
                         end
                       else if (hp2.nodetype=realconstn) then
@@ -3037,13 +3037,13 @@ implementation
                           if (trealconstnode(hp2).value_real = MathQNaN.value) then
                             { If one of the inputs is NaN, the second parameter
                               is taken (even if it is NaN) }
-                            result:=crealconstnode.create(MathQNaN.value,resultdef,compiler)
+                            result:=compiler.crealconstnode(MathQNaN.value,resultdef)
                           else if (trealconstnode(hp2).value_real = MathNegInf.value) then
                             { Everything is greater than than -oo }
                             result:=hp.getcopy()
                           else if (trealconstnode(hp2).value_real = MathInf.value) then
                             { Nothing is greater than +oo }
-                            result:=crealconstnode.create(MathInf.value,resultdef,compiler);
+                            result:=compiler.crealconstnode(MathInf.value,resultdef);
                         end;
                     end;
                 end;
@@ -4809,7 +4809,7 @@ implementation
 
     function tinlinenode.first_pi : tnode;
       begin
-        result:=crealconstnode.create(getpi,pbestrealtype^,compiler);
+        result:=compiler.crealconstnode(getpi,pbestrealtype^);
       end;
 
 

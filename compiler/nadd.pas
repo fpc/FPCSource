@@ -759,7 +759,7 @@ const
           begin
             if floating_point_range_check_error then
                begin
-                 result:=crealconstnode.create(1,pbestrealtype^,compiler);
+                 result:=compiler.crealconstnode(1,pbestrealtype^);
                  Message(parser_e_division_by_zero);
                  exit;
                end;
@@ -897,7 +897,7 @@ const
                    { int/int becomes a real }
                    rvd:=rv;
                    lvd:=lv;
-                   t:=crealconstnode.create(lvd/rvd,resultrealdef,compiler);
+                   t:=compiler.crealconstnode(lvd/rvd,resultrealdef);
                  end;
                else
                  internalerror(2008022101);
@@ -1050,25 +1050,25 @@ const
              rvd:=trealconstnode(right).value_real;
              case nodetype of
                 addn :
-                  t:=crealconstnode.create(lvd+rvd,resultrealdef,compiler);
+                  t:=compiler.crealconstnode(lvd+rvd,resultrealdef);
                 subn :
-                  t:=crealconstnode.create(lvd-rvd,resultrealdef,compiler);
+                  t:=compiler.crealconstnode(lvd-rvd,resultrealdef);
                 muln :
-                  t:=crealconstnode.create(lvd*rvd,resultrealdef,compiler);
+                  t:=compiler.crealconstnode(lvd*rvd,resultrealdef);
                 starstarn:
                   begin
                     if lvd<0 then
                      begin
                        Message(parser_e_invalid_float_operation);
-                       t:=crealconstnode.create(0,resultrealdef,compiler);
+                       t:=compiler.crealconstnode(0,resultrealdef);
                      end
                     else if lvd=0 then
-                      t:=crealconstnode.create(1.0,resultrealdef,compiler)
+                      t:=compiler.crealconstnode(1.0,resultrealdef)
                     else
-                      t:=crealconstnode.create(exp(ln(lvd)*rvd),resultrealdef,compiler);
+                      t:=compiler.crealconstnode(exp(ln(lvd)*rvd),resultrealdef);
                   end;
                 slashn :
-                  t:=crealconstnode.create(lvd/rvd,resultrealdef,compiler);
+                  t:=compiler.crealconstnode(lvd/rvd,resultrealdef);
                 ltn :
                   t:=cordconstnode.create(ord(lvd<rvd),pasbool1type,true,compiler);
                 lten :
@@ -1219,9 +1219,9 @@ const
                   begin
                     case nodetype of
                       subn:
-                        result:=crealconstnode.create(0,ld,compiler);
+                        result:=compiler.crealconstnode(0,ld);
                       slashn:
-                        result:=crealconstnode.create(1,ld,compiler);
+                        result:=compiler.crealconstnode(1,ld);
                       else
                         Internalerror(2020060901);
                     end;
@@ -1261,7 +1261,7 @@ const
                 if (tordconstnode(right).value<>0) then
                   begin
                     nodetype:=muln;
-                    t:=crealconstnode.create(1/tordconstnode(right).value,resultdef,compiler);
+                    t:=compiler.crealconstnode(1/tordconstnode(right).value,resultdef);
                     right.free;
                     right:=t;
                     exit;
@@ -3392,7 +3392,7 @@ const
               slashn :
                 begin
                   { slashn will only work with floats }
-                  hp:=compiler.caddnode(muln,getcopy,crealconstnode.create(10000.0,s64currencytype,compiler));
+                  hp:=compiler.caddnode(muln,getcopy,compiler.crealconstnode(10000.0,s64currencytype));
                   include(hp.flags,nf_is_currency);
                   result:=hp;
                 end;
@@ -3426,7 +3426,7 @@ const
                         end
                       else
                         begin
-                          hp:=compiler.caddnode(slashn,getcopy,crealconstnode.create(10000.0,s64currencytype,compiler));
+                          hp:=compiler.caddnode(slashn,getcopy,compiler.crealconstnode(10000.0,s64currencytype));
                           include(hp.flags,nf_is_currency);
                         end;
                     end

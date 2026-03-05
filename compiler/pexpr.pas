@@ -1979,12 +1979,12 @@ implementation
           end;
         if (current_settings.minfpconstprec=s32real) and
            (d = single(d)) then
-          result:=crealconstnode.create(d,s32floattype,compiler)
+          result:=compiler.crealconstnode(d,s32floattype)
         else if (current_settings.minfpconstprec=s64real) and
                 (d = double(d)) then
-          result:=crealconstnode.create(d,s64floattype,compiler)
+          result:=compiler.crealconstnode(d,s64floattype)
         else
-          result:=crealconstnode.create(d,pbestrealtype^,compiler);
+          result:=compiler.crealconstnode(d,pbestrealtype^);
         val(current_scanner.pattern,cur,code);
         if code=0 then
           trealconstnode(result).value_currency:=cur;
@@ -2574,7 +2574,7 @@ implementation
                    else
                      begin
                        { just convert the ordconst to a realconst }
-                       p2:=crealconstnode.create(tordconstnode(p1).value,pbestrealtype^,compiler);
+                       p2:=compiler.crealconstnode(tordconstnode(p1).value,pbestrealtype^);
                        p1.free;
                        p1:=p2;
                        again:=false;
@@ -4121,7 +4121,7 @@ implementation
                      else
                        begin
                           consume(_INTCONST);
-                          p1:=crealconstnode.create(d,pbestrealtype^,compiler);
+                          p1:=compiler.crealconstnode(d,pbestrealtype^);
                        end;
                    end
                  else
