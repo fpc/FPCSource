@@ -588,7 +588,7 @@ implementation
         if useresult then
           resultvalue:=caddrnode.create(compiler.ctemprefnode(result_data),compiler)
         else
-          resultvalue:=cpointerconstnode.create(0,voidpointertype,compiler);
+          resultvalue:=compiler.cpointerconstnode(0,voidpointertype);
 
         if variantdispatch then
           begin
@@ -2594,7 +2594,7 @@ implementation
                   begin
                     if (cnf_new_call in callnodeflags) then
                       { old-style object: push 0 as self }
-                      selftree:=cpointerconstnode.create(0,voidpointertype,compiler)
+                      selftree:=compiler.cpointerconstnode(0,voidpointertype)
                     else
                       begin
                         { class-style: push classtype }
@@ -2664,7 +2664,7 @@ implementation
                     selftree:=cloadvmtaddrnode.create(selftree,compiler);
                 end
               else
-                selftree:=cpointerconstnode.create(0,voidpointertype,compiler);
+                selftree:=compiler.cpointerconstnode(0,voidpointertype);
             end
         else
           begin
@@ -3308,7 +3308,7 @@ implementation
             { constructor call via classreference => allocate memory }
             if (procdefinition.proctypeoption=potype_constructor) then
               begin
-                vmttree:=cpointerconstnode.create(1,voidpointertype,compiler);
+                vmttree:=compiler.cpointerconstnode(1,voidpointertype);
               end
             else  { <class of xx>.destroy is not valid }
               InternalError(2014020601);
@@ -3319,7 +3319,7 @@ implementation
           begin
             { inherited call, no create/destroy }
             if (cnf_inherited in callnodeflags) then
-              vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
+              vmttree:=compiler.cpointerconstnode(0,voidpointertype)
             else
               { do not create/destroy when called from member function
                 without specifying self explicit }
@@ -3337,14 +3337,14 @@ implementation
                         call afterconstruction but not NewInstance, vmt=-1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
                     if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
-                      vmttree:=cpointerconstnode.create(1,voidpointertype,compiler)
+                      vmttree:=compiler.cpointerconstnode(1,voidpointertype)
                     else
-                      vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
+                      vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                   else if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                           (procdefinition.proctypeoption=potype_constructor) then
-                    vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
+                    vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                   else
-                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler);
+                    vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype);
                 end
             else
             { normal call to method like cl1.proc }
@@ -3365,18 +3365,18 @@ implementation
                      is_class(methodpointer.resultdef) then
                     vmttree:=call_vmt_node.getcopy
                   else if not(cnf_create_failed in callnodeflags) then
-                    vmttree:=cpointerconstnode.create(1,voidpointertype,compiler)
+                    vmttree:=compiler.cpointerconstnode(1,voidpointertype)
                   else
-                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler)
+                    vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype)
                 else
                   begin
                     if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                        (procdefinition.proctypeoption=potype_constructor) and
                        (methodpointer.nodetype=loadn) and
                        (loadnf_is_self in tloadnode(methodpointer).loadnodeflags) then
-                      vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
+                      vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                     else
-                      vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler);
+                      vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype);
                   end;
               end;
           end
@@ -3390,7 +3390,7 @@ implementation
               { destructor with extended syntax called from dispose }
               { value -1 is what fpc_help_constructor() changes VMT to when it allocates memory }
               if (cnf_dispose_call in callnodeflags) then
-                vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype,compiler)
+                vmttree:=compiler.cpointerconstnode(TConstPtrUInt(-1),voidpointertype)
             else
               { destructor called from exception block in constructor }
               if (cnf_create_failed in callnodeflags) then
@@ -3398,7 +3398,7 @@ implementation
             else
               { inherited call, no create/destroy }
               if (cnf_inherited in callnodeflags) then
-                vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
+                vmttree:=compiler.cpointerconstnode(0,voidpointertype)
             else
               { do not create/destroy when called from member function
                 without specifying self explicit }
@@ -3406,7 +3406,7 @@ implementation
                 begin
                   { destructor: don't release instance, vmt=0
                     constructor: don't initialize instance, vmt=0 }
-                  vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
+                  vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                 end
             else
             { normal object call like obj.proc }
@@ -3417,12 +3417,12 @@ implementation
                  begin
                    { old styled inherited call? }
                    if (methodpointer.nodetype=typen) then
-                     vmttree:=cpointerconstnode.create(0,voidpointertype,compiler)
+                     vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                    else
                      vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef,compiler),compiler)
                  end
                else
-                 vmttree:=cpointerconstnode.create(0,voidpointertype,compiler);
+                 vmttree:=compiler.cpointerconstnode(0,voidpointertype);
              end;
           end;
         result:=vmttree;
@@ -3953,7 +3953,7 @@ implementation
                           if paramanager.can_opt_unused_para(currpara) then
                             { If parentfp is unused by the target proc, create a dummy
                               pointerconstnode which will be discarded later. }
-                            hiddentree:=cpointerconstnode.create(0,currpara.vardef,compiler)
+                            hiddentree:=compiler.cpointerconstnode(0,currpara.vardef)
                           else
                             begin
                               hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara,compiler);

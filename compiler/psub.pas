@@ -508,7 +508,7 @@ implementation
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),
-                                cpointerconstnode.create(1,voidpointertype,compiler)),
+                                compiler.cpointerconstnode(1,voidpointertype)),
                             cassignmentnode.create(
                                 compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
@@ -654,7 +654,7 @@ implementation
                                     compiler.ctypeconvnode(
                                         load_vmt_pointer_node,
                                         voidpointertype),
-                                    cpointerconstnode.create(0,voidpointertype,compiler))),
+                                    compiler.cpointerconstnode(0,voidpointertype))),
                             compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                             nil,compiler));
                       end

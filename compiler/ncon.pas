@@ -387,9 +387,9 @@ implementation
           constpointer :
             begin
               if sp_generic_para in p.symoptions then
-                p1:=cpointerconstnode.create(default(tconstptruint),p.constdef,compiler)
+                p1:=compiler.cpointerconstnode(default(tconstptruint),p.constdef)
               else
-                p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef,compiler);
+                p1:=compiler.cpointerconstnode(p.value.valueordptr,p.constdef);
             end;
           constnil :
             p1:=cnilnode.create(compiler);

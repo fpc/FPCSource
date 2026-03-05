@@ -106,9 +106,9 @@ interface
                 begin
                   v:=lv+rv;
                   if lt=pointerconstn then
-                    t := cpointerconstnode.create((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
+                    t := compiler.cpointerconstnode((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
                   else if rt=pointerconstn then
-                    t := cpointerconstnode.create((qword(rv) and $FFFF0000) or word(qword(v)),resultdef)
+                    t := compiler.cpointerconstnode((qword(rv) and $FFFF0000) or word(qword(v)),resultdef)
                   else
                     internalerror(2014040604);
                 end;
@@ -123,10 +123,10 @@ interface
                           internalerror(2008030102);
                         { todo: implement pointer-pointer as well }
                         internalerror(2014040607);
-                        //t := cpointerconstnode.create(qword(v),resultdef);
+                        //t := compiler.cpointerconstnode(qword(v),resultdef);
                       end
                     else
-                      t := cpointerconstnode.create((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
+                      t := compiler.cpointerconstnode((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
                   else
                     internalerror(2014040606);
                 end;

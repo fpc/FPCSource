@@ -511,7 +511,7 @@ const
             begin
               { “pointer(L.left) = nil”. Steal L.left instead of getcopy, zero a bit later. }
               resn:=compiler.caddnode_internal(equaln,compiler.ctypeconvnode_internal(tinlinenode(L).left,voidpointertype),
-                 cpointerconstnode.create(0,voidpointertype,compiler));
+                 compiler.cpointerconstnode(0,voidpointertype));
 
               { COM widestrings have 32-bit lengths, and can explicitly have 0 while being non-nil. }
               if is_widestring(tinlinenode(L).left.resultdef) and (tf_winlikewidestring in target_info.flags) then
@@ -819,7 +819,7 @@ const
                        t:=genintconstnode(0,compiler)
                      end
                    else if is_constpointernode(left) or is_constpointernode(right) then
-                     t := cpointerconstnode.create(qword(v),resultdef,compiler)
+                     t := compiler.cpointerconstnode(qword(v),resultdef)
                    else
                      if is_integer(ld) then
                        t := create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches,compiler)
@@ -843,10 +843,10 @@ const
                             (tpointerdef(rd).pointeddef.size>1) and
                             not(anf_has_pointerdiv in addnodeflags) then
                            internalerror(2008030101);
-                         t:=cpointerconstnode.create(qword(v),resultdef,compiler)
+                         t:=compiler.cpointerconstnode(qword(v),resultdef)
                        end
                      else
-                       t:=cpointerconstnode.create(qword(v),resultdef,compiler)
+                       t:=compiler.cpointerconstnode(qword(v),resultdef)
                    else
                      if is_integer(ld) then
                        t:=create_simplified_ord_const(v,resultdef,forinline,cs_check_overflow in localswitches,compiler)
@@ -3634,7 +3634,7 @@ const
                           { faster than getting the length (JM)                 }
                           result:= compiler.caddnode(nodetype,
                             compiler.ctypeconvnode_internal(left,voidpointertype),
-                            cpointerconstnode.create(0,voidpointertype,compiler));
+                            compiler.cpointerconstnode(0,voidpointertype));
                         end;
                     end;
                   { left is reused }

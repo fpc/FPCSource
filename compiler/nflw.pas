@@ -2724,7 +2724,7 @@ implementation
                 if assigned(third) then
                   firstpass(third)
                 else
-                  third:=cpointerconstnode.Create(0,voidpointertype,compiler);
+                  third:=compiler.cpointerconstnode(0,voidpointertype);
               end
             else
               begin

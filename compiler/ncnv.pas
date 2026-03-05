@@ -1133,7 +1133,7 @@ implementation
               else
                 { in Delphi mode, these aren't caught in compare_defs_ext }
                 IncompatibleTypes(left.resultdef,resultdef);
-            result:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef,compiler);
+            result:=compiler.cpointerconstnode(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
           end
          else
           internalerror(200104023);
@@ -1523,7 +1523,7 @@ implementation
               not(nf_internal in flags) then
              v:=v*10000;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(TConstPtrUInt(v.uvalue),resultdef,compiler)
+             result:=compiler.cpointerconstnode(TConstPtrUInt(v.uvalue),resultdef)
            else
              begin
                if is_currency(left.resultdef) then
@@ -1540,7 +1540,7 @@ implementation
          begin
            v:=tpointerconstnode(left).value;
            if (resultdef.typ=pointerdef) then
-             result:=cpointerconstnode.create(v.uvalue,resultdef,compiler)
+             result:=compiler.cpointerconstnode(v.uvalue,resultdef)
            else
              begin
                if is_currency(resultdef) and
@@ -3700,7 +3700,7 @@ implementation
                    if (target_info.system in systems_managed_vm) and
                       (tordconstnode(left).value<>0) then
                      message(parser_e_feature_unsupported_for_vm);
-                   hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef,compiler);
+                   hp:=compiler.cpointerconstnode(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(hp.flags, nf_explicit);
                    result:=hp;

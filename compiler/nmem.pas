@@ -757,7 +757,7 @@ implementation
               begin
                 { @PObjectType(nil)^.fields? }
                 if tderefnode(hp).left.nodetype=niln then
-                  result:=cpointerconstnode.create(fieldoffset,resultdef,compiler);
+                  result:=compiler.cpointerconstnode(fieldoffset,resultdef);
                 exit;
               end;
 
@@ -766,13 +766,13 @@ implementation
                 { @ObjectType(nil^).fields? }
                 if (ttypeconvnode(hp).left.nodetype=derefn) and
                    (tderefnode(ttypeconvnode(hp).left).left.nodetype=niln) then
-                  result:=cpointerconstnode.create(fieldoffset,resultdef,compiler);
+                  result:=compiler.cpointerconstnode(fieldoffset,resultdef);
                 exit;
               end;
 
             niln:
               { @ClassType(nil).fields. }
-              exit(cpointerconstnode.create(fieldoffset,resultdef,compiler));
+              exit(compiler.cpointerconstnode(fieldoffset,resultdef));
 
             else
               exit;
@@ -825,9 +825,9 @@ implementation
                 hp:=tunarynode(hp).left;
               end;
             if anf_typedaddr in addrnodeflags then
-              res:=cpointerconstnode.create(offset,cpointerdef.getreusable(left.resultdef,compiler),compiler)
+              res:=compiler.cpointerconstnode(offset,cpointerdef.getreusable(left.resultdef,compiler))
             else
-              res:=cpointerconstnode.create(offset,voidpointertype,compiler);
+              res:=compiler.cpointerconstnode(offset,voidpointertype);
             result:=true;
           end
         else if (nf_internal in flags) or

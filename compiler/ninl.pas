@@ -560,7 +560,7 @@ implementation
             { don't allow as a default parameter value, because it may not be valid
               when specialising }
             if block_type<>bt_const then
-              result:=cpointerconstnode.create(0,def,compiler)
+              result:=compiler.cpointerconstnode(0,def)
             else
               result:=compiler.cerrornode;
             exit;
@@ -578,12 +578,12 @@ implementation
             result:=compiler.cordconstnode(0,def,false);
           classrefdef,
           pointerdef:
-            result:=cpointerconstnode.create(0,def,compiler);
+            result:=compiler.cpointerconstnode(0,def);
           procvardef:
             if tprocvardef(def).size<>sizeof(pint) then
               result:=getdefaultvarsym(def)
             else
-              result:=cpointerconstnode.create(0,def,compiler);
+              result:=compiler.cpointerconstnode(0,def);
           stringdef:
             result:=cstringconstnode.createstr('',compiler);
           floatdef:
@@ -591,7 +591,7 @@ implementation
           objectdef:
             begin
               if is_implicit_pointer_object_type(def) then
-                result:=cpointerconstnode.create(0,def,compiler)
+                result:=compiler.cpointerconstnode(0,def)
               else
                 if is_object(def) then
                   begin
@@ -625,7 +625,7 @@ implementation
             begin
               { can other array types be parsed by single_type? }
               if ado_isdynamicarray in tarraydef(def).arrayoptions then
-                result:=cpointerconstnode.create(0,def,compiler)
+                result:=compiler.cpointerconstnode(0,def)
               else
                 begin
                   result:=getdefaultvarsym(def);
@@ -641,7 +641,7 @@ implementation
                   Message(type_e_type_id_expected);
                 end
               else
-                result:=cpointerconstnode.create(0,def,compiler);
+                result:=compiler.cpointerconstnode(0,def);
             end;
           else
             Message(type_e_type_not_allowed_for_default);
@@ -2482,11 +2482,11 @@ implementation
                      if (vl.signed and (vl.svalue<0)) or (vl2.signed and (vl2.svalue<0)) then
                        cgmessage(parser_e_range_check_error);
 {$if defined(i8086)}
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 16)+vl.uvalue,voidfarpointertype,compiler);
+                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 16)+vl.uvalue,voidfarpointertype);
 {$elseif defined(i386)}
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidnearfspointertype,compiler);
+                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,voidnearfspointertype);
 {$else}
-                     hp:=cpointerconstnode.create((vl2.uvalue shl 4)+vl.uvalue,voidpointertype,compiler);
+                     hp:=compiler.cpointerconstnode((vl2.uvalue shl 4)+vl.uvalue,voidpointertype);
 {$endif}
                    end;
                  in_const_eh_return_data_regno:
