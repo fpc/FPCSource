@@ -297,7 +297,7 @@ implementation
           begin
             initwidestring(pWideStringVal);
             concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.uvalue));
-            result:=cstringconstnode.createunistr(pWideStringVal,compiler);
+            result:=compiler.cstringconstnode_unistr(pWideStringVal);
           end
         else if p.nodetype=stringconstn then
           result:=tstringconstnode(p.getcopy)
@@ -360,7 +360,7 @@ implementation
               freemem(pc);
             end;
           constwstring :
-            p1:=cstringconstnode.createunistr(p.value.valuews,compiler);
+            p1:=compiler.cstringconstnode_unistr(p.value.valuews);
           constreal :
             begin
               if (sp_generic_para in p.symoptions) and not (sp_generic_const in p.symoptions) then

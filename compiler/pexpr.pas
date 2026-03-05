@@ -4219,7 +4219,7 @@ implementation
                  if getlengthwidestring(current_scanner.patternw)=1 then
                    p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true)
                  else
-                   p1:=cstringconstnode.createunistr(current_scanner.patternw,compiler);
+                   p1:=compiler.cstringconstnode_unistr(current_scanner.patternw);
                  consume(_CWSTRING);
                  if current_scanner.token in postfixoperator_tokens then
                    begin

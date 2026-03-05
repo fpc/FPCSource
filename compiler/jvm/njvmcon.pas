@@ -281,7 +281,7 @@ implementation
               end;
           end;
         result:=compiler.ccallnode_intern(helpername,
-          compiler.ccallparanode(cstringconstnode.createunistr(pw),otherparas));
+          compiler.ccallparanode(compiler.cstringconstnode_unistr(pw),otherparas));
         donewidestring(pw);
       end;
 

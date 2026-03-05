@@ -865,7 +865,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   initwidestring(pw);
                   concatwidestringchar(pw,tcompilerwidechar(word(tordconstnode(node).value.svalue)));
-                  hp:=cstringconstnode.createunistr(pw,compiler);
+                  hp:=compiler.cstringconstnode_unistr(pw);
                   donewidestring(pw);
                   node.free;
                   do_typecheckpass(hp);

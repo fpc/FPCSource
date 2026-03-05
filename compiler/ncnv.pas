@@ -1289,7 +1289,7 @@ implementation
                    concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.uvalue))
                  else
                    concatwidestringchar(ws,asciichar2unicode(chr(tordconstnode(left).value.uvalue)));
-                 hp:=cstringconstnode.createunistr(ws,compiler);
+                 hp:=compiler.cstringconstnode_unistr(ws);
                  hp.changestringtype(resultdef);
                  donewidestring(ws);
                end

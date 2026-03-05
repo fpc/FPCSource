@@ -1296,7 +1296,7 @@ const
                 addn :
                   begin
                      concatwidestrings(ws1,ws2);
-                     t:=cstringconstnode.createunistr(ws1,compiler);
+                     t:=compiler.cstringconstnode_unistr(ws1);
                   end;
                 ltn :
                   t:=compiler.cordconstnode(byte(comparewidestrings(ws1,ws2)<0),pasbool1type,true);
