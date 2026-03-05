@@ -617,7 +617,7 @@ implementation
             end;
           setdef:
             begin
-              result:=csetconstnode.create(nil,def,compiler);
+              result:=compiler.csetconstnode(nil,def);
               New(tsetconstnode(result).value_set);
               tsetconstnode(result).value_set^:=[];
             end;

@@ -522,7 +522,7 @@ implementation
         else
           constsetlo:=0;
         constsethi:=0;
-        constp:=csetconstnode.create(nil,hdef,compiler);
+        constp:=compiler.csetconstnode(nil,hdef);
         constp.value_set:=constset;
         result:=constp;
         hp:=tarrayconstructornode(p);

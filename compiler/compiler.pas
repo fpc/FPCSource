@@ -243,7 +243,7 @@ type
     function cstringconstnode_str(const s : string):tstringconstnode; inline;
     function cstringconstnode_pchar(s: pchar; l: longint; def: tdef):tstringconstnode; inline;
     function cstringconstnode_unistr(w : tcompilerwidestring):tstringconstnode; inline;
-    // TODO:csetconstnode
+    function csetconstnode(s : pconstset;def:tdef):tsetconstnode; inline;
     // TODO:cguidconstnode
     // TODO:cnilnode
 
@@ -798,6 +798,11 @@ function TCompilerHelper.cstringconstnode_unistr(w: tcompilerwidestring
   ): tstringconstnode; inline;
 begin
   result:=ncon.cstringconstnode.createunistr(w,self);
+end;
+
+function TCompilerHelper.csetconstnode(s: pconstset; def: tdef): tsetconstnode; inline;
+begin
+  result:=ncon.csetconstnode.create(s,def,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

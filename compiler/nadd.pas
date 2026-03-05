@@ -1407,22 +1407,22 @@ const
                addn :
                  begin
                    resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
-                   t:=csetconstnode.create(@resultset,resultdef,compiler);
+                   t:=compiler.csetconstnode(@resultset,resultdef);
                  end;
                 muln :
                   begin
                     resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
-                    t:=csetconstnode.create(@resultset,resultdef,compiler);
+                    t:=compiler.csetconstnode(@resultset,resultdef);
                   end;
                subn :
                   begin
                     resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
-                            t:=csetconstnode.create(@resultset,resultdef,compiler);
+                            t:=compiler.csetconstnode(@resultset,resultdef);
                   end;
                symdifn :
                   begin
                     resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
-                        t:=csetconstnode.create(@resultset,resultdef,compiler);
+                        t:=compiler.csetconstnode(@resultset,resultdef);
                   end;
                unequaln :
                   begin

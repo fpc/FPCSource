@@ -374,15 +374,15 @@ implementation
                 begin
                   new(value_set);
                   value_set^:=pconstset(p.value.valueptr)^;
-                  p1:=csetconstnode.create(value_set,p.constdef,compiler);
+                  p1:=compiler.csetconstnode(value_set,p.constdef);
                 end
               else if sp_generic_para in p.symoptions then
                 begin
                   new(value_set);
-                  p1:=csetconstnode.create(value_set,p.constdef,compiler);
+                  p1:=compiler.csetconstnode(value_set,p.constdef);
                 end
               else
-                p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef,compiler);
+                p1:=compiler.csetconstnode(pconstset(p.value.valueptr),p.constdef);
             end;
           constpointer :
             begin
