@@ -404,7 +404,7 @@ implementation
 
           in_continue :
             begin
-              statement_syssym:=ccontinuenode.create(compiler)
+              statement_syssym:=compiler.ccontinuenode
             end;
 
           in_leave :
@@ -421,7 +421,7 @@ implementation
           in_cycle :
             begin
               if m_mac in current_settings.modeswitches then
-                statement_syssym:=ccontinuenode.create(compiler)
+                statement_syssym:=compiler.ccontinuenode
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);

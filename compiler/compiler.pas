@@ -260,6 +260,7 @@ type
     function ctryfinallynode_implicit(l,r:tnode):ttryfinallynode; inline;
     function connode(l,r:tnode):tonnode; inline;
     function cbreaknode:tbreaknode; inline;
+    function ccontinuenode:tcontinuenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -894,6 +895,11 @@ end;
 function TCompilerHelper.cbreaknode: tbreaknode; inline;
 begin
   result:=nflw.cbreaknode.create(self);
+end;
+
+function TCompilerHelper.ccontinuenode: tcontinuenode; inline;
+begin
+  result:=nflw.ccontinuenode.create(self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
