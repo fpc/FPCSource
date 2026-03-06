@@ -878,7 +878,7 @@ implementation
                     { open array -> at least size 1. Can also be zero-sized
                       record, so check it's actually an array }
                     if p.vardef.typ=arraydef then
-                      trash_large(stat,trashn,compiler.caddnode(addn,cinlinenode.create(in_high_x,false,trashn.getcopy,compiler),genintconstnode(1,compiler)),trashintval)
+                      trash_large(stat,trashn,compiler.caddnode(addn,compiler.cinlinenode(in_high_x,false,trashn.getcopy),genintconstnode(1,compiler)),trashintval)
                     else
                       trashn.free;
                       trashn := nil;

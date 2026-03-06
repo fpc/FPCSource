@@ -701,18 +701,18 @@ const
                   { Try (X op1 Y) or (X op2 (S-Y)) for variable rotation}
                   TryVariableShiftPair(tshlshrnode(left).right, tshlshrnode(right).right, bitsize) then
                 begin
-                  result:=cinlinenode.create(standard_op,false,
+                  result:=compiler.cinlinenode(standard_op,false,
                     compiler.ccallparanode(tshlshrnode(left).PruneKeepRight(),
-                    compiler.ccallparanode(tshlshrnode(left).PruneKeepLeft(),nil)),compiler);
+                    compiler.ccallparanode(tshlshrnode(left).PruneKeepLeft(),nil)));
                   Exit;
                 end;
 
               { Try (X op1 (S-Y)) or (X op2 Y) for variable rotation }
               if TryVariableShiftPair(tshlshrnode(right).right, tshlshrnode(left).right, bitsize) then
                 begin
-                  result:=cinlinenode.create(reverse_op,false,
+                  result:=compiler.cinlinenode(reverse_op,false,
                     compiler.ccallparanode(tshlshrnode(right).PruneKeepRight(),
-                    compiler.ccallparanode(tshlshrnode(right).PruneKeepLeft(),nil)),compiler);
+                    compiler.ccallparanode(tshlshrnode(right).PruneKeepLeft(),nil)));
                   Exit;
                 end;
             end;
@@ -1866,9 +1866,9 @@ const
               begin
                 case nodetype of
                   ltn:
-                    result:=compiler.caddnode(lten,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left,compiler));
+                    result:=compiler.caddnode(lten,left,compiler.cinlinenode(in_high_x,false,tinlinenode(right).left));
                   gten:
-                    result:=compiler.caddnode(gtn,left,cinlinenode.create(in_high_x,false,tinlinenode(right).left,compiler));
+                    result:=compiler.caddnode(gtn,left,compiler.cinlinenode(in_high_x,false,tinlinenode(right).left));
                   else
                     Internalerror(2024041701);
                 end;
@@ -1891,9 +1891,9 @@ const
               begin
                 case nodetype of
                   gtn:
-                    result:=compiler.caddnode(gten,cinlinenode.create(in_high_x,false,tinlinenode(left).left,compiler),right);
+                    result:=compiler.caddnode(gten,compiler.cinlinenode(in_high_x,false,tinlinenode(left).left),right);
                   lten:
-                    result:=compiler.caddnode(ltn,cinlinenode.create(in_high_x,false,tinlinenode(left).left,compiler),right);
+                    result:=compiler.caddnode(ltn,compiler.cinlinenode(in_high_x,false,tinlinenode(left).left),right);
                   else
                     Internalerror(2024041701);
                 end;
@@ -1917,7 +1917,7 @@ const
                left.isequal(right) and
                not(might_have_sideeffects(left)) then
               begin
-                result:=cinlinenode.create(in_sqr_real,false,PruneKeepLeft(),compiler);
+                result:=compiler.cinlinenode(in_sqr_real,false,PruneKeepLeft());
                 inserttypeconv(result,resultdef,compiler);
                 exit;
               end;
@@ -2165,7 +2165,7 @@ const
                       compiler.ccallparanode(
                         elem,nil)));
 
-            result:=cinlinenode.create(in_insert_x_y_z,false,para,compiler);
+            result:=compiler.cinlinenode(in_insert_x_y_z,false,para);
             include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
           end;
 
@@ -3558,10 +3558,10 @@ const
                     on native targets, is a noop on managed VM targets) }
                   if (target_info.system in systems_managed_vm) and
                      is_managed_type(resultdef) then
-                    addstatement(newstatement,cinlinenode.create(in_setlength_x,
+                    addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
                       false,
                       compiler.ccallparanode(genintconstnode(0,compiler),
-                        compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+                        compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil))));
                   para:=compiler.ccallparanode(
                           right,
                           compiler.ccallparanode(
@@ -3615,14 +3615,14 @@ const
                      (target_info.system in systems_managed_vm) then
                     { compare the length with 0 }
                     result := compiler.caddnode(nodetype,
-                      cinlinenode.create(in_length_x,false,left,compiler),
+                      compiler.cinlinenode(in_length_x,false,left),
                       compiler.cordconstnode(0,s8inttype,false))
                   else { nodetype in [equaln,unequaln] }
                     begin
                       if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
                         begin
                           { windows like widestrings requires that we also check the length }
-                          result:=cinlinenode.create(in_length_x,false,left,compiler);
+                          result:=compiler.cinlinenode(in_length_x,false,left);
                           { and compare its result with 0 }
                           result:=compiler.caddnode(equaln,result,compiler.cordconstnode(0,s8inttype,false));
                           if nodetype=unequaln then
@@ -3981,10 +3981,10 @@ const
                     on native targets, is a noop on managed VM targets) }
                   if (target_info.system in systems_managed_vm) and
                      is_managed_type(resultdef) then
-                    addstatement(newstatement,cinlinenode.create(in_setlength_x,
+                    addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
                       false,
                       compiler.ccallparanode(genintconstnode(0,compiler),
-                        compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+                        compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil))));
                   para:=compiler.ccallparanode(
                           compiler.ctypeconvnode_internal(right,voidcodepointertype),
                         compiler.ccallparanode(
@@ -4170,15 +4170,15 @@ const
             if left.nodetype=muln then
               begin
                 if nodetype=subn then
-                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
+                  result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
                     compiler.ccallparanode(taddnode(left).right,
                     compiler.ccallparanode(taddnode(left).left,nil
-                    ))),compiler)
+                    ))))
                 else
-                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(right,
+                  result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(right,
                     compiler.ccallparanode(taddnode(left).right,
                     compiler.ccallparanode(taddnode(left).left,nil
-                    ))),compiler);
+                    ))));
                 right:=nil;
                 taddnode(left).right:=nil;
                 taddnode(left).left:=nil;
@@ -4186,15 +4186,15 @@ const
             else if right.nodetype=muln then
               begin
                 if nodetype=subn then
-                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                  result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(left,
                     compiler.ccallparanode(cunaryminusnode.create(taddnode(right).right,compiler),
                     compiler.ccallparanode(taddnode(right).left,nil
-                    ))),compiler)
+                    ))))
                 else
-                  result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                  result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(left,
                     compiler.ccallparanode(taddnode(right).right,
                     compiler.ccallparanode(taddnode(right).left,nil
-                    ))),compiler);
+                    ))));
                 left:=nil;
                 taddnode(right).right:=nil;
                 taddnode(right).left:=nil;
@@ -4204,15 +4204,15 @@ const
                 if node_complexity(tinlinenode(left).left)=0 then
                   begin
                     if nodetype=subn then
-                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
+                      result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
                         compiler.ccallparanode(tinlinenode(left).left.getcopy,
                         compiler.ccallparanode(tinlinenode(left).left.getcopy,nil
-                        ))),compiler)
+                        ))))
                     else
-                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(right,
+                      result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(right,
                         compiler.ccallparanode(tinlinenode(left).left.getcopy,
                         compiler.ccallparanode(tinlinenode(left).left.getcopy,nil
-                        ))),compiler);
+                        ))));
                     right:=nil;
                   end;
               end
@@ -4222,15 +4222,15 @@ const
                 if node_complexity(tinlinenode(right).left)=0 then
                   begin
                     if nodetype=subn then
-                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                      result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(left,
                         compiler.ccallparanode(cunaryminusnode.create(tinlinenode(right).left.getcopy,compiler),
                         compiler.ccallparanode(tinlinenode(right).left.getcopy,nil
-                        ))),compiler)
+                        ))))
                     else
-                      result:=cinlinenode.create(inlinennr,false,compiler.ccallparanode(left,
+                      result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(left,
                         compiler.ccallparanode(tinlinenode(right).left.getcopy,
                         compiler.ccallparanode(tinlinenode(right).left.getcopy,nil
-                        ))),compiler);
+                        ))));
                     left:=nil;
                   end;
               end;

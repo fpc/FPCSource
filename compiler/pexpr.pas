@@ -4384,7 +4384,7 @@ implementation
                  consume(_LKLAMMER);
                  p1:=factor(false,[]);
                  consume(_RKLAMMER);
-                 p1:=cinlinenode.create(in_objc_protocol_x,false,p1,compiler);
+                 p1:=compiler.cinlinenode(in_objc_protocol_x,false,p1);
                end;
 
              _PROCEDURE,

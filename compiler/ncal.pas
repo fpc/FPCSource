@@ -1378,7 +1378,7 @@ implementation
                            else if (target_info.system in systems_managed_vm) and
                               (left.resultdef.typ in [orddef,floatdef]) then
                              begin
-                               left:=cinlinenode.create(in_box_x,false,compiler.ccallparanode(left,nil),compiler);
+                               left:=compiler.cinlinenode(in_box_x,false,compiler.ccallparanode(left,nil));
                                typecheckpass(left);
                              end;
                          end;

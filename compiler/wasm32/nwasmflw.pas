@@ -260,7 +260,7 @@ implementation
               end
             else
               begin
-                third:=cinlinenode.create(in_get_frame,false,nil);
+                third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
@@ -317,7 +317,7 @@ implementation
               end
             else
               begin
-                third:=cinlinenode.create(in_get_frame,false,nil);
+                third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
@@ -374,7 +374,7 @@ implementation
               end
             else
               begin
-                third:=cinlinenode.create(in_get_frame,false,nil);
+                third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
@@ -431,7 +431,7 @@ implementation
               end
             else
               begin
-                third:=cinlinenode.create(in_get_frame,false,nil);
+                third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));

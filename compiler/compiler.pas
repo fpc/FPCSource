@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym
-  ,node,nadd,nbas,ncal,ncnv,ncon,nflw;
+  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl;
 
 type
 {****************************************************************************
@@ -261,6 +261,8 @@ type
     function connode(l,r:tnode):tonnode; inline;
     function cbreaknode:tbreaknode; inline;
     function ccontinuenode:tcontinuenode; inline;
+    { ninl }
+    function cinlinenode(number : tinlinenumber;is_const:boolean;l : tnode):tinlinenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -900,6 +902,12 @@ end;
 function TCompilerHelper.ccontinuenode: tcontinuenode; inline;
 begin
   result:=nflw.ccontinuenode.create(self);
+end;
+
+function TCompilerHelper.cinlinenode(number: tinlinenumber; is_const: boolean;
+  l: tnode): tinlinenode; inline;
+begin
+  result:=ninl.cinlinenode.create(number,is_const,l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

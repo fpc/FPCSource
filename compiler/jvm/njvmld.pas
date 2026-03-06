@@ -151,7 +151,7 @@ function tjvmassignmentnode.pass_1: tnode;
     else if target.resultdef.typ=formaldef then
       begin
         if right.resultdef.typ in [orddef,floatdef] then
-          right:=cinlinenode.create(in_box_x,false,right)
+          right:=compiler.cinlinenode(in_box_x,false,right)
         else if jvmimplicitpointertype(right.resultdef) then
           begin
             { we have to assign the address of a deep copy of the type to the

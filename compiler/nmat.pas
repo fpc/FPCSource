@@ -644,10 +644,9 @@ implementation
                     else
                       masknode:=
                         compiler.caddnode(andn,
-                          cinlinenode.create(in_sar_x_y,false,
+                          compiler.cinlinenode(in_sar_x_y,false,
                             compiler.ccallparanode(compiler.cordconstnode(shiftval,u8inttype,false),
-                            compiler.ccallparanode(compiler.ctemprefnode(temp),nil)),
-                            compiler
+                            compiler.ccallparanode(compiler.ctemprefnode(temp),nil))
                           ),
                           compiler.cordconstnode(tcgint((qword(1) shl power)-1),
                             right.resultdef,false)
@@ -656,19 +655,19 @@ implementation
                     if invertsign then
                       addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
                         cunaryminusnode.create(
-                          cinlinenode.create(in_sar_x_y,false,
+                          compiler.cinlinenode(in_sar_x_y,false,
                             compiler.ccallparanode(compiler.cordconstnode(power,u8inttype,false),
                             compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                               masknode),nil
-                            )),compiler),compiler),compiler)
+                            ))),compiler),compiler)
                       )
                     else
                       addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(resulttemp),
-                        cinlinenode.create(in_sar_x_y,false,
+                        compiler.cinlinenode(in_sar_x_y,false,
                           compiler.ccallparanode(compiler.cordconstnode(power,u8inttype,false),
                           compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                             masknode),nil
-                          )),compiler),compiler)
+                          ))),compiler)
                       );
                     addstatement(statements,compiler.ctempdeletenode(temp));
                     addstatement(statements,compiler.ctempdeletenode_normal_temp(resulttemp));
@@ -707,10 +706,9 @@ implementation
                 else
                   masknode:=
                     compiler.caddnode(andn,
-                      cinlinenode.create(in_sar_x_y,false,
+                      compiler.cinlinenode(in_sar_x_y,false,
                         compiler.ccallparanode(compiler.cordconstnode(shiftval,u8inttype,false),
-                        compiler.ccallparanode(compiler.ctemprefnode(temp),nil)),
-                        compiler
+                        compiler.ccallparanode(compiler.ctemprefnode(temp),nil))
                       ),
                       compiler.cordconstnode(tcgint((qword(1) shl power)-1),
                         right.resultdef,false)

@@ -1633,7 +1633,7 @@ implementation
               result:=compiler.cordconstnode(round(trealconstnode(left).value_real),resultdef,false)
             else
               begin
-                result:=cinlinenode.create(in_round_real,false,left,compiler);
+                result:=compiler.cinlinenode(in_round_real,false,left);
                 { Internal type cast to currency }
                 result:=compiler.ctypeconvnode_internal(result,s64currencytype);
                 left:=nil;

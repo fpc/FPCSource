@@ -1265,7 +1265,7 @@ implementation
               begin
                 if not check_only then
                   begin
-                    resnode:=cinlinenode.create(in_unbox_x_y,false,
+                    resnode:=compiler.cinlinenode(in_unbox_x_y,false,
                       compiler.ccallparanode(ctypenode.create(resultdef),
                         compiler.ccallparanode(left,nil)));
                     left:=nil;

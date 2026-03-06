@@ -158,7 +158,7 @@ implementation
    function geninlinenode(number : tinlinenumber;is_const:boolean;l : tnode;acompiler:TCompilerBase) : tinlinenode;
 
      begin
-        geninlinenode:=cinlinenode.create(number,is_const,l,acompiler);
+        geninlinenode:=acompiler.cinlinenode(number,is_const,l);
      end;
 
 {*****************************************************************************
@@ -3988,7 +3988,7 @@ implementation
                             end
                            else if is_dynamicstring(left.resultdef) then
                               begin
-                                result:=cinlinenode.create(in_length_x,false,left,compiler);
+                                result:=compiler.cinlinenode(in_length_x,false,left);
                                 if cs_zerobasedstrings in current_settings.localswitches then
                                   result:=compiler.caddnode(subn,result,compiler.cordconstnode(1,sinttype,false));
                                 { make sure the left node doesn't get disposed, since it's }
@@ -5685,7 +5685,7 @@ implementation
                    datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),voidpointertype)
                  else
                    datan:=caddrnode.create_internal(cvecnode.create(compiler.ctemprefnode(datatemp),compiler.cordconstnode(0,sizesinttype,false),compiler),compiler);
-                 datacountn:=cinlinenode.create(in_length_x,false,compiler.ctemprefnode(datatemp),compiler);
+                 datacountn:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(datatemp));
                end
              else if isconstr then
                begin
@@ -5693,7 +5693,7 @@ implementation
                  datatemp:=compiler.ctempcreatenode_value(second,second.size,tt_normal,false,firstn);
                  addstatement(insertstatement,datatemp);
                  datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),voidpointertype);
-                 datacountn:=cinlinenode.create(in_length_x,false,compiler.ctemprefnode(datatemp),compiler);
+                 datacountn:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(datatemp));
                end
              else
                begin
@@ -5937,10 +5937,10 @@ implementation
                    on native targets, is a noop on managed VM targets) }
                  if (target_info.system in systems_managed_vm) and
                     is_managed_type(arrn.resultdef) then
-                   addstatement(newstatement,cinlinenode.create(in_setlength_x,
+                   addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
                      false,
                      compiler.ccallparanode(genintconstnode(0,compiler),
-                       compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+                       compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil))));
 
                  cpn:=compiler.ccallparanode(
                          arrconstr,
@@ -6069,8 +6069,8 @@ implementation
          { create the actual for loop }
          tempnode := compiler.cfornode(
            compiler.ctemprefnode(loopvar),
-           cinlinenode.create(in_low_x,false,packednode.getcopy,compiler),
-           cinlinenode.create(in_high_x,false,packednode.getcopy,compiler),
+           compiler.cinlinenode(in_low_x,false,packednode.getcopy),
+           compiler.cinlinenode(in_high_x,false,packednode.getcopy),
            loopbody,
            false);
          addstatement(loopstatement,tempnode);

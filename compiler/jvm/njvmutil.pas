@@ -101,7 +101,7 @@ implementation
             thing, so Java code can pass in null strings/arrays and we'll
             interpret them correctly.
           }
-          result:=cinlinenode.create(in_setlength_x,false,
+          result:=compiler.cinlinenode(in_setlength_x,false,
             compiler.ccallparanode(genintconstnode(0),
               compiler.ccallparanode(p,nil)));
         end
@@ -284,7 +284,7 @@ implementation
             begin
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
-              addstatement(stat,cinlinenode.create(in_setlength_x,false,
+              addstatement(stat,compiler.cinlinenode(in_setlength_x,false,
                 compiler.ccallparanode(genintconstnode(0),
                   compiler.ccallparanode(compiler.ctemprefnode(temp),nil))
                 )

@@ -389,10 +389,10 @@ begin
         on native targets, is a noop on managed VM targets) }
       if (target_info.system in systems_managed_vm) and
          is_managed_type(p.resultdef) then
-        addstatement(newstatement,cinlinenode.create(in_setlength_x,
+        addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
           false,
           compiler.ccallparanode(genintconstnode(0,compiler),
-            compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+            compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil))));
       para:=compiler.ccallparanode(
               arrp,
               compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)
@@ -490,10 +490,10 @@ begin
         on native targets, is a noop on managed VM targets) }
       if (target_info.system in systems_managed_vm) and
          is_managed_type(p.resultdef) then
-        addstatement(newstatement,cinlinenode.create(in_setlength_x,
+        addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
           false,
           compiler.ccallparanode(genintconstnode(0,compiler),
-            compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil)),compiler));
+            compiler.ccallparanode(compiler.ctemprefnode(tempnode),nil))));
       para:=compiler.ccallparanode(
               arrp,
             compiler.ccallparanode(

@@ -323,8 +323,8 @@ implementation
       begin
         compiler:=hloopvar.compiler;
         result:=compiler.cfornode(hloopvar,
-          cinlinenode.create(in_low_x,false,expr.getcopy,compiler),
-          cinlinenode.create(in_high_x,false,expr.getcopy,compiler),
+          compiler.cinlinenode(in_low_x,false,expr.getcopy),
+          compiler.cinlinenode(in_high_x,false,expr.getcopy),
           hloopbody,
           false);
       end;
@@ -457,7 +457,7 @@ implementation
          { we add the "repeat..until" afterwards, now just create the body }
          outerloop:=internalstatements(compiler,outerloopbodystatement);
          { the countByEnumeratingWithState_objects_count call }
-         hp:=compiler.ccallparanode(cinlinenode.create(in_length_x,false,ctypenode.create(itemsarraydef,compiler),compiler),
+         hp:=compiler.ccallparanode(compiler.cinlinenode(in_length_x,false,ctypenode.create(itemsarraydef,compiler)),
                compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(items),compiler),
                  compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(state),compiler),nil)
                )
@@ -492,9 +492,9 @@ implementation
         innerloop:=internalstatements(compiler,innerloopbodystatement);
         { inc(innerloopcounter) without range/overflowchecking (because
           we go from culong(-1) to 0 during the first iteration }
-        hp:=cinlinenode.create(
+        hp:=compiler.cinlinenode(
           in_inc_x,false,compiler.ccallparanode(
-            compiler.ctemprefnode(innerloopcounter),nil),compiler);
+            compiler.ctemprefnode(innerloopcounter),nil));
         hp.localswitches:=hp.localswitches-[cs_check_range,cs_check_overflow];
         addstatement(innerloopbodystatement,hp);
         { if innerloopcounter=currentamount then break to the outer loop }
@@ -599,12 +599,12 @@ implementation
         if tstringdef(expr.resultdef).stringtype=st_shortstring then
           begin
             fromn:=genintconstnode(1,compiler);
-            ton:=cinlinenode.create(in_length_x,false,compiler.ctemprefnode(stringvar),compiler);
+            ton:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(stringvar));
           end
         else
           begin
              fromn:=cinlinenode.createintern(in_low_x,false,compiler.ctemprefnode(stringvar),compiler);
-             ton:= cinlinenode.create(in_high_x,false,compiler.ctemprefnode(stringvar),compiler);
+             ton:= compiler.cinlinenode(in_high_x,false,compiler.ctemprefnode(stringvar));
            end;
 
         forloopnode:=compiler.cfornode(compiler.ctemprefnode(loopvar),
@@ -675,7 +675,7 @@ implementation
             if is_string then
               begin
                 lowbound:=genintconstnode(1,compiler);
-                highbound:=cinlinenode.create(in_length_x,false,compiler.ctemprefnode(arrayvar),compiler)
+                highbound:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(arrayvar))
               end
             else
               begin
@@ -688,8 +688,8 @@ implementation
                   end
                 else
                   begin
-                    lowbound:=cinlinenode.create(in_low_x,false,compiler.ctemprefnode(arrayvar),compiler);
-                    highbound:=cinlinenode.create(in_high_x,false,compiler.ctemprefnode(arrayvar),compiler);
+                    lowbound:=compiler.cinlinenode(in_low_x,false,compiler.ctemprefnode(arrayvar));
+                    highbound:=compiler.cinlinenode(in_high_x,false,compiler.ctemprefnode(arrayvar));
                   end;
               end;
 
@@ -702,7 +702,7 @@ implementation
             if is_string then
               begin
                 lowbound:=genintconstnode(1,compiler);
-                highbound:=cinlinenode.create(in_length_x,false,expression.getcopy,compiler);
+                highbound:=compiler.cinlinenode(in_length_x,false,expression.getcopy);
               end
             else
               begin
@@ -715,8 +715,8 @@ implementation
                   end
                 else
                   begin
-                    lowbound:=cinlinenode.create(in_low_x,false,expression.getcopy,compiler);
-                    highbound:=cinlinenode.create(in_high_x,false,expression.getcopy,compiler);
+                    lowbound:=compiler.cinlinenode(in_low_x,false,expression.getcopy);
+                    highbound:=compiler.cinlinenode(in_high_x,false,expression.getcopy);
                   end;
               end;
           end;
@@ -813,8 +813,8 @@ implementation
         addstatement(loopbodystatement,hloopbody);
 
         forloopnode:=compiler.cfornode(compiler.ctemprefnode(loopvar),
-          cinlinenode.create(in_low_x,false,compiler.ctemprefnode(setvar),compiler),
-          cinlinenode.create(in_high_x,false,compiler.ctemprefnode(setvar),compiler),
+          compiler.cinlinenode(in_low_x,false,compiler.ctemprefnode(setvar)),
+          compiler.cinlinenode(in_high_x,false,compiler.ctemprefnode(setvar)),
           loopbody,
           false);
 
@@ -1837,14 +1837,14 @@ implementation
               thus pass it to the first callparanode call }
             if t1=nil then
               Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
-                cinlinenode.create(in_nr,false,compiler.ccallparanode(tassignmentnode(thenstmnt).left.getcopy,
-                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil)),compiler),
+                compiler.cinlinenode(in_nr,false,compiler.ccallparanode(tassignmentnode(thenstmnt).left.getcopy,
+                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil))),
                       compiler
                 )
             else
               Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
-                cinlinenode.create(in_nr,false,compiler.ccallparanode(tassignmentnode(elsestmnt).right.getcopy,
-                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil)),compiler),
+                compiler.cinlinenode(in_nr,false,compiler.ccallparanode(tassignmentnode(elsestmnt).right.getcopy,
+                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil))),
                       compiler
                 );
             node_reset_pass1_write(Result);
@@ -2724,7 +2724,7 @@ implementation
               end
             else
               begin
-                third:=cinlinenode.create(in_get_frame,false,nil,compiler);
+                third:=compiler.cinlinenode(in_get_frame,false,nil);
                 current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 include(current_addr.flags,nf_internal);
                 addstatement(statements,current_addr);

@@ -267,7 +267,7 @@ implementation
               begin
                 if (left.resultdef.typ in [orddef,floatdef]) then
                   begin
-                    left:=cinlinenode.create(in_box_x,false,compiler.ccallparanode(left,nil));
+                    left:=compiler.cinlinenode(in_box_x,false,compiler.ccallparanode(left,nil));
                     typecheckpass(left);
                   end;
                 left:=compiler.ctypeconvnode_explicit(left,java_jlobject);
@@ -309,7 +309,7 @@ implementation
             if parasym.vardef.typ=formaldef then
               begin
                 if orgparadef.typ in [orddef,floatdef] then
-                  tempn:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
+                  tempn:=compiler.cinlinenode(in_unbox_x_y,false,compiler.ccallparanode(
                     ctypenode.create(orgparadef),compiler.ccallparanode(tempn,nil)))
                 else if implicitptrpara then
                   tempn:=compiler.ctypeconvnode_explicit(tempn,cpointerdef.getreusable(orgparadef))
@@ -330,9 +330,9 @@ implementation
                     if (parasym.vardef.typ=formaldef) and
                        (orgparadef.typ in [orddef,floatdef]) then
                       begin
-                        unwrappedele0:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
+                        unwrappedele0:=compiler.cinlinenode(in_unbox_x_y,false,compiler.ccallparanode(
                           ctypenode.create(orgparadef),compiler.ccallparanode(unwrappedele0,nil)));
-                        unwrappedele1:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
+                        unwrappedele1:=compiler.cinlinenode(in_unbox_x_y,false,compiler.ccallparanode(
                           ctypenode.create(orgparadef),compiler.ccallparanode(unwrappedele1,nil)))
                       end;
                     addstatement(copybackstat,compiler.cifnode(

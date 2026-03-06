@@ -765,7 +765,7 @@ implementation
                 values need to be boxed first }
               if (right.resultdef.typ in [orddef,floatdef]) then
                 begin
-                  right:=cinlinenode.create(in_box_x,false,compiler.ccallparanode(right,nil),compiler);
+                  right:=compiler.cinlinenode(in_box_x,false,compiler.ccallparanode(right,nil));
                   typecheckpass(right);
                 end;
             end;
@@ -796,9 +796,9 @@ implementation
            exclude(left.flags,nf_isproperty);
            { generate a setlength node so it can be intercepted by
              target-specific code }
-           result:=cinlinenode.create(in_setlength_x,false,
+           result:=compiler.cinlinenode(in_setlength_x,false,
              compiler.ccallparanode(genintconstnode(0,compiler),
-               compiler.ccallparanode(left,nil)),compiler);
+               compiler.ccallparanode(left,nil)));
            left:=nil;
            exit;
          end;

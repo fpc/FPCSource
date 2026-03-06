@@ -114,7 +114,7 @@ implementation
             // result:=(0-(left and 1)) and (1+(sarlongint(left,31) shl 1))
             result:=compiler.caddnode_internal(andn,compiler.caddnode_internal(subn,compiler.cordconstnode(0,sinttype,false),compiler.caddnode_internal(andn,left,compiler.cordconstnode(1,sinttype,false))),
                                          compiler.caddnode_internal(addn,compiler.cordconstnode(1,sinttype,false),
-                                                              cshlshrnode.create(shln,cinlinenode.create(in_sar_x_y,false,compiler.ccallparanode(compiler.cordconstnode(31,sinttype,false),compiler.ccallparanode(left.getcopy,nil))),compiler.cordconstnode(1,sinttype,false))));
+                                                              cshlshrnode.create(shln,compiler.cinlinenode(in_sar_x_y,false,compiler.ccallparanode(compiler.cordconstnode(31,sinttype,false),compiler.ccallparanode(left.getcopy,nil))),compiler.cordconstnode(1,sinttype,false))));
             left:=nil;
             firstpass(result);
           end

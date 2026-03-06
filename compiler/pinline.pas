@@ -502,7 +502,7 @@ implementation
             if p1.nodetype=typen then
               ttypenode(p1).allowed:=true;
 
-            p1:=cinlinenode.create(in_new_x,false,p1,compiler);
+            p1:=compiler.cinlinenode(in_new_x,false,p1);
           end
         else
           begin
@@ -560,7 +560,7 @@ implementation
            CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
-        result:=cinlinenode.create(in_setlength_x,false,paras,compiler);
+        result:=compiler.cinlinenode(in_setlength_x,false,paras);
       end;
 
 
@@ -706,7 +706,7 @@ implementation
             exit;
           end;
         result.free;
-        result:=cinlinenode.create(nr,false,paras,compiler);
+        result:=compiler.cinlinenode(nr,false,paras);
       end;
 
 

@@ -108,8 +108,8 @@ implementation
            is_array_of_const(left.resultdef) then
           begin
             { replace with pred(length(arr)) }
-            result:=cinlinenode.create(in_pred_x,false,
-              cinlinenode.create(in_length_x,false,left));
+            result:=compiler.cinlinenode(in_pred_x,false,
+              compiler.cinlinenode(in_length_x,false,left));
             left:=nil;
             handled:=true;
           end;
@@ -235,7 +235,7 @@ implementation
           the length is <> 0 on other targets, replace this expression here }
         if is_dynamic_array(tcallparanode(left).left.resultdef) then
           begin
-            result:=compiler.caddnode(unequaln,cinlinenode.create(
+            result:=compiler.caddnode(unequaln,compiler.cinlinenode(
               in_length_x,false,tcallparanode(left).left),genintconstnode(0));
             tcallparanode(left).left:=nil;
           end
@@ -433,7 +433,7 @@ implementation
         newparas:=compiler.ccallparanode(ctypenode.create(left.resultdef),newparas);
         ttypenode(tcallparanode(newparas).left).allowed:=true;
         { node to create the new array }
-        newnode:=cinlinenode.create(in_new_x,false,newparas);
+        newnode:=compiler.cinlinenode(in_new_x,false,newparas);
         { Common parameters for setlength helper }
         { start with org (save assignmenttarget itself to assign the result back to) }
         { store left into a temp in case it may contain a function call
@@ -593,7 +593,7 @@ implementation
             lentemp:=compiler.ctempcreatenode(s32inttype,s32inttype.size,tt_persistent,true);
             addstatement(newstatement,lentemp);
             { if-condition: assigned(stringclass(stringvar))? }
-            ifcond:=cinlinenode.create(in_assigned_x,false,
+            ifcond:=compiler.cinlinenode(in_assigned_x,false,
               compiler.ccallparanode(stringtemp.getcopy,nil));
             { then-path: call length() method }
             psym:=search_struct_member(tabstractrecorddef(stringclass),'LENGTH');
