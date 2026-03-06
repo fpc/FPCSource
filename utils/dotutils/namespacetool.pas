@@ -435,11 +435,11 @@ begin
   Result:='';
   if aFileName='' then
     exit;
-  P:=Pos('/',aFileName,2);
+  P:=Pos(PathDelim,aFileName,2);
   if P=0 then
     exit;
   Result:=Copy(aFileName,1,P);
-  If Result[1]='/' then
+  If Result[1]=PathDelim then
     Delete(Result,1,1);
 end;
 
