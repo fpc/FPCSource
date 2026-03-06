@@ -63,7 +63,7 @@ uses
 
 Const
 {$IFDEF FPC_DOTTEDUNITS}
-  DefaultUsePublishedOnly = False;
+  DefaultUsePublishedOnly = Not TObject.SystemHasExtendedRTTI;
 {$ELSE}
   DefaultUsePublishedOnly = True;
 {$ENDIF}
