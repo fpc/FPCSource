@@ -198,7 +198,7 @@ type
   TPasExprKind = (pekIdent, pekNumber, pekString, pekStringMultiLine, pekSet,
      pekNil, pekBoolConst,
      pekRange, pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp,
-     pekInherited, pekSelf, pekSpecialize, pekProcedure);
+     pekInherited, pekSelf, pekSpecialize, pekProcedure, pekNamedArg);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide{/}, eopDiv{div},eopMod, eopPower,// arithmetic
@@ -284,6 +284,19 @@ type
   end;
 
   TPasExprArray = array of TPasExpr;
+
+  { TNamedArgExpr }
+
+  TNamedArgExpr = class(TPasExpr)
+    NameExpr  : TPrimitiveExpr;
+    ValueExpr : TPasExpr;
+    constructor Create(AParent: TPasElement; AName: TPrimitiveExpr; AValue: TPasExpr); overload;
+    function GetDeclaration(full: Boolean): TPasTreeString; override;
+    procedure FreeChildren(Prepare: boolean); override;
+    procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
+      const Arg: Pointer); override;
+  end;
+
 
   { TParamsExpr - source position is the opening bracket }
 
@@ -1843,7 +1856,8 @@ const
       'Inherited',
       'Self',
       'Specialize',
-      'Procedure');
+      'Procedure',
+      'NamedArg');
 
   OpcodeStrings : Array[TExprOpCode] of TPasTreeString = (
         '','+','-','*','/','div','mod','**',
@@ -6344,6 +6358,33 @@ end;
 constructor TSelfExpr.Create(AParent : TPasElement);
 begin
   inherited Create(AParent,pekSelf, eopNone);
+end;
+
+{ TNamedArgExpr }
+
+constructor TNamedArgExpr.Create(AParent: TPasElement; AName: TPrimitiveExpr; AValue: TPasExpr);
+begin
+  NameExpr:=aName;
+  ValueExpr:=aValue;
+end;
+
+function TNamedArgExpr.GetDeclaration(full: Boolean): TPasTreeString;
+begin
+  Result:=NameExpr.GetDeclaration(True)+':='+ValueExpr.GetDeclaration(True);
+end;
+
+procedure TNamedArgExpr.FreeChildren(Prepare: boolean);
+begin
+  inherited FreeChildren(Prepare);
+  NameExpr:=TPrimitiveExpr(FreeChild(NameExpr,Prepare));
+  ValueExpr:=TPasExpr(FreeChild(ValueExpr,Prepare));
+end;
+
+procedure TNamedArgExpr.ForEachCall(const aMethodCall: TOnForEachPasElement; const Arg: Pointer);
+begin
+  inherited ForEachCall(aMethodCall, Arg);
+  ForEachChildCall(aMethodCall,Arg,NameExpr,False);
+  ForEachChildCall(aMethodCall,Arg,ValueExpr,False);
 end;
 
 { TPasLabels }

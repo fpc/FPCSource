@@ -2489,7 +2489,8 @@ function TPasParser.ParseParams(AParent: TPasElement; ParamsKind: TPasExprKind;
   AllowFormatting: Boolean = False): TParamsExpr;
 var
   Params  : TParamsExpr;
-  Expr    : TPasExpr;
+  ValueExpr, Expr    : TPasExpr;
+  NamedArg : TNamedArgExpr;
   PClose  : TToken;
 
 begin
@@ -2506,7 +2507,6 @@ begin
       ParseExc(nParserExpectTokenError,SParserExpectTokenError,['(']);
     PClose:=tkBraceClose;
     end;
-
   Params:=TParamsExpr(CreateElement(TParamsExpr,'',AParent,CurTokenPos));
   Params.Kind:=ParamsKind;
   NextToken;
@@ -2517,7 +2517,19 @@ begin
       if not Assigned(Expr) then
         ParseExcSyntaxError;
       Params.AddParam(Expr);
-      if (CurToken=tkColon) then
+      // ActiveX calls: Arg.DoIt(X:=13);
+      if (CurToken=tkAssign) then
+        begin
+        // Named parameter: Identifier := Value
+        if (not (Expr is TPrimitiveExpr)) or (Expr.Kind<>pekIdent) then
+          ParseExcSyntaxError;
+        NextToken;
+        ValueExpr:=DoParseExpression(Params);
+        NamedArg:=TNamedArgExpr.Create(Params, TPrimitiveExpr(Expr), ValueExpr);
+        // Replace the last param (the bare identifier) with the named arg
+        Params.Params[Length(Params.Params)-1]:=NamedArg;
+        end
+      else if (CurToken=tkColon) then
         if Not AllowFormatting then
           ParseExc(nParserExpectTokenError,SParserExpectTokenError,[','])
         else
