@@ -227,7 +227,7 @@ Type
 
 Const
   // Aliases
-  Amd64   = X86_64;
+  Amd64 = X86_64;
   PPC = PowerPC;
   PPC64 = PowerPC64;
   DOS = Go32v2;
@@ -240,6 +240,7 @@ Const
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
   AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos,win16,atari,human68k];
+  AllWebAssemblyOSes = [wasip1, wasip1threads, wasip2];
 
   AllSmartLinkLibraryOSes = [Linux,msdos,win16,palmos]; // OSes that use .a library files for smart-linking
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macosclassic,nativent,msdos,win16];
