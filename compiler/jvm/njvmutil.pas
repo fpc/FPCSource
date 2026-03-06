@@ -154,7 +154,7 @@ implementation
                 result:=compiler.ccallnode_intern(proc,paras);
             end
           else
-            result:=cassignmentnode.create(p,cnilnode.create);
+            result:=cassignmentnode.create(p,compiler.cnilnode);
         end
       else
         begin
@@ -368,7 +368,7 @@ implementation
         false for jvm implicit pointer types }
       else if trashable and
          (tabstractvarsym(p).vardef.typ in [pointerdef,classrefdef,objectdef,procvardef]) then
-        trash_small(stat,trashn,cnilnode.create)
+        trash_small(stat,trashn,compiler.cnilnode)
       else if trashable and
          is_real(tabstractvarsym(p).vardef) then
         trash_small(stat,trashn,compiler.crealconstnode(trashintval,tabstractvarsym(p).vardef))

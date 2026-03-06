@@ -653,7 +653,7 @@ implementation
                       check_self,
                       voidpointertype
                     ),
-                    cnilnode.create(compiler)),
+                    compiler.cnilnode),
                   compiler.ccallnode_intern('fpc_objecterror',nil),
                   nil,
                   compiler)

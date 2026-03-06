@@ -4363,7 +4363,7 @@ implementation
              _NIL :
                begin
                  consume(_NIL);
-                 p1:=cnilnode.create(compiler);
+                 p1:=compiler.cnilnode;
                  { It's really ugly code nil^, but delphi allows it }
                  if current_scanner.token in [_CARET,_POINT] then
                   begin

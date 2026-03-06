@@ -247,7 +247,7 @@ implementation
     function tjvminlinenode.first_get_frame: tnode;
       begin
         { no frame pointer on the JVM target }
-        result:=cnilnode.create;
+        result:=compiler.cnilnode;
       end;
 
 

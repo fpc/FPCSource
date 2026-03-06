@@ -201,10 +201,10 @@ implementation
                   compiler.caddnode(andn,
                       compiler.caddnode(unequaln,
                           load_self_pointer_node,
-                          cnilnode.create(compiler)),
+                          compiler.cnilnode),
                       compiler.caddnode(unequaln,
                           load_vmt_pointer_node,
-                          cnilnode.create(compiler))),
+                          compiler.cnilnode)),
                   compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                   nil,compiler));
             end
@@ -236,7 +236,7 @@ implementation
       { self:=nil }
       addstatement(newstatement,cassignmentnode.create(
           load_self_pointer_node,
-          cnilnode.create(compiler),compiler));
+          compiler.cnilnode,compiler));
       { exit }
       addstatement(newstatement,cexitnode.create(nil,compiler));
     end;
@@ -269,7 +269,7 @@ implementation
             begin
               result:=cassignmentnode.create(
                  compiler.ctypeconvnode_internal(p,voidpointertype),
-                 cnilnode.create(compiler),
+                 compiler.cnilnode,
                  compiler
                  );
             end

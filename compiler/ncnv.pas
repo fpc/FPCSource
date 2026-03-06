@@ -2065,7 +2065,7 @@ implementation
               is_emptyset(left)
             then
           begin
-            result:=cnilnode.create(compiler);
+            result:=compiler.cnilnode;
             exit;
           end;
 
@@ -2627,7 +2627,7 @@ implementation
                             insert_self_and_vmt_para(pd);
 
                             { there is no self, so load a nil value }
-                            tloadnode(left).set_mp(cnilnode.create(compiler));
+                            tloadnode(left).set_mp(compiler.cnilnode);
                           end;
                       end;
 
@@ -2743,7 +2743,7 @@ implementation
             if assigned(capturer) then
               ld:=cloadnode.create(capturer,capturer.owner,compiler)
             else
-              ld:=cnilnode.create(compiler);
+              ld:=compiler.cnilnode;
             result:=compiler.ctypeconvnode_internal(
                       compiler.ctypeconvnode_internal(
                         ld,
@@ -2775,7 +2775,7 @@ implementation
             if assigned(capturer) then
               ldnode:=cloadnode.create(capturer,capturer.owner,compiler)
             else
-              ldnode:=cnilnode.create(compiler);
+              ldnode:=compiler.cnilnode;
             result:=compiler.ctypeconvnode_internal(
                       compiler.ctypeconvnode_internal(
                         ldnode,
@@ -3618,7 +3618,7 @@ implementation
               (resultdef.typ=pointerdef) and
               cstringconstnode.emptydynstrnil then
             begin
-              result:=cnilnode.create(compiler);
+              result:=compiler.cnilnode;
               exit;
             end;
 
@@ -3663,7 +3663,7 @@ implementation
                { fold nil to any pointer type }
                if (resultdef.typ=pointerdef) then
                 begin
-                  hp:=cnilnode.create(compiler);
+                  hp:=compiler.cnilnode;
                   hp.resultdef:=resultdef;
                   if ([nf_explicit,nf_internal] * flags <> []) then
                     include(hp.flags, nf_explicit);
@@ -5089,7 +5089,7 @@ implementation
                     addstatement(statement,tempnode);
                     addstatement(statement,cassignmentnode.create_internal(compiler.ctemprefnode(tempnode),left,compiler));
                     addstatement(statement,compiler.caddnode_internal(andn,
-                      compiler.caddnode_internal(unequaln,compiler.ctemprefnode(tempnode),cnilnode.create(compiler)),
+                      compiler.caddnode_internal(unequaln,compiler.ctemprefnode(tempnode),compiler.cnilnode),
                       compiler.caddnode_internal(equaln,cloadvmtaddrnode.create(compiler.ctemprefnode(tempnode),compiler),right)
                       )
                     );
@@ -5100,7 +5100,7 @@ implementation
                 else
                   begin
                     result:=compiler.caddnode_internal(andn,
-                      compiler.caddnode_internal(unequaln,left.getcopy,cnilnode.create(compiler)),
+                      compiler.caddnode_internal(unequaln,left.getcopy,compiler.cnilnode),
                       compiler.caddnode_internal(equaln,cloadvmtaddrnode.create(left.getcopy,compiler),right)
                       );
                     right:=nil;

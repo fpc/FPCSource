@@ -245,7 +245,7 @@ type
     function cstringconstnode_unistr(w : tcompilerwidestring):tstringconstnode; inline;
     function csetconstnode(s : pconstset;def:tdef):tsetconstnode; inline;
     function cguidconstnode(const g:tguid):tguidconstnode; inline;
-    // TODO:cnilnode
+    function cnilnode:tnilnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -808,6 +808,11 @@ end;
 function TCompilerHelper.cguidconstnode(const g: tguid): tguidconstnode; inline;
 begin
   result:=ncon.cguidconstnode.create(g,self);
+end;
+
+function TCompilerHelper.cnilnode: tnilnode; inline;
+begin
+  result:=ncon.cnilnode.create(self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

@@ -264,7 +264,7 @@ implementation
                 //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
-                right:=cnilnode.create;
+                right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
@@ -321,7 +321,7 @@ implementation
                 //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
-                right:=cnilnode.create;
+                right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
@@ -378,7 +378,7 @@ implementation
                 //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
-                right:=cnilnode.create;
+                right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
@@ -435,7 +435,7 @@ implementation
                 //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
-                right:=cnilnode.create;
+                right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then

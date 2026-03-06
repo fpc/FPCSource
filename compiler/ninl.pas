@@ -2686,7 +2686,7 @@ implementation
                      (tcallparanode(left).left.nodetype = pointerconstn) then
                     begin
                       { let an add node figure it out }
-                      result:=compiler.caddnode(unequaln,tcallparanode(left).left,cnilnode.create(compiler));
+                      result:=compiler.caddnode(unequaln,tcallparanode(left).left,compiler.cnilnode);
                       tcallparanode(left).left := nil;
                     end;
                 end;
@@ -4442,7 +4442,7 @@ implementation
                  (tenumdef(left.resultdef).has_jumps) then
                 begin
                   if (left.nodetype=typen) and (sp_generic_para in ttypenode(left).typesym.symoptions) then
-                    result:=cnilnode.create(compiler)
+                    result:=compiler.cnilnode
                   else
                     internalerror(2021032601);
                 end
@@ -5496,7 +5496,7 @@ implementation
      function tinlinenode.first_assigned: tnode;
        begin
          { Comparison must not call procvars, indicate that with nf_load_procvar flag }
-         result:=compiler.caddnode(unequaln,tcallparanode(left).left,cnilnode.create(compiler));
+         result:=compiler.caddnode(unequaln,tcallparanode(left).left,compiler.cnilnode);
          include(result.flags,nf_load_procvar);
          tcallparanode(left).left:=nil;
        end;

@@ -2004,7 +2004,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             { Only allow nil initialization }
             consume(_NIL);
-            addstatement(statmnt,cassignmentnode.create_internal(basenode,cnilnode.create(compiler),compiler));
+            addstatement(statmnt,cassignmentnode.create_internal(basenode,compiler.cnilnode,compiler));
             basenode:=nil;
           end
         { array const between brackets }

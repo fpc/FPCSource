@@ -474,7 +474,7 @@ implementation
            have to use it again below) }
          hp:=internalstatements(compiler,tempstatement);
          addstatement(tempstatement,cassignmentnode.create(
-             hloopvar.getcopy,cnilnode.create(compiler),compiler));
+             hloopvar.getcopy,compiler.cnilnode,compiler));
          addstatement(tempstatement,cbreaknode.create(compiler));
          addstatement(outerloopbodystatement,cifnode.create(
            compiler.caddnode(equaln,compiler.ctemprefnode(currentamount),genintconstnode(0,compiler)),
@@ -923,7 +923,7 @@ implementation
               end;
             { if getenumerator <> nil then do the loop }
             whileloopnode:=cifnode.create(
-              compiler.caddnode(unequaln, compiler.ctemprefnode(enumvar), cnilnode.create(compiler)),
+              compiler.caddnode(unequaln, compiler.ctemprefnode(enumvar), compiler.cnilnode),
               whileloopnode,
               nil,compiler);
           end;

@@ -582,7 +582,7 @@ implementation
                   addstatement(newstatement,cifnode.create(
                     compiler.caddnode(equaln,
                         load_self_pointer_node,
-                        cnilnode.create(compiler)),
+                        compiler.cnilnode),
                     cexitnode.create(nil,compiler),
                     nil,compiler));
               end;
@@ -601,7 +601,7 @@ implementation
                             compiler.ctypeconvnode_internal(
                               load_vmt_pointer_node,ptrsinttype),
                             compiler.ctypeconvnode_internal(
-                              cnilnode.create(compiler),ptrsinttype)),
+                              compiler.cnilnode,ptrsinttype)),
                         compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                         nil,compiler));
                   end
@@ -649,7 +649,7 @@ implementation
                             compiler.caddnode(andn,
                                 compiler.caddnode(unequaln,
                                     load_self_pointer_node,
-                                    cnilnode.create(compiler)),
+                                    compiler.cnilnode),
                                 compiler.caddnode(unequaln,
                                     compiler.ctypeconvnode(
                                         load_vmt_pointer_node,
@@ -670,7 +670,7 @@ implementation
                           addstatement(newstatement,cifnode.create(
                             compiler.caddnode(unequaln,
                               compiler.ctypeconvnode_internal(load_vmt_pointer_node,voidpointertype),
-                              cnilnode.create(compiler)),
+                              compiler.cnilnode),
                             compiler.nodeutils.finalize_data_node(load_self_node),
                             nil,compiler));
                         end;
@@ -818,10 +818,10 @@ implementation
                   compiler.caddnode(andn,
                     compiler.caddnode(unequaln,
                       load_self_node,
-                      cnilnode.create(compiler)),
+                      compiler.cnilnode),
                     compiler.caddnode(unequaln,
                       load_vmt_pointer_node,
-                      cnilnode.create(compiler))),
+                      compiler.cnilnode)),
                     compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
                     nil,compiler));
                 tocode:=constructionblock;
@@ -845,7 +845,7 @@ implementation
                         cifnode.create(
                           compiler.caddnode(unequaln,
                             load_vmt_pointer_node,
-                            cnilnode.create(compiler)),
+                            compiler.cnilnode),
                           { cnf_create_failed -> don't call BeforeDestruction }
                           compiler.ccallnode(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed],nil),
                           nil,compiler))

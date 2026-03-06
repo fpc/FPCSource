@@ -392,7 +392,7 @@ implementation
                 p1:=compiler.cpointerconstnode(p.value.valueordptr,p.constdef);
             end;
           constnil :
-            p1:=cnilnode.create(compiler);
+            p1:=compiler.cnilnode;
           constguid :
             begin
               if sp_generic_para in p.symoptions then
@@ -792,7 +792,7 @@ implementation
         result:=nil;
         resultdef:=typedef;
         if is_voidpointer(resultdef) and (value=0) then
-          result:=cnilnode.create(compiler);
+          result:=compiler.cnilnode;
       end;
 
 
