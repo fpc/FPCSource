@@ -290,6 +290,13 @@ begin
                   EnterNewScannerContext(scUnknown);
               end;
             '<':    // either an unclosed tag or unescaped '<' in text; attempt recovery
+              if FCurStringValueDelimiter <> #0 then
+              begin
+                // Inside quoted attribute value - treat '<' as literal character
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
+                Inc(BufferPos);
+              end
+              else
               begin
                 // TODO: this check is hardly complete, probably must also check if
                 // tag name is followed by legal attributes.
