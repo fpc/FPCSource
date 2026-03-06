@@ -958,7 +958,7 @@ implementation
               inc(exceptblockcounter);
               current_exceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
-              try_statement:=ctryfinallynode.create(p_try_block,p_finally_block,compiler);
+              try_statement:=compiler.ctryfinallynode(p_try_block,p_finally_block);
               try_statement.fileinfo:=filepostry;
            end
          else

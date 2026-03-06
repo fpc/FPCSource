@@ -912,10 +912,10 @@ implementation
             enumerator_destructor:=tobjectdef(enumerator_get.returndef).find_destructor;
             if assigned(enumerator_destructor) then
               begin
-                whileloopnode:=ctryfinallynode.create(
+                whileloopnode:=compiler.ctryfinallynode(
                   whileloopnode, // try node
                   compiler.ccallnode(nil,tprocsym(enumerator_destructor.procsym), // finally node
-                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil),compiler);
+                    enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil));
               end;
             { if getenumerator <> nil then do the loop }
             whileloopnode:=compiler.cifnode(

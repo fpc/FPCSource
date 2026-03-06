@@ -256,6 +256,7 @@ type
     function clabelnode(l:tnode;alabsym:tlabelsym):tlabelnode; inline;
     function craisenode(l,taddr,tframe:tnode):traisenode; inline;
     function ctryexceptnode(l,r,_t1 : tnode):ttryexceptnode; inline;
+    function ctryfinallynode(l,r:tnode):ttryfinallynode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -870,6 +871,11 @@ end;
 function TCompilerHelper.ctryexceptnode(l, r, _t1: tnode): ttryexceptnode; inline;
 begin
   result:=nflw.ctryexceptnode.create(l,r,_t1,self);
+end;
+
+function TCompilerHelper.ctryfinallynode(l, r: tnode): ttryfinallynode; inline;
+begin
+  result:=nflw.ctryfinallynode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
