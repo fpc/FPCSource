@@ -346,7 +346,7 @@ implementation
 
          first:=compiler.cblocknode(first);
          p_e:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-         result:=cwhilerepeatnode.create(p_e,first,false,true,compiler);
+         result:=compiler.cwhilerepeatnode(p_e,first,false,true);
       end;
 
 
@@ -360,7 +360,7 @@ implementation
          p_e:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
          consume(_DO);
          p_a:=statement;
-         result:=cwhilerepeatnode.create(p_e,p_a,true,false,compiler);
+         result:=compiler.cwhilerepeatnode(p_e,p_a,true,false);
       end;
 
     { a helper function which is used both by "with" and "for-in loop" nodes }

@@ -535,18 +535,18 @@ implementation
 
         { create the inner repeat/until and add it to the body of the outer
           one }
-        hp:=cwhilerepeatnode.create(
+        hp:=compiler.cwhilerepeatnode(
           { repeat .. until false }
-          compiler.cordconstnode(0,pasbool1type,false),innerloop,false,true,compiler);
+          compiler.cordconstnode(0,pasbool1type,false),innerloop,false,true);
         addstatement(outerloopbodystatement,hp);
 
         { create the outer repeat/until and add it to the the main body }
-        hp:=cwhilerepeatnode.create(
+        hp:=compiler.cwhilerepeatnode(
           { repeat .. until innerloopcounter<currentamount }
           compiler.caddnode(ltn,
             compiler.ctemprefnode(innerloopcounter),
             compiler.ctemprefnode(currentamount)),
-          outerloop,false,true,compiler);
+          outerloop,false,true);
         addstatement(mainstatement,hp);
 
         { release the temps }
@@ -908,7 +908,7 @@ implementation
         addstatement(loopbodystatement,hloopbody);
 
         enum_move:=compiler.ccallnode(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, compiler.ctemprefnode(enumvar), [],nil);
-        whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false,compiler);
+        whileloopnode:=compiler.cwhilerepeatnode(enum_move,loopbody,true,false);
 
         if enumerator_is_class then
           begin
@@ -1405,7 +1405,7 @@ implementation
                   taddnode(left).left.isequal(tcallparanode(tinlinenode(p).left).left) and
                   not(assigned(tcallparanode(tinlinenode(p).left).right)) then
                   begin
-                    result:=cifnode.create_internal(left.getcopy,cwhilerepeatnode.create(left,right,false,true,compiler),nil,compiler);
+                    result:=cifnode.create_internal(left.getcopy,compiler.cwhilerepeatnode(left,right,false,true),nil,compiler);
                     left:=nil;
                     right:=nil;
                     twhilerepeatnode(tifnode(result).right).left.nodetype:=equaln;
@@ -1414,7 +1414,7 @@ implementation
             else if not(cs_opt_size in current_settings.optimizerswitches) and
               (node_complexity(left)<=3) then
               begin
-                result:=cifnode.create_internal(left.getcopy,cwhilerepeatnode.create(left,right,false,false,compiler),nil,compiler);
+                result:=cifnode.create_internal(left.getcopy,compiler.cwhilerepeatnode(left,right,false,false),nil,compiler);
                 left:=nil;
                 right:=nil;
               end;
@@ -2228,10 +2228,10 @@ implementation
               (countermin<tordconstnode(toexpr).value) then
               begin
                 tordconstnode(toexpr).value:=tordconstnode(toexpr).value-1;
-                addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(equaln,leftcopy,toexpr),loopblock,false,true,compiler))
+                addstatement(ifstatements,compiler.cwhilerepeatnode(compiler.caddnode_internal(equaln,leftcopy,toexpr),loopblock,false,true))
               end
             else
-              addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(cond,leftcopy,toexpr),loopblock,false,true,compiler));
+              addstatement(ifstatements,compiler.cwhilerepeatnode(compiler.caddnode_internal(cond,leftcopy,toexpr),loopblock,false,true));
 
             if usefromtemp then
               fromexpr:=compiler.ctemprefnode(fromtemp)
@@ -2259,10 +2259,10 @@ implementation
           begin
             { is a simple comparison for equality sufficient? }
             if do_loopvar_at_end and (lnf_backward in loopflags) and (lnf_counter_not_used in loopflags) then
-              addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(equaln,leftcopy,
-                compiler.caddnode_internal(subn,t1.getcopy,compiler.cordconstnode(1,t1.resultdef,false))),loopblock,false,true,compiler))
+              addstatement(ifstatements,compiler.cwhilerepeatnode(compiler.caddnode_internal(equaln,leftcopy,
+                compiler.caddnode_internal(subn,t1.getcopy,compiler.cordconstnode(1,t1.resultdef,false))),loopblock,false,true))
             else
-              addstatement(ifstatements,cwhilerepeatnode.create(compiler.caddnode_internal(cond,leftcopy,t1.getcopy),loopblock,false,true,compiler));
+              addstatement(ifstatements,compiler.cwhilerepeatnode(compiler.caddnode_internal(cond,leftcopy,t1.getcopy),loopblock,false,true));
             addstatement(statements,ifblock);
           end;
         current_filepos:=storefilepos;

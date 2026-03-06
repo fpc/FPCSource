@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym
-  ,node,nadd,nbas,ncal,ncnv,ncon;
+  ,node,nadd,nbas,ncal,ncnv,ncon,nflw;
 
 type
 {****************************************************************************
@@ -246,6 +246,8 @@ type
     function csetconstnode(s : pconstset;def:tdef):tsetconstnode; inline;
     function cguidconstnode(const g:tguid):tguidconstnode; inline;
     function cnilnode:tnilnode; inline;
+    { nflw }
+    function cwhilerepeatnode(l,r:Tnode;tab,cn:boolean):twhilerepeatnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -813,6 +815,12 @@ end;
 function TCompilerHelper.cnilnode: tnilnode; inline;
 begin
   result:=ncon.cnilnode.create(self);
+end;
+
+function TCompilerHelper.cwhilerepeatnode(l, r: Tnode; tab, cn: boolean
+  ): twhilerepeatnode; inline;
+begin
+  result:=nflw.cwhilerepeatnode.create(l,r,tab,cn,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
