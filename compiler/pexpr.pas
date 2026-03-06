@@ -380,7 +380,7 @@ implementation
                                   exit_procinfo.procdef.localst.insertsym(exit_procinfo.nestedexitlabel.jumpbuf);
                                 end;
 
-                              statement_syssym:=cgotonode.create(exit_procinfo.nestedexitlabel,compiler);
+                              statement_syssym:=compiler.cgotonode(exit_procinfo.nestedexitlabel);
                               tgotonode(statement_syssym).labelsym:=exit_procinfo.nestedexitlabel;
                             end
                           else

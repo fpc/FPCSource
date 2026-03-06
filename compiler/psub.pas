@@ -462,7 +462,7 @@ implementation
                 compiler.ccallnode_intern('fpc_setjmp',
                   compiler.ccallparanode(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil)),
                 compiler.cordconstnode(1,search_system_proc('fpc_setjmp').returndef,true))
-              ,cgotonode.create(tlabelsym(p),compiler),nil)
+              ,compiler.cgotonode(tlabelsym(p)),nil)
             );
           end;
       end;

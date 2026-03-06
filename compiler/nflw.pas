@@ -2180,7 +2180,7 @@ implementation
           end;
 
         if assigned(entrylabel) then
-          addstatement(ifstatements,cgotonode.create(tlabelnode(entrylabel).labsym,compiler));
+          addstatement(ifstatements,compiler.cgotonode(tlabelnode(entrylabel).labsym));
 
         if not(do_loopvar_at_end) then
           iterate_counter(loopstatements,not(lnf_backward in loopflags));

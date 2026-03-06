@@ -210,7 +210,7 @@ unit opttail;
                     addstatement(nodes,copynodes);
 
                     { create goto }
-                    addstatement(nodes,cgotonode.create(labelnode.labsym,compiler));
+                    addstatement(nodes,compiler.cgotonode(labelnode.labsym));
 
                     if assigned(usedcallnode.callcleanupblock) then
                       begin
