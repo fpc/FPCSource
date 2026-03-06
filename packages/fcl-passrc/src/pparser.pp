@@ -1872,7 +1872,14 @@ begin
     NextToken;
     while CurToken=tkDot do
       begin
-      ExpectIdentifier;
+      NextToken;
+      if CurToken=tkspecialize then
+        begin
+        MustBeSpecialize:=true;
+        ExpectIdentifier;
+        end
+      else if CurToken<>tkIdentifier then
+        ParseExcTokenError(TokenInfos[tkIdentifier]);
       Name := Name+'.'+CurTokenString;
       NextToken;
       end;

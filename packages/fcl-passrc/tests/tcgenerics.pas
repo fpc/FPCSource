@@ -64,6 +64,7 @@ Type
     Procedure TestPackedGenericObjectDelphi;
     Procedure TestPackedGenericRecord;
     Procedure TestPackedGenericRecordDelphi;
+    procedure TestComplexSpecialization;
   end;
 
 implementation
@@ -711,6 +712,20 @@ begin
   AssertEquals('Is packed',Ord(pmPacked),Ord(R.PackMode));
   AssertNotNull('have generic templates',R.GenericTemplateTypes);
   AssertEquals('1 template type',1,R.GenericTemplateTypes.Count);
+end;
+
+procedure TTestGenerics.TestComplexSpecialization;
+begin
+  Add([
+  'type',
+  '  generic TGenLazShiftListFixedSize<T; _TConfT: TLazListConfigFixSize> = object(',
+  '    specialize TGenLazShiftList<',
+  '      specialize TTypeToPointerGeneric<T>.PT, _TConfT.specialize _TC<T, _TConfT>',
+  '    >',
+  '  )',
+  '  end;',
+  '']);
+  ParseDeclarations;
 end;
 
 initialization
