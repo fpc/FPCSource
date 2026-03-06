@@ -6067,13 +6067,12 @@ implementation
              compiler
            );
          { create the actual for loop }
-         tempnode := cfornode.create(
+         tempnode := compiler.cfornode(
            compiler.ctemprefnode(loopvar),
            cinlinenode.create(in_low_x,false,packednode.getcopy,compiler),
            cinlinenode.create(in_high_x,false,packednode.getcopy,compiler),
            loopbody,
-           false,
-           compiler);
+           false);
          addstatement(loopstatement,tempnode);
          { free the loop counter }
          addstatement(loopstatement,compiler.ctempdeletenode(loopvar));

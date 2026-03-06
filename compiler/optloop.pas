@@ -610,7 +610,7 @@ type
             do_firstpass(tnode(deletecode));
             { create a new for node, the old one will be released by the compiler }
             oldn:=n;
-            newfor:=cfornode.create(tfornode(oldn).left,tfornode(oldn).right,tfornode(oldn).t1,tfornode(oldn).t2,lnf_backward in tfornode(oldn).loopflags,compiler);
+            newfor:=compiler.cfornode(tfornode(oldn).left,tfornode(oldn).right,tfornode(oldn).t1,tfornode(oldn).t2,lnf_backward in tfornode(oldn).loopflags);
             tfornode(oldn).left:=nil;
             tfornode(oldn).right:=nil;
             tfornode(oldn).t1:=nil;

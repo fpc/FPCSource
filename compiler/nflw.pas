@@ -322,12 +322,11 @@ implementation
         compiler: TCompilerBase;
       begin
         compiler:=hloopvar.compiler;
-        result:=cfornode.create(hloopvar,
+        result:=compiler.cfornode(hloopvar,
           cinlinenode.create(in_low_x,false,expr.getcopy,compiler),
           cinlinenode.create(in_high_x,false,expr.getcopy,compiler),
           hloopbody,
-          false,
-          compiler);
+          false);
       end;
 
 
@@ -608,12 +607,11 @@ implementation
              ton:= cinlinenode.create(in_high_x,false,compiler.ctemprefnode(stringvar),compiler);
            end;
 
-        forloopnode:=cfornode.create(compiler.ctemprefnode(loopvar),
+        forloopnode:=compiler.cfornode(compiler.ctemprefnode(loopvar),
           fromn,
           ton,
           loopbody,
-          false,
-          compiler);
+          false);
 
         addstatement(loopstatement,forloopnode);
         { free the loop counter }
@@ -745,12 +743,11 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        forloopnode:=cfornode.create(compiler.ctemprefnode(loopvar),
+        forloopnode:=compiler.cfornode(compiler.ctemprefnode(loopvar),
           lowbound,
           highbound,
           loopbody,
-          false,
-          compiler);
+          false);
 
         addstatement(loopstatement,forloopnode);
         { free the loop counter }
@@ -815,12 +812,11 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        forloopnode:=cfornode.create(compiler.ctemprefnode(loopvar),
+        forloopnode:=compiler.cfornode(compiler.ctemprefnode(loopvar),
           cinlinenode.create(in_low_x,false,compiler.ctemprefnode(setvar),compiler),
           cinlinenode.create(in_high_x,false,compiler.ctemprefnode(setvar),compiler),
           loopbody,
-          false,
-          compiler);
+          false);
 
         addstatement(loopstatement,forloopnode);
         { free the loop counter }

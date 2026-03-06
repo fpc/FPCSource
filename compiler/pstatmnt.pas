@@ -534,7 +534,7 @@ implementation
              if assigned(loopvarsym) then
                exclude(loopvarsym.varoptions,vo_is_loop_counter);
 
-             result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward,compiler);
+             result:=compiler.cfornode(hloopvar,hfrom,hto,hblock,backward);
 
              { only in tp and mac pascal mode, we care about the value of the loop counter on loop exit
 
