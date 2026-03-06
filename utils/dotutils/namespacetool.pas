@@ -200,9 +200,6 @@ Var
 
 begin
   NeedUpdate:=False;
-  Ext:=FForcedExt;
-  if Ext='' then
-    Ext:=ExtractFileExt(aFileName);
   // Construct File name
   aUnitName:=GetUnitNameFromFile(aFilename);
   // Construct destination dir.
@@ -231,6 +228,11 @@ begin
     DoMsg('Rule for %s does not result in different unit name, skipping.',[aFileName],etWarning);
     exit;
     end;
+
+  Ext:=FForcedExt;
+  if Ext='' then
+    Ext:=ExtractFileExt(aNewUnitFile);
+
   DestFN:=DestDir+aNewUnitName+Ext;
   // Add new file to FPMake map.
   AddToFPMakeMap(aFileName,DestFN);
