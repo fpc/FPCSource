@@ -974,7 +974,7 @@ implementation
             temps_finalized:=true;
 
             current_filepos:=entrypos;
-            wrappedbody:=ctryfinallynode.create_implicit(code,finalcode,compiler);
+            wrappedbody:=compiler.ctryfinallynode_implicit(code,finalcode);
             { afterconstruction must be called after finalizetemps, because it
                has to execute after the temps have been finalised in case of a
                refcounted class (afterconstruction decreases the refcount

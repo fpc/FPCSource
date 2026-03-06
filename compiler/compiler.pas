@@ -257,6 +257,7 @@ type
     function craisenode(l,taddr,tframe:tnode):traisenode; inline;
     function ctryexceptnode(l,r,_t1 : tnode):ttryexceptnode; inline;
     function ctryfinallynode(l,r:tnode):ttryfinallynode; inline;
+    function ctryfinallynode_implicit(l,r:tnode):ttryfinallynode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -876,6 +877,11 @@ end;
 function TCompilerHelper.ctryfinallynode(l, r: tnode): ttryfinallynode; inline;
 begin
   result:=nflw.ctryfinallynode.create(l,r,self);
+end;
+
+function TCompilerHelper.ctryfinallynode_implicit(l, r: tnode): ttryfinallynode; inline;
+begin
+  result:=nflw.ctryfinallynode.create_implicit(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
