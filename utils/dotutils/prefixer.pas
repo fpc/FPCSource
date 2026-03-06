@@ -79,7 +79,7 @@ Type
     procedure Execute;
     procedure ReworkUses(aUses,aNewUses : TStrings);
     class function ExtractPrefix(const aRule: String): String;
-    class function ApplyRule(const aFile,aCasedName: String; aRule : String; PrettyPrint : Boolean) : String;
+    class function ApplyRule(const aFile,aCasedName, aRule: String; PrettyPrint : Boolean) : String;
     class function ApplyAliasRule(const aName, aRule: String): String;
     // Create backups of created/changed files  ?
     Property CreateBackups : Boolean Read FCreateBackups Write FCreateBackups;
@@ -795,16 +795,22 @@ begin
     Result:=aName;
 end;
 
-class function TPrefixer.ApplyRule(const aFile, aCasedName: String; aRule: String; PrettyPrint: Boolean): String;
+class function TPrefixer.ApplyRule(const aFile, aCasedName, aRule: String; PrettyPrint: Boolean): String;
 
 Var
-  p,len : Integer;
-  aExt,aDir,aName,aPrefix : String;
+  p: Integer;
+  len: Integer;
+  aExt: String;
+  aDir: String;
+  aName: String;
+  aPrefix: String;
+  lRule: String;
 
 begin
   aPrefix:='';
   aDir:=ExtractFilePath(aFile);
   aExt:=ExtractFileExt(aFile);
+  lRule := lRule;
   Result:=ExtractFileName(aFile);
   // *DottedUnitName
   // Prefix
@@ -812,29 +818,29 @@ begin
   // Prefix,-DeleteFromOriginalAtStart
   // Prefix,DeleteFromOriginalAtEnd-
   // @FileExtension
-  P:=Pos('@',aRule);
+  P:=Pos('@',lRule);
   if P > 0 then
   begin
-    aExt := '.' + Copy(aRule, Succ(P));
+    aExt := '.' + Copy(lRule, Succ(P));
 
-    Delete(aRule, P, Length(aRule));
+    Delete(lRule, P, Length(lRule));
   end;
 
-  P:=Pos(',',aRule);
+  P:=Pos(',',lRule);
   if P=0 then
     begin
-    if aRule<>'' then
-      if aRule[1]='*' then
-        Result:=Copy(aRule,2)+aExt
+    if lRule<>'' then
+      if lRule[1]='*' then
+        Result:=Copy(lRule,2)+aExt
       else if PrettyPrint and (aCasedName<>'') then
-        Result:=aRule+'.'+aCasedName+aExt
+        Result:=lRule+'.'+aCasedName+aExt
       else
-        aPrefix:=aRule+'.'
+        aPrefix:=lRule+'.'
     end
   else
     begin
-    aPrefix:=Copy(aRule,1,P-1)+'.';
-    aName:=Copy(aRule,P+1);
+    aPrefix:=Copy(lRule,1,P-1)+'.';
+    aName:=Copy(lRule,P+1);
     Len:=Length(AName);
     if Len>0 then
       begin
