@@ -133,7 +133,12 @@ end;
 
 procedure TNamespaceTool.AddToFPMakeMap(const aSrcFileName,aDestFileName : string);
 
-Var
+  function ChangeToLinuxPath(const FileName: String): String;
+  begin
+    Result := FileName.Replace(PathDelim, '/', [rfReplaceAll]);
+  end;
+
+var
   Src,Dest,aDir,aRule : String;
 
 begin
@@ -146,11 +151,11 @@ begin
   if Pos(aDir,Dest)=1 then
     Delete(Dest,1,Length(aDir));
   // Map file itself.
-  FFPMakeMap.Values[Src]:=Dest;
-  aDir:=ExtractFilePath(Src);
+  FFPMakeMap.Values[ChangeToLinuxPath(Src)] := ChangeToLinuxPath(Dest);
+  aDir := ChangeToLinuxPath(ExtractFilePath(Src));
   // Map source directory to namespaced
   aRule:='{s*:'+aDir+'}';
-  FFPMakeMap.Values[aRule]:=ExtractFilePath(Dest);
+  FFPMakeMap.Values[aRule] := ChangeToLinuxPath(ExtractFilePath(Dest));
   // Add original to include directory
   aRule:='{i+:'+aDir+'}';
   if FFPMakeMap.IndexOf(aRule)=-1 then
