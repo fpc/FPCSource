@@ -261,7 +261,7 @@ implementation
             else
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil);
-                //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
+                //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;
@@ -318,7 +318,7 @@ implementation
             else
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil);
-                //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
+                //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;
@@ -375,7 +375,7 @@ implementation
             else
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil);
-                //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
+                //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;
@@ -432,7 +432,7 @@ implementation
             else
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil);
-                //current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
+                //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
                 //right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;

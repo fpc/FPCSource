@@ -2725,7 +2725,7 @@ implementation
             else
               begin
                 third:=cinlinenode.create(in_get_frame,false,nil,compiler);
-                current_addr:=clabelnode.create(compiler.cnothingnode,clabelsym.create('$raiseaddr'),compiler);
+                current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 include(current_addr.flags,nf_internal);
                 addstatement(statements,current_addr);
                 right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner,compiler),compiler);

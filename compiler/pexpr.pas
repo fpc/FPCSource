@@ -3322,7 +3322,7 @@ implementation
                         Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                     end;
                   tlabelsym(srsym).defined:=true;
-                  result:=clabelnode.create(nil,tlabelsym(srsym),compiler);
+                  result:=compiler.clabelnode(nil,tlabelsym(srsym));
                   tlabelsym(srsym).code:=result;
                 end;
             end;

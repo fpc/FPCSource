@@ -280,7 +280,7 @@ unit opttail;
 {$endif fix_opttail}
 
         labelsym:=clabelsym.create('$opttail');
-        labelnode:=clabelnode.create(compiler.cnothingnode,labelsym,compiler);
+        labelnode:=compiler.clabelnode(compiler.cnothingnode,labelsym);
         if find_and_replace_tailcalls(n) then
           begin
 {$ifdef debug_opttail}

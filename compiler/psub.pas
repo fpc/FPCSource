@@ -997,7 +997,7 @@ implementation
             addstatement(newstatement,code);
             current_filepos:=exitpos;
             if assigned(nestedexitlabel) then
-              addstatement(newstatement,clabelnode.create(compiler.cnothingnode,nestedexitlabel,compiler));
+              addstatement(newstatement,compiler.clabelnode(compiler.cnothingnode,nestedexitlabel));
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             if not is_constructor then

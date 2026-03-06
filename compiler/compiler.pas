@@ -253,6 +253,7 @@ type
     function cfornode(l,r,_t1,_t2 : tnode;back : boolean):tfornode; inline;
     function cexitnode(l:tnode):texitnode; inline;
     function cgotonode(p : tlabelsym):tgotonode; inline;
+    function clabelnode(l:tnode;alabsym:tlabelsym):tlabelnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -852,6 +853,11 @@ end;
 function TCompilerHelper.cgotonode(p: tlabelsym): tgotonode; inline;
 begin
   result:=nflw.cgotonode.create(p,self);
+end;
+
+function TCompilerHelper.clabelnode(l: tnode; alabsym: tlabelsym): tlabelnode; inline;
+begin
+  result:=nflw.clabelnode.create(l,alabsym,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

@@ -1527,7 +1527,7 @@ implementation
                      end;
 
                    tlabelsym(srsym).defined:=true;
-                   p:=clabelnode.create(nil,tlabelsym(srsym),compiler);
+                   p:=compiler.clabelnode(nil,tlabelsym(srsym));
                    tlabelsym(srsym).code:=p;
                  end
                 else
