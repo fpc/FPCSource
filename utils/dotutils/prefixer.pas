@@ -810,7 +810,7 @@ begin
   aPrefix:='';
   aDir:=ExtractFilePath(aFile);
   aExt:=ExtractFileExt(aFile);
-  lRule := lRule;
+  lRule := aRule;
   Result:=ExtractFileName(aFile);
   // *DottedUnitName
   // Prefix
