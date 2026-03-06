@@ -54,7 +54,7 @@ implementation
               late for us to detect that it should have been added to the
               parentfpstruct, so temporarily create and typecheckpass a load
               node for the jumpbuf here (so that it can be added now) }
-            with cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.Owner) do
+            with compiler.cloadnode(labelsym.jumpbuf,labelsym.jumpbuf.Owner) do
               begin
                 pass_typecheck;
                 free

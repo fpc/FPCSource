@@ -178,7 +178,7 @@ unit opttail;
                           end;
 
                         { "cast" away const varspezs }
-                        loadnode:=cloadnode.create(paranode.parasym,paranode.parasym.owner,compiler);
+                        loadnode:=compiler.cloadnode(paranode.parasym,paranode.parasym.owner);
                         include(tloadnode(loadnode).loadnodeflags,loadnf_isinternal_ignoreconst);
 
                         { load the address of the symbol instead of symbol }

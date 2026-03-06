@@ -2277,7 +2277,7 @@ implementation
             { add assignment to funcretsym }
             left:=acompiler.ctypeconvnode(left,current_procinfo.procdef.returndef);
             left:=cassignmentnode.create(
-              cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner,compiler),
+              compiler.cloadnode(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner),
               left,
               compiler);
           end;
@@ -2498,7 +2498,7 @@ implementation
                       begin
                         result:=compiler.ccallnode_intern('fpc_longjmp',
                           compiler.ccallparanode(compiler.cordconstnode(1,sinttype,true),
-                          compiler.ccallparanode(cloadnode.create(labelsym.jumpbuf,labelsym.jumpbuf.owner,compiler),
+                          compiler.ccallparanode(compiler.cloadnode(labelsym.jumpbuf,labelsym.jumpbuf.owner),
                         nil)));
                       end
                     else
@@ -2728,7 +2728,7 @@ implementation
                 current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 include(current_addr.flags,nf_internal);
                 addstatement(statements,current_addr);
-                right:=caddrnode.create(cloadnode.create(current_addr.labsym,current_addr.labsym.owner,compiler),compiler);
+                right:=caddrnode.create(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner),compiler);
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then

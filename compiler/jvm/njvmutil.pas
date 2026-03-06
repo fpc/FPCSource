@@ -239,7 +239,7 @@ implementation
             begin
               enuminitsym:=tstaticvarsym(tcpuenumdef(tenumdef(sym.vardef).getbasedef).classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
               if assigned(enuminitsym) then
-                initnode:=cloadnode.create(enuminitsym,enuminitsym.owner);
+                initnode:=compiler.cloadnode(enuminitsym,enuminitsym.owner);
             end
           { normal array -> include dimensions and element type so we can
             create a deep copy }
@@ -296,7 +296,7 @@ implementation
              not initnodefinished then
             initnode:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(initnode,java_jlobject),nil);
           addstatement(stat,cassignmentnode.create(
-            cloadnode.create(vs,vs.owner),
+            compiler.cloadnode(vs,vs.owner),
             compiler.ccallnode_internmethod(
               cloadvmtaddrnode.create(ctypenode.create(vs.vardef)),
               'CREATE',initnode)));

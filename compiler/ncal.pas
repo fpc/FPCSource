@@ -636,7 +636,7 @@ implementation
             addstatement(statements,compiler.ccallnode_intern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
               compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
-              compiler.ccallparanode(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
+              compiler.ccallparanode(caddrnode.create(compiler.cloadnode(calldescsym,current_module.localsymtable),compiler),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(selfpara,vardatadef),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
@@ -648,7 +648,7 @@ implementation
             addstatement(statements,compiler.ccallnode_intern('fpc_dispatch_by_id',
               { parameters are passed always reverted, i.e. the last comes first }
               compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
-              compiler.ccallparanode(caddrnode.create(cloadnode.create(calldescsym,current_module.localsymtable,compiler),compiler),
+              compiler.ccallparanode(caddrnode.create(compiler.cloadnode(calldescsym,current_module.localsymtable),compiler),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(selfnode,voidpointertype),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
@@ -1616,7 +1616,7 @@ implementation
                 begin
                   if not searchsym(copy(internaltypeprefixName[itp_vmt_afterconstruction_local],2,255),srsym,srsymtable) then
                     internalerror(2016090801);
-                  call_vmt_node:=cloadnode.create(srsym,srsymtable,compiler);
+                  call_vmt_node:=compiler.cloadnode(srsym,srsymtable);
                 end;
            end;
       end;
@@ -4218,7 +4218,7 @@ implementation
                           (not assigned(methodpointer) or
                            (methodpointer.nodetype <> typen)) then
                          begin
-                           hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc,compiler);
+                           hpt:=compiler.cloadnode(tprocsym(symtableprocentry),symtableproc);
                            if assigned(methodpointer) then
                              tloadnode(hpt).set_mp(methodpointer.getcopy);
                            typecheckpass(hpt);

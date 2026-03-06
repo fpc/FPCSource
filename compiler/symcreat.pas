@@ -2034,7 +2034,7 @@ implementation
             begin
               old_filepos:=current_filepos;
               fillchar(current_filepos,sizeof(current_filepos),0);
-              initcode:=cloadnode.create(sym,sym.owner,compiler);
+              initcode:=compiler.cloadnode(sym,sym.owner);
               { indicate that this load should not be transformed into a load
                 from the parentfpstruct, but instead should load the original
                 value }
@@ -2047,7 +2047,7 @@ implementation
                   include(taddrnode(initcode).addrnodeflags,anf_typedaddr);
                 end;
               initcode:=cassignmentnode.create(
-                csubscriptnode.create(result,cloadnode.create(pd.parentfpstruct,pd.parentfpstruct.owner,compiler),compiler),
+                csubscriptnode.create(result,compiler.cloadnode(pd.parentfpstruct,pd.parentfpstruct.owner),compiler),
                 initcode,compiler);
               tblocknode(pd.parentfpinitblock).left:=compiler.cstatementnode
                 (initcode,tblocknode(pd.parentfpinitblock).left);
@@ -2217,7 +2217,7 @@ implementation
         begin
           insert_funcret_local(pd);
           result:=cassignmentnode.create(
-                      cloadnode.create(pd.funcretsym,pd.localst,compiler),
+                      compiler.cloadnode(pd.funcretsym,pd.localst),
                       compiler.cordconstnode(1,bool32type,false),
                       compiler
                     );
@@ -2273,7 +2273,7 @@ implementation
           include(pi.flags,pi_do_call);
           insert_funcret_local(pd);
           pi.code:=cassignmentnode.create(
-                      cloadnode.create(pd.funcretsym,pd.localst,compiler),
+                      compiler.cloadnode(pd.funcretsym,pd.localst),
                       attr.constructorcall.getcopy,
                       compiler
                     );

@@ -284,7 +284,7 @@ implementation
       { temp.base.isa:=@blockisasym }
       addstatement(statement,cassignmentnode.create(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'ISA'),
-        caddrnode.create(cloadnode.create(blockisasym,blockisasym.owner,compiler),compiler),compiler));
+        caddrnode.create(compiler.cloadnode(blockisasym,blockisasym.owner),compiler),compiler));
       { temp.base.flags:=blockflags }
       addstatement(statement,cassignmentnode.create(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'FLAGS'),
@@ -301,7 +301,7 @@ implementation
       { temp.base.descriptor:=@descriptor }
       addstatement(statement,cassignmentnode.create(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'DESCRIPTOR'),
-        caddrnode.create(cloadnode.create(descriptor,descriptor.owner,compiler),compiler),compiler));
+        caddrnode.create(compiler.cloadnode(descriptor,descriptor.owner),compiler),compiler));
       { temp.pv:=tmethod(@orgpd) }
       addstatement(statement,cassignmentnode.create(
         compiler.ctypeconvnode_explicit(genloadfield(compiler.ctemprefnode(literaltemp),'PV'),orgpv),
@@ -370,7 +370,7 @@ implementation
         begin
           blockliteralsym:=get_global_proc_literal_sym(blockliteraldef,blockisasym,blockflags,invokepd,descriptor);
           { result: address of the block literal }
-          result:=caddrnode.create(cloadnode.create(blockliteralsym,blockliteralsym.owner,compiler),compiler);
+          result:=caddrnode.create(compiler.cloadnode(blockliteralsym,blockliteralsym.owner),compiler);
         end
       else
         begin

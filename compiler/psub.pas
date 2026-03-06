@@ -312,8 +312,8 @@ implementation
               b:=tblocknode(arg);
               b.left:=compiler.cstatementnode(
                         cassignmentnode.create(
-                            cloadnode.create(tsym(p),tsym(p).owner,compiler),
-                            cloadnode.create(defaultconstsym,defaultconstsym.owner,compiler),compiler),
+                            compiler.cloadnode(tsym(p),tsym(p).owner),
+                            compiler.cloadnode(defaultconstsym,defaultconstsym.owner),compiler),
                         b.left);
             end
          end;
@@ -460,7 +460,7 @@ implementation
             addstatement(tstatementnode(arg^),
               compiler.cifnode(compiler.caddnode(equaln,
                 compiler.ccallnode_intern('fpc_setjmp',
-                  compiler.ccallparanode(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil)),
+                  compiler.ccallparanode(compiler.cloadnode(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner),nil)),
                 compiler.cordconstnode(1,search_system_proc('fpc_setjmp').returndef,true))
               ,compiler.cgotonode(tlabelsym(p)),nil)
             );
@@ -785,7 +785,7 @@ implementation
                   beforedestruction should not be called if a destructor is
                   called from the constructor }
                 addstatement(newstatement,cassignmentnode.create(
-                  cloadnode.create(constructionsuccessful,procdef.localst,compiler),
+                  compiler.cloadnode(constructionsuccessful,procdef.localst),
                   genintconstnode(-1,compiler),compiler)
                 );
                 { first execute all constructor code. If no exception
@@ -809,7 +809,7 @@ implementation
                 { construction successful -> beforedestruction should be called
                   if an exception happens now }
                 addstatement(newstatement,cassignmentnode.create(
-                  cloadnode.create(constructionsuccessful,procdef.localst,compiler),
+                  compiler.cloadnode(constructionsuccessful,procdef.localst),
                   genintconstnode(1,compiler),compiler)
                 );
                 { Self can be nil when fail is called }
@@ -939,7 +939,7 @@ implementation
             if assigned(tblocknode(procdef.parentfpinitblock).left) then
               begin
                 if compiler.nodeutils.check_insert_trashing(procdef) then
-                  compiler.nodeutils.maybe_trash_variable(newstatement,tabstractnormalvarsym(procdef.parentfpstruct),cloadnode.create(procdef.parentfpstruct,procdef.parentfpstruct.owner,compiler));
+                  compiler.nodeutils.maybe_trash_variable(newstatement,tabstractnormalvarsym(procdef.parentfpstruct),compiler.cloadnode(procdef.parentfpstruct,procdef.parentfpstruct.owner));
                 { could be an asmn in case of a pure assembler procedure,
                   but those shouldn't access nested variables }
                 addstatement(newstatement,procdef.parentfpinitblock);

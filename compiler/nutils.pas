@@ -1184,7 +1184,7 @@ implementation
                  if assigned(p1) then
                   p1:=csubscriptnode.create(plist^.sym,p1,compiler)
                  else
-                  p1:=cloadnode.create(plist^.sym,st,compiler);
+                  p1:=compiler.cloadnode(plist^.sym,st);
                end;
              sl_subscript :
                begin

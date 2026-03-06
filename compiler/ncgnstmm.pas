@@ -112,12 +112,12 @@ implementation
             (find_sym_in_parentfpstruct(current_procinfo.procdef,hsym)=nil);
         if useparentfppara then
           begin
-            result:=cloadnode.create(hsym,hsym.owner);
+            result:=compiler.cloadnode(hsym,hsym.owner);
             currpi:=current_procinfo.parent;
           end
         else
           begin
-            result:=caddrnode.create_internal(cloadnode.create(current_procinfo.procdef.parentfpstruct,current_procinfo.procdef.parentfpstruct.owner));
+            result:=caddrnode.create_internal(compiler.cloadnode(current_procinfo.procdef.parentfpstruct,current_procinfo.procdef.parentfpstruct.owner));
             include(taddrnode(result).addrnodeflags,anf_typedaddr);
             currpi:=current_procinfo;
           end;

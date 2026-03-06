@@ -45,7 +45,7 @@ implementation
     uses
       globtype,
       systems,verbose,cutils,
-      cpubase,cgbase,cgutils,cgobj,
+      cpubase,cgbase,cgutils,cgobj,compiler,
       symconst,symcpu,nld,
       aasmtai,aasmdata,aasmcpu,
       cpupi;
@@ -79,7 +79,7 @@ implementation
     procedure tx8664callnode.gen_syscall_para(para: tcallparanode);
       begin
         { lib parameter has no special type but proccalloptions must be a syscall }
-        para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner, compiler);
+        para.left:=compiler.cloadnode(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
       end;
 
 

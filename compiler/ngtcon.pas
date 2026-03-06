@@ -2384,7 +2384,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     constructor tnodetreetypedconstbuilder.create(sym: tstaticvarsym; previnit: tnode; acompiler: TCompilerBase);
       begin
         inherited create(sym,acompiler);
-        basenode:=cloadnode.create(sym,sym.owner,compiler);
+        basenode:=compiler.cloadnode(sym,sym.owner);
         resultblock:=internalstatements(compiler,statmnt);
         if assigned(previnit) then
           addstatement(statmnt,previnit);

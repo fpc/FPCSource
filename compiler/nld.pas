@@ -234,7 +234,7 @@ implementation
             if (sym.typ<>absolutevarsym) or
                (tabsolutevarsym(sym).abstyp<>tovar) then
               begin
-                result:=cloadnode.create(sym,sym.owner,compiler);
+                result:=compiler.cloadnode(sym,sym.owner);
               end
             else
               internalerror(2020122601);

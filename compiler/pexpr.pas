@@ -1218,10 +1218,10 @@ implementation
                           { anonymous inherited via msgid calls only require a var parameter for
                             both methods, so we need some type casting here }
                           para:=compiler.ccallparanode(compiler.ctypeconvnode_internal(compiler.ctypeconvnode_internal(
-                            cloadnode.create(currpara,currpara.owner,compiler),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vardef),
+                            compiler.cloadnode(currpara,currpara.owner),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vardef),
                           para)
                         else
-                          para:=compiler.ccallparanode(cloadnode.create(currpara,currpara.owner,compiler),para);
+                          para:=compiler.ccallparanode(compiler.cloadnode(currpara,currpara.owner),para);
                       end;
                  end;
               end
@@ -1674,7 +1674,7 @@ implementation
                      { typed constant is a staticvarsym
                        now they are absolutevarsym }
                      p1.free;
-                     p1:=cloadnode.create(sym,sym.Owner,compiler);
+                     p1:=compiler.cloadnode(sym,sym.Owner);
                    end;
                  absolutevarsym:
                    begin
@@ -3091,7 +3091,7 @@ implementation
                   include(result.flags,nf_absolute);
                 end
               else
-                result:=cloadnode.create(srsym,srsymtable,compiler);
+                result:=compiler.cloadnode(srsym,srsymtable);
             end;
 
           staticvarsym,
@@ -3144,7 +3144,7 @@ implementation
                 end
               else
                 { regular non-field load }
-                result:=cloadnode.create(srsym,srsymtable,compiler);
+                result:=compiler.cloadnode(srsym,srsymtable);
             end;
 
           syssym :
@@ -3209,7 +3209,7 @@ implementation
             begin
               if tconstsym(srsym).consttyp in [constresourcestring,constwresourcestring]then
                 begin
-                  result:=cloadnode.create(srsym,srsymtable,compiler);
+                  result:=compiler.cloadnode(srsym,srsymtable);
                   do_typecheckpass(result);
                   if is_systemunit_unicode then
                     result.resultdef:=cstringdef.createunicode(true,compiler)
@@ -3308,7 +3308,7 @@ implementation
                 begin
                   if srsym.owner<>current_procinfo.procdef.localst then
                     CGMessage(parser_e_label_outside_proc);
-                  result:=cloadnode.create(srsym,srsym.owner,compiler)
+                  result:=compiler.cloadnode(srsym,srsym.owner)
                 end
               else
                 begin

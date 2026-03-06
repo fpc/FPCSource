@@ -387,7 +387,7 @@ implementation
           ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
          ) then
         begin
-          hp:=cloadnode.create(tsym(p),tsym(p).owner,compiler);
+          hp:=compiler.cloadnode(tsym(p),tsym(p).owner);
           { ensure that a function reference is not converted to a call }
           include(hp.flags,nf_load_procvar);
           addstatement(tstatementnode(arg^),initialize_data_node(hp,false));
@@ -464,7 +464,7 @@ implementation
       hp: tnode;
     begin
       include(current_procinfo.flags,pi_needs_implicit_finally);
-      hp:=cloadnode.create(sym,sym.owner,compiler);
+      hp:=compiler.cloadnode(sym,sym.owner);
       if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
         include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
       { ensure that a function reference interface is not converted to a call }
@@ -600,14 +600,14 @@ implementation
                   compiler.ccallparanode(
                     compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                    compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil)))))
               else
                 addstatement(stat^,compiler.ccallnode_intern('fpc_textinit_iso',
                   compiler.ccallparanode(
                     compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                    compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil))));
             end;
           ft_typed:
@@ -619,14 +619,14 @@ implementation
                   compiler.ccallparanode(
                     compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                    compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil)))))
               else
                 addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_init_iso',
                   compiler.ccallparanode(
                     compiler.cordconstnode(tstaticvarsym(p).isoindex,uinttype,false),
                   compiler.ccallparanode(
-                    cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                    compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                   nil))));
             end;
           else
@@ -647,14 +647,14 @@ implementation
             begin
               addstatement(stat^,compiler.ccallnode_intern('fpc_textclose_iso',
                 compiler.ccallparanode(
-                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                  compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                 nil)));
             end;
           ft_typed:
             begin
               addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_close_iso',
                 compiler.ccallparanode(
-                  cloadnode.create(tstaticvarsym(p),tstaticvarsym(p).Owner,compiler),
+                  compiler.cloadnode(tstaticvarsym(p),tstaticvarsym(p).Owner),
                 nil)));
             end;
           else
@@ -667,13 +667,13 @@ implementation
     var
       target: tnode;
     begin
-      target:=cloadnode.create(ressym, ressym.owner,compiler);
+      target:=compiler.cloadnode(ressym, ressym.owner);
       { ensure the target of this assignment doesn't translate the
         funcretsym also to its alias in the parentfpstruct }
       include(target.flags, nf_internal);
       addstatement(stat,
         cassignmentnode.create(
-          target, cloadnode.create(ressym, ressym.owner, compiler), compiler
+          target, compiler.cloadnode(ressym, ressym.owner), compiler
         )
       );
     end;
@@ -696,7 +696,7 @@ implementation
           block:=internalstatements(compiler,stat);
           addstatement(stat,
             cassignmentnode.create(
-              cloadnode.create(ressym,ressym.owner,compiler),
+              compiler.cloadnode(ressym,ressym.owner),
               genintconstnode(0,compiler),
               compiler
             )
@@ -926,7 +926,7 @@ implementation
         exit;
       if sp_internal in tsym(p).symoptions then
         exit;
-      maybe_trash_variable(stat^,tabstractnormalvarsym(p),cloadnode.create(tsym(p),tsym(p).owner,compiler));
+      maybe_trash_variable(stat^,tabstractnormalvarsym(p),compiler.cloadnode(tsym(p),tsym(p).owner));
     end;
 
 

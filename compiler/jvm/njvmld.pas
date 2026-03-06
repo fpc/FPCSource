@@ -197,7 +197,7 @@ function tjvmloadnode.handle_threadvar_access: tnode;
        (vs.typ<>staticvarsym) then
       internalerror(2011082201);
     { get a read/write reference to the threadvar value }
-    result:=cloadnode.create(vs,vs.owner);
+    result:=compiler.cloadnode(vs,vs.owner);
     typecheckpass(result);
     result:=compiler.ccallnode_internmethod(result,'GETREADWRITEREFERENCE',nil);
     if not(tstaticvarsym(symtableentry).vardef.typ in [orddef,floatdef]) and

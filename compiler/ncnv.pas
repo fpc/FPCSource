@@ -2741,7 +2741,7 @@ implementation
         if assigned(intfdef) then
           begin
             if assigned(capturer) then
-              ld:=cloadnode.create(capturer,capturer.owner,compiler)
+              ld:=compiler.cloadnode(capturer,capturer.owner)
             else
               ld:=compiler.cnilnode;
             result:=compiler.ctypeconvnode_internal(
@@ -2773,7 +2773,7 @@ implementation
         if assigned(intfdef) then
           begin
             if assigned(capturer) then
-              ldnode:=cloadnode.create(capturer,capturer.owner,compiler)
+              ldnode:=compiler.cloadnode(capturer,capturer.owner)
             else
               ldnode:=compiler.cnilnode;
             result:=compiler.ctypeconvnode_internal(

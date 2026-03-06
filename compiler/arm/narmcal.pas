@@ -48,7 +48,7 @@ implementation
   procedure tarmcallnode.gen_syscall_para(para: tcallparanode);
     begin
       { lib parameter has no special type but proccalloptions must be a syscall }
-      para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
+      para.left:=compiler.cloadnode(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
     end;
 
   procedure tarmcallnode.do_syscall;

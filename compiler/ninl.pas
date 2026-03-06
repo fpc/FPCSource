@@ -541,7 +541,7 @@ implementation
                   srsymtable.insertsym(srsym);
                   compiler.nodeutils.insertbssdata(tstaticvarsym(srsym));
                 end;
-              result:=cloadnode.create(srsym,srsymtable,compiler);
+              result:=compiler.cloadnode(srsym,srsymtable);
             end
           else
             result:=compiler.cerrornode;
