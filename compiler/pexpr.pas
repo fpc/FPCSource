@@ -399,7 +399,7 @@ implementation
 
           in_break :
             begin
-              statement_syssym:=cbreaknode.create(compiler)
+              statement_syssym:=compiler.cbreaknode
             end;
 
           in_continue :
@@ -410,7 +410,7 @@ implementation
           in_leave :
             begin
               if m_mac in current_settings.modeswitches then
-                statement_syssym:=cbreaknode.create(compiler)
+                statement_syssym:=compiler.cbreaknode
               else
                 begin
                   Message1(sym_e_id_not_found, current_scanner.orgpattern);

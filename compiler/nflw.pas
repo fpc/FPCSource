@@ -474,7 +474,7 @@ implementation
          hp:=internalstatements(compiler,tempstatement);
          addstatement(tempstatement,cassignmentnode.create(
              hloopvar.getcopy,compiler.cnilnode,compiler));
-         addstatement(tempstatement,cbreaknode.create(compiler));
+         addstatement(tempstatement,compiler.cbreaknode);
          addstatement(outerloopbodystatement,compiler.cifnode(
            compiler.caddnode(equaln,compiler.ctemprefnode(currentamount),genintconstnode(0,compiler)),
            hp,nil));
@@ -502,7 +502,7 @@ implementation
           compiler.caddnode(equaln,
             compiler.ctemprefnode(innerloopcounter),
             compiler.ctemprefnode(currentamount)),
-          cbreaknode.create(compiler),
+          compiler.cbreaknode,
           nil));
         { verify that the collection didn't change in the mean time }
         hp:=compiler.ctemprefnode(state);
