@@ -127,7 +127,7 @@ implementation
             resulttemp:=-lefttemp
         }
         addstatement(stat,
-          cifnode.create(
+          compiler.cifnode(
             compiler.caddnode(
               gten,
               compiler.ctemprefnode(lefttemp),
@@ -198,7 +198,7 @@ implementation
               );
           end;
         addstatement(stat,
-          cifnode.create(compiler.caddnode(unequaln,left.getcopy,genintconstnode(0)),
+          compiler.cifnode(compiler.caddnode(unequaln,left.getcopy,genintconstnode(0)),
             cassignmentnode.create(
               compiler.ctemprefnode(resulttemp),
               cntresult

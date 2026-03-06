@@ -808,8 +808,8 @@ implementation
                           lten,left.getcopy,labitem^._high_str.getcopy));
                     end;
                 end;
-              result:=cifnode.create(check,
-                pcaseblock(blocks[i])^.statement,result,compiler);
+              result:=compiler.cifnode(check,
+                pcaseblock(blocks[i])^.statement,result);
               pcaseblock(blocks[i])^.statement:=nil;
             end;
           { will free its elements too because of create(true) }
@@ -958,7 +958,7 @@ implementation
              else
                internalerror(200805031);
            end;
-           result:=cifnode.create(left,node_thenblock,node_elseblock,compiler);
+           result:=compiler.cifnode(left,node_thenblock,node_elseblock);
            left:=nil;
            exit;
          end;

@@ -608,7 +608,7 @@ implementation
               compiler.ctemprefnode(lentemp),
               genintconstnode(0));
             { complete if-statement }
-            addstatement(newstatement,cifnode.create(ifcond,stringnonnull,stringnull));
+            addstatement(newstatement,compiler.cifnode(ifcond,stringnonnull,stringnull));
             { free lefttemp }
             if assigned(lefttemp) then
               addstatement(newstatement,compiler.ctempdeletenode(lefttemp));

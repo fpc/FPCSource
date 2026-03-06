@@ -197,7 +197,7 @@ implementation
              (srsym.typ=procsym) then
             begin
               { if self<>0 and vmt<>0 then freeinstance }
-              addstatement(newstatement,cifnode.create(
+              addstatement(newstatement,compiler.cifnode(
                   compiler.caddnode(andn,
                       compiler.caddnode(unequaln,
                           load_self_pointer_node,
@@ -206,7 +206,7 @@ implementation
                           load_vmt_pointer_node,
                           compiler.cnilnode)),
                   compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                  nil,compiler));
+                  nil));
             end
           else
             internalerror(2003051002);

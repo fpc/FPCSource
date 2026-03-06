@@ -102,7 +102,7 @@ implementation
             else_a:=statement
          else
            else_a:=nil;
-         result:=cifnode.create(ex,if_a,else_a,compiler);
+         result:=compiler.cifnode(ex,if_a,else_a);
       end;
 
     { creates a block (list) of statements, til the next END token }

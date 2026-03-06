@@ -335,7 +335,7 @@ implementation
                         unwrappedele1:=cinlinenode.create(in_unbox_x_y,false,compiler.ccallparanode(
                           ctypenode.create(orgparadef),compiler.ccallparanode(unwrappedele1,nil)))
                       end;
-                    addstatement(copybackstat,cifnode.create(
+                    addstatement(copybackstat,compiler.cifnode(
                       compiler.caddnode(andn,
                         compiler.caddnode(unequaln,leftcopy.getcopy,compiler.ctypeconvnode_explicit(unwrappedele0,orgparadef)),
                         compiler.caddnode(unequaln,leftcopy.getcopy,compiler.ctypeconvnode_explicit(unwrappedele1,orgparadef))),

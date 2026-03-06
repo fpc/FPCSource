@@ -647,7 +647,7 @@ implementation
                (actualtargetnode(@self_node)^.nodetype=derefn) then
               begin
                 check_self:=compiler.ctemprefnode(self_temp);
-                addstatement(stat,cifnode.create(
+                addstatement(stat,compiler.cifnode(
                   compiler.caddnode(equaln,
                     compiler.ctypeconvnode_explicit(
                       check_self,
@@ -655,8 +655,7 @@ implementation
                     ),
                     compiler.cnilnode),
                   compiler.ccallnode_intern('fpc_objecterror',nil),
-                  nil,
-                  compiler)
+                  nil)
                 );
               end;
             if is_object(self_resultdef) then

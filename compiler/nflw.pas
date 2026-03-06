@@ -476,9 +476,9 @@ implementation
          addstatement(tempstatement,cassignmentnode.create(
              hloopvar.getcopy,compiler.cnilnode,compiler));
          addstatement(tempstatement,cbreaknode.create(compiler));
-         addstatement(outerloopbodystatement,cifnode.create(
+         addstatement(outerloopbodystatement,compiler.cifnode(
            compiler.caddnode(equaln,compiler.ctemprefnode(currentamount),genintconstnode(0,compiler)),
-           hp,nil,compiler));
+           hp,nil));
         { initial value of mutationcheck }
         hp:=compiler.ctemprefnode(state);
         typecheckpass(hp);
@@ -499,23 +499,23 @@ implementation
         hp.localswitches:=hp.localswitches-[cs_check_range,cs_check_overflow];
         addstatement(innerloopbodystatement,hp);
         { if innerloopcounter=currentamount then break to the outer loop }
-        addstatement(innerloopbodystatement,cifnode.create(
+        addstatement(innerloopbodystatement,compiler.cifnode(
           compiler.caddnode(equaln,
             compiler.ctemprefnode(innerloopcounter),
             compiler.ctemprefnode(currentamount)),
           cbreaknode.create(compiler),
-          nil,compiler));
+          nil));
         { verify that the collection didn't change in the mean time }
         hp:=compiler.ctemprefnode(state);
         typecheckpass(hp);
-        addstatement(innerloopbodystatement,cifnode.create(
+        addstatement(innerloopbodystatement,compiler.cifnode(
           compiler.caddnode(unequaln,
             compiler.ctemprefnode(mutationcheck),
             cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler)
           ),
           compiler.ccallnode_internfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
             compiler.ccallparanode(compiler.ctemprefnode(expressiontemp),nil)),
-          nil,compiler));
+          nil));
         { finally: actually get the next element }
         hp:=compiler.ctemprefnode(state);
         typecheckpass(hp);
@@ -806,10 +806,10 @@ implementation
         //   for-in loop body
         // end
 
-        loopbody:=cifnode.create(
+        loopbody:=compiler.cifnode(
           cinnode.create(compiler.ctemprefnode(loopvar),compiler.ctemprefnode(setvar),compiler),
           internalstatements(compiler,loopbodystatement),
-          nil,compiler);
+          nil);
 
         addstatement(loopbodystatement,cassignmentnode.create(hloopvar,compiler.ctemprefnode(loopvar),compiler));
         { add the actual statement to the loop }
@@ -922,10 +922,10 @@ implementation
                     enumerator_destructor.procsym.owner,compiler.ctemprefnode(enumvar),[],nil),compiler);
               end;
             { if getenumerator <> nil then do the loop }
-            whileloopnode:=cifnode.create(
+            whileloopnode:=compiler.cifnode(
               compiler.caddnode(unequaln, compiler.ctemprefnode(enumvar), compiler.cnilnode),
               whileloopnode,
-              nil,compiler);
+              nil);
           end;
 
         addstatement(loopstatement, whileloopnode);
@@ -2244,11 +2244,11 @@ implementation
               toexpr:=t1.getcopy;
 
             if lnf_backward in loopflags then
-              addstatement(statements,cifnode.create(compiler.caddnode_internal(gten,
-                fromexpr,toexpr),ifblock,nil,compiler))
+              addstatement(statements,compiler.cifnode(compiler.caddnode_internal(gten,
+                fromexpr,toexpr),ifblock,nil))
             else
-              addstatement(statements,cifnode.create(compiler.caddnode_internal(lten,
-                fromexpr,toexpr),ifblock,nil,compiler));
+              addstatement(statements,compiler.cifnode(compiler.caddnode_internal(lten,
+                fromexpr,toexpr),ifblock,nil));
 
             if usetotemp then
               addstatement(statements,compiler.ctempdeletenode(totemp));

@@ -458,11 +458,11 @@ implementation
         if tstoredsym(p).typ=labelsym then
           begin
             addstatement(tstatementnode(arg^),
-              cifnode.create(compiler.caddnode(equaln,
+              compiler.cifnode(compiler.caddnode(equaln,
                 compiler.ccallnode_intern('fpc_setjmp',
                   compiler.ccallparanode(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner,compiler),nil)),
                 compiler.cordconstnode(1,search_system_proc('fpc_setjmp').returndef,true))
-              ,cgotonode.create(tlabelsym(p),compiler),nil,compiler)
+              ,cgotonode.create(tlabelsym(p),compiler),nil)
             );
           end;
       end;
@@ -503,7 +503,7 @@ implementation
                             compiler.ctypeconvnode_internal(load_self_pointer_node,cclassrefdef.create(current_structdef,compiler)),
                             [],nil);
                         include(call.callnodeflags,cnf_ignore_devirt_wpo);
-                        addstatement(newstatement,cifnode.create(
+                        addstatement(newstatement,compiler.cifnode(
                             compiler.caddnode_internal(equaln,
                                 compiler.ctypeconvnode_internal(
                                     load_vmt_pointer_node,
@@ -514,7 +514,7 @@ implementation
                                     load_self_pointer_node,
                                     voidpointertype),
                                 call,compiler),
-                            nil,compiler));
+                            nil));
                       end
                     else
                       Message(parser_e_no_suitable_newinstance_method_found);
@@ -579,12 +579,12 @@ implementation
                   calling fail instead of exit is useless because
                   there is nothing to dispose (PFV) }
                 if is_class_or_object(current_structdef) then
-                  addstatement(newstatement,cifnode.create(
+                  addstatement(newstatement,compiler.cifnode(
                     compiler.caddnode(equaln,
                         load_self_pointer_node,
                         compiler.cnilnode),
                     cexitnode.create(nil,compiler),
-                    nil,compiler));
+                    nil));
               end;
 
             { maybe call BeforeDestruction for classes }
@@ -596,14 +596,14 @@ implementation
                    (srsym.typ=procsym) then
                   begin
                     { if vmt>0 then beforedestruction }
-                    addstatement(newstatement,cifnode.create(
+                    addstatement(newstatement,compiler.cifnode(
                         compiler.caddnode(gtn,
                             compiler.ctypeconvnode_internal(
                               load_vmt_pointer_node,ptrsinttype),
                             compiler.ctypeconvnode_internal(
                               compiler.cnilnode,ptrsinttype)),
                         compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                        nil,compiler));
+                        nil));
                   end
                 else
                   internalerror(200305104);
@@ -645,7 +645,7 @@ implementation
                        (srsym.typ=procsym) then
                       begin
                         { if self<>0 and vmt<>0 then freeinstance }
-                        addstatement(newstatement,cifnode.create(
+                        addstatement(newstatement,compiler.cifnode(
                             compiler.caddnode(andn,
                                 compiler.caddnode(unequaln,
                                     load_self_pointer_node,
@@ -656,7 +656,7 @@ implementation
                                         voidpointertype),
                                     compiler.cpointerconstnode(0,voidpointertype))),
                             compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                            nil,compiler));
+                            nil));
                       end
                     else
                       internalerror(2003051001);
@@ -667,12 +667,12 @@ implementation
                       { finalize object data, but only if not in inherited call }
                       if is_managed_type(current_structdef) then
                         begin
-                          addstatement(newstatement,cifnode.create(
+                          addstatement(newstatement,compiler.cifnode(
                             compiler.caddnode(unequaln,
                               compiler.ctypeconvnode_internal(load_vmt_pointer_node,voidpointertype),
                               compiler.cnilnode),
                             compiler.nodeutils.finalize_data_node(load_self_node),
-                            nil,compiler));
+                            nil));
                         end;
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
@@ -814,7 +814,7 @@ implementation
                 );
                 { Self can be nil when fail is called }
                 { if self<>nil and vmt<>nil then afterconstruction }
-                addstatement(newstatement,cifnode.create(
+                addstatement(newstatement,compiler.cifnode(
                   compiler.caddnode(andn,
                     compiler.caddnode(unequaln,
                       load_self_node,
@@ -823,7 +823,7 @@ implementation
                       load_vmt_pointer_node,
                       compiler.cnilnode)),
                     compiler.ccallnode(nil,tprocsym(srsym),srsym.owner,load_self_node,[],nil),
-                    nil,compiler));
+                    nil));
                 tocode:=constructionblock;
               end;
 
@@ -842,13 +842,13 @@ implementation
                     if assigned(pd) then
                       { if vmt<>0 then call destructor }
                       addstatement(newstatement,
-                        cifnode.create(
+                        compiler.cifnode(
                           compiler.caddnode(unequaln,
                             load_vmt_pointer_node,
                             compiler.cnilnode),
                           { cnf_create_failed -> don't call BeforeDestruction }
                           compiler.ccallnode(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed],nil),
-                          nil,compiler))
+                          nil))
                     else
                       { object without destructor, call 'fail' helper }
                       addstatement(newstatement,
