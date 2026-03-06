@@ -263,6 +263,7 @@ type
     function ccontinuenode:tcontinuenode; inline;
     { ninl }
     function cinlinenode(number : tinlinenumber;is_const:boolean;l : tnode):tinlinenode; inline;
+    function cinlinenode_intern(number : tinlinenumber;is_const:boolean;l : tnode):tinlinenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -908,6 +909,12 @@ function TCompilerHelper.cinlinenode(number: tinlinenumber; is_const: boolean;
   l: tnode): tinlinenode; inline;
 begin
   result:=ninl.cinlinenode.create(number,is_const,l,self);
+end;
+
+function TCompilerHelper.cinlinenode_intern(number: tinlinenumber;
+  is_const: boolean; l: tnode): tinlinenode; inline;
+begin
+  result:=ninl.cinlinenode.createintern(number,is_const,l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

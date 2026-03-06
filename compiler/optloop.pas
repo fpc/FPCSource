@@ -514,14 +514,14 @@ type
 
                       if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
-                          cinlinenode.createintern(in_dec_x,false,
+                          compiler.cinlinenode_intern(in_dec_x,false,
                           compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
-                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil)),compiler))
+                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))))
                       else
                         addstatement(calccodestatements,
-                          cinlinenode.createintern(in_inc_x,false,
+                          compiler.cinlinenode_intern(in_inc_x,false,
                           compiler.ccallparanode(compiler.ctemprefnode(tempnode),compiler.ccallparanode(
-                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil)),compiler));
+                          compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false),nil))));
 
                       addstatement(initcodestatements,tempnode);
 

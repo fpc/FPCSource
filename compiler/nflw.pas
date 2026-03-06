@@ -603,7 +603,7 @@ implementation
           end
         else
           begin
-             fromn:=cinlinenode.createintern(in_low_x,false,compiler.ctemprefnode(stringvar),compiler);
+             fromn:=compiler.cinlinenode_intern(in_low_x,false,compiler.ctemprefnode(stringvar));
              ton:= compiler.cinlinenode(in_high_x,false,compiler.ctemprefnode(stringvar));
            end;
 
@@ -2059,18 +2059,18 @@ implementation
 
           if fw then
             addstatement(s,
-              cassignmentnode.create_internal(left.getcopy,cinlinenode.createintern(in_succ_x,false,leftcopy,compiler),compiler))
+              cassignmentnode.create_internal(left.getcopy,compiler.cinlinenode_intern(in_succ_x,false,leftcopy),compiler))
           else
             addstatement(s,
-              cassignmentnode.create_internal(left.getcopy,cinlinenode.createintern(in_pred_x,false,leftcopy,compiler),compiler));
+              cassignmentnode.create_internal(left.getcopy,compiler.cinlinenode_intern(in_pred_x,false,leftcopy),compiler));
         end;
 
       function iterate_counter_func(arg : tnode;fw : boolean) : tnode;
         begin
           if fw then
-            result:=cinlinenode.createintern(in_succ_x,false,arg,compiler)
+            result:=compiler.cinlinenode_intern(in_succ_x,false,arg)
           else
-            result:=cinlinenode.createintern(in_pred_x,false,arg,compiler);
+            result:=compiler.cinlinenode_intern(in_pred_x,false,arg);
         end;
 
       begin

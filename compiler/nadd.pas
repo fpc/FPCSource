@@ -3838,8 +3838,8 @@ const
                             begin
                               { s:=s+[element]; ? }
                               if left.isequal(aktassignmentnode.left) then
-                                result:=cinlinenode.createintern(in_include_x_y,false,compiler.ccallparanode(aktassignmentnode.left.getcopy,
-                                  compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef),nil)),compiler)
+                                result:=compiler.cinlinenode_intern(in_include_x_y,false,compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                                  compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef),nil)))
                               else
                                 begin
                                   { adjust for set base }

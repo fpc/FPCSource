@@ -4153,12 +4153,12 @@ implementation
                   begin
                     if symtableprocentry.Name='SQR' then
                       begin
-                        result:=cinlinenode.createintern(in_sqr_real,false,tcallparanode(left).left.getcopy,compiler);
+                        result:=compiler.cinlinenode_intern(in_sqr_real,false,tcallparanode(left).left.getcopy);
                         exit;
                       end;
                     if symtableprocentry.Name='ABS' then
                       begin
-                        result:=cinlinenode.createintern(in_abs_real,false,tcallparanode(left).left.getcopy,compiler);
+                        result:=compiler.cinlinenode_intern(in_abs_real,false,tcallparanode(left).left.getcopy);
                         exit;
                       end;
                   end;
