@@ -875,10 +875,10 @@ implementation
                         exceptblock
                       end
                     }
-                    addstatement(newstatement,ctryexceptnode.create(
+                    addstatement(newstatement,compiler.ctryexceptnode(
                       tocode,
                       nil,
-                      exceptblock,compiler));
+                      exceptblock));
                     tocode:=newblock;
                   end;
               end;

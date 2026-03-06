@@ -1082,7 +1082,7 @@ implementation
                    p_default:=statements_til_end;
                 end;
 
-              try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default,compiler);
+              try_statement:=compiler.ctryexceptnode(p_try_block,p_specific,p_default);
            end;
          block_type:=old_block_type;
          current_exceptblock := oldcurrent_exceptblock;
