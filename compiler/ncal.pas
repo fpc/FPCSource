@@ -1154,7 +1154,7 @@ implementation
                 (parasym.vardef.typ=procvardef) and
                 is_ambiguous_funcret_load(left,owningprocdef) then
                begin
-                 hp:=cloadnode.create_procvar(owningprocdef.procsym,owningprocdef,owningprocdef.procsym.owner,compiler);
+                 hp:=compiler.cloadnode_procvar(owningprocdef.procsym,owningprocdef,owningprocdef.procsym.owner);
                  typecheckpass(hp);
                  left.free;
                  left:=hp;

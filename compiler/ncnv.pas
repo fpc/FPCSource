@@ -3039,8 +3039,8 @@ implementation
                             convtype:=tc_procvar_2_funcref;
                             currprocdef:=tprocsym(tcallnode(left).symtableprocentry).find_procdef_byfuncrefdef(tobjectdef(resultdef));
                           end;
-                        hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
-                            tprocdef(currprocdef),tcallnode(left).symtableproc,compiler);
+                        hp:=compiler.cloadnode_procvar(tprocsym(tcallnode(left).symtableprocentry),
+                            tprocdef(currprocdef),tcallnode(left).symtableproc);
                         if (tcallnode(left).symtableprocentry.owner.symtabletype=ObjectSymtable) then
                          begin
                            selfnode:=tcallnode(left).methodpointer;

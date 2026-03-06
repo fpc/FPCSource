@@ -297,7 +297,7 @@ implementation
       addstatement(statement,cassignmentnode.create(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'INVOKE'),
         compiler.ctypeconvnode_proc_to_procvar(
-          cloadnode.create_procvar(invokepd.procsym,invokepd,invokepd.owner,compiler)),compiler));
+          compiler.cloadnode_procvar(invokepd.procsym,invokepd,invokepd.owner)),compiler));
       { temp.base.descriptor:=@descriptor }
       addstatement(statement,cassignmentnode.create(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'DESCRIPTOR'),

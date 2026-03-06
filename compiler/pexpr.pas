@@ -1162,7 +1162,7 @@ implementation
 
              { generate a methodcallnode or proccallnode }
              { we shouldn't convert things like @tcollection.load }
-             p2:=cloadnode.create_procvar(sym,aprocdef,st,compiler);
+             p2:=compiler.cloadnode_procvar(sym,aprocdef,st);
              if assigned(p1) then
               begin
                 { for loading methodpointer of an inherited function
@@ -1282,7 +1282,7 @@ implementation
               currprocdef:=tcallnode(hp).symtableprocentry.Find_procdef_byprocvardef(pv);
               if assigned(currprocdef) then
                begin
-                 hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc,compiler);
+                 hp2:=compiler.cloadnode_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
                  if (po_methodpointer in pv.procoptions) then
                    tloadnode(hp2).set_mp(tcallnode(hp).methodpointer.getcopy);
                  hp.free;
@@ -1324,7 +1324,7 @@ implementation
               currprocdef:=tcallnode(hp).symtableprocentry.Find_procdef_byfuncrefdef(fr);
               if assigned(currprocdef) then
                begin
-                 hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc,compiler);
+                 hp2:=compiler.cloadnode_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
                  hp.free;
                  hp := nil;
                  { replace the old callnode with the new loadnode }

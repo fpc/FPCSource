@@ -415,8 +415,8 @@ implementation
           end
         else
           begin
-            p2:=cloadnode.create_procvar(tcallnode(p1).symtableprocentry,
-               tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc,compiler);
+            p2:=compiler.cloadnode_procvar(tcallnode(p1).symtableprocentry,
+               tprocdef(tcallnode(p1).procdefinition),tcallnode(p1).symtableproc);
             { when the methodpointer is typen we've something like:
               tobject.create. Then only the address is needed of the
               method without a self pointer }

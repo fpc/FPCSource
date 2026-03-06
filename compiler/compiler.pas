@@ -158,7 +158,7 @@ uses
   ,ngenutil,pgentype
   ,optloop
   ,aasmdata
-  ,symbase,symtype,symsym
+  ,symbase,symtype,symsym,symdef
   ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld;
 
 type
@@ -266,6 +266,7 @@ type
     function cinlinenode_intern(number : tinlinenumber;is_const:boolean;l : tnode):tinlinenode; inline;
     { nld }
     function cloadnode(v : tsym;st : TSymtable):tloadnode; inline;
+    function cloadnode_procvar(v : tsym;d:tprocdef;st : TSymtable):tloadnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -922,6 +923,12 @@ end;
 function TCompilerHelper.cloadnode(v: tsym; st: TSymtable): tloadnode; inline;
 begin
   result:=nld.cloadnode.create(v,st,self);
+end;
+
+function TCompilerHelper.cloadnode_procvar(v: tsym; d: tprocdef; st: TSymtable
+  ): tloadnode; inline;
+begin
+  result:=nld.cloadnode.create_procvar(v,d,st,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
