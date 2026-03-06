@@ -101,64 +101,84 @@ uses
 {$DEFINE HAS_TTHREAD_GETSYSTEMTIMES}
 class function TThread.GetSystemTimes(out aSystemTimes : TSystemTimes) : Boolean;
 
+  procedure StoreTime(aField : integer; aTime : QWord);
+  begin
+    case aField of
+      1: aSystemTimes.UserTime:=aTime;
+      2: aSystemTimes.NiceTime:=aTime;
+      3: aSystemTimes.KernelTime:=aTime;
+      4: begin
+         aSystemTimes.IdleTime:=aTime;
+         aSystemTimes.KernelTime:=aSystemTimes.KernelTime + aTime;
+         end;
+    end;
+  end;
+
+
 const
   StatFile = '/proc/stat';
   CPULine = 'cpu';
+  BufSize = 1024;
 
 var
-  Line: string;
-  aFile : Text;
-  Idle : Int64;
+  Buf: array[0..BufSize-1] of Char;
+  fd: cint;
+  BytesRead, Pos, Len: SizeInt;
+  V: QWord;
+  lField: Integer;
+  lDigits: Boolean;
+  Ch: Char;
 
-  Function GetNextWord(var l : String) : String;
 
-  var
-    P : Integer;
-
-  begin
-    P:=Pos(' ',L);
-    if P=0 then
-      P:=Length(L)+1;
-    Result:=Copy(L,1,P-1);
-    Delete(L,1,P);
-    L:=Trim(L);
-  end;
-
-  Function GetNextInt : Int64; inline;
-
-  begin
-    Result:=StrToint64(GetNextWord(Line));
-  end;
 
 begin
   Result := False;
-  aSystemTimes:=Default(TThread.TSystemTimes);
-  {$i-}
-  AssignFile(aFile,StatFile);
-  Reset(aFile);
-  if IOResult<>0 then
-    exit;
-  {$i+}
-  While not EOF(aFile) do
-    begin
-    ReadLn(aFile,Line);
-    if Pos(CPULine,Line)>0 then
+  aSystemTimes := Default(TSystemTimes);
+  fd:=FileOpen(StatFile,fmOpenRead or fmShareDenyNone);
+  if fd<0 then
+    Exit;
+  try
+    BytesRead:=fpRead(fd,Buf,BufSize);
+    if BytesRead<=0 then
+      Exit;
+    Len:=BytesRead;
+    { Find the first line starting with 'cpu ' (the aggregate line). }
+    Pos:=0;
+    if (Len<4) or (Buf[0]<>'c') or (Buf[1]<>'p') or (Buf[2]<>'u') or (Buf[3]<>' ') then
+      Exit;
+    Pos:=4;
+    // fields: user nice system idle
+    lField:=1;
+    V:=0;
+    lDigits:=False;
+    while Pos<Len do
       begin
-      GetNextWord(Line); // Skip "cpu"
-      // cpuN usertime nicetime kerneltime idletime
-      With aSystemTimes do
+      Ch:=Buf[Pos];
+      if Ch=#10 then
+        Break;
+      if (Ch>='0') and (Ch<='9') then
         begin
-        Inc(UserTime, GetNextInt);
-        Inc(NiceTime, GetNextInt);
-        Inc(KernelTime, GetNextInt);
-        Idle:=GetNextInt;
-        Inc(KernelTime,Idle); // windows seems to count idle as kernel
-        Inc(IdleTime,Idle);
+        lDigits:=True;
+        V:=V*10+(Ord(Ch)-Ord('0'));
+        end
+      else if lDigits then
+        begin
+        StoreTime(lField,V);
+        Inc(lField);
+        V:=0;
+        lDigits:=False;
+        if lField > 3 then
+          Break;
         end;
-      Result:=True;
-      end
+      Inc(Pos);
     end;
- CloseFile(aFile);
+    // Handle last field if line ended without trailing space
+    if lDigits and (lField<=3) then
+      StoreTime(lField,V);
+    Result:=lField>=3;
+  finally
+    fpClose(fd);
+  end;
 end;
 {$ENDIF}
 
