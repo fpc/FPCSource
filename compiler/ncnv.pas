@@ -1844,7 +1844,7 @@ implementation
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
-            result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^,compiler);
+            result:=compiler.cguidconstnode(tobjectdef(left.resultdef).iidguid^);
           end
         else
           internalerror(2013112914);
@@ -5027,7 +5027,7 @@ implementation
                           begin
                             if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
                               CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
-                            hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^,compiler);
+                            hp:=compiler.cguidconstnode(tobjectdef(right.resultdef).iidguid^);
                             right.free;
                             right:=hp;
                           end

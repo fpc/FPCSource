@@ -903,7 +903,7 @@ implementation
                exclude(left.flags,nf_isproperty);
                hp:=
                  compiler.ccallparanode(
-                   cguidconstnode.create(tobjectdef(left.resultdef).iidguid^,compiler),
+                   compiler.cguidconstnode(tobjectdef(left.resultdef).iidguid^),
                  compiler.ccallparanode(
                    compiler.ctypeconvnode_internal(right,voidpointertype),
                  compiler.ccallparanode(

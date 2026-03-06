@@ -396,9 +396,9 @@ implementation
           constguid :
             begin
               if sp_generic_para in p.symoptions then
-                p1:=cguidconstnode.create(default(tguid),compiler)
+                p1:=compiler.cguidconstnode(default(tguid))
               else
-                p1:=cguidconstnode.create(pguid(p.value.valueptr)^,compiler);
+                p1:=compiler.cguidconstnode(pguid(p.value.valueptr)^);
             end;
           constnone :
             p1:=compiler.cnothingnode
