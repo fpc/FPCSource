@@ -258,6 +258,7 @@ type
     function ctryexceptnode(l,r,_t1 : tnode):ttryexceptnode; inline;
     function ctryfinallynode(l,r:tnode):ttryfinallynode; inline;
     function ctryfinallynode_implicit(l,r:tnode):ttryfinallynode; inline;
+    function connode(l,r:tnode):tonnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -882,6 +883,11 @@ end;
 function TCompilerHelper.ctryfinallynode_implicit(l, r: tnode): ttryfinallynode; inline;
 begin
   result:=nflw.ctryfinallynode.create_implicit(l,r,self);
+end;
+
+function TCompilerHelper.connode(l, r: tnode): tonnode; inline;
+begin
+  result:=nflw.connode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

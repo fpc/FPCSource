@@ -1030,7 +1030,7 @@ implementation
                      else
                        consume(_ID);
                      consume(_DO);
-                     hp:=connode.create(nil,statement,compiler);
+                     hp:=compiler.connode(nil,statement);
                      if ot.typ=errordef then
                        begin
                           hp.free;
