@@ -583,7 +583,7 @@ implementation
                     compiler.caddnode(equaln,
                         load_self_pointer_node,
                         compiler.cnilnode),
-                    cexitnode.create(nil,compiler),
+                    compiler.cexitnode(nil),
                     nil));
               end;
 

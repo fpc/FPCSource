@@ -238,7 +238,7 @@ implementation
           load_self_pointer_node,
           compiler.cnilnode,compiler));
       { exit }
-      addstatement(newstatement,cexitnode.create(nil,compiler));
+      addstatement(newstatement,compiler.cexitnode(nil));
     end;
 
 

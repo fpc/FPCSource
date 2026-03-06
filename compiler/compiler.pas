@@ -251,6 +251,7 @@ type
     function cifnode(l,r,_t1 : tnode):tifnode; inline;
     function cifnode_internal(l,r,_t1 : tnode):tifnode; inline;
     function cfornode(l,r,_t1,_t2 : tnode;back : boolean):tfornode; inline;
+    function cexitnode(l:tnode):texitnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -840,6 +841,11 @@ function TCompilerHelper.cfornode(l, r, _t1, _t2: tnode; back: boolean
   ): tfornode; inline;
 begin
   result:=nflw.cfornode.create(l,r,_t1,_t2,back,self);
+end;
+
+function TCompilerHelper.cexitnode(l: tnode): texitnode; inline;
+begin
+  result:=nflw.cexitnode.create(l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

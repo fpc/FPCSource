@@ -394,7 +394,7 @@ implementation
               else
                 p1:=nil;
               if not assigned(statement_syssym) then
-                statement_syssym:=cexitnode.create(p1,compiler);
+                statement_syssym:=compiler.cexitnode(p1);
             end;
 
           in_break :
@@ -3866,7 +3866,7 @@ implementation
                           p1:=nil;
                         end;
                     end;
-                  p1 := cexitnode.create(p1,compiler);
+                  p1 := compiler.cexitnode(p1);
                 end;
              _INHERITED :
                begin
