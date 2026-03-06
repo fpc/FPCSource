@@ -866,7 +866,7 @@ implementation
                           nil))))
                       );
                     { then re-raise the exception }
-                    addstatement(newstatement,craisenode.create(nil,nil,nil,compiler));
+                    addstatement(newstatement,compiler.craisenode(nil,nil,nil));
                     current_filepos:=entrypos;
                     newblock:=internalstatements(compiler,newstatement);
                     { try

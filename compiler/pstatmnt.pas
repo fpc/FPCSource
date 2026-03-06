@@ -887,7 +887,7 @@ implementation
            end;
          if (po_noreturn in current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
            Message(parser_e_raise_with_noreturn_not_allowed);
-         p:=craisenode.create(pobj,paddr,pframe,compiler);
+         p:=compiler.craisenode(pobj,paddr,pframe);
          raise_statement:=p;
       end;
 
