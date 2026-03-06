@@ -3487,7 +3487,7 @@ implementation
                       newblock:=internalstatements(compiler,newstatements);
                       tempnode:=compiler.ctempcreatenode(n.resultdef,n.resultdef.size,tt_persistent,true);
                       addstatement(newstatements,tempnode);
-                      addstatement(newstatements,cifnode.create_internal(
+                      addstatement(newstatements,compiler.cifnode_internal(
                         compiler.caddnode_internal(equaln,tbinarynode(n).right.getcopy,compiler.cordconstnode(-1,n.resultdef,false)),
                           cassignmentnode.create_internal(
                             compiler.ctemprefnode(tempnode),
@@ -3497,8 +3497,7 @@ implementation
                           cassignmentnode.create_internal(
                             compiler.ctemprefnode(tempnode),n,
                             compiler
-                          ),
-                          compiler
+                          )
                         )
                       );
                       addstatement(newstatements,compiler.ctempdeletenode_normal_temp(tempnode));

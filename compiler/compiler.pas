@@ -249,6 +249,7 @@ type
     { nflw }
     function cwhilerepeatnode(l,r:Tnode;tab,cn:boolean):twhilerepeatnode; inline;
     function cifnode(l,r,_t1 : tnode):tifnode; inline;
+    function cifnode_internal(l,r,_t1 : tnode):tifnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -827,6 +828,11 @@ end;
 function TCompilerHelper.cifnode(l, r, _t1: tnode): tifnode; inline;
 begin
   result:=nflw.cifnode.create(l,r,_t1,self);
+end;
+
+function TCompilerHelper.cifnode_internal(l, r, _t1: tnode): tifnode; inline;
+begin
+  result:=nflw.cifnode.create_internal(l,r,_t1,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

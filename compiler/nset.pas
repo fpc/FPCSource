@@ -968,18 +968,18 @@ implementation
            begin
              if flabels^._low=flabels^._high then
                begin
-                 result:=cifnode.create_internal(
+                 result:=compiler.cifnode_internal(
                    compiler.caddnode_internal(equaln,left.getcopy,compiler.cordconstnode(flabels^._low,left.resultdef,false)),
-                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
                end
              else if not(might_have_sideeffects(left,[mhs_exceptions])) and (node_complexity(left)<=1) then
                begin
-                 result:=cifnode.create_internal(
+                 result:=compiler.cifnode_internal(
                    compiler.caddnode_internal(andn,
                      compiler.caddnode_internal(gten,left.getcopy,compiler.cordconstnode(flabels^._low,left.resultdef,false)),
                      compiler.caddnode_internal(lten,left.getcopy,compiler.cordconstnode(flabels^._high,left.resultdef,false))
                    ),
-                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler);
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock);
                end
              else
                begin
@@ -996,12 +996,12 @@ implementation
                  left:=compiler.ctemprefnode(tempcaseexpr);
                  typecheckpass(left);
 
-                 addstatement(stmt,cifnode.create_internal(
+                 addstatement(stmt,compiler.cifnode_internal(
                    compiler.caddnode_internal(andn,
                      compiler.caddnode_internal(gten,left.getcopy,compiler.cordconstnode(flabels^._low,left.resultdef,false)),
                      compiler.caddnode_internal(lten,left.getcopy,compiler.cordconstnode(flabels^._high,left.resultdef,false))
                    ),
-                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock,compiler));
+                   pcaseblock(blocks[flabels^.blockid])^.statement,elseblock));
                  addstatement(stmt,temp_cleanup);
                  result:=init_block;
                end;

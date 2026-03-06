@@ -1405,7 +1405,7 @@ implementation
                   taddnode(left).left.isequal(tcallparanode(tinlinenode(p).left).left) and
                   not(assigned(tcallparanode(tinlinenode(p).left).right)) then
                   begin
-                    result:=cifnode.create_internal(left.getcopy,compiler.cwhilerepeatnode(left,right,false,true),nil,compiler);
+                    result:=compiler.cifnode_internal(left.getcopy,compiler.cwhilerepeatnode(left,right,false,true),nil);
                     left:=nil;
                     right:=nil;
                     twhilerepeatnode(tifnode(result).right).left.nodetype:=equaln;
@@ -1414,7 +1414,7 @@ implementation
             else if not(cs_opt_size in current_settings.optimizerswitches) and
               (node_complexity(left)<=3) then
               begin
-                result:=cifnode.create_internal(left.getcopy,compiler.cwhilerepeatnode(left,right,false,false),nil,compiler);
+                result:=compiler.cifnode_internal(left.getcopy,compiler.cwhilerepeatnode(left,right,false,false),nil);
                 left:=nil;
                 right:=nil;
               end;

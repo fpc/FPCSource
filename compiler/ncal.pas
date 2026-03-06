@@ -843,7 +843,7 @@ implementation
                  { move(para,temp,sizeof(arr)) (no "left.getcopy" below because
                    we replace left afterwards) }
                  addstatement(initstat,
-                   cifnode.create_internal(
+                   compiler.cifnode_internal(
                      compiler.caddnode_internal(
                        unequaln,
                        arraysize.getcopy,
@@ -860,8 +860,7 @@ implementation
                          )
                        )
                      ),
-                     nil,
-                     compiler
+                     nil
                    )
                  );
                  { no reference count increases, that's still done on the callee

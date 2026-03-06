@@ -1571,11 +1571,10 @@ implementation
               indextree:=compiler.ctypeconvnode_explicit(right.getcopy,htype);
               { range error if index >= hightree+1 }
               addstatement(stat,
-                cifnode.create_internal(
+                compiler.cifnode_internal(
                   compiler.caddnode_internal(gten,indextree,hightree),
                   compiler.ccallnode_intern('fpc_rangeerror',nil),
-                  nil,
-                  compiler
+                  nil
                 )
               );
               if assigned(temp) then
