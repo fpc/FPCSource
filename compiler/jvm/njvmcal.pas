@@ -274,13 +274,13 @@ implementation
               end;
             { put the parameter value in the array }
             addstatement(initstat,compiler.cassignmentnode(
-              cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0)),
+              compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0)),
               left));
             { and the copy for checking }
             if (cs_check_var_copyout in current_settings.localswitches) then
               addstatement(initstat,compiler.cassignmentnode(
-                cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(1)),
-                cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0))));
+                compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1)),
+                compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0))));
           end
         else
           left.free;
@@ -304,7 +304,7 @@ implementation
             { add the extraction of the parameter and assign it back to the
               original location }
             tempn:=compiler.ctemprefnode(arraytemp);
-            tempn:=cvecnode.create(tempn,genintconstnode(0));
+            tempn:=compiler.cvecnode(tempn,genintconstnode(0));
             { unbox if necessary }
             if parasym.vardef.typ=formaldef then
               begin
@@ -325,8 +325,8 @@ implementation
                     verifyout) and
                    (cs_check_var_copyout in current_settings.localswitches) then
                   begin
-                    unwrappedele0:=cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0));
-                    unwrappedele1:=cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(1));
+                    unwrappedele0:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0));
+                    unwrappedele1:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1));
                     if (parasym.vardef.typ=formaldef) and
                        (orgparadef.typ in [orddef,floatdef]) then
                       begin

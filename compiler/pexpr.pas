@@ -2055,10 +2055,9 @@ implementation
            begin
              addstatement(newstatement,
                compiler.cassignmentnode(
-                 cvecnode.create(
+                 compiler.cvecnode(
                    compiler.ctemprefnode(temp),
-                   genintconstnode(countindices,compiler),
-                   compiler
+                   genintconstnode(countindices,compiler)
                  ),
                  tnode(elements[countindices])
                )
@@ -2080,7 +2079,7 @@ implementation
              paras:=compiler.ccallparanode(compiler.cordconstnode
                    (countindices,s32inttype,true),
                 compiler.ccallparanode(compiler.caddrnode_internal
-               (cvecnode.create(compiler.ctemprefnode(temp),genintconstnode(0,compiler),compiler)),
+               (compiler.cvecnode(compiler.ctemprefnode(temp),genintconstnode(0,compiler))),
                 compiler.ccallparanode(compiler.ctypeconvnode_internal(p4,cvarianttype),
                 compiler.ccallparanode(compiler.ctypeconvnode_internal(p1,cvarianttype)
                   ,nil))));
@@ -2138,9 +2137,9 @@ implementation
                 { arr[i] := param_i }
                 addstatement(assstatement,
                   compiler.cassignmentnode(
-                    cvecnode.create(
+                    compiler.cvecnode(
                       compiler.ctemprefnode(arrnode),
-                      compiler.cordconstnode(paracount,arrdef.rangedef,false),compiler),
+                      compiler.cordconstnode(paracount,arrdef.rangedef,false)),
                     comp_expr([ef_accept_equal])));
                 inc(paracount);
               until not try_to_consume(_COMMA);
@@ -2371,7 +2370,7 @@ implementation
                             { Support Pbytevar[0..9] which returns array [0..9].}
                             if try_to_consume(_POINTPOINT) then
                               p2:=crangenode.create(p2,comp_expr([ef_accept_equal]),compiler);
-                            p1:=cvecnode.create(p1,p2,compiler);
+                            p1:=compiler.cvecnode(p1,p2);
                          end;
                        variantdef:
                          begin
@@ -2385,7 +2384,7 @@ implementation
                            { Support string[0..9] which returns array [0..9] of char.}
                            if try_to_consume(_POINTPOINT) then
                              p2:=crangenode.create(p2,comp_expr([ef_accept_equal]),compiler);
-                           p1:=cvecnode.create(p1,p2,compiler);
+                           p1:=compiler.cvecnode(p1,p2);
                          end;
                        arraydef:
                          begin
@@ -2426,7 +2425,7 @@ implementation
                                   if try_to_consume(_POINTPOINT) then
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
                                     p2:=crangenode.create(p2,compiler.caddnode(addn,comp_expr([ef_accept_equal]),p3.getcopy));
-                                  p1:=cvecnode.create(p1,p2);
+                                  p1:=compiler.cvecnode(p1,p2);
                                   include(tvecnode(p1).vecnodeflags,vnf_memseg);
                                   include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end
@@ -2435,7 +2434,7 @@ implementation
                                   if try_to_consume(_POINTPOINT) then
                                     { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
                                     p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
-                                  p1:=cvecnode.create(p1,p2);
+                                  p1:=compiler.cvecnode(p1,p2);
                                   include(tvecnode(p1).vecnodeflags,vnf_memindex);
                                 end;
 {$else}
@@ -2447,7 +2446,7 @@ implementation
                                if try_to_consume(_POINTPOINT) then
                                  { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
                                  p2:=crangenode.create(p2,comp_expr([ef_accept_equal]),compiler);
-                               p1:=cvecnode.create(p1,p2,compiler);
+                               p1:=compiler.cvecnode(p1,p2);
                              end;
                          end;
                        else

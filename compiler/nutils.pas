@@ -1198,7 +1198,7 @@ implementation
                  include(p1.flags,nf_absolute);
                end;
              sl_vec :
-               p1:=cvecnode.create(p1,compiler.cordconstnode(plist^.value,plist^.valuedef,true),compiler);
+               p1:=compiler.cvecnode(p1,compiler.cordconstnode(plist^.value,plist^.valuedef,true));
              else
                internalerror(200110205);
            end;

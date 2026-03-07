@@ -2092,9 +2092,9 @@ implementation
               internalerror(2017050103);
             addstatement(assstatement,
               compiler.cassignmentnode(
-                cvecnode.create(
+                compiler.cvecnode(
                   compiler.ctemprefnode(arrnode),
-                  compiler.cordconstnode(paracount,tarraydef(totypedef).rangedef,false),compiler),
+                  compiler.cordconstnode(paracount,tarraydef(totypedef).rangedef,false)),
                 elemnode.left));
             elemnode.left:=nil;
             inc(paracount);
@@ -2164,9 +2164,9 @@ implementation
               internalerror(2020041403);
             addstatement(assstatement,
               compiler.cassignmentnode(
-                cvecnode.create(
+                compiler.cvecnode(
                   compiler.ctemprefnode(arrnode),
-                  compiler.cordconstnode(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false),compiler),
+                  compiler.cordconstnode(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false)),
                 elemnode.left));
             elemnode.left:=nil;
             inc(paracount);

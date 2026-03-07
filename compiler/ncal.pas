@@ -804,11 +804,10 @@ implementation
                      );
                      { now treat that address (correctly) as the original
                        dynamic array to get its start and length }
-                     arraybegin:=cvecnode.create(
+                     arraybegin:=compiler.cvecnode(
                        compiler.ctypeconvnode_explicit(compiler.ctemprefnode(lefttemp),
                          temparraydef),
-                       genintconstnode(0,compiler),
-                       compiler
+                       genintconstnode(0,compiler)
                      );
                      arraysize:=compiler.caddnode(muln,
                        geninlinenode(in_length_x,false,

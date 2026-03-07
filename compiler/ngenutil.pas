@@ -903,10 +903,10 @@ implementation
                 (for some helpers in the system unit)             }
               { an open string has at least size 2                      }
               trash_small(stat,
-                cvecnode.create(trashn.getcopy,genintconstnode(0,compiler),compiler),
+                compiler.cvecnode(trashn.getcopy,genintconstnode(0,compiler)),
                 compiler.cordconstnode(tconstexprint(byte(trashintval)),cansichartype,false));
               trash_small(stat,
-                cvecnode.create(trashn,genintconstnode(1,compiler),compiler),
+                compiler.cvecnode(trashn,genintconstnode(1,compiler)),
                 compiler.cordconstnode(tconstexprint(byte(trashintval)),cansichartype,false));
             end;
         end

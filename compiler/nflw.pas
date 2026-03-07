@@ -526,7 +526,7 @@ implementation
           internalerror(2010061904);
         inserttypeconv(hp,
           carraydef.create_from_pointer(tpointerdef(hp.resultdef)),compiler);
-        hp:=cvecnode.create(hp,compiler.ctemprefnode(innerloopcounter),compiler);
+        hp:=compiler.cvecnode(hp,compiler.ctemprefnode(innerloopcounter));
         addstatement(innerloopbodystatement,
           compiler.cassignmentnode(hloopvar,hp));
         { the actual loop body! }
@@ -591,7 +591,7 @@ implementation
         loopbody:=internalstatements(compiler,loopbodystatement);
         // for-in loop variable := string_expression[index]
         addstatement(loopbodystatement,
-          compiler.cassignmentnode(hloopvar, cvecnode.create(compiler.ctemprefnode(stringvar),stringindex,compiler)));
+          compiler.cassignmentnode(hloopvar, compiler.cvecnode(compiler.ctemprefnode(stringvar),stringindex)));
 
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
@@ -735,10 +735,10 @@ implementation
         // for-in loop variable := array_expression[index]
         if assigned(arrayvar) then
           addstatement(loopbodystatement,
-            compiler.cassignmentnode(hloopvar,cvecnode.create(compiler.ctemprefnode(arrayvar),arrayindex,compiler)))
+            compiler.cassignmentnode(hloopvar,compiler.cvecnode(compiler.ctemprefnode(arrayvar),arrayindex)))
         else
           addstatement(loopbodystatement,
-            compiler.cassignmentnode(hloopvar,cvecnode.create(expression.getcopy,arrayindex,compiler)));
+            compiler.cassignmentnode(hloopvar,compiler.cvecnode(expression.getcopy,arrayindex)));
 
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);

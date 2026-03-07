@@ -526,7 +526,7 @@ type
 
                       startvaltemp:=maybereplacewithtemp(compiler,currforloop.right,initcode,initcodestatements,currforloop.right.resultdef.size,true);
                       nn:=compiler.caddrnode(
-                          cvecnode.create(tvecnode(n).left.getcopy,compiler.ctypeconvnode_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef),compiler)
+                          compiler.cvecnode(tvecnode(n).left.getcopy,compiler.ctypeconvnode_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef))
                         );
                       { If the calculation is not performed at the end
                         it is needed to adjust the starting value }

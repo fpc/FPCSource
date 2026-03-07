@@ -5265,10 +5265,9 @@ implementation
            while assigned(ppn.right) do
              begin
                addstatement(newstatement,compiler.cassignmentnode(
-                   cvecnode.create(
+                   compiler.cvecnode(
                      compiler.ctemprefnode(temp),
-                     genintconstnode(counter,compiler),
-                     compiler
+                     genintconstnode(counter,compiler)
                    ),
                    ppn.left));
                ppn.left:=nil;
@@ -5280,10 +5279,9 @@ implementation
 
            { create call to fpc_dynarr_setlength }
            npara:=compiler.ccallparanode(compiler.caddrnode_internal(
-                     cvecnode.create(
+                     compiler.cvecnode(
                        compiler.ctemprefnode(temp),
-                       genintconstnode(0,compiler),
-                       compiler
+                       genintconstnode(0,compiler)
                      )),
                   compiler.ccallparanode(compiler.cordconstnode
                      (dims,sinttype,true),
@@ -5681,7 +5679,7 @@ implementation
                  if is_dynamic_array(first) then
                    datan:=compiler.ctypeconvnode_internal(compiler.ctemprefnode(datatemp),voidpointertype)
                  else
-                   datan:=compiler.caddrnode_internal(cvecnode.create(compiler.ctemprefnode(datatemp),compiler.cordconstnode(0,sizesinttype,false),compiler));
+                   datan:=compiler.caddrnode_internal(compiler.cvecnode(compiler.ctemprefnode(datatemp),compiler.cordconstnode(0,sizesinttype,false)));
                  datacountn:=compiler.cinlinenode(in_length_x,false,compiler.ctemprefnode(datatemp));
                end
              else if isconstr then
@@ -6059,8 +6057,8 @@ implementation
          { create the assignment in the loop body }
          loopbody :=
            compiler.cassignmentnode(
-             cvecnode.create(target.getcopy,targetvecindex,compiler),
-             cvecnode.create(source.getcopy,sourcevecindex,compiler)
+             compiler.cvecnode(target.getcopy,targetvecindex),
+             compiler.cvecnode(source.getcopy,sourcevecindex)
            );
          { create the actual for loop }
          tempnode := compiler.cfornode(
