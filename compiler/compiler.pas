@@ -158,7 +158,7 @@ uses
   ,ngenutil,pgentype
   ,optloop
   ,aasmdata
-  ,symbase,symtype,symsym,symdef
+  ,symbase,symtype,symsym,symdef,symconst
   ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld;
 
 type
@@ -272,6 +272,7 @@ type
     function carrayconstructorrangenode(l,r : tnode):tarrayconstructorrangenode; inline;
     function carrayconstructornode(l,r : tnode):tarrayconstructornode; inline;
     function ctypenode(def:tdef):ttypenode; inline;
+    function crttinode(def:tstoreddef;rt:trttitype;dt:Trttidatatype):trttinode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -961,6 +962,12 @@ end;
 function TCompilerHelper.ctypenode(def: tdef): ttypenode; inline;
 begin
   result:=nld.ctypenode.create(def,self);
+end;
+
+function TCompilerHelper.crttinode(def: tstoreddef; rt: trttitype;
+  dt: Trttidatatype): trttinode; inline;
+begin
+  result:=nld.crttinode.create(def,rt,dt,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

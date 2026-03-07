@@ -405,14 +405,14 @@ implementation
             {Insert a reference to the ord2string index.}
             newparas.right:=compiler.ccallparanode(
               Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_normal,compiler),
+                compiler.crttinode(Tenumdef(source.left.resultdef),fullrtti,rdt_normal),
                 compiler
               ),
               newparas.right);
             {Insert a reference to the typinfo.}
             newparas.right:=compiler.ccallparanode(
               Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_ord2str,compiler),
+                compiler.crttinode(Tenumdef(source.left.resultdef),fullrtti,rdt_ord2str),
                 compiler
               ),
               newparas.right);
@@ -1090,13 +1090,13 @@ implementation
                       {Insert a reference to the ord2string index.}
                       indexpara:=compiler.ccallparanode(
                         Caddrnode.create_internal(
-                          Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_normal,compiler),compiler
+                          compiler.crttinode(Tenumdef(para.left.resultdef),fullrtti,rdt_normal),compiler
                         ),
                         nil);
                       {Insert a reference to the typinfo.}
                       indexpara:=compiler.ccallparanode(
                         Caddrnode.create_internal(
-                         Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_ord2str,compiler),compiler
+                         compiler.crttinode(Tenumdef(para.left.resultdef),fullrtti,rdt_ord2str),compiler
                         ),
                         indexpara);
                       {Insert a type conversion to to convert the enum to longint.}
@@ -1111,7 +1111,7 @@ implementation
                     begin
                       {Insert a reference to the string2ord index.}
                       indexpara:=compiler.ccallparanode(Caddrnode.create_internal(
-                        Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_str2ord,compiler),compiler
+                        compiler.crttinode(Tenumdef(para.left.resultdef),fullrtti,rdt_str2ord),compiler
                       ),nil);
                       {Insert a type conversion to to convert the enum to longint.}
                       para.left:=compiler.ctypeconvnode_internal(para.left,readfunctype);
@@ -1788,7 +1788,7 @@ implementation
             begin
               suffix:='enum_';
               sizepara:=compiler.ccallparanode(Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(destpara.resultdef),fullrtti,rdt_str2ord,compiler),compiler
+                compiler.crttinode(Tenumdef(destpara.resultdef),fullrtti,rdt_str2ord),compiler
               ),nil);
             end;
           else
@@ -4448,7 +4448,7 @@ implementation
                 end
               else
                 result:=caddrnode.create_internal(
-                  crttinode.create(tstoreddef(left.resultdef),fullrtti,rdt_normal,compiler),compiler
+                  compiler.crttinode(tstoreddef(left.resultdef),fullrtti,rdt_normal),compiler
                 );
             end;
 
@@ -5249,7 +5249,7 @@ implementation
                result:=compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,voidpointertype),nil);
                result:=compiler.ccallnode_intern('fpc_dynarray_clear',
                  compiler.ccallparanode(caddrnode.create_internal(
-                   crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal,compiler),compiler),
+                   compiler.crttinode(tstoreddef(destppn.resultdef),initrtti,rdt_normal),compiler),
                  result));
                exit;
              end;
@@ -5290,7 +5290,7 @@ implementation
                   compiler.ccallparanode(compiler.cordconstnode
                      (dims,sinttype,true),
                   compiler.ccallparanode(caddrnode.create_internal
-                     (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal,compiler),compiler),
+                     (compiler.crttinode(tstoreddef(destppn.resultdef),initrtti,rdt_normal),compiler),
                   compiler.ccallparanode(compiler.ctypeconvnode_internal(destppn,voidpointertype),nil))));
            addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',npara));
            addstatement(newstatement,compiler.ctempdeletenode(temp));
@@ -5369,7 +5369,7 @@ implementation
             elesizeppn:=compiler.cordconstnode(tarraydef(paradef).elesize,sinttype,false);
             if is_managed_type(tarraydef(paradef).elementdef) then
               eletypeppn:=caddrnode.create_internal(
-                crttinode.create(tstoreddef(tarraydef(paradef).elementdef),initrtti,rdt_normal,compiler),compiler)
+                compiler.crttinode(tstoreddef(tarraydef(paradef).elementdef),initrtti,rdt_normal),compiler)
             else
               eletypeppn:=compiler.cordconstnode(0,voidpointertype,false);
             maxcountppn:=geninlinenode(in_length_x,false,ppn.left.getcopy,compiler);
@@ -5406,7 +5406,7 @@ implementation
             else
               internalerror(2012100704);
 
-            rttippn:=caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler);
+            rttippn:=caddrnode.create_internal(compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal),compiler);
 
             { create call to fpc_array_to_dynarray_copy }
             npara:=compiler.ccallparanode(eletypeppn,
@@ -5453,8 +5453,8 @@ implementation
          { create call to fpc_initialize }
          if is_managed_type(tpointerdef(left.resultdef).pointeddef) then
           begin
-            para := compiler.ccallparanode(caddrnode.create_internal(crttinode.create
-                       (tstoreddef(tpointerdef(left.resultdef).pointeddef),initrtti,rdt_normal,compiler),compiler),
+            para := compiler.ccallparanode(caddrnode.create_internal(compiler.crttinode
+                       (tstoreddef(tpointerdef(left.resultdef).pointeddef),initrtti,rdt_normal),compiler),
                     compiler.ccallparanode(compiler.ctemprefnode
                        (temp),nil));
             addstatement(newstatement,compiler.ccallnode_intern('fpc_initialize',para));
@@ -5712,7 +5712,7 @@ implementation
                end;
              procname:='fpc_dynarray_insert';
              { recreate the parameters as array pointer, source, data, count, typeinfo }
-             newn:=compiler.ccallparanode(caddrnode.create_internal(crttinode.create(tstoreddef(second),initrtti,rdt_normal,compiler),compiler),
+             newn:=compiler.ccallparanode(caddrnode.create_internal(compiler.crttinode(tstoreddef(second),initrtti,rdt_normal),compiler),
                      compiler.ccallparanode(datacountn,
                        compiler.ccallparanode(datan,
                          compiler.ccallparanode(tcallparanode(left).left,
@@ -5783,7 +5783,7 @@ implementation
              procname:='fpc_dynarray_delete';
              { recreate the parameters as array pointer, src, count, typeinfo }
              newn:=compiler.ccallparanode(caddrnode.create_internal
-                  (crttinode.create(tstoreddef(first),initrtti,rdt_normal,compiler),compiler),
+                  (compiler.crttinode(tstoreddef(first),initrtti,rdt_normal),compiler),
                     compiler.ccallparanode(tcallparanode(left).left,
                       compiler.ccallparanode(tcallparanode(tcallparanode(left).right).left,
                         compiler.ccallparanode(compiler.ctypeconvnode_internal(firstn,voidpointertype),nil))));
@@ -5944,7 +5944,7 @@ implementation
                  cpn:=compiler.ccallparanode(
                          arrconstr,
                          compiler.ccallparanode(
-                           caddrnode.create_internal(crttinode.create(tstoreddef(arrn.resultdef),initrtti,rdt_normal,compiler),compiler),
+                           caddrnode.create_internal(compiler.crttinode(tstoreddef(arrn.resultdef),initrtti,rdt_normal),compiler),
                              compiler.ccallparanode(compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),voidpointertype),nil))
                        );
                  addstatement(

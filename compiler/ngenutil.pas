@@ -284,8 +284,8 @@ implementation
               result:=compiler.ccallnode_intern('fpc_initialize',
                     compiler.ccallparanode(
                         caddrnode.create_internal(
-                            crttinode.create(
-                                tstoreddef(p.resultdef),initrtti,rdt_normal,compiler),compiler),
+                            compiler.crttinode(
+                                tstoreddef(p.resultdef),initrtti,rdt_normal),compiler),
                     compiler.ccallparanode(
                         caddrnode.create_internal(p,compiler),
                     nil)));
@@ -340,8 +340,8 @@ implementation
             result:=compiler.ccallnode_intern('fpc_finalize',
                   compiler.ccallparanode(
                       caddrnode.create_internal(
-                          crttinode.create(
-                              tstoreddef(p.resultdef),initrtti,rdt_normal,compiler),compiler),
+                          compiler.crttinode(
+                              tstoreddef(p.resultdef),initrtti,rdt_normal),compiler),
                   compiler.ccallparanode(
                       caddrnode.create_internal(p,compiler),
                   nil)));

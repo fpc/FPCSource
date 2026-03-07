@@ -2165,7 +2165,7 @@ implementation
                  compiler.ccallparanode(compiler.cordconstnode
                     (1,s32inttype,true),
                  compiler.ccallparanode(caddrnode.create_internal
-                    (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal,compiler),compiler),
+                    (compiler.crttinode(tstoreddef(arrdef),initrtti,rdt_normal),compiler),
                  compiler.ccallparanode(
                    compiler.ctypeconvnode_internal(
                      compiler.ctemprefnode(arrnode),voidpointertype),

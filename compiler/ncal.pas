@@ -732,7 +732,7 @@ implementation
                          { array length = high + 1 }
                          compiler.caddnode(addn,third.getcopy,genintconstnode(1,compiler)),
                        compiler.ccallparanode(caddrnode.create_internal
-                          (crttinode.create(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal,compiler),compiler),
+                          (compiler.crttinode(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal),compiler),
                        compiler.ccallparanode(caddrnode.create_internal(
                           cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),nil)));
                 callnode.add_init_statement(
@@ -3927,7 +3927,7 @@ implementation
                     if not assigned(pt) or (i=0) then
                       internalerror(200304082);
                     hiddentree:=caddrnode.create_internal(
-                      crttinode.create(Tstoreddef(pt.resultdef),fullrtti,rdt_normal,compiler),
+                      compiler.crttinode(Tstoreddef(pt.resultdef),fullrtti,rdt_normal),
                       compiler
                     );
                   end

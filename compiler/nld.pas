@@ -1020,7 +1020,7 @@ implementation
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
            hp:=compiler.ccallparanode(caddrnode.create_internal(
-                  crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
+                  compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal),compiler),
                compiler.ccallparanode(compiler.ctypeconvnode_internal(
                  caddrnode.create_internal(left,compiler),voidpointertype),
                compiler.ccallparanode(compiler.ctypeconvnode_internal(
@@ -1101,7 +1101,7 @@ implementation
         if needrtti then
           hp:=compiler.ccallparanode(
             caddrnode.create_internal(
-              crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
+              compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal),compiler),
             hp);
         result:=compiler.ccallnode_intern(hs,hp);
         firstpass(result);

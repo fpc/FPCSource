@@ -1910,7 +1910,7 @@ implementation
       begin
         result := compiler.ccallnode_internres(
           'fpc_variant_to_dynarray',
-          compiler.ccallparanode(caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
+          compiler.ccallparanode(caddrnode.create_internal(compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal),compiler),
             compiler.ccallparanode(left,nil)
           ),resultdef);
         typecheckpass(result);
@@ -1922,7 +1922,7 @@ implementation
       begin
         result := compiler.ccallnode_internres(
           'fpc_dynarray_to_variant',
-          compiler.ccallparanode(caddrnode.create_internal(crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal,compiler),compiler),
+          compiler.ccallparanode(caddrnode.create_internal(compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal),compiler),
             compiler.ccallparanode(compiler.ctypeconvnode_explicit(left,voidpointertype),nil)
           ),resultdef);
         typecheckpass(result);
@@ -2015,7 +2015,7 @@ implementation
                compiler.ccallparanode(compiler.cordconstnode
                   (1,s32inttype,true),
                compiler.ccallparanode(caddrnode.create_internal
-                  (crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
+                  (compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal),compiler),
                compiler.ccallparanode(
                  compiler.ctypeconvnode_internal(
                    compiler.ctemprefnode(temp),voidpointertype),
@@ -2114,7 +2114,7 @@ implementation
                compiler.ccallparanode(compiler.cordconstnode
                   (1,s32inttype,true),
                compiler.ccallparanode(caddrnode.create_internal
-                  (crttinode.create(tstoreddef(totypedef),initrtti,rdt_normal,compiler),compiler),
+                  (compiler.crttinode(tstoreddef(totypedef),initrtti,rdt_normal),compiler),
                compiler.ccallparanode(
                  compiler.ctypeconvnode_internal(
                    compiler.ctemprefnode(arrnode),voidpointertype),

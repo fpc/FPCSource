@@ -3959,7 +3959,7 @@ const
                         compiler.ccallparanode(
                           compiler.ctypeconvnode_internal(left,voidcodepointertype),
                         compiler.ccallparanode(
-                          caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
+                          caddrnode.create_internal(compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal),compiler),
                         compiler.ccallparanode(
                           compiler.ctypeconvnode_internal(aktassignmentnode.left.getcopy,voidcodepointertype),nil)
                         )));
@@ -3990,7 +3990,7 @@ const
                         compiler.ccallparanode(
                           compiler.ctypeconvnode_internal(left,voidcodepointertype),
                         compiler.ccallparanode(
-                          caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal,compiler),compiler),
+                          caddrnode.create_internal(compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal),compiler),
                         compiler.ccallparanode(
                           compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),voidcodepointertype),nil)
                         )));
