@@ -4931,7 +4931,7 @@ implementation
                    end;
                  end;
                _OP_IN :
-                 p1:=cinnode.create(p1,p2,compiler);
+                 p1:=compiler.cinnode(p1,p2);
                _OP_OR,
                _PIPE {macpas only} :
                  begin

@@ -804,7 +804,7 @@ implementation
         // end
 
         loopbody:=compiler.cifnode(
-          cinnode.create(compiler.ctemprefnode(loopvar),compiler.ctemprefnode(setvar),compiler),
+          compiler.cinnode(compiler.ctemprefnode(loopvar),compiler.ctemprefnode(setvar)),
           internalstatements(compiler,loopbodystatement),
           nil);
 

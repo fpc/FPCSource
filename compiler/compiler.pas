@@ -296,7 +296,7 @@ type
     function caddsstringcsstringoptnode(l,r : tnode):taddsstringcsstringoptnode; inline;
     { nset }
     function csetelementnode(l,r : tnode):tsetelementnode; inline;
-    //TODO:cinnode
+    function cinnode(l,r : tnode):tinnode; inline;
     //TODO:crangenode
     //TODO:ccasenode
 
@@ -1088,6 +1088,11 @@ end;
 function TCompilerHelper.csetelementnode(l, r: tnode): tsetelementnode; inline;
 begin
   result:=nset.csetelementnode.create(l,r,self);
+end;
+
+function TCompilerHelper.cinnode(l, r: tnode): tinnode; inline;
+begin
+  result:=nset.cinnode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

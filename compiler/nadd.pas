@@ -4566,7 +4566,7 @@ const
                      for i:=low(tconstset) to high(tconstset) do
                        if i in constsetnode.value_set^ then
                          begin
-                           tempn:=cinnode.create(compiler.cordconstnode(i,tsetdef(constsetnode.resultdef).elementdef,false),varsetnode.getcopy,compiler);
+                           tempn:=compiler.cinnode(compiler.cordconstnode(i,tsetdef(constsetnode.resultdef).elementdef,false),varsetnode.getcopy);
                            if assigned(result) then
                              result:=compiler.caddnode_internal(orn,result,tempn)
                            else
