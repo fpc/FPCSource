@@ -59,6 +59,7 @@ type
     FCompiler: TCompilerBase;
     function replaceBasicAssign(var n: tnode; arg: tnode; var tree_modified: boolean): boolean;
     function propagate(var n: tnode; arg: pointer): foreachnoderesult;
+    property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
     function do_optconstpropagate(var rootnode : tnode;out changed: boolean) : tnode;
@@ -88,8 +89,6 @@ type
     { propagates the constant assignment passed in arg into n, it returns true if
       the search can continue with the next statement }
     function TConstPropOptimizer.replaceBasicAssign(var n: tnode; arg: tnode; var tree_modified: boolean): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         st2, oldnode: tnode;
         old: pnode;
