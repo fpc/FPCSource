@@ -333,7 +333,7 @@ begin
           sn:=caddrnode.create(sn,compiler);
           include(sn.flags,nf_internal);
         end;
-      arrp:=carrayconstructornode.create(sn,arrp,compiler);
+      arrp:=compiler.carrayconstructornode(sn,arrp);
       hp:=taddnode(hp).left;
     end;
   sn:=hp.getcopy;
@@ -344,7 +344,7 @@ begin
       sn:=caddrnode.create(sn,compiler);
       include(sn.flags,nf_internal);
     end;
-  arrp:=carrayconstructornode.create(sn,arrp,compiler);
+  arrp:=compiler.carrayconstructornode(sn,arrp);
   Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
   if assigned(aktassignmentnode) and
      (aktassignmentnode.right=p) and
@@ -455,11 +455,11 @@ begin
   while assigned(hp) and (hp.nodetype=addn) do
     begin
       sn:=compiler.ctypeconvnode_internal(taddnode(hp).right.getcopy,voidpointertype);
-      arrp:=carrayconstructornode.create(sn,arrp,compiler);
+      arrp:=compiler.carrayconstructornode(sn,arrp);
       hp:=taddnode(hp).left;
     end;
   sn:=compiler.ctypeconvnode_internal(hp.getcopy,voidpointertype);
-  arrp:=carrayconstructornode.create(sn,arrp,compiler);
+  arrp:=compiler.carrayconstructornode(sn,arrp);
   Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
   if assigned(aktassignmentnode) and
      (aktassignmentnode.right=p) and

@@ -498,10 +498,10 @@ implementation
                    newpara:=cloadvmtaddrnode.create(ctypenode.create(corrclass));
                  newpara:=compiler.ctypeconvnode_explicit(newpara,jlclass);
                end;
-            procdefparas:=carrayconstructornode.create(newpara,procdefparas);
+            procdefparas:=compiler.carrayconstructornode(newpara,procdefparas);
           end;
         if not assigned(procdefparas) then
-          procdefparas:=carrayconstructornode.create(nil,nil);
+          procdefparas:=compiler.carrayconstructornode(nil,nil);
         Include(procdefparas.arrayconstructornodeflags, acnf_allow_array_constructor);
         constrparas:=compiler.ccallparanode(procdefparas,constrparas);
         result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);

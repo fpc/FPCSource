@@ -5923,7 +5923,7 @@ implementation
                      n:=compiler.ctemprefnode(tempnode);
                      { then to a plain pointer for the helper }
                      inserttypeconv_internal(n,voidpointertype,compiler);
-                     arrconstr:=carrayconstructornode.create(n,arrconstr,compiler);
+                     arrconstr:=compiler.carrayconstructornode(n,arrconstr);
                    end;
                  Include(arrconstr.arrayconstructornodeflags,acnf_allow_array_constructor);
 

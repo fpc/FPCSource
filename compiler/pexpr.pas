@@ -3709,7 +3709,7 @@ implementation
          { be sure that a least one arrayconstructn is used, also for an
            empty [] }
            if current_scanner.token=_RECKKLAMMER then
-             buildp:=carrayconstructornode.create(nil,buildp,compiler)
+             buildp:=compiler.carrayconstructornode(nil,buildp)
            else
             repeat
               p1:=comp_expr([ef_accept_equal]);
@@ -3721,12 +3721,12 @@ implementation
                { insert at the end of the tree, to get the correct order }
              if not assigned(buildp) then
                begin
-                 buildp:=carrayconstructornode.create(p1,nil,compiler);
+                 buildp:=compiler.carrayconstructornode(p1,nil);
                  lastp:=buildp;
                end
              else
                begin
-                 lastp.right:=carrayconstructornode.create(p1,nil,compiler);
+                 lastp.right:=compiler.carrayconstructornode(p1,nil);
                  lastp:=tarrayconstructornode(lastp.right);
                end;
            { there could be more elements }
