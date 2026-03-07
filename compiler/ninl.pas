@@ -4168,7 +4168,7 @@ implementation
 
               in_objc_selector_x:
                 begin
-                  result:=cobjcselectornode.create(left,compiler);
+                  result:=compiler.cobjcselectornode(left);
                   { reused }
                   left:=nil;
                 end;

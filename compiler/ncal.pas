@@ -3701,7 +3701,7 @@ implementation
                 else
                   if vo_is_msgsel in para.parasym.varoptions then
                     begin
-                      para.left:=cobjcselectornode.create(compiler.cstringconstnode_str(tprocdef(procdefinition).messageinf.str^),compiler);
+                      para.left:=compiler.cobjcselectornode(compiler.cstringconstnode_str(tprocdef(procdefinition).messageinf.str^));
                     end;
               end;
             if not assigned(para.left) then

@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
-  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem;
+  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem,nobjc;
 
 type
 {****************************************************************************
@@ -289,7 +289,7 @@ type
     function cvecnode(l,r : tnode):tvecnode; inline;
     function cloadparentfpnode(pd: tprocdef; fpkind: tloadparentfpkind):tloadparentfpnode; inline;
     { nobjc }
-    //TODO:cobjcselectornode
+    function cobjcselectornode(formethod: tnode):tobjcselectornode; inline;
     //TODO:cobjcprotocolnode
     { nopt }
     //TODO:caddsstringcharoptnode
@@ -1060,6 +1060,11 @@ function TCompilerHelper.cloadparentfpnode(pd: tprocdef;
   fpkind: tloadparentfpkind): tloadparentfpnode; inline;
 begin
   result:=nmem.cloadparentfpnode.create(pd,fpkind,self);
+end;
+
+function TCompilerHelper.cobjcselectornode(formethod: tnode): tobjcselectornode; inline;
+begin
+  result:=nobjc.cobjcselectornode.create(formethod,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
