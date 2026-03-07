@@ -34,6 +34,8 @@ interface
           function  GetResFlags(unsigned:Boolean):TResFlags;
           function  GetFPUResFlags:TResFlags;
        protected
+          function try_second_bit_test: Boolean;
+
           function use_fma : boolean;override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
@@ -334,10 +336,91 @@ interface
       end;
 
 
+    function taarch64addnode.try_second_bit_test: Boolean;
+
+      function try_arrangement(compvaln: TOrdConstNode; andn: TAddNode): Boolean;
+        var
+          ResFlags: TResFlags;
+          andconstn: TOrdConstNode;
+          inputn: TNode;
+        begin
+          Result:=False;
+          if andn.right.nodetype=ordconstn then
+            begin
+              andconstn:=TOrdConstNode(andn.right);
+              inputn:=andn.left;
+            end
+          else if andn.left.nodetype=ordconstn then
+            begin
+              andconstn:=TOrdConstNode(andn.left);
+              inputn:=andn.right;
+            end
+          else
+            Exit;
+
+          { An earlier node optimisation turns (x and const) = x into (x and const) <> 0
+            if PopCnt(const) = 1, so don't bother checking anything other than 0 }
+          if (compvaln.value.svalue<>0) or (nodetype in [gten,ltn]) or
+            { If the condition is <= or >, the optimisation can still work as
+              long as the bit in question isn't the sign bit }
+            (
+              (nodetype in [gtn,lten]) and
+              (
+                ((inputn.location.size=OS_S64) and (andconstn.value.svalue=$8000000000000000)) or
+                (not (inputn.location.size in [OS_64,OS_S64,OS_32]) and (longword(andconstn.value.uvalue)=$80000000))
+              )
+            )
+            then
+            Exit;
+
+          { Skip processing the constant and and nodes }
+          Include(compvaln.transientflags,tnf_do_not_execute);
+          Include(andn.transientflags,tnf_do_not_execute);
+
+          secondpass(inputn);
+
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,inputn.location,inputn.resultdef,inputn.resultdef,true);
+
+          if not is_shifter_const(andconstn.value.svalue, inputn.location.size) then
+            begin
+              secondpass(andconstn);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,andconstn.location,andconstn.resultdef,andconstn.resultdef,false);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_TST,inputn.location.register,andconstn.location.register));
+            end
+          else
+            begin
+              Include(andconstn.transientflags,tnf_do_not_execute);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,inputn.location.register,andconstn.value.svalue));
+            end;
+
+          location_reset(location,LOC_FLAGS,OS_NO);
+          if (nodetype in [equaln,lten]) then
+            { Can't be less than zero because the sign bit isn't set }
+            ResFlags:=F_EQ
+          else
+            ResFlags:=F_NE;
+
+          location.resflags:=ResFlags;
+          Result:=True;
+        end;
+
+      begin
+        Result:=False;
+
+        { Optimise "(x and const) = 0" and "(x and const) = const" to use TST rather than AND/CMP }
+        if ((right.nodetype=ordconstn) and (left.nodetype=andn) and try_arrangement(TOrdConstNode(right), TAddNode(left))) or
+          ((left.nodetype=ordconstn) and (right.nodetype=andn) and try_arrangement(TOrdConstNode(left), TAddNode(right))) then
+          Result:=True;
+      end;
+
+
     procedure taarch64addnode.second_cmpordinal;
       var
         unsigned : boolean;
       begin
+        if try_second_bit_test then
+          Exit;
+
         pass_left_right;
         force_reg_left_right(true,true);
 
