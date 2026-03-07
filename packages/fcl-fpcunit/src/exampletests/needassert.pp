@@ -1,5 +1,7 @@
 program needassert;
 
+{$mode objfpc}
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses FpcUnit.Test, FpcUnit.Registry, FpcUnit.Runners.Console;
 {$ELSE FPC_DOTTEDUNITS}
