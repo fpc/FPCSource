@@ -4329,13 +4329,13 @@ implementation
                           if tbinarynode(p1).left.nodetype=ordconstn then
                             begin
                               tordconstnode(tbinarynode(p1).left).value:=-tordconstnode(tbinarynode(p1).left).value;
-                              p1:=cunaryminusnode.create(p1,compiler);
+                              p1:=compiler.cunaryminusnode(p1);
                             end
                           else if tbinarynode(p1).left.nodetype=realconstn then
                             begin
                               trealconstnode(tbinarynode(p1).left).value_real:=-trealconstnode(tbinarynode(p1).left).value_real;
                               trealconstnode(tbinarynode(p1).left).value_currency:=-trealconstnode(tbinarynode(p1).left).value_currency;
-                              p1:=cunaryminusnode.create(p1,compiler);
+                              p1:=compiler.cunaryminusnode(p1);
                             end
                           else
                             internalerror(20021029);
@@ -4348,7 +4348,7 @@ implementation
                      else
                        p1:=sub_expr(oppower,[],nil);
 
-                     p1:=cunaryminusnode.create(p1,compiler);
+                     p1:=compiler.cunaryminusnode(p1);
                    end;
                end;
 

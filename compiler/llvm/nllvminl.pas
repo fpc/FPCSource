@@ -139,7 +139,7 @@ implementation
             ),
             compiler.cassignmentnode(
               compiler.ctemprefnode(resulttemp),
-              cunaryminusnode.create(compiler.ctemprefnode(lefttemp))
+              compiler.cunaryminusnode(compiler.ctemprefnode(lefttemp))
             )
           )
         );

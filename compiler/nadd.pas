@@ -997,7 +997,7 @@ const
             { multiplication by -1? Convert it into an unary minus if the other conversions before failed, don't do
               it before the folding above, see #40448 }
             if (tordconstnode(right).value = -1) and (nodetype=muln) then
-              result := compiler.ctypeconvnode_internal(cunaryminusnode.create(PruneKeepLeft(),compiler),ld);
+              result := compiler.ctypeconvnode_internal(compiler.cunaryminusnode(PruneKeepLeft()),ld);
 
             if assigned(result) then
               exit;
@@ -1017,12 +1017,12 @@ const
             else if is_constintnode(left) and (is_integer(right.resultdef) or is_pointer(right.resultdef)) then
               begin
                 if (tordconstnode(left).value = 0) then
-                  result := compiler.ctypeconvnode_internal(cunaryminusnode.create(right.getcopy,compiler),right.resultdef);
+                  result := compiler.ctypeconvnode_internal(compiler.cunaryminusnode(right.getcopy),right.resultdef);
               end
 
             { change "nil - val" to "-val" }
             else if (left.nodetype=niln) and is_pointer(right.resultdef) then
-              result := compiler.ctypeconvnode_internal(cunaryminusnode.create(compiler.ctypeconvnode_internal(right.getcopy,resultdef),compiler),resultdef)
+              result := compiler.ctypeconvnode_internal(compiler.cunaryminusnode(compiler.ctypeconvnode_internal(right.getcopy,resultdef)),resultdef)
 
             { convert n - n mod const into n div const*const }
             else if (right.nodetype=modn) and is_constintnode(tmoddivnode(right).right) and
@@ -1161,7 +1161,7 @@ const
                           subn:
                             begin
                               t := PruneKeepRight();
-                              result:=compiler.ctypeconvnode_internal(cunaryminusnode.create(t,compiler),rd);
+                              result:=compiler.ctypeconvnode_internal(compiler.cunaryminusnode(t),rd);
                               exit;
                             end;
                           else
@@ -1576,7 +1576,7 @@ const
                   begin
                     Result:=getcopy;
                     Result.nodetype:=addn;
-                    taddnode(result).right:=cunaryminusnode.create(taddnode(result).right,compiler);
+                    taddnode(result).right:=compiler.cunaryminusnode(taddnode(result).right);
                     exit;
                   end;
 
@@ -1588,7 +1588,7 @@ const
                   begin
                     Result:=getcopy;
                     taddnode(Result).left.nodetype:=addn;
-                    taddnode(taddnode(Result).left).right:=cunaryminusnode.create(taddnode(taddnode(Result).left).right,compiler);
+                    taddnode(taddnode(Result).left).right:=compiler.cunaryminusnode(taddnode(taddnode(Result).left).right);
                     exit;
                   end;
 
@@ -1615,7 +1615,7 @@ const
                     }
                     if nodetype=subn then
                       begin
-                        taddnode(left).right:=cunaryminusnode.create(taddnode(left).right,compiler);
+                        taddnode(left).right:=compiler.cunaryminusnode(taddnode(left).right);
                         do_typecheckpass(taddnode(left).right);
                       end;
                     Result:=SwapRightWithLeftLeft;
@@ -4170,7 +4170,7 @@ const
             if left.nodetype=muln then
               begin
                 if nodetype=subn then
-                  result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
+                  result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(compiler.cunaryminusnode(right),
                     compiler.ccallparanode(taddnode(left).right,
                     compiler.ccallparanode(taddnode(left).left,nil
                     ))))
@@ -4187,7 +4187,7 @@ const
               begin
                 if nodetype=subn then
                   result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(left,
-                    compiler.ccallparanode(cunaryminusnode.create(taddnode(right).right,compiler),
+                    compiler.ccallparanode(compiler.cunaryminusnode(taddnode(right).right),
                     compiler.ccallparanode(taddnode(right).left,nil
                     ))))
                 else
@@ -4204,7 +4204,7 @@ const
                 if node_complexity(tinlinenode(left).left)=0 then
                   begin
                     if nodetype=subn then
-                      result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(cunaryminusnode.create(right,compiler),
+                      result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(compiler.cunaryminusnode(right),
                         compiler.ccallparanode(tinlinenode(left).left.getcopy,
                         compiler.ccallparanode(tinlinenode(left).left.getcopy,nil
                         ))))
@@ -4223,7 +4223,7 @@ const
                   begin
                     if nodetype=subn then
                       result:=compiler.cinlinenode(inlinennr,false,compiler.ccallparanode(left,
-                        compiler.ccallparanode(cunaryminusnode.create(tinlinenode(right).left.getcopy,compiler),
+                        compiler.ccallparanode(compiler.cunaryminusnode(tinlinenode(right).left.getcopy),
                         compiler.ccallparanode(tinlinenode(right).left.getcopy,nil
                         ))))
                     else

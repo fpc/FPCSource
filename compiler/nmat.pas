@@ -182,7 +182,7 @@ implementation
             if (rv=-1) and
                (nodetype=divn) then
               begin
-                result:=cunaryminusnode.create(left,compiler);
+                result:=compiler.cunaryminusnode(left);
                 left:=nil;
                 exit;
               end;
@@ -476,7 +476,7 @@ implementation
 
              { prepare else block }
              { result:=(-left) mod right }
-             addstatement(else_statements,compiler.cassignmentnode(compiler.ctemprefnode(result_data),compiler.cmoddivnode(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy)));
+             addstatement(else_statements,compiler.cassignmentnode(compiler.ctemprefnode(result_data),compiler.cmoddivnode(modn,compiler.cunaryminusnode(left.getcopy),right.getcopy)));
              { result<>0? }
              addstatement(else_statements,compiler.cifnode_internal(compiler.caddnode_internal(unequaln,compiler.ctemprefnode(result_data),compiler.cordconstnode(0,resultdef,false)),
                { then: result:=right-result }
@@ -653,12 +653,12 @@ implementation
 
                     if invertsign then
                       addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(resulttemp),
-                        cunaryminusnode.create(
+                        compiler.cunaryminusnode(
                           compiler.cinlinenode(in_sar_x_y,false,
                             compiler.ccallparanode(compiler.cordconstnode(power,u8inttype,false),
                             compiler.ccallparanode(compiler.caddnode(addn,compiler.ctemprefnode(temp),
                               masknode),nil
-                            ))),compiler))
+                            )))))
                       )
                     else
                       addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(resulttemp),
