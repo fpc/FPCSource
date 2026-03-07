@@ -60,14 +60,12 @@ implementation
        hp,hp2 :  tmodule;
 
     begin
-       module.end_of_parsing;
-
        if (module.is_initial) and
           (status.errorcount=0) then
          { Write Browser Collections }
          do_extractsymbolinfo;
 
-       // olddata.restore(false);
+       module.end_of_parsing;
 
        { Restore all locally modified warning messages }
        RestoreLocalVerbosity(current_settings.pmessage);
