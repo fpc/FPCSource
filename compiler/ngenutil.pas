@@ -838,7 +838,7 @@ implementation
               if tprocvardef(p.vardef).is_addressonly then
                 { in tp/delphi mode, you need @procvar to get at the contents of
                   a procvar ... }
-                trashn:=caddrnode.create(trashn,compiler)
+                trashn:=compiler.caddrnode(trashn)
               else
                 { ... but if it's a procedure of object, that will only return
                   the procedure address -> cast to tmethod instead }

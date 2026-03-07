@@ -1373,7 +1373,7 @@ implementation
           if psym.capture_sym.owner.defowner<>capturer.vardef then
             internalerror(2022010903);
           if (vo_is_self in psym.varoptions) and not is_implicit_pointer_object_type(psym.vardef) then
-            n:=caddrnode.create(n,compiler);
+            n:=compiler.caddrnode(n);
           n:=compiler.cassignmentnode(
                csubscriptnode.create(psym.capture_sym,compiler.cloadnode(capturer,capturer.owner),compiler),
                n

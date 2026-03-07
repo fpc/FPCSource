@@ -263,7 +263,7 @@ implementation
                 third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
-                //right:=caddrnode.create(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
+                //right:=compiler.caddrnode(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
@@ -320,7 +320,7 @@ implementation
                 third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
-                //right:=caddrnode.create(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
+                //right:=compiler.caddrnode(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
@@ -377,7 +377,7 @@ implementation
                 third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
-                //right:=caddrnode.create(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
+                //right:=compiler.caddrnode(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
@@ -434,7 +434,7 @@ implementation
                 third:=compiler.cinlinenode(in_get_frame,false,nil);
                 //current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 //addstatement(statements,current_addr);
-                //right:=caddrnode.create(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
+                //right:=compiler.caddrnode(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }

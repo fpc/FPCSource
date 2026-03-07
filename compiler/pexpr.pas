@@ -649,7 +649,7 @@ implementation
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
-              p1:=caddrnode.create(p1,compiler);
+              p1:=compiler.caddrnode(p1);
               got_addrn:=false;
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -681,7 +681,7 @@ implementation
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
-              p1:=caddrnode.create(p1,compiler);
+              p1:=compiler.caddrnode(p1);
               include(taddrnode(p1).addrnodeflags,anf_ofs);
               got_addrn:=false;
               { Ofs() returns a cardinal/qword, not a pointer }
@@ -4267,7 +4267,7 @@ implementation
                     postfixoperators(p1,again,getaddr);
                   end;
                  got_addrn:=false;
-                 p1:=caddrnode.create(p1,compiler);
+                 p1:=compiler.caddrnode(p1);
                  p1.fileinfo:=filepos;
                  if cs_typed_addresses in current_settings.localswitches then
                    include(taddrnode(p1).addrnodeflags,anf_typedaddr);

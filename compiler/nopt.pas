@@ -330,7 +330,7 @@ begin
         inserttypeconv(sn,p.resultdef,compiler);
       if is_shortstr then
         begin
-          sn:=caddrnode.create(sn,compiler);
+          sn:=compiler.caddrnode(sn);
           include(sn.flags,nf_internal);
         end;
       arrp:=compiler.carrayconstructornode(sn,arrp);
@@ -341,7 +341,7 @@ begin
     inserttypeconv(sn,p.resultdef,compiler);
   if is_shortstr then
     begin
-      sn:=caddrnode.create(sn,compiler);
+      sn:=compiler.caddrnode(sn);
       include(sn.flags,nf_internal);
     end;
   arrp:=compiler.carrayconstructornode(sn,arrp);

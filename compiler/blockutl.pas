@@ -284,7 +284,7 @@ implementation
       { temp.base.isa:=@blockisasym }
       addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'ISA'),
-        caddrnode.create(compiler.cloadnode(blockisasym,blockisasym.owner),compiler)));
+        compiler.caddrnode(compiler.cloadnode(blockisasym,blockisasym.owner))));
       { temp.base.flags:=blockflags }
       addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'FLAGS'),
@@ -301,13 +301,13 @@ implementation
       { temp.base.descriptor:=@descriptor }
       addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'DESCRIPTOR'),
-        caddrnode.create(compiler.cloadnode(descriptor,descriptor.owner),compiler)));
+        compiler.caddrnode(compiler.cloadnode(descriptor,descriptor.owner))));
       { temp.pv:=tmethod(@orgpd) }
       addstatement(statement,compiler.cassignmentnode(
         compiler.ctypeconvnode_explicit(genloadfield(compiler.ctemprefnode(literaltemp),'PV'),orgpv),
           procvarnode.getcopy));
       { and return the address of the temp }
-      addstatement(statement,caddrnode.create(compiler.ctemprefnode(literaltemp),compiler));
+      addstatement(statement,compiler.caddrnode(compiler.ctemprefnode(literaltemp)));
       { typecheck this now, because the current source may be written in TP/
         Delphi/MacPas mode and the above node tree has been constructed for
         ObjFPC mode, which has been set by replace_scanner (in Delphi, the
@@ -370,7 +370,7 @@ implementation
         begin
           blockliteralsym:=get_global_proc_literal_sym(blockliteraldef,blockisasym,blockflags,invokepd,descriptor);
           { result: address of the block literal }
-          result:=caddrnode.create(compiler.cloadnode(blockliteralsym,blockliteralsym.owner),compiler);
+          result:=compiler.caddrnode(compiler.cloadnode(blockliteralsym,blockliteralsym.owner));
         end
       else
         begin

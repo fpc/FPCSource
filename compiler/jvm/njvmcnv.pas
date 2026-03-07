@@ -321,7 +321,7 @@ implementation
               vs:=tstaticvarsym(systemunit.Find('FPC_EMPTYWIDECHAR'));
             if not assigned(vs) then
               internalerror(2012052605);
-            result:=caddrnode.create(compiler.cloadnode(vs,vs.owner));
+            result:=compiler.caddrnode(compiler.cloadnode(vs,vs.owner));
             result:=compiler.ctypeconvnode_explicit(result,resultdef);
           end;
       end;

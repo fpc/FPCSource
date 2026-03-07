@@ -586,7 +586,7 @@ implementation
         pvardatadef:=tpointerdef(search_system_type('PVARDATA').typedef);
 
         if useresult then
-          resultvalue:=caddrnode.create(compiler.ctemprefnode(result_data),compiler)
+          resultvalue:=compiler.caddrnode(compiler.ctemprefnode(result_data))
         else
           resultvalue:=compiler.cpointerconstnode(0,voidpointertype);
 
@@ -635,8 +635,8 @@ implementation
 
             addstatement(statements,compiler.ccallnode_intern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
-              compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
-              compiler.ccallparanode(caddrnode.create(compiler.cloadnode(calldescsym,current_module.localsymtable),compiler),
+              compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(params)),
+              compiler.ccallparanode(compiler.caddrnode(compiler.cloadnode(calldescsym,current_module.localsymtable)),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(selfpara,vardatadef),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
@@ -647,8 +647,8 @@ implementation
           begin
             addstatement(statements,compiler.ccallnode_intern('fpc_dispatch_by_id',
               { parameters are passed always reverted, i.e. the last comes first }
-              compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(params),compiler),
-              compiler.ccallparanode(caddrnode.create(compiler.cloadnode(calldescsym,current_module.localsymtable),compiler),
+              compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(params)),
+              compiler.ccallparanode(compiler.caddrnode(compiler.cloadnode(calldescsym,current_module.localsymtable)),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(selfnode,voidpointertype),
               compiler.ccallparanode(compiler.ctypeconvnode_internal(resultvalue,pvardatadef),nil)))))
             );
@@ -716,7 +716,7 @@ implementation
             callnode.add_init_statement(
               compiler.cassignmentnode(
                 compiler.ctemprefnode(temp),
-                caddrnode.create(left,compiler)));
+                compiler.caddrnode(left)));
             if not is_open_array(resultdef) or
                not is_managed_type(tarraydef(resultdef).elementdef) then
               { finalize the entire parameter }

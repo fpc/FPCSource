@@ -88,7 +88,7 @@ implementation
          addr_node_resultdef: tdef;
          seg_node: tnode;
        begin
-         addr_node:=caddrnode.create(left);
+         addr_node:=compiler.caddrnode(left);
          typecheckpass(addr_node);
          addr_node_resultdef:=addr_node.resultdef;
          if is_farpointer(addr_node.resultdef) or is_farprocvar(addr_node.resultdef) then

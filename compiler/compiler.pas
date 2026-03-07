@@ -281,7 +281,9 @@ type
     function cnotnode(expr : tnode):tnotnode; inline;
     { nmem }
     function cloadvmtaddrnode(l : tnode):tloadvmtaddrnode; inline;
-    //TODO:caddrnode
+    function caddrnode(l : tnode):taddrnode; inline;
+    //TODO:constructor create_internal(l : tnode;acompiler:TCompilerBase); virtual;
+    //TODO:constructor create_internal_nomark(l : tnode;acompiler:TCompilerBase); virtual;
     //TODO:cderefnode
     //TODO:csubscriptnode
     //TODO:cvecnode
@@ -1022,6 +1024,11 @@ end;
 function TCompilerHelper.cloadvmtaddrnode(l: tnode): tloadvmtaddrnode; inline;
 begin
   result:=nmem.cloadvmtaddrnode.create(l,self);
+end;
+
+function TCompilerHelper.caddrnode(l: tnode): taddrnode; inline;
+begin
+  result:=nmem.caddrnode.create(l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

@@ -125,7 +125,7 @@ implementation
                 end;
               if jvmimplicitpointertype(p.resultdef) then
                 begin
-                  p:=caddrnode.create(p);
+                  p:=compiler.caddrnode(p);
                   include(taddrnode(p).addrnodeflags,anf_typedaddr);
                 end;
               paras:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(p,

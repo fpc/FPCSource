@@ -161,11 +161,11 @@ function tjvmassignmentnode.pass_1: tnode;
             tempn:=compiler.ctempcreatenode_value(right.resultdef,right.resultdef.size,
               tt_persistent,false,right);
             addstatement(stat,tempn);
-            right:=caddrnode.create(compiler.ctemprefnode(tempn));
+            right:=compiler.caddrnode(compiler.ctemprefnode(tempn));
             inserttypeconv_explicit(right,java_jlobject);
             addstatement(stat,compiler.ctempdeletenode_normal_temp(tempn));
             addstatement(stat,compiler.ctypeconvnode_explicit(
-              caddrnode.create(compiler.ctemprefnode(tempn)),java_jlobject));
+              compiler.caddrnode(compiler.ctemprefnode(tempn)),java_jlobject));
             right:=block;
           end;
         typecheckpass(right);

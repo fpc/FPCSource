@@ -632,7 +632,7 @@ implementation
               begin
                 self_temp:=compiler.ctempcreatenode_value(
                   cpointerdef.getreusable(self_resultdef,compiler),cpointerdef.getreusable(self_resultdef,compiler).size,tt_persistent,true,
-                  caddrnode.create(self_node,compiler));
+                  compiler.caddrnode(self_node));
               end
             else
               self_temp:=compiler.ctempcreatenode_value(

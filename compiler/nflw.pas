@@ -458,8 +458,8 @@ implementation
          outerloop:=internalstatements(compiler,outerloopbodystatement);
          { the countByEnumeratingWithState_objects_count call }
          hp:=compiler.ccallparanode(compiler.cinlinenode(in_length_x,false,compiler.ctypenode(itemsarraydef)),
-               compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(items),compiler),
-                 compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(state),compiler),nil)
+               compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(items)),
+                 compiler.ccallparanode(compiler.caddrnode(compiler.ctemprefnode(state)),nil)
                )
              );
          sym:=search_struct_member(objc_fastenumeration,'COUNTBYENUMERATINGWITHSTATE_OBJECTS_COUNT');
@@ -2724,7 +2724,7 @@ implementation
                 current_addr:=compiler.clabelnode(compiler.cnothingnode,clabelsym.create('$raiseaddr'));
                 include(current_addr.flags,nf_internal);
                 addstatement(statements,current_addr);
-                right:=caddrnode.create(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner),compiler);
+                right:=compiler.caddrnode(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
 
                 { raise address off by one so we are for sure inside the action area for the raise }
                 if tf_use_psabieh in target_info.flags then
