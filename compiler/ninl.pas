@@ -5513,7 +5513,7 @@ implementation
 {$else}
          paras:=compiler.ccallparanode(compiler.ccallnode_internfromunit('SYSTEM','GET_FRAME',nil),paras);
 {$endif}
-         result:=compiler.cifnode(cnotnode.create(tcallparanode(left).left,compiler),
+         result:=compiler.cifnode(compiler.cnotnode(tcallparanode(left).left),
             compiler.ccallnode_intern('fpc_assert',paras),nil);
          include(result.flags,nf_internal);
          tcallparanode(left).left:=nil;

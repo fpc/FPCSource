@@ -4356,7 +4356,7 @@ implementation
                begin
                  consume(_OP_NOT);
                  p1:=factor(false,[]);
-                 p1:=cnotnode.create(p1,compiler);
+                 p1:=compiler.cnotnode(p1);
                end;
 
              _NIL :
@@ -4950,7 +4950,7 @@ implementation
                _OP_DIV :
                  p1:=compiler.cmoddivnode(divn,p1,p2);
                _OP_NOT :
-                 p1:=cnotnode.create(p1,compiler);
+                 p1:=compiler.cnotnode(p1);
                _OP_MOD :
                  begin
                    p1:=compiler.cmoddivnode(modn,p1,p2);

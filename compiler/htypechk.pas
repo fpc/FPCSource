@@ -1039,7 +1039,7 @@ implementation
         { if we found "=" operator for "<>" expression then use it
           together with "not" }
         if (t.nodetype=unequaln) and (optoken=_EQ) then
-          ht:=cnotnode.create(ht,compiler);
+          ht:=compiler.cnotnode(ht);
         t:=ht;
       end;
 

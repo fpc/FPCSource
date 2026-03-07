@@ -219,7 +219,7 @@ interface
               result:=compiler.ccallnode_internmethod(left,procname,compiler.ccallparanode(right,nil));
               { for an unequaln, we have to negate the result of equals }
               if nodetype=unequaln then
-                result:=cnotnode.create(result);
+                result:=compiler.cnotnode(result);
             end;
           addn:
             begin

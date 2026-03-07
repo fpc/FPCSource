@@ -1102,12 +1102,12 @@ implementation
           begin
             if is_constintnode(taddnode(left).right) and (tordconstnode(taddnode(left).right).value=1) then
               begin
-                result:=cnotnode.create(taddnode(left).left.getcopy,compiler);
+                result:=compiler.cnotnode(taddnode(left).left.getcopy);
                 exit;
               end
             else if is_constintnode(taddnode(left).left) and (tordconstnode(taddnode(left).left).value=1) then
               begin
-                result:=cnotnode.create(taddnode(left).right.getcopy,compiler);
+                result:=compiler.cnotnode(taddnode(left).right.getcopy);
                 exit;
               end;
           end;

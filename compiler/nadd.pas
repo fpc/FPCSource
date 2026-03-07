@@ -535,7 +535,7 @@ const
 
               { resn now checks for Length = 0. For Length <> 0, invert. }
               if op in [unequaln,gtn] then
-                resn:=cnotnode.create(resn,compiler);
+                resn:=compiler.cnotnode(resn);
               exit(true);
             end;
 
@@ -1009,7 +1009,7 @@ const
             { transform -1-x into not(x) }
             if is_signed(rd) and is_constintnode(left) and (tordconstnode(left).value=-1)  then
               begin
-                result:=cnotnode.create(right.getcopy,compiler);
+                result:=compiler.cnotnode(right.getcopy);
                 exit;
               end
 
@@ -1038,7 +1038,7 @@ const
             { transform -x-1 into not(x) }
             else if is_signed(ld) and is_constintnode(right) and (tordconstnode(right).value=1) and (left.nodetype=unaryminusn) then
               begin
-                result:=cnotnode.create(tunaryminusnode(left).left.getcopy,compiler);
+                result:=compiler.cnotnode(tunaryminusnode(left).left.getcopy);
                 exit;
               end;
           end;
@@ -1473,7 +1473,7 @@ const
                   end
                 else if ((nodetype=xorn) and (tordconstnode(left).value<>0)) then
                   begin
-                    Result := cnotnode.create(PruneKeepRight(),compiler);
+                    Result := compiler.cnotnode(PruneKeepRight());
                     exit;
                   end
               end
@@ -1495,7 +1495,7 @@ const
                   end
                 else if ((nodetype=xorn) and (tordconstnode(right).value<>0)) then
                   begin
-                    result := cnotnode.create(PruneKeepLeft(),compiler);
+                    result := compiler.cnotnode(PruneKeepLeft());
                     exit;
                   end
               end;
@@ -2510,7 +2510,7 @@ const
                           if (not(b) and (ot=equaln)) or
                              (b and (ot=unequaln)) then
                            begin
-                             hp:=cnotnode.create(hp,compiler);
+                             hp:=compiler.cnotnode(hp);
                            end;
                           result:=hp;
                           exit;
@@ -2524,7 +2524,7 @@ const
                           if (not(b) and (ot=equaln)) or
                              (b and (ot=unequaln)) then
                            begin
-                             hp:=cnotnode.create(hp,compiler);
+                             hp:=compiler.cnotnode(hp);
                            end;
                           result:=hp;
                           exit;
@@ -3626,7 +3626,7 @@ const
                           { and compare its result with 0 }
                           result:=compiler.caddnode(equaln,result,compiler.cordconstnode(0,s8inttype,false));
                           if nodetype=unequaln then
-                            result:=cnotnode.create(result,compiler);
+                            result:=compiler.cnotnode(result);
                         end
                       else
                         begin
@@ -3757,7 +3757,7 @@ const
                 right := nil;
                 { for an unequaln, we have to negate the result of comp_sets }
                 if nodetype = unequaln then
-                  result := cnotnode.create(result,compiler);
+                  result := compiler.cnotnode(result);
             end;
           addn:
             begin
@@ -4459,7 +4459,7 @@ const
 
         { do we need to reverse the result }
         if notnode then
-          result:=cnotnode.create(result,compiler);
+          result:=compiler.cnotnode(result);
       end;
 
     function taddnode.first_addfloat : tnode;
@@ -4574,7 +4574,7 @@ const
                              result:=tempn;
                          end;
                      if nodetype=equaln then
-                       result:=cnotnode.create(result,compiler);
+                       result:=compiler.cnotnode(result);
                      exit;
                    end;
                end;
