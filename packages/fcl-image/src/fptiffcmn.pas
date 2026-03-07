@@ -70,6 +70,13 @@ const
   TiffTileLength = TiffExtraPrefix+'TileLength';
   TiffCompression = TiffExtraPrefix+'Compression'; // number
   TiffSampleFormat = TiffExtraPrefix+'SampleFormat'; // number: 1=uint, 2=int, 3=float
+  { 
+  To write a 32-bit float RGB TIFF, set these image extras before calling the writer:
+  Img.Extra[TiffSampleFormat] := '3';  // TiffSampleFormatIEEEFloat
+  Img.Extra[TiffRedBits] := '32';
+  Img.Extra[TiffGreenBits] := '32';
+  Img.Extra[TiffBlueBits] := '32';  
+  }
 
   TiffCompressionNone = 1; { No Compression, but pack data into bytes as tightly as possible,
        leaving no unused bits (except at the end of a row). The component
