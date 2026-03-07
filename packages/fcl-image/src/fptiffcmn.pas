@@ -69,6 +69,7 @@ const
   TiffTileWidth = TiffExtraPrefix+'TileWidth';
   TiffTileLength = TiffExtraPrefix+'TileLength';
   TiffCompression = TiffExtraPrefix+'Compression'; // number
+  TiffSampleFormat = TiffExtraPrefix+'SampleFormat'; // number: 1=uint, 2=int, 3=float
 
   TiffCompressionNone = 1; { No Compression, but pack data into bytes as tightly as possible,
        leaving no unused bits (except at the end of a row). The component
@@ -107,6 +108,12 @@ const
   // Planar configuration - TIFF 6.0 spec p. 38
   TiffPlanarConfigurationChunky = 1; //Chunky format
   TiffPlanarConfigurationPlanar = 2; //Planar format
+
+  // SampleFormat - TIFF 6.0 spec, tag 339
+  TiffSampleFormatUnsignedInteger = 1;
+  TiffSampleFormatSignedInteger = 2;
+  TiffSampleFormatIEEEFloat = 3;
+  TiffSampleFormatUndefined = 4;
 
   GEOTIFF_MODELPIXELSCALE = 33550;
   GEOTIFF_MODELTIEPOINT = 33922;
@@ -174,6 +181,7 @@ type
     PlanarConfiguration: DWord;
     ResolutionUnit: DWord;
     RowsPerStrip: DWord;
+    SampleFormat: DWord;
     SamplesPerPixel: DWord;
     Software: AnsiString;
     StripByteCounts: SizeUInt;// tiff position of entry
@@ -335,6 +343,7 @@ begin
   RowsPerStrip:=0;
   StripOffsets:=0;
   StripByteCounts:=0;
+  SampleFormat:=TiffSampleFormatUnsignedInteger;
   SamplesPerPixel:=0;
   Artist:='';
   HostComputer:='';
@@ -395,6 +404,7 @@ begin
   RowsPerStrip:=IFD.RowsPerStrip;
   StripOffsets:=IFD.StripOffsets;
   StripByteCounts:=IFD.StripByteCounts;
+  SampleFormat:=IFD.SampleFormat;
   SamplesPerPixel:=IFD.SamplesPerPixel;
   Artist:=IFD.Artist;
   HostComputer:=IFD.HostComputer;
@@ -462,6 +472,7 @@ begin
   TileWidth:=StrToIntDef(Src.Extra[TiffTileWidth],0);
   TileLength:=StrToIntDef(Src.Extra[TiffTileLength],0);
   Compression:=StrToIntDef(Src.Extra[TiffCompression],TiffCompressionNone);
+  SampleFormat:=StrToIntDef(Src.Extra[TiffSampleFormat],TiffSampleFormatUnsignedInteger);
 end;
 
 function TTiffIFD.ImageLength: DWord;

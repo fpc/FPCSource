@@ -14,7 +14,7 @@
  **********************************************************************
 
  Working:
-   Sample bitdepth: 1, 4, 8, 12, 16
+   Sample bitdepth: 1, 4, 8, 12, 16, 32-float, 64-float
    Color format: black and white, grayscale, RGB, colormap
    Alpha channel: none, premultiplied, separated
    Compression: packbits, LZW, deflate
@@ -68,6 +68,8 @@ type
   TFPReaderTiff = class(TFPCustomImageReader)
   private
     FCheckIFDOrder: TTiffCheckIFDOrder;
+    FDefaultMinSampleValue: Double;
+    FDefaultMaxSampleValue: Double;
     FFirstIFDStart: SizeUInt;
     FOnCreateImage: TTiffCreateCompatibleImgEvent;
     {$ifdef FPC_Debug_Image}
@@ -134,6 +136,8 @@ type
     property OnCreateImage: TTiffCreateCompatibleImgEvent read FOnCreateImage
                                                           write FOnCreateImage;
     property CheckIFDOrder: TTiffCheckIFDOrder read FCheckIFDOrder write FCheckIFDOrder; //check order of IFD entries or not
+    property DefaultMinSampleValue: Double read FDefaultMinSampleValue write FDefaultMinSampleValue;
+    property DefaultMaxSampleValue: Double read FDefaultMaxSampleValue write FDefaultMaxSampleValue;
     function FirstImg: TTiffIFD;
     function GetBiggestImage: TTiffIFD;
     function ImageCount: integer;
@@ -269,12 +273,17 @@ begin
   ReAllocMem(ExtraSamples, 0);  //end of extra samples
 
   for i:=0 to SampleCnt-1 do begin
-    if SampleBits[i]>16 then
-      TiffError('Samples bigger than 16 bit not supported');
-    if not (SampleBits[i] in [1, 4, 8, 12, 16]) then
-      TiffError('Only samples of 1, 4, 8, 12 and 16 bit are supported');
-    if (i <> 0) and ((SampleBits[i] = 1) xor (SampleBits[0] = 1)) then
-      TiffError('Cannot mix 1 bit samples with other sample sizes');
+    if IFD.SampleFormat = TiffSampleFormatIEEEFloat then begin
+      if not (SampleBits[i] in [32, 64]) then
+        TiffError('Float samples must be 32 or 64 bit, but found '+IntToStr(SampleBits[i]));
+    end else begin
+      if SampleBits[i]>16 then
+        TiffError('Samples bigger than 16 bit not supported');
+      if not (SampleBits[i] in [1, 4, 8, 12, 16]) then
+        TiffError('Only samples of 1, 4, 8, 12 and 16 bit are supported');
+      if (i <> 0) and ((SampleBits[i] = 1) xor (SampleBits[0] = 1)) then
+        TiffError('Cannot mix 1 bit samples with other sample sizes');
+    end;
     inc(SampleBitsPerPixel, SampleBits[i]);
   end;
 
@@ -432,6 +441,8 @@ begin
     CurImg.Extra[TiffIsMask]:='1';
   if IFD.Compression<>TiffCompressionNone then
     CurImg.Extra[TiffCompression]:=IntToStr(IFD.Compression);
+  if IFD.SampleFormat<>TiffSampleFormatUnsignedInteger then
+    CurImg.Extra[TiffSampleFormat]:=IntToStr(IFD.SampleFormat);
 
   {$ifdef FPC_Debug_Image}
   if Debug then
@@ -445,6 +456,10 @@ procedure TFPReaderTiff.ReadImgValue(BitCount: Word;
 var
   BitNumber: byte;
   Byte1, Byte2: byte;
+  FloatValue: Double;
+  RawSingle: DWord;
+  RawDouble: QWord;
+  MinVal, MaxVal, Range: Double;
 begin
   case BitCount of
   1:
@@ -511,6 +526,44 @@ begin
       Value:=FixEndian(PCUInt16(Run)^);
       inc(Run,2);
       if Predictor = 2 then Value := (LastValue+Value) and $ffff;
+      LastValue:=Value;
+    end;
+  32:
+    begin
+      // 32-bit IEEE float
+      RawSingle:=FixEndian(PDWord(Run)^);
+      FloatValue:=PSingle(@RawSingle)^;
+      inc(Run,4);
+      MinVal:=FDefaultMinSampleValue;
+      MaxVal:=FDefaultMaxSampleValue;
+      Range:=MaxVal-MinVal;
+      if Range<>0 then
+        FloatValue:=(FloatValue-MinVal)/Range
+      else
+        FloatValue:=0;
+      if FloatValue<0 then FloatValue:=0;
+      if FloatValue>1 then FloatValue:=1;
+      Value:=Round(FloatValue*$FFFF);
+      LastValue:=Value;
+    end;
+  64:
+    begin
+      // 64-bit IEEE float
+      RawDouble:=PQWord(Run)^;
+      if FReverseEndian then
+        RawDouble:=SwapEndian(RawDouble);
+      FloatValue:=PDouble(@RawDouble)^;
+      inc(Run,8);
+      MinVal:=FDefaultMinSampleValue;
+      MaxVal:=FDefaultMaxSampleValue;
+      Range:=MaxVal-MinVal;
+      if Range<>0 then
+        FloatValue:=(FloatValue-MinVal)/Range
+      else
+        FloatValue:=0;
+      if FloatValue<0 then FloatValue:=0;
+      if FloatValue>1 then FloatValue:=1;
+      Value:=Round(FloatValue*$FFFF);
       LastValue:=Value;
     end;
   end;
@@ -1049,18 +1102,32 @@ begin
     end;
   280:
     begin
-      // MinSampleValue
+      // MinSampleValue (one per sample, use first)
+      ReadShortValues(GetPos,WordBuffer,Count);
+      try
+        if Count>=1 then
+          FDefaultMinSampleValue:=WordBuffer[0];
+      finally
+        ReAllocMem(WordBuffer,0);
+      end;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 280: skipping MinSampleValue');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 280: MinSampleValue=',FDefaultMinSampleValue:0:6);
       {$endif}
     end;
   281:
     begin
-      // MaxSampleValue
+      // MaxSampleValue (one per sample, use first)
+      ReadShortValues(GetPos,WordBuffer,Count);
+      try
+        if Count>=1 then
+          FDefaultMaxSampleValue:=WordBuffer[0];
+      finally
+        ReAllocMem(WordBuffer,0);
+      end;
       {$ifdef FPC_Debug_Image}
       if Debug then
-        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 281: skipping MaxSampleValue');
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 281: MaxSampleValue=',FDefaultMaxSampleValue:0:6);
       {$endif}
     end;
   282:
@@ -1333,6 +1400,21 @@ begin
         writeln;
         ReAllocMem(WordBuffer,0);
       end;
+      {$endif}
+    end;
+  339:
+    begin
+      // SampleFormat (one per sample, use first)
+      ReadShortValues(GetPos,WordBuffer,Count);
+      try
+        if Count>=1 then
+          IFD.SampleFormat:=WordBuffer[0];
+      finally
+        ReAllocMem(WordBuffer,0);
+      end;
+      {$ifdef FPC_Debug_Image}
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Tag 339: SampleFormat=',IFD.SampleFormat);
       {$endif}
     end;
   347:
@@ -2477,6 +2559,8 @@ end;
 constructor TFPReaderTiff.Create;
 begin
   ImageList:=TFPList.Create;
+  FDefaultMinSampleValue:=0.0;
+  FDefaultMaxSampleValue:=1.0;
 end;
 
 destructor TFPReaderTiff.Destroy;

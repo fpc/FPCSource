@@ -14,8 +14,8 @@
  **********************************************************************
 
  Working:
-   Grayscale 8,16bit (optional alpha),
-   RGB 8,16bit (optional alpha),
+   Grayscale 8,16bit,32-float,64-float (optional alpha),
+   RGB 8,16bit,32-float,64-float (optional alpha),
    Orientation,
    multiple images, pages
    thumbnail
@@ -85,6 +85,8 @@ type
 
   TFPWriterTiff = class(TFPCustomImageWriter)
   private
+    FDefaultMinSampleValue: Double;
+    FDefaultMaxSampleValue: Double;
     FSaveCMYKAsRGB: boolean;
     fStartPos: Int64;
     FEntries: TFPList; // list of TFPList of TTiffWriterEntry
@@ -121,6 +123,8 @@ type
     procedure AddImage(Img: TFPCustomImage);
     procedure SaveToStream(Stream: TStream);
     property SaveCMYKAsRGB: boolean read FSaveCMYKAsRGB write FSaveCMYKAsRGB;
+    property DefaultMinSampleValue: Double read FDefaultMinSampleValue write FDefaultMinSampleValue;
+    property DefaultMaxSampleValue: Double read FDefaultMaxSampleValue write FDefaultMaxSampleValue;
   end;
 
 function CompareTiffWriteEntries(Entry1, Entry2: Pointer): integer;
@@ -398,6 +402,8 @@ end;
 procedure TFPWriterTiff.AddImage(Img: TFPCustomImage);
 var
   IFD: TTiffIFD;
+  SampleFormat: DWord;
+  SampleFormatArray: array[0..3] of Word;
   GrayBits, RedBits, GreenBits, BlueBits, AlphaBits: Word;
   ImgWidth, ImgHeight: DWord;
   Compression: Word;
@@ -418,6 +424,9 @@ var
   Run: PByte;
   Col: TFPColor;
   Value: Integer;
+  FloatValue: Single;
+  DoubleValue: Double;
+  MinVal, MaxVal, Range: Double;
   CurEntries: TFPList;
   Shorts: array[0..3] of Word;
   NewSubFileType: DWord;
@@ -479,7 +488,12 @@ begin
         SamplesPerPixel:=3;
       end;
     end;
-    AlphaBits:=StrToIntDef(Img.Extra[TiffAlphaBits],8);
+    SampleFormat:=StrToIntDef(Img.Extra[TiffSampleFormat],TiffSampleFormatUnsignedInteger);
+    if SampleFormat=TiffSampleFormatIEEEFloat then begin
+      AlphaBits:=StrToIntDef(Img.Extra[TiffAlphaBits],0);
+    end else begin
+      AlphaBits:=StrToIntDef(Img.Extra[TiffAlphaBits],8);
+    end;
     if AlphaBits>0 then begin
       BitsPerSample[SamplesPerPixel]:=AlphaBits;
       inc(SamplesPerPixel);
@@ -535,6 +549,12 @@ begin
     // BitsPerSample (required)
     AddEntry(258,3,SamplesPerPixel,@BitsPerSample[0],SamplesPerPixel*2);
     AddEntryShort(277,SamplesPerPixel);
+    // SampleFormat (tag 339) - write when not default unsigned integer
+    if SampleFormat<>TiffSampleFormatUnsignedInteger then begin
+      for i:=0 to SamplesPerPixel-1 do
+        SampleFormatArray[i]:=SampleFormat;
+      AddEntry(339,3,SamplesPerPixel,@SampleFormatArray[0],SamplesPerPixel*2);
+    end;
 
     // BitsPerPixel, BytesPerLine
     BitsPerPixel:=0;
@@ -653,6 +673,11 @@ begin
           end;
         end;
         //writeln('TFPWriterTiff.AddImage Chunk=',ChunkIndex,'/',ChunkCount,' ChunkBytes=',ChunkBytes,' ChunkRect=',ChunkLeft,',',ChunkTop,',',ChunkWidth,'x',ChunkHeight,' x=',x,' y=',y,' dx=',dx,' dy=',dy);
+        // precompute float range for normalization
+        MinVal:=FDefaultMinSampleValue;
+        MaxVal:=FDefaultMaxSampleValue;
+        Range:=MaxVal-MinVal;
+
         sx:=x; // save start x
         for cy:=0 to ChunkHeight-1 do begin
           x:=sx;
@@ -672,6 +697,14 @@ begin
                 end else if GrayBits=16 then begin
                   PWord(Run)^:=Value;
                   inc(Run,2);
+                end else if GrayBits=32 then begin
+                  FloatValue:=MinVal+(Value/$FFFF)*Range;
+                  PSingle(Run)^:=FloatValue;
+                  inc(Run,4);
+                end else if GrayBits=64 then begin
+                  DoubleValue:=MinVal+(Value/$FFFF)*Range;
+                  PDouble(Run)^:=DoubleValue;
+                  inc(Run,8);
                 end;
                 if AlphaBits=8 then begin
                   Run^:=Col.alpha shr 8;
@@ -679,6 +712,14 @@ begin
                 end else if AlphaBits=16 then begin
                   PWord(Run)^:=Col.alpha;
                   inc(Run,2);
+                end else if AlphaBits=32 then begin
+                  FloatValue:=MinVal+(Col.alpha/$FFFF)*Range;
+                  PSingle(Run)^:=FloatValue;
+                  inc(Run,4);
+                end else if AlphaBits=64 then begin
+                  DoubleValue:=MinVal+(Col.alpha/$FFFF)*Range;
+                  PDouble(Run)^:=DoubleValue;
+                  inc(Run,8);
                 end;
               end;
             2:
@@ -690,6 +731,14 @@ begin
                 end else if RedBits=16 then begin
                   PWord(Run)^:=Col.red;
                   inc(Run,2);
+                end else if RedBits=32 then begin
+                  FloatValue:=MinVal+(Col.red/$FFFF)*Range;
+                  PSingle(Run)^:=FloatValue;
+                  inc(Run,4);
+                end else if RedBits=64 then begin
+                  DoubleValue:=MinVal+(Col.red/$FFFF)*Range;
+                  PDouble(Run)^:=DoubleValue;
+                  inc(Run,8);
                 end;
                 if GreenBits=8 then begin
                   Run^:=Col.green shr 8;
@@ -697,6 +746,14 @@ begin
                 end else if GreenBits=16 then begin
                   PWord(Run)^:=Col.green;
                   inc(Run,2);
+                end else if GreenBits=32 then begin
+                  FloatValue:=MinVal+(Col.green/$FFFF)*Range;
+                  PSingle(Run)^:=FloatValue;
+                  inc(Run,4);
+                end else if GreenBits=64 then begin
+                  DoubleValue:=MinVal+(Col.green/$FFFF)*Range;
+                  PDouble(Run)^:=DoubleValue;
+                  inc(Run,8);
                 end;
                 if BlueBits=8 then begin
                   Run^:=Col.blue shr 8;
@@ -704,6 +761,14 @@ begin
                 end else if BlueBits=16 then begin
                   PWord(Run)^:=Col.blue;
                   inc(Run,2);
+                end else if BlueBits=32 then begin
+                  FloatValue:=MinVal+(Col.blue/$FFFF)*Range;
+                  PSingle(Run)^:=FloatValue;
+                  inc(Run,4);
+                end else if BlueBits=64 then begin
+                  DoubleValue:=MinVal+(Col.blue/$FFFF)*Range;
+                  PDouble(Run)^:=DoubleValue;
+                  inc(Run,8);
                 end;
                 if AlphaBits=8 then begin
                   Run^:=Col.alpha shr 8;
@@ -711,6 +776,14 @@ begin
                 end else if AlphaBits=16 then begin
                   PWord(Run)^:=Col.alpha;
                   inc(Run,2);
+                end else if AlphaBits=32 then begin
+                  FloatValue:=MinVal+(Col.alpha/$FFFF)*Range;
+                  PSingle(Run)^:=FloatValue;
+                  inc(Run,4);
+                end else if AlphaBits=64 then begin
+                  DoubleValue:=MinVal+(Col.alpha/$FFFF)*Range;
+                  PDouble(Run)^:=DoubleValue;
+                  inc(Run,8);
                 end;
               end;
             end;
@@ -850,6 +923,8 @@ begin
   inherited Create;
   FEntries:=TFPList.Create;
   FSaveCMYKAsRGB:=true;
+  FDefaultMinSampleValue:=0.0;
+  FDefaultMaxSampleValue:=1.0;
 end;
 
 destructor TFPWriterTiff.Destroy;
