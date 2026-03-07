@@ -38,6 +38,7 @@ type
   TCSEOptimizer = class
   private
     FCompiler: TCompilerBase;
+    function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
     function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -311,9 +312,7 @@ type
        end;
 
 
-    function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TCSEOptimizer.searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
       var
         csedomain : boolean;
         lists : tlists;
@@ -599,7 +598,7 @@ type
         writeln;
 {$endif csedebug}
         deleteblock:=internalstatements(compiler,deletes);
-        foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,@deletes);
+        foreachnode(pm_postprocess,rootnode,@searchcsedomain,@deletes);
         rootblock:=internalstatements(compiler,statements);
         addstatement(statements,rootnode);
         addstatement(statements,deleteblock);
