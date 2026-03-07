@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
-  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem,nobjc,nopt;
+  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem,nobjc,nopt,nset;
 
 type
 {****************************************************************************
@@ -295,7 +295,7 @@ type
     function caddsstringcharoptnode(l,r : tnode):taddsstringcharoptnode; inline;
     function caddsstringcsstringoptnode(l,r : tnode):taddsstringcsstringoptnode; inline;
     { nset }
-    //TODO:csetelementnode
+    function csetelementnode(l,r : tnode):tsetelementnode; inline;
     //TODO:cinnode
     //TODO:crangenode
     //TODO:ccasenode
@@ -1083,6 +1083,11 @@ function TCompilerHelper.caddsstringcsstringoptnode(l, r: tnode
   ): taddsstringcsstringoptnode; inline;
 begin
   result:=nopt.caddsstringcsstringoptnode.create(l,r,self);
+end;
+
+function TCompilerHelper.csetelementnode(l, r: tnode): tsetelementnode; inline;
+begin
+  result:=nset.csetelementnode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

@@ -635,7 +635,7 @@ implementation
                                 hdef:=p3.resultdef
                               else
                                 inserttypeconv(p3,u8inttype,compiler);
-                              p4:=csetelementnode.create(p2,p3,compiler);
+                              p4:=compiler.csetelementnode(p2,p3);
                             end;
                          end;
                      end
@@ -669,7 +669,7 @@ implementation
                           else
                             inserttypeconv(p2,u8inttype,compiler);
 
-                          p4:=csetelementnode.create(p2,nil,compiler);
+                          p4:=compiler.csetelementnode(p2,nil);
                         end;
                      end;
                   end;
