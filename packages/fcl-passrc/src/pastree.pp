@@ -3014,8 +3014,15 @@ end;
 
 procedure TPasOperator.CorrectName;
 
+var
+  DotPos: Integer;
+
 begin
-  Name:=OperatorNames[OperatorType]+NameSuffix;
+  DotPos:=Pos('.',Name);
+  if DotPos>0 then
+    Name:=Copy(Name,1,DotPos)+OperatorNames[OperatorType]+NameSuffix
+  else
+    Name:=OperatorNames[OperatorType]+NameSuffix;
 end;
 
 function TPasOperator.OldName(WithPath : Boolean): TPasTreeString;
