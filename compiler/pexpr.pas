@@ -4309,7 +4309,7 @@ implementation
                begin
                  consume(_PLUS);
                  p1:=factor(false,[]);
-                 p1:=cunaryplusnode.create(p1,compiler);
+                 p1:=compiler.cunaryplusnode(p1);
                end;
 
              _MINUS :

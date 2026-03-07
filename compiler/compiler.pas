@@ -277,7 +277,7 @@ type
     function cmoddivnode(t:tnodetype;l,r : tnode):tmoddivnode; inline;
     function cshlshrnode(t:tnodetype;l,r : tnode):tshlshrnode; inline;
     function cunaryminusnode(expr : tnode):tunaryminusnode; inline;
-    //TODO:cunaryplusnode
+    function cunaryplusnode(expr : tnode):tunaryplusnode; inline;
     //TODO:cnotnode
     { nmem }
     //TODO:cloadvmtaddrnode
@@ -1007,6 +1007,11 @@ end;
 function TCompilerHelper.cunaryminusnode(expr: tnode): tunaryminusnode; inline;
 begin
   result:=nmat.cunaryminusnode.create(expr,self);
+end;
+
+function TCompilerHelper.cunaryplusnode(expr: tnode): tunaryplusnode; inline;
+begin
+  result:=nmat.cunaryplusnode.create(expr,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
