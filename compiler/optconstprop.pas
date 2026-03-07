@@ -28,7 +28,7 @@ unit optconstprop;
   interface
 
     uses
-      compilerbase,node;
+      compilerbase,node,nutils;
 
     { does constant propagation for rootnode
 
@@ -57,6 +57,7 @@ type
   TConstPropOptimizer = class
   private
     FCompiler: TCompilerBase;
+    function propagate(var n: tnode; arg: pointer): foreachnoderesult;
   public
     constructor Create(ACompiler: TCompilerBase);
     function do_optconstpropagate(var rootnode : tnode;out changed: boolean) : tnode;
@@ -68,7 +69,7 @@ type
       globtype,cdynset,globals,
       pass_1,procinfo,compinnr,
       symsym, symconst,
-      nutils, nbas, ncnv, nld, nflw, ncal, ninl,
+      nbas, ncnv, nld, nflw, ncal, ninl,
       optbase, optutils;
 
     function check_written(var n: tnode; arg: pointer): foreachnoderesult;
@@ -308,7 +309,7 @@ type
       end;
 
 
-    function propagate(var n: tnode; arg: pointer): foreachnoderesult;
+    function TConstPropOptimizer.propagate(var n: tnode; arg: pointer): foreachnoderesult;
       var
         l,
         st, st2, oldnode: tnode;
@@ -425,7 +426,7 @@ type
           writeln('************************ before constant propagation ***************************');
           printnode(rootnode);
 {$endif DEBUG_CONSTPROP}
-          foreachnodestatic(pm_postandagain, rootnode, @propagate, @iteration_changed);
+          foreachnode(pm_postandagain, rootnode, @propagate, @iteration_changed);
           changed:=changed or iteration_changed;
           if iteration_changed then
             doinlinesimplify(rootnode);
