@@ -223,6 +223,10 @@ type
     procedure TestGen_ConstGeneric_RejectExprForTypeParamFail;
     procedure TestGen_ConstGeneric_MultiTypedArray;
     procedure TestGen_ConstGeneric_TypedExprArith;
+    // Step 5c: type-checking const args against type annotation
+    procedure TestGen_ConstGeneric_ByteOutOfRangeFail;
+    procedure TestGen_ConstGeneric_SubrangeOutOfRangeFail;
+    procedure TestGen_ConstGeneric_DelphiClassMethodTyped;
   end;
 
 implementation
@@ -3671,6 +3675,67 @@ begin
   'begin',
   '  X.Data[0] := 1;',
   '  X.Data[7] := 8;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_ByteOutOfRangeFail;
+// specialize TByte<300> where TByte = generic TByte<const U: Byte>
+// 300 > 255, must raise range check error
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  generic TByte<const U: Byte> = record',
+  '  end;',
+  '  TBad = specialize TByte<300>;',
+  'begin',
+  '']);
+  CheckResolverException('Range check error',
+    nRangeCheckError);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_SubrangeOutOfRangeFail;
+// specialize TTest<2> where TRange = 3..4 and TTest = generic TTest<const U: TRange>
+// 2 < 3, must raise range check error
+begin
+  StartProgram(true);
+  Add([
+  'type',
+  '  TRange = 3..4;',
+  '  generic TTest<const U: TRange> = record',
+  '  end;',
+  '  TBad = specialize TTest<2>;',
+  'begin',
+  '']);
+  CheckResolverException('Range check error',
+    nRangeCheckError);
+end;
+
+procedure TTestResolveGenerics.TestGen_ConstGeneric_DelphiClassMethodTyped;
+// Delphi class with typed const param used in method body
+begin
+  StartProgram(true);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  TList<T; const U: integer> = class',
+  '    list: array[0..U-1] of T;',
+  '    function capacity: integer;',
+  '  end;',
+  'constructor TObject.Create; begin end;',
+  'function TList<T; U>.capacity: integer;',
+  'begin',
+  '  result := U;',
+  'end;',
+  'type',
+  '  TIntList = TList<integer, 16>;',
+  'var L: TIntList;',
+  'begin',
+  '  L := TIntList.Create;',
   '']);
   ParseProgram;
 end;

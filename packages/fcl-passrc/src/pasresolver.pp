@@ -2957,7 +2957,7 @@ end;
 function ProcNeedsImplProc(Proc: TPasProcedure): boolean;
 begin
   Result:=true;
-  if Proc.IsExternal then exit(false);
+  if Proc.IsExternal or Proc.IsInternProc then exit(false);
   if Proc.IsForward then exit;
   if Proc.Parent.ClassType=TInterfaceSection then exit;
   if Proc.Parent.ClassType=TPasClassType then
@@ -6746,7 +6746,13 @@ begin
   // For const generic params, constraints are type annotations (e.g., ': Integer'),
   // not type constraints (e.g., ': class'). Skip standard constraint validation.
   if El.IsConst then
+    begin
+    if MaximizeFPCCompatibility and (length(El.Constraints) = 0) then
+      RaiseMsg(20260304200001,nXExpectedButYFound,sXExpectedButYFound,
+        ['type annotation for const parameter','untyped const'],
+        GetGenericConstraintErrorEl(El,El));
     exit;
+    end;
 
   IsClass:=false;
   IsRecord:=false;
@@ -6917,6 +6923,7 @@ var
   SubEl: TPasElement;
   SubProcScope, ProcScope, DeclProcScope: TPasProcedureScope;
   SpecializedItem: TPRSpecializedItem;
+  ParentScope: TPasScope;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishProcedure START');
@@ -6982,6 +6989,15 @@ begin
     RaiseNotYetImplemented(20190122142142,Proc);
   if ProcScope.NestedMembersScope<>nil then
     RaiseNotYetImplemented(20191014233200,Proc);
+
+  // For operators, CorrectName changes the name after initial scope registration.
+  // Re-add with the final name so forward declaration matching can find it.
+  if (Proc is TPasOperator) and (Proc.Name <> '') then
+    begin
+    ParentScope:=Scopes[ScopeCount-2];
+    if ParentScope is TPasIdentifierScope then
+      AddIdentifier(TPasIdentifierScope(ParentScope), Proc.Name, Proc, pikProc);
+    end;
 
   if TopScope.Element<>Proc then
     RaiseInternalError(20190806094032);
@@ -7058,7 +7074,13 @@ begin
       begin
       FuncType:=TPasFunctionType(El);
       if FuncType.ResultEl<>nil then
+        begin
         CheckUseAsType(FuncType.ResultEl.ResultType,20190123095743,FuncType.ResultEl);
+        // Register named result variable (e.g. "c" in "operator +(a,b: T) c: T")
+        if (FuncType.ResultEl.Name <> '') and
+           not SameText(FuncType.ResultEl.Name, ResolverResultVar) then
+          AddIdentifier(ProcScope,FuncType.ResultEl.Name,FuncType.ResultEl,pikSimple);
+        end;
       end;
 
     if (proProcTypeWithoutIsNested in Options) and El.IsNested then
@@ -7236,7 +7258,7 @@ begin
         RaiseMsg(20181218195552,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'abstract'],Proc);
       if Proc.IsForward then
         RaiseMsg(20181218195514,nInvalidXModifierY,sInvalidXModifierY,['record '+GetElementTypeName(Proc),'forward'],Proc);
-      if IsClassMethod(Proc) and not IsClassConDestructor then
+      if IsClassMethod(Proc) and not IsClassConDestructor and not (Proc is TPasOperator) then
         begin
         // Note: class constructor/destructor must not be static
         if not Proc.IsStatic then
@@ -7287,7 +7309,22 @@ begin
 
     // Validate operator declarations
     if (Proc is TPasOperator) and not (ppsfIsSpecialized in ProcScope.Flags) then
+      begin
+      // Explicit and Implicit are only allowed as class operators
+      if (TPasOperator(Proc).OperatorType in [otExplicit, otImplicit]) and
+         not (Proc is TPasClassOperator) then
+        RaiseMsg(20170216151720,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
+          [ObjKindNames[okClass]+' '+OperatorNames[TPasOperator(Proc).OperatorType],'operator'],Proc);
       CheckOperatorOverloadable(TPasOperator(Proc));
+      end;
+
+    // For operators, CorrectName changes the name after initial scope registration.
+    // Re-add with the corrected name so forward matching and cross-unit lookup work.
+    if (Proc is TPasOperator) and (Proc.Name <> '') then
+      begin
+      ParentScope:=GetParentLocalScope as TPasIdentifierScope;
+      AddIdentifier(ParentScope, Proc.Name, Proc, pikProc);
+      end;
 
     if Proc.PublicName<>nil then
       ResolveExpr(Proc.PublicName,rraRead);
@@ -7579,7 +7616,8 @@ begin
     writeln('TPasResolver.FinishMethodImplHeader searching declaration "',ImplProc.Name,'" ...');
     {$ENDIF}
     // search ImplProc in class
-    if not IsValidIdent(ProcName) then
+    // Note: operator names include signature suffix e.g. 'implicit(TTest):Integer'
+    if not IsValidIdent(ProcName) and not (ImplProc is TPasOperator) then
       RaiseNotYetImplemented(20160922163421,ImplProc.ProcType);
 
     // search proc in class/record
@@ -9698,6 +9736,16 @@ begin
         end
       else if Identifier.Element is TPasResultElement then
         Identifier.Element:=FuncType.ResultEl;
+      // redirect named result variable (e.g. "c" in operators) to declaration ResultEl
+      if (FuncType.ResultEl.Name <> '') and
+         not SameText(FuncType.ResultEl.Name, ResolverResultVar) then
+        begin
+        Identifier:=ImplProcScope.FindLocalIdentifier(FuncType.ResultEl.Name);
+        if Identifier=nil then
+          AddIdentifier(ImplProcScope,FuncType.ResultEl.Name,FuncType.ResultEl,pikSimple)
+        else if Identifier.Element is TPasResultElement then
+          Identifier.Element:=FuncType.ResultEl;
+        end;
       end;
     end;
 end;
@@ -11446,6 +11494,8 @@ procedure TPasResolver.ResolveFuncParamsExprName(NameExpr: TPasExpr;
   begin
     for i:=0 to TemplParams.Count-1 do
       begin
+      if TPasGenericTemplateType(GenTemplates[i]).IsConst then
+        continue; // const param constraints are checked in GetSpecializedEl
       Param:=TPasElement(TemplParams[i]);
       ComputeElement(Param,ResolvedEl,[rcType]);
       if Param is TPasExpr then
@@ -13586,8 +13636,8 @@ begin
       SubBin:=TBinaryExpr(Left.Parent);
       ComputeElement(SubBin.Right,RightResolved,Flags,StartEl);
 
-      // ToDo: check operator overloading
-      ComputeBinaryExprRes(SubBin,ResolvedEl,Flags,LeftResolved,RightResolved);
+      if not TryResolveOperatorOverload(SubBin,ResolvedEl,LeftResolved,RightResolved) then
+        ComputeBinaryExprRes(SubBin,ResolvedEl,Flags,LeftResolved,RightResolved);
       LeftResolved:=ResolvedEl;
       Left:=SubBin;
     until Left=Bin;
@@ -13597,8 +13647,8 @@ begin
     ComputeElement(Bin.Left,LeftResolved,Flags,StartEl);
     ComputeElement(Bin.Right,RightResolved,Flags,StartEl);
 
-    // ToDo: check operator overloading
-    ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
+    if not TryResolveOperatorOverload(Bin,ResolvedEl,LeftResolved,RightResolved) then
+      ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
     end;
 end;
 
@@ -17919,6 +17969,8 @@ var
 begin
   if length(GenTempl.Constraints)=0 then
     exit(cGenericExact);
+  if GenTempl.IsConst then
+    exit(cGenericExact); // const param value type checked in GetSpecializedEl
   if ResolvedEl.BaseType=btContext then
     begin
     LoTypeEl:=ResolvedEl.LoTypeEl;
@@ -29060,6 +29112,22 @@ begin
       end;
     end;
 
+  // Check for class operator Explicit/Implicit in record before raising error
+  if (Result=cIncompatible) and (FromResolved.BaseType=btContext) and
+     (FromResolved.LoTypeEl is TPasRecordType) then
+    begin
+    for i:=0 to TPasRecordType(FromResolved.LoTypeEl).Members.Count-1 do
+      begin
+      ConEl:=TPasElement(TPasRecordType(FromResolved.LoTypeEl).Members[i]);
+      if (ConEl is TPasClassOperator) and
+         (TPasOperator(ConEl).OperatorType in [otExplicit,otImplicit]) then
+        begin
+        Result:=cCompatible;
+        Break;
+        end;
+      end;
+    end;
+
   if Result=cIncompatible then
     begin
     {$IFDEF VerbosePasResolver}
@@ -30580,6 +30648,10 @@ var
   TemplType: TPasGenericTemplateType;
   Val1, Val2: TResEvalValue;
   Match: Boolean;
+  ConstRangeValue, ConstArgValue: TResEvalValue;
+  AnnotationType: TPasType;
+  AnnotationResolved: TPasResolverResult;
+  RangeMinVal, RangeMaxVal: TMaxPrecInt;
 begin
   Result:=nil;
   if (El.ClassType=TPasSpecializeType) and (El.CustomData<>nil) then
@@ -30656,6 +30728,46 @@ begin
           ConstExprsResolved[i]:=TPasConst(ResolvedEl.IdentEl).Expr
         else
           ConstExprsResolved[i]:=nil;
+        end;
+      // Step 5c: validate const value against type annotation
+      if (ConstExprsResolved[i]<>nil)
+          and (length(TemplType.Constraints)>0) then
+        begin
+        ComputeElement(TemplType.Constraints[0],AnnotationResolved,[rcType]);
+        ConstArgValue:=Eval(ConstExprsResolved[i],[refConst]);
+        if ConstArgValue<>nil then
+          try
+            AnnotationType:=AnnotationResolved.LoTypeEl;
+            if AnnotationType is TPasRangeType then
+              begin
+              ConstRangeValue:=Eval(TPasRangeType(AnnotationType).RangeExpr,[refConst]);
+              try
+                if not fExprEvaluator.IsInRange(ConstArgValue,
+                    ConstExprsResolved[i],ConstRangeValue,
+                    TPasRangeType(AnnotationType).RangeExpr,false) then
+                  RaiseRangeCheck(20260304200002,ConstExprsResolved[i]);
+              finally
+                ReleaseEvalValue(ConstRangeValue);
+              end;
+              end
+            else if (AnnotationResolved.BaseType in btAllIntegerNoQWord)
+                and GetIntegerRange(AnnotationResolved.BaseType,RangeMinVal,RangeMaxVal) then
+              begin
+              case ConstArgValue.Kind of
+              revkInt:
+                if (RangeMinVal>TResEvalInt(ConstArgValue).Int)
+                    or (RangeMaxVal<TResEvalInt(ConstArgValue).Int) then
+                  RaiseRangeCheck(20260304200003,ConstExprsResolved[i]);
+              revkUInt:
+                if (TResEvalUInt(ConstArgValue).UInt>High(TMaxPrecInt))
+                    or (RangeMinVal>TMaxPrecInt(TResEvalUInt(ConstArgValue).UInt))
+                    or (RangeMaxVal<TMaxPrecInt(TResEvalUInt(ConstArgValue).UInt)) then
+                  RaiseRangeCheck(20260304200004,ConstExprsResolved[i]);
+              end;
+              end;
+          finally
+            ReleaseEvalValue(ConstArgValue);
+          end;
         end;
       IsSelf:=false;
       end
