@@ -1304,7 +1304,7 @@ implementation
          procdef.isempty:=true;
 
        if cs_opt_nodecse in current_settings.optimizerswitches then
-         do_optcse(code);
+         compiler.opt.cse.do_optcse(code);
 
        if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
          do_optloadmodifystore(code);
@@ -1314,7 +1314,7 @@ implementation
             this block, which means the loaded value won't be loaded when the
              longjmp is performed }
           not(m_non_local_goto in current_settings.modeswitches) then
-         do_consttovar(code);
+         compiler.opt.cse.do_consttovar(code);
       end;
 
 

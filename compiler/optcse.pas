@@ -31,6 +31,15 @@ unit optcse;
     uses
       sysutils,compilerbase,node;
 
+type
+
+  { TCSEOptimizer }
+
+  TCSEOptimizer = class
+  private
+    FCompiler: TCompilerBase;
+  public
+    constructor Create(ACompiler: TCompilerBase);
     {
       the function  creates non optimal code so far:
       - call para nodes are cse barriers because they can be reordered and thus the
@@ -43,6 +52,7 @@ unit optcse;
     }
     function do_optcse(var rootnode : tnode) : tnode;
     function do_consttovar(var rootnode : tnode) : tnode;
+  end;
 
   implementation
 
@@ -565,7 +575,13 @@ unit optcse;
       end;
 
 
-    function do_optcse(var rootnode : tnode) : tnode;
+    constructor TCSEOptimizer.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    function TCSEOptimizer.do_optcse(var rootnode : tnode) : tnode;
       const
         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
@@ -698,7 +714,7 @@ unit optcse;
        end;
 
 
-    function do_consttovar(var rootnode : tnode) : tnode;
+    function TCSEOptimizer.do_consttovar(var rootnode : tnode) : tnode;
       const
         compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
