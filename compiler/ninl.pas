@@ -4174,7 +4174,7 @@ implementation
                 end;
               in_objc_protocol_x:
                 begin
-                  result:=cobjcprotocolnode.create(left,compiler);
+                  result:=compiler.cobjcprotocolnode(left);
                   { reused }
                   left:=nil;
                 end;

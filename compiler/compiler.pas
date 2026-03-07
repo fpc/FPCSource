@@ -290,7 +290,7 @@ type
     function cloadparentfpnode(pd: tprocdef; fpkind: tloadparentfpkind):tloadparentfpnode; inline;
     { nobjc }
     function cobjcselectornode(formethod: tnode):tobjcselectornode; inline;
-    //TODO:cobjcprotocolnode
+    function cobjcprotocolnode(forprotocol: tnode):tobjcprotocolnode; inline;
     { nopt }
     //TODO:caddsstringcharoptnode
     //TODO:caddsstringcsstringoptnode
@@ -1065,6 +1065,12 @@ end;
 function TCompilerHelper.cobjcselectornode(formethod: tnode): tobjcselectornode; inline;
 begin
   result:=nobjc.cobjcselectornode.create(formethod,self);
+end;
+
+function TCompilerHelper.cobjcprotocolnode(forprotocol: tnode
+  ): tobjcprotocolnode; inline;
+begin
+  result:=nobjc.cobjcprotocolnode.create(forprotocol,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
