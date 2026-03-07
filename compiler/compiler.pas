@@ -293,7 +293,7 @@ type
     function cobjcprotocolnode(forprotocol: tnode):tobjcprotocolnode; inline;
     { nopt }
     function caddsstringcharoptnode(l,r : tnode):taddsstringcharoptnode; inline;
-    //TODO:caddsstringcsstringoptnode
+    function caddsstringcsstringoptnode(l,r : tnode):taddsstringcsstringoptnode; inline;
     { nset }
     //TODO:csetelementnode
     //TODO:cinnode
@@ -1077,6 +1077,12 @@ function TCompilerHelper.caddsstringcharoptnode(l, r: tnode
   ): taddsstringcharoptnode; inline;
 begin
   result:=nopt.caddsstringcharoptnode.create(l,r,self);
+end;
+
+function TCompilerHelper.caddsstringcsstringoptnode(l, r: tnode
+  ): taddsstringcsstringoptnode; inline;
+begin
+  result:=nopt.caddsstringcsstringoptnode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

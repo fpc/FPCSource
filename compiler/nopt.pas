@@ -284,7 +284,7 @@ var
   hp: tnode;
 begin
   compiler := p.compiler;
-  hp := caddsstringcsstringoptnode.create(p.left.getcopy,p.right.getcopy,compiler);
+  hp := compiler.caddsstringcsstringoptnode(p.left.getcopy,p.right.getcopy);
   hp.flags := p.flags;
   genaddsstringcsstringoptnode := hp;
 end;
