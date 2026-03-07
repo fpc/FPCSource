@@ -28,13 +28,92 @@ uses
 uses
   SysUtils, Classes, StrUtils, fgl, lexlib, yacclib, resource,
   acceleratorsresource, groupiconresource, stringtableresource,
-  bitmapresource, versionresource, versiontypes, groupcursorresource;
+  bitmapresource, versionresource, versiontypes, groupcursorresource,
+  dialogresource;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
   TStringHashTable = specialize TFPGMap<AnsiString, AnsiString>;
 
 function yyparse : Integer;
+function yylex : Integer;
+procedure ResetLexer;
+
+{ Token constants - must match pyacc-generated values in rcparser.pas }
+const _ILLEGAL = 257;
+const _NUMBER = 258;
+const _QUOTEDSTR = 259;
+const _QUOTEDSTRL = 260;
+const _STR_StringFileInfo = 261;
+const _STR_VarFileInfo = 262;
+const _STR_Translation = 263;
+const _BEGIN = 264;
+const _END = 265;
+const _ID = 266;
+const _NSWPSTR = 267;
+const _LANGUAGE = 268;
+const _CHARACTERISTICS = 269;
+const _VERSION = 270;
+const _MOVEABLE = 271;
+const _FIXED = 272;
+const _PURE = 273;
+const _IMPURE = 274;
+const _PRELOAD = 275;
+const _LOADONCALL = 276;
+const _DISCARDABLE = 277;
+const _BITMAP = 278;
+const _CURSOR = 279;
+const _ICON = 280;
+const _STRINGTABLE = 281;
+const _VERSIONINFO = 282;
+const _ANICURSOR = 283;
+const _ANIICON = 284;
+const _DLGINCLUDE = 285;
+const _DLGINIT = 286;
+const _HTML = 287;
+const _MANIFEST = 288;
+const _MESSAGETABLE = 289;
+const _PLUGPLAY = 290;
+const _RCDATA = 291;
+const _VXD = 292;
+const _FILEVERSION = 293;
+const _PRODUCTVERSION = 294;
+const _FILEFLAGSMASK = 295;
+const _FILEFLAGS = 296;
+const _FILEOS = 297;
+const _FILETYPE = 298;
+const _FILESUBTYPE = 299;
+const _BLOCK = 300;
+const _VALUE = 301;
+const _ACCELERATORS = 302;
+const _DIALOG = 303;
+const _DIALOGEX = 304;
+const _MENU = 305;
+const _MENUEX = 306;
+const _CAPTION = 307;
+const _CLASS = 308;
+const _EXSTYLE = 309;
+const _STYLE = 310;
+const _FONT = 311;
+const _NOT = 312;
+const _CONTROL = 313;
+const _LTEXT = 314;
+const _RTEXT = 315;
+const _CTEXT = 316;
+const _PUSHBUTTON = 317;
+const _DEFPUSHBUTTON = 318;
+const _CHECKBOX = 319;
+const _AUTOCHECKBOX = 320;
+const _RADIOBUTTON = 321;
+const _AUTORADIOBUTTON = 322;
+const _AUTO3STATE = 323;
+const _STATE3 = 324;
+const _GROUPBOX = 325;
+const _EDITTEXT = 326;
+const _COMBOBOX = 327;
+const _LISTBOX = 328;
+const _SCROLLBAR = 329;
+const _NUMNEG = 330;
 
 var
   aktresources: TResources;
@@ -332,6 +411,7 @@ begin
     RT_ICON: cls:= TGroupIconResource;
     RT_CURSOR: cls:= TGroupCursorResource;
     RT_VERSION: cls:= TVersionResource;
+    RT_DIALOG: cls:= TDialogResource;
   else
     raise EResourceDescTypeException.CreateFmt('Resource type not supported: %d', [aType]);
   end;
@@ -450,6 +530,492 @@ begin
     stringpool:= s^.next;
     dispose(s^.str);
     dispose(s);
+  end;
+end;
+
+procedure ResetLexer;
+begin
+  bufptr:= 0;
+end;
+
+{ Dialog constants }
+
+const
+  { Dialog styles }
+  DS_SETFONT         = $0040;
+
+  { Window styles }
+  WS_CHILD           = DWord($40000000);
+  WS_VISIBLE         = DWord($10000000);
+  WS_TABSTOP         = $00010000;
+  WS_GROUP           = $00020000;
+  WS_BORDER          = $00800000;
+
+  { Button styles }
+  BS_PUSHBUTTON      = $0000;
+  BS_DEFPUSHBUTTON   = $0001;
+  BS_CHECKBOX        = $0002;
+  BS_AUTOCHECKBOX    = $0003;
+  BS_RADIOBUTTON     = $0004;
+  BS_3STATE          = $0005;
+  BS_AUTO3STATE      = $0006;
+  BS_GROUPBOX        = $0007;
+  BS_AUTORADIOBUTTON = $0009;
+
+  { Static styles }
+  SS_LEFT            = $0000;
+  SS_CENTER          = $0001;
+  SS_RIGHT           = $0002;
+  SS_ICON            = $0003;
+
+  { Listbox styles }
+  LBS_NOTIFY         = $0001;
+
+  { Predefined window class ordinals }
+  CTL_BUTTON         = $0080;
+  CTL_EDIT           = $0081;
+  CTL_STATIC         = $0082;
+  CTL_LISTBOX        = $0083;
+  CTL_SCROLLBAR      = $0084;
+  CTL_COMBOBOX       = $0085;
+
+  { Font defaults }
+  FW_DONTCARE        = 0;
+  DEFAULT_CHARSET    = 1;
+
+{ Dialog state variables }
+
+var
+  dialog_stream: TMemoryStream;
+  dialog_count: Word;
+  dialog_is_ex: Boolean;
+  dialog_style, dialog_exstyle: DWord;
+  dialog_x, dialog_y, dialog_cx, dialog_cy: SmallInt;
+  dialog_helpid: DWord;
+  dialog_caption: UnicodeString;
+  dialog_class_name: UnicodeString;
+  dialog_class_ord: Word;
+  dialog_has_class_ord: Boolean;
+  dialog_menu_name: UnicodeString;
+  dialog_menu_ord: Word;
+  dialog_has_menu_ord: Boolean;
+  dialog_has_font: Boolean;
+  dialog_font_size: Word;
+  dialog_font_name: UnicodeString;
+  dialog_font_weight: Word;
+  dialog_font_italic: Byte;
+  dialog_font_charset: Byte;
+  { Per-control temporaries }
+  dialog_ctrl_style_val: DWord;
+  dialog_ctrl_exstyle_val: DWord;
+  dialog_ctrl_has_style: Boolean;
+  dialog_ctrl_has_exstyle: Boolean;
+  dialog_ctrl_w: SmallInt;
+  dialog_ctrl_h: SmallInt;
+  dialog_ctrl_has_wh: Boolean;
+
+{ Dialog helper procedures }
+
+procedure dialog_begin(aId: TResourceDesc; isEx: Boolean);
+begin
+  create_resource(aId, RT_DIALOG);
+  dialog_stream:= TMemoryStream.Create;
+  dialog_count:= 0;
+  dialog_is_ex:= isEx;
+  dialog_style:= 0;
+  dialog_exstyle:= 0;
+  dialog_x:= 0;
+  dialog_y:= 0;
+  dialog_cx:= 0;
+  dialog_cy:= 0;
+  dialog_helpid:= 0;
+  dialog_caption:= '';
+  dialog_class_name:= '';
+  dialog_class_ord:= 0;
+  dialog_has_class_ord:= false;
+  dialog_menu_name:= '';
+  dialog_menu_ord:= 0;
+  dialog_has_menu_ord:= false;
+  dialog_has_font:= false;
+  dialog_font_size:= 0;
+  dialog_font_name:= '';
+  dialog_font_weight:= FW_DONTCARE;
+  dialog_font_italic:= 0;
+  dialog_font_charset:= DEFAULT_CHARSET;
+end;
+
+procedure dialog_set_coords(x, y, cx, cy: LongWord);
+begin
+  dialog_x:= SmallInt(x);
+  dialog_y:= SmallInt(y);
+  dialog_cx:= SmallInt(cx);
+  dialog_cy:= SmallInt(cy);
+end;
+
+procedure dialog_set_helpid(id: LongWord);
+begin
+  dialog_helpid:= id;
+end;
+
+procedure dialog_set_caption(const s: UnicodeString);
+begin
+  dialog_caption:= s;
+end;
+
+procedure dialog_set_style(s: LongWord);
+begin
+  dialog_style:= s;
+end;
+
+procedure dialog_set_exstyle(s: LongWord);
+begin
+  dialog_exstyle:= s;
+end;
+
+procedure dialog_set_font(size: LongWord; const name: UnicodeString);
+begin
+  dialog_has_font:= true;
+  dialog_font_size:= Word(size);
+  dialog_font_name:= name;
+  dialog_style:= dialog_style or DS_SETFONT;
+  { Reset extended font params to defaults; overridden by dialog_set_font_ex_params }
+  dialog_font_weight:= FW_DONTCARE;
+  dialog_font_italic:= 0;
+  dialog_font_charset:= DEFAULT_CHARSET;
+end;
+
+procedure dialog_set_font_ex_params(weight, italic, charset: LongWord);
+begin
+  dialog_font_weight:= Word(weight);
+  dialog_font_italic:= Byte(italic);
+  dialog_font_charset:= Byte(charset);
+end;
+
+procedure dialog_set_class(const name: UnicodeString);
+begin
+  dialog_class_name:= name;
+  dialog_has_class_ord:= false;
+end;
+
+procedure dialog_set_class_ord(ord: LongWord);
+begin
+  dialog_class_ord:= Word(ord);
+  dialog_has_class_ord:= true;
+end;
+
+procedure dialog_set_menu(const name: UnicodeString);
+begin
+  dialog_menu_name:= name;
+  dialog_has_menu_ord:= false;
+end;
+
+procedure dialog_set_menu_ord(ord: LongWord);
+begin
+  dialog_menu_ord:= Word(ord);
+  dialog_has_menu_ord:= true;
+end;
+
+{ Per-control state }
+
+procedure dialog_ctrl_reset;
+begin
+  dialog_ctrl_has_style:= false;
+  dialog_ctrl_has_exstyle:= false;
+  dialog_ctrl_has_wh:= false;
+  dialog_ctrl_style_val:= 0;
+  dialog_ctrl_exstyle_val:= 0;
+  dialog_ctrl_w:= 0;
+  dialog_ctrl_h:= 0;
+end;
+
+procedure dialog_ctrl_set_style(s: LongWord);
+begin
+  dialog_ctrl_style_val:= s;
+  dialog_ctrl_has_style:= true;
+end;
+
+procedure dialog_ctrl_set_exstyle(s: LongWord);
+begin
+  dialog_ctrl_exstyle_val:= s;
+  dialog_ctrl_has_exstyle:= true;
+end;
+
+procedure dialog_ctrl_set_wh(w, h: LongWord);
+begin
+  dialog_ctrl_w:= SmallInt(w);
+  dialog_ctrl_h:= SmallInt(h);
+  dialog_ctrl_has_wh:= true;
+end;
+
+{ Binary output helpers }
+
+procedure dialog_align_dword(stream: TMemoryStream);
+var
+  pad: Integer;
+  zero: Byte;
+begin
+  pad:= (4 - (stream.Position mod 4)) mod 4;
+  zero:= 0;
+  while pad > 0 do begin
+    stream.WriteByte(zero);
+    dec(pad);
+  end;
+end;
+
+procedure dialog_write_sz_or_ord(stream: TMemoryStream; const name: UnicodeString;
+  ord: Word; hasOrd: Boolean);
+var
+  i: Integer;
+  w: Word;
+begin
+  if hasOrd then begin
+    w:= NtoLE(Word($FFFF));
+    stream.WriteWord(w);
+    w:= NtoLE(ord);
+    stream.WriteWord(w);
+  end else if name = '' then begin
+    w:= NtoLE(Word(0));
+    stream.WriteWord(w);
+  end else begin
+    for i:= 1 to Length(name) do begin
+      w:= NtoLE(Word(name[i]));
+      stream.WriteWord(w);
+    end;
+    w:= NtoLE(Word(0));
+    stream.WriteWord(w);
+  end;
+end;
+
+procedure dialog_write_unicode_string(stream: TMemoryStream; const s: UnicodeString);
+var
+  i: Integer;
+  w: Word;
+begin
+  for i:= 1 to Length(s) do begin
+    w:= NtoLE(Word(s[i]));
+    stream.WriteWord(w);
+  end;
+  w:= NtoLE(Word(0));
+  stream.WriteWord(w);
+end;
+
+{ Add a control item to dialog_stream }
+
+procedure dialog_write_control(id: LongWord; x, y, cx, cy: SmallInt;
+  style, exstyle: DWord; const title: UnicodeString;
+  const className: UnicodeString; classOrd: Word; classIsOrd: Boolean);
+var
+  w: Word;
+  dw: DWord;
+  sw: SmallInt;
+begin
+  dialog_align_dword(dialog_stream);
+
+  if dialog_is_ex then begin
+    { DLGITEMTEMPLATEEX }
+    dw:= NtoLE(DWord(0));           { helpID }
+    dialog_stream.WriteDWord(dw);
+    dw:= NtoLE(exstyle);
+    dialog_stream.WriteDWord(dw);
+    dw:= NtoLE(style);
+    dialog_stream.WriteDWord(dw);
+    sw:= SmallInt(NtoLE(Word(x)));
+    dialog_stream.WriteWord(Word(sw));
+    sw:= SmallInt(NtoLE(Word(y)));
+    dialog_stream.WriteWord(Word(sw));
+    sw:= SmallInt(NtoLE(Word(cx)));
+    dialog_stream.WriteWord(Word(sw));
+    sw:= SmallInt(NtoLE(Word(cy)));
+    dialog_stream.WriteWord(Word(sw));
+    dw:= NtoLE(DWord(id));          { id is DWORD in DIALOGEX }
+    dialog_stream.WriteDWord(dw);
+  end else begin
+    { DLGITEMTEMPLATE }
+    dw:= NtoLE(style);
+    dialog_stream.WriteDWord(dw);
+    dw:= NtoLE(exstyle);
+    dialog_stream.WriteDWord(dw);
+    sw:= SmallInt(NtoLE(Word(x)));
+    dialog_stream.WriteWord(Word(sw));
+    sw:= SmallInt(NtoLE(Word(y)));
+    dialog_stream.WriteWord(Word(sw));
+    sw:= SmallInt(NtoLE(Word(cx)));
+    dialog_stream.WriteWord(Word(sw));
+    sw:= SmallInt(NtoLE(Word(cy)));
+    dialog_stream.WriteWord(Word(sw));
+    w:= NtoLE(Word(id));            { id is WORD in DIALOG }
+    dialog_stream.WriteWord(w);
+  end;
+
+  { windowClass - sz_Or_Ord }
+  if classIsOrd then
+    dialog_write_sz_or_ord(dialog_stream, '', classOrd, true)
+  else
+    dialog_write_sz_or_ord(dialog_stream, className, 0, false);
+
+  { title - sz_Or_Ord }
+  if title <> '' then
+    dialog_write_sz_or_ord(dialog_stream, title, 0, false)
+  else begin
+    w:= NtoLE(Word(0));
+    dialog_stream.WriteWord(w);
+  end;
+
+  { extraCount }
+  w:= NtoLE(Word(0));
+  dialog_stream.WriteWord(w);
+
+  Inc(dialog_count);
+end;
+
+{ Standard control: text/button/edit with optional style/exstyle override }
+
+procedure dialog_add_control_std(id, x, y, cx, cy: LongWord;
+  defaultStyle: DWord; classOrd: Word; const title: UnicodeString);
+var
+  style, exstyle: DWord;
+begin
+  if dialog_ctrl_has_style then
+    style:= dialog_ctrl_style_val
+  else
+    style:= defaultStyle;
+  if dialog_ctrl_has_exstyle then
+    exstyle:= dialog_ctrl_exstyle_val
+  else
+    exstyle:= 0;
+  dialog_write_control(id, SmallInt(x), SmallInt(y), SmallInt(cx), SmallInt(cy),
+    style, exstyle, title, '', classOrd, true);
+end;
+
+{ Generic CONTROL statement }
+
+procedure dialog_add_control_generic(id, x, y, cx, cy: LongWord;
+  style: DWord; const title: UnicodeString; const className: UnicodeString);
+var
+  exstyle: DWord;
+begin
+  if dialog_ctrl_has_exstyle then
+    exstyle:= dialog_ctrl_exstyle_val
+  else
+    exstyle:= 0;
+  dialog_write_control(id, SmallInt(x), SmallInt(y), SmallInt(cx), SmallInt(cy),
+    style, exstyle, title, className, 0, false);
+end;
+
+{ ICON control with optional w,h }
+
+procedure dialog_add_control_icon(id, x, y: LongWord;
+  const iconName: UnicodeString);
+var
+  w, h: SmallInt;
+  style, exstyle: DWord;
+begin
+  if dialog_ctrl_has_wh then begin
+    w:= dialog_ctrl_w;
+    h:= dialog_ctrl_h;
+  end else begin
+    w:= 0;
+    h:= 0;
+  end;
+  if dialog_ctrl_has_style then
+    style:= dialog_ctrl_style_val
+  else
+    style:= WS_CHILD or WS_VISIBLE or SS_ICON;
+  if dialog_ctrl_has_exstyle then
+    exstyle:= dialog_ctrl_exstyle_val
+  else
+    exstyle:= 0;
+  dialog_write_control(id, SmallInt(x), SmallInt(y), w, h,
+    style, exstyle, iconName, '', CTL_STATIC, true);
+end;
+
+{ Finalize dialog and write binary resource data }
+
+procedure dialog_end;
+var
+  hdr: TMemoryStream;
+  w: Word;
+  dw: DWord;
+  sw: SmallInt;
+begin
+  hdr:= TMemoryStream.Create;
+  try
+    if dialog_is_ex then begin
+      { DLGTEMPLATEEX header }
+      w:= NtoLE(Word(1));              { dlgVer }
+      hdr.WriteWord(w);
+      w:= NtoLE(Word($FFFF));          { signature }
+      hdr.WriteWord(w);
+      dw:= NtoLE(dialog_helpid);
+      hdr.WriteDWord(dw);
+      dw:= NtoLE(dialog_exstyle);
+      hdr.WriteDWord(dw);
+      dw:= NtoLE(dialog_style);
+      hdr.WriteDWord(dw);
+      w:= NtoLE(dialog_count);
+      hdr.WriteWord(w);
+      sw:= SmallInt(NtoLE(Word(dialog_x)));
+      hdr.WriteWord(Word(sw));
+      sw:= SmallInt(NtoLE(Word(dialog_y)));
+      hdr.WriteWord(Word(sw));
+      sw:= SmallInt(NtoLE(Word(dialog_cx)));
+      hdr.WriteWord(Word(sw));
+      sw:= SmallInt(NtoLE(Word(dialog_cy)));
+      hdr.WriteWord(Word(sw));
+    end else begin
+      { DLGTEMPLATE header }
+      dw:= NtoLE(dialog_style);
+      hdr.WriteDWord(dw);
+      dw:= NtoLE(dialog_exstyle);
+      hdr.WriteDWord(dw);
+      w:= NtoLE(dialog_count);
+      hdr.WriteWord(w);
+      sw:= SmallInt(NtoLE(Word(dialog_x)));
+      hdr.WriteWord(Word(sw));
+      sw:= SmallInt(NtoLE(Word(dialog_y)));
+      hdr.WriteWord(Word(sw));
+      sw:= SmallInt(NtoLE(Word(dialog_cx)));
+      hdr.WriteWord(Word(sw));
+      sw:= SmallInt(NtoLE(Word(dialog_cy)));
+      hdr.WriteWord(Word(sw));
+    end;
+
+    { menu - sz_Or_Ord }
+    dialog_write_sz_or_ord(hdr, dialog_menu_name, dialog_menu_ord, dialog_has_menu_ord);
+
+    { windowClass - sz_Or_Ord }
+    dialog_write_sz_or_ord(hdr, dialog_class_name, dialog_class_ord, dialog_has_class_ord);
+
+    { title - null-terminated UTF-16LE }
+    dialog_write_unicode_string(hdr, dialog_caption);
+
+    { Font data (only if DS_SETFONT is set) }
+    if dialog_has_font then begin
+      w:= NtoLE(dialog_font_size);
+      hdr.WriteWord(w);
+      if dialog_is_ex then begin
+        w:= NtoLE(dialog_font_weight);
+        hdr.WriteWord(w);
+        hdr.WriteByte(dialog_font_italic);
+        hdr.WriteByte(dialog_font_charset);
+      end;
+      dialog_write_unicode_string(hdr, dialog_font_name);
+    end;
+
+    { DWORD-align after header, before first control }
+    dialog_align_dword(hdr);
+
+    { Append all control items }
+    if dialog_stream.Size > 0 then begin
+      dialog_stream.Position:= 0;
+      hdr.CopyFrom(dialog_stream, dialog_stream.Size);
+    end;
+
+    { Set resource raw data }
+    hdr.Position:= 0;
+    aktresource.SetCustomRawDataStream(hdr);
+  finally
+    FreeAndNil(dialog_stream);
   end;
 end;
 
