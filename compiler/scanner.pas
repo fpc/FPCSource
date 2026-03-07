@@ -3931,7 +3931,14 @@ type
                         for i:=1 to mesgnb do
                           begin
                             if not assigned(pmsg) then
-                              new(pmsg);
+                              begin
+                                new(pmsg);
+                                {$IFDEF DEBUG_MESSAGESTATE}
+                                if current_module=nil then
+                                  Internalerror(2026030704);
+                                pmsg^.owner:=current_module;
+                                {$ENDIF}
+                              end;
                             pmsg^.value:=tokenreadlongint;
                             pmsg^.state:=tmsgstate(tokenreadlongint);
                             pmsg^.next:=nil;

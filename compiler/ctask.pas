@@ -391,6 +391,7 @@ var
   t : ttask;
 
 begin
+  set_current_module(m);
   t:=findtask(m,true);
   if Assigned(t.state) then
     t.RestoreState;
@@ -409,7 +410,7 @@ begin
     ms_load: (m as tppumodule).continueloadppu;
     ms_compile :
       begin
-        if m=main_module then
+        if (m=main_module) and (macrosymtablestack<>nil) then
           begin
             macrosymtablestack.clear;
             FreeAndNil(macrosymtablestack);
@@ -440,12 +441,10 @@ begin
     end
   else if m.state=ms_compiled then
     begin
-    parsing_done(m);
+    if not m.fromppu then
+      parsing_done(m);
     if (m.state=ms_compiled) and m.is_unit then
-      begin
-        set_current_module(m);
-        tppumodule(m).post_load_or_compile(m,m.compilecount>1);
-      end;
+      tppumodule(m).post_load_or_compile(m);
     m.state:=ms_processed;
     end;
   Result:=m.state=ms_processed;

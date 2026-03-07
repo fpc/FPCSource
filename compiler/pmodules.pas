@@ -1892,6 +1892,8 @@ type
           WriteLn(DStr(hstatus.CurrHeapUsed shr 10),'/',DStr(hstatus.CurrHeapSize shr 10),' Kb Used');
         end;
 
+        module.state:=ms_compiled;
+
         set_current_module(old_module);
       end;
 
@@ -2574,7 +2576,7 @@ type
            status.skip_error:=true;
          end;
 
-        curr.state:=ms_processed;
+        curr.state:=ms_compiled;
 
       end;
 

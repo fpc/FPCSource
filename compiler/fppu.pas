@@ -85,7 +85,7 @@ interface
           procedure store_state;
           procedure recompile_from_sources;
           procedure check_sources_for_recompile;
-          procedure post_load_or_compile(from_module : tmodule; second_time: boolean);
+          procedure post_load_or_compile(from_module : tmodule);
           procedure discardppu;
           procedure setdefgeneration;
           procedure end_of_parsing;override;
@@ -2307,9 +2307,6 @@ var
 
     procedure tppumodule.end_of_parsing;
       begin
-        { module is now compiled }
-        state:=ms_compiled;
-
         { free ppu }
         discardppu;
 
@@ -2413,11 +2410,8 @@ var
         do_reload:=true;
       end;
 
-    procedure tppumodule.post_load_or_compile(from_module : tmodule; second_time : boolean);
+    procedure tppumodule.post_load_or_compile(from_module : tmodule);
       begin
-        if current_module<>self then
-          internalerror(200212282);
-
         if in_interface then
           internalerror(200212283);
 
@@ -2427,7 +2421,6 @@ var
             assigned(tppumodule(from_module).ppufile) then
            tppumodule(from_module).ppufile.tempopen;
   {$endif SHORT_ON_FILE_HANDLES}
-        state:=ms_processed;
       end;
 
     function tppumodule.loadppu(from_module : tmodule) : boolean;
@@ -2560,12 +2553,14 @@ var
         if state=ms_compiled then
         begin
           Result:=true;
-          post_load_or_compile(loadedfrommodule,false);
+          post_load_or_compile(loadedfrommodule);
         end else if state=ms_compile then
           mark_recompile_needed(recompile_reason);
 
+        { finished or recompile: no need to store state }
+        FreeAndNil(stored_state);
+
         { we are back, restore current_module }
-        store_state;
         set_current_module(old_module);
       end;
 

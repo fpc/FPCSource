@@ -928,7 +928,7 @@ implementation
         if assigned(asmdata) then
           begin
             if current_asmdata=asmdata then
-             current_asmdata:=nil;
+              current_asmdata:=nil;
             asmdata.free;
             asmdata:=nil;
           end;
@@ -994,6 +994,8 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=casmdata.create(modulename);
+        if current_module=self then
+          current_asmdata:=TAsmData(asmdata);
         InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;
         _exports:=tlinkedlist.create;

@@ -198,8 +198,6 @@ var
       { handle the postponed case first }
       oldcurrent_filepos:=current_filepos;
       old_settings:=current_settings;
-      if current_module.fromppu then
-        old_settings.pmessage:=nil; { ppu do not have own message state }
       old_verbosity:=status.verbosity;
 
       old_asmdata:=current_asmdata;
@@ -282,8 +280,8 @@ var
       current_filepos:=oldcurrent_filepos;
       current_settings:=old_settings;
       status.verbosity:=old_verbosity;
-      { restore message settings which were recorded prior to unit switch }
 
+      { restore message settings which were recorded prior to unit switch }
       RestoreLocalVerbosity(current_settings.pmessage);
 
       // These can be different
@@ -337,8 +335,9 @@ var
       switchesstatestack:=default(tswitchesstatestack);
       switchesstatestackpos:=0;
 
+      // keep "current_settings"
+
       parse_only:=false;
-      // keep current_settings
       current_asmdata:=nil;
       current_debuginfo:=nil;
 

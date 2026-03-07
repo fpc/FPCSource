@@ -60,7 +60,6 @@ implementation
        hp,hp2 :  tmodule;
 
     begin
-
        module.end_of_parsing;
 
        if (module.is_initial) and
