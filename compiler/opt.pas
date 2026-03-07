@@ -28,7 +28,7 @@ interface
 uses
   sysutils,
   compilerbase,
-  optloop;
+  optconstprop,optloop;
 
 type
 
@@ -36,10 +36,12 @@ type
 
   TOptimizers = class
   private
+    FConstProp: TConstPropOptimizer;
     FLoop: TLoopOptimizer;
   public
     constructor Create(ACompiler: TCompilerBase);
     destructor Destroy; override;
+    property ConstProp: TConstPropOptimizer read FConstProp;
     property Loop: TLoopOptimizer read FLoop;
   end;
 
@@ -49,12 +51,14 @@ implementation
 
 constructor TOptimizers.Create(ACompiler: TCompilerBase);
 begin
+  FConstProp:=TConstPropOptimizer.Create(ACompiler);
   FLoop:=TLoopOptimizer.Create(ACompiler);
 end;
 
 destructor TOptimizers.Destroy;
 begin
   FreeAndNil(FLoop);
+  FreeAndNil(FConstProp);
   inherited Destroy;
 end;
 

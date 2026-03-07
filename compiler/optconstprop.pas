@@ -50,7 +50,17 @@ unit optconstprop;
 
       will not result in any constant propagation.
     }
+type
+
+  { TConstPropOptimizer }
+
+  TConstPropOptimizer = class
+  private
+    FCompiler: TCompilerBase;
+  public
+    constructor Create(ACompiler: TCompilerBase);
     function do_optconstpropagate(var rootnode : tnode;out changed: boolean) : tnode;
+  end;
 
   implementation
 
@@ -398,7 +408,13 @@ unit optconstprop;
       end;
 
 
-    function do_optconstpropagate(var rootnode: tnode;out changed: boolean): tnode;
+    constructor TConstPropOptimizer.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    function TConstPropOptimizer.do_optconstpropagate(var rootnode: tnode;out changed: boolean): tnode;
       var
         iteration_changed: Boolean;
       begin

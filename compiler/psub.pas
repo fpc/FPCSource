@@ -1208,7 +1208,7 @@ implementation
 
        if cs_opt_constant_propagate in current_settings.optimizerswitches then
          begin
-           do_optconstpropagate(code,RedoDFA);
+           compiler.opt.constprop.do_optconstpropagate(code,RedoDFA);
            { RedoDFA value not used here }
            RedoDFA:=false;
          end;
@@ -1224,7 +1224,7 @@ implementation
 
            if cs_opt_constant_propagate in current_settings.optimizerswitches then
              begin
-               do_optconstpropagate(code,RedoDFA);
+               compiler.opt.constprop.do_optconstpropagate(code,RedoDFA);
                if RedoDFA then
                  begin
                    dfabuilder.redodfainfo(code);
