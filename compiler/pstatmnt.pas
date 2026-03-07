@@ -725,7 +725,7 @@ implementation
                   begin
                     valuenode:=compiler.caddrnode_internal_nomark(valuenode);
                     include(taddrnode(valuenode).addrnodeflags,anf_typedaddr);
-                    refnode:=cderefnode.create(refnode,compiler);
+                    refnode:=compiler.cderefnode(refnode);
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                   end;
                 addstatement(newstatement,tempnode);

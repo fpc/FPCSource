@@ -216,13 +216,13 @@ function tjvmloadnode.handle_threadvar_access: tnode;
           threavarinstance.getreadwritereference returns a ppointer in these
           cases.
         }
-        result:=cderefnode.create(result);
+        result:=compiler.cderefnode(result);
         result:=compiler.ctypeconvnode_explicit(result,resultdef);
       end
     else
       begin
         result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
-        result:=cderefnode.create(result);
+        result:=compiler.cderefnode(result);
       end;
   end;
 

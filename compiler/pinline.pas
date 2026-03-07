@@ -133,7 +133,7 @@ implementation
                                 { setup variant selector }
                                 addstatement(newstatement,compiler.cassignmentnode(
                                     csubscriptnode.create(variantselectsymbol,
-                                      cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),
+                                      compiler.cderefnode(compiler.ctemprefnode(temp)),compiler),
                                     p2));
                             end;
                         end
@@ -300,11 +300,11 @@ implementation
                   p is also used in the assignment below }
                 if is_new then
                   begin
-                    p2:=cderefnode.create(p.getcopy,compiler);
+                    p2:=compiler.cderefnode(p.getcopy);
                     include(TDerefNode(p2).derefnodeflags,drnf_no_checkpointer);
                   end
                 else
-                  p2:=cderefnode.create(p,compiler);
+                  p2:=compiler.cderefnode(p);
                 do_typecheckpass(p2);
                 if is_new then
                   callflag:=cnf_new_call
@@ -415,7 +415,7 @@ implementation
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
                        ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
-                       addstatement(newstatement,compiler.nodeutils.initialize_data_node(cderefnode.create(compiler.ctemprefnode(temp),compiler),false));
+                       addstatement(newstatement,compiler.nodeutils.initialize_data_node(compiler.cderefnode(compiler.ctemprefnode(temp)),false));
 
                      { copy the temp to the destination }
                      addstatement(newstatement,compiler.cassignmentnode(
@@ -437,10 +437,10 @@ implementation
                            { ensure that p gets evaluated only once, in case it is e.g. a call }
                            temp:=compiler.ctempcreatenode_value(p.resultdef,p.resultdef.size,tt_persistent,true,p);
                            addstatement(newstatement,temp);
-                           addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(compiler.ctemprefnode(temp),compiler)));
+                           addstatement(newstatement,compiler.nodeutils.finalize_data_node(compiler.cderefnode(compiler.ctemprefnode(temp))));
                          end
                        else
-                         addstatement(newstatement,compiler.nodeutils.finalize_data_node(cderefnode.create(p.getcopy,compiler)));
+                         addstatement(newstatement,compiler.nodeutils.finalize_data_node(compiler.cderefnode(p.getcopy)));
 
                      ReadVariantRecordConstants;
 

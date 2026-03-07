@@ -278,9 +278,9 @@ implementation
              addstatement(newstatement,temp);
              addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(temp),compiler.caddrnode_internal(p1)));
              addstatement(newstatement,compiler.cassignmentnode(
-                 cderefnode.create(compiler.ctemprefnode(temp),compiler),
+                 compiler.cderefnode(compiler.ctemprefnode(temp)),
                  compiler.caddnode(ntyp,
-                     cderefnode.create(compiler.ctemprefnode(temp),compiler),
+                     compiler.cderefnode(compiler.ctemprefnode(temp)),
                      p2)));
              addstatement(newstatement,compiler.ctempdeletenode(temp));
            end
@@ -2295,13 +2295,13 @@ implementation
                    case tfiledef(p1.resultdef).filetyp of
                      ft_text:
                        begin
-                         p1:=cderefnode.create(compiler.ccallnode_intern('fpc_getbuf_text',compiler.ccallparanode(p1,nil)),compiler);
+                         p1:=compiler.cderefnode(compiler.ccallnode_intern('fpc_getbuf_text',compiler.ccallparanode(p1,nil)));
                          typecheckpass(p1);
                        end;
                      ft_typed:
                        begin
-                         p1:=cderefnode.create(compiler.ctypeconvnode_internal(compiler.ccallnode_intern('fpc_getbuf_typedfile',compiler.ccallparanode(p1,nil)),
-                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef,compiler)),compiler);
+                         p1:=compiler.cderefnode(compiler.ctypeconvnode_internal(compiler.ccallnode_intern('fpc_getbuf_typedfile',compiler.ccallparanode(p1,nil)),
+                           cpointerdef.getreusable(tfiledef(p1.resultdef).typedfiledef,compiler)));
                          typecheckpass(p1);
                        end;
                      else
@@ -2318,7 +2318,7 @@ implementation
                     p1:=compiler.cerrornode;
                  end
                else
-                 p1:=cderefnode.create(p1,compiler);
+                 p1:=compiler.cderefnode(p1);
              end;
 
           _LECKKLAMMER:
@@ -2366,7 +2366,7 @@ implementation
                             { support delphi autoderef }
                             if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
                                (m_autoderef in current_settings.modeswitches) then
-                              p1:=cderefnode.create(p1,compiler);
+                              p1:=compiler.cderefnode(p1);
                             p2:=comp_expr([ef_accept_equal]);
                             { Support Pbytevar[0..9] which returns array [0..9].}
                             if try_to_consume(_POINTPOINT) then
@@ -2416,7 +2416,7 @@ implementation
                                  else
                                    internalerror(2013053102);
                                end;
-                               p1:=cderefnode.create(p2);
+                               p1:=compiler.cderefnode(p2);
 {$elseif defined(i386)}
                                if try_to_consume(_COLON) then
                                 begin
@@ -2486,7 +2486,7 @@ implementation
                     below for supporting id.anyobjcmethod isn't triggered }
                   (p1.resultdef<>objc_idtype) then
                  begin
-                   p1:=cderefnode.create(p1,compiler);
+                   p1:=compiler.cderefnode(p1);
                    do_typecheckpass(p1);
                    autoderef:=true;
                  end;

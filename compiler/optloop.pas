@@ -358,7 +358,7 @@ type
                   muln:
                     hp:=compiler.ctemprefnode(inductions[i].temp);
                   vecn:
-                    hp:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(inductions[i].temp),compiler),n.resultdef);
+                    hp:=compiler.ctypeconvnode_internal(compiler.cderefnode(compiler.ctemprefnode(inductions[i].temp)),n.resultdef);
                   else
                     internalerror(200809211);
                 end;
@@ -543,7 +543,7 @@ type
                       addstatement(initcodestatements,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),nn));
 
                       { finally replace the node by a temp. ref }
-                      n:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),n.resultdef);
+                      n:=compiler.ctypeconvnode_internal(compiler.cderefnode(compiler.ctemprefnode(tempnode)),n.resultdef);
 
                       { ... and add a temp. release node }
                       if startvaltemp<>nil then

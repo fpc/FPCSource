@@ -1536,7 +1536,7 @@ implementation
                 if (mapping^.oldsym.typ=paravarsym) and
                     (vo_is_self in tparavarsym(mapping^.oldsym).varoptions) and
                     not is_implicit_pointer_object_type(tparavarsym(mapping^.oldsym).vardef) then
-                  n:=cderefnode.create(n,compiler);
+                  n:=compiler.cderefnode(n);
                 typecheckpass(n);
                 current_filepos:=old_filepos;
                 break;

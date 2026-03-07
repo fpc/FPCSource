@@ -384,7 +384,7 @@ implementation
                         compiler.ccallparanode(left,nil))));
               end;
             inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
-            result:=cderefnode.create(result);
+            result:=compiler.cderefnode(result);
             { reused }
             left:=nil;
           end;
@@ -403,7 +403,7 @@ implementation
           compiler.cloadvmtaddrnode(compiler.ctypenode(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
         result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
-        result:=cderefnode.create(result);
+        result:=compiler.cderefnode(result);
       end;
 
 
@@ -511,7 +511,7 @@ implementation
         else
           begin
             result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
-            result:=cderefnode.create(result)
+            result:=compiler.cderefnode(result)
           end;
         { reused }
         tloadnode(left).left:=nil;
@@ -1280,7 +1280,7 @@ implementation
                 if not check_only then
                   begin
                     resnode:=compiler.ctypeconvnode_explicit(left,cpointerdef.getreusable(resultdef));
-                    resnode:=cderefnode.create(resnode);
+                    resnode:=compiler.cderefnode(resnode);
                     left:=nil;
                   end;
                 result:=true;
@@ -1402,7 +1402,7 @@ implementation
                     resnode:=to_set_explicit_typecast;
                     { convert to desired result }
                     inserttypeconv_explicit(resnode,cpointerdef.getreusable(resultdef));
-                    resnode:=cderefnode.create(resnode);
+                    resnode:=compiler.cderefnode(resnode);
                   end;
                 result:=true;
                 exit;

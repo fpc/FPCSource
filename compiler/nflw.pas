@@ -481,7 +481,7 @@ implementation
         { initial value of mutationcheck }
         hp:=compiler.ctemprefnode(state);
         typecheckpass(hp);
-        hp:=cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler);
+        hp:=compiler.cderefnode(genloadfield(hp,'MUTATIONSPTR'));
         addstatement(outerloopbodystatement,compiler.cassignmentnode(
           compiler.ctemprefnode(mutationcheck),hp));
         { initialise innerloopcounter }
@@ -510,7 +510,7 @@ implementation
         addstatement(innerloopbodystatement,compiler.cifnode(
           compiler.caddnode(unequaln,
             compiler.ctemprefnode(mutationcheck),
-            cderefnode.create(genloadfield(hp,'MUTATIONSPTR'),compiler)
+            compiler.cderefnode(genloadfield(hp,'MUTATIONSPTR'))
           ),
           compiler.ccallnode_internfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
             compiler.ccallparanode(compiler.ctemprefnode(expressiontemp),nil)),
@@ -1552,7 +1552,7 @@ implementation
                    begin
                      prefetchcode := internalstatements(prefetchstatements);
                      addstatement(prefetchstatements,geninlinenode(in_prefetch_var,false,
-                       cderefnode.create(compiler.ctypeconvnode(assignmentnode.right.getcopy,voidpointertype))));
+                       compiler.cderefnode(compiler.ctypeconvnode(assignmentnode.right.getcopy,voidpointertype))));
                      addstatement(prefetchstatements,right);
                      right := prefetchcode;
                      typecheckpass(right);

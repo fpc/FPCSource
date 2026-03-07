@@ -315,7 +315,7 @@ implementation
                   tempn:=compiler.ctypeconvnode_explicit(tempn,cpointerdef.getreusable(orgparadef))
               end;
             if implicitptrpara then
-              tempn:=cderefnode.create(tempn)
+              tempn:=compiler.cderefnode(tempn)
             else
               begin
                 { add check to determine whether the location passed as

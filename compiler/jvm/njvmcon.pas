@@ -396,7 +396,7 @@ implementation
                   result:=buildbitset;
                 end;
               inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
-              result:=cderefnode.create(result);
+              result:=compiler.cderefnode(result);
             end;
         end;
       end;

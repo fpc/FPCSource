@@ -521,10 +521,9 @@ const
                       resn,
                       compiler.caddnode_internal(equaln,
                         compiler.ctypeconvnode_internal(
-                          cderefnode.create(
+                          compiler.cderefnode(
                             compiler.caddnode_internal(subn,compiler.ctypeconvnode_internal(tinlinenode(L).left.getcopy,voidpointertype),
-                              compiler.cordconstnode(sizeof(uint32),ptruinttype,false)),
-                              compiler
+                              compiler.cordconstnode(sizeof(uint32),ptruinttype,false))
                           ),u32inttype
                         ),
                         compiler.cordconstnode(0,u32inttype,false))

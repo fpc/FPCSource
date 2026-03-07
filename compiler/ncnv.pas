@@ -1861,7 +1861,7 @@ implementation
         typecheckpass(result);
         { left is reused }
         left:=nil;
-        result:=cderefnode.create(result,compiler);
+        result:=compiler.cderefnode(result);
         include(TDerefNode(result).derefnodeflags,drnf_no_checkpointer);
       end;
 
@@ -2026,7 +2026,7 @@ implementation
 
         { copy ... }
         addstatement(newstatement,compiler.cassignmentnode(
-          compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctypeconvnode_internal(compiler.ctemprefnode(temp),voidpointertype),compiler),left.resultdef),
+          compiler.ctypeconvnode_internal(compiler.cderefnode(compiler.ctypeconvnode_internal(compiler.ctemprefnode(temp),voidpointertype)),left.resultdef),
           left
         ));
         { left is reused }
@@ -3154,7 +3154,7 @@ implementation
                                  addstatement(newstatement,compiler.cassignmentnode(
                                    compiler.ctemprefnode(tempnode),
                                    compiler.caddrnode_internal(left)));
-                                 left:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),left.resultdef);
+                                 left:=compiler.ctypeconvnode_internal(compiler.cderefnode(compiler.ctemprefnode(tempnode)),left.resultdef);
                                end
                              else
                                begin

@@ -220,7 +220,7 @@ implementation
               compiler.ccallparanode(right,
               compiler.ccallparanode(ttypeconvnode(left).left,nil)));
             inserttypeconv_internal(result,tx86pointerdef(cpointerdef).getreusablex86(arraydef.elementdef,x86pt_huge));
-            result:=cderefnode.create(result);
+            result:=compiler.cderefnode(result);
 
             ttypeconvnode(left).left:=nil;
             ttypeconvnode(left).free;

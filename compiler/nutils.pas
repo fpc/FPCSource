@@ -659,7 +659,7 @@ implementation
                 );
               end;
             if is_object(self_resultdef) then
-              self_node:=cderefnode.create(compiler.ctemprefnode(self_temp),compiler)
+              self_node:=compiler.cderefnode(compiler.ctemprefnode(self_temp))
             else
               self_node:=compiler.ctemprefnode(self_temp)
           end;
@@ -676,12 +676,11 @@ implementation
         else
           { in case of an interface/classref, the "instance" is a pointer
             to pointer to a VMT and there is no vmt field }
-          result:=cderefnode.create(
+          result:=compiler.cderefnode(
             compiler.ctypeconvnode_explicit(
               self_node,
               cpointerdef.getreusable(voidpointertype,compiler)
-            ),
-            compiler
+            )
           );
         result:=compiler.ctypeconvnode_explicit(
           result,

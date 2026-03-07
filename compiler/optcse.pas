@@ -482,7 +482,7 @@ unit optcse;
                         templist[i]:=hp;
 
                         if addrstored then
-                          pnode(lists.locationlist[i])^:=cderefnode.Create(compiler.ctemprefnode(ttempcreatenode(templist[i])),compiler)
+                          pnode(lists.locationlist[i])^:=compiler.cderefnode(compiler.ctemprefnode(ttempcreatenode(templist[i])))
                         else
                           pnode(lists.locationlist[i])^:=compiler.ctemprefnode(ttempcreatenode(templist[i]));
                         { make debugging easier and set temp. location to the original location }
@@ -512,7 +512,7 @@ unit optcse;
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
                         if addrstored then
-                          pnode(lists.locationlist[i])^:=cderefnode.Create(compiler.ctemprefnode(ttempcreatenode(templist[ptrint(lists.equalto[i])])),compiler)
+                          pnode(lists.locationlist[i])^:=compiler.cderefnode(compiler.ctemprefnode(ttempcreatenode(templist[ptrint(lists.equalto[i])])))
                         else
                           pnode(lists.locationlist[i])^:=compiler.ctemprefnode(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
 
@@ -684,7 +684,7 @@ unit optcse;
             { shall we take the address? }
             if CSEOnReference(pconstentry(arg)^.valuenode) then
               begin
-                hp:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(pconstentry(arg)^.temp),compiler),pconstentry(arg)^.valuenode.resultdef);
+                hp:=compiler.ctypeconvnode_internal(compiler.cderefnode(compiler.ctemprefnode(pconstentry(arg)^.temp)),pconstentry(arg)^.valuenode.resultdef);
                 ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
               end
             else

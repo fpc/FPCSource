@@ -722,7 +722,7 @@ implementation
               { finalize the entire parameter }
               callnode.add_init_statement(
                 compiler.nodeutils.finalize_data_node(
-                  cderefnode.create(compiler.ctemprefnode(temp),compiler)))
+                  compiler.cderefnode(compiler.ctemprefnode(temp))))
             else
               begin
                 { passing a (part of, in case of slice) dynamic array as an
@@ -734,11 +734,11 @@ implementation
                        compiler.ccallparanode(compiler.caddrnode_internal
                           (compiler.crttinode(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal)),
                        compiler.ccallparanode(compiler.caddrnode_internal(
-                          cderefnode.create(compiler.ctemprefnode(temp),compiler)),nil)));
+                          compiler.cderefnode(compiler.ctemprefnode(temp))),nil)));
                 callnode.add_init_statement(
                   compiler.ccallnode_intern('fpc_finalize_array',npara));
               end;
-            left:=cderefnode.create(compiler.ctemprefnode(temp),compiler);
+            left:=compiler.cderefnode(compiler.ctemprefnode(temp));
             firstpass(left);
             callnode.add_done_statement(compiler.ctempdeletenode(temp));
           end;
@@ -851,7 +851,7 @@ implementation
                        compiler.ccallparanode(
                          arraysize,
                          compiler.ccallparanode(
-                           cderefnode.create(compiler.ctemprefnode(paratemp),compiler),
+                           compiler.cderefnode(compiler.ctemprefnode(paratemp)),
                            compiler.ccallparanode(
                              arraybegin,nil
                            )
@@ -879,7 +879,7 @@ implementation
                    temp typecasted to the same type as the original parameter
                    (don't free left, it has been reused above) }
                  left:=compiler.ctypeconvnode_internal(
-                   cderefnode.create(compiler.ctemprefnode(paratemp),compiler),
+                   compiler.cderefnode(compiler.ctemprefnode(paratemp)),
                    left.resultdef);
               end
             else if is_shortstring(parasym.vardef) then
@@ -2345,7 +2345,7 @@ implementation
             if usederef then
               begin
                 loadp:=compiler.caddrnode_internal(p);
-                refp:=cderefnode.create(compiler.ctemprefnode(ptemp),compiler);
+                refp:=compiler.cderefnode(compiler.ctemprefnode(ptemp));
               end
             else
               begin
@@ -3091,7 +3091,7 @@ implementation
           begin
             vmt_entry:=load_vmt_for_self_node(methodpointer.getcopy);
             { get the right entry in the VMT }
-            vmt_entry:=cderefnode.create(vmt_entry, compiler);
+            vmt_entry:=compiler.cderefnode(vmt_entry);
             typecheckpass(vmt_entry);
             vmt_def:=trecorddef(vmt_entry.resultdef);
             { tobjectdef(tprocdef(procdefinition).struct) can be a parent of the
@@ -5545,7 +5545,7 @@ implementation
         include(paraaddr.addrnodeflags,anf_typedaddr);
         addstatement(inlineinitstatement,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),
           paraaddr));
-        para.left:=cderefnode.create(compiler.ctemprefnode(tempnode),compiler);
+        para.left:=compiler.cderefnode(compiler.ctemprefnode(tempnode));
         if isfuncretnode then
           Include(para.left.flags,nf_is_funcret);
       end;

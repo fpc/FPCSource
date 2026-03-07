@@ -1515,7 +1515,7 @@ implementation
             { to the read/write routine)                                 }
             textsym:=search_system_type('TEXT');
             filepara := compiler.ccallparanode(compiler.ctypeconvnode_internal(
-              cderefnode.create(compiler.ctemprefnode(filetemp),compiler),textsym.typedef),nil);
+              compiler.cderefnode(compiler.ctemprefnode(filetemp)),textsym.typedef),nil);
           end
         else
           { remove filepara from the parameter chain }
@@ -1550,7 +1550,7 @@ implementation
                 { (so that we pass the value and not the address of the temp }
                 { to the read/write routine)                                 }
                 nextpara := compiler.ccallparanode(compiler.ctypeconvnode_internal(
-                  cderefnode.create(compiler.ctemprefnode(filetemp),compiler),filepara.left.resultdef),nil);
+                  compiler.cderefnode(compiler.ctemprefnode(filetemp)),filepara.left.resultdef),nil);
 
                 { replace the old file para with the new one }
                 filepara.left := nil;
@@ -4416,7 +4416,7 @@ implementation
                     if inlinenumber=in_sizeof_x then
                       begin
                         inserttypeconv_explicit(result,cpointerdef.getreusable(objdef.vmt_def,compiler),compiler);
-                        result:=cderefnode.create(result,compiler);
+                        result:=compiler.cderefnode(result);
                         result:=genloadfield(result,'VINSTANCESIZE');
                       end
                     else
@@ -5090,7 +5090,7 @@ implementation
              addstatement(newstatement,tempnode);
              addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),
                compiler.caddrnode_internal(tcallparanode(left).left.getcopy)));
-             hp := cderefnode.create(compiler.ctemprefnode(tempnode),compiler);
+             hp := compiler.cderefnode(compiler.ctemprefnode(tempnode));
              inserttypeconv_internal(hp,tcallparanode(left).left.resultdef,compiler);
            end
          else
