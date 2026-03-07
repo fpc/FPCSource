@@ -29,24 +29,36 @@ unit optdeadstore;
   interface
 
     uses
-      compilerbase,node;
+      compilerbase,node,nutils;
 
+type
+  TDeadStoreEliminationOptimization = class
+  private
+    FCompiler: TCompilerBase;
+    function deadstoreelim(var n: tnode; arg: pointer): foreachnoderesult;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
     function do_optdeadstoreelim(var rootnode : tnode;out changed: boolean) : tnode;
+  end;
 
   implementation
 
     uses
       verbose,globtype,cdynset,globals,
       procinfo,pass_1,compiler,
-      nutils,
       nbas,nld,
       optbase,
       symsym,symconst;
 
 
-    function deadstoreelim(var n: tnode; arg: pointer): foreachnoderesult;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor TDeadStoreEliminationOptimization.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    function TDeadStoreEliminationOptimization.deadstoreelim(var n: tnode; arg: pointer): foreachnoderesult;
       var
         a: tassignmentnode;
         redundant: boolean;
@@ -107,7 +119,7 @@ unit optdeadstore;
       end;
 
 
-    function do_optdeadstoreelim(var rootnode: tnode;out changed: boolean): tnode;
+    function TDeadStoreEliminationOptimization.do_optdeadstoreelim(var rootnode: tnode;out changed: boolean): tnode;
       begin
         changed:=false;
 {$ifdef EXTDEBUG_DEADSTORE}
@@ -118,7 +130,7 @@ unit optdeadstore;
         if not(pi_dfaavailable in current_procinfo.flags) then
           internalerror(2013110201);
         if not current_procinfo.has_nestedprocs then
-          foreachnodestatic(pm_postprocess, rootnode, @deadstoreelim, @changed);
+          foreachnode(pm_postprocess, rootnode, @deadstoreelim, @changed);
 {$ifdef DEBUG_DEADSTORE}
         if changed then
           begin

@@ -28,7 +28,7 @@ interface
 uses
   sysutils,
   compilerbase,
-  optconstprop,optcse,optloop;
+  optconstprop,optcse,optdeadstore,optloop;
 
 type
 
@@ -38,12 +38,14 @@ type
   private
     FConstProp: TConstPropOptimizer;
     FCSE: TCSEOptimizer;
+    FDeadStore: TDeadStoreEliminationOptimization;
     FLoop: TLoopOptimizer;
   public
     constructor Create(ACompiler: TCompilerBase);
     destructor Destroy; override;
     property ConstProp: TConstPropOptimizer read FConstProp;
     property CSE: TCSEOptimizer read FCSE;
+    property DeadStore: TDeadStoreEliminationOptimization read FDeadStore;
     property Loop: TLoopOptimizer read FLoop;
   end;
 
@@ -55,12 +57,14 @@ constructor TOptimizers.Create(ACompiler: TCompilerBase);
 begin
   FConstProp:=TConstPropOptimizer.Create(ACompiler);
   FCSE:=TCSEOptimizer.Create(ACompiler);
+  FDeadStore:=TDeadStoreEliminationOptimization.Create(ACompiler);
   FLoop:=TLoopOptimizer.Create(ACompiler);
 end;
 
 destructor TOptimizers.Destroy;
 begin
   FreeAndNil(FLoop);
+  FreeAndNil(FDeadStore);
   FreeAndNil(FCSE);
   FreeAndNil(FConstProp);
   inherited Destroy;

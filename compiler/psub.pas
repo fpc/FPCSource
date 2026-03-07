@@ -1289,7 +1289,7 @@ implementation
              begin
                if normalize(code) then
                  begin
-                   do_optdeadstoreelim(code,RedoDFA);
+                   compiler.opt.deadstore.do_optdeadstoreelim(code,RedoDFA);
                    if RedoDFA then
                      dfabuilder.redodfainfo(code);
                  end;
