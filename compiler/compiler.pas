@@ -275,7 +275,7 @@ type
     function crttinode(def:tstoreddef;rt:trttitype;dt:Trttidatatype):trttinode; inline;
     { nmat }
     function cmoddivnode(t:tnodetype;l,r : tnode):tmoddivnode; inline;
-    //TODO:cshlshrnode
+    function cshlshrnode(t:tnodetype;l,r : tnode):tshlshrnode; inline;
     //TODO:cunaryminusnode
     //TODO:cunaryplusnode
     //TODO:cnotnode
@@ -997,6 +997,11 @@ end;
 function TCompilerHelper.cmoddivnode(t: tnodetype; l, r: tnode): tmoddivnode; inline;
 begin
   result:=nmat.cmoddivnode.create(t,l,r,self);
+end;
+
+function TCompilerHelper.cshlshrnode(t: tnodetype; l, r: tnode): tshlshrnode; inline;
+begin
+  result:=nmat.cshlshrnode.create(t,l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

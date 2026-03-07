@@ -2404,7 +2404,7 @@ implementation
                                consume(_COLON);
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
-                               p3:=cshlshrnode.create(shln,p2,compiler.cordconstnode($10,s16inttype,false));
+                               p3:=compiler.cshlshrnode(shln,p2,compiler.cordconstnode($10,s16inttype,false));
                                p2:=comp_expr([ef_accept_equal]);
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
@@ -4958,9 +4958,9 @@ implementation
                      include(tmoddivnode(p1).moddivnodeflags,mdnf_isomod);
                  end;
                _OP_SHL :
-                 p1:=cshlshrnode.create(shln,p1,p2,compiler);
+                 p1:=compiler.cshlshrnode(shln,p1,p2);
                _OP_SHR :
-                 p1:=cshlshrnode.create(shrn,p1,p2,compiler);
+                 p1:=compiler.cshlshrnode(shrn,p1,p2);
                _OP_XOR :
                  p1:=compiler.caddnode(xorn,p1,p2);
                _ASSIGNMENT :

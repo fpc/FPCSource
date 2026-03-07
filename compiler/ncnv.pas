@@ -1397,7 +1397,7 @@ implementation
                left := compiler.ctypeconvnode_internal(left,exprtype);
                if (target_info.endian = endian_little) then
                  left := compiler.caddnode(orn,
-                   cshlshrnode.create(shln,left,compiler.cordconstnode(8,exprtype,false),compiler),
+                   compiler.cshlshrnode(shln,left,compiler.cordconstnode(8,exprtype,false)),
                    compiler.cordconstnode(1,exprtype,false))
                else
                  left := compiler.caddnode(orn,left,

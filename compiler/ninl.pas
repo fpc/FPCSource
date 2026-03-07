@@ -4389,8 +4389,8 @@ implementation
                   ;
               end;
               if shiftconst <> 0 then
-                result := compiler.ctypeconvnode_internal(cshlshrnode.create(shrn,left,
-                    compiler.cordconstnode(shiftconst,sinttype,false),compiler),resultdef)
+                result := compiler.ctypeconvnode_internal(compiler.cshlshrnode(shrn,left,
+                    compiler.cordconstnode(shiftconst,sinttype,false)),resultdef)
               else
                 result := compiler.ctypeconvnode_internal(left,resultdef);
               left := nil;

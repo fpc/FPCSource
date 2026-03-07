@@ -4258,7 +4258,7 @@ const
            ispowerof2(tordconstnode(right).value,power) then
           begin
             tordconstnode(right).value := power;
-            result := cshlshrnode.create(shln,left,right,compiler);
+            result := compiler.cshlshrnode(shln,left,right);
             { left and right are reused }
             left := nil;
             right := nil;
@@ -4634,12 +4634,12 @@ const
                      ispowerof2(tordconstnode(left).value,i)) then
                    begin
                      tordconstnode(left).value := i;
-                     result := cshlshrnode.create(shln,right,left,compiler);
+                     result := compiler.cshlshrnode(shln,right,left);
                    end
                  else
                    begin
                      tordconstnode(right).value := i2;
-                     result := cshlshrnode.create(shln,left,right,compiler);
+                     result := compiler.cshlshrnode(shln,left,right);
                    end;
                  result.resultdef := resultdef;
                  left := nil;

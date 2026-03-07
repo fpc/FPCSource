@@ -636,10 +636,9 @@ implementation
                       for power=1 (i.e. division by 2), masknode is simply (temp shr shiftval)}
                     if power=1 then
                       masknode:=
-                        cshlshrnode.create(shrn,
+                        compiler.cshlshrnode(shrn,
                           compiler.ctemprefnode(temp),
-                          compiler.cordconstnode(shiftval,u8inttype,false),
-                          compiler
+                          compiler.cordconstnode(shiftval,u8inttype,false)
                         )
                     else
                       masknode:=
@@ -678,7 +677,7 @@ implementation
                 else
                   begin
                     tordconstnode(right).value:=power;
-                    result:=cshlshrnode.create(shrn,left,right,compiler)
+                    result:=compiler.cshlshrnode(shrn,left,right)
                   end;
               end
             else if is_signed(resultdef) then    { signed modulus }
@@ -698,10 +697,9 @@ implementation
                 { mask:=sar(left,sizeof(left)*8-1) and ((1 shl power)-1); }
                 if power=1 then
                   masknode:=
-                    cshlshrnode.create(shrn,
+                    compiler.cshlshrnode(shrn,
                       compiler.ctemprefnode(temp),
-                      compiler.cordconstnode(shiftval,u8inttype,false),
-                      compiler
+                      compiler.cordconstnode(shiftval,u8inttype,false)
                     )
                 else
                   masknode:=
