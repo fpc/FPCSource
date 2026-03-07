@@ -47,7 +47,7 @@ uses
   fksysutl,
 {$ENDIF}
   verbose,comphook,systems,
-  cutils,cfileutl,cclasses,globals,options,fmodule,parser,symtable,
+  cutils,cfileutl,cclasses,globals,options,switches,fmodule,parser,symtable,
   assemble,link,dbgbase,import,export,tokens,wpo
   { cpu parameter handling }
   ,cpupara
@@ -281,6 +281,10 @@ begin
 
        { Initialize the compiler }
        InitCompiler(cmd);
+
+       { apply global messages/verbosity }
+       flushpendingswitchesstate;
+       FreeLocalVerbosity(current_settings.pmessage);
 
        { show some info }
        Message1(general_t_compilername,FixFileName(system.paramstr(0)));

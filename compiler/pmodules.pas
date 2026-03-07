@@ -712,6 +712,11 @@ implementation
         Result:=true;
         current_scanner.tempcloseinputfile;
         state:=tglobalstate.create(false);
+
+        { reset verbosity (otherwise the used units would use curr's pmessage) }
+        current_settings.pmessage:=nil;
+        RestoreLocalVerbosity(nil);
+
         { Load the units }
         pu:=tused_unit(curr.used_units.first);
         while assigned(pu) do

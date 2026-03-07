@@ -187,7 +187,7 @@ var
         ppcgen/cgppc.pas
         line 144 has a WARN 6018 OFF...
       }
-      flushpendingswitchesstate;
+      flushpendingswitchesstate; { flushpendingswitchesstate before storing current_settings.pmessage, switchesstatestack etc }
       old_switchesstatestack:=switchesstatestack;
       old_switchesstatestackpos:=switchesstatestackpos;
 
