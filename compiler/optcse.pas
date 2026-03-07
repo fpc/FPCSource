@@ -38,6 +38,7 @@ type
   TCSEOptimizer = class
   private
     FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
     {
@@ -582,8 +583,6 @@ type
 
 
     function TCSEOptimizer.do_optcse(var rootnode : tnode) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         deletes,
         statements : tstatementnode;
@@ -715,8 +714,6 @@ type
 
 
     function TCSEOptimizer.do_consttovar(var rootnode : tnode) : tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         constentries : tconstentries;
       Procedure QuickSort(L, R : Longint);
