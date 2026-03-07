@@ -3458,7 +3458,7 @@ implementation
 {
                               hp:=
                                  compiler.ctypeconvnode_explicit(sizesinttype,
-                                   cmoddivnode.create(divn,
+                                   compiler.cmoddivnode(divn,
                                      compiler.caddnode(addn,
                                        compiler.caddnode(muln,hp,compiler.cordconstnode(tarraydef(
                                          left.resultdef).elepackedbitsize,s64inttype,true)),
@@ -4046,7 +4046,7 @@ implementation
                   if (inlinenumber=in_trunc_real) and
                      is_currency(temp_pnode^.resultdef) then
                     begin
-                      result:=cmoddivnode.create(divn,compiler.ctypeconvnode_internal(temp_pnode^.getcopy,s64inttype),genintconstnode(10000,compiler),compiler);
+                      result:=compiler.cmoddivnode(divn,compiler.ctypeconvnode_internal(temp_pnode^.getcopy,s64inttype),genintconstnode(10000,compiler));
                       exit;
                     end
                   else if is_fpucomp(temp_pnode^.resultdef) then

@@ -476,7 +476,7 @@ implementation
 
              { prepare else block }
              { result:=(-left) mod right }
-             addstatement(else_statements,compiler.cassignmentnode(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy,compiler)));
+             addstatement(else_statements,compiler.cassignmentnode(compiler.ctemprefnode(result_data),compiler.cmoddivnode(modn,cunaryminusnode.create(left.getcopy,compiler),right.getcopy)));
              { result<>0? }
              addstatement(else_statements,compiler.cifnode_internal(compiler.caddnode_internal(unequaln,compiler.ctemprefnode(result_data),compiler.cordconstnode(0,resultdef,false)),
                { then: result:=right-result }
@@ -488,7 +488,7 @@ implementation
              { if left>=0 }
              addstatement(statements,compiler.cifnode_internal(compiler.caddnode_internal(gten,left.getcopy,compiler.cordconstnode(0,resultdef,false)),
                { then: result:=left mod right }
-               compiler.cassignmentnode_internal(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler)),
+               compiler.cassignmentnode_internal(compiler.ctemprefnode(result_data),compiler.cmoddivnode(modn,left.getcopy,right.getcopy)),
                { else block }
                else_block
                ));

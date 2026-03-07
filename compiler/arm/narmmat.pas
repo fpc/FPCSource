@@ -100,7 +100,7 @@ implementation
               result:=compiler.caddnode_internal(andn,left,compiler.cordconstnode(tordconstnode(right).value-1,sinttype,false))
             else
               begin
-                result:=compiler.caddnode_internal(subn,left,compiler.caddnode_internal(muln,right,cmoddivnode.Create(divn,left.getcopy,right.getcopy)));
+                result:=compiler.caddnode_internal(subn,left,compiler.caddnode_internal(muln,right,compiler.cmoddivnode(divn,left.getcopy,right.getcopy)));
                 right:=nil;
               end;
             left:=nil;

@@ -94,7 +94,7 @@ begin
 
       addstatement(statementnode, compiler.cassignmentnode(compiler.ctemprefnode(temp_left),
         compiler.caddnode(subn, compiler.ctemprefnode(temp_left),
-        compiler.caddnode(muln, cmoddivnode.create(divn, compiler.ctemprefnode(temp_left), compiler.ctemprefnode(temp_right)),
+        compiler.caddnode(muln, compiler.cmoddivnode(divn, compiler.ctemprefnode(temp_left), compiler.ctemprefnode(temp_right)),
         compiler.ctemprefnode(temp_right)))));
 
       addstatement(statementnode, compiler.ctempdeletenode(temp_right));
@@ -105,7 +105,7 @@ begin
       // resulting in suboptimal code.
       addstatement(statementnode, compiler.cassignmentnode(compiler.ctemprefnode(temp_left),
         compiler.caddnode(subn, compiler.ctemprefnode(temp_left),
-        compiler.caddnode(muln, cmoddivnode.create(divn, compiler.ctemprefnode(temp_left), right.getcopy),
+        compiler.caddnode(muln, compiler.cmoddivnode(divn, compiler.ctemprefnode(temp_left), right.getcopy),
           right.getcopy))));
     end;
     addstatement(statementnode, compiler.ctempdeletenode_normal_temp(temp_left));

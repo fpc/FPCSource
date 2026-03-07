@@ -619,7 +619,7 @@ const
             end
           else if tpointerdef(resultdef).pointeddef.size>1 then
           { the constants were already multiplied by the pointer element size }
-            left:=cmoddivnode.create(divn,left,compiler.cordconstnode(tpointerdef(resultdef).pointeddef.size,left.resultdef,false),compiler);
+            left:=compiler.cmoddivnode(divn,left,compiler.cordconstnode(tpointerdef(resultdef).pointeddef.size,left.resultdef,false));
           right:=left;
           left:=hp;
           result:=GetCopyAndTypeCheck;
@@ -1029,7 +1029,7 @@ const
               (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) { and
 	      not(cs_check_overflow in localswitches) } then
               begin
-                result:=compiler.caddnode(muln,cmoddivnode.create(divn,left,tmoddivnode(right).right.getcopy,compiler),tmoddivnode(right).right);
+                result:=compiler.caddnode(muln,compiler.cmoddivnode(divn,left,tmoddivnode(right).right.getcopy),tmoddivnode(right).right);
                 left:=nil;
                 tmoddivnode(right).right:=nil;
                 exit;
@@ -2927,8 +2927,8 @@ const
                       begin
                         hp:=getcopy;
                         include(taddnode(hp).addnodeflags, anf_has_pointerdiv);
-                        result:=cmoddivnode.create(divn,hp,
-                          compiler.cordconstnode(tpointerdef(rd).pointeddef.size,tpointerdef(rd).pointer_subtraction_result_type,false),compiler);
+                        result:=compiler.cmoddivnode(divn,hp,
+                          compiler.cordconstnode(tpointerdef(rd).pointeddef.size,tpointerdef(rd).pointer_subtraction_result_type,false));
                       end;
                     resultdef:=tpointerdef(rd).pointer_subtraction_result_type;
                     exit;
@@ -3462,7 +3462,7 @@ const
                         end
                       else
                         begin
-                          hp:=cmoddivnode.create(divn,getcopy,compiler.cordconstnode(10000,s64currencytype,false),compiler);
+                          hp:=compiler.cmoddivnode(divn,getcopy,compiler.cordconstnode(10000,s64currencytype,false));
                           include(hp.flags,nf_is_currency);
                         end
                     end;

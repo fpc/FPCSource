@@ -4948,12 +4948,12 @@ implementation
                      include(taddnode(p1).addnodeflags,anf_short_bool);
                  end;
                _OP_DIV :
-                 p1:=cmoddivnode.create(divn,p1,p2,compiler);
+                 p1:=compiler.cmoddivnode(divn,p1,p2);
                _OP_NOT :
                  p1:=cnotnode.create(p1,compiler);
                _OP_MOD :
                  begin
-                   p1:=cmoddivnode.create(modn,p1,p2,compiler);
+                   p1:=compiler.cmoddivnode(modn,p1,p2);
                    if m_isolike_mod in current_settings.modeswitches then
                      include(tmoddivnode(p1).moddivnodeflags,mdnf_isomod);
                  end;

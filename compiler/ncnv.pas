@@ -1569,7 +1569,7 @@ implementation
             end
            else if is_currency(left.resultdef) then
             begin
-              result:=cmoddivnode.create(divn,getcopy,compiler.cordconstnode(10000,resultdef,false),compiler);
+              result:=compiler.cmoddivnode(divn,getcopy,compiler.cordconstnode(10000,resultdef,false));
               include(result.flags,nf_is_currency);
               include(tmoddivnode(result).left.flags,nf_internal);
             end;
@@ -3488,7 +3488,7 @@ implementation
                         compiler.caddnode_internal(equaln,tbinarynode(n).right.getcopy,compiler.cordconstnode(-1,n.resultdef,false)),
                           compiler.cassignmentnode_internal(
                             compiler.ctemprefnode(tempnode),
-                            cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,compiler.cordconstnode(-1,tbinarynode(originaldivtree).right.resultdef,false),compiler)
+                            compiler.cmoddivnode(n.nodetype,tbinarynode(originaldivtree).left.getcopy,compiler.cordconstnode(-1,tbinarynode(originaldivtree).right.resultdef,false))
                           ),
                           compiler.cassignmentnode_internal(
                             compiler.ctemprefnode(tempnode),n

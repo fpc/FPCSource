@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
-  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld;
+  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat;
 
 type
 {****************************************************************************
@@ -274,7 +274,7 @@ type
     function ctypenode(def:tdef):ttypenode; inline;
     function crttinode(def:tstoreddef;rt:trttitype;dt:Trttidatatype):trttinode; inline;
     { nmat }
-    //TODO:cmoddivnode
+    function cmoddivnode(t:tnodetype;l,r : tnode):tmoddivnode; inline;
     //TODO:cshlshrnode
     //TODO:cunaryminusnode
     //TODO:cunaryplusnode
@@ -992,6 +992,11 @@ function TCompilerHelper.crttinode(def: tstoreddef; rt: trttitype;
   dt: Trttidatatype): trttinode; inline;
 begin
   result:=nld.crttinode.create(def,rt,dt,self);
+end;
+
+function TCompilerHelper.cmoddivnode(t: tnodetype; l, r: tnode): tmoddivnode; inline;
+begin
+  result:=nmat.cmoddivnode.create(t,l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
