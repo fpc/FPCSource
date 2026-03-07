@@ -133,7 +133,7 @@ interface
               block:=internalstatements(stat);
               temp:=compiler.ctempcreatenode(java_juenumset,4,tt_persistent,true);
               addstatement(stat,temp);
-              addstatement(stat,cassignmentnode.create(
+              addstatement(stat,compiler.cassignmentnode(
                 compiler.ctemprefnode(temp),result));
               addstatement(stat,compiler.ccallnode_internmethod(
                 compiler.ctemprefnode(temp),n,paras));

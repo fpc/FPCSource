@@ -1397,7 +1397,7 @@ implementation
         // store in ppuwrite
         ftemplvalue:=templvalue;
         // create from stored ftemplvalue in ppuload
-        tempinfo^.tempinitcode:=cassignmentnode.create(compiler.ctemprefnode(self),ftemplvalue,acompiler);
+        tempinfo^.tempinitcode:=acompiler.cassignmentnode(compiler.ctemprefnode(self),ftemplvalue);
       end;
 
 
@@ -1500,7 +1500,7 @@ implementation
         if assigned(ftemplvalue) then
           begin
             ftemplvalue.derefimpl;
-            tempinfo^.tempinitcode:=cassignmentnode.create(compiler.ctemprefnode(self),ftemplvalue,compiler);
+            tempinfo^.tempinitcode:=compiler.cassignmentnode(compiler.ctemprefnode(self),ftemplvalue);
           end;
       end;
 

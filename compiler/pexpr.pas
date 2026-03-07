@@ -276,16 +276,16 @@ implementation
              hdef:=cpointerdef.getreusable(p1.resultdef,compiler);
              temp:=compiler.ctempcreatenode(hdef,sizeof(pint),tt_persistent,false);
              addstatement(newstatement,temp);
-             addstatement(newstatement,cassignmentnode.create(compiler.ctemprefnode(temp),caddrnode.create_internal(p1,compiler),compiler));
-             addstatement(newstatement,cassignmentnode.create(
+             addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(temp),caddrnode.create_internal(p1,compiler)));
+             addstatement(newstatement,compiler.cassignmentnode(
                  cderefnode.create(compiler.ctemprefnode(temp),compiler),
                  compiler.caddnode(ntyp,
                      cderefnode.create(compiler.ctemprefnode(temp),compiler),
-                     p2),compiler));
+                     p2)));
              addstatement(newstatement,compiler.ctempdeletenode(temp));
            end
          else
-           result:=cassignmentnode.create(p1,compiler.caddnode(ntyp,p1.getcopy,p2),compiler);
+           result:=compiler.cassignmentnode(p1,compiler.caddnode(ntyp,p1.getcopy,p2));
        end;
 
 
@@ -1416,7 +1416,7 @@ implementation
                            handle_funcref(getfuncrefdef,p2);
                          getprocvardef:=nil;
                          getfuncrefdef:=nil;
-                         p1:=cassignmentnode.create(p1,p2,compiler);
+                         p1:=compiler.cassignmentnode(p1,p2);
                       end
                     else
                       begin
@@ -2054,14 +2054,13 @@ implementation
          for countindices:=0 to elements.count-1 do
            begin
              addstatement(newstatement,
-               cassignmentnode.create(
+               compiler.cassignmentnode(
                  cvecnode.create(
                    compiler.ctemprefnode(temp),
                    genintconstnode(countindices,compiler),
                    compiler
                  ),
-                 tnode(elements[countindices]),
-                 compiler
+                 tnode(elements[countindices])
                )
              );
            end;
@@ -2138,11 +2137,11 @@ implementation
               repeat
                 { arr[i] := param_i }
                 addstatement(assstatement,
-                  cassignmentnode.create(
+                  compiler.cassignmentnode(
                     cvecnode.create(
                       compiler.ctemprefnode(arrnode),
                       compiler.cordconstnode(paracount,arrdef.rangedef,false),compiler),
-                    comp_expr([ef_accept_equal]),compiler));
+                    comp_expr([ef_accept_equal])));
                 inc(paracount);
               until not try_to_consume(_COMMA);
               consume(_RKLAMMER);
@@ -2155,10 +2154,10 @@ implementation
           addstatement(newstatement,temp2);
 
           { one dimensional }
-          addstatement(newstatement,cassignmentnode.create(
+          addstatement(newstatement,compiler.cassignmentnode(
               compiler.ctemprefnode(temp2),
               compiler.cordconstnode
-                 (paracount,s32inttype,true),compiler));
+                 (paracount,s32inttype,true)));
           { create call to fpc_dynarr_setlength }
           addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
               compiler.ccallparanode(caddrnode.create_internal
@@ -2218,7 +2217,7 @@ implementation
                       n:=internalstatements(compiler,newstatement);
                       temp:=compiler.ctempcreatenode(extdef,extdef.size,tt_persistent,false);
                       addstatement(newstatement,temp);
-                      addstatement(newstatement,cassignmentnode.create(compiler.ctemprefnode(temp),node,compiler));
+                      addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(temp),node));
                       addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
                       addstatement(newstatement,compiler.ctemprefnode(temp));
                       node:=n;
@@ -4965,7 +4964,7 @@ implementation
                _OP_XOR :
                  p1:=compiler.caddnode(xorn,p1,p2);
                _ASSIGNMENT :
-                 p1:=cassignmentnode.create(p1,p2,compiler);
+                 p1:=compiler.cassignmentnode(p1,p2);
                _NE :
                  p1:=compiler.caddnode(unequaln,p1,p2);
                else
@@ -5058,7 +5057,7 @@ implementation
                   handle_funcref(getfuncrefdef,p2);
                 getprocvardef:=nil;
                 getfuncrefdef:=nil;
-                p1:=cassignmentnode.create(p1,p2,compiler);
+                p1:=compiler.cassignmentnode(p1,p2);
              end;
            _PLUSASN :
              begin

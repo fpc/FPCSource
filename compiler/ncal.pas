@@ -558,13 +558,13 @@ implementation
 
             vardispatchfield:=vardispatchparadef.add_field_by_def('',assignmenttype);
             if assignmenttype=voidpointertype then
-              addstatement(statements,cassignmentnode.create(
+              addstatement(statements,compiler.cassignmentnode(
                 csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
-                compiler.ctypeconvnode_internal(caddrnode.create_internal(para.left,compiler),voidpointertype),compiler))
+                compiler.ctypeconvnode_internal(caddrnode.create_internal(para.left,compiler),voidpointertype)))
             else
-              addstatement(statements,cassignmentnode.create(
+              addstatement(statements,compiler.cassignmentnode(
               csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
-                compiler.ctypeconvnode_internal(para.left,assignmenttype),compiler));
+                compiler.ctypeconvnode_internal(para.left,assignmenttype)));
 
             inc(paramssize,max(voidpointertype.size,assignmenttype.size));
             tcb.emit_ord_const(restype,u8inttype);
@@ -627,7 +627,7 @@ implementation
               begin
                 selftemp:=compiler.ctempcreatenode(selfnode.resultdef,selfnode.resultdef.size,tt_persistent,false);
                 addstatement(statements,selftemp);
-                addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(selftemp),selfnode,compiler));
+                addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(selftemp),selfnode));
                 selfpara:=compiler.ctemprefnode(selftemp);
               end
             else
@@ -714,9 +714,9 @@ implementation
               freed data as the value parameter, but the finalized/nil value }
             callnode.add_init_statement(temp);
             callnode.add_init_statement(
-              cassignmentnode.create(
+              compiler.cassignmentnode(
                 compiler.ctemprefnode(temp),
-                caddrnode.create(left,compiler),compiler));
+                caddrnode.create(left,compiler)));
             if not is_open_array(resultdef) or
                not is_managed_type(tarraydef(resultdef).elementdef) then
               { finalize the entire parameter }
@@ -797,10 +797,9 @@ implementation
                      addstatement(initstat,lefttemp);
                      addstatement(finistat,compiler.ctempdeletenode(lefttemp));
                      addstatement(initstat,
-                       cassignmentnode.create(
+                       compiler.cassignmentnode(
                          compiler.ctemprefnode(lefttemp),
-                         caddrnode.create_internal(left,compiler),
-                         compiler
+                         caddrnode.create_internal(left,compiler)
                        )
                      );
                      { now treat that address (correctly) as the original
@@ -830,14 +829,13 @@ implementation
                  addstatement(initstat,paratemp);
                  { paratemp:=getmem(sizeof(para)) }
                  addstatement(initstat,
-                   cassignmentnode.create(
+                   compiler.cassignmentnode(
                      compiler.ctemprefnode(paratemp),
                      compiler.ccallnode_intern('fpc_getmem',
                        compiler.ccallparanode(
                          arraysize.getcopy,nil
                        )
-                     ),
-                     compiler
+                     )
                    )
                  );
                  { move(para,temp,sizeof(arr)) (no "left.getcopy" below because
@@ -892,9 +890,8 @@ implementation
                 addstatement(initstat,paratemp);
                 { assign shortstring }
                 addstatement(initstat,
-                  cassignmentnode.create(
-                    compiler.ctemprefnode(paratemp),left,
-                    compiler
+                  compiler.cassignmentnode(
+                    compiler.ctemprefnode(paratemp),left
                   )
                 );
                 { replace parameter with temp (don't free left, it has been
@@ -932,10 +929,9 @@ implementation
                 paratemp:=compiler.ctempcreatenode(temparraydef,temparraydef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
-                  cassignmentnode.create(
+                  compiler.cassignmentnode(
                     compiler.ctemprefnode(paratemp),
-                    compiler.ctypeconvnode_internal(left,temparraydef),
-                    compiler
+                    compiler.ctypeconvnode_internal(left,temparraydef)
                   )
                 );
                 left:=compiler.ctypeconvnode_explicit(compiler.ctemprefnode(paratemp),left.resultdef);
@@ -945,7 +941,7 @@ implementation
                 paratemp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,false);
                 addstatement(initstat,paratemp);
                 addstatement(initstat,
-                  cassignmentnode.create(compiler.ctemprefnode(paratemp),left,compiler)
+                  compiler.cassignmentnode(compiler.ctemprefnode(paratemp),left)
                 );
                 { replace parameter with temp (don't free left, it has been
                   reused above) }
@@ -1306,7 +1302,7 @@ implementation
                        tt_persistent,true);
                      addstatement(statements,temp);
                      { assign parameter to temp }
-                     addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(temp),left,compiler));
+                     addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(temp),left));
                      left:=nil;
                      { release temp after next use }
                      addstatement(statements,compiler.ctempdeletenode_normal_temp(temp));
@@ -2360,10 +2356,9 @@ implementation
                   include(ttemprefnode(refp).flags,nf_load_procvar);
               end;
             add_init_statement(ptemp);
-            add_init_statement(cassignmentnode.create(
+            add_init_statement(compiler.cassignmentnode(
                 compiler.ctemprefnode(ptemp),
-                loadp,
-                compiler));
+                loadp));
             add_done_statement(compiler.ctempdeletenode(ptemp));
             { new tree is only a temp reference }
             p:=refp;
@@ -2938,10 +2933,9 @@ implementation
                                       if MaxStrLen <> -1 then
                                         SetLength(StringLiteral, Integer(MaxStrLen));
 
-                                      result := cassignmentnode.create(
+                                      result := compiler.cassignmentnode(
                                         outnode.getcopy,
-                                        compiler.cstringconstnode_str(StringLiteral),
-                                        compiler
+                                        compiler.cstringconstnode_str(StringLiteral)
                                       );
                                     end;
                                 end;
@@ -3238,10 +3232,9 @@ implementation
                internalerror(2009032902);
             { first the destination object/class instance }
              addstatement(statements,
-               cassignmentnode.create(
+               compiler.cassignmentnode(
                  csubscriptnode.create(field,compiler.ctemprefnode(temp),compiler),
-                 selftree,
-                 compiler
+                 selftree
                )
              );
              { and secondly, the class type in which the selector must be looked
@@ -3251,10 +3244,9 @@ implementation
              if not assigned(field) then
                internalerror(2009032903);
              addstatement(statements,
-               cassignmentnode.create(
+               compiler.cassignmentnode(
                  csubscriptnode.create(field,compiler.ctemprefnode(temp),compiler),
-                 objcsuperclassnode(selftree.resultdef),
-                 compiler
+                 objcsuperclassnode(selftree.resultdef)
                )
              );
              { result of this block is the address of this temp }
@@ -4603,10 +4595,10 @@ implementation
                 converted_result_data:=compiler.ctempcreatenode(procdefinition.returndef,sizeof(procdefinition.returndef),
                   tt_persistent,true);
                 addstatement(statements,converted_result_data);
-                addstatement(statements,cassignmentnode.create(compiler.ctemprefnode(converted_result_data),
+                addstatement(statements,compiler.cassignmentnode(compiler.ctemprefnode(converted_result_data),
                   compiler.ctypeconvnode_internal(
                     translate_disp_call(methodpointer,parameters,calltype,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
-                  procdefinition.returndef),compiler));
+                  procdefinition.returndef)));
                 addstatement(statements,compiler.ctempdeletenode_normal_temp(converted_result_data));
                 addstatement(statements,compiler.ctemprefnode(converted_result_data));
               end
@@ -5461,8 +5453,8 @@ implementation
 
             addstatement(inlinecleanupstatement,compiler.ctempdeletenode(tempnode));
 
-            addstatement(inlineinitstatement,cassignmentnode.create(compiler.ctemprefnode(tempnode),
-              para.left,compiler));
+            addstatement(inlineinitstatement,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),
+              para.left));
 
             para.left := compiler.ctemprefnode(tempnode);
             { inherit addr_taken flag }
@@ -5553,8 +5545,8 @@ implementation
           tempnode.includetempflag(ti_const);
         paraaddr:=caddrnode.create_internal(para.left,compiler);
         include(paraaddr.addrnodeflags,anf_typedaddr);
-        addstatement(inlineinitstatement,cassignmentnode.create(compiler.ctemprefnode(tempnode),
-          paraaddr,compiler));
+        addstatement(inlineinitstatement,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),
+          paraaddr));
         para.left:=cderefnode.create(compiler.ctemprefnode(tempnode),compiler);
         if isfuncretnode then
           Include(para.left.flags,nf_is_funcret);

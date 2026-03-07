@@ -82,7 +82,7 @@ begin
 
     temp_left := compiler.ctempcreatenode(left.resultdef, left.resultdef.size, tt_persistent, true);
     addstatement(statementnode, temp_left);
-    addstatement(statementnode, cassignmentnode.create(compiler.ctemprefnode(temp_left), left.getcopy));
+    addstatement(statementnode, compiler.cassignmentnode(compiler.ctemprefnode(temp_left), left.getcopy));
 
     if (right.nodetype <> ordconstn) then begin
       // implemented optimization: use temps to store the right value, otherwise
@@ -90,9 +90,9 @@ begin
       // effects
       temp_right := compiler.ctempcreatenode(right.resultdef, right.resultdef.size, tt_persistent, true);
       addstatement(statementnode, temp_right);
-      addstatement(statementnode, cassignmentnode.create(compiler.ctemprefnode(temp_right), right.getcopy));
+      addstatement(statementnode, compiler.cassignmentnode(compiler.ctemprefnode(temp_right), right.getcopy));
 
-      addstatement(statementnode, cassignmentnode.create(compiler.ctemprefnode(temp_left),
+      addstatement(statementnode, compiler.cassignmentnode(compiler.ctemprefnode(temp_left),
         compiler.caddnode(subn, compiler.ctemprefnode(temp_left),
         compiler.caddnode(muln, cmoddivnode.create(divn, compiler.ctemprefnode(temp_left), compiler.ctemprefnode(temp_right)),
         compiler.ctemprefnode(temp_right)))));
@@ -103,7 +103,7 @@ begin
       // right hand side, because otherwise the div optimization will not recognize this
       // fact (and there is no constant propagator/recognizer in the compiler),
       // resulting in suboptimal code.
-      addstatement(statementnode, cassignmentnode.create(compiler.ctemprefnode(temp_left),
+      addstatement(statementnode, compiler.cassignmentnode(compiler.ctemprefnode(temp_left),
         compiler.caddnode(subn, compiler.ctemprefnode(temp_left),
         compiler.caddnode(muln, cmoddivnode.create(divn, compiler.ctemprefnode(temp_left), right.getcopy),
           right.getcopy))));

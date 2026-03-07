@@ -508,7 +508,7 @@ implementation
           end;
         result:=compiler.ccallnode_intern(setlenroutine,newparas);
         { assign result back to org (no call-by-reference for Java) }
-        result:=cassignmentnode.create(assignmenttarget,
+        result:=compiler.cassignmentnode(assignmenttarget,
           compiler.ctypeconvnode_explicit(result,assignmenttarget.resultdef));
         if assigned(lefttemp) then
           begin
@@ -600,11 +600,11 @@ implementation
             if not assigned(psym) or
                (psym.typ<>procsym) then
               internalerror(2011031403);
-            stringnonnull:=cassignmentnode.create(
+            stringnonnull:=compiler.cassignmentnode(
               compiler.ctemprefnode(lentemp),
               compiler.ccallnode(nil,tprocsym(psym),psym.owner,stringtemp,[],nil));
             { else-path: length is 0 }
-            stringnull:=cassignmentnode.create(
+            stringnull:=compiler.cassignmentnode(
               compiler.ctemprefnode(lentemp),
               genintconstnode(0));
             { complete if-statement }

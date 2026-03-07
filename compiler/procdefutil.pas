@@ -1116,10 +1116,9 @@ implementation
             sym:=pinested.procdef.funcretsym
           else
             sym:=pd.funcretsym;
-          n1:=cassignmentnode.create(
+          n1:=compiler.cassignmentnode(
                       compiler.cloadnode(sym,sym.owner),
-                      n1,
-                      compiler
+                      n1
                     );
           { captured variables cannot be in registers }
           make_not_regable(tassignmentnode(n1).left,[ra_addr_regable,ra_addr_taken]);
@@ -1352,7 +1351,7 @@ implementation
       { Insert "Capturer := TCapturer.Create()" as the first statement of the routine }
       result:=cloadvmtaddrnode.create(ctypenode.create(capturer_def,compiler),compiler);
       result:=compiler.ccallnode(nil,ctor,capturer_def.symtable,result,[],nil);
-      result:=cassignmentnode.create(load_capturer(capturer_sym),result,compiler);
+      result:=compiler.cassignmentnode(load_capturer(capturer_sym),result);
     end;
 
 
@@ -1375,10 +1374,9 @@ implementation
             internalerror(2022010903);
           if (vo_is_self in psym.varoptions) and not is_implicit_pointer_object_type(psym.vardef) then
             n:=caddrnode.create(n,compiler);
-          n:=cassignmentnode.create(
+          n:=compiler.cassignmentnode(
                csubscriptnode.create(psym.capture_sym,compiler.cloadnode(capturer,capturer.owner),compiler),
-               n,
-               compiler
+               n
                );
           addstatement(stmt,n);
         end;
@@ -1424,7 +1422,7 @@ implementation
           alivenode:=compiler.cloadnode(outeralive,outeralive.owner);
           make_not_regable(alivenode,[ra_different_scope]);
         end;
-      addstatement(stmt,cassignmentnode.create(
+      addstatement(stmt,compiler.cassignmentnode(
                           csubscriptnode.create(
                             selffield,
                             compiler.cloadnode(
@@ -1433,9 +1431,8 @@ implementation
                               ),
                               compiler
                             ),
-                            selfnode,
-                            compiler));
-      addstatement(stmt,cassignmentnode.create(
+                            selfnode));
+      addstatement(stmt,compiler.cassignmentnode(
                           csubscriptnode.create(
                             alivefield,
                             compiler.cloadnode(
@@ -1444,8 +1441,7 @@ implementation
                               ),
                               compiler
                             ),
-                            alivenode,
-                            compiler));
+                            alivenode));
     end;
 
 
@@ -1468,7 +1464,7 @@ implementation
           keepalive_sym:=get_capturer_alive(ctx.procdef);
           if not assigned(keepalive_sym) then
             internalerror(2022010701);
-          addstatement(stmt,cassignmentnode.create(compiler.cloadnode(keepalive_sym,keepalive_sym.owner),load_capturer(capturer_sym),compiler));
+          addstatement(stmt,compiler.cassignmentnode(compiler.cloadnode(keepalive_sym,keepalive_sym.owner),load_capturer(capturer_sym)));
         end;
     end;
 

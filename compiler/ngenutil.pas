@@ -234,9 +234,9 @@ implementation
       else
         internalerror(200305132);
       { self:=nil }
-      addstatement(newstatement,cassignmentnode.create(
+      addstatement(newstatement,compiler.cassignmentnode(
           load_self_pointer_node,
-          compiler.cnilnode,compiler));
+          compiler.cnilnode));
       { exit }
       addstatement(newstatement,compiler.cexitnode(nil));
     end;
@@ -267,10 +267,9 @@ implementation
              is_interfacecom_or_dispinterface(p.resultdef) or
              is_dynamic_array(p.resultdef) then
             begin
-              result:=cassignmentnode.create(
+              result:=compiler.cassignmentnode(
                  compiler.ctypeconvnode_internal(p,voidpointertype),
-                 compiler.cnilnode,
-                 compiler
+                 compiler.cnilnode
                  );
             end
           else if (p.resultdef.typ=variantdef) then
@@ -672,8 +671,8 @@ implementation
         funcretsym also to its alias in the parentfpstruct }
       include(target.flags, nf_internal);
       addstatement(stat,
-        cassignmentnode.create(
-          target, compiler.cloadnode(ressym, ressym.owner), compiler
+        compiler.cassignmentnode(
+          target, compiler.cloadnode(ressym, ressym.owner)
         )
       );
     end;
@@ -695,10 +694,9 @@ implementation
           ressym:=tsym(pd.localst.Find('safecallresult'));
           block:=internalstatements(compiler,stat);
           addstatement(stat,
-            cassignmentnode.create(
+            compiler.cassignmentnode(
               compiler.cloadnode(ressym,ressym.owner),
-              genintconstnode(0,compiler),
-              compiler
+              genintconstnode(0,compiler)
             )
           );
           addstatement(stat,result);
@@ -932,7 +930,7 @@ implementation
 
   procedure tnodeutils.trash_small(var stat: tstatementnode; trashn: tnode; trashvaln: tnode);
     begin
-      addstatement(stat,cassignmentnode.create(trashn,trashvaln,compiler));
+      addstatement(stat,compiler.cassignmentnode(trashn,trashvaln));
     end;
 
 

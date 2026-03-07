@@ -267,6 +267,7 @@ type
     { nld }
     function cloadnode(v : tsym;st : TSymtable):tloadnode; inline;
     function cloadnode_procvar(v : tsym;d:tprocdef;st : TSymtable):tloadnode; inline;
+    function cassignmentnode(l,r : tnode):tassignmentnode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -929,6 +930,11 @@ function TCompilerHelper.cloadnode_procvar(v: tsym; d: tprocdef; st: TSymtable
   ): tloadnode; inline;
 begin
   result:=nld.cloadnode.create_procvar(v,d,st,self);
+end;
+
+function TCompilerHelper.cassignmentnode(l, r: tnode): tassignmentnode; inline;
+begin
+  result:=nld.cassignmentnode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

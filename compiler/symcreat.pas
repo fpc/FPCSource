@@ -2046,9 +2046,9 @@ implementation
                   initcode:=caddrnode.create_internal(initcode,compiler);
                   include(taddrnode(initcode).addrnodeflags,anf_typedaddr);
                 end;
-              initcode:=cassignmentnode.create(
+              initcode:=compiler.cassignmentnode(
                 csubscriptnode.create(result,compiler.cloadnode(pd.parentfpstruct,pd.parentfpstruct.owner),compiler),
-                initcode,compiler);
+                initcode);
               tblocknode(pd.parentfpinitblock).left:=compiler.cstatementnode
                 (initcode,tblocknode(pd.parentfpinitblock).left);
               current_filepos:=old_filepos;
@@ -2216,10 +2216,9 @@ implementation
       if target_info.system in systems_all_windows+systems_nativent then
         begin
           insert_funcret_local(pd);
-          result:=cassignmentnode.create(
+          result:=compiler.cassignmentnode(
                       compiler.cloadnode(pd.funcretsym,pd.localst),
-                      compiler.cordconstnode(1,bool32type,false),
-                      compiler
+                      compiler.cordconstnode(1,bool32type,false)
                     );
         end
       else
@@ -2272,10 +2271,9 @@ implementation
           { we always do a call, namely to the constructor }
           include(pi.flags,pi_do_call);
           insert_funcret_local(pd);
-          pi.code:=cassignmentnode.create(
+          pi.code:=compiler.cassignmentnode(
                       compiler.cloadnode(pd.funcretsym,pd.localst),
-                      attr.constructorcall.getcopy,
-                      compiler
+                      attr.constructorcall.getcopy
                     );
           pi.generate_code;
           attr.constructorpd:=pd;

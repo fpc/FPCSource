@@ -311,9 +311,9 @@ implementation
             begin
               b:=tblocknode(arg);
               b.left:=compiler.cstatementnode(
-                        cassignmentnode.create(
+                        compiler.cassignmentnode(
                             compiler.cloadnode(tsym(p),tsym(p).owner),
-                            compiler.cloadnode(defaultconstsym,defaultconstsym.owner),compiler),
+                            compiler.cloadnode(defaultconstsym,defaultconstsym.owner)),
                         b.left);
             end
          end;
@@ -509,11 +509,11 @@ implementation
                                     load_vmt_pointer_node,
                                     voidpointertype),
                                 compiler.cpointerconstnode(1,voidpointertype)),
-                            cassignmentnode.create(
+                            compiler.cassignmentnode(
                                 compiler.ctypeconvnode_internal(
                                     load_self_pointer_node,
                                     voidpointertype),
-                                call,compiler),
+                                call),
                             nil));
                       end
                     else
@@ -538,11 +538,11 @@ implementation
                                     load_self_pointer_node,
                                     voidpointertype),
                             nil)));
-                      addstatement(newstatement,cassignmentnode.create(
+                      addstatement(newstatement,compiler.cassignmentnode(
                           compiler.ctypeconvnode_internal(
                               load_self_pointer_node,
                               voidpointertype),
-                          compiler.ccallnode_intern('fpc_help_constructor',para),compiler));
+                          compiler.ccallnode_intern('fpc_help_constructor',para)));
                     end
                 else
                   if is_javaclass(current_structdef) or
@@ -784,9 +784,9 @@ implementation
                   the construction was not successful and hence
                   beforedestruction should not be called if a destructor is
                   called from the constructor }
-                addstatement(newstatement,cassignmentnode.create(
+                addstatement(newstatement,compiler.cassignmentnode(
                   compiler.cloadnode(constructionsuccessful,procdef.localst),
-                  genintconstnode(-1,compiler),compiler)
+                  genintconstnode(-1,compiler))
                 );
                 { first execute all constructor code. If no exception
                   occurred then we will execute afterconstruction,
@@ -808,9 +808,9 @@ implementation
 
                 { construction successful -> beforedestruction should be called
                   if an exception happens now }
-                addstatement(newstatement,cassignmentnode.create(
+                addstatement(newstatement,compiler.cassignmentnode(
                   compiler.cloadnode(constructionsuccessful,procdef.localst),
-                  genintconstnode(1,compiler),compiler)
+                  genintconstnode(1,compiler))
                 );
                 { Self can be nil when fail is called }
                 { if self<>nil and vmt<>nil then afterconstruction }

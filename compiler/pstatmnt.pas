@@ -691,10 +691,9 @@ implementation
                   begin
                     calltempnode:=compiler.ctempcreatenode(p.resultdef,p.resultdef.size,tt_persistent,true);
                     addstatement(newstatement,calltempnode);
-                    addstatement(newstatement,cassignmentnode.create(
+                    addstatement(newstatement,compiler.cassignmentnode(
                         compiler.ctemprefnode(calltempnode),
-                        p,
-                        compiler));
+                        p));
                     p:=compiler.ctemprefnode(calltempnode);
                     typecheckpass(p);
                   end;
@@ -730,9 +729,9 @@ implementation
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                   end;
                 addstatement(newstatement,tempnode);
-                addstatement(newstatement,cassignmentnode.create(
+                addstatement(newstatement,compiler.cassignmentnode(
                     compiler.ctemprefnode(tempnode),
-                    valuenode,compiler));
+                    valuenode));
                 typecheckpass(refnode);
               end;
             { Note: the symtable of the helper is pushed after the following

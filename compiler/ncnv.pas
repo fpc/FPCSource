@@ -2004,10 +2004,10 @@ implementation
         addstatement(newstatement,temp2);
 
         { one dimensional }
-        addstatement(newstatement,cassignmentnode.create(
+        addstatement(newstatement,compiler.cassignmentnode(
             compiler.ctemprefnode(temp2),
             compiler.cordconstnode
-               (tarraydef(left.resultdef).highrange+1,s32inttype,true),compiler));
+               (tarraydef(left.resultdef).highrange+1,s32inttype,true)));
         { create call to fpc_dynarr_setlength }
         addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
             compiler.ccallparanode(caddrnode.create_internal
@@ -2025,10 +2025,9 @@ implementation
         addstatement(newstatement,compiler.ctempdeletenode(temp2));
 
         { copy ... }
-        addstatement(newstatement,cassignmentnode.create(
+        addstatement(newstatement,compiler.cassignmentnode(
           compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctypeconvnode_internal(compiler.ctemprefnode(temp),voidpointertype),compiler),left.resultdef),
-          left,
-          compiler
+          left
         ));
         { left is reused }
         left:=nil;
@@ -2092,12 +2091,11 @@ implementation
             if not assigned(elemnode.left) then
               internalerror(2017050103);
             addstatement(assstatement,
-              cassignmentnode.create(
+              compiler.cassignmentnode(
                 cvecnode.create(
                   compiler.ctemprefnode(arrnode),
                   compiler.cordconstnode(paracount,tarraydef(totypedef).rangedef,false),compiler),
-                elemnode.left,
-                compiler));
+                elemnode.left));
             elemnode.left:=nil;
             inc(paracount);
             elemnode:=tarrayconstructornode(elemnode.right);
@@ -2165,12 +2163,11 @@ implementation
             if not assigned(elemnode.left) then
               internalerror(2020041403);
             addstatement(assstatement,
-              cassignmentnode.create(
+              compiler.cassignmentnode(
                 cvecnode.create(
                   compiler.ctemprefnode(arrnode),
                   compiler.cordconstnode(paracount+tarraydef(totypedef).lowrange,tarraydef(totypedef).rangedef,false),compiler),
-                elemnode.left,
-                compiler));
+                elemnode.left));
             elemnode.left:=nil;
             inc(paracount);
             elemnode:=tarrayconstructornode(elemnode.right);
@@ -2752,7 +2749,7 @@ implementation
             if assigned(hp) then
               begin
                 blck:=internalstatements(compiler,stmt);
-                addstatement(stmt,cassignmentnode.create(hp,left,compiler));
+                addstatement(stmt,compiler.cassignmentnode(hp,left));
                 left:=nil;
                 addstatement(stmt,result);
                 result:=blck;
@@ -3154,18 +3151,18 @@ implementation
                                begin
                                  tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                                  addstatement(newstatement,tempnode);
-                                 addstatement(newstatement,cassignmentnode.create(
+                                 addstatement(newstatement,compiler.cassignmentnode(
                                    compiler.ctemprefnode(tempnode),
-                                   caddrnode.create_internal(left,compiler),compiler));
+                                   caddrnode.create_internal(left,compiler)));
                                  left:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),left.resultdef);
                                end
                              else
                                begin
                                  tempnode:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
                                  addstatement(newstatement,tempnode);
-                                 addstatement(newstatement,cassignmentnode.create(
+                                 addstatement(newstatement,compiler.cassignmentnode(
                                    compiler.ctemprefnode(tempnode),
-                                   left,compiler));
+                                   left));
                                  left:=compiler.ctemprefnode(tempnode);
                                end;
                              addstatement(newstatement,compiler.casnode(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler)));
@@ -4310,8 +4307,8 @@ implementation
                 temp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,false);
                 addstatement(newstatement,temp);
                 { temp := left }
-                addstatement(newstatement,cassignmentnode.create(
-                  compiler.ctemprefnode(temp),left,compiler));
+                addstatement(newstatement,compiler.cassignmentnode(
+                  compiler.ctemprefnode(temp),left));
                 addstatement(newstatement,compiler.ctempdeletenode_normal_temp(temp));
                 addstatement(newstatement,compiler.ctemprefnode(temp));
                 left:=result;

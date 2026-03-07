@@ -101,7 +101,7 @@ implementation
             inserttypeconv_explicit(right,s32inttype);
             inserttypeconv_explicit(t1,s32inttype);
             newbody:=internalstatements(newbodystat);
-            addstatement(newbodystat,cassignmentnode.create(olditerator,
+            addstatement(newbodystat,compiler.cassignmentnode(olditerator,
               compiler.ctypeconvnode_explicit(compiler.ctemprefnode(iteratortmp),
                 olditerator.resultdef)));
             addstatement(newbodystat,t2);

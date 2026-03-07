@@ -131,10 +131,10 @@ implementation
                               { if no tag-field is given, do not create an assignment statement for it }
                               if assigned(variantselectsymbol) then
                                 { setup variant selector }
-                                addstatement(newstatement,cassignmentnode.create(
+                                addstatement(newstatement,compiler.cassignmentnode(
                                     csubscriptnode.create(variantselectsymbol,
                                       cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),
-                                    p2,compiler));
+                                    p2));
                             end;
                         end
                       else
@@ -207,7 +207,7 @@ implementation
                     if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
                       Message(parser_e_expr_have_to_be_constructor_call);
                     p2.resultdef:=p.resultdef;
-                    p2:=cassignmentnode.create(p,p2,compiler);
+                    p2:=compiler.cassignmentnode(p,p2);
                     typecheckpass(p2);
                   end
                 else
@@ -343,7 +343,7 @@ implementation
                        if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
                          Message(parser_e_expr_have_to_be_constructor_call);
                        p2.resultdef:=p.resultdef;
-                       p2:=cassignmentnode.create(p,p2,compiler);
+                       p2:=compiler.cassignmentnode(p,p2);
                      end
                     else
                      begin
@@ -408,9 +408,9 @@ implementation
                      { create call to fpc_getmem }
                      para := compiler.ccallparanode(compiler.cordconstnode
                          (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true),nil);
-                     addstatement(newstatement,cassignmentnode.create(
+                     addstatement(newstatement,compiler.cassignmentnode(
                          compiler.ctemprefnode(temp),
-                         compiler.ccallnode_intern('fpc_getmem',para),compiler));
+                         compiler.ccallnode_intern('fpc_getmem',para)));
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
@@ -418,9 +418,9 @@ implementation
                        addstatement(newstatement,compiler.nodeutils.initialize_data_node(cderefnode.create(compiler.ctemprefnode(temp),compiler),false));
 
                      { copy the temp to the destination }
-                     addstatement(newstatement,cassignmentnode.create(
+                     addstatement(newstatement,compiler.cassignmentnode(
                          p,
-                         compiler.ctemprefnode(temp),compiler));
+                         compiler.ctemprefnode(temp)));
 
                      ReadVariantRecordConstants;
 

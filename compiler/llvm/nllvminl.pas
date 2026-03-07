@@ -118,7 +118,7 @@ implementation
 
         { lefttemp:=left }
         addstatement(stat,
-          cassignmentnode.create(compiler.ctemprefnode(lefttemp),left)
+          compiler.cassignmentnode(compiler.ctemprefnode(lefttemp),left)
         );
 
         { if lefttemp>=0 then
@@ -133,11 +133,11 @@ implementation
               compiler.ctemprefnode(lefttemp),
               compiler.crealconstnode(0.0,left.resultdef)
             ),
-            cassignmentnode.create(
+            compiler.cassignmentnode(
               compiler.ctemprefnode(resulttemp),
               compiler.ctemprefnode(lefttemp)
             ),
-            cassignmentnode.create(
+            compiler.cassignmentnode(
               compiler.ctemprefnode(resulttemp),
               cunaryminusnode.create(compiler.ctemprefnode(lefttemp))
             )
@@ -199,11 +199,11 @@ implementation
           end;
         addstatement(stat,
           compiler.cifnode(compiler.caddnode(unequaln,left.getcopy,genintconstnode(0)),
-            cassignmentnode.create(
+            compiler.cassignmentnode(
               compiler.ctemprefnode(resulttemp),
               cntresult
             ),
-            cassignmentnode.create(
+            compiler.cassignmentnode(
               compiler.ctemprefnode(resulttemp),
               genintconstnode(255)
             )

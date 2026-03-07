@@ -159,10 +159,9 @@ unit opttail;
                             tempnode:=compiler.ctempcreatenode(voidpointertype,voidpointertype.size,tt_persistent,true);
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
-                              cassignmentnode.create(
+                              compiler.cassignmentnode(
                                 compiler.ctemprefnode(tempnode),
-                                caddrnode.create_internal(paranode.left,compiler),
-                                compiler
+                                caddrnode.create_internal(paranode.left,compiler)
                                 ));
                           end
                         else

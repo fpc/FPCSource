@@ -456,10 +456,9 @@ type
                           nn:=compiler.caddnode_internal(nt,nn,
                              compiler.cordconstnode(1,nn.resultdef,false));
                         end;
-                      addstatement(initcodestatements,cassignmentnode.create(compiler.ctemprefnode(tempnode),
+                      addstatement(initcodestatements,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),
                           compiler.caddnode(muln,nn,
-                            taddnode(n).right.getcopy),
-                            compiler
+                            taddnode(n).right.getcopy)
                           )
                         );
 
@@ -542,7 +541,7 @@ type
                              compiler.ctypeconvnode_internal(nn,voidpointertype),
                              compiler.cordconstnode(tcgvecnode(n).get_mul_size,sizeuinttype,false));
                         end;
-                      addstatement(initcodestatements,cassignmentnode.create(compiler.ctemprefnode(tempnode),nn,compiler));
+                      addstatement(initcodestatements,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),nn));
 
                       { finally replace the node by a temp. ref }
                       n:=compiler.ctypeconvnode_internal(cderefnode.create(compiler.ctemprefnode(tempnode),compiler),n.resultdef);

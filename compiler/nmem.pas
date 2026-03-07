@@ -1548,8 +1548,8 @@ implementation
                   addstatement(stat,temp);
                   { needed so we can typecheck its temprefnodes }
                   typecheckpass(tnode(temp));
-                  addstatement(stat,cassignmentnode.create(
-                    compiler.ctemprefnode(temp),right,compiler)
+                  addstatement(stat,compiler.cassignmentnode(
+                    compiler.ctemprefnode(temp),right)
                   );
                   right:=compiler.ctemprefnode(temp);
                   { right.resultdef is used below }

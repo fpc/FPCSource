@@ -116,7 +116,7 @@ function tjvmassignmentnode.pass_1: tnode;
           compiler.ccallparanode(right,
             compiler.ccallparanode(tvecnode(target).right,
               compiler.ccallparanode(tvecnode(target).left.getcopy,nil))));
-        result:=cassignmentnode.create(tvecnode(target).left,result);
+        result:=compiler.cassignmentnode(tvecnode(target).left,result);
         right:=nil;
         tvecnode(target).left:=nil;
         tvecnode(target).right:=nil;

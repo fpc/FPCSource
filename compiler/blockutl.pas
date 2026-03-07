@@ -282,30 +282,30 @@ implementation
       literaltemp:=compiler.ctempcreatenode(blockliteraldef,blockliteraldef.size,tt_persistent,false);
       addstatement(statement,literaltemp);
       { temp.base.isa:=@blockisasym }
-      addstatement(statement,cassignmentnode.create(
+      addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'ISA'),
-        caddrnode.create(compiler.cloadnode(blockisasym,blockisasym.owner),compiler),compiler));
+        caddrnode.create(compiler.cloadnode(blockisasym,blockisasym.owner),compiler)));
       { temp.base.flags:=blockflags }
-      addstatement(statement,cassignmentnode.create(
+      addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'FLAGS'),
-        genintconstnode(blockflags,compiler),compiler));
+        genintconstnode(blockflags,compiler)));
       { temp.base.reserved:=0 }
-      addstatement(statement,cassignmentnode.create(
+      addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'RESERVED'),
-        genintconstnode(0,compiler),compiler));
+        genintconstnode(0,compiler)));
       { temp.base.invoke:=tmethod(@invokepd) }
-      addstatement(statement,cassignmentnode.create(
+      addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'INVOKE'),
         compiler.ctypeconvnode_proc_to_procvar(
-          compiler.cloadnode_procvar(invokepd.procsym,invokepd,invokepd.owner)),compiler));
+          compiler.cloadnode_procvar(invokepd.procsym,invokepd,invokepd.owner))));
       { temp.base.descriptor:=@descriptor }
-      addstatement(statement,cassignmentnode.create(
+      addstatement(statement,compiler.cassignmentnode(
         genloadfield(genloadfield(compiler.ctemprefnode(literaltemp),'BASE'),'DESCRIPTOR'),
-        caddrnode.create(compiler.cloadnode(descriptor,descriptor.owner),compiler),compiler));
+        caddrnode.create(compiler.cloadnode(descriptor,descriptor.owner),compiler)));
       { temp.pv:=tmethod(@orgpd) }
-      addstatement(statement,cassignmentnode.create(
+      addstatement(statement,compiler.cassignmentnode(
         compiler.ctypeconvnode_explicit(genloadfield(compiler.ctemprefnode(literaltemp),'PV'),orgpv),
-          procvarnode.getcopy,compiler));
+          procvarnode.getcopy));
       { and return the address of the temp }
       addstatement(statement,caddrnode.create(compiler.ctemprefnode(literaltemp),compiler));
       { typecheck this now, because the current source may be written in TP/

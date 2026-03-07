@@ -273,12 +273,12 @@ implementation
                 left:=compiler.ctypeconvnode_explicit(left,java_jlobject);
               end;
             { put the parameter value in the array }
-            addstatement(initstat,cassignmentnode.create(
+            addstatement(initstat,compiler.cassignmentnode(
               cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0)),
               left));
             { and the copy for checking }
             if (cs_check_var_copyout in current_settings.localswitches) then
-              addstatement(initstat,cassignmentnode.create(
+              addstatement(initstat,compiler.cassignmentnode(
                 cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(1)),
                 cvecnode.create(compiler.ctemprefnode(arraytemp),genintconstnode(0))));
           end
@@ -346,7 +346,7 @@ implementation
                     ));
                   end;
               end;
-            addstatement(copybackstat,cassignmentnode.create(leftcopy,
+            addstatement(copybackstat,compiler.cassignmentnode(leftcopy,
               compiler.ctypeconvnode_explicit(tempn,orgparadef)));
           end
         else

@@ -154,7 +154,7 @@ implementation
                 result:=compiler.ccallnode_intern(proc,paras);
             end
           else
-            result:=cassignmentnode.create(p,compiler.cnilnode);
+            result:=compiler.cassignmentnode(p,compiler.cnilnode);
         end
       else
         begin
@@ -274,7 +274,7 @@ implementation
             begin
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
-              addstatement(stat,cassignmentnode.create(
+              addstatement(stat,compiler.cassignmentnode(
                 compiler.ctemprefnode(temp),
                 compiler.cstringconstnode_str('')));
               initnode:=compiler.ctemprefnode(temp);
@@ -295,7 +295,7 @@ implementation
           if assigned(initnode) and
              not initnodefinished then
             initnode:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(initnode,java_jlobject),nil);
-          addstatement(stat,cassignmentnode.create(
+          addstatement(stat,compiler.cassignmentnode(
             compiler.cloadnode(vs,vs.owner),
             compiler.ccallnode_internmethod(
               cloadvmtaddrnode.create(ctypenode.create(vs.vardef)),
