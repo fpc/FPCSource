@@ -132,8 +132,8 @@ implementation
                               if assigned(variantselectsymbol) then
                                 { setup variant selector }
                                 addstatement(newstatement,compiler.cassignmentnode(
-                                    csubscriptnode.create(variantselectsymbol,
-                                      compiler.cderefnode(compiler.ctemprefnode(temp)),compiler),
+                                    compiler.csubscriptnode(variantselectsymbol,
+                                      compiler.cderefnode(compiler.ctemprefnode(temp))),
                                     p2));
                             end;
                         end

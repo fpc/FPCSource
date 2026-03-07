@@ -559,11 +559,11 @@ implementation
             vardispatchfield:=vardispatchparadef.add_field_by_def('',assignmenttype);
             if assignmenttype=voidpointertype then
               addstatement(statements,compiler.cassignmentnode(
-                csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
+                compiler.csubscriptnode(vardispatchfield,compiler.ctemprefnode(params)),
                 compiler.ctypeconvnode_internal(compiler.caddrnode_internal(para.left),voidpointertype)))
             else
               addstatement(statements,compiler.cassignmentnode(
-              csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
+              compiler.csubscriptnode(vardispatchfield,compiler.ctemprefnode(params)),
                 compiler.ctypeconvnode_internal(para.left,assignmenttype)));
 
             inc(paramssize,max(voidpointertype.size,assignmenttype.size));
@@ -3097,12 +3097,11 @@ implementation
             { tobjectdef(tprocdef(procdefinition).struct) can be a parent of the
               methodpointer's resultdef, but the vmtmethodoffset of the method
               in that objectdef is obviously the same as in any child class }
-            vmt_entry:=csubscriptnode.create(
+            vmt_entry:=compiler.csubscriptnode(
                 trecordsymtable(vmt_def.symtable).findfieldbyoffset(
                   tobjectdef(tprocdef(procdefinition).struct).vmtmethodoffset(tprocdef(procdefinition).extnumber)
                 ),
-               vmt_entry,
-               compiler
+               vmt_entry
               );
             firstpass(vmt_entry);
           end;
@@ -3232,7 +3231,7 @@ implementation
             { first the destination object/class instance }
              addstatement(statements,
                compiler.cassignmentnode(
-                 csubscriptnode.create(field,compiler.ctemprefnode(temp),compiler),
+                 compiler.csubscriptnode(field,compiler.ctemprefnode(temp)),
                  selftree
                )
              );
@@ -3244,7 +3243,7 @@ implementation
                internalerror(2009032903);
              addstatement(statements,
                compiler.cassignmentnode(
-                 csubscriptnode.create(field,compiler.ctemprefnode(temp),compiler),
+                 compiler.csubscriptnode(field,compiler.ctemprefnode(temp)),
                  objcsuperclassnode(selftree.resultdef)
                )
              );

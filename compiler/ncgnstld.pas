@@ -181,7 +181,7 @@ implementation
                   if left.resultdef.typ<>pointerdef then
                     internalerror(2015122801);
                   { subscript it to get the variable }
-                  left:=csubscriptnode.create(thissym,compiler.cderefnode(left));
+                  left:=compiler.csubscriptnode(thissym,compiler.cderefnode(left));
                   firstpass(left);
                   include(flags,nf_internal);
                 end;

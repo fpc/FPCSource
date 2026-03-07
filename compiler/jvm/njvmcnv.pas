@@ -1002,7 +1002,7 @@ implementation
               include(left.flags,nf_load_procvar);
               typecheckpass(left);
             end;
-          result:=csubscriptnode.create(fsym,left);
+          result:=compiler.csubscriptnode(fsym,left);
           { create destination procvartype with info from source }
           result:=compiler.ccallnode_internmethod(
             compiler.cloadvmtaddrnode(compiler.ctypenode(tcpuprocvardef(todef).classdef)),
@@ -1022,7 +1022,7 @@ implementation
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072401);
-          result:=csubscriptnode.create(fsym,left);
+          result:=compiler.csubscriptnode(fsym,left);
           left:=nil;
         end;
 

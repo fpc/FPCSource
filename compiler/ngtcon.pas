@@ -2191,7 +2191,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    { only orddefs and enumdefs are bitpacked, as in gcc/gpc }
                    not(tfieldvarsym(srsym).vardef.typ in [orddef,enumdef]) then
                   recoffset:=align(recoffset,8);
-                basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy,compiler);
+                basenode:=compiler.csubscriptnode(srsym,orgbasenode.getcopy);
                 read_typed_const_data(tfieldvarsym(srsym).vardef);
 
                 { keep previous field for checking whether whole }
@@ -2314,7 +2314,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   objoffset:=fieldoffset+vardef.size;
 
                   { read the data }
-                  basenode:=csubscriptnode.create(srsym,orgbasenode.getcopy,compiler);
+                  basenode:=compiler.csubscriptnode(srsym,orgbasenode.getcopy);
                   read_typed_const_data(vardef);
 
                   if not try_to_consume(_SEMICOLON) then

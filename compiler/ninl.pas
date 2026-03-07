@@ -3651,7 +3651,7 @@ implementation
                      not tprocvardef(tcallparanode(left).left.resultdef).is_addressonly then
                     begin
                       inserttypeconv_explicit(tcallparanode(left).left,search_system_type('TMETHOD').typedef,compiler);
-                      tcallparanode(left).left:=csubscriptnode.create(tsym(tabstractrecorddef(tcallparanode(left).left.resultdef).symtable.find('CODE')),tcallparanode(left).left,compiler);
+                      tcallparanode(left).left:=compiler.csubscriptnode(tsym(tabstractrecorddef(tcallparanode(left).left.resultdef).symtable.find('CODE')),tcallparanode(left).left);
                       tcallparanode(left).get_paratype;
                     end;
 

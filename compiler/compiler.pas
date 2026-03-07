@@ -285,7 +285,7 @@ type
     function caddrnode_internal(l : tnode):taddrnode; inline;
     function caddrnode_internal_nomark(l : tnode):taddrnode; inline;
     function cderefnode(l : tnode):tderefnode; inline;
-    //TODO:csubscriptnode
+    function csubscriptnode(varsym : tsym;l : tnode):tsubscriptnode; inline;
     //TODO:cvecnode
     //TODO:cloadparentfpnode
     { nobjc }
@@ -1044,6 +1044,11 @@ end;
 function TCompilerHelper.cderefnode(l: tnode): tderefnode; inline;
 begin
   result:=nmem.cderefnode.create(l,self);
+end;
+
+function TCompilerHelper.csubscriptnode(varsym: tsym; l: tnode): tsubscriptnode; inline;
+begin
+  result:=nmem.csubscriptnode.create(varsym,l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

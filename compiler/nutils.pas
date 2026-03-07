@@ -670,7 +670,7 @@ implementation
         { get the VMT field in case of a class/object }
         else if (self_resultdef.typ=objectdef) and
            assigned(tobjectdef(self_resultdef).vmt_field) then
-          result:=csubscriptnode.create(tobjectdef(self_resultdef).vmt_field,self_node,compiler)
+          result:=compiler.csubscriptnode(tobjectdef(self_resultdef).vmt_field,self_node)
         { in case of an interface, the "instance" is a pointer to a pointer
           to a VMT -> dereference once already }
         else
@@ -1181,14 +1181,14 @@ implementation
                      p1:=nil;
                    end;
                  if assigned(p1) then
-                  p1:=csubscriptnode.create(plist^.sym,p1,compiler)
+                  p1:=compiler.csubscriptnode(plist^.sym,p1)
                  else
                   p1:=compiler.cloadnode(plist^.sym,st);
                end;
              sl_subscript :
                begin
                  addsymref(plist^.sym);
-                 p1:=csubscriptnode.create(plist^.sym,p1,compiler);
+                 p1:=compiler.csubscriptnode(plist^.sym,p1);
                end;
              sl_typeconv :
                p1:=compiler.ctypeconvnode_explicit(p1,plist^.def);
@@ -1282,7 +1282,7 @@ implementation
                         end
                       else
                         p1:=load_self_node;
-                      p1:=csubscriptnode.create(sym,p1,compiler);
+                      p1:=compiler.csubscriptnode(sym,p1);
                       exit(true);
                     end;
                   tmp:=tstoreddef(tmp.owner.defowner);
@@ -1354,7 +1354,7 @@ implementation
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then
           internalerror(2010061902);
-        result:=csubscriptnode.create(vs,n,compiler);
+        result:=compiler.csubscriptnode(vs,n);
       end;
 
 

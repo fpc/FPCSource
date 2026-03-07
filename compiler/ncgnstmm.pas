@@ -129,7 +129,7 @@ implementation
             fsym:=tfieldvarsym(find_sym_in_parentfpstruct(currpi.procdef,hsym));
             if not assigned(fsym) then
               internalerror(2011060405);
-            result:=csubscriptnode.create(fsym,compiler.cderefnode(result));
+            result:=compiler.csubscriptnode(fsym,compiler.cderefnode(result));
             currpi:=currpi.parent;
           end;
       end;

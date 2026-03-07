@@ -1093,13 +1093,13 @@ implementation
           capturedef.symtable.insertsym(fieldsym);
           tabstractrecordsymtable(capturedef.symtable).addfield(fieldsym,vis_public);
 
-          capturen:=csubscriptnode.create(fieldsym,compiler.cloadnode(capturer,capturer.owner),compiler);
+          capturen:=compiler.csubscriptnode(fieldsym,compiler.cloadnode(capturer,capturer.owner));
 
           selfsym:=tsym(pd.parast.find('self'));
           if not assigned(selfsym) then
             internalerror(2022052301);
           selfinfo.ignore:=selfsym;
-          n1:=compiler.ccallnode_procvar(create_paras(pd),csubscriptnode.create(fieldsym,compiler.cloadnode(selfsym,selfsym.owner),compiler));
+          n1:=compiler.ccallnode_procvar(create_paras(pd),compiler.csubscriptnode(fieldsym,compiler.cloadnode(selfsym,selfsym.owner)));
         end
       else
         begin
@@ -1375,7 +1375,7 @@ implementation
           if (vo_is_self in psym.varoptions) and not is_implicit_pointer_object_type(psym.vardef) then
             n:=compiler.caddrnode(n);
           n:=compiler.cassignmentnode(
-               csubscriptnode.create(psym.capture_sym,compiler.cloadnode(capturer,capturer.owner),compiler),
+               compiler.csubscriptnode(psym.capture_sym,compiler.cloadnode(capturer,capturer.owner)),
                n
                );
           addstatement(stmt,n);
@@ -1423,23 +1423,21 @@ implementation
           make_not_regable(alivenode,[ra_different_scope]);
         end;
       addstatement(stmt,compiler.cassignmentnode(
-                          csubscriptnode.create(
+                          compiler.csubscriptnode(
                             selffield,
                             compiler.cloadnode(
                               capturer,
                               capturer.owner
-                              ),
-                              compiler
+                              )
                             ),
                             selfnode));
       addstatement(stmt,compiler.cassignmentnode(
-                          csubscriptnode.create(
+                          compiler.csubscriptnode(
                             alivefield,
                             compiler.cloadnode(
                               capturer,
                               capturer.owner
-                              ),
-                              compiler
+                              )
                             ),
                             alivenode));
     end;
@@ -1530,7 +1528,7 @@ implementation
                 current_filepos:=n.fileinfo;
                 loadprocvar:=nf_load_procvar in n.flags;
                 n.free;
-                n:=csubscriptnode.create(mapping^.newsym,mapping^.selfnode.getcopy,compiler);
+                n:=compiler.csubscriptnode(mapping^.newsym,mapping^.selfnode.getcopy);
                 if loadprocvar then
                   include(n.flags,nf_load_procvar);
                 if (mapping^.oldsym.typ=paravarsym) and
@@ -1600,7 +1598,7 @@ implementation
             newsym:=tsym(tobjectdef(tabstractvarsym(newsym).vardef).symtable.find(outer_self_field_name));
             if not assigned(newsym) then
               internalerror(2022011101);
-            result:=csubscriptnode.create(newsym,result,compiler);
+            result:=compiler.csubscriptnode(newsym,result);
           end;
       end;
 

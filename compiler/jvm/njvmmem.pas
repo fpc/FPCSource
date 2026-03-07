@@ -242,13 +242,13 @@ implementation
                     if not assigned(fsym) or
                        (fsym.typ<>fieldvarsym) then
                       internalerror(2011072501);
-                    result:=csubscriptnode.create(fsym,result);
+                    result:=compiler.csubscriptnode(fsym,result);
                     { procvarclass.method.code }
                     fsym:=search_struct_member(trecorddef(tfieldvarsym(fsym).vardef),'CODE');
                     if not assigned(fsym) or
                        (fsym.typ<>fieldvarsym) then
                       internalerror(2011072502);
-                    result:=csubscriptnode.create(fsym,result);
+                    result:=compiler.csubscriptnode(fsym,result);
                     left:=nil
                   end
                 else

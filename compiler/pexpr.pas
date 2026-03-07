@@ -1636,7 +1636,7 @@ implementation
                               Message(parser_e_only_class_members)
                             else
                               Message(parser_e_only_class_members_via_class_ref);
-                          p1:=csubscriptnode.create(sym,p1,compiler);
+                          p1:=compiler.csubscriptnode(sym,p1);
                         end;
                    end;
                  propertysym:
@@ -3139,7 +3139,7 @@ implementation
                     do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil)
                   else
                     { otherwise it's a regular record subscript }
-                    result:=csubscriptnode.create(srsym,result,compiler);
+                    result:=compiler.csubscriptnode(srsym,result);
                 end
               else
                 { regular non-field load }

@@ -177,7 +177,7 @@ implementation
                          if not assigned(hsym) then
                            internalerror(2004120404);
                          { Load tmehodpointer(left).proc }
-                         result:=csubscriptnode.create(
+                         result:=compiler.csubscriptnode(
                                       hsym,
                                       compiler.ctypeconvnode_internal(left,procpointertype));
                          left:=nil;

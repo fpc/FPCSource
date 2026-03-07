@@ -3125,17 +3125,17 @@ const
             if (rd.typ=procvardef) and
                (not tprocvardef(rd).is_addressonly) then
               begin
-                right:=csubscriptnode.create(
+                right:=compiler.csubscriptnode(
                            hsym,
-                           compiler.ctypeconvnode_internal(right,methodpointertype),compiler);
+                           compiler.ctypeconvnode_internal(right,methodpointertype));
                 typecheckpass(right);
                end;
             if (ld.typ=procvardef) and
                (not tprocvardef(ld).is_addressonly) then
               begin
-                left:=csubscriptnode.create(
+                left:=compiler.csubscriptnode(
                           hsym,
-                          compiler.ctypeconvnode_internal(left,methodpointertype),compiler);
+                          compiler.ctypeconvnode_internal(left,methodpointertype));
                 typecheckpass(left);
               end;
             if lt=niln then
@@ -3314,13 +3314,13 @@ const
                     if not assigned(hsym) then
                       internalerror(2004120405);
                     { Compare tmehodpointer(left).proc }
-                    right:=csubscriptnode.create(
+                    right:=compiler.csubscriptnode(
                                  hsym,
-                                 compiler.ctypeconvnode_internal(right,methodpointertype),compiler);
+                                 compiler.ctypeconvnode_internal(right,methodpointertype));
                     typecheckpass(right);
-                    left:=csubscriptnode.create(
+                    left:=compiler.csubscriptnode(
                                  hsym,
-                                 compiler.ctypeconvnode_internal(left,methodpointertype),compiler);
+                                 compiler.ctypeconvnode_internal(left,methodpointertype));
                      typecheckpass(left);
                   end;
               end

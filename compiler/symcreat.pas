@@ -2047,7 +2047,7 @@ implementation
                   include(taddrnode(initcode).addrnodeflags,anf_typedaddr);
                 end;
               initcode:=compiler.cassignmentnode(
-                csubscriptnode.create(result,compiler.cloadnode(pd.parentfpstruct,pd.parentfpstruct.owner),compiler),
+                compiler.csubscriptnode(result,compiler.cloadnode(pd.parentfpstruct,pd.parentfpstruct.owner)),
                 initcode);
               tblocknode(pd.parentfpinitblock).left:=compiler.cstatementnode
                 (initcode,tblocknode(pd.parentfpinitblock).left);
