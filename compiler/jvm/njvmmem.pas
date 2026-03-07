@@ -225,7 +225,7 @@ implementation
                   begin
                     { an internal address node will observe "normal" address
                       operator semantics (= take the actual address!) }
-                    result:=caddrnode.create_internal(taddrnode(left).left);
+                    result:=compiler.caddrnode_internal(taddrnode(left).left);
                     result:=compiler.ctypeconvnode_explicit(result,tcpuprocvardef(taddrnode(left).left.resultdef).classdef);
                     taddrnode(left).left:=nil;
                  end;
@@ -235,7 +235,7 @@ implementation
                 if not tprocvardef(left.resultdef).is_addressonly then
                   begin
                     { the "code" field from the procvar }
-                    result:=caddrnode.create_internal(left);
+                    result:=compiler.caddrnode_internal(left);
                     result:=compiler.ctypeconvnode_explicit(result,tcpuprocvardef(left.resultdef).classdef);
                     { procvarclass.method }
                     fsym:=search_struct_member(tcpuprocvardef(left.resultdef).classdef,'METHOD');
@@ -378,7 +378,7 @@ implementation
               st_shortstring:
                 begin
                   stringclass:=java_shortstring;
-                  left:=caddrnode.create_internal(left);
+                  left:=compiler.caddrnode_internal(left);
                   { avoid useless typecheck when casting to shortstringclass }
                   include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 end

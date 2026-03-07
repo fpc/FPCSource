@@ -161,7 +161,7 @@ unit opttail;
                             addstatement(calcstatements,
                               compiler.cassignmentnode(
                                 compiler.ctemprefnode(tempnode),
-                                caddrnode.create_internal(paranode.left,compiler)
+                                compiler.caddrnode_internal(paranode.left)
                                 ));
                           end
                         else

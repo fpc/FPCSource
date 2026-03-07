@@ -257,7 +257,7 @@ implementation
             if implicitptrpara then
               begin
                 { pass pointer to the struct }
-                left:=caddrnode.create_internal(left);
+                left:=compiler.caddrnode_internal(left);
                 include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 typecheckpass(left);
               end;
@@ -541,7 +541,7 @@ implementation
       { convert procvar type into corresponding class }
       if not tprocvardef(right.resultdef).is_addressonly then
         begin
-          right:=caddrnode.create_internal(right);
+          right:=compiler.caddrnode_internal(right);
           include(taddrnode(right).addrnodeflags,anf_typedaddr);
         end;
       right:=compiler.ctypeconvnode_explicit(right,pdclass);

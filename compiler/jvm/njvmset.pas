@@ -83,7 +83,7 @@ implementation
         if expectloc=LOC_JUMP then
           exit;
         { otherwise call set helper }
-        right:=caddrnode.create_internal(right);
+        right:=compiler.caddrnode_internal(right);
         include(taddrnode(right).addrnodeflags,anf_typedaddr);
         if isenum then
           begin

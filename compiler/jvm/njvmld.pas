@@ -130,7 +130,7 @@ function tjvmassignmentnode.pass_1: tnode;
         }
         inserttypeconv_explicit(right,cansichartype);
         { call ShortstringClass(@shortstring).setChar(index,char) }
-        tvecnode(target).left:=caddrnode.create_internal(tvecnode(target).left);
+        tvecnode(target).left:=compiler.caddrnode_internal(tvecnode(target).left);
         { avoid useless typecheck when casting to shortstringclass }
         include(taddrnode(tvecnode(target).left).addrnodeflags,anf_typedaddr);
         inserttypeconv_explicit(tvecnode(target).left,java_shortstring);

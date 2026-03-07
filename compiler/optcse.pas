@@ -452,7 +452,7 @@ unit optcse;
 
                         if addrstored then
                           templist[i]:=compiler.ctempcreatenode_value(cpointerdef.getreusable(def,compiler),voidpointertype.size,tt_persistent,
-                            true,caddrnode.create_internal(tnode(lists.nodelist[i]),compiler))
+                            true,compiler.caddrnode_internal(tnode(lists.nodelist[i])))
                         else
                           templist[i]:=compiler.ctempcreatenode_value(def,def.size,tt_persistent,
                             def.is_intregable or def.is_fpuregable or def.is_const_intregable,tnode(lists.nodelist[i]));
@@ -836,7 +836,7 @@ unit optcse;
                        voidpointertype.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),
-                       caddrnode.create_internal(constentries[i].valuenode,compiler)));
+                       compiler.caddrnode_internal(constentries[i].valuenode)));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(int_regs_assigned);

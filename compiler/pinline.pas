@@ -653,10 +653,10 @@ implementation
            { create call to fpc_initialize/finalize_array }
            npara:=compiler.ccallparanode(compiler.ctypeconvnode
                      (ppn.left,s32inttype),
-                  compiler.ccallparanode(caddrnode.create_internal
-                     (compiler.crttinode(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal),compiler),
-                  compiler.ccallparanode(caddrnode.create_internal
-                     (destppn.left,compiler),nil)));
+                  compiler.ccallparanode(compiler.caddrnode_internal
+                     (compiler.crttinode(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal)),
+                  compiler.ccallparanode(compiler.caddrnode_internal
+                     (destppn.left),nil)));
            if isinit then
              newblock:=compiler.ccallnode_intern('fpc_initialize_array',npara)
            else

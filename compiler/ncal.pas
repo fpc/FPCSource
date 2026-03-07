@@ -560,7 +560,7 @@ implementation
             if assignmenttype=voidpointertype then
               addstatement(statements,compiler.cassignmentnode(
                 csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
-                compiler.ctypeconvnode_internal(caddrnode.create_internal(para.left,compiler),voidpointertype)))
+                compiler.ctypeconvnode_internal(compiler.caddrnode_internal(para.left),voidpointertype)))
             else
               addstatement(statements,compiler.cassignmentnode(
               csubscriptnode.create(vardispatchfield,compiler.ctemprefnode(params),compiler),
@@ -731,10 +731,10 @@ implementation
                 npara:=compiler.ccallparanode(
                          { array length = high + 1 }
                          compiler.caddnode(addn,third.getcopy,genintconstnode(1,compiler)),
-                       compiler.ccallparanode(caddrnode.create_internal
-                          (compiler.crttinode(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal),compiler),
-                       compiler.ccallparanode(caddrnode.create_internal(
-                          cderefnode.create(compiler.ctemprefnode(temp),compiler),compiler),nil)));
+                       compiler.ccallparanode(compiler.caddrnode_internal
+                          (compiler.crttinode(tstoreddef(tarraydef(resultdef).elementdef),initrtti,rdt_normal)),
+                       compiler.ccallparanode(compiler.caddrnode_internal(
+                          cderefnode.create(compiler.ctemprefnode(temp),compiler)),nil)));
                 callnode.add_init_statement(
                   compiler.ccallnode_intern('fpc_finalize_array',npara));
               end;
@@ -799,7 +799,7 @@ implementation
                      addstatement(initstat,
                        compiler.cassignmentnode(
                          compiler.ctemprefnode(lefttemp),
-                         caddrnode.create_internal(left,compiler)
+                         compiler.caddrnode_internal(left)
                        )
                      );
                      { now treat that address (correctly) as the original
@@ -2344,7 +2344,7 @@ implementation
             ptemp:=compiler.ctempcreatenode(hdef,hdef.size,tt_persistent,true);
             if usederef then
               begin
-                loadp:=caddrnode.create_internal(p,compiler);
+                loadp:=compiler.caddrnode_internal(p);
                 refp:=cderefnode.create(compiler.ctemprefnode(ptemp),compiler);
               end
             else
@@ -3250,7 +3250,7 @@ implementation
              );
              { result of this block is the address of this temp }
              addstatement(statements,compiler.ctypeconvnode_internal(
-               caddrnode.create_internal(compiler.ctemprefnode(temp),compiler),selfrestype)
+               compiler.caddrnode_internal(compiler.ctemprefnode(temp)),selfrestype)
              );
              { replace the method pointer with the address of this temp }
              methodpointer.free;
@@ -3926,9 +3926,8 @@ implementation
                   begin
                     if not assigned(pt) or (i=0) then
                       internalerror(200304082);
-                    hiddentree:=caddrnode.create_internal(
-                      compiler.crttinode(Tstoreddef(pt.resultdef),fullrtti,rdt_normal),
-                      compiler
+                    hiddentree:=compiler.caddrnode_internal(
+                      compiler.crttinode(Tstoreddef(pt.resultdef),fullrtti,rdt_normal)
                     );
                   end
               else if vo_is_parentfp in currpara.varoptions then
@@ -5542,7 +5541,7 @@ implementation
         { inherit read only }
         if tabstractvarsym(para.parasym).varspez=vs_const then
           tempnode.includetempflag(ti_const);
-        paraaddr:=caddrnode.create_internal(para.left,compiler);
+        paraaddr:=compiler.caddrnode_internal(para.left);
         include(paraaddr.addrnodeflags,anf_typedaddr);
         addstatement(inlineinitstatement,compiler.cassignmentnode(compiler.ctemprefnode(tempnode),
           paraaddr));

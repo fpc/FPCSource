@@ -469,7 +469,7 @@ begin
       para:=compiler.ccallparanode(
               arrp,
             compiler.ccallparanode(
-              caddrnode.create_internal(compiler.crttinode(tstoreddef(p.resultdef),initrtti,rdt_normal),compiler),
+              compiler.caddrnode_internal(compiler.crttinode(tstoreddef(p.resultdef),initrtti,rdt_normal)),
             compiler.ccallparanode(
               compiler.ctypeconvnode_internal(aktassignmentnode.left.getcopy,voidpointertype),nil)
           ));
@@ -497,7 +497,7 @@ begin
       para:=compiler.ccallparanode(
               arrp,
             compiler.ccallparanode(
-              caddrnode.create_internal(compiler.crttinode(tstoreddef(p.resultdef),initrtti,rdt_normal),compiler),
+              compiler.caddrnode_internal(compiler.crttinode(tstoreddef(p.resultdef),initrtti,rdt_normal)),
             compiler.ccallparanode(
               compiler.ctypeconvnode_internal(compiler.ctemprefnode(tempnode),voidpointertype),nil)
           ));

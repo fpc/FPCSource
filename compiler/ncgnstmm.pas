@@ -117,7 +117,7 @@ implementation
           end
         else
           begin
-            result:=caddrnode.create_internal(compiler.cloadnode(current_procinfo.procdef.parentfpstruct,current_procinfo.procdef.parentfpstruct.owner));
+            result:=compiler.caddrnode_internal(compiler.cloadnode(current_procinfo.procdef.parentfpstruct,current_procinfo.procdef.parentfpstruct.owner));
             include(taddrnode(result).addrnodeflags,anf_typedaddr);
             currpi:=current_procinfo;
           end;

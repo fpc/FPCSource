@@ -2043,7 +2043,7 @@ implementation
                 parameter in the struct }
               if addrparam then
                 begin
-                  initcode:=caddrnode.create_internal(initcode,compiler);
+                  initcode:=compiler.caddrnode_internal(initcode);
                   include(taddrnode(initcode).addrnodeflags,anf_typedaddr);
                 end;
               initcode:=compiler.cassignmentnode(

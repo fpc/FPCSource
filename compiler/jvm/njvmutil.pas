@@ -250,7 +250,7 @@ implementation
               addstatement(stat,temp);
               initnode:=compiler.ccallparanode(
                 compiler.ctypeconvnode_explicit(
-                  caddrnode.create_internal(compiler.ctemprefnode(temp)),
+                  compiler.caddrnode_internal(compiler.ctemprefnode(temp)),
                   java_jlobject),
                 nil);
               jvmgetarraydimdef(sym.vardef,eledef,ndim);
@@ -266,7 +266,7 @@ implementation
             begin
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
-              initnode:=caddrnode.create_internal(compiler.ctemprefnode(temp));
+              initnode:=compiler.caddrnode_internal(compiler.ctemprefnode(temp));
             end
           { unicodestring/ansistring -> empty string }
           else if is_wide_or_unicode_string(sym.vardef) or

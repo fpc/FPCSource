@@ -1019,12 +1019,12 @@ implementation
             not is_const(left) and
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
-           hp:=compiler.ccallparanode(caddrnode.create_internal(
-                  compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal),compiler),
+           hp:=compiler.ccallparanode(compiler.caddrnode_internal(
+                  compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal)),
                compiler.ccallparanode(compiler.ctypeconvnode_internal(
-                 caddrnode.create_internal(left,compiler),voidpointertype),
+                 compiler.caddrnode_internal(left),voidpointertype),
                compiler.ccallparanode(compiler.ctypeconvnode_internal(
-                 caddrnode.create_internal(right,compiler),voidpointertype),
+                 compiler.caddrnode_internal(right),voidpointertype),
                nil)));
            if tempreturnfromcall then
              result:=compiler.ccallnode_intern('fpc_copy_with_move_semantics_proc',hp)
@@ -1100,8 +1100,8 @@ implementation
             nil));
         if needrtti then
           hp:=compiler.ccallparanode(
-            caddrnode.create_internal(
-              compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal),compiler),
+            compiler.caddrnode_internal(
+              compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal)),
             hp);
         result:=compiler.ccallnode_intern(hs,hp);
         firstpass(result);

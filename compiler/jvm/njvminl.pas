@@ -367,7 +367,7 @@ implementation
         valuepara:=tcallparanode(tcallparanode(left).right);
         tcallparanode(left).right:=nil;
         seteledef:=tsetdef(setpara.resultdef).elementdef;
-        setpara:=caddrnode.create_internal(setpara);
+        setpara:=compiler.caddrnode_internal(setpara);
         include(taddrnode(setpara).addrnodeflags,anf_typedaddr);
         if seteledef.typ=enumdef then
           begin
@@ -625,7 +625,7 @@ implementation
               internalerror(2011052402);
             result:=
               compiler.ccallnode(nil,tprocsym(psym),psym.owner,
-                compiler.ctypeconvnode_explicit(caddrnode.create_internal(left),java_shortstring),[],nil);
+                compiler.ctypeconvnode_explicit(compiler.caddrnode_internal(left),java_shortstring),[],nil);
             { reused }
             left:=nil;
           end

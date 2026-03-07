@@ -276,7 +276,7 @@ implementation
              hdef:=cpointerdef.getreusable(p1.resultdef,compiler);
              temp:=compiler.ctempcreatenode(hdef,sizeof(pint),tt_persistent,false);
              addstatement(newstatement,temp);
-             addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(temp),caddrnode.create_internal(p1,compiler)));
+             addstatement(newstatement,compiler.cassignmentnode(compiler.ctemprefnode(temp),compiler.caddrnode_internal(p1)));
              addstatement(newstatement,compiler.cassignmentnode(
                  cderefnode.create(compiler.ctemprefnode(temp),compiler),
                  compiler.caddnode(ntyp,
@@ -2079,8 +2079,8 @@ implementation
              { create call to fpc_vararray_put }
              paras:=compiler.ccallparanode(compiler.cordconstnode
                    (countindices,s32inttype,true),
-                compiler.ccallparanode(caddrnode.create_internal
-               (cvecnode.create(compiler.ctemprefnode(temp),genintconstnode(0,compiler),compiler),compiler),
+                compiler.ccallparanode(compiler.caddrnode_internal
+               (cvecnode.create(compiler.ctemprefnode(temp),genintconstnode(0,compiler),compiler)),
                 compiler.ccallparanode(compiler.ctypeconvnode_internal(p4,cvarianttype),
                 compiler.ccallparanode(compiler.ctypeconvnode_internal(p1,cvarianttype)
                   ,nil))));
@@ -2097,8 +2097,8 @@ implementation
              { create call to fpc_vararray_get }
              paras:=compiler.ccallparanode(compiler.cordconstnode
                    (countindices,s32inttype,true),
-                compiler.ccallparanode(caddrnode.create_internal
-               (compiler.ctemprefnode(temp),compiler),
+                compiler.ccallparanode(compiler.caddrnode_internal
+               (compiler.ctemprefnode(temp)),
                 compiler.ccallparanode(p1,
                 compiler.ccallparanode(
                     compiler.ctemprefnode(tempresultvariant)
@@ -2160,12 +2160,12 @@ implementation
                  (paracount,s32inttype,true)));
           { create call to fpc_dynarr_setlength }
           addstatement(newstatement,compiler.ccallnode_intern('fpc_dynarray_setlength',
-              compiler.ccallparanode(caddrnode.create_internal
-                    (compiler.ctemprefnode(temp2),compiler),
+              compiler.ccallparanode(compiler.caddrnode_internal
+                    (compiler.ctemprefnode(temp2)),
                  compiler.ccallparanode(compiler.cordconstnode
                     (1,s32inttype,true),
-                 compiler.ccallparanode(caddrnode.create_internal
-                    (compiler.crttinode(tstoreddef(arrdef),initrtti,rdt_normal),compiler),
+                 compiler.ccallparanode(compiler.caddrnode_internal
+                    (compiler.crttinode(tstoreddef(arrdef),initrtti,rdt_normal)),
                  compiler.ccallparanode(
                    compiler.ctypeconvnode_internal(
                      compiler.ctemprefnode(arrnode),voidpointertype),

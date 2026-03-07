@@ -130,7 +130,7 @@ implementation
                     equivalent in the parentfp struct }
                   if not assigned(left) then
                     begin
-                      left:=caddrnode.create_internal(compiler.cloadnode(tprocdef(symtableentry.owner.defowner).parentfpstruct,tprocdef(symtableentry.owner.defowner).parentfpstruct.owner));
+                      left:=compiler.caddrnode_internal(compiler.cloadnode(tprocdef(symtableentry.owner.defowner).parentfpstruct,tprocdef(symtableentry.owner.defowner).parentfpstruct.owner));
                       include(taddrnode(left).addrnodeflags,anf_typedaddr);
                     end;
                   typecheckpass(left);

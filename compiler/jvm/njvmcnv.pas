@@ -373,7 +373,7 @@ implementation
                     helpername:='fpcEnumSetToEnumSet';
                     setclassdef:=java_juenumset;
                   end;
-                left:=caddrnode.create_internal(left);
+                left:=compiler.caddrnode_internal(left);
                 include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 inserttypeconv_explicit(left,setclassdef);
                 result:=compiler.ccallnode_internmethod(
@@ -1016,7 +1016,7 @@ implementation
         begin
           { must be procedure-of-object -> implicit pointer type -> get address
             before typecasting to corresponding classdef }
-          left:=caddrnode.create_internal(left);
+          left:=compiler.caddrnode_internal(left);
           inserttypeconv_explicit(left,tcpuprocvardef(fromdef).classdef);
           fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
