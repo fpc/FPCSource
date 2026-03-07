@@ -3716,7 +3716,7 @@ implementation
               if try_to_consume(_POINTPOINT) then
                 begin
                   p2:=comp_expr([ef_accept_equal]);
-                  p1:=carrayconstructorrangenode.create(p1,p2,compiler);
+                  p1:=compiler.carrayconstructorrangenode(p1,p2);
                 end;
                { insert at the end of the tree, to get the correct order }
              if not assigned(buildp) then

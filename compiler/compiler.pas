@@ -269,6 +269,7 @@ type
     function cloadnode_procvar(v : tsym;d:tprocdef;st : TSymtable):tloadnode; inline;
     function cassignmentnode(l,r : tnode):tassignmentnode; inline;
     function cassignmentnode_internal(l,r : tnode):tassignmentnode; inline;
+    function carrayconstructorrangenode(l,r : tnode):tarrayconstructorrangenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -941,6 +942,12 @@ end;
 function TCompilerHelper.cassignmentnode_internal(l, r: tnode): tassignmentnode; inline;
 begin
   result:=nld.cassignmentnode.create_internal(l,r,self);
+end;
+
+function TCompilerHelper.carrayconstructorrangenode(l, r: tnode
+  ): tarrayconstructorrangenode; inline;
+begin
+  result:=nld.carrayconstructorrangenode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
