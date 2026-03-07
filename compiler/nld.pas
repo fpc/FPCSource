@@ -410,7 +410,7 @@ implementation
                  begin
                    if assigned(left) then
                      internalerror(200309289);
-                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload,compiler);
+                   left:=compiler.cloadparentfpnode(tprocdef(symtable.defowner),lpf_forload);
                    current_procinfo.set_needs_parentfp(tprocdef(symtable.defowner).parast.symtablelevel);
                    { reference this as a captured symbol }
                    current_procinfo.add_captured_sym(symtableentry,resultdef,fileinfo);
@@ -604,7 +604,7 @@ implementation
               begin
                 { parent frame pointer pointer as "self" }
                 left.free;
-                left:=cloadparentfpnode.create(tprocdef(p.owner.defowner),lpf_forpara,compiler);
+                left:=compiler.cloadparentfpnode(tprocdef(p.owner.defowner),lpf_forpara);
                 typecheckpass(left);
               end;
           end

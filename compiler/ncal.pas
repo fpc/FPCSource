@@ -3943,14 +3943,14 @@ implementation
                             hiddentree:=compiler.cpointerconstnode(0,currpara.vardef)
                           else
                             begin
-                              hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara,compiler);
+                              hiddentree:=compiler.cloadparentfpnode(tprocdef(procdefinition.owner.defowner),lpf_forpara);
                               if is_nested_pd(current_procinfo.procdef) then
                                 current_procinfo.set_needs_parentfp(tprocdef(procdefinition.owner.defowner).parast.symtablelevel);
                            end;
                         end
                       { exceptfilters called from main level are not owned }
                       else if procdefinition.proctypeoption=potype_exceptfilter then
-                        hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara,compiler)
+                        hiddentree:=compiler.cloadparentfpnode(current_procinfo.procdef,lpf_forpara)
                       else
                         internalerror(200309287);
                     end

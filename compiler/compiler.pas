@@ -287,7 +287,7 @@ type
     function cderefnode(l : tnode):tderefnode; inline;
     function csubscriptnode(varsym : tsym;l : tnode):tsubscriptnode; inline;
     function cvecnode(l,r : tnode):tvecnode; inline;
-    //TODO:cloadparentfpnode
+    function cloadparentfpnode(pd: tprocdef; fpkind: tloadparentfpkind):tloadparentfpnode; inline;
     { nobjc }
     //TODO:cobjcselectornode
     //TODO:cobjcprotocolnode
@@ -1054,6 +1054,12 @@ end;
 function TCompilerHelper.cvecnode(l, r: tnode): tvecnode; inline;
 begin
   result:=nmem.cvecnode.create(l,r,self);
+end;
+
+function TCompilerHelper.cloadparentfpnode(pd: tprocdef;
+  fpkind: tloadparentfpkind): tloadparentfpnode; inline;
+begin
+  result:=nmem.cloadparentfpnode.create(pd,fpkind,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

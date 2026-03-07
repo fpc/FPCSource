@@ -2669,7 +2669,7 @@ implementation
                         (tprocdef(pd).capturedsyms.count>0) and
                         (left.nodetype=loadn) then
                       begin
-                        tloadnode(left).left:=cloadparentfpnode.create(tprocdef(tloadnode(left).symtable.defowner),lpf_forload,compiler);
+                        tloadnode(left).left:=compiler.cloadparentfpnode(tprocdef(tloadnode(left).symtable.defowner),lpf_forload);
                         typecheckpass(tloadnode(left).left);
 
                         pi:=current_procinfo.get_first_nestedproc;
