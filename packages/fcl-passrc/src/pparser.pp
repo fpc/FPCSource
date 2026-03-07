@@ -1831,7 +1831,13 @@ begin
     end
   else
     UngetToken;
-  if CodePageAsText <> '' then
+  // Use unique names so AddType won't collide on bare 'string':
+  //   string[N]      -> 'string$_N'    (length-qualified)
+  //   string(CP)     -> 'string$CP'    (codepage-qualified, existing convention)
+  //   plain string   -> 'string'
+  if LengthAsText <> '' then
+    Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string$_'+LengthAsText,Result))
+  else if CodePageAsText <> '' then
     Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string$'+CodePageAsText,Result))
   else
     Result.DestType:=TPasStringType(CreateElement(TPasStringType,'string',Result));
@@ -5978,7 +5984,7 @@ begin
       ResultEl:=TPasFunctionType(Element).ResultEl;
       if (CurToken=tkIdentifier) then
         begin
-        ResultEl.Name := CurTokenName;
+        ResultEl.Name := CurTokenString;
         ExpectToken(tkColon);
         ResultEl.ResultType := ParseType(ResultEl,CurSourcePos);
         end
@@ -7075,7 +7081,9 @@ begin
             OT:=TPasOperator.TokenToOperatorType(CurTokenText)
           else
             OT:=TPasOperator.NameToOperatorType(CurTokenString);
-          end;
+          end
+        else
+          OperatorTypeName:='';
         end;
       if (ot=otUnknown) then
         ParseExc(nErrUnknownOperatorType,SErrUnknownOperatorType,[CurTokenString]);
