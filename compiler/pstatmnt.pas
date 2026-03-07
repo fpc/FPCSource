@@ -177,7 +177,7 @@ implementation
             casedeferror:=true;
           end;
          { Create casenode }
-         casenode:=ccasenode.create(caseexpr,compiler);
+         casenode:=compiler.ccasenode(caseexpr);
          consume(_OF);
          { Parse all case blocks }
          blockid:=0;

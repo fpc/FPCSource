@@ -298,7 +298,7 @@ type
     function csetelementnode(l,r : tnode):tsetelementnode; inline;
     function cinnode(l,r : tnode):tinnode; inline;
     function crangenode(l,r : tnode):trangenode; inline;
-    //TODO:ccasenode
+    function ccasenode(l:tnode):tcasenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -1098,6 +1098,11 @@ end;
 function TCompilerHelper.crangenode(l, r: tnode): trangenode; inline;
 begin
   result:=nset.crangenode.create(l,r,self);
+end;
+
+function TCompilerHelper.ccasenode(l: tnode): tcasenode; inline;
+begin
+  result:=nset.ccasenode.create(l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
