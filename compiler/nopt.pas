@@ -260,7 +260,7 @@ var
   hp: tnode;
 begin
   compiler := p.compiler;
-  hp := caddsstringcharoptnode.create(p.left.getcopy,p.right.getcopy,compiler);
+  hp := compiler.caddsstringcharoptnode(p.left.getcopy,p.right.getcopy);
   hp.flags := p.flags;
   genaddsstringcharoptnode := hp;
 end;

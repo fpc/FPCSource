@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
-  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem,nobjc;
+  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem,nobjc,nopt;
 
 type
 {****************************************************************************
@@ -292,7 +292,7 @@ type
     function cobjcselectornode(formethod: tnode):tobjcselectornode; inline;
     function cobjcprotocolnode(forprotocol: tnode):tobjcprotocolnode; inline;
     { nopt }
-    //TODO:caddsstringcharoptnode
+    function caddsstringcharoptnode(l,r : tnode):taddsstringcharoptnode; inline;
     //TODO:caddsstringcsstringoptnode
     { nset }
     //TODO:csetelementnode
@@ -1071,6 +1071,12 @@ function TCompilerHelper.cobjcprotocolnode(forprotocol: tnode
   ): tobjcprotocolnode; inline;
 begin
   result:=nobjc.cobjcprotocolnode.create(forprotocol,self);
+end;
+
+function TCompilerHelper.caddsstringcharoptnode(l, r: tnode
+  ): taddsstringcharoptnode; inline;
+begin
+  result:=nopt.caddsstringcharoptnode.create(l,r,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;
