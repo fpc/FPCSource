@@ -457,7 +457,7 @@ implementation
          { we add the "repeat..until" afterwards, now just create the body }
          outerloop:=internalstatements(compiler,outerloopbodystatement);
          { the countByEnumeratingWithState_objects_count call }
-         hp:=compiler.ccallparanode(compiler.cinlinenode(in_length_x,false,ctypenode.create(itemsarraydef,compiler)),
+         hp:=compiler.ccallparanode(compiler.cinlinenode(in_length_x,false,compiler.ctypenode(itemsarraydef)),
                compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(items),compiler),
                  compiler.ccallparanode(caddrnode.create(compiler.ctemprefnode(state),compiler),nil)
                )

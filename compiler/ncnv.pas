@@ -937,7 +937,7 @@ implementation
             fromnode:=ttypeconvnode(fromnode).left;
             if (fromnode.nodetype=loadn) and
                not assigned(tloadnode(fromnode).left) then
-              tloadnode(fromnode).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(fromnode).symtable.defowner),compiler),compiler));
+              tloadnode(fromnode).set_mp(cloadvmtaddrnode.create(compiler.ctypenode(tdef(tloadnode(fromnode).symtable.defowner)),compiler));
             fromnode:=compiler.ctypeconvnode_proc_to_procvar(fromnode);
             ttypeconvnode(fromnode).totypedef:=todef;
             typecheckpass(fromnode);
@@ -2725,7 +2725,7 @@ implementation
             left:=ttypeconvnode(left).left;
             if (left.nodetype=loadn) and
                not assigned(tloadnode(left).left) then
-              tloadnode(left).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(left).symtable.defowner),compiler),compiler));
+              tloadnode(left).set_mp(cloadvmtaddrnode.create(compiler.ctypenode(tdef(tloadnode(left).symtable.defowner)),compiler));
             left:=compiler.ctypeconvnode_proc_to_procvar(left);
             ttypeconvnode(left).totypedef:=resultdef;
             typecheckpass(left);
@@ -3165,7 +3165,7 @@ implementation
                                    left));
                                  left:=compiler.ctemprefnode(tempnode);
                                end;
-                             addstatement(newstatement,compiler.casnode(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef,compiler),compiler)));
+                             addstatement(newstatement,compiler.casnode(left.getcopy,cloadvmtaddrnode.create(compiler.ctypenode(resultdef),compiler)));
                              addstatement(newstatement,compiler.ctempdeletenode_normal_temp(tempnode));
                              addstatement(newstatement,compiler.ctypeconvnode_internal(left,resultdef));
                              left:=nil;

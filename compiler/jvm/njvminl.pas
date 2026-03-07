@@ -261,7 +261,7 @@ implementation
         { created wrapped instance }
         inserttypeconv_explicit(tcallparanode(left).left,boxparadef);
         result:=compiler.ccallnode_internmethod(
-          cloadvmtaddrnode.create(ctypenode.create(tobjectdef(boxdef))),'CREATE',left);
+          cloadvmtaddrnode.create(compiler.ctypenode(tobjectdef(boxdef))),'CREATE',left);
         { reused }
         left:=nil;
       end;
@@ -430,7 +430,7 @@ implementation
             eledef:=tarraydef(eledef).elementdef;
           end;
         { prepend type parameter for the array }
-        newparas:=compiler.ccallparanode(ctypenode.create(left.resultdef),newparas);
+        newparas:=compiler.ccallparanode(compiler.ctypenode(left.resultdef),newparas);
         ttypenode(tcallparanode(newparas).left).allowed:=true;
         { node to create the new array }
         newnode:=compiler.cinlinenode(in_new_x,false,newparas);

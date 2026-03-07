@@ -377,7 +377,7 @@ implementation
                 include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 inserttypeconv_explicit(left,setclassdef);
                 result:=compiler.ccallnode_internmethod(
-                  cloadvmtaddrnode.create(ctypenode.create(setclassdef)),
+                  cloadvmtaddrnode.create(compiler.ctypenode(setclassdef)),
                   helpername,compiler.ccallparanode(
                     genintconstnode(tsetdef(resultdef).setbase), compiler.ccallparanode(
                       genintconstnode(tsetdef(left.resultdef).setbase),
@@ -400,7 +400,7 @@ implementation
         if not assigned(tcpuprocvardef(resultdef).classdef) then
           tcpuprocvardef(resultdef).classdef:=java_procvarbase;
         result:=compiler.ccallnode_internmethod(
-          cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
+          cloadvmtaddrnode.create(compiler.ctypenode(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
         result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
         result:=cderefnode.create(result);
@@ -438,7 +438,7 @@ implementation
               st:=st.defowner.owner;
             if st.symtabletype in [objectsymtable,recordsymtable] then
               { nested routine in method -> part of enclosing class }
-              procload:=cloadvmtaddrnode.create(ctypenode.create(tdef(st.defowner)))
+              procload:=cloadvmtaddrnode.create(compiler.ctypenode(tdef(st.defowner)))
             else
               begin
                 { regular procedure/function -> get type representing unit
@@ -446,7 +446,7 @@ implementation
                 while not(st.symtabletype in [staticsymtable,globalsymtable]) do
                   st:=st.defowner.owner;
                 corrclass:=search_named_unit_globaltype(st.realname^,'__FPC_JVM_MODULE_CLASS_ALIAS$',true).typedef;
-                procload:=cloadvmtaddrnode.create(ctypenode.create(tdef(corrclass)));
+                procload:=cloadvmtaddrnode.create(compiler.ctypenode(tdef(corrclass)));
               end;
           end;
         { todo: support nested procvars }
@@ -480,7 +480,7 @@ implementation
                  if pushaddr then
                    encodedtype:='['+encodedtype;
                  replace(encodedtype,'/','.');
-                 newpara:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(jlclass)),'FORNAME',
+                 newpara:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(compiler.ctypenode(jlclass)),'FORNAME',
                    compiler.ccallparanode(compiler.cstringconstnode_str(encodedtype),nil));
                end
              else
@@ -495,7 +495,7 @@ implementation
                        internalerror(2011072417);
                    end
                  else
-                   newpara:=cloadvmtaddrnode.create(ctypenode.create(corrclass));
+                   newpara:=cloadvmtaddrnode.create(compiler.ctypenode(corrclass));
                  newpara:=compiler.ctypeconvnode_explicit(newpara,jlclass);
                end;
             procdefparas:=compiler.carrayconstructornode(newpara,procdefparas);
@@ -504,7 +504,7 @@ implementation
           procdefparas:=compiler.carrayconstructornode(nil,nil);
         Include(procdefparas.arrayconstructornodeflags, acnf_allow_array_constructor);
         constrparas:=compiler.ccallparanode(procdefparas,constrparas);
-        result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
+        result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(compiler.ctypenode(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }
         if tprocvardef(resultdef).is_addressonly then
           result:=compiler.ctypeconvnode_explicit(result,resultdef)
@@ -540,7 +540,7 @@ implementation
           with a single #0 }
         result:=compiler.ccallnode(compiler.ccallparanode(left,nil),tprocsym(ps),
           ps.owner,
-          cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[],nil);
+          cloadvmtaddrnode.create(compiler.ctypenode(java_ansistring)),[],nil);
         include(result.flags,nf_isproperty);
         result:=compiler.ctypeconvnode_explicit(result,resultdef);
         { reused }
@@ -879,7 +879,7 @@ implementation
           { call the (static class) method to get the raw bits }
           result:=compiler.ccallnode(compiler.ccallparanode(left,nil),
             tprocsym(psym),psym.owner,
-            cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[],nil);
+            cloadvmtaddrnode.create(compiler.ctypenode(csym.typedef)),[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -898,7 +898,7 @@ implementation
             internalerror(2011062601);
           result:=compiler.ccallnode(compiler.ccallparanode(left,nil),
             tprocsym(psym),psym.owner,
-            cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[],nil);
+            cloadvmtaddrnode.create(compiler.ctypenode(todef.classdef)),[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -957,7 +957,7 @@ implementation
             begin
               inserttypeconv_explicit(left,s64inttype);
               enumclassdef:=tcpuenumdef(tenumdef(tsetdef(resultdef).elementdef).getbasedef).classdef;
-              mp:=cloadvmtaddrnode.create(ctypenode.create(enumclassdef));
+              mp:=cloadvmtaddrnode.create(compiler.ctypenode(enumclassdef));
               helpername:='fpcLongToEnumSet';
               { enumclass.fpcLongToEnumSet(left,setbase,setsize) }
               result:=compiler.ccallnode_internmethod(mp,helpername,
@@ -1005,7 +1005,7 @@ implementation
           result:=csubscriptnode.create(fsym,left);
           { create destination procvartype with info from source }
           result:=compiler.ccallnode_internmethod(
-            cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
+            cloadvmtaddrnode.create(compiler.ctypenode(tcpuprocvardef(todef).classdef)),
             'CREATE',compiler.ccallparanode(result,nil));
           left:=nil;
         end;
@@ -1034,7 +1034,7 @@ implementation
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072415);
-          result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
+          result:=compiler.ccallnode_internmethod(cloadvmtaddrnode.create(compiler.ctypenode(tcpuprocvardef(todef).classdef)),
             'CREATE',compiler.ccallparanode(left,nil));
           left:=nil;
         end;
@@ -1238,7 +1238,7 @@ implementation
                     if not check_only and
                        not assignment_side then
                       begin
-                        resnode:=ctypenode.create(resultdef);
+                        resnode:=compiler.ctypenode(resultdef);
                         if resultdef.typ=objectdef then
                           resnode:=cloadvmtaddrnode.create(resnode);
                         resnode:=compiler.casnode_internal(left,resnode);
@@ -1266,7 +1266,7 @@ implementation
                 if not check_only then
                   begin
                     resnode:=compiler.cinlinenode(in_unbox_x_y,false,
-                      compiler.ccallparanode(ctypenode.create(resultdef),
+                      compiler.ccallparanode(compiler.ctypenode(resultdef),
                         compiler.ccallparanode(left,nil)));
                     left:=nil;
                   end;

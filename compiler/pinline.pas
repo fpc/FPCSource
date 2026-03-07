@@ -173,7 +173,7 @@ implementation
             if is_new then
               begin
                 sym:=search_struct_member(classh,'CREATE');
-                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resultdef,compiler),compiler);
+                p2 := cloadvmtaddrnode.create(compiler.ctypenode(p.resultdef),compiler);
               end
             else
               begin
@@ -520,7 +520,7 @@ implementation
             classh:=tobjectdef(tpointerdef(p1.resultdef).pointeddef);
             { use the objectdef for loading the VMT }
             p2:=p1;
-            p1:=ctypenode.create(tpointerdef(p1.resultdef).pointeddef,compiler);
+            p1:=compiler.ctypenode(tpointerdef(p1.resultdef).pointeddef);
             do_typecheckpass(p1);
             { search the constructor also in the symbol tables of
               the parents }

@@ -271,6 +271,7 @@ type
     function cassignmentnode_internal(l,r : tnode):tassignmentnode; inline;
     function carrayconstructorrangenode(l,r : tnode):tarrayconstructorrangenode; inline;
     function carrayconstructornode(l,r : tnode):tarrayconstructornode; inline;
+    function ctypenode(def:tdef):ttypenode; inline;
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -955,6 +956,11 @@ function TCompilerHelper.carrayconstructornode(l, r: tnode
   ): tarrayconstructornode; inline;
 begin
   result:=nld.carrayconstructornode.create(l,r,self);
+end;
+
+function TCompilerHelper.ctypenode(def: tdef): ttypenode; inline;
+begin
+  result:=nld.ctypenode.create(def,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

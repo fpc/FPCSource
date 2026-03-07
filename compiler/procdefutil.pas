@@ -1349,7 +1349,7 @@ implementation
         internalerror(2022010801);
 
       { Insert "Capturer := TCapturer.Create()" as the first statement of the routine }
-      result:=cloadvmtaddrnode.create(ctypenode.create(capturer_def,compiler),compiler);
+      result:=cloadvmtaddrnode.create(compiler.ctypenode(capturer_def),compiler);
       result:=compiler.ccallnode(nil,ctor,capturer_def.symtable,result,[],nil);
       result:=compiler.cassignmentnode(load_capturer(capturer_sym),result);
     end;

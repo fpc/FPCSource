@@ -3375,7 +3375,7 @@ implementation
           begin
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
-                vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef,compiler),compiler)
+                vmttree:=cloadvmtaddrnode.create(compiler.ctypenode(methodpointer.resultdef),compiler)
             else
               { destructor with extended syntax called from dispose }
               { value -1 is what fpc_help_constructor() changes VMT to when it allocates memory }
@@ -3409,7 +3409,7 @@ implementation
                    if (methodpointer.nodetype=typen) then
                      vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                    else
-                     vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef,compiler),compiler)
+                     vmttree:=cloadvmtaddrnode.create(compiler.ctypenode(methodpointer.resultdef),compiler)
                  end
                else
                  vmttree:=compiler.cpointerconstnode(0,voidpointertype);

@@ -953,7 +953,7 @@ implementation
                 else
                   begin
                     statement_syssym.free;
-                    statement_syssym:=geninlinenode(in_default_x,false,ctypenode.create(def,compiler),compiler);
+                    statement_syssym:=geninlinenode(in_default_x,false,compiler.ctypenode(def),compiler);
                   end;
               { consume the right bracket here for a nicer error position }
               consume(_RKLAMMER);
@@ -1058,9 +1058,9 @@ implementation
                      { We are calling from the static class method which has no self node }
                      if assigned(pd) and pd.no_self_node then
                        if st.symtabletype=recordsymtable then
-                         p1:=ctypenode.create(pd.struct,compiler)
+                         p1:=compiler.ctypenode(pd.struct)
                        else
-                         p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct,compiler),compiler)
+                         p1:=cloadvmtaddrnode.create(compiler.ctypenode(pd.struct),compiler)
                      else
                        p1:=load_self_node;
                    end
@@ -1656,7 +1656,7 @@ implementation
                       end
                      else
                        begin
-                         p1:=ctypenode.create(ttypesym(sym).typedef,compiler);
+                         p1:=compiler.ctypenode(ttypesym(sym).typedef);
                          if (is_class(ttypesym(sym).typedef) or
                              is_objcclass(ttypesym(sym).typedef) or
                              is_javaclass(ttypesym(sym).typedef)) and
@@ -1795,7 +1795,7 @@ implementation
                 not(getaddr) and
                 def_is_related(current_structdef,hdef) then
                begin
-                 result:=ctypenode.create(hdef,compiler);
+                 result:=compiler.ctypenode(hdef);
                  ttypenode(result).typesym:=sym;
                  if not (m_delphi in current_settings.modeswitches) and
                      (block_type in inline_specialization_block_types) and
@@ -1838,7 +1838,7 @@ implementation
                 { handles:
                     * @TObject.Load
                     * static methods and variables }
-                result:=ctypenode.create(hdef,compiler);
+                result:=compiler.ctypenode(hdef);
                 ttypenode(result).typesym:=sym;
                 if not (m_delphi in current_settings.modeswitches) and
                     (block_type in inline_specialization_block_types) and
@@ -1909,7 +1909,7 @@ implementation
                   consume(_POINT);
                   { allows @Object.Method }
                   { also allows static methods and variables }
-                  result:=ctypenode.create(hdef,compiler);
+                  result:=compiler.ctypenode(hdef);
                   ttypenode(result).typesym:=sym;
                   { TP allows also @TMenu.Load if Load is only }
                   { defined in an ancestor class               }
@@ -1937,7 +1937,7 @@ implementation
                 end
                else
                 begin
-                  result:=ctypenode.create(hdef,compiler);
+                  result:=compiler.ctypenode(hdef);
                   ttypenode(result).typesym:=sym;
                   { For a type block we simply return only
                     the type. For all other blocks we return
@@ -1948,7 +1948,7 @@ implementation
              end
             else
               begin
-                result:=ctypenode.create(hdef,compiler);
+                result:=compiler.ctypenode(hdef);
                 ttypenode(result).typesym:=sym;
               end;
           end;
@@ -3115,16 +3115,16 @@ implementation
                         (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                          (sp_static in srsym.symoptions)) then
                       if srsymtable.symtabletype=recordsymtable then
-                        result:=ctypenode.create(hdef,compiler)
+                        result:=compiler.ctypenode(hdef)
                       else
-                        result:=cloadvmtaddrnode.create(ctypenode.create(hdef,compiler),compiler)
+                        result:=cloadvmtaddrnode.create(compiler.ctypenode(hdef),compiler)
                     else
                       begin
                         if assigned(current_procinfo) then
                           begin
                             pd:=current_procinfo.get_normal_proc.procdef;
                             if assigned(pd) and pd.no_self_node then
-                              result:=cloadvmtaddrnode.create(ctypenode.create(pd.struct,compiler),compiler)
+                              result:=cloadvmtaddrnode.create(compiler.ctypenode(pd.struct),compiler)
                             else
                               result:=load_self_node;
                           end
@@ -3235,7 +3235,7 @@ implementation
                   { class we need to call it as a class member          }
                   if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) and
                     assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
-                    result:=cloadvmtaddrnode.create(ctypenode.create(hdef,compiler),compiler);
+                    result:=cloadvmtaddrnode.create(compiler.ctypenode(hdef),compiler);
                   { not srsymtable.symtabletype since that can be }
                   { withsymtable as well                          }
                   if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -3279,7 +3279,7 @@ implementation
                     if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                        (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
                       begin
-                        result:=ctypenode.create(hdef,compiler);
+                        result:=compiler.ctypenode(hdef);
                         if not is_record(hdef) then
                           result:=cloadvmtaddrnode.create(result,compiler);
                       end
@@ -4005,7 +4005,7 @@ implementation
                                    end
                                  else
                                    begin
-                                     p1:=ctypenode.create(hdef,compiler);
+                                     p1:=compiler.ctypenode(hdef);
                                      { we need to allow helpers here }
                                      ttypenode(p1).helperallowed:=true;
                                    end;
@@ -4161,7 +4161,7 @@ implementation
                   end
                  else
                    begin
-                     p1:=ctypenode.create(hdef,compiler);
+                     p1:=compiler.ctypenode(hdef);
                      if current_scanner.token=_POINT then
                        begin
                          again:=true;
@@ -4187,7 +4187,7 @@ implementation
                   end
                  else
                   begin
-                    p1:=ctypenode.create(hdef,compiler);
+                    p1:=compiler.ctypenode(hdef);
                   end;
                end;
 
@@ -4661,7 +4661,7 @@ implementation
                       { class we need to call it as a class member }
                       if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
                           assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
-                        result:=cloadvmtaddrnode.create(ctypenode.create(parseddef,compiler),compiler);
+                        result:=cloadvmtaddrnode.create(compiler.ctypenode(parseddef),compiler);
                       { not srsymtable.symtabletype since that can be }
                       { withsymtable as well                          }
                       if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then

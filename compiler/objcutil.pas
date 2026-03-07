@@ -164,9 +164,9 @@ end;
                 if (target_info.system in systems_objc_nfabi) and
                    (not MacOSXVersionMin.isvalid or
                     (MacOSXVersionMin.relationto(10,6,0)>=0)) then
-                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof,compiler),compiler)
+                  result:=cloadvmtaddrnode.create(compiler.ctypenode(tobjectdef(tclassrefdef(def).pointeddef).childof),compiler)
                 else
-                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof,compiler),compiler);
+                  result:=cloadvmtaddrnode.create(compiler.ctypenode(tobjectdef(tclassrefdef(def).pointeddef).childof.childof),compiler);
                 tloadvmtaddrnode(result).forcall:=true;
                 result:=cloadvmtaddrnode.create(result,compiler);
                 typecheckpass(result);
@@ -183,9 +183,9 @@ end;
         else
           begin
             if not(oo_is_classhelper in tobjectdef(def).objectoptions) then
-              result:=cloadvmtaddrnode.create(ctypenode.create(def,compiler),compiler)
+              result:=cloadvmtaddrnode.create(compiler.ctypenode(def),compiler)
             else
-              result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(def).childof,compiler),compiler);
+              result:=cloadvmtaddrnode.create(compiler.ctypenode(tobjectdef(def).childof),compiler);
             tloadvmtaddrnode(result).forcall:=true;
           end;
 
