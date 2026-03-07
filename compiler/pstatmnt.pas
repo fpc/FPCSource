@@ -723,7 +723,7 @@ implementation
                   is not done implicitly }
                 if not hasimplicitderef then
                   begin
-                    valuenode:=caddrnode.create_internal_nomark(valuenode,compiler);
+                    valuenode:=compiler.caddrnode_internal_nomark(valuenode);
                     include(taddrnode(valuenode).addrnodeflags,anf_typedaddr);
                     refnode:=cderefnode.create(refnode,compiler);
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
