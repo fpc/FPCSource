@@ -2084,7 +2084,7 @@ implementation
                   inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
                   if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and try_to_consume(_POINTPOINT) then
-                    pt:=crangenode.create(pt,compiler.parser.pexpr.comp_expr([ef_accept_equal]),compiler)
+                    pt:=compiler.crangenode(pt,compiler.parser.pexpr.comp_expr([ef_accept_equal]))
                   else
                     begin
                       with variantdesc^^.branches[high(variantdesc^^.branches)] do
