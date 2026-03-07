@@ -232,13 +232,13 @@ interface
                   if isenum then
                     begin
                       inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef);
-                      result:=cloadvmtaddrnode.create(compiler.ctypenode(java_juenumset));
+                      result:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
                     end
                   else
                     begin
                       { for boolean, char, etc }
                       inserttypeconv_explicit(tsetelementnode(right).left,s32inttype);
-                      result:=cloadvmtaddrnode.create(compiler.ctypenode(java_jubitset));
+                      result:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
                     end;
                   paras:=compiler.ccallparanode(tsetelementnode(right).left,nil);
                   tsetelementnode(right).left:=nil;
@@ -285,12 +285,12 @@ interface
                           if isenum then
                             begin
                               inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef);
-                              tmpn:=cloadvmtaddrnode.create(compiler.ctypenode(java_juenumset));
+                              tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
                             end
                           else
                             begin
                               inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
-                              tmpn:=cloadvmtaddrnode.create(compiler.ctypenode(java_jubitset));
+                              tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
                             end;
                           paras:=compiler.ccallparanode(compiler.ccallnode_internmethod(tmpn,'RANGE',compiler.ccallparanode(tsetelementnode(right).right,paras)),nil);
                           tsetelementnode(right).right:=nil;

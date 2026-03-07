@@ -462,7 +462,7 @@ implementation
                       is_class(left.resultdef) and
                       (left.nodetype<>niln) then
                      begin
-                       left:=cloadvmtaddrnode.create(left,compiler);
+                       left:=compiler.cloadvmtaddrnode(left);
                        typecheckpass(left);
                      end
                  end;

@@ -261,7 +261,7 @@ implementation
         { created wrapped instance }
         inserttypeconv_explicit(tcallparanode(left).left,boxparadef);
         result:=compiler.ccallnode_internmethod(
-          cloadvmtaddrnode.create(compiler.ctypenode(tobjectdef(boxdef))),'CREATE',left);
+          compiler.cloadvmtaddrnode(compiler.ctypenode(tobjectdef(boxdef))),'CREATE',left);
         { reused }
         left:=nil;
       end;

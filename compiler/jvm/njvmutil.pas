@@ -298,7 +298,7 @@ implementation
           addstatement(stat,compiler.cassignmentnode(
             compiler.cloadnode(vs,vs.owner),
             compiler.ccallnode_internmethod(
-              cloadvmtaddrnode.create(compiler.ctypenode(vs.vardef)),
+              compiler.cloadvmtaddrnode(compiler.ctypenode(vs.vardef)),
               'CREATE',initnode)));
           { deallocate the temp if we allocated one }
           if assigned(temp) then

@@ -173,7 +173,7 @@ implementation
             if is_new then
               begin
                 sym:=search_struct_member(classh,'CREATE');
-                p2 := cloadvmtaddrnode.create(compiler.ctypenode(p.resultdef),compiler);
+                p2 := compiler.cloadvmtaddrnode(compiler.ctypenode(p.resultdef));
               end
             else
               begin

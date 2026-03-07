@@ -1060,7 +1060,7 @@ implementation
                        if st.symtabletype=recordsymtable then
                          p1:=compiler.ctypenode(pd.struct)
                        else
-                         p1:=cloadvmtaddrnode.create(compiler.ctypenode(pd.struct),compiler)
+                         p1:=compiler.cloadvmtaddrnode(compiler.ctypenode(pd.struct))
                      else
                        p1:=load_self_node;
                    end
@@ -1185,7 +1185,7 @@ implementation
                          assigned(getfuncrefdef)
                        ) then
                       begin
-                        p1:=cloadvmtaddrnode.create(p1,compiler);
+                        p1:=compiler.cloadvmtaddrnode(p1);
                         tloadnode(p2).set_mp(p1);
                       end
                     else if (p1.resultdef.typ=objectdef) then
@@ -1661,7 +1661,7 @@ implementation
                              is_objcclass(ttypesym(sym).typedef) or
                              is_javaclass(ttypesym(sym).typedef)) and
                             not(block_type in [bt_type,bt_const_type,bt_var_type]) then
-                           p1:=cloadvmtaddrnode.create(p1,compiler);
+                           p1:=compiler.cloadvmtaddrnode(p1);
                        end;
                    end;
                  constsym:
@@ -1926,7 +1926,7 @@ implementation
                      if not(block_type in [bt_type,bt_const_type,bt_var_type]) and
                         (srsym.typ=procsym) and
                         (current_scanner.token in [_CARET,_POINT]) then
-                       result:=cloadvmtaddrnode.create(result,compiler);
+                       result:=compiler.cloadvmtaddrnode(result);
                      do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil);
                    end
                   else
@@ -1943,7 +1943,7 @@ implementation
                     the type. For all other blocks we return
                     a loadvmt node }
                   if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
-                    result:=cloadvmtaddrnode.create(result,compiler);
+                    result:=compiler.cloadvmtaddrnode(result);
                 end;
              end
             else
@@ -3117,14 +3117,14 @@ implementation
                       if srsymtable.symtabletype=recordsymtable then
                         result:=compiler.ctypenode(hdef)
                       else
-                        result:=cloadvmtaddrnode.create(compiler.ctypenode(hdef),compiler)
+                        result:=compiler.cloadvmtaddrnode(compiler.ctypenode(hdef))
                     else
                       begin
                         if assigned(current_procinfo) then
                           begin
                             pd:=current_procinfo.get_normal_proc.procdef;
                             if assigned(pd) and pd.no_self_node then
-                              result:=cloadvmtaddrnode.create(compiler.ctypenode(pd.struct),compiler)
+                              result:=compiler.cloadvmtaddrnode(compiler.ctypenode(pd.struct))
                             else
                               result:=load_self_node;
                           end
@@ -3235,7 +3235,7 @@ implementation
                   { class we need to call it as a class member          }
                   if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) and
                     assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
-                    result:=cloadvmtaddrnode.create(compiler.ctypenode(hdef),compiler);
+                    result:=compiler.cloadvmtaddrnode(compiler.ctypenode(hdef));
                   { not srsymtable.symtabletype since that can be }
                   { withsymtable as well                          }
                   if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -3281,7 +3281,7 @@ implementation
                       begin
                         result:=compiler.ctypenode(hdef);
                         if not is_record(hdef) then
-                          result:=cloadvmtaddrnode.create(result,compiler);
+                          result:=compiler.cloadvmtaddrnode(result);
                       end
                     else
                       result:=load_self_node;
@@ -4661,7 +4661,7 @@ implementation
                       { class we need to call it as a class member }
                       if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
                           assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
-                        result:=cloadvmtaddrnode.create(compiler.ctypenode(parseddef),compiler);
+                        result:=compiler.cloadvmtaddrnode(compiler.ctypenode(parseddef));
                       { not srsymtable.symtabletype since that can be }
                       { withsymtable as well                          }
                       if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then

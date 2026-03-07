@@ -2576,7 +2576,7 @@ implementation
            }
            if (procdefinition.procoptions*[po_classmethod,po_staticmethod] <> []) and
               (selftree.resultdef.typ<>classrefdef) then
-             selftree:=cloadvmtaddrnode.create(selftree,compiler);
+             selftree:=compiler.cloadvmtaddrnode(selftree);
           end
         else
           { constructors }
@@ -2595,7 +2595,7 @@ implementation
                         selftree:=methodpointer.getcopy;
                         if selftree.nodetype=typen then
                           begin
-                            selftree:=cloadvmtaddrnode.create(selftree,compiler);
+                            selftree:=compiler.cloadvmtaddrnode(selftree);
                             tloadvmtaddrnode(selftree).forcall:=true;
                           end;
                       end;
@@ -2655,7 +2655,7 @@ implementation
                   selftree:=methodpointer.getcopy;
                   if (methodpointer.resultdef.typ<>classrefdef) or
                      (methodpointer.nodetype = typen) then
-                    selftree:=cloadvmtaddrnode.create(selftree,compiler);
+                    selftree:=compiler.cloadvmtaddrnode(selftree);
                 end
               else
                 selftree:=compiler.cpointerconstnode(0,voidpointertype);
@@ -3218,7 +3218,7 @@ implementation
              if (po_classmethod in procdefinition.procoptions) and
                 (selftree.resultdef.typ<>classrefdef) then
                begin
-                 selftree:=cloadvmtaddrnode.create(selftree,compiler);
+                 selftree:=compiler.cloadvmtaddrnode(selftree);
                  { since we're in a class method of the current class, its
                    information has already been initialized (and that of all of
                    its parent classes too) }
@@ -3265,7 +3265,7 @@ implementation
                ((methodpointer.nodetype=typen) or
                 (methodpointer.resultdef.typ<>classrefdef)) then
               begin
-                methodpointer:=cloadvmtaddrnode.create(methodpointer,compiler);
+                methodpointer:=compiler.cloadvmtaddrnode(methodpointer);
                 { no need to obtain the class ref by calling class(), sending
                   this message will initialize it if necessary }
                 tloadvmtaddrnode(methodpointer).forcall:=true;
@@ -3375,7 +3375,7 @@ implementation
           begin
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
-                vmttree:=cloadvmtaddrnode.create(compiler.ctypenode(methodpointer.resultdef),compiler)
+                vmttree:=compiler.cloadvmtaddrnode(compiler.ctypenode(methodpointer.resultdef))
             else
               { destructor with extended syntax called from dispose }
               { value -1 is what fpc_help_constructor() changes VMT to when it allocates memory }
@@ -3409,7 +3409,7 @@ implementation
                    if (methodpointer.nodetype=typen) then
                      vmttree:=compiler.cpointerconstnode(0,voidpointertype)
                    else
-                     vmttree:=cloadvmtaddrnode.create(compiler.ctypenode(methodpointer.resultdef),compiler)
+                     vmttree:=compiler.cloadvmtaddrnode(compiler.ctypenode(methodpointer.resultdef))
                  end
                else
                  vmttree:=compiler.cpointerconstnode(0,voidpointertype);

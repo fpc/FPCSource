@@ -159,7 +159,7 @@ uses
   ,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
-  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat;
+  ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem;
 
 type
 {****************************************************************************
@@ -280,7 +280,7 @@ type
     function cunaryplusnode(expr : tnode):tunaryplusnode; inline;
     function cnotnode(expr : tnode):tnotnode; inline;
     { nmem }
-    //TODO:cloadvmtaddrnode
+    function cloadvmtaddrnode(l : tnode):tloadvmtaddrnode; inline;
     //TODO:caddrnode
     //TODO:cderefnode
     //TODO:csubscriptnode
@@ -1017,6 +1017,11 @@ end;
 function TCompilerHelper.cnotnode(expr: tnode): tnotnode; inline;
 begin
   result:=nmat.cnotnode.create(expr,self);
+end;
+
+function TCompilerHelper.cloadvmtaddrnode(l: tnode): tloadvmtaddrnode; inline;
+begin
+  result:=nmem.cloadvmtaddrnode.create(l,self);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

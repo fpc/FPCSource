@@ -214,7 +214,7 @@ implementation
             genintconstnode(tstringdef(resultdef).encoding),paras);
         { since self will be freed, have to make a copy }
         result:=compiler.ccallnode_internmethodres(
-          cloadvmtaddrnode.create(compiler.ctypenode(strclass)),
+          compiler.cloadvmtaddrnode(compiler.ctypenode(strclass)),
           'CREATEFROMLITERALSTRINGBYTES',paras,resultdef);
       end;
 
@@ -292,7 +292,7 @@ implementation
       begin
         if value_set^=[] then
           begin
-            mp:=cloadvmtaddrnode.create(compiler.ctypenode(java_jubitset));
+            mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
             result:=compiler.ccallnode_internmethod(mp,'CREATE',nil);
             exit;
           end;
@@ -314,10 +314,10 @@ implementation
         hassinglerun:=find_single_elements_run(0, start, len);
         if hassinglerun then
           begin
-            mp:=cloadvmtaddrnode.create(compiler.ctypenode(java_juenumset));
+            mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
             if len=0 then
               begin
-                enumele:=cloadvmtaddrnode.create(compiler.ctypenode(tcpuenumdef(tenumdef(eledef).getbasedef).classdef));
+                enumele:=compiler.cloadvmtaddrnode(compiler.ctypenode(tcpuenumdef(tenumdef(eledef).getbasedef).classdef));
                 inserttypeconv_explicit(enumele,search_system_type('JLCLASS').typedef);
                 paras:=compiler.ccallparanode(enumele,nil);
                 result:=compiler.ccallnode_internmethod(mp,'NONEOF',paras)

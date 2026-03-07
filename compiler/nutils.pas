@@ -696,7 +696,7 @@ implementation
             if cs_check_object in current_settings.localswitches then
               begin
                 paras:=compiler.ccallparanode(
-                  cloadvmtaddrnode.create(compiler.ctypenode(obj_def),compiler),
+                  compiler.cloadvmtaddrnode(compiler.ctypenode(obj_def)),
                   paras
                 );
                 addstatement(stat,
@@ -1277,7 +1277,7 @@ implementation
                         begin
                           pd:=current_procinfo.get_normal_proc.procdef;
                           if assigned(pd) and pd.no_self_node then
-                            p1:=cloadvmtaddrnode.create(compiler.ctypenode(pd.struct),compiler)
+                            p1:=compiler.cloadvmtaddrnode(compiler.ctypenode(pd.struct))
                           else
                             p1:=load_self_node;
                         end

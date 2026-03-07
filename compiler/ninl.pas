@@ -4406,7 +4406,7 @@ implementation
                   begin
                     if left.resultdef.typ=objectdef then
                       begin
-                        result:=cloadvmtaddrnode.create(left,compiler);
+                        result:=compiler.cloadvmtaddrnode(left);
                         objdef:=tobjectdef(left.resultdef);
                       end
                     else
