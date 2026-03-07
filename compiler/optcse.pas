@@ -29,7 +29,7 @@ unit optcse;
   interface
 
     uses
-      sysutils,compilerbase,node;
+      sysutils,compilerbase,node,nutils;
 
 type
 
@@ -38,6 +38,7 @@ type
   TCSEOptimizer = class
   private
     FCompiler: TCompilerBase;
+    function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -61,7 +62,7 @@ type
       globtype,cdynset,globals,
       systems,
       cutils,cclasses,
-      nutils,compinnr,
+      compinnr,
       nbas,nld,ninl,ncal,nadd,nmem,ncnv,
       pass_1,
       procinfo,
@@ -687,9 +688,7 @@ type
       end;
 
 
-    function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TCSEOptimizer.replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
       var
         hp: tnode;
       begin
@@ -826,7 +825,7 @@ type
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),constentries[i].valuenode));
                      current_filepos:=old_current_filepos;
-                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     foreachnode(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(fpu_regs_assigned);
                   end
                 else if CSEOnReference(constentries[i].valuenode) and
@@ -851,7 +850,7 @@ type
                      addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),
                        compiler.caddrnode_internal(constentries[i].valuenode)));
                      current_filepos:=old_current_filepos;
-                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     foreachnode(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(int_regs_assigned);
                   end;
               end;
