@@ -156,7 +156,7 @@ uses
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr
   ,ngenutil,pgentype
-  ,optloop
+  ,opt,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
   ,node,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,nmem,nobjc,nopt,nset;
@@ -170,8 +170,7 @@ type
     FTaskHandler: TTask_handler;
     FParser: TParser;
     FNodeUtils: TNodeUtils;
-
-    FOptLoop: TLoopOptimizer;
+    FOpt: TOptimizers;
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -183,7 +182,7 @@ type
 
     property Parser: TParser read FParser;
     property NodeUtils: TNodeUtils read FNodeUtils;
-    property OptLoop: TLoopOptimizer read FOptLoop;
+    property Opt: TOptimizers read FOpt;
   end;
 
   { TCompilerHelper }
@@ -192,7 +191,7 @@ type
   private
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
-    function GetLoopOptimizer: TLoopOptimizer; inline;
+    function GetOpt: TOptimizers; inline;
   public
     { node constructor helpers }
     { nadd }
@@ -302,7 +301,7 @@ type
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
-    property OptLoop: TLoopOptimizer read GetLoopOptimizer;
+    property Opt: TOptimizers read GetOpt;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -346,7 +345,7 @@ begin
   DoneFileUtils;
   donetokens;
   DoneTaskHandler(FTaskHandler);
-  FreeAndNil(FOptLoop);
+  FreeAndNil(FOpt);
 end;
 
 
@@ -358,7 +357,7 @@ begin
   { Set default code page for ansistrings on unix-like systems }
   DefaultSystemCodePage:=GetSystemCodePage;
 {$endif}
-  FOptLoop:=TLoopOptimizer.Create(Self);
+  FOpt:=TOptimizers.Create(Self);
 { inits which need to be done before the arguments are parsed }
   InitSystems;
   { fileutils depends on source_info so it must be after systems }
@@ -603,9 +602,9 @@ begin
   Result := TCompiler(Self).NodeUtils;
 end;
 
-function TCompilerHelper.GetLoopOptimizer: TLoopOptimizer;
+function TCompilerHelper.GetOpt: TOptimizers;
 begin
-  Result := TCompiler(Self).OptLoop;
+  Result := TCompiler(Self).Opt;
 end;
 
 function TCompilerHelper.caddnode(tt: tnodetype; l, r: tnode): taddnode; inline;
