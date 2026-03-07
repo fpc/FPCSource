@@ -5453,8 +5453,6 @@ type
       crlf : boolean;
       tmp : tcompilerwidestring;
       ch : tcompilerwidechar;
-      file_pos : tfileposinfo;
-
     begin
       stripcol:=quote_pos;
       malformed:=false;
@@ -5533,8 +5531,6 @@ type
       crlf : boolean;
       tmp : ansistring;
       ch : ansichar;
-      file_pos : tfileposinfo;
-
     begin
       stripcol:=quote_pos;
       malformed:=false;
@@ -6122,12 +6118,7 @@ type
 
     procedure tscannerfile.readtoken(allowrecordtoken:boolean);
       var
-        code    : integer;
-        d : cardinal;
-        len,
         low,high,mid : longint;
-        w : word;
-        m       : longint;
         mac     : tmacro;
         firstdigitread: boolean;
         had_newline,first_multiline : boolean;
