@@ -169,10 +169,9 @@ unit opttail;
                             tempnode:=compiler.ctempcreatenode(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
                             addstatement(calcstatements,tempnode);
                             addstatement(calcstatements,
-                              cassignmentnode.create_internal(
+                              compiler.cassignmentnode_internal(
                                 compiler.ctemprefnode(tempnode),
-                                paranode.left,
-                                compiler
+                                paranode.left
                                 ));
                           end;
 
@@ -184,10 +183,9 @@ unit opttail;
                         if useaddr then
                           include(tloadnode(loadnode).loadnodeflags,loadnf_load_addr);
                         addstatement(copystatements,
-                          cassignmentnode.create_internal(
+                          compiler.cassignmentnode_internal(
                             loadnode,
-                            compiler.ctemprefnode(tempnode),
-                            compiler
+                            compiler.ctemprefnode(tempnode)
                             ));
                         addstatement(copystatements,compiler.ctempdeletenode_normal_temp(tempnode));
 

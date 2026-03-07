@@ -2004,7 +2004,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             { Only allow nil initialization }
             consume(_NIL);
-            addstatement(statmnt,cassignmentnode.create_internal(basenode,compiler.cnilnode,compiler));
+            addstatement(statmnt,compiler.cassignmentnode_internal(basenode,compiler.cnilnode));
             basenode:=nil;
           end
         { array const between brackets }
@@ -2032,7 +2032,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         else if is_anychar(def.elementdef) then
           begin
              n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-             addstatement(statmnt,cassignmentnode.create_internal(basenode,n,compiler));
+             addstatement(statmnt,compiler.cassignmentnode_internal(basenode,n));
              basenode:=nil;
           end
         else
@@ -2045,7 +2045,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.parse_procvardef(def: tprocvardef);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,compiler.parser.pexpr.comp_expr([ef_accept_equal]),compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,compiler.parser.pexpr.comp_expr([ef_accept_equal])));
         basenode:=nil;
       end;
 
@@ -2065,7 +2065,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
       procedure handle_stringconstn;
         begin
-          addstatement(statmnt,cassignmentnode.create_internal(basenode,n,compiler));
+          addstatement(statmnt,compiler.cassignmentnode_internal(basenode,n));
           basenode:=nil;
           n:=nil;
         end;
@@ -2252,7 +2252,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               end
             else
               begin
-                addstatement(statmnt,cassignmentnode.create_internal(basenode,n,compiler));
+                addstatement(statmnt,compiler.cassignmentnode_internal(basenode,n));
                 n:=nil;
                 basenode:=nil;
               end;
@@ -2327,7 +2327,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.tc_emit_orddef(def: torddef; var node: tnode);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,node));
         basenode:=nil;
         node:=nil;
       end;
@@ -2335,7 +2335,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.tc_emit_floatdef(def: tfloatdef; var node: tnode);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,node));
         basenode:=nil;
         node:=nil;
       end;
@@ -2343,7 +2343,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.tc_emit_classrefdef(def: tclassrefdef; var node: tnode);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,node));
         basenode:=nil;
         node:=nil;
       end;
@@ -2351,7 +2351,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.tc_emit_pointerdef(def: tpointerdef; var node: tnode);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,node));
         basenode:=nil;
         node:=nil;
       end;
@@ -2359,7 +2359,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.tc_emit_setdef(def: tsetdef; var node: tnode);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,node));
         basenode:=nil;
         node:=nil;
       end;
@@ -2367,7 +2367,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.tc_emit_enumdef(def: tenumdef; var node: tnode);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,node));
         basenode:=nil;
         node:=nil;
       end;
@@ -2375,7 +2375,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tnodetreetypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
       begin
-        addstatement(statmnt,cassignmentnode.create_internal(basenode,node,compiler));
+        addstatement(statmnt,compiler.cassignmentnode_internal(basenode,node));
         basenode:=nil;
         node:=nil;
       end;

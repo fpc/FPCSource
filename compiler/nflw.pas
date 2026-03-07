@@ -1835,16 +1835,14 @@ implementation
               the second parameter is taken, we have to put the else part into the second parameter
               thus pass it to the first callparanode call }
             if t1=nil then
-              Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
+              Result:=compiler.cassignmentnode_internal(tassignmentnode(thenstmnt).left.getcopy,
                 compiler.cinlinenode(in_nr,false,compiler.ccallparanode(tassignmentnode(thenstmnt).left.getcopy,
-                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil))),
-                      compiler
+                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil)))
                 )
             else
-              Result:=cassignmentnode.create_internal(tassignmentnode(thenstmnt).left.getcopy,
+              Result:=compiler.cassignmentnode_internal(tassignmentnode(thenstmnt).left.getcopy,
                 compiler.cinlinenode(in_nr,false,compiler.ccallparanode(tassignmentnode(elsestmnt).right.getcopy,
-                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil))),
-                      compiler
+                      compiler.ccallparanode(tassignmentnode(thenstmnt).right.getcopy,nil)))
                 );
             node_reset_pass1_write(Result);
           end;
@@ -2058,10 +2056,10 @@ implementation
 
           if fw then
             addstatement(s,
-              cassignmentnode.create_internal(left.getcopy,compiler.cinlinenode_intern(in_succ_x,false,leftcopy),compiler))
+              compiler.cassignmentnode_internal(left.getcopy,compiler.cinlinenode_intern(in_succ_x,false,leftcopy)))
           else
             addstatement(s,
-              cassignmentnode.create_internal(left.getcopy,compiler.cinlinenode_intern(in_pred_x,false,leftcopy),compiler));
+              compiler.cassignmentnode_internal(left.getcopy,compiler.cinlinenode_intern(in_pred_x,false,leftcopy)));
         end;
 
       function iterate_counter_func(arg : tnode;fw : boolean) : tnode;
@@ -2144,38 +2142,38 @@ implementation
                 addstatement(statements,fromtemp);
                 { while it would be beneficial to fold the initial reverse succ/pred into this assignment, this is
                   not possible because it might wrap around and the if check later on goes wrong }
-                addstatement(statements,cassignmentnode.create_internal(compiler.ctemprefnode(fromtemp),right.getcopy,compiler));
+                addstatement(statements,compiler.cassignmentnode_internal(compiler.ctemprefnode(fromtemp),right.getcopy));
               end;
 
             if usetotemp then
               begin
                 totemp:=compiler.ctempcreatenode(t1.resultdef,t1.resultdef.size,tt_persistent,true);
                 addstatement(statements,totemp);
-                addstatement(statements,cassignmentnode.create_internal(compiler.ctemprefnode(totemp),t1.getcopy,compiler));
+                addstatement(statements,compiler.cassignmentnode_internal(compiler.ctemprefnode(totemp),t1.getcopy));
               end;
 
             if usefromtemp then
               begin
-                addstatement(ifstatements,cassignmentnode.create_internal(left.getcopy,compiler.ctemprefnode(fromtemp),compiler));
+                addstatement(ifstatements,compiler.cassignmentnode_internal(left.getcopy,compiler.ctemprefnode(fromtemp)));
                 if not(do_loopvar_at_end) then
                   iterate_counter(ifstatements,lnf_backward in loopflags);
               end
             else
               begin
                 if not(do_loopvar_at_end) then
-                  addstatement(ifstatements,cassignmentnode.create_internal(left.getcopy,
-                    iterate_counter_func(right.getcopy,lnf_backward in loopflags),compiler))
+                  addstatement(ifstatements,compiler.cassignmentnode_internal(left.getcopy,
+                    iterate_counter_func(right.getcopy,lnf_backward in loopflags)))
                 else
-                  addstatement(ifstatements,cassignmentnode.create_internal(left.getcopy,right.getcopy,compiler));
+                  addstatement(ifstatements,compiler.cassignmentnode_internal(left.getcopy,right.getcopy));
               end;
           end
         else
           begin
             if not(do_loopvar_at_end) then
-              addstatement(ifstatements,cassignmentnode.create_internal(left.getcopy,
-                iterate_counter_func(right.getcopy,lnf_backward in loopflags),compiler))
+              addstatement(ifstatements,compiler.cassignmentnode_internal(left.getcopy,
+                iterate_counter_func(right.getcopy,lnf_backward in loopflags)))
             else
-              addstatement(ifstatements,cassignmentnode.create_internal(left.getcopy,right.getcopy,compiler));
+              addstatement(ifstatements,compiler.cassignmentnode_internal(left.getcopy,right.getcopy));
           end;
 
         if assigned(entrylabel) then

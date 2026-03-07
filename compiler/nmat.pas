@@ -480,7 +480,7 @@ implementation
              { result<>0? }
              addstatement(else_statements,compiler.cifnode_internal(compiler.caddnode_internal(unequaln,compiler.ctemprefnode(result_data),compiler.cordconstnode(0,resultdef,false)),
                { then: result:=right-result }
-               cassignmentnode.create_internal(compiler.ctemprefnode(result_data),compiler.caddnode_internal(subn,right.getcopy,compiler.ctemprefnode(result_data)),compiler),
+               compiler.cassignmentnode_internal(compiler.ctemprefnode(result_data),compiler.caddnode_internal(subn,right.getcopy,compiler.ctemprefnode(result_data))),
                nil
                ));
 
@@ -488,7 +488,7 @@ implementation
              { if left>=0 }
              addstatement(statements,compiler.cifnode_internal(compiler.caddnode_internal(gten,left.getcopy,compiler.cordconstnode(0,resultdef,false)),
                { then: result:=left mod right }
-               cassignmentnode.create_internal(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler),compiler),
+               compiler.cassignmentnode_internal(compiler.ctemprefnode(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy,compiler)),
                { else block }
                else_block
                ));

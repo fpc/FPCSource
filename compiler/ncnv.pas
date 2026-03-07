@@ -3486,14 +3486,12 @@ implementation
                       addstatement(newstatements,tempnode);
                       addstatement(newstatements,compiler.cifnode_internal(
                         compiler.caddnode_internal(equaln,tbinarynode(n).right.getcopy,compiler.cordconstnode(-1,n.resultdef,false)),
-                          cassignmentnode.create_internal(
+                          compiler.cassignmentnode_internal(
                             compiler.ctemprefnode(tempnode),
-                            cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,compiler.cordconstnode(-1,tbinarynode(originaldivtree).right.resultdef,false),compiler),
-                            compiler
+                            cmoddivnode.create(n.nodetype,tbinarynode(originaldivtree).left.getcopy,compiler.cordconstnode(-1,tbinarynode(originaldivtree).right.resultdef,false),compiler)
                           ),
-                          cassignmentnode.create_internal(
-                            compiler.ctemprefnode(tempnode),n,
-                            compiler
+                          compiler.cassignmentnode_internal(
+                            compiler.ctemprefnode(tempnode),n
                           )
                         )
                       );
@@ -5083,7 +5081,7 @@ implementation
                     result:=internalstatements(compiler,statement);
                     tempnode:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
                     addstatement(statement,tempnode);
-                    addstatement(statement,cassignmentnode.create_internal(compiler.ctemprefnode(tempnode),left,compiler));
+                    addstatement(statement,compiler.cassignmentnode_internal(compiler.ctemprefnode(tempnode),left));
                     addstatement(statement,compiler.caddnode_internal(andn,
                       compiler.caddnode_internal(unequaln,compiler.ctemprefnode(tempnode),compiler.cnilnode),
                       compiler.caddnode_internal(equaln,cloadvmtaddrnode.create(compiler.ctemprefnode(tempnode),compiler),right)

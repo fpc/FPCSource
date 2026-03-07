@@ -154,7 +154,7 @@ unit opttree;
                             addstatement(statements,n);
 
                             { replace the old result node of the block by an assignment to the newly generated temp }
-                            res^:=cassignmentnode.create_internal(compiler.ctemprefnode(tempcreatenode),res^,compiler);
+                            res^:=compiler.cassignmentnode_internal(compiler.ctemprefnode(tempcreatenode),res^);
                             do_firstpass(res^);
                             addstatement(statements,compiler.ctempdeletenode_normal_temp(tempcreatenode));
                             addstatement(statements,pnode(arg)^);

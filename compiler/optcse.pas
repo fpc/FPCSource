@@ -811,7 +811,7 @@ unit optcse;
                      constentries[i].temp:=compiler.ctempcreatenode(constentries[i].valuenode.resultdef,
                        constentries[i].valuenode.resultdef.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
-                     addstatement(creates,cassignmentnode.create_internal(compiler.ctemprefnode(constentries[i].temp),constentries[i].valuenode,compiler));
+                     addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),constentries[i].valuenode));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(fpu_regs_assigned);
@@ -835,8 +835,8 @@ unit optcse;
                      constentries[i].temp:=compiler.ctempcreatenode(cpointerdef.getreusable(constentries[i].valuenode.resultdef,compiler),
                        voidpointertype.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
-                     addstatement(creates,cassignmentnode.create_internal(compiler.ctemprefnode(constentries[i].temp),
-                       caddrnode.create_internal(constentries[i].valuenode,compiler),compiler));
+                     addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),
+                       caddrnode.create_internal(constentries[i].valuenode,compiler)));
                      current_filepos:=old_current_filepos;
                      foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(int_regs_assigned);

@@ -3042,10 +3042,9 @@ implementation
                           { Create a node for writing the Code output }
                           addstatement(
                             NewStatements,
-                            CAssignmentNode.Create_Internal(
+                            compiler.cassignmentnode_internal(
                               outnode.getcopy(), { The original will get destroyed }
-                              compiler.cordconstnode(ValCode, outnode.ResultDef, False),
-                              compiler
+                              compiler.cordconstnode(ValCode, outnode.ResultDef, False)
                             )
                           );
 
