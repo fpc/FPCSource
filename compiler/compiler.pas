@@ -273,6 +273,30 @@ type
     function carrayconstructornode(l,r : tnode):tarrayconstructornode; inline;
     function ctypenode(def:tdef):ttypenode; inline;
     function crttinode(def:tstoreddef;rt:trttitype;dt:Trttidatatype):trttinode; inline;
+    { nmat }
+    //TODO:cmoddivnode
+    //TODO:cshlshrnode
+    //TODO:cunaryminusnode
+    //TODO:cunaryplusnode
+    //TODO:cnotnode
+    { nmem }
+    //TODO:cloadvmtaddrnode
+    //TODO:caddrnode
+    //TODO:cderefnode
+    //TODO:csubscriptnode
+    //TODO:cvecnode
+    //TODO:cloadparentfpnode
+    { nobjc }
+    //TODO:cobjcselectornode
+    //TODO:cobjcprotocolnode
+    { nopt }
+    //TODO:caddsstringcharoptnode
+    //TODO:caddsstringcsstringoptnode
+    { nset }
+    //TODO:csetelementnode
+    //TODO:cinnode
+    //TODO:crangenode
+    //TODO:ccasenode
 
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
