@@ -35,6 +35,7 @@ interface
     type
       TVMTBuilder=class
       private
+        FCompiler: TCompilerBase;
         _Class : tobjectdef;
         handledprotocols: tfpobjectlist;
         function  is_new_vmt_entry(pd:tprocdef; out overridesclasshelper: boolean):boolean;
@@ -48,6 +49,7 @@ interface
         procedure intf_allocate_vtbls;
         procedure create_vmt_def;
         procedure build_interface_mappings;
+        property Compiler: TCompilerBase read FCompiler;
       public
         constructor create(c:tobjectdef);
         procedure build;
@@ -77,6 +79,7 @@ implementation
     constructor TVMTBuilder.create(c:tobjectdef);
       begin
         inherited Create;
+        FCompiler:=c.compiler;
         _Class:=c;
       end;
 
@@ -801,8 +804,6 @@ implementation
 
 
     procedure TVMTBuilder.create_vmt_def;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i: longint;
         vmtdef: trecorddef;
