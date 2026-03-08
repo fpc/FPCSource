@@ -51,6 +51,9 @@ var
 
 begin
   Result:=False;
+  if (Img.Width <= 0) or (Img.Width > 65535) or
+     (Img.Height <= 0) or (Img.Height > 65535) then
+    raise FPImageException.Create('TGA dimensions must be between 1 and 65535');
   ID:=Img.Extra[KeyIdentification];
   FillChar(Header,SizeOf(Header),0);
   With Header do
