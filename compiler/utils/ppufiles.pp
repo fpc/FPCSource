@@ -136,7 +136,7 @@ Var
 
 begin
   DoPPU:=false;
-  inppu:=tppufile.create(PPUFn);
+  inppu:=tppufile.create(PPUFn,nil);
   if not inppu.openfile then
    begin
      inppu.free;
