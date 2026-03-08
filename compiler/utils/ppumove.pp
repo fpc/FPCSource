@@ -253,7 +253,7 @@ begin
   gotltofiles:=false;
   If Not Quiet then
    Write ('Processing ',PPUFn,'...');
-  inppu:=tppufile.create(PPUFn);
+  inppu:=tppufile.create(PPUFn,nil);
   if not inppu.openfile then
    begin
      inppu.free;
@@ -305,9 +305,9 @@ begin
    end;
 { Create the new ppu }
   if PPUFn=PPLFn then
-   outppu:=tppufile.create('ppumove.$$$')
+   outppu:=tppufile.create('ppumove.$$$',nil)
   else
-   outppu:=tppufile.create(PPLFn);
+   outppu:=tppufile.create(PPLFn,nil);
   outppu.createfile;
 { Create new header, with the new flags }
   outppu.header:=inppu.header;
