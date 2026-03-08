@@ -44,9 +44,10 @@ type
   }
 
   ttask_list = class(tlinkedlistitem)
+    compiler : TCompilerBase;
     module : tmodule;
     state : tglobalstate;
-    constructor create(_m : tmodule);
+    constructor create(_m : tmodule; acompiler: TCompilerBase);
     destructor destroy; override;
     procedure SaveState;
     procedure RestoreState;
@@ -128,9 +129,10 @@ end;
 
 { ttask_list }
 
-constructor ttask_list.create(_m: tmodule);
+constructor ttask_list.create(_m: tmodule; acompiler: TCompilerBase);
 begin
   inherited create;
+  compiler:=acompiler;
   module:=_m;
   state:=nil;
 end;
@@ -153,8 +155,6 @@ begin
 end;
 
 procedure ttask_list.SaveState;
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 begin
   if State=Nil then
     State:=tglobalstate.Create(compiler)
@@ -626,7 +626,7 @@ begin
     { Clear reset flag.
       This can happen when during load, reset is done and unit is added to task list. }
     m.is_reset:=false;
-    t:=ttask_list.create(m);
+    t:=ttask_list.create(m,compiler);
     list.insert(t);
     hash.Add(n,t);
     if list.count=1 then
