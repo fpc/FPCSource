@@ -5142,7 +5142,7 @@ begin
 { fix filename }
   if pos('.',filename)=0 then
    filename:=filename+'.ppu';
-  ppufile:=tppudumpfile.create(filename);
+  ppufile:=tppudumpfile.create(filename,nil);
   if not ppufile.openfile then
    begin
      WriteError('IO-Error when opening : '+filename+', Skipping');
