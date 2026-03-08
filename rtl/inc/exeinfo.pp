@@ -1615,13 +1615,30 @@ begin
 end;
 
 
+{$ifdef CPUI8086}
+  {$if defined(MSDOS) or defined(WIN16)}
+    {$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
+      {$define NEED_SMALL_BUFFER_SIZE}
+    {$endif}
+  {$else}
+    {$define NEED_SMALL_BUFFER_SIZE}
+  {$endif}
+{$endif}
+
+{$ifdef NEED_SMALL_BUFFER_SIZE}
+const
+  CheckDbgFile_buf_size = 128;
+{$else}
+const
+  CheckDbgFile_buf_size = 4096;
+{$endif}
 
 function CheckDbgFile(var e:TExeFile;const fn:shortstring;dbgcrc:cardinal):boolean;
 var
   c      : cardinal;
   ofm    : word;
   g      : file;
-  buf    : array[0..4095] of byte;
+  buf    : array[0..CheckDbgFile_buf_size-1] of byte;
   bufcnt : longint;
 begin
   CheckDbgFile:=false;
