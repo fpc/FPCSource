@@ -262,7 +262,6 @@ type
     function getheadersize:longint;virtual;abstract;
     function getheaderaddr:pentryheader;virtual;abstract;
     procedure RaiseAssertion(Code: Longint); virtual;
-    property Compiler: TCompilerBase read FCompiler;
   public
     entrytyp : byte;
     size             : integer;
@@ -354,6 +353,8 @@ type
     procedure putset(const arr: array of byte);
     procedure tempclose;        // MG: not used, obsolete?
     function  tempopen:boolean; // MG: not used, obsolete?
+
+    property Compiler: TCompilerBase read FCompiler;
   end;
 
 implementation

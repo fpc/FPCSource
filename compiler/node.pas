@@ -785,6 +785,7 @@ implementation
     constructor tnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
 
       begin
+        compiler:=ppufile.compiler;
         nodetype:=t;
         { tnode fields }
         blocktype:=tblock_type(ppufile.getbyte);
