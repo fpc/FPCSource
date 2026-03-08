@@ -35,7 +35,7 @@ unit hlcg2ll;
 
     uses
        globtype,constexp,
-       cpubase,cgbase,cgutils,parabase,
+       cpubase,cgbase,cgutils,parabase,compilerbase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symtype,symdef,
        node,hlcgobj
@@ -55,7 +55,7 @@ unit hlcg2ll;
        public
           {************************************************}
           {                 basic routines                 }
-          constructor create;
+          constructor create(ACompiler: TCompilerBase);
           procedure init_register_allocators;override;
           {# Clean up the register allocators needed for the codegenerator.}
           procedure done_register_allocators;override;
@@ -342,8 +342,9 @@ implementation
 
   { thlcg2ll }
 
-  constructor thlcg2ll.create;
+  constructor thlcg2ll.create(ACompiler: TCompilerBase);
     begin
+      inherited create(acompiler);
     end;
 
   procedure thlcg2ll.init_register_allocators;

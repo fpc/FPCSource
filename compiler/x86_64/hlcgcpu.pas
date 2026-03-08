@@ -31,7 +31,8 @@ interface
   uses
     aasmdata,
     symdef,
-    hlcgx86;
+    hlcgx86,
+    compilerbase;
 
   type
     thlcgcpu = class(thlcgx86)
@@ -112,8 +113,10 @@ implementation
 
 
   procedure create_hlcodegen_cpu;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      hlcg:=thlcgcpu.create;
+      hlcg:=thlcgcpu.create(compiler);
       create_codegen;
     end;
 

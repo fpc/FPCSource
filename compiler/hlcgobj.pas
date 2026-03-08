@@ -65,13 +65,13 @@ unit hlcgobj;
 
        thlcgobj = class
        private
-          FCompiler: TCompilerBase;  { TODO: fix node compiler reference!!! }
+          FCompiler: TCompilerBase;
        protected
           property Compiler: TCompilerBase read FCompiler;
        public
           {************************************************}
           {                 basic routines                 }
-          constructor create;
+          constructor create(ACompiler: TCompilerBase);
 
           {# Initialize the register allocators needed for the codegenerator.}
           procedure init_register_allocators;virtual;
@@ -749,8 +749,9 @@ implementation
 
   { thlcgobj }
 
-  constructor thlcgobj.create;
+  constructor thlcgobj.create(ACompiler: TCompilerBase);
     begin
+      FCompiler:=ACompiler;
     end;
 
   procedure thlcgobj.init_register_allocators;
