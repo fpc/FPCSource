@@ -1204,7 +1204,7 @@ implementation
        }
        if (cs_opt_tailrecursion in current_settings.optimizerswitches) and
          (pi_is_recursive in flags) then
-         do_opttail(code,procdef);
+         compiler.opt.tail.do_opttail(code,procdef);
 
        if cs_opt_constant_propagate in current_settings.optimizerswitches then
          begin

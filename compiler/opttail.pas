@@ -28,7 +28,15 @@ unit opttail;
     uses
       compilerbase,symdef,node;
 
+type
+  TTailRecursionOptimization = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
     procedure do_opttail(var n : tnode;p : tprocdef);
+  end;
 
   implementation
 
@@ -40,9 +48,13 @@ unit opttail;
       pass_1,compiler,
       paramgr;
 
-    procedure do_opttail(var n : tnode;p : tprocdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    constructor TTailRecursionOptimization.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    procedure TTailRecursionOptimization.do_opttail(var n : tnode;p : tprocdef);
 
       var
         labelnode : tlabelnode;
