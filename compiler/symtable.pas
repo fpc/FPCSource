@@ -429,7 +429,7 @@ interface
 {$endif UNITALIASES}
 
 {*** Init / Done ***}
-    procedure IniTSymtable;
+    procedure InitSymtable;
     procedure DoneSymtable;
 
     const

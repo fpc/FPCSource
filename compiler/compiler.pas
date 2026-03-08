@@ -220,7 +220,7 @@ begin
   { verbose depends on exe_path and must be after globals }
   InitVerbose;
   inittokens;
-  IniTSymtable; {Must come before read_arguments, to enable macrosymstack}
+  InitSymtable; {Must come before read_arguments, to enable macrosymstack}
   do_initSymbolInfo;
   CompilerInited:=true;
 { this is needed here for the IDE
