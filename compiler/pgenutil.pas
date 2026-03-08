@@ -124,12 +124,12 @@ uses
         if constprettyname<>'' then
           namepart:=namepart+'$$'+constprettyname;
         { we use the full name of the type to uniquely identify it }
-        if (symtablestack.top.symtabletype=parasymtable) and
-            (symtablestack.top.defowner.typ=procdef) and
-            (paramtype.owner=symtablestack.top) then
+        if (compiler.symtablestack.top.symtabletype=parasymtable) and
+            (compiler.symtablestack.top.defowner.typ=procdef) and
+            (paramtype.owner=compiler.symtablestack.top) then
           begin
             { special handling for specializations inside generic function declarations }
-            prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname(true,true)+tprocdef(symtablestack.top.defowner).procsym.prettyname;
+            prettynamepart:=tdef(compiler.symtablestack.top.defowner).fullownerhierarchyname(true,true)+tprocdef(compiler.symtablestack.top.defowner).procsym.prettyname;
           end
         else
           begin
@@ -1585,18 +1585,18 @@ uses
               symbol stack *before* this alias was inserted, so that we can
               (hopefully) find the correct generic symbol }
             tmpstack:=tfpobjectlist.create(false);
-            while assigned(symtablestack.top) do
+            while assigned(compiler.symtablestack.top) do
               begin
-                tmpstack.Add(symtablestack.top);
-                symtablestack.pop(symtablestack.top);
+                tmpstack.Add(compiler.symtablestack.top);
+                compiler.symtablestack.pop(compiler.symtablestack.top);
                 if tmpstack.Last=context.symtable then
                   break;
               end;
-            if not assigned(symtablestack.top) then
+            if not assigned(compiler.symtablestack.top) then
               internalerror(2019123001);
             found:=searchsym(ugenname,context.sym,context.symtable);
             for i:=tmpstack.count-1 downto 0 do
-              symtablestack.push(tsymtable(tmpstack[i]));
+              compiler.symtablestack.push(tsymtable(tmpstack[i]));
             tmpstack.free;
             tmpstack := nil;
           end;
@@ -1889,7 +1889,7 @@ uses
           end
         else if parse_generic and not assigned(result) then
           begin
-            srsymtable:=symtablestack.top;
+            srsymtable:=compiler.symtablestack.top;
             if (srsymtable.symtabletype in [localsymtable,parasymtable]) and tstoreddef(srsymtable.defowner).is_specialization then
               { if we are currently specializing a routine we need to specialize into
                 the routine's local- or parasymtable so that they are correctly
@@ -2000,7 +2000,7 @@ uses
               any other symbols, so that the type resolution can not be
               influenced by symbols in the current unit }
             tempst:=tspecializesymtable.create(current_module.modulename^,current_module.moduleid,compiler);
-            symtablestack.push(tempst);
+            compiler.symtablestack.push(tempst);
 
             { Reparse the original type definition }
               begin
@@ -2706,7 +2706,7 @@ uses
             { the symbol should be only visible to the generic class
               itself }
             gensym.visibility:=vis_strictprivate;
-            symtablestack.top.insertsym(gensym);
+            compiler.symtablestack.top.insertsym(gensym);
           end;
       end;
 
@@ -2852,7 +2852,7 @@ uses
       { Setup symtablestack at definition time
         to get types right, however this is not perfect, we should probably record
         the resolved symbols }
-      state.oldsymtablestack:=symtablestack;
+      state.oldsymtablestack:=compiler.symtablestack;
       state.oldextendeddefs:=current_module.extendeddefs;
       state.oldgenericdummysyms:=current_module.genericdummysyms;
       state.oldcurrent_genericdef:=current_genericdef;
@@ -2862,7 +2862,7 @@ uses
       current_module.specializestate:=@state;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
       current_module.genericdummysyms:=tfphashobjectlist.create(true);
-      symtablestack:=tdefawaresymtablestack.create(compiler);
+      tcompiler(compiler).symtablestack:=tdefawaresymtablestack.create(compiler);
       if not assigned(genericdef.owner) then
         hmodule:=current_module
       else
@@ -2907,12 +2907,12 @@ uses
             if pu.u.in_interface then
               begin
                 if assigned(pu.u.localsymtable) then
-                  symtablestack.push(pu.u.localsymtable)
+                  compiler.symtablestack.push(pu.u.localsymtable)
               end
             else
               internalerror(200705153)
           else
-            symtablestack.push(pu.u.globalsymtable);
+            compiler.symtablestack.push(pu.u.globalsymtable);
           sym:=tsym(unitsyms.find(pu.u.modulename^));
           if assigned(sym) and not assigned(tunitsym(sym).module) then
             tunitsym(sym).module:=pu.u;
@@ -2921,16 +2921,16 @@ uses
       unitsyms.free;
       unitsyms := nil;
       if assigned(hmodule.globalsymtable) then
-        symtablestack.push(hmodule.globalsymtable);
+        compiler.symtablestack.push(hmodule.globalsymtable);
       symtable:=genericdef.owner;
       { push the localsymtable if needed }
       if ((hmodule<>current_module) or not current_module.in_interface)
           and assigned(hmodule.localsymtable) then
-        symtablestack.push(hmodule.localsymtable);
+        compiler.symtablestack.push(hmodule.localsymtable);
       { also push the symtables of all owning types }
       while assigned(symtable) and (symtable.symtabletype in [objectsymtable,recordsymtable]) do
         begin
-          symtablestack.push(symtable);
+          compiler.symtablestack.push(symtable);
           if assigned(symtable.defowner) then
             symtable:=symtable.defowner.owner
           else
@@ -2947,8 +2947,8 @@ uses
       current_module.genericdummysyms:=state.oldgenericdummysyms;
       current_module.specializestate:=state.oldspecializestate;
       optoken:=state.oldoptoken;
-      symtablestack.free;
-      symtablestack:=state.oldsymtablestack;
+      compiler.symtablestack.free;
+      tcompiler(compiler).symtablestack:=state.oldsymtablestack;
       { clear the state record to be on the safe side }
       fillchar(state, sizeof(state), 0);
     end;
@@ -3178,13 +3178,13 @@ uses
               instead of its declaration, so check that first (as
               local nested types aren't allowed we don't need to
               walk the symtablestack to find the localsymtable) }
-            if symtablestack.top.symtabletype=localsymtable then
+            if compiler.symtablestack.top.symtabletype=localsymtable then
               begin
                 { we are in a method }
-                if not assigned(symtablestack.top.defowner) or
-                    (symtablestack.top.defowner.typ<>procdef) then
+                if not assigned(compiler.symtablestack.top.defowner) or
+                    (compiler.symtablestack.top.defowner.typ<>procdef) then
                   internalerror(2011120701);
-                pd:=tprocdef(symtablestack.top.defowner);
+                pd:=tprocdef(compiler.symtablestack.top.defowner);
                 if not assigned(pd.genericdef) or (pd.genericdef.typ<>procdef) then
                   internalerror(2011120702);
                 sym:=tsym(tprocdef(pd.genericdef).localst.findwithhash(hashedid));

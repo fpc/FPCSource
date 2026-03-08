@@ -295,8 +295,9 @@ begin
       begin
         if m=main then
           begin
-            macrosymtablestack.clear;
-            FreeAndNil(macrosymtablestack);
+            compiler.macrosymtablestack.clear;
+            compiler.macrosymtablestack.free;
+            tcompiler(compiler).macrosymtablestack:=nil;
           end;
         compiler.parser.compile_module(m);
       end;

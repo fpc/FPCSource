@@ -63,7 +63,7 @@ implementation
 
   uses
     globals, verbose,
-    symbase, fmodule;
+    symbase, fmodule, compiler;
 
 
 {****************************************************************************
@@ -120,10 +120,10 @@ implementation
             if they're a local def, because otherwise they'll be saved
             to the ppu referencing a local symtable entry that doesn't
             exist in the ppu) }
-          oldsymtablestack:=symtablestack;
+          oldsymtablestack:=acompiler.symtablestack;
           { do not simply push/pop current_module.localsymtable, because
             that can have side-effects (e.g., it removes helpers) }
-          symtablestack:=nil;
+          tcompiler(acompiler).symtablestack:=nil;
           result:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ,acompiler);
           setup_reusable_def(def,result,res,oldsymtablestack);
           { res^.Data may still be nil -> don't overwrite result }

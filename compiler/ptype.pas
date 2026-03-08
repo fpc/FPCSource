@@ -303,14 +303,14 @@ implementation
                  else
                    begin
                      structstackindex:=-1;
-                     oldsymtablestack:=symtablestack;
-                     symtablestack:=TSymtablestack.create(compiler);
-                     symtablestack.push(tabstractrecorddef(def).symtable);
+                     oldsymtablestack:=compiler.symtablestack;
+                     tcompiler(compiler).symtablestack:=TSymtablestack.create(compiler);
+                     compiler.symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
                      id_type(t2,isforwarddef,false,false,false,srsym,srsymtable,isspecialize,isunitspecific);
-                     symtablestack.pop(tabstractrecorddef(def).symtable);
-                     symtablestack.free;
-                     symtablestack:=oldsymtablestack;
+                     compiler.symtablestack.pop(tabstractrecorddef(def).symtable);
+                     compiler.symtablestack.free;
+                     tcompiler(compiler).symtablestack:=oldsymtablestack;
                      if isspecialize or
                          (
                            (m_delphi in current_settings.modeswitches) and
@@ -608,7 +608,7 @@ implementation
                 if assigned(def.owner) then
                   srsymtable:=def.owner
                 else
-                  srsymtable:=symtablestack.top;
+                  srsymtable:=compiler.symtablestack.top;
               end
             else
               symname:='';
@@ -703,7 +703,7 @@ implementation
       function IsAnonOrLocal: Boolean;
         begin
           result:=(current_structdef.objname^='') or
-                  not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]);
+                  not(compiler.symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]);
         end;
 
       var
@@ -1114,7 +1114,7 @@ implementation
            end;
          result:=current_structdef;
          { insert in symtablestack }
-         symtablestack.push(recst);
+         compiler.symtablestack.push(recst);
 
          { usage of specialized type inside its generic template }
          if assigned(genericdef) then
@@ -1195,7 +1195,7 @@ implementation
            the jvm backend) }
          insert_struct_hidden_paras(trecorddef(current_structdef));
          { restore symtable stack }
-         symtablestack.pop(recst);
+         compiler.symtablestack.pop(recst);
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
            Message(type_e_no_packed_inittable);
          { restore old state }
@@ -1575,7 +1575,7 @@ implementation
            { reject declaration of generic class inside generic class }
            else if assigned(genericlist) then
              current_genericdef:=arrdef;
-           symtablestack.push(arrdef.symtable);
+           compiler.symtablestack.push(arrdef.symtable);
            compiler.parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
            { there are two possibilities for the following to be true:
              * the array declaration itself is generic
@@ -1672,9 +1672,9 @@ implementation
                     begin
                       arrdef.elementdef:=carraydef.create(lowval.svalue,highval.svalue,indexdef,compiler);
                       { push new symtable }
-                      symtablestack.pop(arrdef.symtable);
+                      compiler.symtablestack.pop(arrdef.symtable);
                       arrdef:=tarraydef(arrdef.elementdef);
-                      symtablestack.push(arrdef.symtable);
+                      compiler.symtablestack.push(arrdef.symtable);
                       { correctly update the generic information of the new array def }
                       compiler.parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
                       if old_parse_generic then
@@ -1715,7 +1715,7 @@ implementation
            { set element type of the last array definition }
            if assigned(arrdef) then
              begin
-               symtablestack.pop(arrdef.symtable);
+               compiler.symtablestack.pop(arrdef.symtable);
                arrdef.elementdef:=tt2;
                if is_packed and
                   is_managed_type(tt2) then
@@ -1765,7 +1765,7 @@ implementation
             { reject declaration of generic class inside generic class }
             else if assigned(genericlist) then
               current_genericdef:=pd;
-            symtablestack.push(pd.parast);
+            compiler.symtablestack.push(pd.parast);
             compiler.parser.pgenutil.insert_generic_parameter_types(pd,genericdef,genericlist,false);
             { there are two possibilities for the following to be true:
               * the procvar declaration itself is generic
@@ -1801,7 +1801,7 @@ implementation
                 pd.parast.symtablelevel:=normal_function_level+1;
                 pd.check_mark_as_nested;
               end;
-            symtablestack.pop(pd.parast);
+            compiler.symtablestack.pop(pd.parast);
             { possible proc directives }
             if parseprocvardir then
               begin
@@ -1871,7 +1871,7 @@ implementation
                   we can't just use current_specializedef because of inner types
                   like specialize array of record }
                 is_specialize:=false;
-                stitem:=symtablestack.stack;
+                stitem:=compiler.symtablestack.stack;
                 while assigned(stitem) do
                   begin
                     { check records, classes and arrays because they can be specialized }

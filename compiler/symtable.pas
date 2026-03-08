@@ -3601,6 +3601,8 @@ implementation
 
 
     function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hashedid: THashedIDString;
         contextstructdef: tabstractrecorddef;
@@ -3608,7 +3610,7 @@ implementation
       begin
         result:=false;
         hashedid.id:=s;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
@@ -3688,6 +3690,8 @@ implementation
       end;
 
     function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hashedid  : THashedIDString;
         stackitem : psymtablestackitem;
@@ -3695,7 +3699,7 @@ implementation
       begin
         result:=false;
         hashedid.id:=s;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         while assigned(stackitem) do
           begin
             {
@@ -3792,11 +3796,13 @@ implementation
 
 
     function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         stackitem  : psymtablestackitem;
       begin
         result:=false;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
@@ -3838,6 +3844,8 @@ implementation
 
 
     function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
@@ -3859,7 +3867,7 @@ implementation
             exit;
           end;
         hashedid.id:=pd.typesym.name;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
@@ -4202,6 +4210,8 @@ implementation
       end;
 
     function search_specific_assignment_operator(assignment_type:ttoken;from_def,to_def:Tdef):Tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -4217,7 +4227,7 @@ implementation
         hashedid.id:=overloaded_names[assignment_type];
         besteq:=te_incompatible;
         bestpd:=nil;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         { special handling for assignments to shortstrings with a specific length:
           - if we get an operator to ShortString we use that
           - if we get only a single String[x] operator we use that
@@ -4269,12 +4279,14 @@ implementation
 
 
     function search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         { search record/object symtable first for a suitable operator }
         if from_def.typ in [recorddef,objectdef] then
-          symtablestack.push(tabstractrecorddef(from_def).symtable);
+          compiler.symtablestack.push(tabstractrecorddef(from_def).symtable);
         if to_def.typ in [recorddef,objectdef] then
-          symtablestack.push(tabstractrecorddef(to_def).symtable);
+          compiler.symtablestack.push(tabstractrecorddef(to_def).symtable);
 
         { if type conversion is explicit then search first for explicit
           operator overload and if not found then use implicit operator }
@@ -4297,13 +4309,15 @@ implementation
 
         { restore symtable stack }
         if to_def.typ in [recorddef,objectdef] then
-          symtablestack.pop(tabstractrecorddef(to_def).symtable);
+          compiler.symtablestack.pop(tabstractrecorddef(to_def).symtable);
         if from_def.typ in [recorddef,objectdef] then
-          symtablestack.pop(tabstractrecorddef(from_def).symtable);
+          compiler.symtablestack.pop(tabstractrecorddef(from_def).symtable);
       end;
 
 
     function search_enumerator_operator(from_def,to_def:Tdef): Tprocdef;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -4316,7 +4330,7 @@ implementation
         hashedid.id:='enumerator';
         besteq:=te_incompatible;
         bestpd:=nil;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         while assigned(stackitem) do
           begin
             sym:=Tprocsym(stackitem^.symtable.FindWithHash(hashedid));
@@ -4630,6 +4644,8 @@ implementation
       end;
 
     function search_objc_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         searchst   : tsymtable;
         searchsym  : tsym;
@@ -4640,7 +4656,7 @@ implementation
         defowner   : tobjectdef;
       begin
         hashedid.id:=class_helper_prefix+s;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         result:=false;
         srsym:=nil;
         srsymtable:=nil;
@@ -4707,13 +4723,15 @@ implementation
 
 
     function search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
         i          : longint;
       begin
         hashedid.id:=class_helper_prefix+s;
-        stackitem:=symtablestack.stack;
+        stackitem:=compiler.symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
@@ -4806,6 +4824,8 @@ implementation
 
 
     function search_macro(const s : string):tsym;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         stackitem  : psymtablestackitem;
         hashedid   : THashedIDString;
@@ -4825,7 +4845,7 @@ implementation
               end;
           end;
 
-        stackitem:=macrosymtablestack.stack;
+        stackitem:=compiler.macrosymtablestack.stack;
         while assigned(stackitem) do
           begin
             srsym:=tsym(stackitem^.symtable.FindWithHash(hashedid));
@@ -5056,15 +5076,15 @@ implementation
        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
      begin
        { Reset symbolstack }
-       symtablestack:=nil;
+       tcompiler(compiler).symtablestack:=nil;
        systemunit:=nil;
        { create error syms and def }
        generrorsym:=terrorsym.create;
        generrordef:=cerrordef.create(compiler);
        { macros }
        tcompiler(compiler).initialmacrosymtable:=tmacrosymtable.create(false,compiler);
-       macrosymtablestack:=TSymtablestack.create(compiler);
-       macrosymtablestack.push(compiler.initialmacrosymtable);
+       tcompiler(compiler).macrosymtablestack:=TSymtablestack.create(compiler);
+       compiler.macrosymtablestack.push(compiler.initialmacrosymtable);
 {$ifdef UNITALIASES}
        { unit aliases }
        unitaliases:=TFPHashObjectList.create;
@@ -5085,8 +5105,8 @@ implementation
         generrordef := nil;
         compiler.initialmacrosymtable.free;
         tcompiler(compiler).initialmacrosymtable := nil;
-        macrosymtablestack.free;
-        macrosymtablestack := nil;
+        compiler.macrosymtablestack.free;
+        tcompiler(compiler).macrosymtablestack := nil;
 {$ifdef UNITALIASES}
         unitaliases.free;
         unitaliases := nil;

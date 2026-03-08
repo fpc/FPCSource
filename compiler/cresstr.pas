@@ -36,7 +36,7 @@ implementation
 uses
    SysUtils,
    cclasses,widestr,
-   cutils,globtype,globals,systems,
+   cutils,globtype,globals,systems,compiler,
    symbase,symconst,symtype,defutil, symdef,symsym,symtable,
    verbose,fmodule,ppu,
    aasmtai,aasmdata,aasmcnst,
@@ -360,13 +360,15 @@ uses
 
 
     Procedure GenerateResourceStrings;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         resstrs : Tresourcestrings;
       begin
         { needed for the typed constant defs that get generated/looked up }
         if assigned(current_module.globalsymtable) then
-          symtablestack.push(current_module.globalsymtable);
-        symtablestack.push(current_module.localsymtable);
+          compiler.symtablestack.push(current_module.globalsymtable);
+        compiler.symtablestack.push(current_module.localsymtable);
         resstrs:=Tresourcestrings.Create;
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
@@ -377,9 +379,9 @@ uses
           end;
         resstrs.Free;
         resstrs := nil;
-        symtablestack.pop(current_module.localsymtable);
+        compiler.symtablestack.pop(current_module.localsymtable);
         if assigned(current_module.globalsymtable) then
-          symtablestack.pop(current_module.globalsymtable);
+          compiler.symtablestack.pop(current_module.globalsymtable);
       end;
 
 end.

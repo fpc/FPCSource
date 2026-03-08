@@ -2396,13 +2396,13 @@ implementation
         { insert parasymtable in symtablestack when parsing
           a function }
         if procdef.parast.symtablelevel>=normal_function_level then
-          symtablestack.push(procdef.parast);
+          compiler.symtablestack.push(procdef.parast);
 
         { insert localsymtable, except for the main procedure
           (in that case the localst is the unit's static symtable,
            which is already on the stack) }
         if procdef.localst.symtablelevel>=normal_function_level then
-          symtablestack.push(procdef.localst);
+          compiler.symtablestack.push(procdef.localst);
       end;
 
 
@@ -2410,11 +2410,11 @@ implementation
       begin
         { remove localsymtable }
         if procdef.localst.symtablelevel>=normal_function_level then
-          symtablestack.pop(procdef.localst);
+          compiler.symtablestack.pop(procdef.localst);
 
         { remove parasymtable }
         if procdef.parast.symtablelevel>=normal_function_level then
-          symtablestack.pop(procdef.parast);
+          compiler.symtablestack.pop(procdef.parast);
 
         { remove symtables for the class, but only if it is no nested function }
         if assigned(procdef.struct) and
@@ -3352,7 +3352,7 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in current_settings.modeswitches) then
-          symtablestack.top.SymList.ForEachCall(@check_forward_class,nil);
+          compiler.symtablestack.top.SymList.ForEachCall(@check_forward_class,nil);
       end;
 
 

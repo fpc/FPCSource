@@ -280,8 +280,8 @@ implementation
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
                        sym.deprecatedmsg:=deprecatedmsg;
-                       sym.visibility:=symtablestack.top.currentvisibility;
-                       symtablestack.top.insertsym(sym);
+                       sym.visibility:=compiler.symtablestack.top.currentvisibility;
+                       compiler.symtablestack.top.insertsym(sym);
                        sym.register_sym;
 {$ifdef jvm}
                        { for the JVM target, some constants need to be
@@ -329,20 +329,20 @@ implementation
                    { if we are dealing with structure const then we need to handle it as a
                      structure static variable: create a symbol in unit symtable and a reference
                      to it from the structure or linking will fail }
-                   if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
+                   if compiler.symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
                        { note: we keep hdef so that we might at least read the
                                constant data correctly for error recovery }
                        compiler.parser.pdecvar.check_allowed_for_var_or_const(hdef,false);
                        sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
-                       symtablestack.top.insertsym(sym);
-                       sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
+                       compiler.symtablestack.top.insertsym(sym);
+                       sym:=make_field_static(compiler.symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
                        sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
-                       sym.visibility:=symtablestack.top.currentvisibility;
-                       symtablestack.top.insertsym(sym);
+                       sym.visibility:=compiler.symtablestack.top.currentvisibility;
+                       compiler.symtablestack.top.insertsym(sym);
                      end;
                    sym.register_sym;
                    current_tokenpos:=storetokenpos;
@@ -423,18 +423,18 @@ implementation
                     labelsym:=clabelsym.create(current_scanner.pattern);
                   end;
 
-                symtablestack.top.insertsym(labelsym);
+                compiler.symtablestack.top.insertsym(labelsym);
                 if m_non_local_goto in current_settings.modeswitches then
                   begin
-                    if symtablestack.top.symtabletype=localsymtable then
+                    if compiler.symtablestack.top.symtabletype=localsymtable then
                       begin
                         labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
-                        symtablestack.top.insertsym(labelsym.jumpbuf);
+                        compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
                       end
                     else
                       begin
                         labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
-                        symtablestack.top.insertsym(labelsym.jumpbuf);
+                        compiler.symtablestack.top.insertsym(labelsym.jumpbuf);
                         compiler.nodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
@@ -827,7 +827,7 @@ implementation
            { is the type already defined? -- must be in the current symtable,
              not in a nested symtable or one higher up the stack -> don't
              use searchsym & friends! }
-           sym:=tsym(symtablestack.top.find(gentypename));
+           sym:=tsym(compiler.symtablestack.top.find(gentypename));
            newtype:=nil;
            { found a symbol with this name? }
            if assigned(sym) then
@@ -869,16 +869,16 @@ implementation
                     already exists and if not we need to insert a symbol with
                     the non-generic name (available in (org)typename) that is a
                     undefineddef, so that inline specializations can be used }
-                  sym:=tsym(symtablestack.top.Find(typename));
+                  sym:=tsym(compiler.symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
                       sym:=ctypesym.create(orgtypename,cundefineddef.create(true,compiler));
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
-                      sym.visibility:=symtablestack.top.currentvisibility;
+                      sym.visibility:=compiler.symtablestack.top.currentvisibility;
                       { add as dummy symbol before adding it to the symtable stack }
                       compiler.parser.pgenutil.add_generic_dummysym(sym,typename);
-                      symtablestack.top.insertsym(sym);
+                      compiler.symtablestack.top.insertsym(sym);
                       ttypesym(sym).typedef.owner:=sym.owner;
                     end
                   else
@@ -916,8 +916,8 @@ implementation
               if not assigned(newtype) then
                 begin
                   newtype:=ctypesym.create(genorgtypename,hdef);
-                  newtype.visibility:=symtablestack.top.currentvisibility;
-                  symtablestack.top.insertsym(newtype);
+                  newtype.visibility:=compiler.symtablestack.top.currentvisibility;
+                  compiler.symtablestack.top.insertsym(newtype);
                 end;
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
@@ -1302,7 +1302,7 @@ implementation
          old_block_type: tblock_type;
       begin
          consume(_PROPERTY);
-         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
+         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_property_only_sgr);
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -1319,7 +1319,7 @@ implementation
     { the top symbol table of symtablestack                }
       begin
         consume(_THREADVAR);
-        if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
+        if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
         if f_threading in features then
           compiler.parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
@@ -1349,7 +1349,7 @@ implementation
          if target_info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
          consume(_RESOURCESTRING);
-         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
+         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);
          first:=true;
          had_generic:=false;
@@ -1426,7 +1426,7 @@ implementation
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
                        sym.deprecatedmsg:=deprecatedmsg;
-                       symtablestack.top.insertsym(sym);
+                       compiler.symtablestack.top.insertsym(sym);
                      end
                    else
                      stringdispose(deprecatedmsg);

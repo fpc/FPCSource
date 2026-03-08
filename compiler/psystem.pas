@@ -51,7 +51,7 @@ type
 implementation
 
     uses
-      globals,globtype,verbose,constexp,cpuinfo,compinnr,
+      globals,globtype,verbose,constexp,cpuinfo,compinnr,compiler,
       systems,
       symconst,symtype,symsym,symdef,symcpu,symtable,
       aasmtai,aasmcpu,
@@ -280,7 +280,7 @@ implementation
         hrecst : trecordsymtable;
 	pvmt_name : shortstring;
       begin
-        symtablestack.push(systemunit);
+        compiler.symtablestack.push(systemunit);
         cundefinedtype:=cundefineddef.create(true,compiler);
         cformaltype:=cformaldef.create(false,compiler);
         ctypedformaltype:=cformaldef.create(true,compiler);
@@ -709,7 +709,7 @@ implementation
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
         nestedprocpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$nestedprocpointer',nestedprocpointertype);
-        symtablestack.pop(systemunit);
+        compiler.symtablestack.pop(systemunit);
       end;
 
 

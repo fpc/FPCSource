@@ -1078,7 +1078,7 @@ implementation
          { this code gets executed after the current module's symtable has
            already been removed from the symtablestack -> add it again, so that
            newly created defs here end up in the right unit }
-         symtablestack.push(current_module.localsymtable);
+         compiler.symtablestack.push(current_module.localsymtable);
          strmessagetable:=nil;
          interfacetable:=nil;
          fieldtablelabel:=nil;
@@ -1250,7 +1250,7 @@ implementation
            hs:=hs+_class.vmt_mangledname;
          current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));
 {$endif vtentry}
-        symtablestack.pop(current_module.localsymtable);
+        compiler.symtablestack.pop(current_module.localsymtable);
       end;
 
 

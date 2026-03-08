@@ -73,7 +73,7 @@ implementation
     begin
       { get actual procedure symtable (skip withsymtables, etc.) }
       st:=nil;
-      checkstack:=symtablestack.stack;
+      checkstack:=compiler.symtablestack.stack;
       while assigned(checkstack) do
         begin
           st:=checkstack^.symtable;
@@ -86,15 +86,15 @@ implementation
         (by default, defs are registered with symtablestack.top which may be
         something temporary like exceptsymtable - in that case, procdef can be
         destroyed before procsym, leaving invalid pointers). }
-      oldsymtablestack:=symtablestack;
-      symtablestack:=nil;
+      oldsymtablestack:=compiler.symtablestack;
+      tcompiler(compiler).symtablestack:=nil;
       result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true,compiler);
       result.returndef:=resultdef;
       { if the parent is a generic or a specialization, the new function is one
         as well }
       if st.symtabletype=localsymtable then
         result.defoptions:=result.defoptions+(tstoreddef(st.defowner).defoptions*[df_generic,df_specialization]);
-      symtablestack:=oldsymtablestack;
+      tcompiler(compiler).symtablestack:=oldsymtablestack;
       st.insertdef(result);
       result.struct:=astruct;
       { tabstractprocdef constructor sets po_delphi_nested_cc whenever
@@ -176,8 +176,8 @@ implementation
       if cs_generate_rtti in current_settings.localswitches then
         include(intfdef.objectoptions,oo_can_have_published);
 
-      oldsymtablestack:=symtablestack;
-      symtablestack:=nil;
+      oldsymtablestack:=compiler.symtablestack;
+      tcompiler(compiler).symtablestack:=nil;
 
       invokedef:=tprocdef(pvdef.getcopyas(procdef,pc_normal_no_paras,'',false));
       invokedef.struct:=intfdef;
@@ -232,7 +232,7 @@ implementation
             tparavarsym(sym).vardef:=intfdef;
         end;
 
-      symtablestack:=oldsymtablestack;
+      tcompiler(compiler).symtablestack:=oldsymtablestack;
 
       if invokedef.returndef=pvdef then
         invokedef.returndef:=intfdef;
@@ -331,8 +331,8 @@ implementation
 
       sym:=ctypesym.create(name,result);
 
-      oldsymtablestack:=symtablestack;
-      symtablestack:=nil;
+      oldsymtablestack:=compiler.symtablestack;
+      tcompiler(compiler).symtablestack:=nil;
 
       invokedef:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,'',false));
       invokedef.struct:=result;
@@ -345,7 +345,7 @@ implementation
       exclude(invokedef.procoptions,po_classmethod);
       invokedef.forwarddef:=false;
 
-      symtablestack:=oldsymtablestack;
+      tcompiler(compiler).symtablestack:=oldsymtablestack;
 
       result.symtable.insertsym(invokedef.procsym);
       result.symtable.insertdef(invokedef);

@@ -140,6 +140,8 @@ implementation
 
 
   function get_block_literal_descriptor(invokepd: tprocdef; block_literal_size: tcgint): tstaticvarsym;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       descriptordef: tdef;
       descriptor: tstaticvarsym;
@@ -176,7 +178,7 @@ implementation
       descriptordef:=search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_DESCRIPTOR_SIMPLE',true).typedef;
       { create new static variable }
       descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[]);
-      symtablestack.top.insertsym(descriptor);
+      compiler.symtablestack.top.insertsym(descriptor);
       include(descriptor.symoptions,sp_internal);
       { create typed constant for the descriptor }
       str_parse_typedconst(current_asmdata.AsmLists[al_const],
@@ -236,6 +238,8 @@ implementation
 
   { compose a block literal for a static block (one without context) }
   function get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       literalname: TIDString;
       srsym: tsym;
@@ -256,7 +260,7 @@ implementation
         vs_value,
         blockliteraldef,[]);
       include(result.symoptions,sp_internal);
-      symtablestack.top.insertsym(result);
+      compiler.symtablestack.top.insertsym(result);
       { initialise it }
       str_parse_typedconst(current_asmdata.AsmLists[al_const],
         '(base: (isa        : @'+blockisasym.realname+
@@ -344,8 +348,8 @@ implementation
         internalerror(2014071401);
 
       { add every symbol that we create here to the unit-level symbol table }
-      old_symtablestack:=symtablestack;
-      symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
+      old_symtablestack:=compiler.symtablestack;
+      tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
       { save scanner state }
       replace_scanner('block literal creation',sstate);
 
@@ -383,8 +387,8 @@ implementation
       { restore scanner }
       restore_scanner(sstate);
       { restore symtable stack }
-      symtablestack.free;
-      symtablestack:=old_symtablestack;
+      compiler.symtablestack.free;
+      tcompiler(compiler).symtablestack:=old_symtablestack;
     end;
 
 end.

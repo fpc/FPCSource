@@ -1273,8 +1273,8 @@ implementation
           because they may be for a parent procdef (changeowner does remove a def
           from the symtable in which it was originally created, so that by itself
           is not enough) }
-        old_symtablestack:=symtablestack;
-        symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
+        old_symtablestack:=compiler.symtablestack;
+        tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(current_module.localsymtable);
         { create struct to hold local variables and parameters that are
           accessed from within nested routines (start with extra dollar to prevent
           the JVM from thinking this is a nested class in the unit) }
@@ -1290,8 +1290,8 @@ implementation
         insert_struct_hidden_paras(trecorddef(nestedvarsdef));
         symtablestack.pop(trecorddef(nestedvarsdef).symtable);
   {$endif}
-        symtablestack.free;
-        symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
+        compiler.symtablestack.free;
+        tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
         pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef,compiler);
         if not(po_assembler in pd.procoptions) then
           begin
@@ -1301,10 +1301,10 @@ implementation
             pd.parentfpstruct:=nestedvars;
             pd.parentfpinitblock:=compiler.cblocknode(nil);
           end;
-        symtablestack.free;
+        compiler.symtablestack.free;
         pd.parentfpstructptrtype:=pnestedvarsdef;
 
-        symtablestack:=old_symtablestack;
+        tcompiler(compiler).symtablestack:=old_symtablestack;
       end;
 
 end.

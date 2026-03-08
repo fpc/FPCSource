@@ -1960,7 +1960,7 @@ implementation
       { in case of methods, replace the special parameter types with new ones }
       if assigned(newstruct) then
         begin
-          symtablestack.push(pd.parast);
+          compiler.symtablestack.push(pd.parast);
           { may not be assigned in case we converted a procvar into a procdef }
           if assigned(pd.paras) then
             begin
@@ -1979,7 +1979,7 @@ implementation
           { also fix returndef in case of a constructor }
           if pd.proctypeoption=potype_constructor then
             pd.returndef:=newstruct;
-          symtablestack.pop(pd.parast);
+          compiler.symtablestack.pop(pd.parast);
         end;
       pd.calcparas;
       proc_add_definition(pd);

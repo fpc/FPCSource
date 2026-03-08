@@ -1770,6 +1770,8 @@ end;
 
 
 Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   sym : tsym;
   srsymtable : TSymtable;
@@ -1785,7 +1787,7 @@ Begin
   case sym.typ of
     labelsym :
       begin
-        if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+        if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
           begin
 {$ifndef LLVM}
 	    { LLVM compiler requires that the static label RawThunkEnd

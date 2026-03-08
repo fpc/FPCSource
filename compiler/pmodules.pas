@@ -258,10 +258,10 @@ implementation
 
         { add to symtable stack }
         if assigned(hp.globalsymtable) then
-          symtablestack.push(hp.globalsymtable);
+          compiler.symtablestack.push(hp.globalsymtable);
         if (m_mac in current_settings.modeswitches) and
             assigned(hp.globalmacrosymtable) then
-          macrosymtablestack.push(hp.globalmacrosymtable);
+          compiler.macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
         unitsym:=cunitsym.create(hp.modulename^,hp);
         inc(unitsym.refs);
@@ -387,11 +387,11 @@ implementation
       begin
         Result:=False;
         { we are going to rebuild the symtablestack, clear it first }
-        symtablestack.clear;
-        macrosymtablestack.clear;
+        compiler.symtablestack.clear;
+        compiler.macrosymtablestack.clear;
 
         { macro symtable }
-        macrosymtablestack.push(compiler.initialmacrosymtable);
+        compiler.macrosymtablestack.push(compiler.initialmacrosymtable);
 
         { are we compiling the system unit? }
         if (cs_compilesystem in current_settings.moduleswitches) then
@@ -411,7 +411,7 @@ implementation
           internal types from the system unit }
         Sys:=AddUnit(curr,'system');
         Result:=Assigned(Sys) and (Sys.State in [ms_processed,ms_compiled]);
-        systemunit:=tglobalsymtable(symtablestack.top);
+        systemunit:=tglobalsymtable(compiler.symtablestack.top);
 
         { load_intern_types resets the scanner... }
         current_scanner.tempcloseinputfile;
@@ -913,12 +913,12 @@ implementation
            { add to symtable stack }
            // Writeln('Adding used unit symtable ',pu.u.globalsymtable.name^,' (',pu.u.globalsymtable.DefList.Count, ' defs) to stack');
            if assigned(preservest) then
-             symtablestack.pushafter(pu.u.globalsymtable,preservest)
+             compiler.symtablestack.pushafter(pu.u.globalsymtable,preservest)
            else
-             symtablestack.push(pu.u.globalsymtable);
+             compiler.symtablestack.push(pu.u.globalsymtable);
            if (m_mac in current_settings.modeswitches) and
               assigned(pu.u.globalmacrosymtable) then
-             macrosymtablestack.push(pu.u.globalmacrosymtable);
+             compiler.macrosymtablestack.push(pu.u.globalmacrosymtable);
 
            end;
          pu:=tused_unit(pu.next);
@@ -1258,7 +1258,7 @@ type
 
         { further, changing the globalsymtable is not allowed anymore }
         curr.globalsymtable.sealed:=true;
-        symtablestack.push(curr.localsymtable);
+        compiler.symtablestack.push(curr.localsymtable);
 
         if not curr.interface_only then
           begin
@@ -1330,7 +1330,7 @@ type
             curr.consume_semicolon_after_uses:=false;
           end;
         { now push our own symtable }
-        symtablestack.push(curr.globalsymtable);
+        compiler.symtablestack.push(curr.globalsymtable);
         { Dump stack
           Write(curr.modulename^);
           symtablestack.dump;
@@ -1361,7 +1361,7 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
-            symtablestack.pop(curr.globalsymtable);
+            compiler.symtablestack.pop(curr.globalsymtable);
 
 {$ifdef DEBUG_NODE_XML}
             XMLFinalizeNodeFile('unit');
@@ -1432,7 +1432,7 @@ type
         if curr.state in [ms_compiled,ms_processed] then
            begin
            // Writeln('Popping global symtable ?');
-           symtablestack.pop(curr.globalsymtable);
+           compiler.symtablestack.pop(curr.globalsymtable);
            end;
 
         { Can we continue compiling ? }
@@ -1751,8 +1751,8 @@ type
              release_main_proc(module,finalize_procinfo);
            end;
 
-         symtablestack.pop(module.localsymtable);
-         symtablestack.pop(module.globalsymtable);
+         compiler.symtablestack.pop(module.localsymtable);
+         compiler.symtablestack.pop(module.globalsymtable);
 
          { the last char should always be a point }
          { Do not attempt to read next token after dot,
@@ -2124,7 +2124,7 @@ type
              { this means the SYSTEM unit *must* be part of one of the required
                packages, so load it }
              AddUnit(curr,'system',false);
-             systemunit:=tglobalsymtable(symtablestack.top);
+             systemunit:=tglobalsymtable(compiler.symtablestack.top);
              compiler.parser.psystem.load_intern_types;
              { system unit is loaded, now insert feature defines }
              for feature:=low(tfeature) to high(tfeature) do
@@ -2208,7 +2208,7 @@ type
 
          Message1(parser_u_parsing_implementation,curr.mainsource);
 
-         symtablestack.push(curr.localsymtable);
+         compiler.symtablestack.push(curr.localsymtable);
 
          { create whole program optimisation information }
          curr.wpoinfo:=tunitwpoinfo.create;
@@ -2229,7 +2229,7 @@ type
          if Errorcount=0 then
            tstoredsymtable(curr.localsymtable).checklabels;
 
-         symtablestack.pop(curr.localsymtable);
+         compiler.symtablestack.pop(curr.localsymtable);
 
          { consume the last point }
          consume(_END);
@@ -2694,7 +2694,7 @@ type
 
         Message1(parser_u_parsing_implementation,curr.mainsource);
 
-        symtablestack.push(curr.localsymtable);
+        compiler.symtablestack.push(curr.localsymtable);
 
   {$ifdef jvm}
         { fake classdef to represent the class corresponding to the unit }
@@ -2854,7 +2854,7 @@ type
             release_main_proc(curr,finalize_procinfo);
           end;
 
-        symtablestack.pop(curr.localsymtable);
+        compiler.symtablestack.pop(curr.localsymtable);
 
         { consume the last point }
         consume(_POINT);

@@ -169,7 +169,7 @@ implementation
       begin
         if obj.typ=recorddef then
           begin
-            symtablestack.push(obj.symtable);
+            compiler.symtablestack.push(obj.symtable);
             result:=1;
             exit;
           end;
@@ -181,7 +181,7 @@ implementation
           while _class.childof<>hp do
             _class:=_class.childof;
           hp:=_class;
-          symtablestack.push(_class.symtable);
+          compiler.symtablestack.push(_class.symtable);
           inc(result);
         until hp=obj;
       end;
@@ -200,7 +200,7 @@ implementation
       begin
         if obj.typ=recorddef then
           begin
-            symtablestack.pop(obj.symtable);
+            compiler.symtablestack.pop(obj.symtable);
             result:=1;
             exit;
           end;
@@ -208,7 +208,7 @@ implementation
         _class:=tobjectdef(obj);
         while assigned(_class) do
           begin
-            symtablestack.pop(_class.symtable);
+            compiler.symtablestack.pop(_class.symtable);
             _class:=_class.childof;
             inc(result);
           end;
@@ -908,7 +908,7 @@ implementation
 
         { ensure that we don't insert into a withsymtable (can happen with
           anonymous functions) }
-        checkstack:=symtablestack.stack;
+        checkstack:=compiler.symtablestack.stack;
         while checkstack^.symtable.symtabletype in [withsymtable] do
           checkstack:=checkstack^.next;
         insertst:=checkstack^.symtable;
@@ -991,7 +991,7 @@ implementation
             { method  ? }
             srsym:=nil;
             if not assigned(astruct) and
-               (symtablestack.top.symtablelevel=main_program_level) and
+               (compiler.symtablestack.top.symtablelevel=main_program_level) and
                try_to_consume(_POINT) then
              begin
                repeat
@@ -1094,7 +1094,7 @@ implementation
                    the symbol in the localsymtable }
                  if not assigned(srsym) and
                     not(parse_only) and
-                    (symtablestack.top=current_module.localsymtable) and
+                    (compiler.symtablestack.top=current_module.localsymtable) and
                     assigned(current_module.globalsymtable) then
                    srsym:=tsym(current_module.globalsymtable.Find(sp));
 
@@ -1198,7 +1198,7 @@ implementation
 
         { to get the correct symtablelevel we must ignore ObjectSymtables }
         st:=nil;
-        checkstack:=symtablestack.stack;
+        checkstack:=compiler.symtablestack.stack;
         while assigned(checkstack) do
           begin
             st:=checkstack^.symtable;
@@ -1234,7 +1234,7 @@ implementation
                 include(pd.defoptions,df_generic);
                 { push the parameter symtable so that constraint definitions are added
                   there and not in the owner symtable }
-                symtablestack.push(pd.parast);
+                compiler.symtablestack.push(pd.parast);
                 { register the parameters }
                 for i:=0 to genericparams.count-1 do
                   begin
@@ -1246,7 +1246,7 @@ implementation
                 { the list is no longer required }
                 genericparams.free;
                 genericparams:=nil;
-                symtablestack.pop(pd.parast);
+                compiler.symtablestack.pop(pd.parast);
                 parse_generic:=true;
                 { also generate a dummy symbol if none exists already }
                 if assigned(astruct) then
@@ -1255,7 +1255,7 @@ implementation
                   begin
                     dummysym:=tsym(insertst.find(spnongen));
                     if not assigned(dummysym) and
-                        (symtablestack.top=current_module.localsymtable) and
+                        (compiler.symtablestack.top=current_module.localsymtable) and
                         assigned(current_module.globalsymtable) then
                       dummysym:=tsym(current_module.globalsymtable.find(spnongen));
                   end;
@@ -1273,7 +1273,7 @@ implementation
                     (
                       { show error only for the declaration, not also the implementation }
                       not assigned(astruct) or
-                      (symtablestack.top.symtablelevel<>main_program_level)
+                      (compiler.symtablestack.top.symtablelevel<>main_program_level)
                     ) then
                   Message1(sym_e_duplicate_id,dummysym.realname);
                 if not (sp_generic_dummy in dummysym.symoptions) then
@@ -1352,8 +1352,8 @@ implementation
         { methods need to be exported }
         if assigned(astruct) and
            (
-            (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) or
-            (symtablestack.top.symtablelevel=main_program_level)
+            (compiler.symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) or
+            (compiler.symtablestack.top.symtablelevel=main_program_level)
            ) then
           include(pd.procoptions,po_global);
 
@@ -1381,7 +1381,7 @@ implementation
             popclass:=0;
             if assigned(pd.struct) and
                (pd.parast.symtablelevel>=normal_function_level) and
-               not(symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
+               not(compiler.symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
                 old_current_structdef:=current_structdef;
@@ -1396,10 +1396,10 @@ implementation
               current_genericdef:=pd;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
-              symtablestack.push(pd.parast);
+              compiler.symtablestack.push(pd.parast);
             parse_parameter_dec(pd);
             if pd.parast.symtabletype<>staticsymtable then
-              symtablestack.pop(pd.parast);
+              compiler.symtablestack.pop(pd.parast);
             current_genericdef:=old_current_genericdef;
             if popclass>0 then
               begin
@@ -1440,7 +1440,7 @@ implementation
             current_specializedef:=nil;
             if assigned(pd.struct) and
                (pd.parast.symtablelevel>=normal_function_level) and
-               not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
+               not (compiler.symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
               begin
                 popclass:=push_nested_hierarchy(pd.struct);
                 old_current_structdef:=current_structdef;
@@ -1466,7 +1466,7 @@ implementation
               end;
             parse_generic:=(df_generic in pd.defoptions);
             if pd.is_generic or pd.is_specialization then
-              symtablestack.push(pd.parast);
+              compiler.symtablestack.push(pd.parast);
             pd.returndef:=compiler.parser.ptype.result_type([stoAllowSpecialization]);
 
             // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
@@ -1483,7 +1483,7 @@ implementation
               check_hints(pd.returndef.typesym,pd.returndef.typesym.symoptions,pd.returndef.typesym.deprecatedmsg);
 
             if pd.is_generic or pd.is_specialization then
-              symtablestack.pop(pd.parast);
+              compiler.symtablestack.pop(pd.parast);
             if popclass>0 then
               begin
                 current_structdef:=old_current_structdef;
@@ -3145,7 +3145,7 @@ const
             if ((not isprocvar) or
                (pd_procvar in proc_direcdata[i].pd_flags)) and
                { don't eat a public directive in classes }
-               not((current_scanner.idtoken=_PUBLIC) and (symtablestack.top.symtabletype=ObjectSymtable)) then
+               not((current_scanner.idtoken=_PUBLIC) and (compiler.symtablestack.top.symtabletype=ObjectSymtable)) then
               result:=true;
             exit;
           end;
@@ -3222,25 +3222,25 @@ const
         { check if method and directive not for object, like public.
           This needs to be checked also for procvars }
         if (pd_notobject in proc_direcdata[p].pd_flags) and
-           (symtablestack.top.symtabletype=ObjectSymtable) and
+           (compiler.symtablestack.top.symtabletype=ObjectSymtable) and
            { directive allowed for cpp classes? }
-           not((pd_cppobject in proc_direcdata[p].pd_flags) and is_cppclass(tdef(symtablestack.top.defowner))) and
-           not((pd_javaclass in proc_direcdata[p].pd_flags) and is_javaclass(tdef(symtablestack.top.defowner))) and
-           not((pd_intfjava in proc_direcdata[p].pd_flags) and is_javainterface(tdef(symtablestack.top.defowner))) then
+           not((pd_cppobject in proc_direcdata[p].pd_flags) and is_cppclass(tdef(compiler.symtablestack.top.defowner))) and
+           not((pd_javaclass in proc_direcdata[p].pd_flags) and is_javaclass(tdef(compiler.symtablestack.top.defowner))) and
+           not((pd_intfjava in proc_direcdata[p].pd_flags) and is_javainterface(tdef(compiler.symtablestack.top.defowner))) then
            exit;
 
         if (pd_notrecord in proc_direcdata[p].pd_flags) and
-           (symtablestack.top.symtabletype=recordsymtable) then
+           (compiler.symtablestack.top.symtabletype=recordsymtable) then
            exit;
 
         { check if method and directive not for java class }
         if not(pd_javaclass in proc_direcdata[p].pd_flags) and
-           is_javaclass(tdef(symtablestack.top.defowner)) then
+           is_javaclass(tdef(compiler.symtablestack.top.defowner)) then
           exit;
 
         { check if method and directive not for java interface }
         if not(pd_intfjava in proc_direcdata[p].pd_flags) and
-           is_javainterface(tdef(symtablestack.top.defowner)) then
+           is_javainterface(tdef(compiler.symtablestack.top.defowner)) then
           exit;
 
         { Keep track of the token's position in the file so it's correctly indicated if an error occurs. }

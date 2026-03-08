@@ -528,8 +528,8 @@ implementation
          Message1(parser_i_compiling,module.mainsource);
 
        { reset symtable }
-         symtablestack:=tdefawaresymtablestack.create(compiler);
-         macrosymtablestack:=TSymtablestack.create(compiler);
+         tcompiler(compiler).symtablestack:=tdefawaresymtablestack.create(compiler);
+         tcompiler(compiler).macrosymtablestack:=TSymtablestack.create(compiler);
          systemunit:=nil;
          current_settings.defproccall:=init_settings.defproccall;
          current_exceptblock:=0;
@@ -556,8 +556,8 @@ implementation
 
          { init macros before anything in the file is parsed.}
          module.localmacrosymtable:= tmacrosymtable.create(false,compiler);
-         macrosymtablestack.push(compiler.initialmacrosymtable);
-         macrosymtablestack.push(module.localmacrosymtable);
+         tcompiler(compiler).macrosymtablestack.push(compiler.initialmacrosymtable);
+         tcompiler(compiler).macrosymtablestack.push(module.localmacrosymtable);
 
          { read the first token }
          current_scanner.readtoken(false);

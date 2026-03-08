@@ -631,13 +631,13 @@ implementation
            { keep the original tobjectdef as owner, because that is used for
              visibility of the symtable }
            st:=twithsymtable.create(withdef,obj.symtable.SymList,refnode.getcopy,compiler);
-           symtablestack.push(st);
+           compiler.symtablestack.push(st);
            withsymtablelist.add(st);
            { push the symtable of the helper }
            if assigned(parenthelperdef) then
              begin
                st:=twithsymtable.create(withdef,parenthelperdef.symtable.SymList,refnode.getcopy,compiler);
-               symtablestack.push(st);
+               compiler.symtablestack.push(st);
                withsymtablelist.add(st);
              end;
          end;
@@ -750,7 +750,7 @@ implementation
                      pushobjchild(helperdef,helperdef.childof);
                    { push object symtable }
                    st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.SymList,refnode,compiler);
-                   symtablestack.push(st);
+                   compiler.symtablestack.push(st);
                    withsymtablelist.add(st);
                  end;
               classrefdef :
@@ -764,7 +764,7 @@ implementation
                      pushobjchild(helperdef,helperdef.childof);
                    { push object symtable }
                    st:=twithsymtable.Create(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).symtable.SymList,refnode,compiler);
-                   symtablestack.push(st);
+                   compiler.symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
               recorddef :
@@ -776,7 +776,7 @@ implementation
                      pushobjchild(helperdef,helperdef.childof);
                    { push record symtable }
                    st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode,compiler);
-                   symtablestack.push(st);
+                   compiler.symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
               undefineddef :
@@ -786,7 +786,7 @@ implementation
                    helperdef:=nil;
                    { push record symtable }
                    st:=twithsymtable.create(p.resultdef,nil,refnode,compiler);
-                   symtablestack.push(st);
+                   compiler.symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
               else
@@ -797,7 +797,7 @@ implementation
             if assigned(helperdef) then
               begin
                 st:=twithsymtable.Create(helperdef,helperdef.symtable.SymList,refnode.getcopy,compiler);
-                symtablestack.push(st);
+                compiler.symtablestack.push(st);
                 withsymtablelist.add(st);
               end;
 
@@ -814,7 +814,7 @@ implementation
 
             { remove symtables in reverse order from the stack }
             for i:=withsymtablelist.count-1 downto 0 do
-              symtablestack.pop(TSymtable(withsymtablelist[i]));
+              compiler.symtablestack.pop(TSymtable(withsymtablelist[i]));
             withsymtablelist.free;
             withsymtablelist := nil;
 
@@ -1024,7 +1024,7 @@ implementation
                           excepTSymtable:=tstt_excepTSymtable.create(compiler);
                           excepTSymtable.defowner:=current_procinfo.procdef;
                           excepTSymtable.insertsym(sym);
-                          symtablestack.push(excepTSymtable);
+                          compiler.symtablestack.push(excepTSymtable);
                        end
                      else
                        consume(_ID);
@@ -1056,7 +1056,7 @@ implementation
                      { remove exception symtable }
                      if assigned(excepTSymtable) then
                        begin
-                         symtablestack.pop(excepTSymtable);
+                         compiler.symtablestack.pop(excepTSymtable);
                          if last.nodetype <> onn then
                            begin
                              excepTSymtable.free;
@@ -1518,7 +1518,7 @@ implementation
                  begin
                    if tlabelsym(srsym).defined then
                      Message(sym_e_label_already_defined);
-                   if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+                   if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                      begin
                        include(current_procinfo.flags,pi_has_interproclabel);
                        if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then

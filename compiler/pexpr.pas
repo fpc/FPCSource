@@ -3313,7 +3313,7 @@ implementation
                   consume(_COLON);
                   if tlabelsym(srsym).defined then
                     Message(sym_e_label_already_defined);
-                  if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+                  if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                     begin
                       include(current_procinfo.flags,pi_has_interproclabel);
                       if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
@@ -3372,7 +3372,7 @@ implementation
              hp : psymtablestackitem;
            begin
              result:=true;
-             hp:=symtablestack.stack;
+             hp:=compiler.symtablestack.stack;
              while assigned(hp) do
                begin
                  if hp^.symtable.symtabletype=withsymtable then

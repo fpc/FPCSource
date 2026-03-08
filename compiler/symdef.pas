@@ -1520,13 +1520,13 @@ implementation
                 { create a temporary stack as it's not good (TM) to mess around
                   with the order if the unit contains generics or helpers; don't
                   use a def aware symtablestack though }
-                oldstack:=symtablestack;
-                symtablestack:=tsymtablestack.create(compiler);
-                symtablestack.push(symtable);
+                oldstack:=compiler.symtablestack;
+                tcompiler(compiler).symtablestack:=tsymtablestack.create(compiler);
+                compiler.symtablestack.push(symtable);
                 current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true,compiler);
-                symtablestack.pop(symtable);
-                symtablestack.free;
-                symtablestack:=oldstack;
+                compiler.symtablestack.pop(symtable);
+                compiler.symtablestack.free;
+                tcompiler(compiler).symtablestack:=oldstack;
               end;
             result:=tstringdef(current_module.ansistrdef);
           end
@@ -2069,6 +2069,8 @@ implementation
 
 
     class procedure tstoreddef.setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
+      const
+        _compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         reusablesymtab: tsymtable;
       begin
@@ -2078,7 +2080,7 @@ implementation
         reusablesymtab:=origdef.getreusablesymtab;
         res^.Data:=newdef;
         reusablesymtab.insertdef(newdef);
-        symtablestack:=oldsymtablestack;
+        tcompiler(_compiler).symtablestack:=oldsymtablestack;
       end;
 
 
@@ -2744,10 +2746,10 @@ implementation
      var
        insertstack: psymtablestackitem;
      begin
-       if assigned(symtablestack) and
+       if assigned(compiler.symtablestack) and
           not assigned(self.owner) then
          begin
-           insertstack:=symtablestack.stack;
+           insertstack:=compiler.symtablestack.stack;
            { don't insert defs in exception symtables, as they are freed before
              the module is compiled, so we can get crashes on high level targets
              if they still need it while e.g. writing assembler code }
@@ -4099,10 +4101,10 @@ implementation
               if they're a local def, because otherwise they'll be saved
               to the ppu referencing a local symtable entry that doesn't
               exist in the ppu) }
-            oldsymtablestack:=symtablestack;
+            oldsymtablestack:=acompiler.symtablestack;
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
-            symtablestack:=nil;
+            tcompiler(acompiler).symtablestack:=nil;
             result:=cpointerdef.create(def,acompiler);
             setup_reusable_def(def,result,res,oldsymtablestack);
             { res^.Data may still be nil -> don't overwrite result }
@@ -4472,10 +4474,10 @@ implementation
               if they're a local def, because otherwise they'll be saved
               to the ppu referencing a local symtable entry that doesn't
               exist in the ppu) }
-            oldsymtablestack:=symtablestack;
+            oldsymtablestack:=acompiler.symtablestack;
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
-            symtablestack:=nil;
+            tcompiler(acompiler).symtablestack:=nil;
             result:=carraydef.create(0,elems-1,sizesinttype,acompiler);
             result.elementdef:=def;
             result.arrayoptions:=options;
@@ -5399,10 +5401,10 @@ implementation
             name:='$InternalRec'+unique_id_str;
             pname:=@name;
           end;
-        oldsymtablestack:=symtablestack;
+        oldsymtablestack:=compiler.symtablestack;
         { do not simply push/pop current_module.localsymtable, because
           that can have side-effects (e.g., it removes helpers) }
-        symtablestack:=nil;
+        tcompiler(compiler).symtablestack:=nil;
 
         symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin,acompiler);
         symtable.defowner:=self;
@@ -5420,7 +5422,7 @@ implementation
             ts.increfcount;
             where.insertsym(ts);
           end;
-        symtablestack:=oldsymtablestack;
+        tcompiler(acompiler).symtablestack:=oldsymtablestack;
         { don't create RTTI for internal types, these are not exported }
         defstates:=defstates+[ds_rtti_table_written,ds_init_table_written];
         include(defoptions,df_internal);
@@ -7691,6 +7693,8 @@ implementation
 
 
     class function tprocvardef.getreusableprocaddr(def: tabstractprocdef; copytyp: tcacheableproccopytyp): tprocvardef;
+      const
+        _compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         res: PHashSetItem;
         oldsymtablestack: tsymtablestack;
@@ -7712,10 +7716,10 @@ implementation
               if they're a local def, because otherwise they'll be saved
               to the ppu referencing a local symtable entry that doesn't
               exist in the ppu) }
-            oldsymtablestack:=symtablestack;
+            oldsymtablestack:=_compiler.symtablestack;
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
-            symtablestack:=nil;
+            tcompiler(_compiler).symtablestack:=nil;
             result:=tprocvardef(def.getcopyas(procvardef,copytyp,'',true));
             setup_reusable_def(def,result,res,oldsymtablestack);
             { res^.Data may still be nil -> don't overwrite result }

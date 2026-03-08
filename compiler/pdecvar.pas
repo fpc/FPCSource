@@ -282,7 +282,7 @@ implementation
               else
                 handle_calling_convention(pd,hcc_default_actions_intf_struct);
               sym:=cprocsym.create(prefix+lower(p.realname));
-              symtablestack.top.insertsym(sym);
+              compiler.symtablestack.top.insertsym(sym);
               pd.procsym:=sym;
               include(pd.procoptions,po_dispid);
               include(pd.procoptions,po_global);
@@ -398,11 +398,11 @@ implementation
            end;
          { Generate propertysym and insert in symtablestack }
          p:=cpropertysym.create(current_scanner.orgpattern);
-         p.visibility:=symtablestack.top.currentvisibility;
+         p.visibility:=compiler.symtablestack.top.currentvisibility;
          p.default:=longint($80000000);
          if is_classproperty then
            include(p.symoptions, sp_static);
-         symtablestack.top.insertsym(p);
+         compiler.symtablestack.top.insertsym(p);
          consume(_ID);
          { property parameters ? }
          if try_to_consume(_LECKKLAMMER) then
@@ -413,7 +413,7 @@ implementation
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               p.parast:=tparasymtable.create(nil,0,compiler);
-              symtablestack.push(p.parast);
+              compiler.symtablestack.push(p.parast);
               sc:=TFPObjectList.create(false);
               repeat
                 if try_to_consume(_VAR) then
@@ -456,7 +456,7 @@ implementation
               until not try_to_consume(_SEMICOLON);
               sc.free;
               sc := nil;
-              symtablestack.pop(p.parast);
+              compiler.symtablestack.pop(p.parast);
               consume(_RECKKLAMMER);
 
               { the parser need to know if a property has parameters, the
@@ -1166,7 +1166,7 @@ implementation
               begin
                 tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
-                symtablestack.top.insertsym(tcsym);
+                compiler.symtablestack.top.insertsym(tcsym);
                 templist:=tasmlist.create;
                 compiler.parser.ptconst.read_typed_const(templist,tcsym,false);
                 { in case of a generic routine, this initialisation value is not
@@ -1419,7 +1419,7 @@ implementation
                    isgeneric:=(vd_check_generic in options) and
                                 not (m_delphi in current_settings.modeswitches) and
                                 (current_scanner.idtoken=_GENERIC);
-                   case symtablestack.top.symtabletype of
+                   case compiler.symtablestack.top.symtabletype of
                      localsymtable :
                        vs:=clocalvarsym.create(current_scanner.orgpattern,vs_value,generrordef,[]);
                      staticsymtable,
@@ -1461,11 +1461,11 @@ implementation
                        { ensure correct error position }
                        old_current_filepos:=current_filepos;
                        current_filepos:=tmp_filepos;
-                       symtablestack.top.insertsym(vs);
+                       compiler.symtablestack.top.insertsym(vs);
                        current_filepos:=old_current_filepos;
                      end
                    else
-                     symtablestack.top.insertsym(vs);
+                     compiler.symtablestack.top.insertsym(vs);
                  end;
              until not try_to_consume(_COMMA);
 
@@ -1485,7 +1485,7 @@ implementation
 {$endif}
 
              compiler.parser.ptype.read_anon_type(hdef,false,nil);
-             maybe_guarantee_record_typesym(hdef,symtablestack.top);
+             maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
@@ -1529,7 +1529,7 @@ implementation
              if allowdefaultvalue and
                 (current_scanner.token=_EQ) and
                 not(m_tp7 in current_settings.modeswitches) and
-                (symtablestack.top.symtabletype<>parasymtable) then
+                (compiler.symtablestack.top.symtabletype<>parasymtable) then
                begin
                  { Add calling convention for procvar }
                  if (
@@ -1604,7 +1604,7 @@ implementation
                  { Handling of Delphi typed const = initialized vars }
                  if (current_scanner.token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and
-                    (symtablestack.top.symtabletype<>parasymtable) then
+                    (compiler.symtablestack.top.symtabletype<>parasymtable) then
                    begin
                      read_default_value(sc);
                      hasdefaultvalue:=true;
@@ -1629,7 +1629,7 @@ implementation
 
              { try to parse a section directive }
              if (target_info.system in systems_allow_section) and
-                (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
+                (compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
                 (current_scanner.idtoken=_SECTION) then
                begin
                  try_consume_sectiondirective(sectionname);
@@ -1675,7 +1675,7 @@ implementation
         st : tsymtable;
       begin
         result:=true;
-        st:=symtablestack.top;
+        st:=compiler.symtablestack.top;
         if not (st.symtabletype in [recordsymtable,objectsymtable]) then
           exit;
         stowner:=tdef(st.defowner);
@@ -1748,7 +1748,7 @@ implementation
       begin
          old_block_type:=block_type;
          block_type:=bt_var;
-         recst:=tabstractrecordsymtable(symtablestack.top);
+         recst:=tabstractrecordsymtable(compiler.symtablestack.top);
 {$if defined(powerpc) or defined(powerpc64)}
          is_first_type:=true;
 {$endif powerpc or powerpc64}
@@ -1767,7 +1767,7 @@ implementation
                  ((m_final_fields in current_settings.modeswitches) and
                   (current_scanner.idtoken=_FINAL)))) do
            begin
-             visibility:=symtablestack.top.currentvisibility;
+             visibility:=compiler.symtablestack.top.currentvisibility;
              semicoloneaten:=false;
              sc.clear;
              repeat
@@ -1830,7 +1830,7 @@ implementation
                end;
 
              compiler.parser.ptype.read_anon_type(hdef,false,tstoreddef(gendef));
-             maybe_guarantee_record_typesym(hdef,symtablestack.top);
+             maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
                messagepos(typepos,sym_e_wasm_ref_types_cannot_be_used_in_records);
@@ -2045,7 +2045,7 @@ implementation
                       consume(_COLON);
                       fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
                       variantdesc^^.variantselector:=fieldvs;
-                      symtablestack.top.insertsym(fieldvs);
+                      compiler.symtablestack.top.insertsym(fieldvs);
                     end;
                 end;
               compiler.parser.ptype.read_anon_type(casetype,true,nil);
@@ -2072,7 +2072,7 @@ implementation
               UnionSymtable.datasize:=startvarrecsize;
               startvarrecalign:=UnionSymtable.fieldalignment;
               startpadalign:=Unionsymtable.padalignment;
-              symtablestack.push(UnionSymtable);
+              compiler.symtablestack.push(UnionSymtable);
               repeat
                 SetLength(variantdesc^^.branches,length(variantdesc^^.branches)+1);
                 fillchar(variantdesc^^.branches[high(variantdesc^^.branches)],
@@ -2126,7 +2126,7 @@ implementation
                 else
                   break;
               until (current_scanner.token=_END) or (current_scanner.token=_RKLAMMER);
-              symtablestack.pop(UnionSymtable);
+              compiler.symtablestack.pop(UnionSymtable);
               { at last set the record size to that of the biggest variant }
               unionsymtable.datasize:=maxsize;
               unionsymtable.fieldalignment:=maxalignment;

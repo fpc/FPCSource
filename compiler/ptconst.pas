@@ -125,7 +125,7 @@ implementation
 
         { try to parse a section directive }
         if not in_structure and (target_info.system in systems_allow_section) and
-           (symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
+           (compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
            (current_scanner.idtoken=_SECTION) then
           begin
             compiler.parser.pdecvar.try_consume_sectiondirective(section);

@@ -43,7 +43,7 @@ interface
 
     uses
        cutils,cclasses,cfileutl,
-       globtype,finput,ogbase,fpkg,
+       globtype,finput,ogbase,fpkg,compilerbase,
        symbase,symsym,
        wpobase,
        aasmbase,aasmdata;
@@ -349,7 +349,7 @@ implementation
 
     uses
       SysUtils,globals,
-      verbose,systems,
+      verbose,systems,compiler,
       scanner,ppu,dbgbase,
       procinfo,symdef,symtype;
 
@@ -1499,6 +1499,8 @@ implementation
       end;
 
     procedure tmodule.end_of_parsing;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         { free asmdata }
         if assigned(asmdata) then
@@ -1517,15 +1519,15 @@ implementation
           end;
 
         { free symtable stack }
-        if assigned(symtablestack) then
+        if assigned(compiler.symtablestack) then
           begin
-            symtablestack.free;
-            symtablestack:=nil;
+            compiler.symtablestack.free;
+            tcompiler(compiler).symtablestack:=nil;
           end;
-        if assigned(macrosymtablestack) then
+        if assigned(compiler.macrosymtablestack) then
           begin
-            macrosymtablestack.free;
-            macrosymtablestack:=nil;
+            compiler.macrosymtablestack.free;
+            tcompiler(compiler).macrosymtablestack:=nil;
           end;
         waitingforunit.free;
         waitingforunit:=nil;

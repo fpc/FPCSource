@@ -1534,7 +1534,7 @@ implementation
         current_specializedef:=nil;
 
         { objects and class types can't be declared local }
-        if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
+        if not(compiler.symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
            not assigned(genericlist) then
           Message(parser_e_no_local_objects);
 
@@ -1665,7 +1665,7 @@ implementation
                   is resolved. this is required for delphi mode }
                 current_module.checkforwarddefs.add(current_structdef);
 
-                symtablestack.push(current_structdef.symtable);
+                compiler.symtablestack.push(current_structdef.symtable);
                 compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
                 { when we are parsing a generic already then this is a generic as
                   well }
@@ -1676,7 +1676,7 @@ implementation
                 { *don't* add the strict private symbol for non-Delphi modes for
                   forward defs }
 
-                symtablestack.pop(current_structdef.symtable);
+                compiler.symtablestack.pop(current_structdef.symtable);
               end;
           end
         else
@@ -1696,7 +1696,7 @@ implementation
             if not(objecttype in [odt_objcclass,odt_objcprotocol,odt_objccategory,odt_javaclass,odt_interfacejava]) then
               parse_object_options;
 
-            symtablestack.push(current_structdef.symtable);
+            compiler.symtablestack.push(current_structdef.symtable);
             compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
             { when we are parsing a generic already then this is a generic as
               well }
@@ -1791,7 +1791,7 @@ implementation
                 compiler.parser.ptype.add_typedconst_init_routine(current_structdef);
             end;
 
-            symtablestack.pop(current_structdef.symtable);
+            compiler.symtablestack.pop(current_structdef.symtable);
 
             exclude(current_structdef.objectoptions,oo_is_forward);
           end;

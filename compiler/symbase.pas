@@ -147,10 +147,6 @@ interface
        end;
 
 
-    var
-       macrosymtablestack,
-       symtablestack        : TSymtablestack;
-
 {$ifdef MEMDEBUG}
     var
       memrealnames : tmemdebug;

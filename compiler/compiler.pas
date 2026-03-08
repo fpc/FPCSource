@@ -177,6 +177,8 @@ type
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
                                           given on the command line. Is common
                                           for all files compiled and do not change. }
+    Fmacrosymtablestack,
+    Fsymtablestack        : TSymtablestack;
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -192,6 +194,8 @@ type
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
+    property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
+    property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
   end;
 
   { TCompilerHelper }
@@ -199,11 +203,13 @@ type
   TCompilerHelper = class helper for TCompilerBase
   private
     function Getinitialmacrosymtable: TSymtable; inline;
+    function Getmacrosymtablestack: TSymtablestack; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
     function GetOpt: TOptimizers; inline;
     function GetRTTIWriter: TRTTIWriter; inline;
+    function Getsymtablestack: TSymtablestack; inline;
   public
     { node constructor helpers }
     { nadd }
@@ -317,6 +323,8 @@ type
     property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
+    property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
+    property symtablestack: TSymtablestack read Getsymtablestack;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -614,6 +622,11 @@ begin
   Result := TCompiler(Self).initialmacrosymtable;
 end;
 
+function TCompilerHelper.Getmacrosymtablestack: TSymtablestack;
+begin
+  Result := TCompiler(Self).macrosymtablestack;
+end;
+
 function TCompilerHelper.GetObjCGUtl: TObjCCodeGenUtils; inline;
 begin
   Result := TCompiler(Self).ObjCGUtl;
@@ -637,6 +650,11 @@ end;
 function TCompilerHelper.GetRTTIWriter: TRTTIWriter; inline;
 begin
   Result := TCompiler(Self).RTTIWriter;
+end;
+
+function TCompilerHelper.Getsymtablestack: TSymtablestack;
+begin
+  Result := TCompiler(Self).symtablestack;
 end;
 
 function TCompilerHelper.caddnode(tt: tnodetype; l, r: tnode): taddnode; inline;

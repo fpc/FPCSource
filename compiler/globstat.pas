@@ -27,7 +27,7 @@ unit globstat;
 interface
 
 uses
-  globtype,tokens,globals,
+  globtype,tokens,globals,compilerbase,
   aasmdata,
   dbgbase,
   symbase,symsym,
@@ -76,7 +76,7 @@ procedure restore_global_state(state:tglobalstate);
 implementation
 
 uses
-  switches, verbose, pbase,comphook;
+  switches, verbose, pbase,comphook,compiler;
 
 var
   states : array of tglobalstate;
@@ -137,13 +137,15 @@ var
   end;
 
   procedure tglobalstate.save;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     begin
       old_current_module:=current_module;
 
       { save symtable state }
-      oldsymtablestack:=symtablestack;
-      oldmacrosymtablestack:=macrosymtablestack;
+      oldsymtablestack:=compiler.symtablestack;
+      oldmacrosymtablestack:=compiler.macrosymtablestack;
       oldcurrent_procinfo:=current_procinfo;
 
       { save scanner state }
@@ -176,6 +178,8 @@ var
     end;
 
   procedure tglobalstate.restore;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     begin
       { restore scanner }
@@ -188,8 +192,8 @@ var
       parse_only:=oldparse_only;
 
       { restore symtable state }
-      symtablestack:=oldsymtablestack;
-      macrosymtablestack:=oldmacrosymtablestack;
+      tcompiler(compiler).symtablestack:=oldsymtablestack;
+      tcompiler(compiler).macrosymtablestack:=oldmacrosymtablestack;
       current_procinfo:=oldcurrent_procinfo;
       current_filepos:=oldcurrent_filepos;
       current_settings:=old_settings;

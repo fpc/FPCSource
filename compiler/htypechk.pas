@@ -2464,7 +2464,7 @@ implementation
         else
           hashedid.id:=overloaded_names[FOperator];
 
-        checkstack:=symtablestack.stack;
+        checkstack:=compiler.symtablestack.stack;
         if assigned(FProcsymtable) then
           begin
             while assigned(checkstack) and
