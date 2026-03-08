@@ -1,3 +1,4 @@
+
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2008 by the Free Pascal development team
@@ -168,7 +169,7 @@ Var
     ContProgress:=true;
     Progress(FPimage.psRunning, 0, False, Rect(0,0,0,0), '', ContProgress);
     if not ContProgress then exit;
-    for i:=0 to BufSize div 3 do
+    for i:=0 to (BufSize div 3) - 1 do
     begin
       with c do
       begin
@@ -186,6 +187,8 @@ begin
   BufSize:=0;
   Stream.Read(BufSize, SizeOf(BufSize));
   BufSize:=BEtoN(BufSize);
+  if BufSize > 768 then
+    raise FPImageException.Create('Invalid PSD palette size');
 
   Case FHeader.Mode of
   PSD_BITMAP :begin  // Bitmap (monochrome)
@@ -213,7 +216,7 @@ begin
   begin
     Depth:=BEtoN(Depth);
     if (Signature <> '8BPS') then
-      Raise Exception.Create('Unknown/Unsupported PSD image type');
+      Raise FPImageException.Create('Unknown/Unsupported PSD image type');
     Channels:=BEtoN(Channels);
     if Channels > 4 then
       FBytesPerPixel:=Depth*4
@@ -222,9 +225,13 @@ begin
     Mode:=BEtoN(Mode);
     FWidth:=BEtoN(Columns);
     FHeight:=BEtoN(Rows);
+    if (FWidth <= 0) or (FWidth > 300000) or (FHeight <= 0) or (FHeight > 300000) then
+      raise FPImageException.Create('Invalid PSD dimensions');
     FChannelCount:=Channels;
-    FLineSize:=PtrInt(FHeight)*FWidth*Depth div 8;
+    FLineSize:=Int64(FHeight)*FWidth*Depth div 8;
     FLineSize:=FLineSize*Channels;
+    if (FLineSize <= 0) or (FLineSize > 2*1024*1024*1024) then
+      raise FPImageException.Create('PSD image data too large');
     GetMem(FScanLine,FLineSize);
   end;
 end;
@@ -282,6 +289,9 @@ var
     //MaxM: Do NOT Remove the Casts after BEToN
     Stream.Read(TotalBlockSize, 4);
     TotalBlockSize :=BEtoN(DWord(TotalBlockSize));
+    if TotalBlockSize > 256*1024*1024 then
+      raise FPImageException.Create('PSD resource section too large');
+    if TotalBlockSize = 0 then exit;
     GetMem(blockData, TotalBlockSize);
     try
        Stream.Read(blockData^, TotalBlockSize);
@@ -290,6 +300,9 @@ var
        curBlock :=blockData;
 
        repeat
+         // Bounds check: need at least sizeof(TPSDResourceBlock) bytes for the block header
+         if pPosition + sizeof(TPSDResourceBlock) > TotalBlockSize then break;
+
          signature :=curBlock^.Types;
 
          if (signature=PSD_ResourceSectionSignature) then
@@ -308,8 +321,17 @@ var
              then Inc(Pointer(curBlockData), 1);
            end;
 
+           pPosition :=Pointer(curBlockData)-Pointer(blockData);
+           // Bounds check: need 4 bytes for dataSize
+           if pPosition + 4 > TotalBlockSize then break;
+
            dataSize :=BEtoN(DWord(curBlockData^.Size));
            Inc(Pointer(curBlockData), 4);
+
+           pPosition :=Pointer(curBlockData)-Pointer(blockData);
+           // Bounds check: need dataSize bytes for data
+           if pPosition + dataSize > TotalBlockSize then break;
+
            ReadResourceBlockData(Img, blockID, blockName, dataSize, curBlockData);
            Inc(Pointer(curBlockData), dataSize);
          end
@@ -357,7 +379,7 @@ begin
     Stream.Read(Encoding, SizeOf(Encoding));
     FCompressed:=BEtoN(Encoding) = 1;
     if BEtoN(Encoding)>1 then
-      Raise Exception.Create('Unknown compression type');
+      Raise FPImageException.Create('Unknown compression type');
     If FCompressed then
     begin
       SetLength(FLengthOfLine, FHeight * FChannelCount);
@@ -390,6 +412,7 @@ end;
 function TFPReaderPSD.ReadScanLine(Stream: TStream): boolean;
 Var
   P : PByte;
+  PEnd : PByte;
   B : Byte;
   I : PtrInt;
   J : integer;
@@ -404,6 +427,7 @@ begin
   else
     begin
       P:=FScanLine;
+      PEnd:=FScanLine + FLineSize;
       i:=FByteRead;
       repeat
         Count:=0;
@@ -422,6 +446,8 @@ begin
            dec(i);
            For j := 0 to Count-1 do
            begin
+             if P >= PEnd then
+               raise FPImageException.Create('PSD RLE output overflow');
              P[0]:=B;
              inc(p);
            end;
@@ -432,6 +458,8 @@ begin
            For j := 0 to Count-1 do
            begin
              Stream.ReadBuffer(B,1);
+             if P >= PEnd then
+               raise FPImageException.Create('PSD RLE output overflow');
              P[0]:=B;
              inc(p);
              dec(i);
