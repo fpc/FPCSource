@@ -241,6 +241,9 @@ begin
   FWidth := FInfo.image_width;
   FHeight := FInfo.image_height;
 
+  if (FWidth <= 0) or (FHeight <= 0) or (FWidth > 65535) or (FHeight > 65535) then
+    raise FPImageException.Create('Invalid JPEG dimensions');
+
   if FInfo.saw_EXIF_marker and (FInfo.orientation >= Ord(Low(TExifOrientation))) and (FInfo.orientation <= Ord(High(TExifOrientation))) then
     FOrientation := TExifOrientation(FInfo.orientation)
   else
