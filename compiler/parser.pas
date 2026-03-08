@@ -556,7 +556,7 @@ implementation
 
          { init macros before anything in the file is parsed.}
          module.localmacrosymtable:= tmacrosymtable.create(false,compiler);
-         macrosymtablestack.push(initialmacrosymtable);
+         macrosymtablestack.push(compiler.initialmacrosymtable);
          macrosymtablestack.push(module.localmacrosymtable);
 
          { read the first token }

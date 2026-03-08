@@ -148,9 +148,6 @@ interface
 
 
     var
-       initialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
-                                            given on the command line. Is common
-                                            for all files compiled and do not change. }
        macrosymtablestack,
        symtablestack        : TSymtablestack;
 

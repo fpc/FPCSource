@@ -482,7 +482,7 @@ implementation
 
     uses
       { global }
-      verbose,globals,systems,
+      verbose,globals,systems,compiler,
       { symtable }
       symutil,defutil,defcmp,objcdef,
       { module }
@@ -4900,6 +4900,8 @@ implementation
 ****************************************************************************}
 
     procedure def_system_macro(const name : string);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         mac : tmacro;
         s: string;
@@ -4914,7 +4916,7 @@ implementation
              if assigned(current_module) then
                current_module.localmacrosymtable.insertsym(mac)
              else
-               initialmacrosymtable.insertsym(mac);
+               compiler.initialmacrosymtable.insertsym(mac);
            end;
          Message1(parser_c_macro_defined,mac.name);
          mac.defined:=true;
@@ -4922,6 +4924,8 @@ implementation
 
 
     procedure set_system_macro(const name, value : string);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         mac : tmacro;
         s: string;
@@ -4936,7 +4940,7 @@ implementation
              if assigned(current_module) then
                current_module.localmacrosymtable.insertsym(mac)
              else
-               initialmacrosymtable.insertsym(mac);
+               compiler.initialmacrosymtable.insertsym(mac);
            end
          else
            begin
@@ -4951,6 +4955,8 @@ implementation
 
 
     procedure set_system_compvar(const name, value : string);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         mac : tmacro;
         s: string;
@@ -4966,7 +4972,7 @@ implementation
              if assigned(current_module) then
                current_module.localmacrosymtable.insertsym(mac)
              else
-               initialmacrosymtable.insertsym(mac);
+               compiler.initialmacrosymtable.insertsym(mac);
            end
          else
            mac.is_compiler_var:=true;
@@ -5056,9 +5062,9 @@ implementation
        generrorsym:=terrorsym.create;
        generrordef:=cerrordef.create(compiler);
        { macros }
-       initialmacrosymtable:=tmacrosymtable.create(false,compiler);
+       tcompiler(compiler).initialmacrosymtable:=tmacrosymtable.create(false,compiler);
        macrosymtablestack:=TSymtablestack.create(compiler);
-       macrosymtablestack.push(initialmacrosymtable);
+       macrosymtablestack.push(compiler.initialmacrosymtable);
 {$ifdef UNITALIASES}
        { unit aliases }
        unitaliases:=TFPHashObjectList.create;
@@ -5068,6 +5074,8 @@ implementation
 
 
    procedure DoneSymtable;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         generrorsym.owner:=nil;
         generrorsym.free;
@@ -5075,8 +5083,8 @@ implementation
         generrordef.owner:=nil;
         generrordef.free;
         generrordef := nil;
-        initialmacrosymtable.free;
-        initialmacrosymtable := nil;
+        compiler.initialmacrosymtable.free;
+        tcompiler(compiler).initialmacrosymtable := nil;
         macrosymtablestack.free;
         macrosymtablestack := nil;
 {$ifdef UNITALIASES}

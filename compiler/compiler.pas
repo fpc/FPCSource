@@ -174,6 +174,10 @@ type
     FObjCGUtl: TObjCCodeGenUtils;
     FRTTIWriter : TRTTIWriter;
 
+    Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
+                                          given on the command line. Is common
+                                          for all files compiled and do not change. }
+
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
@@ -187,12 +191,14 @@ type
     property Opt: TOptimizers read FOpt;
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
+    property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
   end;
 
   { TCompilerHelper }
 
   TCompilerHelper = class helper for TCompilerBase
   private
+    function Getinitialmacrosymtable: TSymtable; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
@@ -310,6 +316,7 @@ type
     property Opt: TOptimizers read GetOpt;
     property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
+    property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -601,6 +608,11 @@ begin
 end;
 
 { TCompilerHelper }
+
+function TCompilerHelper.Getinitialmacrosymtable: TSymtable; inline;
+begin
+  Result := TCompiler(Self).initialmacrosymtable;
+end;
 
 function TCompilerHelper.GetObjCGUtl: TObjCCodeGenUtils; inline;
 begin

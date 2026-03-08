@@ -391,7 +391,7 @@ implementation
         macrosymtablestack.clear;
 
         { macro symtable }
-        macrosymtablestack.push(initialmacrosymtable);
+        macrosymtablestack.push(compiler.initialmacrosymtable);
 
         { are we compiling the system unit? }
         if (cs_compilesystem in current_settings.moduleswitches) then
