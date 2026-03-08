@@ -70,7 +70,7 @@ interface
           indirect_crc_array,
           implementation_crc_array  : pointer;
 {$endif def Test_Double_checksum}
-          constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
+          constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean;acompiler:TCompilerBase);
           destructor destroy;override;
           function statestr: string; override;
           procedure checkstate; override;
@@ -189,9 +189,9 @@ var
                                 TPPUMODULE
  ****************************************************************************}
 
-    constructor tppumodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
+    constructor tppumodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean;acompiler:TCompilerBase);
       begin
-        inherited create(LoadedFrom,amodulename,afilename,_is_unit);
+        inherited create(LoadedFrom,amodulename,afilename,_is_unit,acompiler);
         ppufile:=nil;
         sourcefn:=afilename;
         unitimportsymsderefs:=tfplist.create;
@@ -3013,6 +3013,8 @@ var
 
 
     function registerunit(callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
           function FindCycle(aFile, SearchFor: tppumodule; var Cycle: TFPList): boolean;
           var
@@ -3073,7 +3075,7 @@ var
           { the unit is not in the loaded units,
             we create an entry and register the unit }
           Message1(unit_u_registering_new_unit,ups);
-          hp:=tppumodule.create(callermodule,s,fn,true);
+          hp:=tppumodule.create(callermodule,s,fn,true,compiler);
           addloadedunit(hp);
         end
         else if callermodule.in_interface then

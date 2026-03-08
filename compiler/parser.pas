@@ -492,7 +492,7 @@ implementation
       m : TModule;
 
     begin
-      m:=tppumodule.create(nil,'',filename,false);
+      m:=tppumodule.create(nil,'',filename,false,compiler);
       m.state:=ms_compile;
       result:=compile_module(m);
     end;
