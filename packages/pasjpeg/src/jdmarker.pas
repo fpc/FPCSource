@@ -1805,8 +1805,12 @@ begin
       ifdRec.tag_id := FixEndian16(ifdRec.tag_id);
       ifdRec.data_type := FixEndian16(ifdRec.data_type);
 
+      if (ifdRec.data_type < 1) or (ifdRec.data_type > 13) then
+        Continue;
       ifdRec.data_count := FixEndian32(ifdRec.data_count);
       byteCount := Integer(ifdRec.data_count) * TagElementSize[ifdRec.data_type];
+      if byteCount > 65536 then
+        Continue;
       if byteCount>0 then
       begin
         SetLength(data, bytecount);
