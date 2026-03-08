@@ -1217,7 +1217,7 @@ implementation
          { creating dfa is not always possible }
          ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler])=[]) then
          begin
-           dfabuilder:=TDFABuilder.Create;
+           dfabuilder:=TDFABuilder.Create(compiler);
            dfabuilder.createdfainfo(code);
            include(flags,pi_dfaavailable);
            RedoDFA:=false;

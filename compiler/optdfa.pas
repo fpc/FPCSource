@@ -35,11 +35,16 @@ unit optdfa;
 
     type
       TDFABuilder = class
+      private
+        FCompiler: TCompilerBase;
+        property Compiler: TCompilerBase read FCompiler;
       protected
         procedure CreateLifeInfo(node : tnode;map : TIndexedNodeSet);
       public
         resultnode : tnode;
         nodemap : TIndexedNodeSet;
+
+        constructor Create(ACompiler: TCompilerBase);
         { reset all dfa info, this is required before creating dfa info
           if the tree has been changed without updating dfa }
         procedure resetdfainfo(node : tnode);
@@ -114,6 +119,13 @@ unit optdfa;
         map : TIndexedNodeSet
       end;
       pdfainfo = ^tdfainfo;
+
+
+    constructor TDFABuilder.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
 
     function AddDefUse(var n: tnode; arg: pointer): foreachnoderesult;
       begin
@@ -625,8 +637,6 @@ unit optdfa;
 
 
     procedure TDFABuilder.createdfainfo(node : tnode);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         dfarec : tdfainfo;
       begin
