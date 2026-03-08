@@ -213,7 +213,7 @@ var l : TStringList;
       Takeinteger (s, yhot);
       xpmext := (comparetext(s, 'XPMEXT') = 0);
       if (s <> '') and not xpmext then
-        Raise Exception.Create ('Wrong word for XPMEXT tag');
+        Raise FPImageException.Create ('Wrong word for XPMEXT tag');
       end;
   end;
 
@@ -231,6 +231,8 @@ var l : TStringList;
   begin
     code := copy(s,1,cpp);
     s := trim(diminishWhiteSpace (copy(s,cpp+1,maxint)));
+    if s = '' then
+      raise FPImageException.Create('Empty color specification in XPM');
     // Search for c-key in the color values
     if s[1] = 'c' then
       delete (s, 1, 2)
@@ -305,6 +307,10 @@ begin
         l.delete(r);
       end;
     ParseFirstLine;
+    if (width <= 0) or (height <= 0) or (ncols <= 0) or (cpp <= 0) then
+      raise FPImageException.Create('Invalid XPM header values');
+    if (width > 65535) or (height > 65535) or (ncols > 65536) then
+      raise FPImageException.Create('XPM dimensions too large');
     Img.SetSize (width, height);
     Img.UsePalette := True;
     ReadPalette;
