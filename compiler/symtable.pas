@@ -429,8 +429,8 @@ interface
 {$endif UNITALIASES}
 
 {*** Init / Done ***}
-    procedure IniTSymtable;
-    procedure DoneSymtable;
+    procedure IniTSymtable(Compiler: TCompilerBase);
+    procedure DoneSymtable(Compiler: TCompilerBase);
 
     const
       overloaded_names : array [NOTOKEN..last_overloaded] of string[16] = (
@@ -5071,9 +5071,7 @@ implementation
                            Init/Done Symtable
 ****************************************************************************}
 
-   procedure InitSymtable;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+   procedure InitSymtable(Compiler: TCompilerBase);
      begin
        { Reset symbolstack }
        tcompiler(compiler).symtablestack:=nil;
@@ -5093,9 +5091,7 @@ implementation
      end;
 
 
-   procedure DoneSymtable;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+   procedure DoneSymtable(Compiler: TCompilerBase);
       begin
         generrorsym.owner:=nil;
         generrorsym.free;

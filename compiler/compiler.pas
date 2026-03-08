@@ -363,7 +363,7 @@ begin
 { Free memory for the others }
   CompilerInited:=false;
   do_doneSymbolInfo;
-  DoneSymtable;
+  DoneSymtable(Self);
   DoneGlobals;
   DoneFileUtils;
   donetokens;
@@ -392,7 +392,7 @@ begin
   { verbose depends on exe_path and must be after globals }
   InitVerbose;
   inittokens;
-  IniTSymtable; {Must come before read_arguments, to enable macrosymstack}
+  IniTSymtable(Self); {Must come before read_arguments, to enable macrosymstack}
   do_initSymbolInfo;
   CompilerInited:=true;
 { this is needed here for the IDE
