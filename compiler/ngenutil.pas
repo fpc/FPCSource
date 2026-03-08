@@ -48,6 +48,8 @@ interface
       function call_fail_node:tnode; virtual;
       function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
       function finalize_data_node(p:tnode):tnode; virtual;
+     strict private
+      procedure AddToThreadvarList(p:TObject;arg:pointer);
      strict protected
       FCompiler: TCompilerBase;
       type
@@ -1373,9 +1375,7 @@ implementation
 
 
 
-  procedure AddToThreadvarList(p:TObject;arg:pointer);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  procedure tnodeutils.AddToThreadvarList(p:TObject;arg:pointer);
     var
       tcb: ttai_typedconstbuilder;
       field1, field2: tsym;
