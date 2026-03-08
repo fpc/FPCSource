@@ -31,12 +31,13 @@ interface
     cclasses,
     compilerbase,
     aasmbase,aasmdata,
-    symbase,symdef;
+    symbase,symdef,symtype;
 
 type
   TObjCCodeGenUtils = class
   private
     FCompiler: TCompilerBase;
+    procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -55,15 +56,17 @@ implementation
     systems,
     aasmtai,
     cgbase,
-    objcdef,objcutil,
+    objcdef,objcutil,compiler,
     aasmcnst,
-    symconst,symtype,symsym,symtable,
+    symconst,symsym,symtable,
     ngenutil,
     verbose;
 
   type
     tobjcabi = (oa_fragile, oa_nonfragile);
 (*    tivarlayouttype = (il_weak,il_strong); *)
+
+    { tobjcrttiwriter }
 
     tobjcrttiwriter = class
      private
@@ -76,6 +79,8 @@ implementation
       catrttidefs: tfpobjectlist;
       classsyms,
       catsyms: tfpobjectlist;
+      procedure objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
+
       procedure gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmsymbol; classmethods, iscategory: Boolean);
       procedure gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmLabel);
       procedure gen_objc_protocol_list(list:TAsmList; protolist: TFPObjectList; out protolistsym: TAsmLabel);
@@ -160,9 +165,7 @@ function objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
                        Pool section helpers
 *******************************************************************}
 
-procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+procedure TObjCCodeGenUtils.objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
   var
     entry  : PHashSetItem;
     strlab : tasmlabel;
@@ -247,9 +250,9 @@ procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(entry: phashsetitem; st
   end;
 
 
-procedure objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
+procedure tobjcrttiwriter.objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; stringsec: tasmsectiontype; out sym: TAsmLabel; out def: tdef);
   begin
-    objcreatestringpoolentryintern(@s[1],length(s),pooltype,stringsec,sym,def);
+    compiler.objcgutl.objcreatestringpoolentryintern(@s[1],length(s),pooltype,stringsec,sym,def);
   end;
 
 
@@ -469,7 +472,8 @@ From CLang:
       Protocol *list[1];
   };
 *)
-procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpobjectlist; out protolistsym: tasmlabel);
+procedure tobjcrttiwriter.gen_objc_protocol_list(list: TAsmList;
+  protolist: TFPObjectList; out protolistsym: TAsmLabel);
   var
     i         : Integer;
     protosym  : TAsmSymbol;
