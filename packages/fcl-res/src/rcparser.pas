@@ -7,7 +7,9 @@
 Vorspann
  ****************************************************************************)
 
+{$IFNDEF FPC_DOTTEDUNITS}
 unit rcparser;
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$I rcparserfn.inc}
 
@@ -7913,3 +7915,4 @@ begin
   lexlib.get_char:= @rc_get_char;
   lexlib.unget_char:= @rc_unget_char;
 end.
+
