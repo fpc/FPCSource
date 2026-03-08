@@ -39,6 +39,7 @@ uses
 type
 
   tglobalstate = class
+    compiler : TCompilerBase;
   { scanner }
     oldtokenpos    : tfileposinfo;
     old_block_type : tblock_type;
@@ -62,7 +63,7 @@ type
     old_debuginfo : tdebuginfo;
     old_scanner : tscannerfile;
     old_parser_file : string;
-    constructor create;
+    constructor create(acompiler: TCompilerBase);
     destructor destroy; override;
     procedure clearscanner;
     class procedure remove_scanner_from_states(scanner : tscannerfile); static;
@@ -137,8 +138,6 @@ var
   end;
 
   procedure tglobalstate.save;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     begin
       old_current_module:=current_module;
@@ -178,8 +177,6 @@ var
     end;
 
   procedure tglobalstate.restore;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     begin
       { restore scanner }
@@ -208,9 +205,10 @@ var
       current_debuginfo:=old_debuginfo;
     end;
 
-    constructor tglobalstate.create;
+    constructor tglobalstate.create(acompiler: TCompilerBase);
 
     begin
+      compiler:=acompiler;
       addstate(self);
       save;
     end;

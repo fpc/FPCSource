@@ -153,9 +153,11 @@ begin
 end;
 
 procedure ttask_list.SaveState;
+const
+  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 begin
   if State=Nil then
-    State:=tglobalstate.Create
+    State:=tglobalstate.Create(compiler)
   else
     State.save;
 end;
