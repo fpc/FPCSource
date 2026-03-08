@@ -1356,7 +1356,7 @@ implementation
 
     constructor TStatementsParser.Create(ACompiler: TCompilerBase);
       begin
-
+        FCompiler:=ACompiler;
       end;
 
 
