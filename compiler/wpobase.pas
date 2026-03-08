@@ -28,6 +28,7 @@ interface
 uses
   globtype,
   cclasses,
+  compilerbase,
   symtype;
 
 type
@@ -141,6 +142,8 @@ type
   }
 
   tunitwpoinfobase = class
+   private
+    FCompiler: TCompilerBase;
    protected
     { created object types }
     fcreatedobjtypes: tfpobjectlist;
@@ -158,8 +161,9 @@ type
       tcalledvmtentries)
     }
     fcalledvmtentries: tfphashlist;
+    property Compiler: TCompilerBase read FCompiler;
    public
-    constructor create; reintroduce; virtual;
+    constructor create(acompiler: TCompilerBase); reintroduce; virtual;
     destructor destroy; override;
 
     property createdobjtypes: tfpobjectlist read fcreatedobjtypes;
@@ -356,8 +360,9 @@ implementation
 
   { tcreatedwpoinfobase }
 
-  constructor tunitwpoinfobase.create;
+  constructor tunitwpoinfobase.create(acompiler: TCompilerBase);
     begin
+      fcompiler:=acompiler;
       fcreatedobjtypes:=tfpobjectlist.create(false);
       fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
       fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);

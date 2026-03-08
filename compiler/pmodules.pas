@@ -1596,7 +1596,7 @@ type
          { create whole program optimisation information (may already be
            updated in the interface, e.g., in case of classrefdef typed
            constants }
-         curr.wpoinfo:=tunitwpoinfo.create;
+         curr.wpoinfo:=tunitwpoinfo.create(compiler);
 
          { Can we continue compiling ? }
          result:=curr.state<>ms_compiling_waitintf;
@@ -2211,7 +2211,7 @@ type
          compiler.symtablestack.push(curr.localsymtable);
 
          { create whole program optimisation information }
-         curr.wpoinfo:=tunitwpoinfo.create;
+         curr.wpoinfo:=tunitwpoinfo.create(compiler);
 
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(curr.localsymtable).needs_init_final;
@@ -2705,7 +2705,7 @@ type
         maybe_load_got(curr);
 
         { create whole program optimisation information }
-        curr.wpoinfo:=tunitwpoinfo.create;
+        curr.wpoinfo:=tunitwpoinfo.create(compiler);
 
         { The program initialization needs an alias, so it can be called
           from the bootstrap code.}
