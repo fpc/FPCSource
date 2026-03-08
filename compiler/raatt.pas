@@ -1111,8 +1111,8 @@ unit raatt;
 
 
    Function tattreader.Assemble: tlinkedlist;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      Var
        hl         : tasmlabel;
        commname,

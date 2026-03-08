@@ -1376,8 +1376,8 @@ end;
 procedure AddAbsoluteSymRefs(sym: tabsolutevarsym); forward;
 
 procedure MaybeAddSymRef(sym: tsym);
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   case sym.typ of
      absolutevarsym:
@@ -1400,8 +1400,8 @@ begin
 end;
 
 procedure AddAbsoluteSymRefs(sym: tabsolutevarsym);
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   symlist: ppropaccesslistitem;
 begin
@@ -1770,8 +1770,8 @@ end;
 
 
 Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   sym : tsym;
   srsymtable : TSymtable;

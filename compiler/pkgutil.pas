@@ -267,8 +267,8 @@ implementation
     end;
 
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     Var
       MakeStatic : Boolean;
     Var
@@ -600,8 +600,8 @@ implementation
 
 
   procedure createimportlibfromexternals;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     type
       tcacheentry=record
         pkg:tpackage;

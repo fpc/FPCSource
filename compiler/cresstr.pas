@@ -169,8 +169,8 @@ uses
 
 
     procedure Tresourcestrings.CreateResourceStringData;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       Var
         namelab,
         valuelab : tasmlabofs;
@@ -360,8 +360,8 @@ uses
 
 
     Procedure GenerateResourceStrings;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         resstrs : Tresourcestrings;
       begin

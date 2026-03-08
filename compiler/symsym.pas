@@ -1614,8 +1614,8 @@ implementation
 
 
     constructor tpropertysym.ppuload(ppufile:tcompilerppufile);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         pap : tpropaccesslisttypes;
       begin
@@ -2855,8 +2855,8 @@ implementation
 
 
     procedure tconstsym.deref;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case consttyp of
           constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constwresourcestring,constguid:

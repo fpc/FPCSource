@@ -448,6 +448,7 @@ var
   m : tppumodule;
 
 begin
+  current_compiler:=Self;
   m:=nil;
   try
     try

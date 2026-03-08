@@ -48,8 +48,8 @@ uses
 
 
 function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: TSymStr; _bind: TAsmSymBind; _typ: Tasmsymtype; def: tdef): TAsmSymbol;
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   var
     symind: tasmsymbol;
     ptrdef: tdef;

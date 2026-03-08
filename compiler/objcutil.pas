@@ -114,8 +114,8 @@ end;
 *******************************************************************}
 
     function objcloadbasefield(n: tnode; const fieldname: string): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         vs         : tsym;
       begin
@@ -140,8 +140,8 @@ end;
 
 
     function objcsuperclassnode(def: tdef): tnode;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         para       : tcallparanode;
       begin

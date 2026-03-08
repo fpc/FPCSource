@@ -402,8 +402,8 @@ unit cpupara;
 
 
     function finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i, vecsize, maxvecsize: longint;
       begin
@@ -903,8 +903,8 @@ unit cpupara;
 
 
     function classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         rounded_offset: aint;
       begin
@@ -1413,8 +1413,8 @@ unit cpupara;
 
 
     function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         intretregs: array[0..1] of tregister = (NR_FUNCTION_RETURN_REG,NR_FUNCTION_RETURN_REG_HIGH);
         mmretregs: array[0..1] of tregister = (NR_MM_RESULT_REG,NR_MM_RESULT_REG_HIGH);
@@ -1637,8 +1637,8 @@ unit cpupara;
 
     procedure tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp         : tparavarsym;
         fdef,

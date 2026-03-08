@@ -3601,8 +3601,8 @@ implementation
 
 
     function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hashedid: THashedIDString;
         contextstructdef: tabstractrecorddef;
@@ -3690,8 +3690,8 @@ implementation
       end;
 
     function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hashedid  : THashedIDString;
         stackitem : psymtablestackitem;
@@ -3796,8 +3796,8 @@ implementation
 
 
     function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         stackitem  : psymtablestackitem;
       begin
@@ -3844,8 +3844,8 @@ implementation
 
 
     function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
@@ -4210,8 +4210,8 @@ implementation
       end;
 
     function search_specific_assignment_operator(assignment_type:ttoken;from_def,to_def:Tdef):Tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -4279,8 +4279,8 @@ implementation
 
 
     function search_assignment_operator(from_def,to_def:Tdef;explicit:boolean):Tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { search record/object symtable first for a suitable operator }
         if from_def.typ in [recorddef,objectdef] then
@@ -4316,8 +4316,8 @@ implementation
 
 
     function search_enumerator_operator(from_def,to_def:Tdef): Tprocdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -4644,8 +4644,8 @@ implementation
       end;
 
     function search_objc_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         searchst   : tsymtable;
         searchsym  : tsym;
@@ -4723,8 +4723,8 @@ implementation
 
 
     function search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
@@ -4824,8 +4824,8 @@ implementation
 
 
     function search_macro(const s : string):tsym;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         stackitem  : psymtablestackitem;
         hashedid   : THashedIDString;
@@ -4920,8 +4920,8 @@ implementation
 ****************************************************************************}
 
     procedure def_system_macro(const name : string);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         mac : tmacro;
         s: string;
@@ -4944,8 +4944,8 @@ implementation
 
 
     procedure set_system_macro(const name, value : string);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         mac : tmacro;
         s: string;
@@ -4975,8 +4975,8 @@ implementation
 
 
     procedure set_system_compvar(const name, value : string);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         mac : tmacro;
         s: string;

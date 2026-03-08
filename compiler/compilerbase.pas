@@ -33,6 +33,11 @@ type
   TCompilerBase = class
   end;
 
+var
+  { TODO: this global variable should eventually be removed, once the compiler
+    is refactored not to use global variables }
+  current_compiler: TCompilerBase;
+
 implementation
 
 end.

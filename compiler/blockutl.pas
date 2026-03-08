@@ -140,8 +140,8 @@ implementation
 
 
   function get_block_literal_descriptor(invokepd: tprocdef; block_literal_size: tcgint): tstaticvarsym;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       descriptordef: tdef;
       descriptor: tstaticvarsym;
@@ -238,8 +238,8 @@ implementation
 
   { compose a block literal for a static block (one without context) }
   function get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       literalname: TIDString;
       srsym: tsym;
@@ -275,8 +275,8 @@ implementation
 
   { compose an on-stack block literal for a "procedure of object" }
   function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       statement: tstatementnode;
       literaltemp: ttempcreatenode;
@@ -321,8 +321,8 @@ implementation
 
 
   function generate_block_for_procaddr(procloadnode: tloadnode): tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       procvarnode: tnode;
       { procvardef representing the original function we want to invoke }

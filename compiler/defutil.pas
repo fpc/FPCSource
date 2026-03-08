@@ -1635,8 +1635,8 @@ implementation
 
 
     function to_hwvectordef(p: tdef; nil_on_error: boolean): tdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=nil;
         if p.typ=arraydef then

@@ -73,8 +73,8 @@ implementation
 { tpcppackage }
 
   function tpcppackage.openpcp: boolean;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       pcpfiletime : longint;
     begin
@@ -457,8 +457,8 @@ implementation
     end;
 
   procedure tpcppackage.savepcp;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       tablepos,
       oldpos : longint;

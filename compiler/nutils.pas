@@ -1144,8 +1144,8 @@ implementation
 
 
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         plist : ppropaccesslistitem;
       begin
@@ -1254,8 +1254,8 @@ implementation
 
 
     function handle_staticfield_access(sym: tsym; var p1: tnode): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function handle_generic_staticfield_access:boolean;
         var

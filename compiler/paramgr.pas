@@ -666,8 +666,8 @@ implementation
 
 
     function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; forcetempdef: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         paraloc : pcgparalocation;
       begin
@@ -752,8 +752,8 @@ implementation
 
 
     function tparamanager.get_paraloc_def(paradef: tdef; restlen: aint; fullsize: boolean): tdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if fullsize then
           result:=paradef

@@ -63,8 +63,8 @@ implementation
 
 
   function create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       st:TSymTable;
       checkstack: psymtablestackitem;
@@ -1327,16 +1327,16 @@ implementation
 
 
   function load_capturer(capturer:tabstractvarsym):tnode;inline;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       result:=compiler.cloadnode(capturer,capturer.owner);
     end;
 
 
   function instantiate_capturer(capturer_sym:tabstractvarsym):tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       capturer_def : tobjectdef;
       ctor : tprocsym;

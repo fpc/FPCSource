@@ -150,8 +150,8 @@ implementation
 
 
     procedure write_persistent_type_info(st: tsymtable; is_global: boolean);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         def : tdef;

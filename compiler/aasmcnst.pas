@@ -833,8 +833,8 @@ implementation
 
 
    procedure tai_aggregatetypedconst.finish;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      var
        lString : tai_string;
        len : integer;

@@ -1496,8 +1496,8 @@ implementation
       end;
 
     function getansistringdef:tstringdef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         symtable:tsymtable;
         oldstack : tsymtablestack;
@@ -1549,8 +1549,8 @@ implementation
 
 
     function get_threadvar_record(def: tdef; out index_field, non_mt_data_field: tsym): trecorddef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         typ: ttypesym;
         name: string;
@@ -1579,8 +1579,8 @@ implementation
 
 
     function get_recorddef(prefix:tinternaltypeprefix; const fields:array of tdef; packrecords:shortint): trecorddef;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         fieldlist: tfplist;
         srsym: tsym;
@@ -1613,8 +1613,8 @@ implementation
 
 
     procedure get_tabledef(prefix:tinternaltypeprefix;countdef,elementdef:tdef;count:longint;packrecords:shortint;out recdef:trecorddef;out arrdef:tarraydef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         fields: tfplist;
         name: TIDString;

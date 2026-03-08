@@ -1084,8 +1084,8 @@ type
   end;
 
   class constructor texprvalue.createdefs;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { do not use corddef etc here: this code is executed before those
         variables are initialised. Since these types are only used for

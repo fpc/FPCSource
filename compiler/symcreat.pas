@@ -182,8 +182,8 @@ implementation
 
 
   function str_parse_method_dec(str: ansistring; potype: tproctypeoption; is_classdef: boolean; astruct: tabstractrecorddef; out pd: tprocdef): boolean;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       oldparse_only: boolean;
     begin
@@ -227,8 +227,8 @@ implementation
 
 
   function str_parse_method_impl_with_fileinfo(str: ansistring; usefwpd: tprocdef; fileno, lineno: longint; is_classdef: boolean; out result_procdef: tprocdef):boolean;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      var
        oldparse_only: boolean;
        tmpstr: ansistring;
@@ -284,8 +284,8 @@ implementation
 
 
   procedure str_parse_typedconst(list: TAsmList; str: ansistring; ssym: tstaticvarsym);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       old_block_type: tblock_type;
       old_parse_only: boolean;
@@ -310,8 +310,8 @@ implementation
     end;
 
     function str_parse_objecttypedef(typename : shortstring;str: ansistring): tobjectdef;
-     const
-       compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      var
        b,oldparse_only: boolean;
        i : integer;
@@ -1645,8 +1645,8 @@ implementation
   end;
 
   function str_parse_method(str: ansistring; allowgenericid : boolean): tprocdef;
-   const
-     compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+   var
+     compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
    var
      oldparse_only: boolean;
      tmpstr: ansistring;
@@ -1925,8 +1925,8 @@ implementation
 
 
   procedure finish_copied_procdef(var pd: tprocdef; const realname: string; newparentst: tsymtable; newstruct: tabstractrecorddef);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       sym: tsym;
       parasym: tparavarsym;
@@ -1987,8 +1987,8 @@ implementation
 
 
   function maybe_add_sym_to_parentfpstruct(pd: tprocdef; sym: tsym; vardef: tdef; addrparam: boolean): tsym;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       fieldvardef,
       nestedvarsdef: tdef;
@@ -2210,8 +2210,8 @@ implementation
 
 
   function generate_pkg_stub(pd:tprocdef):tnode;
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if target_info.system in systems_all_windows+systems_nativent then
         begin
@@ -2226,8 +2226,8 @@ implementation
     end;
 
   procedure generate_attr_constrs(attrs:tfpobjectlist);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       ps : tprocsym;
       pd : tprocdef;

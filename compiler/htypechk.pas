@@ -2249,8 +2249,8 @@ implementation
 
 
     procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       var
         changedhierarchy : boolean;
@@ -2439,8 +2439,8 @@ implementation
 
 
     procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         j          : integer;
         pd         : tprocdef;
@@ -2892,8 +2892,8 @@ implementation
 
 
     procedure tcallcandidates.get_information;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp       : pcandidate;
         currpara : tparavarsym;

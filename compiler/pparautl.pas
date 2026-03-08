@@ -181,8 +181,8 @@ implementation
 
 
     procedure insert_self_and_vmt_para(pd:tabstractprocdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         name_cmd='_cmd';
         name_self='self';
@@ -1260,8 +1260,8 @@ implementation
 
 
     procedure build_parentfpstruct(pd: tprocdef);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         nestedvars: tsym;
         nestedvarsst: tsymtable;
