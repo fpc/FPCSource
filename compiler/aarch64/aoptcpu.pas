@@ -1464,37 +1464,88 @@ Implementation
       hp1: tai;
       hp3: taicpu;
       bitval : cardinal;
+      swapoper: poper;
     begin
       Result:=false;
-      {
-        tst reg1,<const=power of 2>
-        b.e/b.ne label
-
-        into
-
-        tb(n)z reg0,<power of 2>,label
-      }
       if MatchOpType(taicpu(p),top_reg,top_const) and
         (PopCnt(QWord(taicpu(p).oper[1]^.val))=1) and
-        GetNextInstruction(p,hp1) and
-        MatchInstruction(hp1,A_B,[C_EQ,C_NE],[PF_None]) then
+        GetNextInstruction(p,hp1) then
         begin
-           bitval:=BsfQWord(qword(taicpu(p).oper[1]^.val));
-           case taicpu(hp1).condition of
-            C_NE:
-              hp3:=taicpu.op_reg_const_ref(A_TBNZ,taicpu(p).oper[0]^.reg,bitval,taicpu(hp1).oper[0]^.ref^);
-            C_EQ:
-              hp3:=taicpu.op_reg_const_ref(A_TBZ,taicpu(p).oper[0]^.reg,bitval,taicpu(hp1).oper[0]^.ref^);
-            else
-              Internalerror(2021100210);
-          end;
-          taicpu(hp3).fileinfo:=taicpu(p).fileinfo;
-          asml.insertafter(hp3, p);
+          {
+            tst reg1,<const=power of 2>
+            b.e/b.ne label
 
-          RemoveInstruction(hp1);
-          RemoveCurrentP(p, hp3);
-          DebugMsg(SPeepholeOptimization + 'TST; B(E/NE) -> TB(Z/NZ) done', p);
-          Result:=true;
+            into
+
+            tb(n)z reg0,<index of said power of 2>,label
+          }
+          if MatchInstruction(hp1,A_B,[C_EQ,C_NE],[PF_None]) then
+            begin
+               bitval:=BsfQWord(qword(taicpu(p).oper[1]^.val));
+               case taicpu(hp1).condition of
+                C_NE:
+                  hp3:=taicpu.op_reg_const_ref(A_TBNZ,taicpu(p).oper[0]^.reg,bitval,taicpu(hp1).oper[0]^.ref^);
+                C_EQ:
+                  hp3:=taicpu.op_reg_const_ref(A_TBZ,taicpu(p).oper[0]^.reg,bitval,taicpu(hp1).oper[0]^.ref^);
+                else
+                  Internalerror(2021100210);
+              end;
+              taicpu(hp3).fileinfo:=taicpu(p).fileinfo;
+              asml.insertafter(hp3, p);
+
+              RemoveInstruction(hp1);
+              RemoveCurrentP(p, hp3);
+              DebugMsg(SPeepholeOptimization + 'TST; B(E/NE) -> TB(Z/NZ) done', p);
+              Result:=true;
+              Exit;
+            end;
+
+          {
+            tst  reg1,#1
+            cset reg2,ne
+
+            into
+
+            and  reg2,reg1,#1
+          }
+          if (taicpu(p).oper[1]^.val=1) and
+            MatchInstruction(hp1,A_CSET,[PF_None]) and
+            (taicpu(hp1).oper[1]^.typ=top_conditioncode) and
+            (taicpu(hp1).oper[1]^.cc=C_NE) then
+            begin
+              TransferUsedRegs(TmpUsedRegs);
+              UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+              if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
+                begin
+                  taicpu(p).opcode:=A_AND;
+                  taicpu(p).allocate_oper(2);
+                  taicpu(p).ops:=3;
+                  taicpu(p).loadconst(2,1);
+                  { Move p.oper[0] to p.oper[1] and hp1.oper[0] to p.oper[0] by cycling the pointers }
+                  swapoper:=taicpu(p).oper[0];
+                  taicpu(p).oper[0]:=taicpu(hp1).oper[0];
+                  taicpu(hp1).oper[0]:=taicpu(p).oper[1];
+                  taicpu(p).oper[1]:=swapoper;
+
+                  if (taicpu(p).oper[0]^.reg<>taicpu(p).oper[1]^.reg) then
+                    begin
+                      { p.oper[0] contains the register that was written to by CSET.
+                        Since we're deleting the next instruction, update UsedRegs directly }
+                      AllocRegBetween(taicpu(p).oper[1]^.reg, p, hp1, UsedRegs);
+
+                      { Ensure the registers are the same size (if the destination register
+                        is shrunk fro 64 bits to 32 bits, the upper 32 bits will be set to
+                        zero, preserving existing behaviour since only the least significant
+                        bit is set or cleared with everything else zeroed }
+                      setsubreg(taicpu(p).oper[0]^.reg, getsubreg(taicpu(p).oper[1]^.reg));
+                    end;
+
+                  RemoveInstruction(hp1);
+                  DebugMsg(SPeepholeOptimization + 'TST #1; CSET NE -> AND #1 done', p);
+                  Result:=true;
+                  Exit;
+                end;
+            end;
         end;
     end;
 
