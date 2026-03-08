@@ -377,6 +377,7 @@ begin
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(FOpt);
   FreeAndNil(FObjCGUtl);
+  FreeAndNil(FNodeUtils);
 end;
 
 
@@ -388,6 +389,7 @@ begin
   { Set default code page for ansistrings on unix-like systems }
   DefaultSystemCodePage:=GetSystemCodePage;
 {$endif}
+  FNodeUtils:=tnodeutils.Create(Self);
   FObjCGUtl:=TObjCCodeGenUtils.Create(Self);
   FOpt:=TOptimizers.Create(Self);
 { inits which need to be done before the arguments are parsed }
