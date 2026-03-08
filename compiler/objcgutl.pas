@@ -66,6 +66,8 @@ implementation
 (*    tivarlayouttype = (il_weak,il_strong); *)
 
     tobjcrttiwriter = class
+     private
+      FCompiler: TCompilerBase;
      protected
       fabi: tobjcabi;
       classdefs,
@@ -83,8 +85,9 @@ implementation
       procedure gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol; out catlabeldef: tdef);virtual;abstract;
       procedure gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);virtual;abstract;
       procedure gen_objc_info_sections(list: tasmlist);virtual;abstract;
+      property Compiler: TCompilerBase read FCompiler;
      public
-      constructor create(_abi: tobjcabi);
+      constructor create(_abi: tobjcabi;acompiler: TCompilerBase);
       destructor destroy;override;
       procedure gen_objc_rtti_sections(list:TAsmList; st:TSymtable);
       property abi: tobjcabi read fabi;
@@ -101,7 +104,7 @@ implementation
       procedure gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);override;
       procedure gen_objc_info_sections(list: tasmlist);override;
      public
-      constructor create;
+      constructor create(ACompiler: TCompilerBase);
     end;
 
 
@@ -120,7 +123,7 @@ implementation
       procedure gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);override;
       procedure gen_objc_info_sections(list: tasmlist);override;
      public
-      constructor create;
+      constructor create(ACompiler: TCompilerBase);
     end;
 
 
@@ -297,8 +300,6 @@ end;
   and both for obj-c classes and categories. }
 procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmsymbol; classmethods, iscategory: Boolean);
   const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
-  const
                      {clas/cat inst/cls}
     SectType : array [Boolean, Boolean] of tasmsectiontype =
       ((sec_objc_inst_meth, sec_objc_cls_meth),
@@ -469,8 +470,6 @@ From CLang:
   };
 *)
 procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpobjectlist; out protolistsym: tasmlabel);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     i         : Integer;
     protosym  : TAsmSymbol;
@@ -537,8 +536,6 @@ procedure tobjcrttiwriter.gen_objc_protocol_list(list: tasmlist; protolist: tfpo
 { items : TFPObjectList of Tprocdef }
 procedure tobjcrttiwriter.gen_objc_cat_methods(list:TAsmList; items: TFPObjectList; section: tasmsectiontype;
   const sectname: string; out listsym: TAsmLabel);
-const
-  compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 var
   i     : integer;
   m     : tprocdef;
@@ -628,8 +625,9 @@ procedure tobjcrttiwriter.gen_objc_rtti_sections(list:TAsmList; st:TSymtable);
   end;
 
 
-constructor tobjcrttiwriter.create(_abi: tobjcabi);
+constructor tobjcrttiwriter.create(_abi: tobjcabi;acompiler: TCompilerBase);
   begin
+    FCompiler:=ACompiler;
     fabi:=_abi;
     classdefs:=tfpobjectlist.create(false);
     classsyms:=tfpobjectlist.create(false);
@@ -734,8 +732,6 @@ procedure tobjcrttiwriter_fragile.gen_objc_ivars(list: TAsmList; objccls: tobjec
     }
 *)
 function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsym, optclssym: TAsmLabel): TAsmLabel;
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     tcb: ttai_typedconstbuilder;
   begin
@@ -772,8 +768,6 @@ function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsy
 
 { Generate rtti for an Objective-C protocol  }
 procedure tobjcrttiwriter_fragile.gen_objc_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     namesym     : TAsmLabel;
     namedef     : tdef;
@@ -838,8 +832,6 @@ From Clang:
 
 { Generate rtti for an Objective-C class and its meta-class. }
 procedure tobjcrttiwriter_fragile.gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol; out catlabeldef: tdef);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     catstrsym,
     clsstrsym,
@@ -922,8 +914,6 @@ From Clang:
 
 { Generate rtti for an Objective-C class and its meta-class. }
 procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   const
     CLS_CLASS  = 1;
     CLS_META   = 2;
@@ -1097,8 +1087,6 @@ procedure tobjcrttiwriter_fragile.gen_objc_classes_sections(list:TAsmList; objcl
 { Generate the global information sections (objc_symbols and objc_module_info)
   for this module. }
 procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     i: longint;
     sym : TAsmSymbol;
@@ -1200,9 +1188,9 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
   end;
 
 
-constructor tobjcrttiwriter_fragile.create;
+constructor tobjcrttiwriter_fragile.create(ACompiler: TCompilerBase);
   begin
-    inherited create(oa_fragile);
+    inherited create(oa_fragile,ACompiler);
   end;
 
 
@@ -1230,8 +1218,6 @@ From Clang:
 ///
 *)
 procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tobjectdef; out ivarslabel: tasmlabel);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   type
     ivar_data = record
       vf      : tfieldvarsym;
@@ -1370,8 +1356,6 @@ From Clang:
 /// @endcode
 *)
 procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol: tobjectdef; out protocollabel: tasmsymbol);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     lbl,
     listsym       : TAsmSymbol;
@@ -1471,8 +1455,6 @@ From Clang:
 /// }
 *)
 procedure tobjcrttiwriter_nonfragile.gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol; out catlabeldef: tdef);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     catstrsym,
     protolistsym  : TAsmLabel;
@@ -1633,8 +1615,6 @@ From Clang:
 
 procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objclss: tobjectdef; protolistsym: TAsmSymbol; out classrolabel: tasmsymbol; metaclass: boolean);
   const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
-  const
     CLS_CLASS        = 0;
     CLS_META         = 1;
     CLS_ROOT         = 2;
@@ -1754,8 +1734,6 @@ From Clang:
 
 { Generate rtti for an Objective-C class and its meta-class. }
 procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; objclss: tobjectdef; out classlabel: TAsmSymbol; out classlabeldef: tdef);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     root          : tobjectdef;
     superSym,
@@ -1880,8 +1858,6 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_classes_sections(list:TAsmList; ob
 
 
 procedure tobjcrttiwriter_nonfragile.addclasslist(list: tasmlist; section: tasmsectiontype; const symname: string; classes: tfpobjectlist);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
   var
     i: longint;
     sym: TAsmSymbol;
@@ -1970,9 +1946,9 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_info_sections(list: tasmlist);
   end;
 
 
-constructor tobjcrttiwriter_nonfragile.create;
+constructor tobjcrttiwriter_nonfragile.create(ACompiler: TCompilerBase);
   begin
-    inherited create(oa_nonfragile);
+    inherited create(oa_nonfragile,ACompiler);
   end;
 
 
@@ -1989,9 +1965,9 @@ procedure TObjCCodeGenUtils.MaybeGenerateObjectiveCImageInfo(globalst, localst: 
         { generate rtti for all obj-c classes, protocols and categories
           defined in this module. }
         if not(target_info.system in systems_objc_nfabi) then
-          objcrttiwriter:=tobjcrttiwriter_fragile.create
+          objcrttiwriter:=tobjcrttiwriter_fragile.create(compiler)
         else
-          objcrttiwriter:=tobjcrttiwriter_nonfragile.create;
+          objcrttiwriter:=tobjcrttiwriter_nonfragile.create(compiler);
         objcrttiwriter.gen_objc_rtti_sections(current_asmdata.asmlists[al_objc_data],globalst);
         objcrttiwriter.gen_objc_rtti_sections(current_asmdata.asmlists[al_objc_data],localst);
         objcrttiwriter.gen_objc_info_sections(current_asmdata.asmlists[al_objc_data]);
