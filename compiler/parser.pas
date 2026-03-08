@@ -366,6 +366,7 @@ implementation
         FPModules:=TModulesParser.Create(acompiler);
         FPGenUtil:=TGenericsParseUtils.Create(acompiler);
         FPStatmnt:=TStatementsParser.Create(acompiler);
+        FPExpr:=TExpressionParser.Create(acompiler);
         FPExports:=TExportsParser.Create(acompiler);
         FPTConst:=TTypedConstParser.Create(acompiler);
         FPDecSub:=TSubroutineDeclarationParser.Create(acompiler);
@@ -389,6 +390,7 @@ implementation
         FreeAndNil(FPDecSub);
         FreeAndNil(FPTConst);
         FreeAndNil(FPExports);
+        FreeAndNil(FPExpr);
         FreeAndNil(FPStatmnt);
         FreeAndNil(FPGenUtil);
         FreeAndNil(FPModules);
