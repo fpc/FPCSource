@@ -120,7 +120,7 @@ interface
             abstracts that checking, and also restores the symtable stack
             (which had to be reset before creating the new def, so that the new
              def did not automatically get added to its top) }
-          class procedure setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
+          class procedure setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack; acompiler: TCompilerBase);
        public
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
@@ -2068,9 +2068,7 @@ implementation
       end;
 
 
-    class procedure tstoreddef.setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
-      const
-        _compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    class procedure tstoreddef.setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack; acompiler: TCompilerBase);
       var
         reusablesymtab: tsymtable;
       begin
@@ -2080,7 +2078,7 @@ implementation
         reusablesymtab:=origdef.getreusablesymtab;
         res^.Data:=newdef;
         reusablesymtab.insertdef(newdef);
-        tcompiler(_compiler).symtablestack:=oldsymtablestack;
+        tcompiler(acompiler).symtablestack:=oldsymtablestack;
       end;
 
 
@@ -4106,7 +4104,7 @@ implementation
               that can have side-effects (e.g., it removes helpers) }
             tcompiler(acompiler).symtablestack:=nil;
             result:=cpointerdef.create(def,acompiler);
-            setup_reusable_def(def,result,res,oldsymtablestack);
+            setup_reusable_def(def,result,res,oldsymtablestack,acompiler);
             { res^.Data may still be nil -> don't overwrite result }
             exit;
           end;
@@ -4481,7 +4479,7 @@ implementation
             result:=carraydef.create(0,elems-1,sizesinttype,acompiler);
             result.elementdef:=def;
             result.arrayoptions:=options;
-            setup_reusable_def(def,result,res,oldsymtablestack);
+            setup_reusable_def(def,result,res,oldsymtablestack,acompiler);
             { res^.Data may still be nil -> don't overwrite result }
             exit;
           end;
@@ -7721,7 +7719,7 @@ implementation
               that can have side-effects (e.g., it removes helpers) }
             tcompiler(_compiler).symtablestack:=nil;
             result:=tprocvardef(def.getcopyas(procvardef,copytyp,'',true));
-            setup_reusable_def(def,result,res,oldsymtablestack);
+            setup_reusable_def(def,result,res,oldsymtablestack,_compiler);
             { res^.Data may still be nil -> don't overwrite result }
             exit;
           end;

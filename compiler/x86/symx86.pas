@@ -125,7 +125,7 @@ implementation
             that can have side-effects (e.g., it removes helpers) }
           tcompiler(acompiler).symtablestack:=nil;
           result:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ,acompiler);
-          setup_reusable_def(def,result,res,oldsymtablestack);
+          setup_reusable_def(def,result,res,oldsymtablestack,acompiler);
           { res^.Data may still be nil -> don't overwrite result }
           exit;
         end;
