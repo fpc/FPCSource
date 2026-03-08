@@ -155,7 +155,7 @@ uses
 {$endif aix}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr
-  ,ngenutil,pgentype,objcgutl
+  ,ngenutil,pgentype,objcgutl,ncgrtti
   ,opt,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
@@ -172,6 +172,7 @@ type
     FNodeUtils: TNodeUtils;
     FOpt: TOptimizers;
     FObjCGUtl: TObjCCodeGenUtils;
+    FRTTIWriter : TRTTIWriter;
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -185,6 +186,7 @@ type
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
+    property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
   end;
 
   { TCompilerHelper }
@@ -195,6 +197,7 @@ type
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
     function GetOpt: TOptimizers; inline;
+    function GetRTTIWriter: TRTTIWriter; inline;
   public
     { node constructor helpers }
     { nadd }
@@ -306,6 +309,7 @@ type
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
     property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
+    property RTTIWriter : TRTTIWriter read GetRTTIWriter;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -616,6 +620,11 @@ end;
 function TCompilerHelper.GetOpt: TOptimizers;
 begin
   Result := TCompiler(Self).Opt;
+end;
+
+function TCompilerHelper.GetRTTIWriter: TRTTIWriter; inline;
+begin
+  Result := TCompiler(Self).RTTIWriter;
 end;
 
 function TCompilerHelper.caddnode(tt: tnodetype; l, r: tnode): taddnode; inline;

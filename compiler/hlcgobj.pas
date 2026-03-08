@@ -3732,7 +3732,7 @@ implementation
           paramanager.getcgtempparaloc(list,pd,2,cgpara2);
           if is_open_array(t) then
             InternalError(201103054);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
+          reference_reset_symbol(href,compiler.RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
@@ -3780,7 +3780,7 @@ implementation
             pd:=search_system_proc('fpc_initialize');
             paramanager.getcgtempparaloc(list,pd,1,cgpara1);
             paramanager.getcgtempparaloc(list,pd,2,cgpara2);
-            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
+            reference_reset_symbol(href,compiler.RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
             if pd.is_pushleftright then
               begin
                 a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
@@ -3830,7 +3830,7 @@ implementation
             pd:=search_system_proc('fpc_finalize');
           paramanager.getcgtempparaloc(list,pd,1,cgpara1);
           paramanager.getcgtempparaloc(list,pd,2,cgpara2);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
+          reference_reset_symbol(href,compiler.RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
           if pd.is_pushleftright then
             begin
               a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
@@ -3872,7 +3872,7 @@ implementation
       paramanager.getcgtempparaloc(list,pd,2,cgpara2);
       paramanager.getcgtempparaloc(list,pd,3,cgpara3);
 
-      reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
+      reference_reset_symbol(href,compiler.RTTIWriter.get_rtti_label(t,initrtti,def_needs_indirect(t)),0,sizeof(pint),[]);
       { if calling convention is left to right, push parameters 1 and 2 }
       if pd.is_pushleftright then
         begin

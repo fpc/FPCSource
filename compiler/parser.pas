@@ -91,7 +91,7 @@ implementation
       fksysutl,
 {$ENDIF}
       cclasses,
-      globtype,tokens,systems,globals,verbose,switches,globstat,
+      globtype,tokens,systems,globals,verbose,switches,globstat,compiler,
       symbase,symtable,symdef,
       finput,fppu,
       aasmdata,
@@ -206,7 +206,7 @@ implementation
            stacksize:=target_info.stacksize;
 
          { RTTI writer }
-         RTTIWriter:=TRTTIWriter.Create;
+         tcompiler(compiler).RTTIWriter:=TRTTIWriter.Create(compiler);
 
          { open assembler response }
          if cs_link_on_target in current_settings.globalswitches then
@@ -344,8 +344,8 @@ implementation
          { close scanner }
          DoneScanner;
 
-         RTTIWriter.free;
-         RTTIWriter := nil;
+         compiler.RTTIWriter.free;
+         tcompiler(compiler).RTTIWriter := nil;
 
          { close ppas,deffile }
          asmres.free;

@@ -37,6 +37,7 @@ interface
 
       TRTTIWriter=class
       private
+        FCompiler: TCompilerBase;
         { required internal alignment of the rtti data }
         reqalign: shortint;
         { required packing of all structures except for ttypeinfo and tpropinfo,
@@ -73,20 +74,18 @@ interface
         procedure write_mop_offset_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;mop:tmanagementoperator);
         procedure maybe_add_comment(tcb:ttai_typedconstbuilder;const comment : string); inline;
       public
-        constructor create;
+        constructor create(ACompiler: TCompilerBase);
         procedure write_rtti(def:tdef;rt:trttitype);
         procedure write_extended_method_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
         procedure write_extended_field_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef); inline;
         function  get_rtti_label(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         function  get_rtti_label_ord2str(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
         function  get_rtti_label_str2ord(def:tdef;rt:trttitype;indirect:boolean):tasmsymbol; inline;
+        property Compiler: TCompilerBase read FCompiler;
       end;
 
     { generate RTTI and init tables }
     procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
-
-    var
-      RTTIWriter : TRTTIWriter;
 
 
 implementation
@@ -95,7 +94,7 @@ implementation
        cutils,
        globals,verbose,systems,
        node,ncal,ncon,
-       fmodule, procinfo,
+       fmodule, procinfo,compiler,
        symtable,symutil,
        aasmtai,aasmdata,
        defutil,
@@ -151,6 +150,8 @@ implementation
 
 
     procedure write_persistent_type_info(st: tsymtable; is_global: boolean);
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         def : tdef;
@@ -205,7 +206,7 @@ implementation
                ) or
                is_managed_type(def) or
                (ds_init_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,initrtti);
+              compiler.RTTIWriter.write_rtti(def,initrtti);
             { RTTI }
             if not(df_internal in def.defoptions) and
                (
@@ -216,7 +217,7 @@ implementation
                 ) or
                 (ds_rtti_table_used in def.defstates)
                ) then
-              RTTIWriter.write_rtti(def,fullrtti);
+              compiler.RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;
 
@@ -433,8 +434,6 @@ implementation
 
 
     procedure TRTTIWriter.write_paralocs(tcb:ttai_typedconstbuilder;para:pcgpara);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         locs : trttiparalocs;
         i : longint;
@@ -873,9 +872,9 @@ implementation
             tcb.emit_tai(Tai_const.Create_sizeint(fldsym.fieldoffset),sizeuinttype);
             { FieldType: PPTypeInfo }
             if is_objc_class_or_protocol(fldsym.vardef) then
-              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(voidpointertype,fullrtti,true)),voidpointertype)
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(voidpointertype,fullrtti,true)),voidpointertype)
             else
-              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),voidpointertype);
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(fldsym.vardef,fullrtti,true)),voidpointertype);
             { FieldVisibility }
             tcb.emit_ord_const(visibility_to_rtti_flags(fldsym.visibility),u8inttype);
             { Name }
@@ -956,8 +955,6 @@ implementation
 
 
     procedure TRTTIWriter.properties_write_rtti_data(tcb: ttai_typedconstbuilder; propnamelist:TFPHashObjectList; st:tsymtable; extended_rtti:boolean; visibilities:tvisibilities);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
         sym : tsym;
@@ -1251,8 +1248,6 @@ implementation
 
 
     procedure TRTTIWriter.write_rtti_data(tcb: ttai_typedconstbuilder; def: tdef; rt: trttitype);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         procedure unknown_rtti(def:tstoreddef);
         begin
@@ -2204,8 +2199,6 @@ implementation
       end;
 
   procedure TRTTIWriter.write_attribute_data(tcb:ttai_typedconstbuilder;attr_list:trtti_attribute_list);
-    const
-      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
     procedure write_args(tbltcb:ttai_typedconstbuilder;attr:trtti_attribute);
       var
@@ -2351,8 +2344,6 @@ implementation
 
 
     procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
         type Penumsym = ^Tenumsym;
 
@@ -2655,8 +2646,6 @@ implementation
       end;
 
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
 
       var
         tcb: ttai_typedconstbuilder;
@@ -2714,8 +2703,9 @@ implementation
           tcb.emit_comment(comment);
       end;
 
-    constructor TRTTIWriter.create;
+    constructor TRTTIWriter.create(ACompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
         addcomments:=cs_asm_rtti_source in current_settings.globalswitches;
         if tf_requires_proper_alignment in target_info.flags then
           begin

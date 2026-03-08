@@ -69,7 +69,7 @@ implementation
     uses
       cutils,
       systems,
-      verbose,globals,constexp,fmodule,
+      verbose,globals,constexp,fmodule,compiler,
       nutils,
       symtable,symconst,symdef,defutil,paramgr,ncon,nbas,ncgrtti,
       aasmbase,
@@ -1580,11 +1580,11 @@ implementation
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint),[]);
         case rttidatatype of
           rdt_normal:
-            location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype,indirect);
+            location.reference.symbol:=compiler.RTTIWriter.get_rtti_label(rttidef,rttitype,indirect);
           rdt_ord2str:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,indirect);
+            location.reference.symbol:=compiler.RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,indirect);
           rdt_str2ord:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype,indirect);
+            location.reference.symbol:=compiler.RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype,indirect);
         end;
       end;
 

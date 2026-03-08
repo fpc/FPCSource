@@ -104,7 +104,7 @@ implementation
     uses
       cutils,cclasses,
       fpchash,
-      globtype,globals,verbose,constexp,
+      globtype,globals,verbose,constexp,compiler,
       systems,fmodule,
       symsym,symtable,symcreat,
 {$ifdef cpuhighleveltarget}
@@ -575,7 +575,7 @@ implementation
               { end methodnametable }
               lists.pubmethodstcb.maybe_end_aggregate(pubmethodsdef);
               { write extended method rtti }
-              RTTIWriter.write_extended_method_table(lists.pubmethodstcb,_class);
+              compiler.RTTIWriter.write_extended_method_table(lists.pubmethodstcb,_class);
               { end the encompassing record }
               methodstabledef:=lists.pubmethodstcb.end_anonymous_record;
               tcb.finish_internal_data_builder(lists.pubmethodstcb,lab,methodstabledef,sizeof(pint));
@@ -712,7 +712,7 @@ implementation
                   end;
               end;
             { append the extended rtti table }
-            RTTIWriter.write_extended_field_table(datatcb,_class);
+            compiler.RTTIWriter.write_extended_field_table(datatcb,_class);
             fieldtabledef:=datatcb.end_anonymous_record;
             tcb.finish_internal_data_builder(datatcb,lab,fieldtabledef,sizeof(pint));
           end
@@ -1196,10 +1196,10 @@ implementation
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { pointer to type info of published section }
-            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti,false)),voidpointertype);
+            tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(_class,fullrtti,false)),voidpointertype);
             { inittable for con-/destruction }
             if _class.members_need_inittable then
-              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti,false)),voidpointertype)
+              tcb.emit_tai(Tai_const.Create_sym(compiler.RTTIWriter.get_rtti_label(_class,initrtti,false)),voidpointertype)
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { auto table }
