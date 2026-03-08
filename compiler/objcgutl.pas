@@ -33,10 +33,19 @@ interface
     aasmbase,aasmdata,
     symbase,symdef;
 
-  procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
-  procedure objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectdef);
+type
+  TObjCCodeGenUtils = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
-  procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
+    procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
+    procedure objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectdef);
+
+    procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
+  end;
 
 
 implementation
@@ -185,13 +194,17 @@ procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tcons
   end;
 
 
-procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+constructor TObjCCodeGenUtils.Create(ACompiler: TCompilerBase);
+  begin
+    FCompiler:=ACompiler;
+  end;
+
+
+procedure TObjCCodeGenUtils.objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
   var
     reflab,
     strlab : tasmlabel;
-    classname: string;
+    _classname: string;
     tcb: ttai_typedconstbuilder;
     strdef: tdef;
   begin
@@ -220,12 +233,12 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
         if (refsec=sec_objc_cls_refs) and
            not(target_info.system in systems_objc_nfabi) then
           begin
-            classname:='';
-            setlength(classname,entry^.keylength);
-            move(entry^.key^,classname[1],entry^.keylength);
+            _classname:='';
+            setlength(_classname,entry^.keylength);
+            move(entry^.key^,_classname[1],entry^.keylength);
             { no way to express this in LLVM either, they also just emit
               module level assembly for it }
-            current_asmdata.asmlists[al_pure_assembler].concat(tai_directive.Create(asd_lazy_reference,'.objc_class_name_'+classname));
+            current_asmdata.asmlists[al_pure_assembler].concat(tai_directive.Create(asd_lazy_reference,'.objc_class_name_'+_classname));
           end;
       end;
   end;
@@ -237,9 +250,7 @@ procedure objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; st
   end;
 
 
-procedure objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectdef);
-  const
-    compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+procedure TObjCCodeGenUtils.objcfinishclassrefnfpoolentry(entry: phashsetitem; classdef: tobjectdef);
   var
     reflab: TAsmLabel;
     classym: TasmSymbol;
@@ -1969,7 +1980,7 @@ constructor tobjcrttiwriter_nonfragile.create;
                  RTTI generation -- Main function
 *******************************************************************}
 
-procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
+procedure TObjCCodeGenUtils.MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
   var
     objcrttiwriter: tobjcrttiwriter;
   begin

@@ -83,7 +83,7 @@ implementation
 
     uses
       systems,
-      cutils,cclasses,verbose,globals,constexp,fmodule,
+      cutils,cclasses,verbose,globals,constexp,fmodule,compiler,
       symconst,symbase,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmdata,
       procinfo,pass_2,parabase,
@@ -134,12 +134,12 @@ implementation
                  if (target_info.system in systems_objc_nfabi) then
                    begin
                      { find/add necessary classref/classname pool entries }
-                     objcfinishclassrefnfpoolentry(entry,tobjectdef(left.resultdef));
+                     compiler.objcgutl.objcfinishclassrefnfpoolentry(entry,tobjectdef(left.resultdef));
                    end
                  else
                    begin
                      { find/add necessary classref/classname pool entries }
-                     objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
+                     compiler.objcgutl.objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                    end;
                  reference_reset_symbol(href,tasmlabel(entry^.Data),0,objc_idtype.alignment,[]);
                  hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,objc_idtype,objc_idtype,href,location.register);

@@ -155,7 +155,7 @@ uses
 {$endif aix}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr
-  ,ngenutil,pgentype
+  ,ngenutil,pgentype,objcgutl
   ,opt,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
@@ -171,6 +171,7 @@ type
     FParser: TParser;
     FNodeUtils: TNodeUtils;
     FOpt: TOptimizers;
+    FObjCGUtl: TObjCCodeGenUtils;
 
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
@@ -183,12 +184,14 @@ type
     property Parser: TParser read FParser;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
+    property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
   end;
 
   { TCompilerHelper }
 
   TCompilerHelper = class helper for TCompilerBase
   private
+    function GetObjCGUtl: TObjCCodeGenUtils; inline;
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
     function GetOpt: TOptimizers; inline;
@@ -302,6 +305,7 @@ type
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
+    property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -346,6 +350,7 @@ begin
   donetokens;
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(FOpt);
+  FreeAndNil(FObjCGUtl);
 end;
 
 
@@ -357,6 +362,7 @@ begin
   { Set default code page for ansistrings on unix-like systems }
   DefaultSystemCodePage:=GetSystemCodePage;
 {$endif}
+  FObjCGUtl:=TObjCCodeGenUtils.Create(Self);
   FOpt:=TOptimizers.Create(Self);
 { inits which need to be done before the arguments are parsed }
   InitSystems;
@@ -591,6 +597,11 @@ begin
 end;
 
 { TCompilerHelper }
+
+function TCompilerHelper.GetObjCGUtl: TObjCCodeGenUtils; inline;
+begin
+  Result := TCompiler(Self).ObjCGUtl;
+end;
 
 function TCompilerHelper.GetParser: TParser; inline;
 begin

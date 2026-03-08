@@ -1792,7 +1792,7 @@ type
           end;
 
          { if an Objective-C module, generate rtti and module info }
-         MaybeGenerateObjectiveCImageInfo(module.globalsymtable,module.localsymtable);
+         compiler.objcgutl.MaybeGenerateObjectiveCImageInfo(module.globalsymtable,module.localsymtable);
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit(module);
@@ -2574,7 +2574,7 @@ type
         write_persistent_type_info(curr.localsymtable,false);
 
         { if an Objective-C module, generate rtti and module info }
-        MaybeGenerateObjectiveCImageInfo(nil,curr.localsymtable);
+        compiler.objcgutl.MaybeGenerateObjectiveCImageInfo(nil,curr.localsymtable);
 
         { generate debuginfo }
         if (cs_debuginfo in current_settings.moduleswitches) then

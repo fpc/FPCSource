@@ -43,7 +43,7 @@ implementation
 uses
     globtype,cclasses,
     aasmbase,aasmdata,
-    cgbase,cgutils,defutil,objcgutl,
+    cgbase,cgutils,defutil,objcgutl,compiler,
     symconst,symsym,symdef,
     node,nld,ncon,
     verbose;
@@ -78,7 +78,7 @@ procedure tcgobjcselectornode.pass_generate_code;
         internalerror(2009030701);
     end;
 
-    objcfinishstringrefpoolentry(entry,sp_objcvarnames,sec_objc_message_refs,sec_objc_meth_var_names);
+    compiler.objcgutl.objcfinishstringrefpoolentry(entry,sp_objcvarnames,sec_objc_message_refs,sec_objc_meth_var_names);
 
     location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),sizeof(pint),[]);
     location.reference.symbol:=tasmlabel(entry^.Data);
