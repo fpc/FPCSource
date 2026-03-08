@@ -611,9 +611,9 @@ implementation
           fn:=afilename;
         { Programs have the name 'Program' to don't conflict with dup id's }
         if _is_unit then
-         inherited create(amodulename)
+         inherited create(amodulename,compiler)
         else
-         inherited create('Program');
+         inherited create('Program',compiler);
         mainsource:=fn;
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}
@@ -1499,8 +1499,6 @@ implementation
       end;
 
     procedure tmodule.end_of_parsing;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
         { free asmdata }
         if assigned(asmdata) then

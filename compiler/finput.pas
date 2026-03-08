@@ -26,7 +26,7 @@ unit finput;
 interface
 
     uses
-      cutils,globtype,cclasses,cstreams;
+      cutils,globtype,cclasses,cstreams,compilerbase;
 
     const
        InputFileBufSize=32*1024+1;
@@ -147,6 +147,7 @@ interface
 
      type
         tmodulebase = class(TLinkedListItem)
+          compiler: TCompilerBase;
           { index }
           unit_index       : longint;  { global counter for browser }
           { status }
@@ -178,7 +179,7 @@ interface
           ppxfilefail: Boolean;     { If the ppxfile could not be accessed, flag it }
 {$endif DEBUG_NODE_XML}
           is_initial : boolean;     { is this the initial module, i.e. the one specified on the command-line ?}
-          constructor create(const s:string);
+          constructor create(const s:string;acompiler: TCompilerBase);
           destructor destroy;override;
           procedure setfilename(const fn:TPathStr;allowoutput:boolean);
        end;
@@ -656,8 +657,9 @@ uses
       end;
 
 
-    constructor tmodulebase.create(const s:string);
+    constructor tmodulebase.create(const s:string;acompiler: TCompilerBase);
       begin
+        compiler:=acompiler;
         modulename:=stringdup(Upper(s));
         realmodulename:=stringdup(s);
         mainsource:='';

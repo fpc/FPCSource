@@ -2081,8 +2081,6 @@ var
       end;
 
       function tppumodule.load_usedunits: boolean;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       { self is a ppu (or in a package) }
       {$IFDEF DisableCTaskPPU}
       var
