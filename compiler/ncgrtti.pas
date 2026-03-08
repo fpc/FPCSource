@@ -1716,7 +1716,7 @@ implementation
                     internalerror(201603021)
                   else
                     tcb.emit_tai(Tai_const.Createname(procdef.mangledname,AT_FUNCTION,0),
-                      cprocvardef.getreusableprocaddr(procdef,pc_address_only));
+                      cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler));
                 end;
             end;
 

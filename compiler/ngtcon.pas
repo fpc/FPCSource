@@ -1538,7 +1538,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { get the address of the procedure, except if it's a C-block (then we
           we will end up with a record that represents the C-block) }
         if not is_block(def) then
-          procaddrdef:=cprocvardef.getreusableprocaddr(def,pc_address_only)
+          procaddrdef:=cprocvardef.getreusableprocaddr(def,pc_address_only,compiler)
         else
           procaddrdef:=def;
         ftcb.queue_init(procaddrdef);

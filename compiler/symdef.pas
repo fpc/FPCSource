@@ -761,7 +761,7 @@ interface
        tprocvardef = class(tabstractprocdef)
           constructor create(level:byte;doregister:boolean;acompiler: TCompilerBase);virtual;
           { returns a procvardef that represents the address of a proc(var)def }
-          class function getreusableprocaddr(def: tabstractprocdef; copytyp: tcacheableproccopytyp): tprocvardef; virtual;
+          class function getreusableprocaddr(def: tabstractprocdef; copytyp: tcacheableproccopytyp; acompiler: TCompilerBase): tprocvardef; virtual;
           { same as above, but in case the def must never be freed after the
             current module has been compiled -- even if the def was not written
             to the ppu file (for defs in para locations, as we don't reset them
@@ -7690,9 +7690,7 @@ implementation
       end;
 
 
-    class function tprocvardef.getreusableprocaddr(def: tabstractprocdef; copytyp: tcacheableproccopytyp): tprocvardef;
-      const
-        _compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    class function tprocvardef.getreusableprocaddr(def: tabstractprocdef; copytyp: tcacheableproccopytyp; acompiler: TCompilerBase): tprocvardef;
       var
         res: PHashSetItem;
         oldsymtablestack: tsymtablestack;
@@ -7714,12 +7712,12 @@ implementation
               if they're a local def, because otherwise they'll be saved
               to the ppu referencing a local symtable entry that doesn't
               exist in the ppu) }
-            oldsymtablestack:=_compiler.symtablestack;
+            oldsymtablestack:=acompiler.symtablestack;
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
-            tcompiler(_compiler).symtablestack:=nil;
+            tcompiler(acompiler).symtablestack:=nil;
             result:=tprocvardef(def.getcopyas(procvardef,copytyp,'',true));
-            setup_reusable_def(def,result,res,oldsymtablestack,_compiler);
+            setup_reusable_def(def,result,res,oldsymtablestack,acompiler);
             { res^.Data may still be nil -> don't overwrite result }
             exit;
           end;
@@ -7728,8 +7726,10 @@ implementation
 
 
     class function tprocvardef.getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
+      const
+        _compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       begin
-        result:=getreusableprocaddr(def,pc_address_only);
+        result:=getreusableprocaddr(def,pc_address_only,_compiler);
         if not result.is_registered then
           include(result.defoptions,df_not_registered_no_free);
       end;

@@ -2698,7 +2698,7 @@ implementation
              copytype:=pc_address_only
            else
              copytype:=pc_normal;
-           resultdef:=cprocvardef.getreusableprocaddr(pd,copytype);
+           resultdef:=cprocvardef.getreusableprocaddr(pd,copytype,compiler);
          end;
       end;
 

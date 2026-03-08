@@ -679,9 +679,9 @@ implementation
                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment,[]);
                          { targets with 32 bit method pointers got already a register assigned }
 {$if not(defined(CPU8BITALU) and defined(CPU16BITADDR))}
-                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only));
+                         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler));
 {$endif not(defined(CPU8BITALU) and defined(CPU16BITADDR))}
-                         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef,pc_address_only),href,location.register);
+                         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),href,location.register);
                        end;
 
                      { to get methodpointers stored correctly, code and self register must be swapped on

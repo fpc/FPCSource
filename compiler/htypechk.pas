@@ -2892,6 +2892,8 @@ implementation
 
 
     procedure tcallcandidates.get_information;
+      const
+        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
       var
         hp       : pcandidate;
         currpara : tparavarsym;
@@ -3033,7 +3035,7 @@ implementation
                  if assigned(pdtemp) then
                    begin
                      tloadnode(ttypeconvnode(currpt.left).left).setprocdef(pdtemp,def_to.typ<>procvardef);
-                     ttypeconvnode(currpt.left).totypedef:=cprocvardef.getreusableprocaddr(pdtemp,pc_normal);
+                     ttypeconvnode(currpt.left).totypedef:=cprocvardef.getreusableprocaddr(pdtemp,pc_normal,compiler);
                      ttypeconvnode(currpt.left).resultdef:=ttypeconvnode(currpt.left).totypedef;
                      def_from:=ttypeconvnode(currpt.left).resultdef;
                    end;
