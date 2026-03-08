@@ -766,7 +766,7 @@ interface
             current module has been compiled -- even if the def was not written
             to the ppu file (for defs in para locations, as we don't reset them
             so we don't have to recalculate them all the time) }
-          class function getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
+          class function getreusableprocaddr_no_free(def: tabstractprocdef; acompiler: TCompilerBase): tprocvardef;
           constructor ppuload(ppufile:tcompilerppufile;acompiler: TCompilerBase);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -7725,11 +7725,9 @@ implementation
       end;
 
 
-    class function tprocvardef.getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
-      const
-        _compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    class function tprocvardef.getreusableprocaddr_no_free(def: tabstractprocdef; acompiler: TCompilerBase): tprocvardef;
       begin
-        result:=getreusableprocaddr(def,pc_address_only,_compiler);
+        result:=getreusableprocaddr(def,pc_address_only,acompiler);
         if not result.is_registered then
           include(result.defoptions,df_not_registered_no_free);
       end;
