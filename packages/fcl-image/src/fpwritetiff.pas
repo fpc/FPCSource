@@ -474,6 +474,8 @@ begin
     0,1:
       begin
         GrayBits:=StrToIntDef(Img.Extra[TiffGrayBits],8);
+        if not (GrayBits in [8, 16, 32, 64]) then
+          TiffError('Unsupported GrayBits value '+IntToStr(GrayBits)+'; must be 8, 16, 32 or 64');
         BitsPerSample[0]:=GrayBits;
         SamplesPerPixel:=1;
       end;
@@ -482,6 +484,12 @@ begin
         RedBits:=StrToIntDef(Img.Extra[TiffRedBits],8);
         GreenBits:=StrToIntDef(Img.Extra[TiffGreenBits],8);
         BlueBits:=StrToIntDef(Img.Extra[TiffBlueBits],8);
+        if not (RedBits in [8, 16, 32, 64]) then
+          TiffError('Unsupported RedBits value '+IntToStr(RedBits)+'; must be 8, 16, 32 or 64');
+        if not (GreenBits in [8, 16, 32, 64]) then
+          TiffError('Unsupported GreenBits value '+IntToStr(GreenBits)+'; must be 8, 16, 32 or 64');
+        if not (BlueBits in [8, 16, 32, 64]) then
+          TiffError('Unsupported BlueBits value '+IntToStr(BlueBits)+'; must be 8, 16, 32 or 64');
         BitsPerSample[0]:=RedBits;
         BitsPerSample[1]:=GreenBits;
         BitsPerSample[2]:=BlueBits;
@@ -495,6 +503,8 @@ begin
       AlphaBits:=StrToIntDef(Img.Extra[TiffAlphaBits],8);
     end;
     if AlphaBits>0 then begin
+      if not (AlphaBits in [8, 16, 32, 64]) then
+        TiffError('Unsupported AlphaBits value '+IntToStr(AlphaBits)+'; must be 8, 16, 32 or 64');
       BitsPerSample[SamplesPerPixel]:=AlphaBits;
       inc(SamplesPerPixel);
     end;
