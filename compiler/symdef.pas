@@ -609,7 +609,7 @@ interface
           function elesize : asizeint;
           function elepackedbitsize : asizeint;
           function elecount : asizeuint;
-          constructor create_from_pointer(def: tpointerdef);virtual;
+          constructor create_from_pointer(def: tpointerdef;acompiler:TCompilerBase);virtual;
           constructor create(l, h: asizeint; def: tdef;acompiler:TCompilerBase);virtual;
           constructor create_vector(l,h:asizeint; def:tdef;acompiler:TCompilerBase);
           constructor create_openarray(acompiler:TCompilerBase);virtual;
@@ -4522,13 +4522,13 @@ implementation
       end;
 
 
-    constructor tarraydef.create_from_pointer(def:tpointerdef);
+    constructor tarraydef.create_from_pointer(def:tpointerdef;acompiler:TCompilerBase);
       begin
          { divide by the element size and do -1 so the array will have a valid size,
            further, the element size might be 0 e.g. for empty records, so use max(...,1)
            to avoid a division by zero }
          self.create(0,(high(asizeint) div max(def.pointeddef.size,1))-1,
-           def.converted_pointer_to_array_range_type,compiler);
+           def.converted_pointer_to_array_range_type,acompiler);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def.pointeddef);
       end;

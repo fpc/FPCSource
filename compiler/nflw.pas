@@ -525,7 +525,7 @@ implementation
         if hp.resultdef.typ<>pointerdef then
           internalerror(2010061904);
         inserttypeconv(hp,
-          carraydef.create_from_pointer(tpointerdef(hp.resultdef)),compiler);
+          carraydef.create_from_pointer(tpointerdef(hp.resultdef),compiler),compiler);
         hp:=compiler.cvecnode(hp,compiler.ctemprefnode(innerloopcounter));
         addstatement(innerloopbodystatement,
           compiler.cassignmentnode(hloopvar,hp));

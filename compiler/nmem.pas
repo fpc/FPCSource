@@ -1332,7 +1332,7 @@ implementation
                   ) then
                 begin
                   { convert pointer to array }
-                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef));
+                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef),compiler);
                   inserttypeconv(left,htype,compiler);
                   if right.nodetype=rangen then
                     resultdef:=htype
@@ -1361,7 +1361,7 @@ implementation
                 end;
                 if right.nodetype=rangen then
                   begin
-                    htype:=carraydef.create_from_pointer(tpointerdef(elementptrdef));
+                    htype:=carraydef.create_from_pointer(tpointerdef(elementptrdef),compiler);
                     resultdef:=htype;
                   end
                 else
