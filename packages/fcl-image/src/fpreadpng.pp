@@ -249,6 +249,8 @@ procedure TFPReaderPNG.HandleAlpha;
         a : word;
         c : TFPColor;
     begin
+      if not assigned(ThePalette) then
+        raise PNGImageException.Create('tRNS chunk before PLTE chunk');
       with chunk do
         begin
         if alength > longword(ThePalette.count) then
@@ -786,6 +788,8 @@ procedure TFPReaderPNG.DoDecompress;
               FConvertColor := @ColorColorAlpha16; //CFmt := cfABGR64;
               ByteWidth := 8;
               end;
+      else
+        raise PNGImageException.Create('Invalid PNG color type');
       end;
       //ByteWidth := BytesNeeded[CFmt];
       case BitDepth of
@@ -816,6 +820,7 @@ procedure TFPReaderPNG.DoDecompress;
   procedure Decode;
   var y, rp, ry, rx, l : integer;
       lf : byte;
+      bytesRead : integer;
   begin
     FSetPixel := DecideSetPixel;
     for rp := StartPass to EndPass do
@@ -846,7 +851,9 @@ procedure TFPReaderPNG.DoDecompress;
             FPreviousLine := FSwitchLine;
             Y := CalcY(ry);
             Decompress.Read (lf, sizeof(lf));
-            Decompress.Read (FCurrentLine^, l);
+            bytesRead := Decompress.Read (FCurrentLine^, l);
+            if bytesRead < l then
+              fillchar (FCurrentLine^[bytesRead], l - bytesRead, 0);
             if lf <> 0 then  // Do nothing when there is no filter used
               for rx := 0 to l-1 do
                 FCurrentLine^[rx] := DoFilter (lf, rx, FCurrentLine^[rx]);
@@ -973,7 +980,11 @@ begin
     end;
   // Check IHDR
   ReadChunk;
-  move (chunk.data^, FHeader, sizeof(Header));
+  if chunk.alength < 13 then  // IHDR is always 13 bytes (2*longword + 5*byte)
+    exit;
+  if chunk.aType <> ctIHDR then
+    exit;
+  move (chunk.data^, FHeader, 13);  // copy exactly IHDR data size, not sizeof(record) which may have padding
   with header do
     begin
     {$IFDEF ENDIAN_LITTLE}
