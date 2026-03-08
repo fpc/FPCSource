@@ -32,6 +32,13 @@ unit opttree;
     uses
       compilerbase,node;
 
+type
+  TTreeOptimizations = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
     { tries to bring the tree in a normalized form:
        - expressions are free of control statements
        - callinitblock/callcleanupblocks are converted into statements
@@ -41,6 +48,7 @@ unit opttree;
       returns true, if this was successful
     }
     function normalize(var n : tnode) : Boolean;
+  end;
 
   implementation
 
@@ -51,6 +59,11 @@ unit opttree;
       nbas,nld,ncal,
       nutils,
       pass_1,compiler;
+
+    constructor TTreeOptimizations.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
 
     function searchstatements(var n : tnode;arg : pointer) : foreachnoderesult;forward;
 
@@ -201,7 +214,7 @@ unit opttree;
       end;
 
 
-    function normalize(var n: tnode) : Boolean;
+    function TTreeOptimizations.normalize(var n: tnode) : Boolean;
       var
         success : Boolean;
       begin

@@ -1287,7 +1287,7 @@ implementation
 
            if cs_opt_dead_store_eliminate in current_settings.optimizerswitches then
              begin
-               if normalize(code) then
+               if compiler.opt.tree.normalize(code) then
                  begin
                    compiler.opt.deadstore.do_optdeadstoreelim(code,RedoDFA);
                    if RedoDFA then

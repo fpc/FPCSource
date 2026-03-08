@@ -28,7 +28,7 @@ interface
 uses
   sysutils,
   compilerbase,
-  optconstprop,optcse,optdeadstore,optloop,opttail;
+  optconstprop,optcse,optdeadstore,optloop,opttail,opttree;
 
 type
 
@@ -41,6 +41,7 @@ type
     FDeadStore: TDeadStoreEliminationOptimization;
     FLoop: TLoopOptimizer;
     FTail: TTailRecursionOptimization;
+    FTree: TTreeOptimizations;
   public
     constructor Create(ACompiler: TCompilerBase);
     destructor Destroy; override;
@@ -49,6 +50,7 @@ type
     property DeadStore: TDeadStoreEliminationOptimization read FDeadStore;
     property Loop: TLoopOptimizer read FLoop;
     property Tail: TTailRecursionOptimization read FTail;
+    property Tree: TTreeOptimizations read FTree;
   end;
 
 implementation
@@ -62,10 +64,12 @@ begin
   FDeadStore:=TDeadStoreEliminationOptimization.Create(ACompiler);
   FLoop:=TLoopOptimizer.Create(ACompiler);
   FTail:=TTailRecursionOptimization.Create(ACompiler);
+  FTree:=TTreeOptimizations.Create(ACompiler);
 end;
 
 destructor TOptimizers.Destroy;
 begin
+  FreeAndNil(FTree);
   FreeAndNil(FTail);
   FreeAndNil(FLoop);
   FreeAndNil(FDeadStore);
