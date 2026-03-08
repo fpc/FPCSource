@@ -369,6 +369,7 @@ implementation
         FPExpr:=TExpressionParser.Create(acompiler);
         FPExports:=TExportsParser.Create(acompiler);
         FPTConst:=TTypedConstParser.Create(acompiler);
+        FPDecVar:=TVariableDeclarationsParser.Create(acompiler);
         FPDecSub:=TSubroutineDeclarationParser.Create(acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(acompiler);
         FPDecl:=TDeclarationParser.Create(acompiler);
@@ -388,6 +389,7 @@ implementation
         FreeAndNil(FPDecl);
         FreeAndNil(FPDecObj);
         FreeAndNil(FPDecSub);
+        FreeAndNil(FPDecVar);
         FreeAndNil(FPTConst);
         FreeAndNil(FPExports);
         FreeAndNil(FPExpr);
