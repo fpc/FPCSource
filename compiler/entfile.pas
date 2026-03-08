@@ -26,7 +26,7 @@ unit entfile;
 interface
 
   uses
-    systems,globtype,constexp,cstreams;
+    systems,globtype,constexp,cstreams,compilerbase;
 
 const
 { buffer sizes }
@@ -225,6 +225,7 @@ type
 
   tentryfile=class
   private
+    FCompiler: TCompilerBase;
     function getposition:longint;
     procedure setposition(value:longint);
   protected
@@ -261,6 +262,7 @@ type
     function getheadersize:longint;virtual;abstract;
     function getheaderaddr:pentryheader;virtual;abstract;
     procedure RaiseAssertion(Code: Longint); virtual;
+    property Compiler: TCompilerBase read FCompiler;
   public
     entrytyp : byte;
     size             : integer;
@@ -269,7 +271,7 @@ type
     has_more,
 {$endif not generic_cpu}
     error         : boolean;
-    constructor create(const fn:string
+    constructor create(const fn:string;acompiler: TCompilerBase
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
         ;aentryfilebufsize : longint = default_entryfilebufsize
 {$endif CHECK_INPUTPOINTER_LIMITS}
@@ -385,12 +387,13 @@ begin
 end;
 
 
-constructor tentryfile.create(const fn:string
+constructor tentryfile.create(const fn:string;acompiler: TCompilerBase
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
         ;aentryfilebufsize : longint = default_entryfilebufsize
 {$endif CHECK_INPUTPOINTER_LIMITS}
 	);
 begin
+  fcompiler:=acompiler;
   fname:=fn;
   fisfile:=false;
   change_endian:=false;

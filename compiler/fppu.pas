@@ -323,7 +323,7 @@ var
          exit;
       { Open the ppufile }
         Message1(unit_u_ppu_name,ppufilename);
-        ppufile:=tcompilerppufile.create(ppufilename);
+        ppufile:=tcompilerppufile.create(ppufilename,compiler);
         if not ppufile.openfile then
          begin
            discardppu;
@@ -339,7 +339,7 @@ var
         result:=false;
       { Open the ppufile }
         Message1(unit_u_ppu_name,ppufilename);
-        ppufile:=tcompilerppufile.create(ppufilename);
+        ppufile:=tcompilerppufile.create(ppufilename,compiler);
         if not ppufile.openstream(strm) then
          begin
            discardppu;
@@ -1744,7 +1744,7 @@ var
            headerflags:=headerflags or uf_fpu_emulation;
 {$endif cpufpemu}
          { create new ppufile }
-         ppufile:=tcompilerppufile.create(ppufilename);
+         ppufile:=tcompilerppufile.create(ppufilename,compiler);
          if not ppufile.createfile then
           Message(unit_f_ppu_cannot_write);
 
@@ -1964,7 +1964,7 @@ var
     procedure tppumodule.getppucrc;
       begin
          { create new ppufile }
-         ppufile:=tcompilerppufile.create(ppufilename);
+         ppufile:=tcompilerppufile.create(ppufilename,compiler);
          ppufile.crc_only:=true;
          if not ppufile.createfile then
            Message(unit_f_ppu_cannot_write);

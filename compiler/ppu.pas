@@ -26,7 +26,7 @@ unit ppu;
 interface
 
   uses
-    globtype,constexp,entfile;
+    globtype,constexp,entfile,compilerbase;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -162,7 +162,7 @@ type
     do_interface_crc,
     do_indirect_crc  : boolean;
     crc_only         : boolean;    { used to calculate interface_crc before implementation }
-    constructor Create(const fn:string);
+    constructor Create(const fn:string;acompiler: TCompilerBase);
     destructor destroy;override;
     function  CheckPPUId:boolean;
   {read}
@@ -212,9 +212,9 @@ end;
                                   TPPUFile
 *****************************************************************************}
 
-constructor tppufile.Create(const fn:string);
+constructor tppufile.Create(const fn:string;acompiler: TCompilerBase);
 begin
-  inherited Create(fn);
+  inherited Create(fn,acompiler);
   crc_only:=false;
 {$ifdef DEBUG_GENERATE_INTERFACE_PPU}
   writing_interface_ppu:=false;

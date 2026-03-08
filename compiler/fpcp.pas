@@ -27,7 +27,7 @@ interface
 
   uses
     cclasses,cstreams,
-    globtype,
+    globtype,compilerbase,
     pcp,finput,fpkg;
 
   type
@@ -73,6 +73,8 @@ implementation
 { tpcppackage }
 
   function tpcppackage.openpcp: boolean;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       pcpfiletime : longint;
     begin
@@ -84,7 +86,7 @@ implementation
        exit;
     { Open the pcpfile }
       Message1(package_u_pcp_name,pcpfilename);
-      pcpfile:=tpcpfile.create(pcpfilename);
+      pcpfile:=tpcpfile.create(pcpfilename,compiler);
       if not pcpfile.openfile then
        begin
          pcpfile.free;
@@ -455,12 +457,14 @@ implementation
     end;
 
   procedure tpcppackage.savepcp;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     var
       tablepos,
       oldpos : longint;
     begin
       { create new ppufile }
-      pcpfile:=tpcpfile.create(pcpfilename);
+      pcpfile:=tpcpfile.create(pcpfilename,compiler);
       if not pcpfile.createfile then
         Message2(package_f_cant_create_pcp,realpackagename^,pcpfilename);
 

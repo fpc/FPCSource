@@ -267,6 +267,8 @@ implementation
     end;
 
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
+    const
+      compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
     Var
       MakeStatic : Boolean;
     Var
@@ -282,7 +284,7 @@ implementation
     begin
       Result:=false;
       MakeStatic:=False;
-      inppu:=tppufile.create(PPUFn);
+      inppu:=tppufile.create(PPUFn,compiler);
       if not inppu.openfile then
        begin
          inppu.free;
@@ -329,7 +331,7 @@ implementation
          MakeStatic:=true;
        end;
     { Create the new ppu }
-      outppu:=tppufile.create(PPUFn);
+      outppu:=tppufile.create(PPUFn,compiler);
       outppu.createstream(OutStream);
     { Create new header, with the new flags }
       outppu.header:=inppu.header;
