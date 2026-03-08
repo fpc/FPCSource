@@ -1819,10 +1819,10 @@ begin
     ReadValues(StreamPos,EntryType,Count,p,ByteCount);
     if Count=0 then exit;
     Case EntryType of
-    3: begin // short
+    3: begin // short - expand to DWord for uniform access by callers
          GetMem(Buffer,SizeOf(DWord)*Count);
          for i:=0 to Count-1 do
-           PWord(Buffer)[i]:=FixEndian(PWord(p)[i]);
+           PDWord(Buffer)[i]:=FixEndian(PWord(p)[i]);
        end;
     4:begin // long
         Buffer:=p;
@@ -2180,7 +2180,8 @@ begin
       if CurByteCnt<=0 then continue;
       ReAllocMem(Chunk,CurByteCnt);
       SetStreamPos(CurOffset);
-      s.Read(Chunk^,CurByteCnt);
+      if s.Read(Chunk^,CurByteCnt) <> CurByteCnt then
+        TiffError('Unexpected end of stream');
 
       // decompress
       if ChunkType=tctTile then
@@ -2320,6 +2321,8 @@ begin
   ErrorMsg:='';
   NewBuffer:=nil;
   try
+    if ExpectedCount > 256*1024*1024 then
+      TiffError('Decompressed data too large');
     NewCount:=ExpectedCount;
     if not DecompressDeflate(Buffer,Count,NewBuffer,NewCount,@ErrorMsg) then
       TiffError(ErrorMsg);
@@ -2628,7 +2631,6 @@ begin
       begin
         // copy the next n+1 bytes
         i:=n+1;
-        inc(NewCount,i);
         inc(p);
         System.Move(p^,d^,i);
         inc(p,i);
@@ -2638,7 +2640,6 @@ begin
       begin
         // copy the next byte 1-n times
         i:=1-n;
-        inc(NewCount,i);
         inc(p);
         n:=p^;
         for j:=0 to i-1 do
