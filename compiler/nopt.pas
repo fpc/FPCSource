@@ -346,20 +346,20 @@ begin
     end;
   arrp:=compiler.carrayconstructornode(sn,arrp);
   Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
-  if assigned(aktassignmentnode) and
-     (aktassignmentnode.right=p) and
+  if assigned(compiler.aktassignmentnode) and
+     (compiler.aktassignmentnode.right=p) and
      (
-       (aktassignmentnode.left.resultdef=p.resultdef) or
+       (compiler.aktassignmentnode.left.resultdef=p.resultdef) or
        (
-         is_shortstring(aktassignmentnode.left.resultdef) and
+         is_shortstring(compiler.aktassignmentnode.left.resultdef) and
          is_shortstring(p.resultdef)
        )
      ) and
-     valid_for_var(aktassignmentnode.left,false) then
+     valid_for_var(compiler.aktassignmentnode.left,false) then
     begin
       para:=compiler.ccallparanode(
               arrp,
-              compiler.ccallparanode(aktassignmentnode.left.getcopy,nil)
+              compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,nil)
             );
       if is_ansistring(p.resultdef) then
         para:=compiler.ccallparanode(
@@ -376,7 +376,7 @@ begin
                 'fpc_'+tstringdef(p.resultdef).stringtypname+'_concat_multi',
                 para
               );
-      include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+      include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
     end
   else
     begin
@@ -461,23 +461,23 @@ begin
   sn:=compiler.ctypeconvnode_internal(hp.getcopy,voidpointertype);
   arrp:=compiler.carrayconstructornode(sn,arrp);
   Include(arrp.arrayconstructornodeflags, acnf_allow_array_constructor);
-  if assigned(aktassignmentnode) and
-     (aktassignmentnode.right=p) and
-     (aktassignmentnode.left.resultdef=p.resultdef) and
-     valid_for_var(aktassignmentnode.left,false) then
+  if assigned(compiler.aktassignmentnode) and
+     (compiler.aktassignmentnode.right=p) and
+     (compiler.aktassignmentnode.left.resultdef=p.resultdef) and
+     valid_for_var(compiler.aktassignmentnode.left,false) then
     begin
       para:=compiler.ccallparanode(
               arrp,
             compiler.ccallparanode(
               compiler.caddrnode_internal(compiler.crttinode(tstoreddef(p.resultdef),initrtti,rdt_normal)),
             compiler.ccallparanode(
-              compiler.ctypeconvnode_internal(aktassignmentnode.left.getcopy,voidpointertype),nil)
+              compiler.ctypeconvnode_internal(compiler.aktassignmentnode.left.getcopy,voidpointertype),nil)
           ));
       result:=compiler.ccallnode_intern(
                 'fpc_dynarray_concat_multi',
                 para
               );
-      include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+      include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
     end
   else
     begin

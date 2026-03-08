@@ -2128,17 +2128,17 @@ const
             isarrconstrl:=left.nodetype=arrayconstructorn;
             isarrconstrr:=right.nodetype=arrayconstructorn;
 
-            if not assigned(aktassignmentnode) or
-                (aktassignmentnode.right<>self) or
+            if not assigned(compiler.aktassignmentnode) or
+                (compiler.aktassignmentnode.right<>self) or
                 not(
                   isarrconstrl or
                   isarrconstrr
                 ) or
                 not(
-                  left.isequal(aktassignmentnode.left) or
-                  right.isequal(aktassignmentnode.left)
+                  left.isequal(compiler.aktassignmentnode.left) or
+                  right.isequal(compiler.aktassignmentnode.left)
                 ) or
-                not valid_for_var(aktassignmentnode.left,false) or
+                not valid_for_var(compiler.aktassignmentnode.left,false) or
                 (isarrconstrl and (element_count(tarrayconstructornode(left))>1)) or
                 (isarrconstrr and (element_count(tarrayconstructornode(right))>1)) then
               exit;
@@ -2160,12 +2160,12 @@ const
             para:=compiler.ccallparanode(
                     compiler.cordconstnode(index,sizesinttype,false),
                     compiler.ccallparanode(
-                      aktassignmentnode.left.getcopy,
+                      compiler.aktassignmentnode.left.getcopy,
                       compiler.ccallparanode(
                         elem,nil)));
 
             result:=compiler.cinlinenode(in_insert_x_y_z,false,para);
-            include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+            include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
           end;
 
       begin
@@ -3369,10 +3369,10 @@ const
                     { for ansistrings set resultdef to assignment left node
                       if it is an assignment and left node expects ansistring }
                     if is_ansistring(left.resultdef) and
-                       assigned(aktassignmentnode) and
-                       (aktassignmentnode.right=self) and
-                       is_ansistring(aktassignmentnode.left.resultdef) then
-                      resultdef:=aktassignmentnode.left.resultdef
+                       assigned(compiler.aktassignmentnode) and
+                       (compiler.aktassignmentnode.right=self) and
+                       is_ansistring(compiler.aktassignmentnode.left.resultdef) then
+                      resultdef:=compiler.aktassignmentnode.left.resultdef
                     else
                       resultdef:=left.resultdef;
                   end;
@@ -3510,22 +3510,22 @@ const
                   exit;
                 end;
               { create the call to the concat routine both strings as arguments }
-              if assigned(aktassignmentnode) and
-                  (aktassignmentnode.right=self) and
+              if assigned(compiler.aktassignmentnode) and
+                  (compiler.aktassignmentnode.right=self) and
                   (
-                    (aktassignmentnode.left.resultdef=resultdef) or
+                    (compiler.aktassignmentnode.left.resultdef=resultdef) or
                     (
-                      is_shortstring(aktassignmentnode.left.resultdef) and
+                      is_shortstring(compiler.aktassignmentnode.left.resultdef) and
                       is_shortstring(resultdef)
                     )
                   ) and
-                  valid_for_var(aktassignmentnode.left,false) then
+                  valid_for_var(compiler.aktassignmentnode.left,false) then
                 begin
                   para:=compiler.ccallparanode(
                           right,
                           compiler.ccallparanode(
                             left,
-                            compiler.ccallparanode(aktassignmentnode.left.getcopy,nil)
+                            compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,nil)
                           )
                         );
                   if is_ansistring(resultdef) then
@@ -3543,7 +3543,7 @@ const
                             'fpc_'+tstringdef(resultdef).stringtypname+'_concat',
                             para
                           );
-                  include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+                  include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                   firstpass(result);
                 end
               else
@@ -3671,14 +3671,14 @@ const
           temp    : ttempcreatenode;
         begin
           { directly load the result set into the assignee if possible }
-          if assigned(aktassignmentnode) and
-              (aktassignmentnode.right=self) and
-              (aktassignmentnode.left.resultdef=resultdef) and
-              valid_for_var(aktassignmentnode.left,false) then
+          if assigned(compiler.aktassignmentnode) and
+              (compiler.aktassignmentnode.right=self) and
+              (compiler.aktassignmentnode.left.resultdef=resultdef) and
+              valid_for_var(compiler.aktassignmentnode.left,false) then
             begin
               result:=compiler.ccallnode_intern(n,
                 compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
-                compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
                 compiler.ccallparanode(right,
                 compiler.ccallparanode(left,nil))))
               );
@@ -3687,7 +3687,7 @@ const
               left:=nil;
               right:=nil;
 
-              include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+              include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
               firstpass(result);
             end
           else
@@ -3761,10 +3761,10 @@ const
           addn:
             begin
               { can we directly write into the result? }
-              no_temp:=assigned(aktassignmentnode) and
-                (aktassignmentnode.right=self) and
-                (aktassignmentnode.left.resultdef=self.resultdef) and
-                valid_for_var(aktassignmentnode.left,false);
+              no_temp:=assigned(compiler.aktassignmentnode) and
+                (compiler.aktassignmentnode.right=self) and
+                (compiler.aktassignmentnode.left.resultdef=self.resultdef) and
+                valid_for_var(compiler.aktassignmentnode.left,false);
 
               { optimize first loading of a set }
               if (right.nodetype=setelementn) and
@@ -3779,10 +3779,10 @@ const
                   if no_temp then
                     begin
                       result:=compiler.ccallnode_intern('fpc_varset_create_element',
-                        compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                        compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
                         compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                         compiler.ccallparanode(tsetelementnode(right).left,nil))));
-                      include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+                      include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                     end
                   else
                     begin
@@ -3830,14 +3830,14 @@ const
                                 compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                                 compiler.ccallparanode(tsetelementnode(right).right,
                                 compiler.ccallparanode(tsetelementnode(right).left,
-                                compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                                compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
                                 compiler.ccallparanode(left,nil))))));
                             end
                           else
                             begin
                               { s:=s+[element]; ? }
-                              if left.isequal(aktassignmentnode.left) then
-                                result:=compiler.cinlinenode_intern(in_include_x_y,false,compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                              if left.isequal(compiler.aktassignmentnode.left) then
+                                result:=compiler.cinlinenode_intern(in_include_x_y,false,compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
                                   compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,tsetdef(resultdef).elementdef),nil)))
                               else
                                 begin
@@ -3849,12 +3849,12 @@ const
                                   result:=compiler.ccallnode_intern('fpc_varset_set',
                                     compiler.ccallparanode(compiler.cordconstnode(resultdef.size,sinttype,false),
                                     compiler.ccallparanode(compiler.ctypeconvnode_internal(tsetelementnode(right).left,sinttype),
-                                    compiler.ccallparanode(aktassignmentnode.left.getcopy,
+                                    compiler.ccallparanode(compiler.aktassignmentnode.left.getcopy,
                                     compiler.ccallparanode(left,nil)))));
                                 end;
                             end;
 
-                          include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+                          include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                         end
                       else
                         begin
@@ -3948,10 +3948,10 @@ const
                   exit;
                 end;
               { create the call to the concat routine both strings as arguments }
-              if assigned(aktassignmentnode) and
-                  (aktassignmentnode.right=self) and
-                  (aktassignmentnode.left.resultdef=resultdef) and
-                  valid_for_var(aktassignmentnode.left,false) then
+              if assigned(compiler.aktassignmentnode) and
+                  (compiler.aktassignmentnode.right=self) and
+                  (compiler.aktassignmentnode.left.resultdef=resultdef) and
+                  valid_for_var(compiler.aktassignmentnode.left,false) then
                 begin
                   para:=compiler.ccallparanode(
                           compiler.ctypeconvnode_internal(right,voidcodepointertype),
@@ -3960,13 +3960,13 @@ const
                         compiler.ccallparanode(
                           compiler.caddrnode_internal(compiler.crttinode(tstoreddef(resultdef),initrtti,rdt_normal)),
                         compiler.ccallparanode(
-                          compiler.ctypeconvnode_internal(aktassignmentnode.left.getcopy,voidcodepointertype),nil)
+                          compiler.ctypeconvnode_internal(compiler.aktassignmentnode.left.getcopy,voidcodepointertype),nil)
                         )));
                   result:=compiler.ccallnode_intern(
                             'fpc_dynarray_concat',
                             para
                           );
-                  include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+                  include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
                   firstpass(result);
                 end
               else

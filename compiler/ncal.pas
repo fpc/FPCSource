@@ -3455,22 +3455,22 @@ implementation
         result:=false;
 
         { we are processing an assignment node? }
-        if not(assigned(aktassignmentnode) and
-               (aktassignmentnode.right=self) and
-               (aktassignmentnode.left.resultdef=resultdef)) then
+        if not(assigned(compiler.aktassignmentnode) and
+               (compiler.aktassignmentnode.right=self) and
+               (compiler.aktassignmentnode.left.resultdef=resultdef)) then
           exit;
 
         { destination must be able to be passed as var parameter }
-        if not valid_for_var(aktassignmentnode.left,false) then
+        if not valid_for_var(compiler.aktassignmentnode.left,false) then
           exit;
 
         { destination must be a simple load so it doesn't need a temp when
           it is evaluated }
-        if not is_simple_para_load(aktassignmentnode.left,false) then
+        if not is_simple_para_load(compiler.aktassignmentnode.left,false) then
           exit;
 
         { remove possible typecasts }
-        realassignmenttarget:=actualtargetnode(@aktassignmentnode.left)^;
+        realassignmenttarget:=actualtargetnode(@compiler.aktassignmentnode.left)^;
 
         { when the result is returned by value (instead of by writing it to the
           address passed in a hidden parameter), aktassignmentnode.left will
@@ -3492,7 +3492,7 @@ implementation
                    the destination is complex, this could lead to lengthy
                    code in case the function result is used often and it is
                    assigned e.g. to a threadvar }
-                 if node_complexity(aktassignmentnode.left)>1 then
+                 if node_complexity(compiler.aktassignmentnode.left)>1 then
                    exit;
                end;
            end;
@@ -3594,10 +3594,10 @@ implementation
               function }
             if funcret_can_be_reused then
               begin
-                funcretnode:=aktassignmentnode.left.getcopy;
+                funcretnode:=compiler.aktassignmentnode.left.getcopy;
                 include(funcretnode.flags,nf_is_funcret);
                 { notify the assignment node that the assignment can be removed }
-                include(aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
+                include(compiler.aktassignmentnode.assignmentnodeflags,anf_assign_done_in_right);
               end
             else
               begin

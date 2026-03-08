@@ -180,6 +180,9 @@ type
     Fmacrosymtablestack,
     Fsymtablestack        : TSymtablestack;
 
+    { Current assignment node }
+    Faktassignmentnode : tassignmentnode;
+
     CompilerInitedAfterArgs,
     CompilerInited : boolean;
 
@@ -196,12 +199,14 @@ type
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
     property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
+    property aktassignmentnode : tassignmentnode read Faktassignmentnode write Faktassignmentnode;
   end;
 
   { TCompilerHelper }
 
   TCompilerHelper = class helper for TCompilerBase
   private
+    function Getaktassignmentnode: tassignmentnode; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
@@ -210,6 +215,7 @@ type
     function GetOpt: TOptimizers; inline;
     function GetRTTIWriter: TRTTIWriter; inline;
     function Getsymtablestack: TSymtablestack; inline;
+    procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
   public
     { node constructor helpers }
     { nadd }
@@ -325,6 +331,7 @@ type
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
     property symtablestack: TSymtablestack read Getsymtablestack;
+    property aktassignmentnode : tassignmentnode read Getaktassignmentnode write Setaktassignmentnode;
   end;
 
 function Compile(const cmd:TCmdStr):longint;
@@ -617,6 +624,11 @@ end;
 
 { TCompilerHelper }
 
+function TCompilerHelper.Getaktassignmentnode: tassignmentnode; inline;
+begin
+  Result := TCompiler(Self).aktassignmentnode;
+end;
+
 function TCompilerHelper.Getinitialmacrosymtable: TSymtable; inline;
 begin
   Result := TCompiler(Self).initialmacrosymtable;
@@ -655,6 +667,11 @@ end;
 function TCompilerHelper.Getsymtablestack: TSymtablestack;
 begin
   Result := TCompiler(Self).symtablestack;
+end;
+
+procedure TCompilerHelper.Setaktassignmentnode(AValue: tassignmentnode); inline;
+begin
+  TCompiler(Self).aktassignmentnode := AValue;
 end;
 
 function TCompilerHelper.caddnode(tt: tnodetype; l, r: tnode): taddnode; inline;

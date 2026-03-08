@@ -201,9 +201,6 @@ interface
        ctypenode : ttypenodeclass = ttypenode;
        crttinode : trttinodeclass = trttinode;
 
-       { Current assignment node }
-       aktassignmentnode : tassignmentnode;
-
        { Create a node tree to load a variable if symbol is assigned, otherwise an error node.
          Generates an internalerror if called for an absolutevarsym of the "tovar" kind (those
          are only supported for expansion in the parser) }
@@ -724,10 +721,10 @@ implementation
 
         { PI. This is needed to return correct resultdef of add nodes for ansistrings
           rawbytestring return needs to be replaced by left.resultdef }
-        oldassignmentnode:=aktassignmentnode;
-        aktassignmentnode:=self;
+        oldassignmentnode:=compiler.aktassignmentnode;
+        compiler.aktassignmentnode:=self;
         typecheckpass(right);
-        aktassignmentnode:=oldassignmentnode;
+        compiler.aktassignmentnode:=oldassignmentnode;
 
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_written,[]);
@@ -970,10 +967,10 @@ implementation
            This is especially useful for string routines where the destination
            is pushed as a parameter. Using the final destination of left directly
            save a temp allocation and copy of data (PFV) }
-         oldassignmentnode:=aktassignmentnode;
-         aktassignmentnode:=self;
+         oldassignmentnode:=compiler.aktassignmentnode;
+         compiler.aktassignmentnode:=self;
          firstpass(right);
-         aktassignmentnode:=oldassignmentnode;
+         compiler.aktassignmentnode:=oldassignmentnode;
          if anf_assign_done_in_right in assignmentnodeflags then
            begin
              result:=right;
