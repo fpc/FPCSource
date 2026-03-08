@@ -5390,6 +5390,7 @@ implementation
         oldsymtablestack: tsymtablestack;
         ts: ttypesym;
       begin
+        compiler:=acompiler;
         { construct name }
         if n<>'' then
           pname:=@n
@@ -5404,10 +5405,10 @@ implementation
           that can have side-effects (e.g., it removes helpers) }
         tcompiler(compiler).symtablestack:=nil;
 
-        symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin,acompiler);
+        symtable:=trecordsymtable.create(pname^,packrecords,recordalignmin,compiler);
         symtable.defowner:=self;
         isunion:=false;
-        inherited create(pname^,recorddef,true,acompiler);
+        inherited create(pname^,recorddef,true,compiler);
         where.insertdef(self);
         { if we specified a name, then we'll probably want to look up the
           type again by name too -> create typesym }
@@ -5420,7 +5421,7 @@ implementation
             ts.increfcount;
             where.insertsym(ts);
           end;
-        tcompiler(acompiler).symtablestack:=oldsymtablestack;
+        tcompiler(compiler).symtablestack:=oldsymtablestack;
         { don't create RTTI for internal types, these are not exported }
         defstates:=defstates+[ds_rtti_table_written,ds_init_table_written];
         include(defoptions,df_internal);
