@@ -30,12 +30,14 @@ unit opttree;
   interface
 
     uses
-      compilerbase,node;
+      compilerbase,node,nutils;
 
 type
   TTreeOptimizations = class
   private
     FCompiler: TCompilerBase;
+    function searchblock(var n : tnode;arg : pointer) : foreachnoderesult;
+    function searchstatements(var n : tnode;arg : pointer) : foreachnoderesult;
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -57,15 +59,12 @@ type
       globtype,
       defutil,
       nbas,nld,ncal,
-      nutils,
       pass_1,compiler;
 
     constructor TTreeOptimizations.Create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
       end;
-
-    function searchstatements(var n : tnode;arg : pointer) : foreachnoderesult;forward;
 
     function hasblock(var n : tnode;arg : pointer) : foreachnoderesult;
       begin
@@ -74,9 +73,7 @@ type
           result:=fen_norecurse_true;
       end;
 
-    function searchblock(var n : tnode;arg : pointer) : foreachnoderesult;
-      const
-        compiler: TCompilerBase = nil;  { TODO: fix node compiler reference!!! }
+    function TTreeOptimizations.searchblock(var n : tnode;arg : pointer) : foreachnoderesult;
       var
         hp,
         statements,
@@ -106,7 +103,7 @@ type
                   { tree moved }
                   tcallnode(n).callinitblock:=nil;
                   { process the newly generated block }
-                  foreachnodestatic(pnode(arg)^,@searchstatements,nil);
+                  foreachnode(pnode(arg)^,@searchstatements,nil);
                 end;
               if assigned(tcallnode(n).callcleanupblock) then
                 begin
@@ -116,7 +113,7 @@ type
                   { tree moved }
                   tcallnode(n).callcleanupblock:=nil;
                   { process the newly generated block }
-                  foreachnodestatic(tstatementnode(pnode(arg)^).right,@searchstatements,nil);
+                  foreachnode(tstatementnode(pnode(arg)^).right,@searchstatements,nil);
                 end;
             end;
           blockn:
@@ -155,7 +152,7 @@ type
                             { the old statement is not used anymore }
                             res^:=compiler.cnothingnode;
                             { process the newly generated statement }
-                            foreachnodestatic(pnode(arg)^,@searchstatements,nil);
+                            foreachnode(pnode(arg)^,@searchstatements,nil);
                           end
                         else if assigned(res^.resultdef) and not(is_void(res^.resultdef)) then
                           begin
@@ -181,7 +178,7 @@ type
                             { ... and the inserted temp. }
                             do_firstpass(n);
                             { process the newly generated block }
-                            foreachnodestatic(pnode(arg)^,@searchstatements,nil);
+                            foreachnode(pnode(arg)^,@searchstatements,nil);
                           end;
                       end;
                     end;
@@ -192,14 +189,12 @@ type
         end;
       end;
 
-    var
-      searchstatementsproc : staticforeachnodefunction;
 
-    function searchstatements(var n : tnode;arg : pointer) : foreachnoderesult;
+    function TTreeOptimizations.searchstatements(var n : tnode;arg : pointer) : foreachnoderesult;
       begin
         if n.nodetype=statementn then
           begin
-            if not(foreachnodestatic(tstatementnode(n).left,@searchblock,@n)) then
+            if not(foreachnode(tstatementnode(n).left,@searchblock,@n)) then
               begin
                 pboolean(arg)^:=false;
                 result:=fen_norecurse_false;
@@ -207,7 +202,7 @@ type
               end;
             { do not recurse automatically, but continue with the next statement }
             result:=fen_norecurse_false;
-            foreachnodestatic(tstatementnode(n).right,searchstatementsproc,arg);
+            foreachnode(tstatementnode(n).right,@Self.searchstatements,arg);
           end
         else
           result:=fen_false;
@@ -223,8 +218,7 @@ type
         writeln('******************************************** Before ********************************************');
         printnode(n);
 {$endif DEBUG_NORMALIZE}
-        searchstatementsproc:=@searchstatements;
-        foreachnodestatic(n,@searchstatements,@success);
+        foreachnode(n,@searchstatements,@success);
 {$ifdef DEBUG_NORMALIZE}
         if success then
           begin
