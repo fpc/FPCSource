@@ -5000,6 +5000,8 @@ implementation
                inlined because they're always virtual and the destination can
                change at run, and for the same reason we also can't perform
                WPO on them (+ they have no constructors) }
+
+             { Check if the call can be inlined, sets the cnf_do_inline flag }
              check_inlining;
 
              { must be called before maybe_load_in_temp(methodpointer), because
