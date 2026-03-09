@@ -323,6 +323,12 @@ interface
        );
        tsymbol_search_flags = set of tsymbol_search_flag;
 
+       { TSymtablestackHelper }
+
+       TSymtablestackHelper = class helper for TSymtablestack
+         function searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean; inline;
+       end;
+
 
 {****************************************************************************
                              Functions
@@ -2944,6 +2950,17 @@ implementation
         defowner:=adefowner;
       end;
 
+{****************************************************************************
+                          TSymtablestackHelper
+****************************************************************************}
+
+    function TSymtablestackHelper.searchsym_maybe_with_symoption(
+        const s: TIDString; out srsym: tsym; out srsymtable: TSymtable;
+        flags: tsymbol_search_flags; option: tsymoption): boolean; inline;
+      begin
+        result:=symtable.searchsym_maybe_with_symoption(self,s,srsym,srsymtable,flags,option);
+      end;
+
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
@@ -3589,9 +3606,9 @@ implementation
       begin
         case s[1] of
           internal_macro_escape_unit_namespace_name:
-            result:=searchsym_maybe_with_symoption(compiler.symtablestack,copy(s,2,length(s)-1),srsym,srsymtable,[ssf_unit_or_namespace_only],sp_none)
+            result:=compiler.symtablestack.searchsym_maybe_with_symoption(copy(s,2,length(s)-1),srsym,srsymtable,[ssf_unit_or_namespace_only],sp_none)
           else
-            result:=searchsym_maybe_with_symoption(compiler.symtablestack,s,srsym,srsymtable,[],sp_none);
+            result:=compiler.symtablestack.searchsym_maybe_with_symoption(s,srsym,srsymtable,[],sp_none);
         end
       end;
 
@@ -3600,7 +3617,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=searchsym_maybe_with_symoption(compiler.symtablestack,s,srsym,srsymtable,flags,sp_none);
+        result:=compiler.symtablestack.searchsym_maybe_with_symoption(s,srsym,srsymtable,flags,sp_none);
       end;
 
 
