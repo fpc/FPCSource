@@ -302,7 +302,7 @@ implementation
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then
           begin
-            if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+            if not compiler.symtablestack.searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
                (sym.typ<>procsym) then
               internalerror(2012010601);
             pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
@@ -396,7 +396,7 @@ implementation
                     (cs_checkpointer in current_settings.localswitches) and
                     not(cs_compilesystem in current_settings.moduleswitches) then
                   begin
-                    if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+                    if not compiler.symtablestack.searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
                        (sym.typ<>procsym) then
                       internalerror(2012010602);
                     pd:=tprocdef(tprocsym(sym).ProcdefList[0]);

@@ -74,6 +74,8 @@ implementation
 
   function get_block_literal_isa(orgpd: tprocdef): tstaticvarsym;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       srsym: tsym;
       srsymtable: tsymtable;
       name: tidstring;
@@ -82,7 +84,7 @@ implementation
         name:='_NSCONCRETEGLOBALBLOCK'
       else
         name:='_NSCONCRETESTACKBLOCK';
-      if not searchsym_in_named_module('BLOCKRTL',name,srsym,srsymtable) or
+      if not compiler.symtablestack.searchsym_in_named_module('BLOCKRTL',name,srsym,srsymtable) or
          (srsym.typ<>staticvarsym) then
         internalerror(2014071501);
       result:=tstaticvarsym(srsym);

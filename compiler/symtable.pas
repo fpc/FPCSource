@@ -331,6 +331,7 @@ interface
          function searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean; inline;
          function searchsym_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean; inline;
          function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean; inline;
+         function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean; inline;
        end;
 
 
@@ -369,7 +370,7 @@ interface
     function  searchsym_with_symoption(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean;
     function  searchsym_type(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
-    function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
+    function  searchsym_in_named_module(symtablestack:TSymtablestack;const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
     function  searchsym_in_class(classh: tobjectdef; contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
     function  searchsym_in_record(recordh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
@@ -2990,6 +2991,12 @@ implementation
         result:=symtable.searchsym_type(self,s,srsym,srsymtable);
       end;
 
+    function TSymtablestackHelper.searchsym_in_named_module(const unitname,
+        symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean; inline;
+      begin
+        result:=symtable.searchsym_in_named_module(self,unitname,symname,srsym,srsymtable);
+      end;
+
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
@@ -3837,14 +3844,12 @@ implementation
       end;
 
 
-    function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function searchsym_in_named_module(symtablestack:TSymtablestack;const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
       var
         stackitem  : psymtablestackitem;
       begin
         result:=false;
-        stackitem:=compiler.symtablestack.stack;
+        stackitem:=symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
@@ -4491,11 +4496,13 @@ implementation
 
     function search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         srsymtable: tsymtable;
         sym: tsym;
       begin
         sym:=nil;
-        if searchsym_in_named_module(unitname,typename,sym,srsymtable) and
+        if compiler.symtablestack.searchsym_in_named_module(unitname,typename,sym,srsymtable) and
            (sym.typ=typesym) then
           begin
             result:=ttypesym(sym);

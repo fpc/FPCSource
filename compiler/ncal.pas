@@ -1656,7 +1656,7 @@ implementation
          srsymtable: tsymtable;
        begin
          srsym:=nil;
-         if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
+         if not acompiler.symtablestack.searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
          create(params,tprocsym(srsym),srsymtable,nil,[],nil,acompiler);
@@ -3188,7 +3188,7 @@ implementation
 
         { get the mangled name }
         srsym:=nil;
-        if not searchsym_in_named_module('OBJC',msgsendname,srsym,srsymtable) or
+        if not compiler.symtablestack.searchsym_in_named_module('OBJC',msgsendname,srsym,srsymtable) or
            (srsym.typ<>procsym) or
            (tprocsym(srsym).ProcdefList.count<>1) then
           Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
