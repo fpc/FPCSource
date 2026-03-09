@@ -106,7 +106,7 @@ implementation
                if assigned(astruct) then
                  sym:=search_struct_member(astruct,current_scanner.pattern)
                else
-                 searchsym(current_scanner.pattern,sym,srsymtable);
+                 compiler.symtablestack.searchsym(current_scanner.pattern,sym,srsymtable);
                if assigned(sym) then
                 begin
                   if assigned(astruct) and
@@ -652,7 +652,7 @@ implementation
                        sym:=nil;
                        if (not assigned(astruct) or
                            (search_struct_member(astruct,current_scanner.pattern)=nil)) and
-                          searchsym(current_scanner.pattern,sym,srsymtable) and
+                          compiler.symtablestack.searchsym(current_scanner.pattern,sym,srsymtable) and
                           (sym.typ = constsym) then
                          begin
                             addsymref(sym);
@@ -2038,7 +2038,7 @@ implementation
                 begin
                   sorg:=current_scanner.orgpattern;
                   hs:=current_scanner.pattern;
-                  searchsym(hs,srsym,srsymtable);
+                  compiler.symtablestack.searchsym(hs,srsym,srsymtable);
                   if not(assigned(srsym) and (srsym.typ in [typesym,unitsym])) then
                     begin
                       consume(_ID);

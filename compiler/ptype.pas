@@ -164,7 +164,7 @@ implementation
                      if not assigned(tforwarddef(hpd).tosymname) then
                        internalerror(200211201);
                      hs:=tforwarddef(hpd).tosymname^;
-                     searchsym(upper(hs),srsym,srsymtable);
+                     compiler.symtablestack.searchsym(upper(hs),srsym,srsymtable);
                      { we don't need the forwarddef anymore, dispose it }
                      hpd.free;
                      hpd := nil;
@@ -400,7 +400,7 @@ implementation
          if not searchsym_type(s,srsym,srsymtable) then
            { for a good error message we need to know whether the symbol really did not exist or
              whether we found a non-type one }
-           not_a_type:=searchsym(s,srsym,srsymtable)
+           not_a_type:=compiler.symtablestack.searchsym(s,srsym,srsymtable)
          else
            not_a_type:=false;
          { handle unit specification like System.Writeln }
@@ -1892,7 +1892,7 @@ implementation
                     and get the member owner instead of just created enumdef }
                   if not assigned(aktenumdef) then
                     begin
-                      if not searchsym(current_scanner.pattern,sym,st) then
+                      if not compiler.symtablestack.searchsym(current_scanner.pattern,sym,st) then
                         internalerror(202504121)
                       else if sym.typ=enumsym then
                         aktenumdef:=tenumsym(sym).definition

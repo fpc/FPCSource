@@ -530,7 +530,7 @@ implementation
 
     uses
        { global }
-       verbose,cmsgs,
+       verbose,cmsgs,compiler,
        { target }
        systems,
        { symtable }
@@ -2102,12 +2102,14 @@ implementation
 
     function tfieldvarsym.mangledname:TSymStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         srsym : tsym;
         srsymtable : tsymtable;
       begin
         if sp_static in symoptions then
           begin
-            if searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable) then
+            if compiler.symtablestack.searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable) then
               result:=srsym.mangledname
             { when generating the debug info for the module in which the }
             { symbol is defined, the localsymtable of that module is     }

@@ -979,7 +979,7 @@ implementation
                           objrealname:=current_scanner.orgpattern;
                           { can't use consume_sym here, because we need already
                             to check for the colon }
-                          searchsym(objname,srsym,srsymtable);
+                          compiler.symtablestack.searchsym(objname,srsym,srsymtable);
                           consume(_ID);
                           { is a explicit name for the exception given ? }
                           if try_to_consume(_COLON) then
@@ -1280,7 +1280,7 @@ implementation
           sym:=nil;
           if current_scanner.token=_ID then
             begin
-              if searchsym(current_scanner.pattern,sym,symtable) then
+              if compiler.symtablestack.searchsym(current_scanner.pattern,sym,symtable) then
                 begin
                   if sym.typ in [staticvarsym,localvarsym,paravarsym] then
                     begin
@@ -1397,7 +1397,7 @@ implementation
                           while (length(current_scanner.pattern)>1) and (current_scanner.pattern[1]='0') do
                             delete(current_scanner.pattern,1,1);
 
-                        searchsym(current_scanner.pattern,srsym,srsymtable);
+                        compiler.symtablestack.searchsym(current_scanner.pattern,srsym,srsymtable);
                         if srsym=nil then
                           begin
                             identifier_not_found(current_scanner.pattern);
@@ -1507,9 +1507,9 @@ implementation
               begin
                 { in iso mode, 0003: is equal to 3: }
                 if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
-                  searchsym(tostr(tordconstnode(p).value),srsym,srsymtable)
+                  compiler.symtablestack.searchsym(tostr(tordconstnode(p).value),srsym,srsymtable)
                 else
-                  searchsym(s,srsym,srsymtable);
+                  compiler.symtablestack.searchsym(s,srsym,srsymtable);
                 p.free;
                 p := nil;
 

@@ -26,7 +26,7 @@ unit scandir;
   interface
 
     uses
-      globtype,
+      globtype,compilerbase,
       systems;
 
     const
@@ -59,7 +59,7 @@ unit scandir;
     uses
       SysUtils,
       cutils,cfileutl,
-      globals,widestr,cpuinfo,tokens,
+      globals,widestr,cpuinfo,tokens,compiler,
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
@@ -1588,11 +1588,13 @@ unit scandir;
 
     function get_peflag_const(const ident:string;error:longint):longint;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         srsym : tsym;
         srsymtable : tsymtable;
       begin
         result:=0;
-        if searchsym(ident,srsym,srsymtable) then
+        if compiler.symtablestack.searchsym(ident,srsym,srsymtable) then
           if (srsym.typ=constsym) and
               (tconstsym(srsym).consttyp=constord) and
               is_integer(tconstsym(srsym).constdef) then

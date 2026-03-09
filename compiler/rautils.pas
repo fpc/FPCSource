@@ -1435,13 +1435,15 @@ end;
 
 procedure AsmSearchSym(const s:string;out srsym:tsym;out srsymtable:TSymtable);
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   i : integer;
 begin
   i:=pos('.',s);
   { allow unit.identifier }
   if i>1 then
     begin
-      searchsym(Copy(s,1,i-1),srsym,srsymtable);
+      compiler.symtablestack.searchsym(Copy(s,1,i-1),srsym,srsymtable);
       if assigned(srsym) then
        begin
          if (srsym.typ=unitsym) and
@@ -1456,7 +1458,7 @@ begin
        end;
     end
   else
-    searchsym(s,srsym,srsymtable);
+    compiler.symtablestack.searchsym(s,srsym,srsymtable);
   { in asm routines, the function result variable, that matches the function
     name should be avoided, because:
     1) there's already a @Result directive (even in TP7) that can be used, if

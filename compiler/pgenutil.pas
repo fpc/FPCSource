@@ -1562,7 +1562,7 @@ uses
             else
               found:=searchsym_in_record(tabstractrecorddef(symowner.defowner),ugenname,context.sym,context.symtable);
             if not found then
-              found:=searchsym(ugenname,context.sym,context.symtable);
+              found:=compiler.symtablestack.searchsym(ugenname,context.sym,context.symtable);
           end
         else if enforce_unit then
           begin
@@ -1576,7 +1576,7 @@ uses
             found:=searchsym_in_module(hmodule,ugenname,context.sym,context.symtable);
           end
         else
-          found:=searchsym(ugenname,context.sym,context.symtable);
+          found:=compiler.symtablestack.searchsym(ugenname,context.sym,context.symtable);
 
         if found and (context.sym.typ=absolutevarsym) and
             (vo_is_funcret in tabstractvarsym(context.sym).varoptions) then
@@ -1594,7 +1594,7 @@ uses
               end;
             if not assigned(compiler.symtablestack.top) then
               internalerror(2019123001);
-            found:=searchsym(ugenname,context.sym,context.symtable);
+            found:=compiler.symtablestack.searchsym(ugenname,context.sym,context.symtable);
             for i:=tmpstack.count-1 downto 0 do
               compiler.symtablestack.push(tsymtable(tmpstack[i]));
             tmpstack.free;

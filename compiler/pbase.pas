@@ -27,7 +27,7 @@ interface
 
     uses
        cutils,cclasses,
-       tokens,globtype,
+       tokens,globtype,compilerbase,
        symconst,symbase,symtype,symdef,symsym,symtable
        ;
 
@@ -117,7 +117,7 @@ interface
 implementation
 
     uses
-       globals,scanner,verbose,fmodule;
+       globals,scanner,verbose,fmodule,compiler;
 
 {****************************************************************************
                                Token Parsing
@@ -233,6 +233,8 @@ implementation
     }
     function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         t : ttoken;
       begin
         { first check for identifier }
@@ -244,7 +246,7 @@ implementation
             result:=false;
             exit;
           end;
-        searchsym(current_scanner.pattern,srsym,srsymtable);
+        compiler.symtablestack.searchsym(current_scanner.pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
         try_consume_unitsym_no_specialize(srsym,srsymtable,t,[cuf_consume_id],current_scanner.pattern);
         { if nothing found give error and return errorsym }
@@ -266,6 +268,8 @@ implementation
     }
     function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         t : ttoken;
       begin
         { first check for identifier }
@@ -277,7 +281,7 @@ implementation
             result:=false;
             exit;
           end;
-        searchsym(current_scanner.pattern,srsym,srsymtable);
+        compiler.symtablestack.searchsym(current_scanner.pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
         try_consume_unitsym_no_specialize(srsym,srsymtable,t,[cuf_consume_id],current_scanner.pattern);
         { if nothing found give error and return errorsym }

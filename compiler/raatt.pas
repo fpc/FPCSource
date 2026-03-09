@@ -118,7 +118,7 @@ unit raatt;
 
     uses
       { globals }
-      verbose,systems,
+      verbose,systems,compiler,
       { input }
       scanner, pbase,
       { symtable }
@@ -198,6 +198,8 @@ unit raatt;
       end;
 
     procedure tattreader.GetToken;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         len : longint;
         srsym : tsym;
@@ -476,7 +478,7 @@ unit raatt;
                    parse the identifier }
                  if (c='.') then
                   begin
-                    searchsym(actasmpattern,srsym,srsymtable);
+                    compiler.symtablestack.searchsym(actasmpattern,srsym,srsymtable);
                     if assigned(srsym) and
                        (srsym.typ=unitsym) and
                        (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
@@ -1535,6 +1537,8 @@ unit raatt;
 
     procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hssymtyp : TAsmSymType;
         hs,tempstr,expr,mangledname : string;
         parenlevel : longint;
@@ -1694,7 +1698,7 @@ unit raatt;
                     end
                    else
                     begin
-                      searchsym(tempstr,sym,srsymtable);
+                      compiler.symtablestack.searchsym(tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of
@@ -1759,7 +1763,7 @@ unit raatt;
                       end
                    else
                     begin
-                      searchsym(tempstr,sym,srsymtable);
+                      compiler.symtablestack.searchsym(tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of

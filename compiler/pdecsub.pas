@@ -747,7 +747,7 @@ implementation
           begin
             storepos:=current_tokenpos;
             current_tokenpos:=procstartfilepos;
-            searchsym(sp,result,srsymtable);
+            compiler.symtablestack.searchsym(sp,result,srsymtable);
             if not assigned(result) then
               begin
                 if gen_error then
@@ -781,7 +781,7 @@ implementation
               begin
                 sym:=ttypesym(genericparams[i]);
                 { ToDo: position }
-                if not searchsym(upper(sym.RealName),typesrsym,typesrsymtable) then
+                if not compiler.symtablestack.searchsym(upper(sym.RealName),typesrsym,typesrsymtable) then
                   begin
                     message1(sym_e_id_not_found,sym.name);
                     error:=true;
@@ -808,7 +808,7 @@ implementation
                 exit;
               end;
 
-            if not searchsym(sp,typesrsym,typesrsymtable) or (typesrsym.typ<>typesym) then
+            if not compiler.symtablestack.searchsym(sp,typesrsym,typesrsymtable) or (typesrsym.typ<>typesym) then
               begin
                 identifier_not_found(sp);
                 srsym:=generrorsym;

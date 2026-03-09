@@ -1609,7 +1609,7 @@ implementation
                 call_vmt_node:=load_vmt_pointer_node
               else if is_class(current_structdef) then
                 begin
-                  if not searchsym(copy(internaltypeprefixName[itp_vmt_afterconstruction_local],2,255),srsym,srsymtable) then
+                  if not compiler.symtablestack.searchsym(copy(internaltypeprefixName[itp_vmt_afterconstruction_local],2,255),srsym,srsymtable) then
                     internalerror(2016090801);
                   call_vmt_node:=compiler.cloadnode(srsym,srsymtable);
                 end;

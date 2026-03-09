@@ -167,7 +167,7 @@ implementation
         by itself is unique }
       name:='__FPC_BLOCK_DESCRIPTOR_SIMPLE_'+invokepd.unique_id_str;
       { already exists -> return }
-      if searchsym(name,srsym,srsymtable) then
+      if compiler.symtablestack.searchsym(name,srsym,srsymtable) then
         begin
           if srsym.typ<>staticvarsym then
             internalerror(2014071402);
@@ -193,6 +193,8 @@ implementation
     what will be assigned to the "invoke" field of the block }
   function get_invoke_wrapper(orgpd: tprocdef; orgpv: tprocvardef): tprocdef;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       wrappername: TIDString;
       srsym: tsym;
       srsymtable: tsymtable;
@@ -201,7 +203,7 @@ implementation
         the combination of owner.moduleid and defid will make the name unique }
       wrappername:='__FPC_BLOCK_INVOKE_'+upper(copy(orgpd.procsym.realname,1,60))+'_'+tostr(orgpd.owner.moduleid)+'_'+orgpd.unique_id_str;
       { already an invoke wrapper for this procsym -> reuse }
-      if searchsym(wrappername,srsym,srsymtable) then
+      if compiler.symtablestack.searchsym(wrappername,srsym,srsymtable) then
         begin
           if (srsym.typ<>procsym) or
              (tprocsym(srsym).procdeflist.count<>1) then
@@ -247,7 +249,7 @@ implementation
     begin
       literalname:='block_literal_for_'+invokepd.procsym.realname;
       { already exists -> return }
-      if searchsym(literalname,srsym,srsymtable) then
+      if compiler.symtablestack.searchsym(literalname,srsym,srsymtable) then
         begin
           if srsym.typ<>staticvarsym then
             internalerror(2014071506);

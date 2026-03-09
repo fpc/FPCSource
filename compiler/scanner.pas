@@ -337,7 +337,7 @@ implementation
       cutils,cfileutl,
       systems,
       switches,
-      symbase,symtable,symconst,defutil,defcmp,node,
+      symbase,symtable,symconst,defutil,defcmp,node,compiler,
       { This is needed for tcputype }
       cpuinfo,
       fmodule,fppu,
@@ -1645,6 +1645,8 @@ type
 
 
     function preproc_comp_expr(conform_to:tdef):texprvalue;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
         function preproc_sub_expr(pred_level:Toperator_precedence;eval:Boolean):texprvalue; forward;
 
@@ -2070,7 +2072,7 @@ type
                     current_scanner.skipspace;
 
                     if eval then
-                      if searchsym(storedpattern,srsym,srsymtable) then
+                      if compiler.symtablestack.searchsym(storedpattern,srsym,srsymtable) then
                         begin
                           try_consume_nestedsym(srsym,srsymtable);
                           l:=0;
@@ -2121,7 +2123,7 @@ type
                     current_scanner.skipspace;
 
                     if eval then
-                      if searchsym(storedpattern,srsym,srsymtable) then
+                      if compiler.symtablestack.searchsym(storedpattern,srsym,srsymtable) then
                         begin
                           try_consume_nestedsym(srsym,srsymtable);
                           hdef:=nil;
@@ -2223,7 +2225,7 @@ type
                               preproc_consume(_NE);
                             end;
                         current_scanner.skipspace;
-                        if searchsym(hs,srsym,srsymtable) then
+                        if compiler.symtablestack.searchsym(hs,srsym,srsymtable) then
                           begin
                             { TSomeGeneric<...> also adds a TSomeGeneric symbol }
                             if (sp_generic_dummy in srsym.symoptions) and
@@ -2315,7 +2317,7 @@ type
                     result:=preproc_substitutedtoken(storedpattern,eval);
                     if eval and (result.consttyp=conststring) then
                       begin
-                        if searchsym(storedpattern,srsym,srsymtable) then
+                        if compiler.symtablestack.searchsym(storedpattern,srsym,srsymtable) then
                           begin
                             try_consume_nestedsym(srsym,srsymtable);
                             if assigned(srsym) then

@@ -3451,7 +3451,7 @@ implementation
                    if ef_type_only in flags then
                      searchsym_type(storedpattern,srsym,srsymtable)
                    else
-                     searchsym(storedpattern,srsym,srsymtable);
+                     compiler.symtablestack.searchsym(storedpattern,srsym,srsymtable);
                  end;
                { handle unit specification like System.Writeln }
                if not isspecialize then

@@ -326,6 +326,7 @@ interface
        { TSymtablestackHelper }
 
        TSymtablestackHelper = class helper for TSymtablestack
+         function searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean; inline;
          function searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean; inline;
        end;
 
@@ -357,7 +358,7 @@ interface
     function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(pd:tprocdef;contextobjdef:tabstractrecorddef):boolean;
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
-    function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_with_flags(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
     function  searchsym_maybe_with_symoption(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
     { searches for a symbol with the given name that has the given option in
@@ -2954,6 +2955,12 @@ implementation
                           TSymtablestackHelper
 ****************************************************************************}
 
+    function TSymtablestackHelper.searchsym(const s: TIDString; out
+        srsym: tsym; out srsymtable: TSymtable): boolean;
+      begin
+        result:=symtable.searchsym(self,s,srsym,srsymtable);
+      end;
+
     function TSymtablestackHelper.searchsym_maybe_with_symoption(
         const s: TIDString; out srsym: tsym; out srsymtable: TSymtable;
         flags: tsymbol_search_flags; option: tsymoption): boolean; inline;
@@ -3600,15 +3607,13 @@ implementation
       end;
 
 
-    function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function  searchsym(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       begin
         case s[1] of
           internal_macro_escape_unit_namespace_name:
-            result:=compiler.symtablestack.searchsym_maybe_with_symoption(copy(s,2,length(s)-1),srsym,srsymtable,[ssf_unit_or_namespace_only],sp_none)
+            result:=symtablestack.searchsym_maybe_with_symoption(copy(s,2,length(s)-1),srsym,srsymtable,[ssf_unit_or_namespace_only],sp_none)
           else
-            result:=compiler.symtablestack.searchsym_maybe_with_symoption(s,srsym,srsymtable,[],sp_none);
+            result:=symtablestack.searchsym_maybe_with_symoption(s,srsym,srsymtable,[],sp_none);
         end
       end;
 
