@@ -187,11 +187,12 @@ begin
     H:=TOpenSSLSocketHandler(UD);
     Pwd:=H.CertificateData.KeyPassword;
     end;
-  if (len<Length(Pwd)+1) then
-    SetLength(Pwd,len-1);
-  pwd:=pwd+#0;
-  Result:=Length(Pwd);
-  Move(Pointer(Pwd)^,Buf^,Result);
+   Result:=Length(Pwd);
+   if Result=0 then
+     Exit;
+   if Result>len then
+     Result:=len;
+   Move(Pointer(Pwd)^,Buf^,Result);
 end;
 
 function TOpenSSLSocketHandler.InitSslKeys: boolean;

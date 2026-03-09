@@ -19,6 +19,14 @@ unit keyboard;
 
 {$inline on}
 
+{$ifdef BSD}
+  {$ifndef DARWIN}
+    { For unknown reason in BSD (tested GostBSD) terminal emulators mouse
+      wheel buttons are crocked. Disable mouse scroll. }
+    {$define DISABLE_MOUSE_SCROLL}
+  {$endif}
+{$endif}
+
 {*****************************************************************************}
                                   interface
 {*****************************************************************************}
@@ -692,6 +700,10 @@ const
          MouseEvent.Action:=MouseActionUp;
        end;
 *)
+{$ifdef DISABLE_MOUSE_SCROLL}
+     if (MouseEvent.buttons and (MouseButton4 or MouseButton5)) <> 0 then
+       exit; { ignore this event }
+{$endif}
      PutMouseEvent(MouseEvent);
      if (MouseEvent.buttons and (MouseButton4 or MouseButton5)) <> 0 then
        GenFakeReleaseEvent(MouseEvent);
@@ -783,6 +795,10 @@ const
       exit;
     if (Y<(Low(MouseEvent.Y)+1)) or (Y>(High(MouseEvent.Y)+1)) then
       exit;
+{$ifdef DISABLE_MOUSE_SCROLL}
+     if buttonval>=64 then
+       exit; { ignore this event }
+{$endif}
     case buttonval and (67 or 128) of
       0 : {left button press}
         ButtonMask:=MouseLeftButton;
@@ -1015,7 +1031,7 @@ type  key_sequence=packed record
         st:string[10];
       end;
 
-const key_sequences:array[0..425] of key_sequence=(
+const key_sequences:array[0..435] of key_sequence=(
        (AnsiChar:0;scan:$39;shift:[essCtrl];st:#0),         { xterm, Ctrl+Space }
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
        (AnsiChar:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
@@ -1349,6 +1365,10 @@ const key_sequences:array[0..425] of key_sequence=(
        (AnsiChar:0;scan:kbDown;shift:[essShift];st:#27'[1;2B'),  {xterm}
        (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'[1;2C'), {xterm}
        (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'[1;2D'),  {xterm}
+       (AnsiChar:0;scan:kbUp;shift:[essShift];st:#27'O2A'),      {haiku-xterm}
+       (AnsiChar:0;scan:kbDown;shift:[essShift];st:#27'O2B'),    {haiku-xterm}
+       (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'O2C'),   {haiku-xterm}
+       (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'O2D'),    {haiku-xterm}
        (AnsiChar:0;scan:kbCenter;shift:[essShift];st:#27'[1;2E'),{xterm}
        (AnsiChar:0;scan:kbPgUp;shift:[essShift];st:#27'[5;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
        (AnsiChar:0;scan:kbPgDn;shift:[essShift];st:#27'[6;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
@@ -1357,8 +1377,10 @@ const key_sequences:array[0..425] of key_sequence=(
        (AnsiChar:0;scan:kbRight;shift:[essShift];st:#27'[c'),    {rxvt}
        (AnsiChar:0;scan:kbLeft;shift:[essShift];st:#27'[d'),     {rxvt}
        (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'[1;2F'),   {xterm}
+       (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'O2F'),     {haiku-xterm}
        (AnsiChar:0;scan:kbEnd;shift:[essShift];st:#27'[8$'),     {rxvt}
        (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[1;2H'),  {xterm}
+       (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'O2H'),    {haiku-xterm}
        (AnsiChar:0;scan:kbHome;shift:[essShift];st:#27'[7$'),    {rxvt}
        (AnsiChar:0;scan:kbShiftIns;shift:[essShift];st:#27'Op'), {rxvt - on numpad}
        (AnsiChar:0;scan:kbShiftDel;shift:[essShift];st:#27'On'), {rxvt - on numpad}
@@ -1381,6 +1403,10 @@ const key_sequences:array[0..425] of key_sequence=(
        (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[1;5B'),    {xterm}
        (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'[1;5C'),   {xterm}
        (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'[1;5D'),    {xterm}
+       (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'O5A'),        {haiku-xterm}
+       (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'O5B'),      {haiku-xterm}
+       (AnsiChar:0;scan:kbCtrlRight;shift:[essCtrl];st:#27'O5C'),     {haiku-xterm}
+       (AnsiChar:0;scan:kbCtrlLeft;shift:[essCtrl];st:#27'O5D'),      {haiku-xterm}
        (AnsiChar:0;scan:kbCtrlCenter;shift:[essCtrl];st:#27'[1;5E'),  {xterm}
        (AnsiChar:0;scan:kbCtrlUp;shift:[essCtrl];st:#27'[Oa'),        {rxvt}
        (AnsiChar:0;scan:kbCtrlDown;shift:[essCtrl];st:#27'[Ob'),      {rxvt}
@@ -2528,6 +2554,10 @@ var
               shortCutKey := enh[2];
               if shortCutKey < 0 then
                 shortCutKey := nKey;
+
+              if nKey=34 then
+                shortCutKey:=nKey; { exception for " }
+
               BuildKeyEvent(modifier, nKey, shortCutKey);
            end;
            arrayind:=0;
@@ -2946,8 +2976,10 @@ begin
         end
       else if envInput = 'kitty' then
         begin
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
           write(#27'[>31u');
           KittyKeyAvailability;
+{$endif HAIKU}
         end
       else if envInput = 'legacy' then
         begin
@@ -2955,11 +2987,13 @@ begin
         end
       else // TV_INPUT not set or incorrect, use default logic
         begin
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
           if kitty_keys_yes or (kitty_keys_yes=kitty_keys_no) then
              write(#27'[>31u'); { try to set up kitty keys }
           KittyKeyAvailability;
           if not isKittyKeys then
             write(#27'[>4;2m'); { xterm ->  modifyOtherKeys }
+{$endif HAIKU}
           write(#27'[?9001h'); // Try to enable win32-input-mode
         end;
 {$ifdef linux}
@@ -2977,6 +3011,7 @@ begin
   unpatchkeyboard;
 {$endif linux}
   write(#27'[?9001l'); // Disable win32-input-mode
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
   if not isKittyKeys then
     write(#27'[>4m'); { xterm -> reset to default modifyOtherKeys }
   if kitty_keys_yes then
@@ -2985,6 +3020,7 @@ begin
     waitAndReadAfterArtifacts;
     isKittyKeys:=false;
   end;
+{$endif HAIKU}
 
   if copy(fpgetenv('TERM'),1,5)='xterm' then
      {Restore the old alt key behaviour.}

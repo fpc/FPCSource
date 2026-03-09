@@ -198,6 +198,8 @@ begin
   end
   else if nPalette>0 then
     begin
+    if (BFI.ClrUsed > 0) and (Integer(BFI.ClrUsed) > nPalette) then
+      raise FPImageException.Create('Invalid BMP ClrUsed value');
     GetMem(FPalette, nPalette*SizeOf(TFPColor));
     SetLength(ColInfo, nPalette);
     if BFI.ClrUsed>0 then
@@ -223,6 +225,8 @@ begin
   continue:=true;
   Progress(psStarting,0,false,Rect,'',continue);
   if not continue then exit;
+  // InternalCheck does not rewind - seek to info header position
+  Stream.Position := SizeOf(TBitMapFileHeader);
   Stream.Read(BFI,SizeOf(BFI));
   {$IFDEF ENDIAN_BIG}
   SwapBMPInfoHeader(BFI);
@@ -240,6 +244,8 @@ begin
       raise FPImageException.Create('Bad BMP compression mode');
     TopDown:=(Height<0);
     Height:=abs(Height);
+    if (Width <= 0) or (Width > 65535) or (Height <= 0) or (Height > 65535) then
+      raise FPImageException.Create('Invalid BMP dimensions');
     if (TopDown and (not (Compression in [BI_RGB,BI_BITFIELDS]))) then
       raise FPImageException.Create('Top-down bitmaps cannot be compressed');
     Img.SetSize(0,0);

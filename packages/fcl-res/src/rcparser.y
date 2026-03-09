@@ -18,6 +18,11 @@ unit rcparser;
 %token _ANICURSOR _ANIICON _DLGINCLUDE _DLGINIT _HTML _MANIFEST _MESSAGETABLE _PLUGPLAY _RCDATA _VXD
 %token _FILEVERSION _PRODUCTVERSION _FILEFLAGSMASK _FILEFLAGS _FILEOS _FILETYPE _FILESUBTYPE _BLOCK _VALUE
 %token _ACCELERATORS _DIALOG _DIALOGEX _MENU _MENUEX
+%token _CAPTION _CLASS _EXSTYLE _STYLE _FONT _NOT
+%token _CONTROL _LTEXT _RTEXT _CTEXT
+%token _PUSHBUTTON _DEFPUSHBUTTON _CHECKBOX _AUTOCHECKBOX
+%token _RADIOBUTTON _AUTORADIOBUTTON _AUTO3STATE _STATE3 _GROUPBOX
+%token _EDITTEXT _COMBOBOX _LISTBOX _SCROLLBAR
 
 %type <rcnumtype> numpos numexpr numeral
 %type <rcstrtype> ident_string long_string non_whitespace_string long_stringfn
@@ -30,7 +35,7 @@ unit rcparser;
 %left '&'
 %left '+' '-'
 %left '*' '/' '%'
-%right '~' _NUMNEG
+%right '~' _NOT _NUMNEG
 
 %%
 
@@ -51,6 +56,7 @@ resourcedef
     | res_icon
     | res_version
     | res_rcdata
+    | res_dialog
     ;
 
 res_bitmap
@@ -120,6 +126,143 @@ stringtable_entry
     | numeral long_string                          { stringtable_add($1.v, $2.v^); }
     ;
 
+res_dialog
+    : resid _DIALOG { dialog_begin($1, false); } suboptions
+      numexpr ',' numexpr ',' numexpr ',' numexpr
+      { dialog_set_coords($5.v, $7.v, $9.v, $11.v); }
+      dialog_options _BEGIN dialog_controls _END
+      { dialog_end(); }
+    | resid _DIALOGEX { dialog_begin($1, true); } suboptions
+      numexpr ',' numexpr ',' numexpr ',' numexpr opt_helpid
+      { dialog_set_coords($5.v, $7.v, $9.v, $11.v); }
+      dialog_options _BEGIN dialog_controls _END
+      { dialog_end(); }
+    ;
+
+opt_helpid
+    : /* empty */
+    | ',' numexpr                                  { dialog_set_helpid($2.v); }
+    ;
+
+dialog_options
+    : /* empty */
+    | dialog_options dialog_option
+    ;
+
+dialog_option
+    : _CAPTION long_string                         { dialog_set_caption($2.v^); }
+    | _STYLE numexpr                               { dialog_set_style($2.v); }
+    | _EXSTYLE numexpr                             { dialog_set_exstyle($2.v); }
+    | _EXSTYLE '=' numexpr                         { dialog_set_exstyle($3.v); }
+    | _FONT numexpr ',' long_string opt_font_ex    { dialog_set_font($2.v, $4.v^); }
+    | _CLASS long_string                           { dialog_set_class($2.v^); }
+    | _CLASS numexpr                               { dialog_set_class_ord($2.v); }
+    | _MENU ident_string                           { dialog_set_menu($2.v^); }
+    | _MENU numexpr                                { dialog_set_menu_ord($2.v); }
+    ;
+
+opt_font_ex
+    : /* empty */
+    | ',' numexpr ',' numexpr ',' numexpr          { dialog_set_font_ex_params($2.v, $4.v, $6.v); }
+    ;
+
+dialog_controls
+    : /* empty */
+    | dialog_controls dialog_control
+    ;
+
+dialog_control
+    : _CONTROL long_string ',' numexpr ',' ident_string ',' numexpr ','
+      numexpr ',' numexpr ',' numexpr ',' numexpr opt_exstyle
+      { dialog_add_control_generic($4.v, $10.v, $12.v, $14.v, $16.v, $8.v, $2.v^, $6.v^); }
+    | _LTEXT long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_GROUP or SS_LEFT, CTL_STATIC, $2.v^); }
+    | _RTEXT long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_GROUP or SS_RIGHT, CTL_STATIC, $2.v^); }
+    | _CTEXT long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_GROUP or SS_CENTER, CTL_STATIC, $2.v^); }
+    | _PUSHBUTTON long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_PUSHBUTTON, CTL_BUTTON, $2.v^); }
+    | _DEFPUSHBUTTON long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_DEFPUSHBUTTON, CTL_BUTTON, $2.v^); }
+    | _CHECKBOX long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_CHECKBOX, CTL_BUTTON, $2.v^); }
+    | _AUTOCHECKBOX long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_AUTOCHECKBOX, CTL_BUTTON, $2.v^); }
+    | _RADIOBUTTON long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_RADIOBUTTON, CTL_BUTTON, $2.v^); }
+    | _AUTORADIOBUTTON long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_AUTORADIOBUTTON, CTL_BUTTON, $2.v^); }
+    | _AUTO3STATE long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_AUTO3STATE, CTL_BUTTON, $2.v^); }
+    | _STATE3 long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or BS_3STATE, CTL_BUTTON, $2.v^); }
+    | _GROUPBOX long_string ',' numexpr ',' numexpr ',' numexpr ','
+      numexpr ',' numexpr opt_style_exstyle
+      { dialog_add_control_std($4.v, $6.v, $8.v, $10.v, $12.v,
+          WS_CHILD or WS_VISIBLE or BS_GROUPBOX, CTL_BUTTON, $2.v^); }
+    | _EDITTEXT numexpr ',' numexpr ',' numexpr ',' numexpr ',' numexpr
+      opt_style_exstyle
+      { dialog_add_control_std($2.v, $4.v, $6.v, $8.v, $10.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or WS_BORDER, CTL_EDIT, ''); }
+    | _COMBOBOX numexpr ',' numexpr ',' numexpr ',' numexpr ',' numexpr
+      opt_style_exstyle
+      { dialog_add_control_std($2.v, $4.v, $6.v, $8.v, $10.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP, CTL_COMBOBOX, ''); }
+    | _LISTBOX numexpr ',' numexpr ',' numexpr ',' numexpr ',' numexpr
+      opt_style_exstyle
+      { dialog_add_control_std($2.v, $4.v, $6.v, $8.v, $10.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP or WS_BORDER or LBS_NOTIFY, CTL_LISTBOX, ''); }
+    | _SCROLLBAR numexpr ',' numexpr ',' numexpr ',' numexpr ',' numexpr
+      opt_style_exstyle
+      { dialog_add_control_std($2.v, $4.v, $6.v, $8.v, $10.v,
+          WS_CHILD or WS_VISIBLE or WS_TABSTOP, CTL_SCROLLBAR, ''); }
+    | _ICON long_string ',' numexpr ',' numexpr ',' numexpr
+      { dialog_ctrl_reset; } icon_params
+      { dialog_add_control_icon($4.v, $6.v, $8.v, $2.v^); }
+    ;
+
+opt_style_exstyle
+    : /* empty */                                  { dialog_ctrl_reset; }
+    | ',' numexpr                                  { dialog_ctrl_reset; dialog_ctrl_set_style($2.v); }
+    | ',' numexpr ',' numexpr                      { dialog_ctrl_reset; dialog_ctrl_set_style($2.v); dialog_ctrl_set_exstyle($4.v); }
+    ;
+
+opt_exstyle
+    : /* empty */
+    | ',' numexpr                                  { dialog_ctrl_set_exstyle($2.v); }
+    ;
+
+icon_params
+    : /* empty */
+    | ',' numexpr ',' numexpr                      { dialog_ctrl_set_wh($2.v, $4.v); }
+    | ',' numexpr ',' numexpr ',' numexpr          { dialog_ctrl_set_wh($2.v, $4.v); dialog_ctrl_set_style($6.v); }
+    | ',' numexpr ',' numexpr ',' numexpr ',' numexpr
+      { dialog_ctrl_set_wh($2.v, $4.v); dialog_ctrl_set_style($6.v); dialog_ctrl_set_exstyle($8.v); }
+    ;
+
 rcdataid
     : _ANICURSOR                                   { $$:= TResourceDesc.Create(RT_ANICURSOR); }
     | _ANIICON                                     { $$:= TResourceDesc.Create(RT_ANIICON); }
@@ -172,6 +315,7 @@ numexpr
     : numeral
     | '(' numexpr ')'                              { $$:= $2; }
     | '~' numexpr %prec '~'                        { $$.v:= not $2.v; $$.long:= $2.long; }
+    | _NOT numexpr %prec _NOT                      { $$.v:= not $2.v; $$.long:= $2.long; }
     | '-' numexpr %prec _NUMNEG                    { $$.v:= -$2.v; $$.long:= $2.long; }
     | numexpr '*' numexpr                          { $$.v:= $1.v * $3.v; $$.long:= $1.long or $3.long; }
     | numexpr '/' numexpr                          { $$.v:= $1.v div Max(1, $3.v); $$.long:= $1.long or $3.long; }
@@ -244,4 +388,3 @@ begin
   lexlib.get_char:= @rc_get_char;
   lexlib.unget_char:= @rc_unget_char;
 end.
-

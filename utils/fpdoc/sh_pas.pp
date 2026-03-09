@@ -120,7 +120,6 @@ var
       begin
       dest[dp] := c;
       Inc(dp);
-      Inc(source);
       end;
   end;
 
@@ -215,19 +214,19 @@ var
     keyword, ukeyword: string;
     i, j: Integer;
   begin
-    i := 1;
+    i := 0;
     SetLength(KeyWord,MaxKeywordLength);
     SetLength(UKeyWord,MaxKeywordLength);
-    while (source[i] <> #0) and (i <= MaxKeywordLength) and
+    while (source[i] <> #0) and (i < MaxKeywordLength) and
       (source[i] in ['0'..'9', 'A'..'Z', 'a'..'z']) do begin
-      keyword[i] := source[i];
-      ukeyword[i] := UpCase(source[i]);
+      keyword[i+1] := source[i];
+      ukeyword[i+1] := UpCase(source[i]);
       Inc(i);
     end;
-    SetLength(keyword,I-1);
-    SetLength(ukeyword,I-1);
+    SetLength(keyword,I);
+    SetLength(ukeyword,I);
     Result := False;
-    if i < MaxKeywordLength then
+    if i <= MaxKeywordLength then
       for j := 0 to MaxKeyword do
         if KeywordTable[j]=ukeyword  then begin
           Result := True; break;

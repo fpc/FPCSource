@@ -133,7 +133,12 @@ end;
 
 procedure TNamespaceTool.AddToFPMakeMap(const aSrcFileName,aDestFileName : string);
 
-Var
+  function ChangeToLinuxPath(const FileName: String): String;
+  begin
+    Result := FileName.Replace(PathDelim, '/', [rfReplaceAll]);
+  end;
+
+var
   Src,Dest,aDir,aRule : String;
 
 begin
@@ -146,11 +151,11 @@ begin
   if Pos(aDir,Dest)=1 then
     Delete(Dest,1,Length(aDir));
   // Map file itself.
-  FFPMakeMap.Values[Src]:=Dest;
-  aDir:=ExtractFilePath(Src);
+  FFPMakeMap.Values[ChangeToLinuxPath(Src)] := ChangeToLinuxPath(Dest);
+  aDir := ChangeToLinuxPath(ExtractFilePath(Src));
   // Map source directory to namespaced
   aRule:='{s*:'+aDir+'}';
-  FFPMakeMap.Values[aRule]:=ExtractFilePath(Dest);
+  FFPMakeMap.Values[aRule] := ChangeToLinuxPath(ExtractFilePath(Dest));
   // Add original to include directory
   aRule:='{i+:'+aDir+'}';
   if FFPMakeMap.IndexOf(aRule)=-1 then
@@ -195,9 +200,6 @@ Var
 
 begin
   NeedUpdate:=False;
-  Ext:=FForcedExt;
-  if Ext='' then
-    Ext:=ExtractFileExt(aFileName);
   // Construct File name
   aUnitName:=GetUnitNameFromFile(aFilename);
   // Construct destination dir.
@@ -226,6 +228,11 @@ begin
     DoMsg('Rule for %s does not result in different unit name, skipping.',[aFileName],etWarning);
     exit;
     end;
+
+  Ext:=FForcedExt;
+  if Ext='' then
+    Ext:=ExtractFileExt(aNewUnitFile);
+
   DestFN:=DestDir+aNewUnitName+Ext;
   // Add new file to FPMake map.
   AddToFPMakeMap(aFileName,DestFN);
@@ -435,11 +442,11 @@ begin
   Result:='';
   if aFileName='' then
     exit;
-  P:=Pos('/',aFileName,2);
+  P:=Pos(PathDelim,aFileName,2);
   if P=0 then
     exit;
   Result:=Copy(aFileName,1,P);
-  If Result[1]='/' then
+  If Result[1]=PathDelim then
     Delete(Result,1,1);
 end;
 

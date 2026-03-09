@@ -78,6 +78,7 @@ type
     THelpFilesDialog = object(TCenterDialog)
       constructor Init;
       procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   SizeLimits (Var Min, Max: TPoint); virtual;
       destructor  Done; virtual;
     private
       LB: PHelpFileListBox;
@@ -98,16 +99,20 @@ constructor THelpFilesDialog.Init;
 var R,R2: TRect;
     SB: PScrollBar;
     I: integer;
+    Lab : PLabel;
 begin
-  R.Assign(0,0,round(ScreenWidth*5/8),ScreenHeight-10);
+  R.Assign(0,0,Max(40,round(ScreenWidth*5/8)), Max(12,6+(ScreenHeight-4) div 2) );
   inherited Init(R, dialog_helpfiles);
+  GrowMode:=gfGrowAll+gfGrowRel;
 
   New(C, Init(20,10));
 
-  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=R.B.X-13;
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=R.B.X-14;
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); Insert(SB);
+  SB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
   New(LB, Init(R, 1, SB));
+  LB^.GrowMode:=gfGrowHiX+gfGrowHiY;
 
   for I:=0 to HelpFiles^.Count-1 do
     begin
@@ -117,16 +122,22 @@ begin
   LB^.NewList(C);
   Insert(LB);
   R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-  Insert(New(PLabel, Init(R2, label_helpfiles_helpfiles, LB)));
+  New(Lab, Init(R2, label_helpfiles_helpfiles, LB));
+  Insert(Lab);
+  Lab^.GrowMode:=gfGrowHiX;
 
   GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=R.B.X-13+1; R.B.Y:=R.A.Y+2;
   Insert(New(PButton, Init(R, button_OK, cmOK, bfDefault)));
+  First^.GrowMode:=gfGrowLoX+gfGrowHiX;
   R.Move(0,2);
   Insert(New(PButton, Init(R, button_New, cmAddItem, bfNormal)));
+  First^.GrowMode:=gfGrowLoX+gfGrowHiX;
   R.Move(0,2);
   Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
+  First^.GrowMode:=gfGrowLoX+gfGrowHiX;
   R.Move(0,2);
   Insert(New(PButton, Init(R, button_Cancel, cmCancel, bfNormal)));
+  First^.GrowMode:=gfGrowLoX+gfGrowHiX;
 
   LB^.Select;
 end;
@@ -271,6 +282,14 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
+end;
+
+procedure THelpFilesDialog.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=40;
+  Min.Y:=12;
+  Max.X:=Owner^.Size.X;
+  Max.Y:=Owner^.Size.Y;
 end;
 
 destructor THelpFilesDialog.Done;

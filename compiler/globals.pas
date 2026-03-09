@@ -199,7 +199,9 @@ Const
         { CPU targets with microcontroller support can add a controller specific unit }
          controllertype   : tcontrollertype;
 
-         { WARNING: this pointer cannot be written as such in record token }
+         { WARNING: pmessage cannot be written as such in record token
+              pmessage is the top of a stack of message/verbosity changes
+              RestoreLocalVerbosity applies the current stack. }
          pmessage : pmessagestaterecord;
 
          lineendingtype : tlineendingtype;
@@ -1738,6 +1740,7 @@ implementation
         do_release:=false;
         do_make:=true;
         codegenerror:=false;
+        global_unit_count:=0;
 
         { Output }
         OutputFileName:='';

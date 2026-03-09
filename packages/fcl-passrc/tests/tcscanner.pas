@@ -795,7 +795,7 @@ const
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elSource;
-  DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
+  DoTestToken(pscanner.tkStringMultiLine,'`AB'#13#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
 
@@ -807,7 +807,7 @@ const
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elLF;
-  DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
+  DoTestToken(pscanner.tkStringMultiLine,'`AB'#13#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
 
@@ -818,7 +818,7 @@ const
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elCR;
-  DoTestToken(pscanner.tkString,'`AB'#10'CD`');
+  DoTestToken(pscanner.tkStringMultiLine,'`AB'#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
 
@@ -829,7 +829,7 @@ const
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elCRLF;
-  DoTestToken(pscanner.tkString,'`AB'#10'CD`');
+  DoTestToken(pscanner.tkStringMultiLine,'`AB'#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
 
@@ -841,7 +841,7 @@ const
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elPlatform;
-  DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
+  DoTestToken(pscanner.tkStringMultiLine,'`AB'#13#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
 
@@ -853,7 +853,7 @@ const
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elSource;
-  DoTestToken(pscanner.tkString,'`AB``CD`');
+  DoTestToken(pscanner.tkStringMultiLine,'`AB``CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
 
@@ -912,7 +912,7 @@ begin
   SCanner.MultilineStringsTrimLeft:=-2;
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elLF;
-  DoTestToken(pscanner.tkString,'`AB'#13#10'    CD`');
+  DoTestToken(pscanner.tkStringMultiLine,'`AB'#13#10'    CD`');
   AssertEquals('Correct trim',S,TestTokenString);
 
 end;
@@ -926,7 +926,7 @@ begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elLF;
   Scanner.SkipWhiteSpace:=True;
-  DoTestToken(pscanner.tkString,' `AB'#13#10'   CD`');
+  DoTestToken(pscanner.tkStringMultiLine,' `AB'#13#10'   CD`');
   AssertEquals('Correct trim',S,TestTokenString);
 end;
 
@@ -941,9 +941,9 @@ begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elLF;
   Scanner.SkipWhiteSpace:=True;
-  DoTestToken(pscanner.tkString,' `AB'#13#10'   CD`');
+  DoTestToken(pscanner.tkStringMultiLine,' `AB'#13#10'   CD`');
   AssertEquals('Correct trim',S,TestTokenString);
-  DoTestToken(pscanner.tkString,' `AB'#13#10' CD`');
+  DoTestToken(pscanner.tkStringMultiLine,' `AB'#13#10' CD`');
   AssertEquals('Correct trim 2',S2,TestTokenString);
 end;
 
@@ -960,7 +960,7 @@ begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elLF;
   Scanner.SkipWhiteSpace:=True;
-  DoTestToken(pscanner.tkString,Src);
+  DoTestToken(pscanner.tkStringMultiLine,Src);
   AssertEquals('Correct trim',Res,TestTokenString);
 end;
 
@@ -975,7 +975,7 @@ begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
   Scanner.MultilineStringsEOLStyle:=elLF;
   Scanner.SkipWhiteSpace:=True;
-  DoTestToken(pscanner.tkString,Src);
+  DoTestToken(pscanner.tkStringMultiLine,Src);
   AssertEquals('Correct string',Res,TestTokenString);
 end;
 

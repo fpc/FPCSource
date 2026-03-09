@@ -4106,25 +4106,21 @@ var
   {$endif}
   Apostroph, CurLF : TPasScannerString;
 
-  {$IFDEF UsePChar}
-  procedure Add(StartP: PAnsiChar; Cnt: integer);
-  begin
-    if Cnt=0 then exit;
-    if OldLength+Cnt>length(FCurTokenString) then
-      SetLength(FCurTokenString,length(FCurTokenString)*2+128);
-    Move(StartP^,FCurTokenString[OldLength+1],Cnt);
-    inc(OldLength,Cnt);
-  end;
-  {$ELSE}
   procedure Add(const S: TPasScannerString);
   begin
+    if S='' then exit;
     FCurTokenString:=FCurTokenString+S;
+    {$IFDEF UsePChar}
+    OldLength:=length(FCurTokenString);
+    {$ENDIF}
   end;
-  {$ENDIF}
 
   Procedure AddToCurString(addLF : Boolean);
   var
     i : Integer;
+    {$ifdef UsePChar}
+    TokenOffset, Cnt: Integer;
+    {$endif}
 
   begin
     // Start of line, take indent into account
@@ -4151,27 +4147,20 @@ var
         end;
       end;
     {$ifdef UsePChar}
-    Add(TokenStart,FTokenPos - TokenStart);
+    TokenOffset := TokenStart - PAnsiChar(FCurLine) + 1;
+    Cnt := FTokenPos - TokenStart;
+    if Cnt > 0 then
+      Add(copy(FCurLine, TokenOffset, Cnt));
     {$else}
     Add(copy(FCurLine,TokenStart,FTokenPos - TokenStart));
     {$ENDIF}
     if addLF then
-      begin
-      {$IFDEF UsePChar}
-      Add(@CurLF[1],length(CurLF));
-      {$ELSE}
       Add(CurLF);
-      {$endif}
-      end;
   end;
 
   procedure AddApostroph;
   begin
-    {$IFDEF UsePChar}
-    Add(@Apostroph[1],length(Apostroph));
-    {$ELSE}
     Add(Apostroph);
-    {$ENDIF}
   end;
 
 begin
@@ -4200,7 +4189,7 @@ begin
         if {$ifdef UsePChar}FTokenPos[0] in Letters{$else}(FTokenPos<l) and (s[FTokenPos] in Letters){$endif} then
           Inc(FTokenPos);
         {$IFDEF UsePChar}
-        Add(TokenStart,FTokenPos-TokenStart);
+        Add(copy(FCurLine, TokenStart - PAnsiChar(FCurLine) + 1, FTokenPos-TokenStart));
         {$ELSE}
         Add(copy(FCurLine,TokenStart,FTokenPos-TokenStart));
         {$ENDIF}
@@ -4224,7 +4213,7 @@ begin
             Inc(FTokenPos);
           until {$ifdef UsePChar}not (FTokenPos[0] in Digits){$else}(FTokenPos>l) or not (s[FTokenPos] in Digits){$endif};
         {$IFDEF UsePChar}
-        Add(TokenStart,FTokenPos-TokenStart);
+        Add(copy(FCurLine, TokenStart - PAnsiChar(FCurLine) + 1, FTokenPos-TokenStart));
         {$ELSE}
         Add(copy(FCurLine,TokenStart,FTokenPos-TokenStart));
         {$ENDIF}
@@ -4297,7 +4286,7 @@ begin
               end;
           end;
           Inc(FTokenPos);
-          Result := tkString;
+          Result := tkStringMultiLine;
         end;
     else
       {$IFDEF UsePChar}

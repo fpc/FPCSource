@@ -28,7 +28,7 @@ unit ctask;
 interface
 
 uses
-  finput, fmodule, cclasses, globals, globtype, globstat;
+  finput, fmodule, cclasses, globals, globstat;
 
 type
   { ttask
@@ -62,10 +62,9 @@ type
     firsttask: ttask;
     function createtask(m: tmodule): ttask;
     procedure freetask(t: ttask);
+    procedure finishmodule(m: tmodule);
     procedure queuemodule(m: tmodule);
-    procedure renamemodule(m: tmodule; const oldname: TSymStr);
     function restore_state(m: tmodule): ttask;
-    procedure clear_state;
     function reload_module(m: tmodule): ttask;
     function recompile_module(m: tmodule): ttask;
     procedure update_circular_unit_groups;
@@ -81,13 +80,13 @@ type
     constructor create;
     destructor destroy; override;
     { Find the task for module m }
-    function findtask(m : tmodule) : ttask;
+    function findtask(m : tmodule; autocreate: boolean = false) : ttask;
     // Can we continue processing this module ? If not, firstwaiting contains first module that m is waiting for.
     function cancontinue(m : tmodule; out firstwaiting: tmodule): boolean;
     { Overload of cancontinue, based on task. }
     function cancontinue(t: ttask; out firstwaiting: tmodule): boolean; inline;
     { Continue processing this module. Return true if the module is done and can be removed. }
-    function continue_task(t : ttask): Boolean;
+    function continue_module(m : tmodule): Boolean;
     { process the queue. Note that while processing the queue, elements will be added. }
     procedure processqueue;
     { add a module to the queue. If a module is already in the queue, we do not add it again. }
@@ -96,6 +95,7 @@ type
     procedure write_scc;
     { get number of modules in a scc }
     function get_scc_count(scc_root: tmodule): integer;
+    function has_scc_another_unfinished_module(m: tmodule): boolean;
   end;
 
 
@@ -133,6 +133,7 @@ end;
 
 destructor ttask.destroy;
 begin
+  { the module might already be freed! }
   DiscardState;
   Inherited;
 end;
@@ -178,22 +179,24 @@ end;
 
 constructor ttask_handler.create;
 begin
-  tmodule.queue_module:=@queuemodule;
-  tmodule.rename_module:=@renamemodule;
+  tmodule.finish_module:=@finishmodule;
 end;
 
 destructor ttask_handler.destroy;
 begin
-  tmodule.queue_module:=nil;
-  tmodule.rename_module:=nil;
   while firsttask<>nil do
     freetask(firsttask);
   inherited destroy;
 end;
 
-function ttask_handler.findtask(m: tmodule): ttask;
+function ttask_handler.findtask(m: tmodule; autocreate: boolean): ttask;
 begin
   Result:=ttask(m.task);
+  if (Result=nil) and autocreate then
+    begin
+      addmodule(m);
+      Result:=ttask(m.task);
+    end;
 end;
 
 function ttask_handler.createtask(m: tmodule): ttask;
@@ -210,6 +213,7 @@ end;
 
 procedure ttask_handler.freetask(t: ttask);
 begin
+  { the module might already be freed! }
   if firsttask=t then
     firsttask:=t.next;
   if t.next<>nil then
@@ -218,6 +222,104 @@ begin
     t.prev.next:=t.next;
   t.free;
   dec(taskcount);
+end;
+
+procedure ttask_handler.finishmodule(m: tmodule);
+{ finish loading special units added by the compiler itself, e.g. variants.ppu
+  No reloads, no recompiles }
+
+  function find_cancontinue(root: tmodule): tmodule;
+  var
+    uu: tused_unit;
+    firstwaiting: tmodule;
+  begin
+    Result:=nil;
+    if root.cycle_search_stamp=tmodule.cycle_stamp then exit;
+    root.cycle_search_stamp:=tmodule.cycle_stamp;
+
+    if root.do_recompile
+        or not (root.state in [ms_registered,ms_load,ms_compiled,ms_processed]) then
+      begin
+        writeln('ttask_handler.finishmodule ',root.modulename^,' ',root.statestr);
+        Internalerror(2026030401);
+      end;
+
+    { finish used units first }
+    uu:=tused_unit(root.used_units.First);
+    while assigned(uu) do
+      begin
+        Result:=find_cancontinue(uu.u);
+        if assigned(Result) then exit;
+        uu:=tused_unit(uu.Next);
+      end;
+
+    if not (root.state in [ms_compiled,ms_processed])
+        and cancontinue(root,firstwaiting) then
+      exit(root);
+  end;
+
+  procedure find_unfinished(root: tmodule);
+  { find unfinished unit(s) and write message }
+  var
+    uu: tused_unit;
+    um: tmodule;
+  begin
+    if root.cycle_search_stamp=tmodule.cycle_stamp then exit;
+    root.cycle_search_stamp:=tmodule.cycle_stamp;
+
+    if root.state in [ms_compiled,ms_processed] then
+      begin
+        uu:=tused_unit(root.used_units.First);
+        while assigned(uu) do
+          begin
+            find_unfinished(uu.u);
+            uu:=tused_unit(uu.Next);
+          end;
+        exit;
+      end;
+
+    { check for invalid unit cycle }
+    uu:=tused_unit(root.used_units.First);
+    while assigned(uu) and (uu.u.state in [ms_compiled,ms_processed]) do
+      uu:=tused_unit(uu.Next);
+    if uu<>nil then
+      Message2(unit_f_circular_unit_reference,root.realmodulename^,uu.u.realmodulename^);
+
+    if root.waitingforunit<>nil then
+      begin
+        um:=tmodule(root.waitingforunit[0]);
+        Message2(unit_f_circular_unit_reference,root.realmodulename^,um.realmodulename^);
+      end;
+
+    writeln('CTASK: cannot finish module ',root.realmodulename^);
+    Internalerror(2026030301);
+  end;
+
+var
+  next: tmodule;
+  state: tglobalstate;
+begin
+  if m.scc_finished then exit;
+
+  state:=nil;
+  repeat
+    tmodule.increase_cycle_stamp;
+    next:=find_cancontinue(m);
+    if next=nil then break;
+    if state=nil then
+      state:=tglobalstate.create(true);
+    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK-finish: continuing ',next.ToString,' state=',next.statestr,' total-units=',loaded_units.Count,' tasks=',taskcount);{$ENDIF}
+    continue_module(next);
+  until false;
+
+  tmodule.increase_cycle_stamp;
+  find_unfinished(m);
+
+  if state<>nil then
+    begin
+      state.restore;
+      state.free;
+    end;
 end;
 
 procedure ttask_handler.queuemodule(m: tmodule);
@@ -234,7 +336,7 @@ begin
   firstwaiting:=nil;
 
   { We do not need to consider the program as long as there are units that need to be treated. }
-  if m.is_initial and (taskcount>1) then
+  if m.is_initial and has_scc_another_unfinished_module(m) then
     begin
       if not m.is_unit then
         exit(false);
@@ -243,7 +345,7 @@ begin
     end;
 
   if m.do_reload then
-    cancontinue:=tppumodule(m).canreload(firstwaiting,false,false)
+    cancontinue:=tppumodule(m).canreload(firstwaiting,false)
   else
   begin
     case m.state of
@@ -283,18 +385,23 @@ begin
   Result:=cancontinue(t.module,firstwaiting);
 end;
 
-function ttask_handler.continue_task(t: ttask): Boolean;
+function ttask_handler.continue_module(m: tmodule): Boolean;
 
 var
-  m : tmodule;
+  t : ttask;
 
 begin
-  m:=t.module;
+  set_current_module(m);
+  t:=findtask(m,true);
   if Assigned(t.state) then
     t.RestoreState;
+
+  tmodule.ctask_fast_backtrack:=false;
   if m.do_reload then
   begin
     tppumodule(m).reload;
+    t.SaveState;
+    tglobalstate.clear_state;
     exit(false);
   end;
   case m.state of
@@ -303,7 +410,7 @@ begin
     ms_load: (m as tppumodule).continueloadppu;
     ms_compile :
       begin
-        if m=main_module then
+        if (m=main_module) and (macrosymtablestack<>nil) then
           begin
             macrosymtablestack.clear;
             FreeAndNil(macrosymtablestack);
@@ -324,16 +431,20 @@ begin
   if m.state = ms_moduleerror then
     exit(false);
 
-  if m.is_initial and (taskcount>1) then
-    { program must wait for all units to finish }
+  if m.is_initial and has_scc_another_unfinished_module(m) then
+    begin
+      { main module must wait for all units to finish }
+      if (not m.is_unit) and (m.state in [ms_compiled,ms_processed]) then
+        { program, library, package frees modules, there should be no tasked left }
+        Internalerror(2026030302);
+      { Note: when main module is a unit, it can finish before used units finish }
+    end
   else if m.state=ms_compiled then
     begin
-    parsing_done(m);
+    if not m.fromppu then
+      parsing_done(m);
     if (m.state=ms_compiled) and m.is_unit then
-      begin
-        set_current_module(m);
-        tppumodule(m).post_load_or_compile(m,m.compilecount>1);
-      end;
+      tppumodule(m).post_load_or_compile(m);
     m.state:=ms_processed;
     end;
   Result:=m.state=ms_processed;
@@ -344,15 +455,22 @@ begin
   else
     Writeln(', state is now: ',m.statestr);
   {$ENDIF}
-  if not result then
+  if result then
+    begin
+      {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' is finished, removing from task list');{$ENDIF}
+      m.task:=nil;
+      freetask(t);
+    end
+  else
     { Not done, save state }
     t.SaveState;
-  clear_state;
+  tglobalstate.clear_state;
 end;
 
 procedure ttask_handler.search_finished_scc(m: tmodule{$IFDEF DEBUG_PPU_CYCLES}; const Indent: string{$ENDIF});
 { called after all circular_unit_groups have beeen computed.
-  depth-first-search all modules and computes tree_unfinished and other_scc_unfinished.
+  depth-first-search all modules and computes scc_tree_unfinished, other_scc_unfinished
+  and scc_tree_crc_wait.
   marks finished scc with scc_finished:=true.
   returns an unfinished scc root, which sub sccs are all finished }
 var
@@ -485,7 +603,7 @@ begin
       if m.do_reload then
         begin
           HasDoReload:=true;
-          if not tppumodule(m).canreload(firstwaiting,false,true) then
+          if not tppumodule(m).canreload(firstwaiting,true) then
             exit;
         end;
       m:=m.scc_next;
@@ -706,12 +824,6 @@ begin
   until not changed;
 end;
 
-procedure ttask_handler.renamemodule(m: tmodule; const oldname: TSymStr);
-begin
-  if m=nil then ;
-  if oldname='' then ;
-end;
-
 function ttask_handler.restore_state(m: tmodule): ttask;
 begin
   Result:=findtask(m);
@@ -722,12 +834,6 @@ begin
     end
   else if Result.state<>nil then
     Result.RestoreState;
-end;
-
-procedure ttask_handler.clear_state;
-begin
-  symtablestack:=nil;
-  macrosymtablestack:=nil;
 end;
 
 function ttask_handler.reload_module(m: tmodule): ttask;
@@ -741,7 +847,7 @@ begin
   Result:=restore_state(m);
   tppumodule(m).reload;
   Result.SaveState;
-  clear_state;
+  tglobalstate.clear_state;
 end;
 
 function ttask_handler.recompile_module(m: tmodule): ttask;
@@ -751,17 +857,13 @@ begin
       writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr);
       Internalerror(2026022411);
     end;
-  if mf_release in m.moduleflags then
-    begin
-      writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr,' unit was compiled with Ur');
-      Internalerror(2026022412);
-    end;
 
   Result:=restore_state(m);
   if m.recompile_reason=rr_unknown then
     m.recompile_reason:=rr_buildcycle;
-  tppumodule(m).recompile_from_sources; // this will call queuemodule
-  clear_state;
+  tppumodule(m).recompile_from_sources;
+  addmodule(m);
+  tglobalstate.clear_state;
 end;
 
 procedure ttask_handler.update_circular_unit_groups;
@@ -878,7 +980,6 @@ end;
 procedure ttask_handler.processqueue;
 
 var
-  besttask: ttask;
   firstwaiting, m, scc_root, best: tmodule;
   {$IFDEF DEBUG_CTASK}
   loopcnt: integer;
@@ -896,7 +997,8 @@ begin
     writeln('CTASK: Iteration: ',loopcnt);
     {$ENDIF}
 
-    recompile_pending(scc_root);
+    if main_module.state<ms_compiled then
+      recompile_pending(scc_root);
 
     { compute circular unit groups aka scc (strongly connected components) }
     update_circular_unit_groups;
@@ -962,24 +1064,13 @@ begin
         recompile_scc(scc_root);
         continue;
       end;
-    besttask:=findtask(best);
-    if besttask=nil then
-      begin
-        addmodule(best);
-        besttask:=findtask(best);
-      end;
 
-    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',besttask.module.ToString,' state=',besttask.module.statestr,' total-units=',loaded_units.Count,' tasks=',taskcount);{$ENDIF}
-    tmodule.ctask_fast_backtrack:=false;
-    if continue_task(besttask) then
-      begin
-        {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',besttask.module.ToString,' is finished, removing from task list');{$ENDIF}
-        best.task:=nil;
-        freetask(besttask);
-      end
+    {$IF defined(DEBUG_CTASK) or defined(Debug_FreeParseMem)}Writeln('CTASK: continuing ',best.ToString,' state=',best.statestr,' total-units=',loaded_units.Count,' tasks=',taskcount);{$ENDIF}
+    if continue_module(best) then
+      // done
     else if best.state=ms_moduleerror then
       exit;
-  until (main_module.state = ms_processed) and (taskcount=0);
+  until false;
 end;
 
 procedure ttask_handler.addmodule(m: tmodule);
@@ -988,12 +1079,6 @@ var
   t : ttask;
 
 begin
-  if tmodule.ctask_finishing_main then
-    begin
-      {$IFDEF DEBUG_CTASK}Writeln('CTASK: ',m.ToString,' skipping final rtl unit ',m.statestr,' moduleid=',m.moduleid);{$ENDIF}
-      exit;
-    end;
-
   t:=findtask(m);
   if t=nil then
     begin
@@ -1130,6 +1215,20 @@ begin
   while assigned(scc_root) do
     begin
       inc(Result);
+      scc_root:=scc_root.scc_next;
+    end;
+end;
+
+function ttask_handler.has_scc_another_unfinished_module(m: tmodule): boolean;
+var
+  scc_root: tmodule;
+begin
+  Result:=false;
+  scc_root:=m.scc_root;
+  while assigned(scc_root) do
+    begin
+      if (m<>scc_root) and (scc_root.state<>ms_processed) then
+        exit(true);
       scc_root:=scc_root.scc_next;
     end;
 end;

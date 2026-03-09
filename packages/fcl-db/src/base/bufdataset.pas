@@ -3503,7 +3503,7 @@ begin
       if not Field.GetData(@bufblob) then Exit;
     bmWrite:
       begin
-      if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
+      if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields, dsRefreshFields]) then
         DatabaseErrorFmt(SNotEditing, [Name], Self);
       if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
         DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);

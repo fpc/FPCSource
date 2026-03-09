@@ -24,8 +24,11 @@ begin
     P.SourcePath.Add('bsd',AllBSDOSes);
     P.SourcePath.Add('unix',AllUnixOSes);
     P.SourcePath.Add('win',AllWindowsOSes);
+    P.SourcePath.Add('wasicommon',[wasip1]);
+    P.SourcePath.Add('wasi2',[wasip2]);
     P.SourcePath.Add('inc');
     P.SourcePath.Add('objpas');
+    P.SourcePath.Add('charmaps');
 
     // Where to find the include files using firstmatch
     P.IncludePath.Add('$(OS)/$(CPU)',AllUnixOSes);
@@ -35,6 +38,9 @@ begin
     P.IncludePath.Add('bsd/$(CPU)',AllBSDOSes-[Darwin]);
     P.IncludePath.Add('unix',AllUnixOSes);
     P.IncludePath.Add('win',AllWindowsOSes);
+    P.IncludePath.Add('wasicommon',[wasip1]);
+    P.IncludePath.Add('wasicommon/wasiinc',[wasip1]);
+    P.IncludePath.Add('wasi2',[wasip2]);
     P.IncludePath.Add('inc');
     P.IncludePath.Add('objpas');
 
@@ -121,6 +127,7 @@ begin
       T.Dependencies.AddUnit('system');
     T:=P.Targets.AddUnit('macpas.pp');
       T.Dependencies.AddUnit('system');
+      T.Dependencies.AddUnit('math');
 
     // Unix units
     T:=P.Targets.AddUnit('unixtype.pp',AllUnixOSes);
@@ -240,21 +247,21 @@ begin
           AddInclude('sysnr.inc');
           AddInclude('si_c.inc');
         end;
-    T:=P.Targets.AddUnit('si_dll.pp',[i386],[Linux]);
+    T:=P.Targets.AddUnit('si_dll.pp',[i386,wasm32],AllUnixOSes+AllWebAssemblyOSes);
       With T.Dependencies do
         begin
           AddUnit('system');
-          AddInclude('si_intf.inc');
-          AddInclude('sysnr.inc');
-          AddInclude('si_dll.inc');
+          AddInclude('si_intf.inc', AllUnixOSes);
+          AddInclude('sysnr.inc', AllUnixOSes);
+          AddInclude('si_dll.inc', AllUnixOSes);
         end;
-    T:=P.Targets.AddUnit('si_prc.pp',[i386,x86_64],[Linux]);
+    T:=P.Targets.AddUnit('si_prc.pp',[i386,x86_64,wasm32],AllUnixOSes+AllWebAssemblyOSes);
       With T.Dependencies do
         begin
           AddUnit('system');
-          AddInclude('si_intf.inc');
-          AddInclude('sysnr.inc');
-          AddInclude('si_prc.inc');
+          AddInclude('si_intf.inc', AllUnixOSes);
+          AddInclude('sysnr.inc', AllUnixOSes);
+          AddInclude('si_prc.inc', AllUnixOSes);
         end;
     T:=P.Targets.AddUnit('si_uc.pp',[i386],[Linux]);
       With T.Dependencies do
@@ -334,21 +341,6 @@ begin
           AddInclude('redef.inc');
           AddUnit('objpas');
         end;
-    T:=P.Targets.AddUnit('winevent.pp',AllWindowsOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('windows');
-        end;
-    T:=P.Targets.AddUnit('winsock2.pp',AllWindowsOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('windows');
-        end;
-    T:=P.Targets.AddUnit('winsock.pp',AllWindowsOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('windows');
-        end;
     T:=P.Targets.AddUnit('winsysut.pp',AllWindowsOSes-[WinCE]);
       with T.Dependencies do
         begin
@@ -373,6 +365,15 @@ begin
           AddUnit('windows');
         end;
 
+    // Web Assembly units
+    T:=P.Targets.AddUnit('webassembly.pp', AllWebAssemblyOSes);
+    T:=P.Targets.AddUnit('wasiapi.pp', AllWebAssemblyOSes);
+    T:=P.Targets.AddUnit('wasiutil.pp', AllWebAssemblyOSes);
+      T.Dependencies.AddUnit('wasiapi');
+    T:=P.Targets.AddUnit('wasmsem.pas', AllWebAssemblyOSes);
+      T.Dependencies.AddUnit('webassembly');
+      T.Dependencies.AddUnit('fpintres');
+
     // Turbo Pascal RTL units
     T:=P.Targets.AddUnit('strings.pp');
       With T.Dependencies do
@@ -395,32 +396,17 @@ begin
           AddInclude('dos.inc');
           AddInclude('fexpand.inc');
         end;
-    T:=P.Targets.AddUnit('crt.pp');
-      With T.Dependencies do
-        begin
-          AddUnit('unix',AllUnixOSes);
-          AddUnit('termio',AllUnixOSes);
-          AddInclude('crth.inc');
-          AddInclude('textrec.inc');
-        end;
-    T:=P.Targets.AddUnit('objects.pp');
-      T.Dependencies.AddUnit('dos');
-    T:=P.Targets.AddUnit('printer.pp');
-      with T.Dependencies do
-        begin
-          AddInclude('printerh.inc');
-          AddInclude('printer.inc');
-          AddInclude('textrec.inc');
-          AddUnit('unix',AllUnixOSes);
-          AddUnit('strings');
-        end;
 
     // Object Pascal RTL units
     T:=P.Targets.AddUnit('rtlconsts.pp');
       T.Dependencies.AddUnit('objpas');
       T.Dependencies.AddInclude('rtlconst.inc');
     T:=P.Targets.AddUnit('sysconst.pp');
-      T.Dependencies.AddUnit('objpas');
+    With T.Dependencies do
+      begin
+        AddUnit('objpas');
+        AddUnit('fpintres');
+      end;
     T:=P.Targets.AddUnit('sysutils.pp');
       T.IncludePath.Add('objpas/sysutils');
       With T.Dependencies do
@@ -429,6 +415,9 @@ begin
           AddUnit('unix',AllUnixOSes);
           AddUnit('errors',AllUnixOSes);
           AddUnit('windows',AllWindowsOSes);
+          AddUnit('wasiapi', [wasip1]);
+          AddUnit('wasiutil', [wasip1]);
+          AddUnit('sysconst', [wasip1]);
           AddInclude('sysutilh.inc');
           AddInclude('sysinth.inc');
           AddInclude('osutilsh.inc');
@@ -478,6 +467,8 @@ begin
       T.IncludePath.Add('objpas/classes');
       With T.Dependencies do
         begin
+          AddUnit('rtlconsts');
+          AddUnit('sortbase');
           AddUnit('sysutils');
           AddUnit('types');
           AddUnit('typinfo');
@@ -506,44 +497,9 @@ begin
           AddInclude('writer.inc');
           AddInclude('twriter.inc');
         end;
-    T:=P.Targets.AddUnit('convutils.pp');
-      T.Dependencies.AddUnit('objpas');
-      T.Dependencies.AddInclude('convutil.inc');
-    T:=P.Targets.AddUnit('dateutils.pp');
-      With T.Dependencies do
-        begin
-          AddUnit('sysutils');
-          AddUnit('math');
-          AddUnit('types');
-          AddUnit('sysconst');
-          AddInclude('dateutil.inc');
-        end;
-    T:=P.Targets.AddUnit('stdconvs.pp');
-      T.Dependencies.AddUnit('convutils');
-    T:=P.Targets.AddUnit('strutils.pp');
-      T.Dependencies.AddUnit('sysutils');
-    T:=P.Targets.AddUnit('varutils.pp');
-      With T.Dependencies do
-        begin
-          AddUnit('sysutils');
-          AddInclude('varutilh.inc');
-          AddInclude('varerror.inc');
-          AddInclude('cvarutil.inc');
-          AddInclude('varutils.inc',AllOSes-AllWindowsOSes);
-        end;
-    T:=P.Targets.AddUnit('variants.pp');
-      With T.Dependencies do
-        begin
-          AddUnit('sysutils');
-          AddUnit('rtlconsts');
-          AddUnit('typinfo');
-        end;
     T:=P.Targets.AddUnit('fgl.pp');
       T.Dependencies.AddUnit('sysutils');
       T.Dependencies.AddUnit('types');
-    T:=P.Targets.AddUnit('fmtbcd.pp');
-      T.Dependencies.AddUnit('sysutils');
-      T.Dependencies.AddUnit('variants');
     T:=P.Targets.AddUnit('math.pp');
       With T.Dependencies do
         begin
@@ -565,9 +521,9 @@ begin
           AddUnit('unixtype',AllUnixOSes);
           AddInclude('aliasctp.inc',AllUnixOSes);
         end;
-    T:=P.Targets.AddUnit('initc.pp',AllOSes-[WinCE]);
+    T:=P.Targets.AddUnit('initc.pp',AllOSes - [WinCE] - AllWebAssemblyOSes);
       T.Dependencies.AddUnit('ctypes');
-    T:=P.Targets.AddUnit('cmem.pp');
+    T:=P.Targets.AddUnit('cmem.pp', AllOSes - AllWebAssemblyOSes);
       T.Dependencies.AddUnit('system');
     T:=P.Targets.AddUnit('cthreads.pp',AllUnixOSes);
       With T.Dependencies do
@@ -594,36 +550,35 @@ begin
           AddInclude('extres_multiarch.inc',[Darwin]);
           AddInclude('extres.inc',AllOSes-[Darwin]);
         end;
-    T:=P.Targets.AddUnit('fpintres.pp',AllUnixOSes+AllWindowsOSes);
+
+    T:=P.Targets.AddUnit('extpas.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('dos');
+        end;
+
+    T:=P.Targets.AddUnit('iso7185.pp');
+
+    T:=P.Targets.AddUnit('sortbase.pp');
+
+    T:=P.Targets.AddUnit('nothreads.pp', [wasip1]);
+
+    T:=P.Targets.AddUnit('uuchar.pp');
+
+    T:=P.Targets.AddUnit('fpintres.pp',AllUnixOSes + AllWindowsOSes + AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('baseunix',AllUnixOSes);
           AddInclude('intres.inc',AllOSes-AllWindowsOSes);
           AddInclude('winres.inc',AllWindowsOSes);
         end;
-    T:=P.Targets.AddUnit('charset.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('objpas');
-        end;
-    T:=P.Targets.AddUnit('ucomplex.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('math');
-        end;
-    T:=P.Targets.AddUnit('matrix.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('system');
-          AddInclude('mvecimp.inc');
-          AddInclude('mmatimp.inc');
-        end;
+
     T:=P.Targets.AddUnit('getopts.pp');
       with T.Dependencies do
         begin
           AddUnit('system');
         end;
-    T:=P.Targets.AddUnit('dynlibs.pas');
+    T:=P.Targets.AddUnit('dynlibs.pas', AllWindowsOSes - AllWebAssemblyOSes);
       With T.Dependencies do
         begin
           AddUnit('objpas');
@@ -631,81 +586,320 @@ begin
           AddInclude('dynlibs.inc');
         end;
 
+    // Character support units
+    T:=P.Targets.AddUnit('charset.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('objpas');
+        end;
+
+    T:=P.Targets.AddUnit('unicodedata.pas');
+
+    T:=P.Targets.AddUnit('fpwidestring.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('unicodedata');
+          AddUnit('windows',AllWindowsOSes);
+          AddUnit('unixcp',AllUnixOSes);
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('character.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('unicodedata');
+          AddUnit('sysutils');
+          AddUnit('rtlconsts');
+        end;
+
+    T:=P.Targets.AddUnit('cpall.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+      T:=P.Targets.AddUnit('cp1250.pas');
+        with T.Dependencies do
+          begin
+            AddUnit('charset');
+          end;
+
+    T:=P.Targets.AddUnit('cp1251.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp1252.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp1253.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp1254.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp1255.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp1256.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp1257.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp1258.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp3021.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp437.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp646.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp737.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp775.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp850.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp852.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp855.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp856.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp857.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp860.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp861.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp862.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp863.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp864.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp865.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp866.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp869.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp874.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_1.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_10.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_11.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_13.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_14.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_15.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_16.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_2.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_3.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_4.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_5.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_6.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_7.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_8.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
+    T:=P.Targets.AddUnit('cp8859_9.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('charset');
+        end;
+
     // Debugging units
-    T:=P.Targets.AddUnit('exeinfo.pp');
+    T:=P.Targets.AddUnit('exeinfo.pp', AllWindowsOSes - AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('objpas');
           AddUnit('strings');
         end;
-    T:=P.Targets.AddUnit('heaptrc.pp');
+    T:=P.Targets.AddUnit('heaptrc.pp', AllWindowsOSes + AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('system');
         end;
-    T:=P.Targets.AddUnit('lineinfo.pp');
+    T:=P.Targets.AddUnit('lineinfo.pp', AllWindowsOSes - AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('exeinfo');
         end;
-    T:=P.Targets.AddUnit('lnfodwrf.pp');
+    T:=P.Targets.AddUnit('lnfodwrf.pp', AllWindowsOSes - AllWebAssemblyOSes);
       with T.Dependencies do
         begin
           AddUnit('exeinfo');
         end;
 
-    // IO units
-    T:=P.Targets.AddUnit('mouse.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('video');
-          AddUnit('gpm',[Linux]);
-          AddInclude('mouseh.inc');
-          AddInclude('mouse.inc');
-        end;
-    T:=P.Targets.AddUnit('video.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('baseunix',AllUnixOSes);
-          AddUnit('termio',AllUnixOSes);
-          AddUnit('strings');
-          AddUnit('linuxvcs',[Linux]);
-          AddUnit('windows',AllWindowsOSes);
-          AddUnit('dos',AllWindowsOSes);
-          AddInclude('videoh.inc');
-          AddInclude('video.inc');
-          AddInclude('convert.inc',AllUnixOSes);
-        end;
-    T:=P.Targets.AddUnit('keyboard.pp');
-       with T.Dependencies do
-         begin
-           AddInclude('keybrdh.inc');
-           AddInclude('keyboard.inc');
-           AddInclude('keyscan.inc');
-           AddUnit('mouse');
-         end;
-    T:=P.Targets.AddUnit('sockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,MorphOS,Netware,Netwlibc]);
-      with T.Dependencies do
-        begin
-          AddUnit('baseunix',AllUnixOSes);
-          AddUnit('winsock2',AllWindowsOSes);
-          AddUnit('ctypes');
-          AddInclude('socketsh.inc');
-          AddInclude('filerec.inc');
-          AddInclude('textrec.inc');
-          AddInclude('sockovl.inc');
-          AddInclude('sockets.inc');
-          AddInclude('unxsockh.inc',AllUnixOSes);
-          AddInclude('unixsock.inc',AllUnixOSes-[Solaris,Darwin]);
-          AddInclude('fpwinsockh.inc',AllWindowsOSes);
-        end;
-    T:=P.Targets.AddUnit('serial.pp',AllUnixOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('objpas');
-          AddUnit('termio',AllUnixOSes);
-          AddUnit('unix',AllUnixOSes);
-        end;
+    P.NamespaceMap:='namespaces.lst';
 
 {$ifndef ALLPACKAGES}
     Run;

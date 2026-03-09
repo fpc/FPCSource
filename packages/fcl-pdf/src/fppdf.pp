@@ -1820,6 +1820,21 @@ var
 begin
   if Assigned(FSubsetFont) then
     FreeAndNil(FSubSetFont);
+  // CFF (PostScript outline) fonts cannot be subset by the TrueType subsetter.
+  // Embed the entire font file instead.
+  if FTrueTypeFile.IsCFF then
+  begin
+    FSubSetFont := TMemoryStream.Create;
+    if FFontStream <> nil then
+    begin
+      FFontStream.Position := 0;
+      TMemoryStream(FSubSetFont).CopyFrom(FFontStream, FFontStream.Size);
+    end
+    else
+      TMemoryStream(FSubSetFont).LoadFromFile(FFontFilename);
+    FSubSetFont.Position := 0;
+    Exit;
+  end;
   f := TFontSubsetter.Create(FTrueTypeFile, FTextMappingList);
   try
     FSubSetFont := TMemoryStream.Create;

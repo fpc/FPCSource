@@ -10501,7 +10501,8 @@ begin
       end;
     pekStringMultiLine:
       begin
-      Result:=CreateLiteralJSString(El,StrToJSString(El.Value));
+      S:={$IFDEF pas2js}DeQuoteString{$ELSE}AnsiDequotedStr{$ENDIF}(El.Value,'''');
+      Result:=CreateLiteralString(EL,S);
       //writeln('TPasToJSConverter.ConvertPrimitiveExpression Result="',TJSLiteral(Result).Value.AsString,'" ',GetObjName(AContext.Resolver));
       end;
     pekNumber:

@@ -115,7 +115,7 @@ interface
       end;
       tderefmaparray = array of tderefmaprec;
 
-      tqueue_module_event = procedure(m: tmodule) of object;
+      tfinish_module_event = procedure(m: tmodule) of object;
       trename_module_event = procedure(m: tmodule; const oldname: TSymStr) of object;
 
       { tused_unit }
@@ -244,7 +244,6 @@ interface
         scc_onstack: boolean;  { dont use. used in ttask_handler.update_circular_unit_groups }
         class var
           ctask_fast_backtrack: boolean; { true if some cycle was detected and returning fast to ctask scheduler }
-          ctask_finishing_main: boolean; { true if program/package was parsed and now the final rtl modules are loaded }
           cycle_stamp: dword;
         var
         cycle_search_stamp: dword;
@@ -324,8 +323,7 @@ interface
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
         function are_all_used_units_compiled: boolean;
-        class var queue_module: tqueue_module_event;
-        class var rename_module: trename_module_event;
+        class var finish_module: tfinish_module_event;
         procedure addimportedsym(sym:TSymEntry; check_if_exists: boolean = true);
         procedure derefimportedsymbols;
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
@@ -376,7 +374,7 @@ implementation
     uses
       SysUtils,globals,
       verbose,systems,
-      scanner,ppu,dbgbase,
+      scanner,dbgbase,
       procinfo,symdef,symtype;
 
 {$ifdef MEMDEBUG}
@@ -930,7 +928,7 @@ implementation
         if assigned(asmdata) then
           begin
             if current_asmdata=asmdata then
-             current_asmdata:=nil;
+              current_asmdata:=nil;
             asmdata.free;
             asmdata:=nil;
           end;
@@ -996,6 +994,8 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=casmdata.create(modulename);
+        if current_module=self then
+          current_asmdata:=TAsmData(asmdata);
         InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;
         _exports:=tlinkedlist.create;
@@ -1626,15 +1626,11 @@ implementation
 
 
     procedure tmodule.setmodulename(const s:string);
-      var
-        oldname: TSymStr;
       begin
-        oldname:=modulename^;
         stringdispose(modulename);
         stringdispose(realmodulename);
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
-        rename_module(self,oldname);
         { also update asmlibrary names }
         current_asmdata.name:=modulename;
       end;

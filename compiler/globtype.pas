@@ -940,6 +940,9 @@ interface
     type
       pmessagestaterecord = ^tmessagestaterecord;
       tmessagestaterecord = record
+        {$IFDEF DEBUG_MESSAGESTATE}
+        owner: TObject; { tmodule }
+        {$ENDIF}
         next : pmessagestaterecord;
         value : longint;
         state : tmsgstate;

@@ -403,9 +403,17 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses    System.Console.Mouse;
+uses
+{$ifdef GO32V2}
+  DOSApi.dpmiexcp,
+{$endif}
+  System.Console.Mouse;
 {$ELSE FPC_DOTTEDUNITS}
-uses    Mouse;
+uses
+{$ifdef GO32V2}
+  Dpmiexcp,
+{$endif}
+  Mouse;
 {$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring  sVideoFailed='Video initialization failed.';
@@ -428,8 +436,11 @@ Const
 {$endif windows}
 
 {***************************************************************************}
- {                      PRIVATE INITIALIZED VARIABLES                        }
+{                      PRIVATE UNINITIALIZED VARIABLES                      }
 {***************************************************************************}
+{$ifdef go32v2}
+var Ctrl_c_state : boolean;
+{$endif}
 
 {---------------------------------------------------------------------------}
 {                      INITIALIZED PRIVATE VARIABLES                        }
@@ -1142,6 +1153,9 @@ BEGIN
    {$ifdef windows}
    SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
    {$endif windows}
+{$ifdef go32v2}
+   Ctrl_c_state:=djgpp_set_ctrl_c(false);
+{$endif go32v2}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1166,6 +1180,9 @@ BEGIN
    {$ifdef windows}
    SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
    {$endif windows}
+{$ifdef go32v2}
+   djgpp_set_ctrl_c(Ctrl_c_state);
+{$endif go32v2}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1199,6 +1216,9 @@ var s:string;
 {$endif}
 
 BEGIN                                                 { Compatibility only }
+{$ifdef go32v2}
+   djgpp_set_ctrl_c(Ctrl_c_state);
+{$endif go32v2}
   {$ifdef windows}
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
   {$endif windows}
@@ -1240,6 +1260,9 @@ BEGIN                                                 { Compatibility only }
   {$ifdef windows}
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
   {$endif windows}
+{$ifdef go32v2}
+  Ctrl_c_state:=djgpp_set_ctrl_c(false);
+{$endif go32v2}
   if (PrevHeight<>ScreenHeight) or (PrevWidth<>ScreenWidth) then
     { acknowledge new screen dimensions }
     { prevents to draw out of boundaries of new video buffer }

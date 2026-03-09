@@ -27,13 +27,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="--suite=TTestProcedureFunction.TestProcedureWeakExternal"/>
+        <CommandLineParams Value="--suite=TTestStatementParser.TestCallNamesArg"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="--suite=TTestProcedureFunction.TestProcedureWeakExternal"/>
+            <CommandLineParams Value="--suite=TTestStatementParser.TestCallNamesArg"/>
           </local>
         </Mode0>
       </Modes>
@@ -110,6 +110,7 @@
       <Unit15>
         <Filename Value="tcgenerics.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="TCGenerics"/>
       </Unit15>
       <Unit16>
         <Filename Value="tcresolvemultierrors.pas"/>

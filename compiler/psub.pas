@@ -1235,6 +1235,9 @@ implementation
 
            RedoDFA:=ConvertForLoops(code) or RedoDFA;
 
+           if cs_opt_forloop in current_settings.optimizerswitches then
+             RedoDFA:=optimize_record_writes(code) or RedoDFA;
+
            if RedoDFA then
              dfabuilder.redodfainfo(code);
 
@@ -1278,7 +1281,11 @@ implementation
              end;
          end
        else
-         ConvertForLoops(code);
+         begin
+           ConvertForLoops(code);
+           if cs_opt_forloop in current_settings.optimizerswitches then
+             optimize_record_writes(code);
+         end;
 
        if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and

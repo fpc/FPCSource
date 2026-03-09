@@ -168,8 +168,13 @@ begin
       If FTransparent then
         FBackground:=FGraphicsCtrlExt.ColorIndex;
     end;
+    if (FWidth <= 0) or (FWidth > 65535) or (FHeight <= 0) or (FHeight > 65535) then
+      raise Exception.Create('Invalid GIF dimensions');
+    if Int64(FWidth) * (Int64(FHeight) + 1) > 256*1024*1024 then
+      raise Exception.Create('GIF image data too large');
     FLineSize:=FWidth*(FHeight+1);
     GetMem(FScanLine,FLineSize);
+    FillChar(FScanLine^, FLineSize, 0);
     If FTransparent then
     begin
       C:=FPalette.Color[FBackground];
@@ -276,9 +281,9 @@ class function TFPReaderGif.InternalSize(Stream:TStream): TPoint;
        Stream.read(Labels,1);
        Case Labels of
          $FE, $FF :     // Comment Extension block or Application Extension block
-              while true do
+              while Stream.Position < Stream.Size do
               begin
-                Stream.Read(SkipByte, 1);
+                if Stream.Read(SkipByte, 1) <> 1 then Break;
                 if SkipByte = 0 then Break;
                 Stream.Seek(SkipByte, soFromCurrent);
               end;
@@ -290,9 +295,9 @@ class function TFPReaderGif.InternalSize(Stream:TStream): TPoint;
               begin
                 Stream.Read(SkipByte, 1);
                 Stream.Seek(SkipByte, soFromCurrent);
-                while true do
+                while Stream.Position < Stream.Size do
                 begin
-                  Stream.Read(SkipByte, 1);
+                  if Stream.Read(SkipByte, 1) <> 1 then Break;
                   if SkipByte = 0 then Break;
                   Stream.Seek(SkipByte, soFromCurrent);
                 end;
@@ -603,9 +608,9 @@ begin
      Stream.read(Labels,1);
      Case Labels of
        $FE, $FF :     // Comment Extension block or Application Extension block
-            while true do
+            while Stream.Position < Stream.Size do
             begin
-              Stream.Read(SkipByte, 1);
+              if Stream.Read(SkipByte, 1) <> 1 then Break;
               if SkipByte = 0 then Break;
               Stream.Seek(SkipByte, soFromCurrent);
             end;
@@ -618,9 +623,9 @@ begin
             begin
               Stream.Read(SkipByte, 1);
               Stream.Seek(SkipByte, soFromCurrent);
-              while true do
+              while Stream.Position < Stream.Size do
               begin
-                Stream.Read(SkipByte, 1);
+                if Stream.Read(SkipByte, 1) <> 1 then Break;
                 if SkipByte = 0 then Break;
                 Stream.Seek(SkipByte, soFromCurrent);
               end;

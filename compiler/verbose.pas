@@ -174,6 +174,7 @@ implementation
       end;
 
     procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
+      { apply the whole stack of message/verbosity changes }
       var
         msgset : thashset;
         msgfound : boolean;
@@ -182,6 +183,10 @@ implementation
         msgset:=thashset.create(10,false,false);
         while assigned(pstate) do
           begin
+            {$IFDEF DEBUG_MESSAGESTATE}
+            if assigned(pstate^.owner) and (pstate^.owner<>current_module) then
+              Internalerror(2026030702);
+            {$ENDIF}
             msgfound:=false;
             { only apply the newest message state }
             if not assigned(msgset.findoradd(@pstate^.value,sizeof(pstate^.value),msgfound)) or
@@ -200,6 +205,10 @@ implementation
         while assigned(pstate) do
           begin
             unaligned(fstate):=pstate^.next;
+            {$IFDEF DEBUG_MESSAGESTATE}
+            if assigned(pstate^.owner) and (pstate^.owner<>current_module) then
+              Internalerror(2026030703);
+            {$ENDIF}
             dispose(pstate);
             pstate:=unaligned(fstate);
           end;

@@ -400,13 +400,15 @@ END;
 {$else FV_UNICODE}
 PROCEDURE InsertString (Id: Byte; Const Str: String);
 VAR P, P1, P2: PAnsiChar;
+    Len: Sw_Word;
 BEGIN
-  while (HistoryUsed+Length(Str)+3>HistorySize) do
+  Len:=Length(Str);
+  while (HistoryUsed+Len+3>HistorySize) do
    begin
        P:=PAnsiChar(HistoryBlock)+1;
        while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
          begin
-           if Pointer(P)+Length(PShortString(P+2)^)+6+Length(Str) >
+           if Pointer(P)+Length(PShortString(P+2)^)+6+Len >
               Pointer(HistoryBlock)+HistorySize then
              begin
                HistoryUsed:=P-HistoryBlock;
@@ -416,15 +418,17 @@ BEGIN
            Inc(P,Length(PShortString(P+2)^)+3);
          end;
    end;
-   P1 := PAnsiChar(HistoryBlock)+1;                     { First history record }
-   P2 := P1+Length(Str)+3;                          { History record after }
+   P1 := PAnsiChar(HistoryBlock)+1;                 { First history record }
+   P2 := P1+Len+3;                                  { History record after }
    Move(P1^, P2^, HistoryUsed - 1);                 { Shuffle history data }
-   P1^:=#0;                         { Set marker byte }
+   P1^:=#0;                                         { Set marker byte }
    Inc(P1);
-   P1^:=Chr(Id);                          { Set history id }
+   P1^:=Chr(Id);                                    { Set history id }
    Inc(P1);
-   Move(Str[0], P1^, Length(Str)+1);  { Set history string }
-   Inc(HistoryUsed, Length(Str)+3);                 { Inc history used }
+   P1^:=Chr(Len);                                   { Set length of string }
+   Inc(P1);
+   Move(Str[1], P1^, Len);                          { Set history string }
+   Inc(HistoryUsed, Len+3);                         { Inc history used }
 END;
 {$endif FV_UNICODE}
 

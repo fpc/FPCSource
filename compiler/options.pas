@@ -5969,8 +5969,12 @@ begin
      init_settings.alignment.loopalign:=1;
 {$ifdef x86}
      { constalignmax=1 keeps the executable and thus the memory foot print small but
-       all processors except x86 are really hurt by this or might even crash }
-     init_settings.alignment.constalignmax:=1;
+       all processors except x86 are really hurt by this or might even crash ... }
+{$ifndef x86_64}
+     { ... and will segfault if not aligned for SSE instructions }
+     if not (CPUX86_HAS_SSEUNIT in cpu_capabilities[init_settings.cputype]) then
+       init_settings.alignment.constalignmax:=1;
+{$endif not x86_64}
 {$endif x86}
    end;
 

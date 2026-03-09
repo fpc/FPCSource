@@ -1,0 +1,27 @@
+// Test dialog resource file
+// Compile with: fpcres -o testdlg.res testdlg.rc
+
+100 DIALOG 0, 0, 220, 130
+CAPTION "Dialog Test"
+STYLE 0x10C80080 | 0x00080000
+FONT 8, "MS Shell Dlg"
+BEGIN
+  LTEXT "This dialog was compiled by fpcres.", 101, 10, 10, 200, 8
+  LTEXT "Username:", 102, 10, 30, 45, 8
+  EDITTEXT 103, 60, 28, 150, 14
+  LTEXT "Password:", 104, 10, 50, 45, 8
+  EDITTEXT 105, 60, 48, 150, 14, 0x500100A0
+  AUTOCHECKBOX "Remember me", 106, 60, 68, 80, 10
+  GROUPBOX "Credentials", 107, 5, 18, 210, 66
+  DEFPUSHBUTTON "OK", 1, 110, 105, 50, 14
+  PUSHBUTTON "Cancel", 2, 165, 105, 50, 14
+END
+
+200 DIALOGEX 0, 0, 200, 80, 0
+CAPTION "DIALOGEX Test"
+STYLE 0x10C80080 | 0x00080000
+FONT 9, "Segoe UI", 400, 0, 1
+BEGIN
+  CTEXT "This is a DIALOGEX resource.", 201, 10, 10, 180, 8
+  DEFPUSHBUTTON "Close", 1, 75, 55, 50, 14
+END

@@ -1332,10 +1332,11 @@ begin
      videoInitDone;
 
      decide_codepages;
-
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
      envInput := LowerCase(fpgetenv('TV_INPUT'));
      if (envInput = '') or (envInput = 'kitty') then
        SendEscapeSeq(#27'[>31u');{Entering alternative screen we have to set up kitty keys}
+{$endif HAIKU}
    end
   else
    ErrorCode:=errVioInit; { not a TTY }
@@ -1346,7 +1347,9 @@ procedure SysDoneVideo;
 var font_custom:array[0..2] of AnsiChar=#27'(K';
 
 begin
+{$ifndef HAIKU} { Haiku does not cope well with following escape strings }
   SendEscapeSeq(#27'[<u'); { kitty keys disable }
+{$endif HAIKU}
   prepareDoneVideo;
   SetCursorType(crUnderLine);
 {$ifdef linux}

@@ -83,6 +83,9 @@ Type
     Procedure TestRangeConst;
     Procedure TestRangeConstUnTyped;
     Procedure TestArrayOfRangeConst;
+    Procedure TestDynArrayConst;
+    Procedure TestDynArrayConstWithRecords;
+    Procedure TestDynArrayConstEmpty;
     Procedure TestConstErrorRecovery;
   end;
 
@@ -634,6 +637,61 @@ begin
   AssertEquals('elements',8,Length(R.Values));
 //  AssertEquals('Range type',TPasRangeType,TheConst.VarType.ClassType);
 //  AssertExpression('Float const', TheExpr,pekNumber,'1');
+end;
+
+procedure TTestConstParser.TestDynArrayConst;
+var
+  R: TParamsExpr;
+begin
+  Typed := 'array of Integer';
+  ParseConst('[1, 2, 3]');
+  // Simple values without record syntax: parsed as set/array literal by expression parser
+  AssertEquals('Set/Array literal', TParamsExpr, TheExpr.ClassType);
+  R := TheExpr as TParamsExpr;
+  AssertEquals('Expression kind', pekSet, TheExpr.Kind);
+  AssertEquals('3 elements', 3, Length(R.Params));
+  AssertExpression('Element 1 value', R.Params[0], pekNumber, '1');
+  AssertExpression('Element 2 value', R.Params[1], pekNumber, '2');
+  AssertExpression('Element 3 value', R.Params[2], pekNumber, '3');
+end;
+
+procedure TTestConstParser.TestDynArrayConstWithRecords;
+var
+  R: TArrayValues;
+  Rec: TRecordValues;
+begin
+  Typed := 'array of TPoint';
+  ParseConst('[(x:1;y:2), (x:3;y:4)]');
+  AssertEquals('Array Values', TArrayValues, TheExpr.ClassType);
+  R := TheExpr as TArrayValues;
+  AssertEquals('2 elements', 2, Length(R.Values));
+  // First element: record (x:1;y:2)
+  AssertEquals('Element 1 is record', TRecordValues, R.Values[0].ClassType);
+  Rec := R.Values[0] as TRecordValues;
+  AssertEquals('Rec1 field count', 2, Length(Rec.Fields));
+  AssertEquals('Rec1 field 1 name', 'x', Rec.Fields[0].Name);
+  AssertExpression('Rec1 field 1 value', Rec.Fields[0].ValueExp, pekNumber, '1');
+  AssertEquals('Rec1 field 2 name', 'y', Rec.Fields[1].Name);
+  AssertExpression('Rec1 field 2 value', Rec.Fields[1].ValueExp, pekNumber, '2');
+  // Second element: record (x:3;y:4)
+  AssertEquals('Element 2 is record', TRecordValues, R.Values[1].ClassType);
+  Rec := R.Values[1] as TRecordValues;
+  AssertEquals('Rec2 field count', 2, Length(Rec.Fields));
+  AssertEquals('Rec2 field 1 name', 'x', Rec.Fields[0].Name);
+  AssertExpression('Rec2 field 1 value', Rec.Fields[0].ValueExp, pekNumber, '3');
+  AssertEquals('Rec2 field 2 name', 'y', Rec.Fields[1].Name);
+  AssertExpression('Rec2 field 2 value', Rec.Fields[1].ValueExp, pekNumber, '4');
+end;
+
+procedure TTestConstParser.TestDynArrayConstEmpty;
+var
+  R: TArrayValues;
+begin
+  Typed := 'array of Integer';
+  ParseConst('[]');
+  AssertEquals('Array Values', TArrayValues, TheExpr.ClassType);
+  R := TheExpr as TArrayValues;
+  AssertEquals('0 elements', 0, Length(R.Values));
 end;
 
 procedure TTestConstParser.TestConstErrorRecovery;

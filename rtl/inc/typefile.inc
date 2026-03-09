@@ -136,7 +136,10 @@ Begin
   FileRec(f)._private[1]:=0;
 
   Reset(UnTypedFile(f),Size);
-  BlockRead(UntypedFile(f),(pbyte(@f)+sizeof(FileRec))^,1);
+  if not(eof(f)) then
+    BlockRead(UntypedFile(f),(pbyte(@f)+sizeof(FileRec))^,1)
+  else
+    FileRec(f)._private[1]:=1;
 End;
 
 

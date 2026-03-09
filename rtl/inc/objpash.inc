@@ -260,6 +260,8 @@
              AllocateObjectHook : TObjectHook;
              DestroyObjectHook : TObjectHook;
        {$ENDIF}
+       public
+          const SystemHasExtendedRTTI = {$IFDEF ENABLE_DELPHI_RTTI}True{$ELSE}False{$ENDIF};
 
        public
           { please don't change the order of virtual methods, because

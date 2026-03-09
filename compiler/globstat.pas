@@ -79,6 +79,7 @@ type
     procedure save_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
     procedure restore;
     procedure reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
+    class procedure clear_state;
   end;
 
 procedure save_global_state(state:tglobalstate);
@@ -154,12 +155,26 @@ var
       old_current_module:=current_module;
 
       { save symtable state }
-      oldsymtablestack:=symtablestack;
-      if for_module_switch then
-        save_symtable_stack(oldsymtablestack,stsk_global);
-      oldmacrosymtablestack:=macrosymtablestack;
-      if for_module_switch then
-        save_symtable_stack(oldmacrosymtablestack,stsk_macro);
+      if current_module.fromppu then
+        begin
+          { a ppu does not use the symbolstacks
+            they might have been set by a pas module loading this ppu
+            => do not store them in the the ppu state }
+          oldsymtablestack:=nil;
+          oldmacrosymtablestack:=nil;
+        end
+      else
+        begin
+          { a pas module has symbolstacks, which contain references to other modules
+            when switching between modules, the references must be updated as the
+            used module might have been recompiled }
+          oldsymtablestack:=symtablestack;
+          if for_module_switch then
+            save_symtable_stack(oldsymtablestack,stsk_global);
+          oldmacrosymtablestack:=macrosymtablestack;
+          if for_module_switch then
+            save_symtable_stack(oldmacrosymtablestack,stsk_macro);
+        end;
       oldcurrent_procinfo:=current_procinfo;
 
       { save scanner state }
@@ -172,7 +187,7 @@ var
         ppcgen/cgppc.pas
         line 144 has a WARN 6018 OFF...
       }
-      flushpendingswitchesstate;
+      flushpendingswitchesstate; { flushpendingswitchesstate before storing current_settings.pmessage, switchesstatestack etc }
       old_switchesstatestack:=switchesstatestack;
       old_switchesstatestackpos:=switchesstatestackpos;
 
@@ -265,8 +280,8 @@ var
       current_filepos:=oldcurrent_filepos;
       current_settings:=old_settings;
       status.verbosity:=old_verbosity;
-      { restore message settings which were recorded prior to unit switch }
 
+      { restore message settings which were recorded prior to unit switch }
       RestoreLocalVerbosity(current_settings.pmessage);
 
       // These can be different
@@ -307,6 +322,27 @@ var
             end;
           item:=item^.next;
         end;
+    end;
+
+  class procedure tglobalstate.clear_state;
+    begin
+      symtablestack:=nil;
+      macrosymtablestack:=nil;
+      current_procinfo:=nil;
+
+      block_type:=bt_none;
+      flushpendingswitchesstate;
+      switchesstatestack:=default(tswitchesstatestack);
+      switchesstatestackpos:=0;
+
+      // keep "current_settings"
+
+      parse_only:=false;
+      current_asmdata:=nil;
+      current_debuginfo:=nil;
+
+      parser_current_file:='';
+      set_current_scanner(nil);
     end;
 
   constructor tglobalstate.create(for_module_switch: boolean);

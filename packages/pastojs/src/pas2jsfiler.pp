@@ -370,7 +370,8 @@ const
     'Inherited',
     'Self',
     'Specialize',
-    'Procedure');
+    'Procedure',
+    'NamedArg');
 
   PCUExprOpCodeNames: array[TExprOpCode] of string = (
     'None',
