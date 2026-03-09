@@ -353,7 +353,7 @@ interface
     function  is_visible_for_object(sym:tsym;contextobjdef:tabstractrecorddef):boolean;
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_with_flags(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
-    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
+    function  searchsym_maybe_with_symoption(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
     { searches for a symbol with the given name that has the given option in
       symoptions set }
     function  searchsym_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean;
@@ -3584,25 +3584,27 @@ implementation
 
 
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case s[1] of
           internal_macro_escape_unit_namespace_name:
-            result:=searchsym_maybe_with_symoption(copy(s,2,length(s)-1),srsym,srsymtable,[ssf_unit_or_namespace_only],sp_none)
+            result:=searchsym_maybe_with_symoption(compiler.symtablestack,copy(s,2,length(s)-1),srsym,srsymtable,[ssf_unit_or_namespace_only],sp_none)
           else
-            result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,[],sp_none);
+            result:=searchsym_maybe_with_symoption(compiler.symtablestack,s,srsym,srsymtable,[],sp_none);
         end
       end;
 
 
     function  searchsym_with_flags(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,flags,sp_none);
+        result:=searchsym_maybe_with_symoption(compiler.symtablestack,s,srsym,srsymtable,flags,sp_none);
       end;
 
 
-    function  searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function  searchsym_maybe_with_symoption(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
       var
         hashedid: THashedIDString;
         contextstructdef: tabstractrecorddef;
@@ -3610,7 +3612,7 @@ implementation
       begin
         result:=false;
         hashedid.id:=s;
-        stackitem:=compiler.symtablestack.stack;
+        stackitem:=symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
@@ -3685,8 +3687,10 @@ implementation
 
     function searchsym_with_symoption(const s: TIDString;out srsym:tsym;out
       srsymtable:TSymtable;option:tsymoption):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,[ssf_search_option],option);
+        result:=searchsym_maybe_with_symoption(compiler.symtablestack,s,srsym,srsymtable,[ssf_search_option],option);
       end;
 
     function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
