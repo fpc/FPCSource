@@ -378,7 +378,7 @@ implementation
 
     procedure TObjectDeclarationsParser.handleImplementedProtocolOrJavaIntf(intfdef : tobjectdef);
       begin
-        intfdef:=find_real_class_definition(intfdef,false);
+        intfdef:=compiler.symtablestack.find_real_class_definition(intfdef,false);
         case current_objectdef.objecttype of
           odt_objcclass,
           odt_objccategory,
@@ -622,7 +622,7 @@ implementation
                        if oo_is_sealed in childof.objectoptions then
                          Message1(parser_e_sealed_descendant,childof.typesymbolprettyname)
                        else
-                         childof:=find_real_class_definition(childof,true);
+                         childof:=compiler.symtablestack.find_real_class_definition(childof,true);
                    odt_interfacecorba,
                    odt_interfacecom:
                      begin
@@ -653,7 +653,7 @@ implementation
                            Message(parser_e_mix_of_classes_and_objects);
                        end
                      else
-                       childof:=find_real_class_definition(childof,true);
+                       childof:=compiler.symtablestack.find_real_class_definition(childof,true);
                    odt_objcprotocol:
                      begin
                        if not(is_objcprotocol(childof)) then
@@ -665,7 +665,7 @@ implementation
                      begin
                        if not(is_javainterface(childof)) then
                          Message(parser_e_mix_of_classes_and_objects);
-                       intfchildof:=find_real_class_definition(childof,true);
+                       intfchildof:=compiler.symtablestack.find_real_class_definition(childof,true);
                        childof:=nil;
                      end;
                    odt_object:

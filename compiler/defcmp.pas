@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,
+       globtype,globals,compilerbase,
        node,
        symconst,symtype,symdef,symbase;
 
@@ -196,7 +196,7 @@ interface
 implementation
 
     uses
-      verbose,systems,constexp,
+      verbose,systems,constexp,compiler,
       symtable,symsym,symcpu,
       defutil,symutil;
 
@@ -218,6 +218,8 @@ implementation
                               var doconv : tconverttype;
                               var operatorpd : tprocdef;
                               cdoptions:tcompare_defs_options):tequaltype;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       { tordtype:
            uvoid,
@@ -295,9 +297,9 @@ implementation
 
          { resolve anonymous external definitions }
          if def_from.typ=objectdef then
-           def_from:=find_real_class_definition(tobjectdef(def_from),false);
+           def_from:=compiler.symtablestack.find_real_class_definition(tobjectdef(def_from),false);
          if def_to.typ=objectdef then
-           def_to:=find_real_class_definition(tobjectdef(def_to),false);
+           def_to:=compiler.symtablestack.find_real_class_definition(tobjectdef(def_to),false);
 
          { same def? then we've an exact match }
          if def_from=def_to then
@@ -2819,6 +2821,8 @@ implementation
 
 
     function recorddef_is_related(curdef:trecorddef;otherdef:tdef):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { records are implemented via classes in the JVM target, and are
           all descendents of the java_fpcbaserecordtype class }
@@ -2827,7 +2831,7 @@ implementation
           begin
             if otherdef.typ=objectdef then
               begin
-                otherdef:=find_real_class_definition(tobjectdef(otherdef),false);
+                otherdef:=compiler.symtablestack.find_real_class_definition(tobjectdef(otherdef),false);
                 if (otherdef=java_jlobject) or
                    (otherdef=java_fpcbaserecordtype) then
                   result:=true
@@ -2858,12 +2862,14 @@ implementation
 
     function objectdef_is_related(curdef:tobjectdef;otherdef:tdef):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          realself,
          hp : tobjectdef;
       begin
         if (otherdef.typ=objectdef) then
-          otherdef:=find_real_class_definition(tobjectdef(otherdef),false);
-        realself:=find_real_class_definition(curdef,false);
+          otherdef:=compiler.symtablestack.find_real_class_definition(tobjectdef(otherdef),false);
+        realself:=compiler.symtablestack.find_real_class_definition(curdef,false);
         if realself=otherdef then
           begin
             result:=true;

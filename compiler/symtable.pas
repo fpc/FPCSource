@@ -332,6 +332,8 @@ interface
          function searchsym_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean; inline;
          function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean; inline;
          function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean; inline;
+
+         function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef; inline;
        end;
 
 
@@ -407,7 +409,7 @@ interface
 {*** Object Helpers ***}
     function search_default_property(pd : tabstractrecorddef) : tpropertysym;
     function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
-    function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
+    function find_real_class_definition(symtablestack:TSymtablestack;pd: tobjectdef; erroronfailure: boolean): tobjectdef;
 
 {*** Macro Helpers ***}
     {If called initially, the following procedures manipulate macros in }
@@ -2997,6 +2999,12 @@ implementation
         result:=symtable.searchsym_in_named_module(self,unitname,symname,srsym,srsymtable);
       end;
 
+    function TSymtablestackHelper.find_real_class_definition(pd: tobjectdef;
+        erroronfailure: boolean): tobjectdef; inline;
+      begin
+        result:=symtable.find_real_class_definition(self,pd,erroronfailure);
+      end;
+
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
@@ -3882,17 +3890,17 @@ implementation
 
 
     function maybe_find_real_class_definition(pd: tdef; erroronfailure: boolean): tdef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=pd;
         if pd.typ<>objectdef then
           exit;
-        result:=find_real_class_definition(tobjectdef(pd),erroronfailure);
+        result:=compiler.symtablestack.find_real_class_definition(tobjectdef(pd),erroronfailure);
       end;
 
 
-    function find_real_class_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function find_real_class_definition(symtablestack:TSymtablestack;pd: tobjectdef; erroronfailure: boolean): tobjectdef;
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
@@ -3914,7 +3922,7 @@ implementation
             exit;
           end;
         hashedid.id:=pd.typesym.name;
-        stackitem:=compiler.symtablestack.stack;
+        stackitem:=symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
@@ -3983,6 +3991,8 @@ implementation
 
     function searchsym_in_class(classh: tobjectdef;contextclassh:tabstractrecorddef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hashedid : THashedIDString;
         orgclass : tobjectdef;
         i        : longint;
@@ -3992,7 +4002,7 @@ implementation
         if assigned(classh) then
           begin
             if (oo_is_formal in classh.objectoptions) then
-              classh:=find_real_class_definition(classh,true);
+              classh:=compiler.symtablestack.find_real_class_definition(classh,true);
             { The contextclassh is used for visibility. The classh must be equal to
               or be a parent of contextclassh. E.g. for inherited searches the classh is the
               parent or a class helper. }
@@ -4100,13 +4110,15 @@ implementation
 
     function searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         def : tdef;
         i   : longint;
       begin
         { in case this is a formal class, first find the real definition }
         if assigned(classh) and
            (oo_is_formal in classh.objectoptions) then
-          classh:=find_real_class_definition(classh,true);
+          classh:=compiler.symtablestack.find_real_class_definition(classh,true);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -4138,13 +4150,15 @@ implementation
 
     function searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         def : tdef;
         i   : longint;
       begin
         { in case this is a formal class, first find the real definition }
         if assigned(classh) and
            (oo_is_formal in classh.objectoptions) then
-          classh:=find_real_class_definition(classh,true);
+          classh:=compiler.symtablestack.find_real_class_definition(classh,true);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -4828,13 +4842,15 @@ implementation
 
 
     function search_struct_member(pd : tabstractrecorddef;const s : string):tsym;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { searches n in symtable of pd and all anchestors }
       var
         srsymtable : tsymtable;
       begin
         { in case this is a formal class, first find the real definition }
         if (oo_is_formal in pd.objectoptions) then
-          pd:=find_real_class_definition(tobjectdef(pd),true);
+          pd:=compiler.symtablestack.find_real_class_definition(tobjectdef(pd),true);
 
         if search_objectpascal_helper(pd, pd, s, result, srsymtable) then
           exit;

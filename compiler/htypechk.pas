@@ -3098,8 +3098,8 @@ implementation
                    eq:=te_convert_l1;
                    check_valid_var:=false;
                    { resolve anonymous external class definitions }
-                   obj_from:=find_real_class_definition(tobjectdef(def_from),false);
-                   obj_to:=find_real_class_definition(tobjectdef(def_to),false);
+                   obj_from:=compiler.symtablestack.find_real_class_definition(tobjectdef(def_from),false);
+                   obj_to:=compiler.symtablestack.find_real_class_definition(tobjectdef(def_to),false);
                    while assigned(obj_from) do
                      begin
                        if obj_from=obj_to then

@@ -1607,7 +1607,7 @@ implementation
                                an instance of that parent type! }
                           if is_javaclass(structh) and
                              (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
-                             (tcallnode(p1).procdefinition.owner.defowner<>find_real_class_definition(tobjectdef(structh),false)) then
+                             (tcallnode(p1).procdefinition.owner.defowner<>compiler.symtablestack.find_real_class_definition(tobjectdef(structh),false)) then
                             Message(parser_e_java_no_inherited_constructor);
                           { Provide a warning if we try to create an instance of a
                             abstract class using the type name of that class. We
