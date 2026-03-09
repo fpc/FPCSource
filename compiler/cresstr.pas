@@ -59,10 +59,11 @@ uses
 
       Tresourcestrings=class
       private
+        Compiler : TCompilerBase;
         List : TLinkedList;
         procedure ConstSym_Register(p:TObject;arg:pointer);
       public
-        constructor Create;
+        constructor Create(ACompiler: TCompilerBase);
         destructor  Destroy;override;
         procedure CreateResourceStringData;
         procedure WriteRSJFile;
@@ -155,8 +156,9 @@ uses
                           Tresourcestrings
   ---------------------------------------------------------------------}
 
-    Constructor Tresourcestrings.Create;
+    Constructor Tresourcestrings.Create(ACompiler: TCompilerBase);
       begin
+        Compiler:=ACompiler;
         List:=TAsmList.Create;
       end;
 
@@ -169,8 +171,6 @@ uses
 
 
     procedure Tresourcestrings.CreateResourceStringData;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       Var
         namelab,
         valuelab : tasmlabofs;
@@ -367,7 +367,7 @@ uses
         if assigned(current_module.globalsymtable) then
           compiler.symtablestack.push(current_module.globalsymtable);
         compiler.symtablestack.push(current_module.localsymtable);
-        resstrs:=Tresourcestrings.Create;
+        resstrs:=Tresourcestrings.Create(compiler);
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
           begin
