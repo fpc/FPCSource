@@ -115,17 +115,17 @@ interface
 
      type
         tmodulestate = (ms_unknown,
-          ms_registered, // tmodule created
+          ms_registered, { tmodule created }
           ms_load,
-          ms_compile,    // parsing and compiling
-          ms_compiling_wait,      // waiting for used units of program/library/package
-          ms_compiling_waitintf,  // waiting for used units of interface section
-          ms_compiling_waitimpl,  // waiting for used units of implementation section
-          ms_compiling_waitfinish,// after impl section parsed, waiting for other impl sections needed by specializations
-          ms_compiled_waitcrc,   // after computing own CRC, waiting for used units' CRCs
-          ms_compiled,   // compiling complete, ppu written
-          ms_processed,  // task complete
-          ms_moduleerror // not yet used: eventually set on error
+          ms_compile,    { parsing and compiling }
+          ms_compiling_wait,      { waiting for used units of program/library/package }
+          ms_compiling_waitintf,  { waiting for used units of interface section }
+          ms_compiling_waitimpl,  { waiting for used units of implementation section }
+          ms_compiling_waitfinish,{ after impl section parsed, waiting for other impl sections needed by specializations }
+          ms_compiled_waitcrc,   { after computing own CRC, waiting for used units' CRCs }
+          ms_compiled,   { compiling complete, ppu written }
+          ms_processed,   { task complete }
+          ms_moduleerror
         );
         tmodulestates = set of tmodulestate;
 
@@ -149,7 +149,7 @@ interface
         tmodulebase = class(TLinkedListItem)
           compiler: TCompilerBase;
           { index }
-          unit_index       : longint;  { global counter for browser }
+          moduleid      : longint;  { global counter for browser }
           { status }
           state            : tmodulestate;
           { sources }
@@ -550,7 +550,7 @@ uses
 
 {$ifndef GENERIC_CPU}
 {$ifdef heaptrc}
-         ppheap_register_file(f.path+f.name,current_module.unit_index*100000+f.ref_index);
+         ppheap_register_file(f.path+f.name,current_module.moduleid*100000+f.ref_index);
 {$endif heaptrc}
 {$endif not GENERIC_CPU}
       end;
@@ -688,7 +688,7 @@ uses
         state:=ms_registered;
         { unit index }
         inc(global_unit_count);
-        unit_index:=global_unit_count;
+        moduleid:=global_unit_count;
         { sources }
         sourcefiles:=TInputFileManager.Create;
       end;

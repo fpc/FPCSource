@@ -4,10 +4,9 @@ program testcompat;
 
 uses
   {$IFDEF UNIX}cwstring, cthreads,{$ENDIF}
-  Classes, consoletestrunner, tcnetencoding, tciotuils,
-  utmessagemanager, utcdevices, utcanalytics, utcimagelist, 
-  utcnotifications, utcjson, utcpush, utchash, utcregex, 
-  utcjsontypes,  utcregexapi, utthreading, utccredentials, utcjsonbuilders, utcjsoniterator, utcjsonreaders;
+  Classes, consoletestrunner, tcnetencoding, tciotuils, utmessagemanager, utcdevices, utcanalytics, utcimagelist, utcnotifications,
+  utcjson, utcpush, utchash, utcregex, utcjsontypes, utcregexapi, utthreading, utccredentials, utcjsonbuilders, utcjsoniterator,
+  utcjsonreaders, utcjsonconverters, utcjsonserializers;
 
 type
 

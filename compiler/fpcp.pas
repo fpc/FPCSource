@@ -28,6 +28,9 @@ interface
   uses
     cclasses,cstreams,
     globtype,compilerbase,
+    {$ifdef cpufpemu}
+    ppu,
+    {$endif}
     pcp,finput,fpkg;
 
   type
@@ -67,7 +70,6 @@ implementation
     cfileutl,cutils,
     systems,globals,version,
     verbose,
-    ppu,
     entfile,pkgutil;
 
 { tpcppackage }

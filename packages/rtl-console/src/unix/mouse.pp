@@ -18,11 +18,11 @@ unit Mouse;
 {$ENDIF FPC_DOTTEDUNITS}
 interface
 
-{$if defined(aix) or defined(solaris) or (defined(bsd) and not(defined(darwin)))}
+{$if defined(aix) or defined(solaris)}
 {$define NOMOUSE}
 {$endif}
 
-{$if defined(darwin) or defined(haiku) or defined(beos)}
+{$if defined(darwin) or defined(haiku) or defined(beos) or defined(bsd)}
 {$define NOGPM}
 {$endif}
 

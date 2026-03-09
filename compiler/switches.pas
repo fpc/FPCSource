@@ -308,6 +308,9 @@ procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
     pstate : pmessagestaterecord;
   begin
     new(pstate);
+    {$IFDEF DEBUG_MESSAGESTATE}
+    pstate^.owner:=current_module; { nil for global option }
+    {$ENDIF}
     pstate^.next:=pendingstate.nextmessagerecord;
     pstate^.value:=msg;
     pstate^.state:=state;
@@ -459,6 +462,14 @@ procedure flushpendingswitchesstate;
     pstate:=pendingstate.nextmessagerecord;
     while assigned(pstate) do
       begin
+        {$IFDEF DEBUG_MESSAGESTATE}
+        if assigned(pstate^.owner) and (pstate^.owner<>current_module) then
+          begin
+            writeln('flushpendingswitchesstate cur: ',current_module.modulename^,' ',current_module.statestr);
+            writeln('flushpendingswitchesstate pstate: ',tmodule(pstate^.owner).modulename^,' ',tmodule(pstate^.owner).statestr);
+            Internalerror(2026030701);
+          end;
+        {$ENDIF}
         pendingstate.nextmessagerecord:=pstate^.next;
         { the message records are ordered newest to oldest, so only apply the newest change }
         msgfound:=false;

@@ -164,6 +164,7 @@ const
   nIdentifierXIsNotAnInstanceField = 3080;
   nXIsNotSupported = 3081;
   nOperatorIsNotOverloadedAOpB = 3082;
+  nImpossibleOperatorOverload = 3200;
   nIllegalQualifierAfter = 3084;
   nIllegalQualifierInFrontOf = 3085;
   nIllegalQualifierWithin = 3086;
@@ -218,6 +219,9 @@ const
   nSymbolCannotBeExportedFromALibrary = 3145;
   nForLoopControlVarMustBeSimpleLocalVar = 3146;
   nIllegalCharConst = 3147;
+  nCaseStatementNotCovered = 3148;
+  nCaseElseUnreachable = 3149;
+  nAttributeNotAllowedHere = 3150;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -322,6 +326,7 @@ resourcestring
   sConstructingClassXWithAbstractMethodY = 'Constructing a class "%s" with abstract method "%s"';
   sXIsNotSupported = '%s is not supported';
   sOperatorIsNotOverloadedAOpB = 'Operator is not overloaded: "%s" %s "%s"';
+  sImpossibleOperatorOverload = 'Impossible operator overload';
   sIllegalQualifierAfter = 'illegal qualifier "%s" after "%s"';
   sIllegalQualifierInFrontOf = 'illegal qualifier "%s" in front of "%s"';
   sIllegalQualifierWithin = 'illegal qualifier "%s" within "%s"';
@@ -376,6 +381,9 @@ resourcestring
   sSymbolCannotBeExportedFromALibrary = 'The symbol cannot be exported from a library';
   sForLoopControlVarMustBeSimpleLocalVar = 'For loop control variable must be simple local variable';
   sIllegalCharConst = 'Illegal char constant';
+  sCaseStatementNotCovered = 'Case statement does not handle all possible cases';
+  sCaseElseUnreachable = 'Case else branch is unreachable - all cases are already handled';
+  sAttributeNotAllowedHere = 'Attribute is not allowed here';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
@@ -1688,8 +1696,24 @@ end;
 function TResExprEvaluator.EvalBinaryRangeExpr(Expr: TBinaryExpr; LeftValue,
   RightValue: TResEvalValue): TResEvalValue;
 // LeftValue..RightValue
+
+  function GetResEvalUnicodeStr(Value: TResEvalValue): UnicodeString;
+  begin
+    case Value.Kind of
+    {$ifdef FPC_HAS_CPSTRING}
+    revkString:
+      Result:=GetUnicodeStr(TResEvalString(Value).S,nil);
+    {$endif}
+    revkUnicodeString:
+      Result:=TResEvalUTF16(Value).S;
+    else
+      Result:='';
+    end;
+  end;
+
 var
   LeftInt, RightInt: TMaxPrecInt;
+  LeftUS, RightUS: UnicodeString;
 begin
   case LeftValue.Kind of
   revkBool:
@@ -1797,10 +1821,24 @@ begin
   {$endif}
   revkUnicodeString:
     begin
-    LeftInt:=StringToOrd(LeftValue,Expr.Left);
+    // Try converting to ordinal (single-char strings only)
+    LeftInt:=StringToOrd(LeftValue,nil);
     if RightValue.Kind in revkAllStrings then
       begin
-      RightInt:=StringToOrd(RightValue,Expr.Right);
+      RightInt:=StringToOrd(RightValue,nil);
+      if (LeftInt>$ffff) or (RightInt>$ffff) then
+        begin
+        // Multi-char string range: validate bounds lexicographically
+        LeftUS:=GetResEvalUnicodeStr(LeftValue);
+        RightUS:=GetResEvalUnicodeStr(RightValue);
+        if LeftUS>RightUS then
+          RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
+            sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
+        // Cannot represent as ordinal range - return nil
+        // The converter will handle it at code generation time
+        Result:=nil;
+        exit;
+        end;
       if LeftInt>RightInt then
         RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
@@ -4580,7 +4618,15 @@ begin
   {$IFDEF PAS2JS}
   Result:=TResEvalUTF16.CreateValue(Expr.Value);
   {$ELSE}
-  Result:=TResEvalUTF16.CreateValue(GetUnicodeStr(Expr.Value,Expr));
+  if (Length(Expr.Value) > 0) and (Expr.Value[1] in ['''', '#', '^']) then
+    // Backtick multiline strings: scanner wraps content in apostrophes
+    // and doubles internal quotes (same format as regular string tokens).
+    // Delegate to EvalPrimitiveExprString which returns TResEvalString.
+    Result:=EvalPrimitiveExprString(Expr)
+  else
+    // Delphi triple-quote strings: token value is raw text (no
+    // apostrophe wrapping). Create TResEvalString directly.
+    Result:=TResEvalString.CreateValue(Expr.Value);
   {$ENDIF}
 end;
 

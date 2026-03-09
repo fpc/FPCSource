@@ -154,19 +154,19 @@ CONST
          #$81#$70#$78#$74#$20#$28#$24#$17#$1F#$1A#$31#$31#$1E#$71#$1F +
      #$37#$3F#$3A#$13#$13#$3E#$21#$3F#$70#$7F#$7A#$13#$13#$70#$7F#$7E +
      #$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 +
-     #$3F#$3E#$1F#$2F#$1A#$20#$72#$31#$31#$30#$2F#$3E#$31#$13#$38#$00;
+     #$3F#$3E#$1F#$2F#$1A#$20#$72#$31#$31#$30#$2F#$3E#$31#$13#$38#$31;
 
    CBlackWhite =
          #$70#$70#$78#$7F#$07#$07#$0F#$07#$0F#$07#$70#$70#$07#$70#$0F +
      #$07#$0F#$07#$70#$70#$07#$70#$0F#$70#$7F#$7F#$70#$07#$70#$07#$0F +
      #$70#$7F#$7F#$70#$07#$70#$70#$7F#$7F#$07#$0F#$0F#$78#$0F#$78#$07 +
-     #$0F#$0F#$0F#$70#$0F#$07#$70#$70#$70#$07#$70#$0F#$07#$07#$78#$00;
+     #$0F#$0F#$0F#$70#$0F#$07#$70#$70#$70#$07#$70#$0F#$07#$07#$78#$07;
 
    CMonochrome =
          #$70#$07#$07#$0F#$70#$70#$70#$07#$0F#$07#$70#$70#$07#$70#$00 +
      #$07#$0F#$07#$70#$70#$07#$70#$00#$70#$70#$70#$07#$07#$70#$07#$00 +
      #$70#$70#$70#$07#$07#$70#$70#$70#$0F#$07#$07#$0F#$70#$0F#$70#$07 +
-     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$00;
+     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$07;
 
    { Turbo Vision 2.0 Color Palettes }
 
@@ -174,31 +174,31 @@ CONST
          #$71#$70#$78#$74#$20#$28#$24#$17#$1F#$1A#$31#$31#$1E#$71#$1F +
      #$37#$3F#$3A#$13#$13#$3E#$21#$3F#$70#$7F#$7A#$13#$13#$70#$7F#$7E +
      #$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 +
-     #$3F#$3E#$1F#$2F#$1A#$20#$72#$31#$31#$30#$2F#$3E#$31#$13#$38#$00 +
+     #$3F#$3E#$1F#$2F#$1A#$20#$72#$31#$31#$30#$2F#$3E#$31#$13#$38#$31 +
      #$17#$1F#$1A#$71#$71#$1E#$17#$1F#$1E#$20#$2B#$2F#$78#$2E#$10#$30 +
-     #$3F#$3E#$70#$2F#$7A#$20#$12#$31#$31#$30#$2F#$3E#$31#$13#$38#$00 +
+     #$3F#$3E#$70#$2F#$7A#$20#$12#$31#$31#$30#$2F#$3E#$31#$13#$38#$31 +
      #$37#$3F#$3A#$13#$13#$3E#$30#$3F#$3E#$20#$2B#$2F#$78#$2E#$30#$70 +
-     #$7F#$7E#$1F#$2F#$1A#$20#$32#$31#$71#$70#$2F#$7E#$71#$13#$38#$00;
+     #$7F#$7E#$1F#$2F#$1A#$20#$32#$31#$71#$70#$2F#$7E#$71#$13#$38#$71;
 
    CAppBlackWhite =
          #$70#$70#$78#$7F#$07#$07#$0F#$07#$0F#$07#$70#$70#$07#$70#$0F +
      #$07#$0F#$07#$70#$70#$07#$70#$0F#$70#$7F#$7F#$70#$07#$70#$07#$0F +
      #$70#$7F#$7F#$70#$07#$70#$70#$7F#$7F#$07#$0F#$0F#$78#$0F#$78#$07 +
-     #$0F#$0F#$0F#$70#$0F#$07#$70#$70#$70#$07#$70#$0F#$07#$07#$78#$00 +
+     #$0F#$0F#$0F#$70#$0F#$07#$70#$70#$70#$07#$70#$0F#$07#$07#$78#$07 +
      #$07#$0F#$0F#$07#$70#$07#$07#$0F#$0F#$70#$78#$7F#$08#$7F#$08#$70 +
-     #$7F#$7F#$7F#$0F#$70#$70#$07#$70#$70#$70#$07#$7F#$70#$07#$78#$00 +
+     #$7F#$7F#$7F#$0F#$70#$70#$07#$70#$70#$70#$07#$7F#$70#$07#$78#$70 +
      #$70#$7F#$7F#$70#$07#$70#$70#$7F#$7F#$07#$0F#$0F#$78#$0F#$78#$07 +
-     #$0F#$0F#$0F#$70#$0F#$07#$70#$70#$70#$07#$70#$0F#$07#$07#$78#$00;
+     #$0F#$0F#$0F#$70#$0F#$07#$70#$70#$70#$07#$70#$0F#$07#$07#$78#$07;
 
    CAppMonochrome =
          #$70#$07#$07#$0F#$70#$70#$70#$07#$0F#$07#$70#$70#$07#$70#$00 +
      #$07#$0F#$07#$70#$70#$07#$70#$00#$70#$70#$70#$07#$07#$70#$07#$00 +
      #$70#$70#$70#$07#$07#$70#$70#$70#$0F#$07#$07#$0F#$70#$0F#$70#$07 +
-     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$00 +
+     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$07 +
      #$70#$70#$70#$07#$07#$70#$70#$70#$0F#$07#$07#$0F#$70#$0F#$70#$07 +
-     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$00 +
+     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$07 +
      #$70#$70#$70#$07#$07#$70#$70#$70#$0F#$07#$07#$0F#$70#$0F#$70#$07 +
-     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$00;
+     #$0F#$0F#$07#$70#$07#$07#$70#$07#$07#$07#$70#$0F#$07#$07#$70#$07;
 
 {---------------------------------------------------------------------------}
 {                     STANDRARD HELP CONTEXT CONSTANTS                      }
@@ -403,9 +403,17 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses    System.Console.Mouse;
+uses
+{$ifdef GO32V2}
+  DOSApi.dpmiexcp,
+{$endif}
+  System.Console.Mouse;
 {$ELSE FPC_DOTTEDUNITS}
-uses    Mouse;
+uses
+{$ifdef GO32V2}
+  Dpmiexcp,
+{$endif}
+  Mouse;
 {$ENDIF FPC_DOTTEDUNITS}
 
 resourcestring  sVideoFailed='Video initialization failed.';
@@ -415,10 +423,24 @@ resourcestring  sVideoFailed='Video initialization failed.';
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
 {***************************************************************************}
+{$ifdef windows}
+Const
+   fvConsoleMode =(ENABLE_MOUSE_INPUT or
+                   ENABLE_WINDOW_INPUT or
+                   ENABLE_EXTENDED_FLAGS)
+           and not (ENABLE_PROCESSED_INPUT or
+                    ENABLE_LINE_INPUT or
+                    ENABLE_ECHO_INPUT or
+                    ENABLE_INSERT_MODE or
+                    ENABLE_QUICK_EDIT_MODE);
+{$endif windows}
 
 {***************************************************************************}
- {                      PRIVATE INITIALIZED VARIABLES                        }
+{                      PRIVATE UNINITIALIZED VARIABLES                      }
 {***************************************************************************}
+{$ifdef go32v2}
+var Ctrl_c_state : boolean;
+{$endif}
 
 {---------------------------------------------------------------------------}
 {                      INITIALIZED PRIVATE VARIABLES                        }
@@ -1128,6 +1150,12 @@ BEGIN
    { init mouse and cursor }
    {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crHidden);
    SetMouseXY(0,0);    { mouse is zero based, set to left upper corner }
+   {$ifdef windows}
+   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
+   {$endif windows}
+{$ifdef go32v2}
+   Ctrl_c_state:=djgpp_set_ctrl_c(false);
+{$endif go32v2}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1149,6 +1177,12 @@ BEGIN
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
 {   DoneResource;}
+   {$ifdef windows}
+   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
+   {$endif windows}
+{$ifdef go32v2}
+   djgpp_set_ctrl_c(Ctrl_c_state);
+{$endif go32v2}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1182,6 +1216,12 @@ var s:string;
 {$endif}
 
 BEGIN                                                 { Compatibility only }
+{$ifdef go32v2}
+   djgpp_set_ctrl_c(Ctrl_c_state);
+{$endif go32v2}
+  {$ifdef windows}
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
+  {$endif windows}
   DoneSysError;
   DoneEvents;
 {$ifdef FV_UNICODE}
@@ -1217,6 +1257,12 @@ BEGIN                                                 { Compatibility only }
   InitScreen;
   InitEvents;
   InitSysError;
+  {$ifdef windows}
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
+  {$endif windows}
+{$ifdef go32v2}
+  Ctrl_c_state:=djgpp_set_ctrl_c(false);
+{$endif go32v2}
   if (PrevHeight<>ScreenHeight) or (PrevWidth<>ScreenWidth) then
     { acknowledge new screen dimensions }
     { prevents to draw out of boundaries of new video buffer }

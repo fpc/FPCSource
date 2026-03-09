@@ -767,6 +767,7 @@ implementation
 
 
     procedure processimportedsyms(syms:tfpobjectlist);
+      { syms is a list of tunitimportsym }
       var
         i,j,k,l : longint;
         pkgentry : ppackageentry;
@@ -779,7 +780,7 @@ implementation
       begin
         for i:=0 to syms.count-1 do
           begin
-            sym:=tsymentry(syms[i]);
+            sym:=tunitimportsym(syms[i]).sym;
             if not (sym.typ in [staticvarsym,procsym,constsym]) or
                 (
                   (sym.typ=constsym) and

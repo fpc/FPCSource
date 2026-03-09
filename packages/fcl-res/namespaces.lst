@@ -2,7 +2,7 @@ src/reswriter.pp=namespaced/System.Resources.Writer.pp
 {s*:src/}=namespaced/
 {i+:src/}
 src/fpcrestypes.pp=namespaced/System.Resources.Types.pp
-src/rcparser.pas=namespaced/System.Resources.Rc.Parser.pas
+src/rcparser.pas=namespaced/System.Resources.Rc.Parser.pp
 src/versionresource.pp=namespaced/System.Resources.Version.pp
 src/coffreader.pp=namespaced/System.Resources.Coff.Reader.pp
 src/cofftypes.pp=namespaced/System.Resources.Coff.Types.pp
@@ -20,6 +20,7 @@ src/groupresource.pp=namespaced/System.Resources.Group.pp
 src/resmerger.pp=namespaced/System.Resources.Merger.pp
 src/coffwriter.pp=namespaced/System.Resources.Coff.Writer.pp
 src/resourcetree.pp=namespaced/System.Resources.Tree.pp
+src/dialogresource.pp=namespaced/System.Resources.DialogResource.pp
 src/groupiconresource.pp=namespaced/System.Resources.GroupIcon.pp
 src/groupcursorresource.pp=namespaced/System.Resources.GroupCursor.pp
 src/machoconsts.pp=namespaced/System.Resources.Macho.Consts.pp

@@ -188,7 +188,9 @@ begin
   else
     FMaxVal:=ReadInteger(Stream);
   If (FWidth<=0) or (FHeight<=0) or (FMaxVal<=0) then
-    Raise Exception.Create('Invalid PNM header data');
+    Raise FPImageException.Create('Invalid PNM header data');
+  if (FWidth > 100000) or (FHeight > 100000) then
+    Raise FPImageException.Create('PNM dimensions too large');
   case FBitMapType of
     1: FBitPP := 1;                  // 1bit PP (text)
     2: FBitPP := 8 * SizeOf(Word);   // Grayscale (text)

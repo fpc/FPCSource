@@ -4764,6 +4764,14 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_HAS_TYPE_EXTENDED');
         def_system_macro('FPC_HAS_TYPE_DOUBLE');
         def_system_macro('FPC_HAS_TYPE_SINGLE');
+        { Clear memory model defines so we don't end up with two of them defined at the same time. 
+          That could have happen if configuration file would set differnet memory model from default. }
+        undef_system_macro('FPC_MM_TINY');
+        undef_system_macro('FPC_MM_SMALL');
+        undef_system_macro('FPC_MM_MEDIUM');
+        undef_system_macro('FPC_MM_COMPACT');
+        undef_system_macro('FPC_MM_LARGE');
+        undef_system_macro('FPC_MM_TINY');
         case init_settings.x86memorymodel of
           mm_tiny:    def_system_macro('FPC_MM_TINY');
           mm_small:   def_system_macro('FPC_MM_SMALL');
@@ -5961,8 +5969,12 @@ begin
      init_settings.alignment.loopalign:=1;
 {$ifdef x86}
      { constalignmax=1 keeps the executable and thus the memory foot print small but
-       all processors except x86 are really hurt by this or might even crash }
-     init_settings.alignment.constalignmax:=1;
+       all processors except x86 are really hurt by this or might even crash ... }
+{$ifndef x86_64}
+     { ... and will segfault if not aligned for SSE instructions }
+     if not (CPUX86_HAS_SSEUNIT in cpu_capabilities[init_settings.cputype]) then
+       init_settings.alignment.constalignmax:=1;
+{$endif not x86_64}
 {$endif x86}
    end;
 

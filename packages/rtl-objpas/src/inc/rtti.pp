@@ -63,7 +63,7 @@ uses
 
 Const
 {$IFDEF FPC_DOTTEDUNITS}
-  DefaultUsePublishedOnly = False;
+  DefaultUsePublishedOnly = Not TObject.SystemHasExtendedRTTI;
 {$ELSE}
   DefaultUsePublishedOnly = True;
 {$ENDIF}
@@ -82,6 +82,8 @@ type
   TRttiOrdinalType = class;
   TRttiInstanceType = class;
   TRttiRecordType = class;
+  TRttiMember = class;
+  TRttiMemberClass =  class of TRttiMember;
 
   TCustomAttributeClass = class of TCustomAttribute;
   TRttiClass = class of TRttiObject;
@@ -324,13 +326,13 @@ type
   private
     FPoolIndex: int32; { < 0: empty. >= 0: uses boolean(FPoolIndex)-th pool. }
     FUsePublishedOnly : Boolean;
-    class var FKeepContextCounter: integer;
     class operator Initialize(var self: TRttiContext);
     class operator Finalize(var self: TRttiContext);
     class operator Copy(constref b: TRttiContext; var self: TRttiContext);
     class operator AddRef(var self: TRttiContext);
     function GetByHandle(AHandle: Pointer): TRttiObject;
     procedure AddObject(AObject: TRttiObject);
+    function GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
     procedure SetUsePublishedOnly(Value: Boolean);
   public
     class function Create: TRttiContext; static;
@@ -549,6 +551,8 @@ type
     FStrictVisibility : Boolean;
     function GetVisibility: TMemberVisibility; virtual;
     function GetStrictVisibility: Boolean; virtual;
+  protected  
+    constructor Create(AParent: TRttiType; AHandle: Pointer); virtual;
   public
     constructor Create(AParent: TRttiType);
     property Visibility: TMemberVisibility read GetVisibility;
@@ -590,6 +594,7 @@ type
     function GetHandle: Pointer; override;
   public
     constructor Create(AParent: TRttiType; APropInfo: PPropInfo);
+    constructor Create(AParent: TRttiType; AHandle: Pointer); override;
     destructor Destroy; override;
     function GetAttributes: TCustomAttributeArray; override;
     function GetValue(Instance: pointer): TValue;  override;
@@ -621,8 +626,8 @@ type
     function GetName: string; override;
     function GetHandle: Pointer; override;
     Function GetAttributes: TCustomAttributeArray; override;
-//    constructor Create(AParent: TRttiObject; var P: PByte); override;
   public
+    constructor Create(AParent: TRttiType; AHandle: Pointer); override;
     destructor destroy; override;
     function GetValue(aInstance: Pointer): TValue; override;
     procedure SetValue(aInstance: Pointer; const aValue: TValue); override;
@@ -809,6 +814,7 @@ type
     function GetHandle: Pointer; override;
   public
     constructor Create(AParent: TRttiType; APropInfo: PPropInfo);
+    constructor Create(AParent: TRttiType; AHandle: Pointer); override;
     destructor Destroy; override;
     function GetAttributes: TCustomAttributeArray; override;
     function GetValue(aInstance: Pointer; const aArgs: array of TValue): TValue;
@@ -1225,6 +1231,8 @@ type
     function GetType(ATypeInfo: PTypeInfo; UsePublishedOnly : Boolean): TRttiType;
     function GetByHandle(aHandle: Pointer): TRttiObject;
     procedure AddObject(aObject: TRttiObject);
+    function GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
+    procedure Clear;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -1367,6 +1375,7 @@ type
     function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
   public
     constructor Create(AParent: TRttiType; aHandle:  PVmtMethodExEntry);
+    constructor Create(AParent: TRttiType; AHandle: Pointer); override;
     function GetAttributes: TCustomAttributeArray; override;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue; override;
   end;
@@ -1396,6 +1405,7 @@ type
     function GetVirtualIndex: SmallInt; override;
   public
     constructor Create(AParent: TRttiType; aHandle: PRecMethodExEntry);
+    constructor Create(AParent: TRttiType; AHandle: Pointer); override;
     function GetParameters(aWithHidden: Boolean): TRttiParameterArray; override;
     Function GetAttributes: TCustomAttributeArray; override;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue; override;
@@ -1454,7 +1464,6 @@ resourcestring
 var
   PoolLock : TRTLCriticalSection;
   // Boolean = UsePublishedOnly
-  PoolRefCount : Array [Boolean] of integer;
   GRttiPool : Array [Boolean] of TRttiPool;
   FuncCallMgr: TFunctionCallManagerArray;
 
@@ -2275,6 +2284,11 @@ begin
   FHandle:=aHandle;
 end;
 
+constructor TRttiInstanceMethod.Create(AParent: TRttiType; AHandle: Pointer);
+begin
+  Create(AParent, PVmtMethodExEntry(AHandle));
+end;
+
 function TRttiInstanceMethod.GetAttributes: TCustomAttributeArray;
 begin
   if not FAttributesResolved then
@@ -2498,6 +2512,31 @@ begin
 {$endif}
 end;
 
+function TRttiPool.GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
+var
+  idx: LongInt;
+begin
+  if not Assigned(aHandle) then
+    Exit(aClass.Create(aParent, aHandle));
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(FLock);
+  try
+{$endif}
+    idx:=FObjectMap.IndexOf(aHandle);
+    if idx>=0 then
+      Result:=TRttiMember(FObjectMap.Data[idx])
+    else
+    begin
+      Result:=aClass.Create(aParent, aHandle);
+      FObjectMap.Add(aHandle, Result);
+    end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(FLock);
+  end;
+{$endif}
+end;
+
 constructor TRttiPool.Create;
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -2507,12 +2546,30 @@ begin
   FObjectMap := TRttiObjectMap.Create;
 end;
 
-destructor TRttiPool.Destroy;
+procedure TRttiPool.Clear;
+
 var
   i: LongInt;
+
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  EnterCriticalsection(FLock);
+  try
+{$endif}
   for i := 0 to FObjectMap.Count - 1 do
     FObjectMap.Data[i].Free;
+  FObjectMap.Clear;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  finally
+    LeaveCriticalsection(FLock);
+  end;
+{$endif}
+  
+end;
+
+destructor TRttiPool.Destroy;
+begin
+  Clear;
   FObjectMap.Free;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalsection(FLock);
@@ -6058,6 +6115,11 @@ begin
   FPropInfo := APropInfo;
 end;
 
+constructor TRttiIndexedProperty.Create(AParent: TRttiType; AHandle: Pointer);
+begin
+  Create(AParent, PPropInfo(AHandle));
+end;
+
 destructor TRttiIndexedProperty.Destroy;
 var
   attr: TCustomAttribute;
@@ -6609,7 +6671,6 @@ Procedure TRttiInstanceType.ResolveExtendedDeclaredProperties;
 
 var
   Table: PPropDataEx;
-  //List : PPropListEx;
   info : PPropInfoEx;
   TP : PPropInfo;
   Prop : TRttiProperty;
@@ -6620,9 +6681,11 @@ begin
   Len:=Table^.PropCount;
   PropCount:=Len;
   SetLength(FDeclaredProperties,PropCount);
-  FPropertiesResolved:=True;
   if Len=0 then
+  begin
+    FPropertiesResolved:=True;
     exit;
+  end;
   try
     J := 0;
     For I:=0 to Len-1 do
@@ -6634,12 +6697,7 @@ begin
         Dec(PropCount);
         continue;
       end;
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetByHandle(TP));
-      if Prop=nil then
-      begin
-        Prop:=TRttiProperty.Create(Self, TP);
-        GRttiPool[FUsePublishedOnly].AddObject(Prop);
-      end;
+      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredProperties[J]:=Prop;
@@ -6648,6 +6706,7 @@ begin
   finally
     SetLength(FDeclaredProperties, PropCount);
   end;
+  FPropertiesResolved:=True;
 end;
 
 Procedure TRttiInstanceType.ResolveClassicDeclaredProperties;
@@ -6662,34 +6721,44 @@ begin
   Table:=PClassData(FTypeData)^.PropertyTable;
   Len:=Table^.PropCount;
   SetLength(FDeclaredProperties,Len);
-  FPropertiesResolved:=True;
   if Len=0 then
+  begin
+    FPropertiesResolved:=True;
     exit;
+  end;
   try
     TP:=PPropInfo(@Table^.PropList);
     For I:=0 to Len-1 do
       begin
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetByHandle(TP));
-      if Prop=nil then
-      begin
-        Prop:=TRttiProperty.Create(Self, TP);
-        Prop.FUsePublishedOnly:=FUsePublishedOnly;
-        GRttiPool[FUsePublishedOnly].AddObject(Prop);
-      end;
+      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
+      Prop.FUsePublishedOnly:=FUsePublishedOnly;
       FDeclaredProperties[I]:=Prop;
       TP:=TP^.Next;
       end;
   finally
   end;
+  FPropertiesResolved:=True;
 end;
 
 function TRttiInstanceType.GetDeclaredProperties: TRttiPropertyArray;
 begin
   if Not FPropertiesResolved then
-    if fUsePublishedOnly then
-      ResolveClassicDeclaredProperties
-    else
-      ResolveExtendedDeclaredProperties;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if Not FPropertiesResolved then
+        if fUsePublishedOnly then
+          ResolveClassicDeclaredProperties
+        else
+          ResolveExtendedDeclaredProperties;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   result := FDeclaredProperties;
 end;
 
@@ -6707,9 +6776,11 @@ begin
   Len:=Table^.PropCount;
   PropCount:=0;
   SetLength(FDeclaredIndexedProperties,0);
-  FIndexedPropertiesResolved:=True;
   if Len=0 then
+  begin
+    FIndexedPropertiesResolved:=True;
     exit;
+  end;
   try
     For I:=0 to Len-1 do
       begin
@@ -6721,24 +6792,32 @@ begin
       end;
       Inc(PropCount);
       SetLength(FDeclaredIndexedProperties, PropCount);
-      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetByHandle(TP));
-      if IProp=nil then
-      begin
-        IProp:=TRttiIndexedProperty.Create(Self, TP);
-        GRttiPool[FUsePublishedOnly].AddObject(IProp);
-      end;
+      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiIndexedProperty, Self));
       IProp.FVisibility:=MemberVisibilities[Info^.Visibility];
       IProp.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredIndexedProperties[PropCount-1]:=IProp;
     end;
   finally
   end;
+  FIndexedPropertiesResolved:=True;
 end;
 
 function TRttiInstanceType.GetDeclaredIndexedProperties: TRttiIndexedPropertyArray;
 begin
   if not FIndexedPropertiesResolved then
-    ResolveDeclaredIndexedProperties;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if not FIndexedPropertiesResolved then
+        ResolveDeclaredIndexedProperties;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   Result:=FDeclaredIndexedProperties;
 end;
 
@@ -6756,30 +6835,23 @@ begin
   try
     Len:=GetFieldList(FTypeInfo,Tbl,[],False);
     SetLength(FDeclaredFields,Len);
-    FFieldsResolved:=True;
     if Len=0 then
+    begin
+      FFieldsResolved:=True;
       exit;
+    end;
     Ctx:=TRttiContext.Create(FUsePublishedOnly);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
-      Fld:=TRttiField(Ctx.GetByHandle(aData));
-      if Fld=Nil then
-        begin
-        Fld:=TRttiField.Create(Self);
-        Fld.FHandle:=aData;
-        Fld.FName:=aData^.Name^;
-        Fld.FOffset:=aData^.FieldOffset;
-        Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
-        Fld.FVisibility:=MemberVisibilities[aData^.FieldVisibility];
-        Fld.FStrictVisibility:=aData^.StrictVisibility;
-        Ctx.AddObject(Fld);
-        end;
+      Fld:=TRttiField(Ctx.GetOrAddObject(aData, TRttiField, Self));
+      Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
       FDeclaredFields[I]:=Fld;
       end;
   finally
     FreeMem(Tbl);
   end;
+  FFieldsResolved:=True;
 end;
 
 procedure TRttiInstanceType.ResolveDeclaredMethods;
@@ -6795,7 +6867,6 @@ begin
   tbl:=Nil;
   Ctx:=TRttiContext.Create(FUsePublishedOnly);
   try
-    FMethodsResolved:=True;
     Len:=GetMethodList(FTypeInfo,Tbl,[],False);
     if not FUsePublishedOnly then
       aCount:=Len
@@ -6813,15 +6884,9 @@ begin
       aData:=Tbl^[i];
       if (Not FUsePublishedOnly) or (aData^.MethodVisibility=vcPublished) then
         begin
-        Meth:=TRttiInstanceMethod(Ctx.GetByHandle(aData));
-        if Meth=Nil then
-          begin
-          Meth:=TRttiInstanceMethod.Create(Self,aData);
-          Meth.FUsePublishedOnly:=Self.FUsePublishedOnly;
-          Meth.FVisibility:=MemberVisibilities[aData^.MethodVisibility];
-          Meth.FStrictVisibility:=aData^.StrictVisibility;
-          Ctx.AddObject(Meth);
-          end;
+        Meth:=TRttiInstanceMethod(Ctx.GetOrAddObject(aData, TRttiInstanceMethod, Self));
+        Meth.FVisibility:=MemberVisibilities[aData^.MethodVisibility];
+        Meth.FStrictVisibility:=aData^.StrictVisibility;
         FDeclaredMethods[Idx]:=Meth;
         Inc(Idx);
         end;
@@ -6829,19 +6894,44 @@ begin
   finally
     FreeMem(Tbl);
   end;
+  FMethodsResolved:=True;
 end;
 
 function TRttiInstanceType.GetDeclaredFields: TRttiFieldArray;
 begin
   if not FFieldsResolved then
-    ResolveDeclaredFields;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if not FFieldsResolved then
+        ResolveDeclaredFields;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   Result:=FDeclaredFields;
 end;
 
 function TRttiInstanceType.GetDeclaredMethods: TRttiMethodArray;
 begin
   if not FMethodsResolved then
-    ResolveDeclaredMethods;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if not FMethodsResolved then
+        ResolveDeclaredMethods;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   Result:=FDeclaredMethods;
 end;
 
@@ -6868,33 +6958,26 @@ Var
 begin
   Tbl:=Nil;
   Len:=GetFieldList(FTypeInfo,Tbl);
-  FFieldsResolved:=True;
   try
     if Len=0 then
+    begin
+      FFieldsResolved:=True;
       exit;
+    end;
     SetLength(FDeclaredFields,Len);
     Ctx:=TRttiContext.Create(Self.FUsePublishedOnly);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
-      Fld:=TRttiField(Ctx.GetByHandle(aData));
-      if Fld=Nil then
-        begin
-        Fld:=TRttiField.Create(Self);
-        Fld.FName:=aData^.Name^;
-        Fld.FOffset:=aData^.FieldOffset;
-        Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
-        Fld.FVisibility:=MemberVisibilities[aData^.FieldVisibility];
-        Fld.FStrictVisibility:=aData^.StrictVisibility;
-        Fld.FHandle:=aData;
-        Ctx.AddObject(Fld);
-        end;
+      Fld:=TRttiField(Ctx.GetOrAddObject(aData, TRttiField, Self));
+      Fld.FFieldType:=Ctx.GetType(aData^.FieldType^);
       FDeclaredFields[I]:=Fld;
       end;
     FFields:=FDeclaredFields;
   finally
     FreeMem(Tbl);
   end;
+  FFieldsResolved:=True;
 end;
 
 procedure TRttiRecordType.ResolveMethods;
@@ -6907,26 +6990,25 @@ Var
   Ctx : TRttiContext;
 
 begin
-  FMethodsResolved:=True;
   if FUsePublishedOnly then
+  begin
+    FMethodsResolved:=True;
     exit;
+  end;
   aCount:=GetMethodList(FTypeInfo,Tbl,[]);
   try
     if aCount=0 then
+    begin
+      FMethodsResolved:=True;
       exit;
+    end;
     SetLength(FDeclaredMethods,aCount);
     Ctx:=TRttiContext.Create(FUsePublishedOnly);
     Idx:=0;
     For I:=0 to aCount-1 do
     begin
        aData:=Tbl^[i];
-       Meth:=TRttiRecordMethod(Ctx.GetByHandle(aData));
-       if Meth=Nil then
-       begin
-         Meth:=TRttiRecordMethod.Create(Self,aData);
-         Meth.FUsePublishedOnly:=Self.FUsePublishedOnly;
-         Ctx.AddObject(Meth)
-       end;
+       Meth:=TRttiRecordMethod(Ctx.GetOrAddObject(aData, TRttiRecordMethod, Self));
        Meth.FVisibility:=MemberVisibilities[aData^.MethodVisibility];
        Meth.FStrictVisibility:=aData^.StrictVisibility;
        FDeclaredMethods[Idx]:=Meth;
@@ -6935,6 +7017,7 @@ begin
   finally
     FreeMem(Tbl);
   end;
+  FMethodsResolved:=True;
 end;
 
 procedure TRttiRecordType.ResolveProperties;
@@ -6945,13 +7028,14 @@ var
   TP : PPropInfo;
   Prop : TRttiProperty;
   i, j, PropCount, aCount : Integer;
-  obj: TRttiObject;
 
 begin
   List:=Nil;
-  FPropertiesResolved:=True;
   if FUsePublishedOnly then
+  begin
+    FPropertiesResolved:=True;
     Exit;
+  end;
   aCount:=GetPropListEx(FTypeinfo,List);
   PropCount:=aCount;
   J := 0;
@@ -6967,12 +7051,7 @@ begin
         continue;
       end;
 
-      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetByHandle(TP));
-      if Prop=nil then
-      begin
-        Prop:=TRttiProperty.Create(Self, TP);
-        GRttiPool[FUsePublishedOnly].AddObject(Prop);
-      end;
+      Prop := TRttiProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiProperty, Self));
       Prop.FVisibility:=MemberVisibilities[Info^.Visibility];
       Prop.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredProperties[J]:=Prop;
@@ -6983,6 +7062,7 @@ begin
     if assigned(List) then
       FreeMem(List);
   end;
+  FPropertiesResolved:=True;
 end;
 
 Procedure TRttiRecordType.ResolveIndexedProperties;
@@ -6996,17 +7076,19 @@ var
 
 begin
   List:=Nil;
-  FIndexedPropertiesResolved:=True;
   if FUsePublishedOnly then
+  begin
+    FIndexedPropertiesResolved:=True;
     exit;
+  end;
   Len:=GetPropListEx(FTypeInfo,List);
   PropCount:=0;
   SetLength(FDeclaredIndexedProperties,0);
-  FIndexedPropertiesResolved:=True;
   if Len=0 then
   begin
     if Assigned(List) then
       FreeMem(List);
+    FIndexedPropertiesResolved:=True;
     exit;
   end;
   try
@@ -7021,12 +7103,7 @@ begin
       Inc(PropCount);
       SetLength(FDeclaredIndexedProperties, PropCount);
 
-      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetByHandle(TP));
-      if IProp=nil then
-      begin
-        IProp:=TRttiIndexedProperty.Create(Self, TP);
-        GRttiPool[FUsePublishedOnly].AddObject(IProp);
-      end;
+      IProp := TRttiIndexedProperty(GRttiPool[FUsePublishedOnly].GetOrAddObject(TP, TRttiIndexedProperty, Self));
       IProp.FVisibility:=MemberVisibilities[Info^.Visibility];
       IProp.FStrictVisibility:=Info^.StrictVisibility;
       FDeclaredIndexedProperties[PropCount-1]:=IProp;
@@ -7035,6 +7112,7 @@ begin
     if Assigned(List) then
       FreeMem(List);
   end;
+  FIndexedPropertiesResolved:=True;
 end;
 
 function TRttiRecordType.GetTypeSize: Integer;
@@ -7055,28 +7133,76 @@ end;
 function TRttiRecordType.GetDeclaredFields: TRttiFieldArray;
 begin
   If not FFieldsResolved then
-    ResolveFields;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if not FFieldsResolved then
+        ResolveFields;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   Result:=FDeclaredFields;
 end;
 
 function TRttiRecordType.GetDeclaredMethods: TRttiMethodArray;
 begin
   If not FMethodsResolved then
-    ResolveMethods;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if not FMethodsResolved then
+        ResolveMethods;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   Result:=FDeclaredMethods;
 end;
 
 function TRttiRecordType.GetDeclaredProperties: TRttiPropertyArray;
 begin
   if not FPropertiesResolved then
-    ResolveProperties;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if not FPropertiesResolved then
+        ResolveProperties;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   Result:=FDeclaredProperties;
 end;
 
 function TRttiRecordType.GetDeclaredIndexedProperties: TRttiIndexedPropertyArray;
 begin
   if not FIndexedPropertiesResolved then
-    ResolveIndexedProperties;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    EnterCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    try
+{$endif}
+      if not FIndexedPropertiesResolved then
+        ResolveIndexedProperties;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    finally
+      LeaveCriticalsection(GRttiPool[FUsePublishedOnly].FLock);
+    end;
+{$endif}
+  end;
   Result:=FDeclaredIndexedProperties;
 end;
 
@@ -7107,6 +7233,11 @@ begin
   inherited Create();
   FParent := AParent;
   FVisibility:=mvPublished;
+end;
+
+constructor TRttiMember.Create(AParent: TRttiType; AHandle: Pointer);
+begin
+  Create(AParent);
 end;
 
 { TRttiProperty }
@@ -7161,6 +7292,11 @@ constructor TRttiProperty.Create(AParent: TRttiType; APropInfo: PPropInfo);
 begin
   inherited Create(AParent);
   FPropInfo := APropInfo;
+end;
+
+constructor TRttiProperty.Create(AParent: TRttiType; AHandle: Pointer);
+begin
+  Create(AParent, PPropInfo(AHandle));
 end;
 
 destructor TRttiProperty.Destroy;
@@ -7589,6 +7725,19 @@ end;
 function TRttiField.GetHandle: Pointer;
 begin
   Result:=FHandle;
+end;
+
+constructor TRttiField.Create(AParent: TRttiType; AHandle: Pointer);
+var
+  aData: PExtendedFieldEntry;
+begin
+  inherited Create(AParent, AHandle);
+  aData := PExtendedFieldEntry(AHandle);
+  FHandle := aData;
+  FName := aData^.Name^;
+  FOffset := aData^.FieldOffset;
+  FVisibility := MemberVisibilities[aData^.FieldVisibility];
+  FStrictVisibility := aData^.StrictVisibility;
 end;
 
 destructor TRttiField.destroy;
@@ -8085,59 +8234,20 @@ end;
 { TRttiContext }
 
 procedure NewPoolRef(PoolIndex: boolean);
-var
-  pool: TRttiPool;
 begin
-  pool := nil;
-  if not Assigned(GRttiPool[PoolIndex]) then
-    pool := TRttiPool.Create; { Heuristically pre-create. }
-  repeat
-{$ifdef FPC_HAS_FEATURE_THREADING}
-    EnterCriticalSection(PoolLock);
-{$endif}
-    if PoolRefCount[PoolIndex] = 0 then
-      if Assigned(pool) then
-        GRttiPool[PoolIndex] := specialize Exchange<TRttiPool>(pool, nil)
-      else
-      begin
-{$ifdef FPC_HAS_FEATURE_THREADING}
-        LeaveCriticalSection(PoolLock);
-{$endif}
-        pool := TRttiPool.Create; { Create outside of the lock and retry. }
-        continue;
-      end;
-    inc(PoolRefCount[PoolIndex]);
-{$ifdef FPC_HAS_FEATURE_THREADING}
-    LeaveCriticalSection(PoolLock);
-{$endif}
-    break;
-  until false;
-  pool.Free;
+  { Pools are permanent — nothing to do. }
 end;
 
 function EnsurePool(var ctx: TRttiContext): TRttiPool;
 begin
   if ctx.FPoolIndex < 0 then
-  begin
-    NewPoolRef(ctx.UsePublishedOnly);
     ctx.FPoolIndex := ord(ctx.UsePublishedOnly);
-  end;
   result := GRttiPool[boolean(ctx.FPoolIndex)];
 end;
 
 procedure FreePools;
-var
-  iPool: boolean;
 begin
-{$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalSection(PoolLock);
-{$endif}
-  for iPool in boolean do
-    if PoolRefCount[iPool] = 0 then
-      specialize Exchange<TRttiPool>(GRttiPool[iPool], nil).Free;
-{$ifdef FPC_HAS_FEATURE_THREADING}
-  LeaveCriticalSection(PoolLock);
-{$endif}
+  { Pools are permanent — destroyed in finalization. }
 end;
 
 class function TRttiContext.Create: TRttiContext;
@@ -8153,41 +8263,20 @@ begin
 end;
 
 class procedure TRttiContext.DropContext;
-var
-  counterFetch: integer;
 begin
-  repeat
-    counterFetch := FKeepContextCounter;
-    if counterFetch <= 0 then
-      raise ERtti.Create('Unpaired DropContext.');
-  until AtomicCmpExchange(FKeepContextCounter, counterFetch - 1, counterFetch) = counterFetch;
-  if counterFetch = 1 then
-    FreePools;
+  // Pools are permanent, but we clear them so this comes closest to the 'DropContext'
+  GRttiPool[False].Clear;
+  GRttiPool[True].Clear;
 end;
 
 class procedure TRttiContext.KeepContext;
 begin
-  AtomicIncrement(FKeepContextCounter);
+  { Pools are permanent — nothing to do. }
 end;
 
 procedure TRttiContext.Free;
-var
-  toFree: TRttiPool;
 begin
-  if FPoolIndex < 0 then
-    exit;
-  toFree := nil;
-{$ifdef FPC_HAS_FEATURE_THREADING}
-  EnterCriticalSection(PoolLock);
-{$endif}
-  dec(PoolRefCount[boolean(FPoolIndex)]);
-  if (PoolRefCount[boolean(FPoolIndex)] = 0) and (FKeepContextCounter <= 0) then
-    toFree := specialize Exchange<TRttiPool>(GRttiPool[boolean(FPoolIndex)], nil);
-{$ifdef FPC_HAS_FEATURE_THREADING}
-  LeaveCriticalSection(PoolLock);
-{$endif}
   FPoolIndex := -1;
-  toFree.Free; { Free outside of the lock. }
 end;
 
 class operator TRttiContext.Initialize(var self: TRttiContext);
@@ -8202,20 +8291,13 @@ end;
 
 class operator TRttiContext.Copy(constref b: TRttiContext; var self: TRttiContext);
 begin
-  if b.FPoolIndex <> self.FPoolIndex then
-  begin
-    self.Free;
-    if b.FPoolIndex >= 0 then
-      NewPoolRef(boolean(b.FPoolIndex));
-    self.FPoolIndex := b.FPoolIndex;
-  end;
+  self.FPoolIndex := b.FPoolIndex;
   self.FUsePublishedOnly := b.FUsePublishedOnly;
 end;
 
 class operator TRttiContext.AddRef(var self: TRttiContext);
 begin
-  if self.FPoolIndex >= 0 then
-    NewPoolRef(boolean(self.FPoolIndex));
+  { Pools are permanent — nothing to do. }
 end;
 
 function TRttiContext.GetByHandle(AHandle: Pointer): TRttiObject;
@@ -8227,6 +8309,12 @@ procedure TRttiContext.AddObject(AObject: TRttiObject);
 begin
   EnsurePool(Self).AddObject(AObject);
   AObject.FUsePublishedOnly := UsePublishedOnly;
+end;
+
+function TRttiContext.GetOrAddObject(aHandle: Pointer; aClass: TRttiMemberClass; aParent: TRttiType): TRttiMember;
+begin
+  Result := EnsurePool(Self).GetOrAddObject(aHandle, aClass, aParent);
+  Result.FUsePublishedOnly := UsePublishedOnly;
 end;
 
 procedure TRttiContext.SetUsePublishedOnly(Value: Boolean);
@@ -8601,6 +8689,11 @@ begin
   FHandle:=aHandle;
 end;
 
+constructor TRttiRecordMethod.Create(AParent: TRttiType; AHandle: Pointer);
+begin
+  Create(AParent, PRecMethodExEntry(AHandle));
+end;
+
 function TRttiRecordMethod.GetCallingConvention: TCallConv;
 begin
   Result:=Fhandle^.CC;
@@ -8786,12 +8879,15 @@ initialization
 {$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(PoolLock);
 {$endif}
+  GRttiPool[False] := TRttiPool.Create;
+  GRttiPool[True] := TRttiPool.Create;
   InitDefaultFunctionCallManager;
 {$ifdef SYSTEM_HAS_INVOKE}
   InitSystemFunctionCallManager;
 {$endif}
 finalization
-  FreePools;
+  FreeAndNil(GRttiPool[False]);
+  FreeAndNil(GRttiPool[True]);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalSection(PoolLock);
 {$endif}

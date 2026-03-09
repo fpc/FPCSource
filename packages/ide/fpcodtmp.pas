@@ -374,6 +374,7 @@ begin
   Insert(New(PLabel, Init(R2, label_codetemplate_shortcut, ShortcutIL)));
   R.Move(0,3); R.B.Y:=R.A.Y+8;
   New(CodeMemo, Init(R, nil,nil,nil{,4096 does not compile !! }));
+  CodeMemo^.Options:=ofSelectable or ofFirstClick;
   Insert(CodeMemo);
   R2.Copy(R); R2.Move(-1,-1); R2.B.Y:=R2.A.Y+1;
   Insert(New(PLabel, Init(R2, label_codetemplate_content, CodeMemo)));

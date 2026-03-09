@@ -1666,7 +1666,7 @@ implementation
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
       var
-        s,t,
+        s,
         prefix : TSymStr;
         hash : qword;
       begin
@@ -2375,6 +2375,8 @@ implementation
           end;
         if df_generic in defoptions then
           begin
+            { crc generic implementation }
+            ppufile.do_crc:=true;
             if assigned(generictokenbuf) then
               begin
                 sizeleft:=generictokenbuf.size;
@@ -2430,9 +2432,21 @@ implementation
           genconstraintdata.buildderef;
         if assigned(genericparas) then
           begin
-            if not assigned(genericparaderefs) then
-              genericparaderefs:=tfplist.create;
-            genericparaderefs.capacity:=genericparaderefs.count+genericparas.count;
+           { buildderef may be called more than once (getppucrc is called at
+             end-of-interface and again at end-of-implementation; system units
+             also call buildderef a second time from writeppu). Clear any
+             previously accumulated entries so that genericparaderefs.count
+             stays equal to genericparas.count and does not trigger
+             internalerror 2014052303 in deref. }
+           if assigned(genericparaderefs) then
+             begin
+               for i:=0 to genericparaderefs.count-1 do
+                 dispose(pderef(genericparaderefs[i]));
+               genericparaderefs.clear;
+             end
+           else
+             genericparaderefs:=tfplist.create;
+           genericparaderefs.capacity:=genericparas.count;
             for i:=0 to genericparas.count-1 do
               begin
                 sym:=tsym(genericparas.items[i]);
@@ -6971,11 +6985,8 @@ implementation
 
          { node tree for inlining }
 
-         oldcrc:=ppufile.do_crc;
-         ppufile.do_crc:=false;
          if has_inlininginfo then
            ppuwritenodetree(ppufile,inlininginfo^.code);
-         ppufile.do_crc:=oldcrc;
       end;
 
 
@@ -8577,7 +8588,6 @@ implementation
 
     function tobjectdef.vmt_def: trecorddef;
       var
-        where: tsymtable;
         vmttypesym: tsymentry;
       begin
         if not is_unique_objpasdef then

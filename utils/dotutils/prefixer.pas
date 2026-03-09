@@ -79,7 +79,7 @@ Type
     procedure Execute;
     procedure ReworkUses(aUses,aNewUses : TStrings);
     class function ExtractPrefix(const aRule: String): String;
-    class function ApplyRule(const aFile,aCasedName,aRule : String; PrettyPrint : Boolean) : String;
+    class function ApplyRule(const aFile,aCasedName, aRule: String; PrettyPrint : Boolean) : String;
     class function ApplyAliasRule(const aName, aRule: String): String;
     // Create backups of created/changed files  ?
     Property CreateBackups : Boolean Read FCreateBackups Write FCreateBackups;
@@ -406,8 +406,12 @@ end;
 procedure TPrefixer.CorrectUnitName(aName : String; aLineNr : Integer);
 
 Var
-  aLine,aReplace,aNewName : string;
-  Idx : Integer;
+  aLine: String;
+  aReplace: String;
+  aNewName: String;
+  StartDefine: String;
+  EndDefine: String;
+  Idx: Integer;
 
 begin
   aNewName:=DestUnitName;
@@ -423,19 +427,21 @@ begin
   inmIfndef:
     begin
     // Look for ;
+    StartDefine := '{$IFNDEF '+DEFINE+'}';
+    EndDefine := '{$ENDIF '+DEFINE+'}';
     idx:=aLineNr-1;
     While (Idx<FSources.Count) and (Pos(';',FSources[Idx])=0) do
       Inc(Idx);
-    if (Idx<FSources.Count-1) then
-      FSources.Insert(Idx+1,'{$ENDIF '+DEFINE+'}');
+    if (Idx<FSources.Count-1) and (FSources[Succ(Idx)] <> EndDefine) then
+      FSources.Insert(Idx+1, EndDefine);
     // Look for unit
     idx:=aLineNr;
     if Idx>=FSources.Count then
       Idx:=FSources.Count-1;
     While (Idx>=0) and Not FindWord('unit',FSources[Idx]) do
       Dec(Idx);
-    if Idx>=0 then
-      FSources.Insert(Idx,'{$IFNDEF '+DEFINE+'}');
+    if (Idx>=0) and (FSources[Pred(Idx)] <> StartDefine) then
+      FSources.Insert(Idx, StartDefine);
     end;
   end;
 end;
@@ -789,43 +795,57 @@ begin
     Result:=aName;
 end;
 
-class function TPrefixer.ApplyRule(const aFile, aCasedName,aRule: String;
-  PrettyPrint: Boolean): String;
+class function TPrefixer.ApplyRule(const aFile, aCasedName, aRule: String; PrettyPrint: Boolean): String;
 
 Var
-  p,len : Integer;
-  aExt,aDir,aName,aPrefix : String;
+  p: Integer;
+  len: Integer;
+  aExt: String;
+  aDir: String;
+  aName: String;
+  aPrefix: String;
+  lRule: String;
 
 begin
   aPrefix:='';
   aDir:=ExtractFilePath(aFile);
   aExt:=ExtractFileExt(aFile);
+  lRule := aRule;
   Result:=ExtractFileName(aFile);
   // *DottedUnitName
   // Prefix
   // Prefix,*UnitSuffix
   // Prefix,-DeleteFromOriginalAtStart
   // Prefix,DeleteFromOriginalAtEnd-
-  P:=Pos(',',aRule);
+  // @FileExtension
+  P:=Pos('@',lRule);
+  if P > 0 then
+  begin
+    aExt := '.' + Copy(lRule, Succ(P));
+
+    Delete(lRule, P, Length(lRule));
+  end;
+
+  P:=Pos(',',lRule);
   if P=0 then
     begin
-    if aRule<>'' then
-      if aRule[1]='*' then
-        Result:=Copy(aRule,2)+aExt
+    if lRule<>'' then
+      if lRule[1]='*' then
+        Result:=Copy(lRule,2)+aExt
       else if PrettyPrint and (aCasedName<>'') then
-        Result:=aRule+'.'+aCasedName+aExt
+        Result:=lRule+'.'+aCasedName+aExt
       else
-        aPrefix:=aRule+'.'
+        aPrefix:=lRule+'.'
     end
   else
     begin
-    aPrefix:=Copy(aRule,1,P-1)+'.';
-    aName:=Copy(aRule,P+1);
+    aPrefix:=Copy(lRule,1,P-1)+'.';
+    aName:=Copy(lRule,P+1);
     Len:=Length(AName);
     if Len>0 then
       begin
       Case aName[1] of
-        '*' : Result:=Copy(aName,2)+ExtractFileExt(Result);
+        '*' : Result:=Copy(aName,2)+aExt;
         '-' : if Pos(Copy(aName,2),Result)=1 then
                Delete(Result,1,Len-1);
       else

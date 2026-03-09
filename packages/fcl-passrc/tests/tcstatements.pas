@@ -60,6 +60,8 @@ Type
     procedure TestCallStrFormat1;
     procedure TestCallStrFormat2;
     procedure TestCallOtherFormat;
+    Procedure TestCallNamesArg;
+
     Procedure TestIf;
     Procedure TestIfBlock;
     Procedure TestIfAssignment;
@@ -573,6 +575,11 @@ procedure TTestStatementParser.TestCallOtherFormat;
 
 begin
   AssertException('Only Write(ln) and str allow format',EParserError,@DoTestCallOtherFormat);
+end;
+
+procedure TTestStatementParser.TestCallNamesArg;
+begin
+  TestStatement(['Ole.Doit(a:=123);']);
 end;
 
 procedure TTestStatementParser.TestIf;

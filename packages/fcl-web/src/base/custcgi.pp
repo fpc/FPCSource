@@ -214,7 +214,7 @@ Const
     { 32: 'SERVER_ADMIN'           } (h:hhUnknown; v : hvUnknown),
     { 33: 'SCRIPT_FILENAME'        } (h:hhUnknown; v : hvUnknown),
     { 34: 'REMOTE_PORT'            } (h:hhUnknown; v : hvUnknown),
-    { 35: 'REQUEST_URI'            } (h:hhUnknown; v : hvUnknown),
+    { 35: 'REQUEST_URI'            } (h:hhUnknown; v : hvURL),
     { 36: 'CONTENT'                } (h:hhUnknown; v : hvContent),
     { 37: 'XHTTPREQUESTEDWITH'     } (h:hhUnknown; v : hvXRequestedWith),
     { 38: 'HTTP_AUTHORIZATION'     } (h:hhAuthorization; v : hvUnknown),

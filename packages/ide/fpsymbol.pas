@@ -278,6 +278,7 @@ type
       function    GetFlags: longint; virtual;
       procedure   SetFlags(AFlags: longint); virtual;
       procedure   SizeLimits (Var Min, Max: TPoint); Virtual;
+      procedure   ChangeBounds (Var Bounds: TRect); virtual;
       procedure   OnResize; Virtual; { called on window resize event }
       destructor  Done;virtual;
     private
@@ -2153,6 +2154,18 @@ begin
           UnitInfoDependent^.SetState(sfVisible,true);
       end;
   end;
+  if GetState(sfVisible) then
+  begin
+    { TPanel on lose focus hide scrollbars,
+      but we need them to be visible here.
+      Set visibility manually. }
+    if UsedVSB<>nil then
+      if not UsedVSB^.GetState(sfVisible) then
+        UsedVSB^.SetState(sfVisible,true);
+    if DependVSB<>nil then
+      if not DependVSB^.GetState(sfVisible) then
+        DependVSB^.SetState(sfVisible,true);
+  end;
 end;
 
 procedure TUnitInfoPanel.HandleEvent(var Event: TEvent);
@@ -2623,6 +2636,11 @@ begin
   Min.Y:=15; { Scrollbars in unit info page is still usable }
   Max.X:=ScreenWidth;
   Max.Y:=ScreenHeight-2;
+end;
+
+procedure TBrowserWindow.ChangeBounds (Var Bounds: TRect);
+begin
+  inherited ChangeBounds(Bounds);
   if (PrevSize.X<>Size.X) or (PrevSize.Y<>Size.Y) then
   begin
     OnResize;
@@ -2679,6 +2697,7 @@ begin
         UnitInfo^.UsedVSB^.Origin.Y:=T+1;
         UnitInfoUsed^.Size.Y:=U-1;
         UnitInfo^.UsedVSB^.Size.Y:=U-1;
+        UnitInfoUsed^.SetRange(UnitInfoUsed^.Range); {set again for scrollbar min max values}
       end;
       if assigned(UnitInfoDependent) then
       begin
@@ -2687,6 +2706,7 @@ begin
         UnitInfo^.DependVSB^.Origin.Y:=T+U+1;
         UnitInfoDependent^.Size.Y:=D-1;
         UnitInfo^.DependVSB^.Size.Y:=D-1;
+        UnitInfoDependent^.SetRange(UnitInfoDependent^.Range); {set again for scrollbar min max values}
       end;
     end;
   end;

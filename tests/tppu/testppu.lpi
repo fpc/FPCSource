@@ -4,7 +4,6 @@
     <Version Value="12"/>
     <General>
       <Flags>
-        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
@@ -79,9 +78,7 @@
       </Debugging>
     </Linking>
     <Other>
-      <OtherDefines Count="1">
-        <Define0 Value="EnableCTaskPPU"/>
-      </OtherDefines>
+      <CompilerPath Value="/usr/lib/fpc/3.3.1/ppcx64"/>
     </Other>
   </CompilerOptions>
   <Debugging>

@@ -47,6 +47,14 @@ begin
           AddUnit('resfactory');
           AddUnit('resdatastream');
         end;
+    T:=P.Targets.AddUnit('dialogresource.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('resource');
+          AddUnit('resfactory');
+          AddUnit('resdatastream');
+        end;
+    
     T:=P.Targets.AddUnit('coffconsts.pp');
     T:=P.Targets.AddUnit('cofftypes.pp');
     T:=P.Targets.AddUnit('coffreader.pp');

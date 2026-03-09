@@ -502,6 +502,8 @@ var c : integer;
       end;
   end;
 begin
+  if (TheImage.Width <= 0) or (TheImage.Height <= 0) then
+    raise FPImageException.Create('PNG image dimensions must be positive');
   with AHeader do
     begin
     {$IFDEF ENDIAN_LITTLE}
@@ -585,13 +587,13 @@ end;
 function TFPWriterPNG.ColorDataGrayAB(color:TFPColor) : TColorData;
 begin
   result := ColorDataGrayB (color);
-  result := (result shl 8) and hi(color.Alpha);
+  result := result or (hi(color.Alpha) shl 8);
 end;
 
 function TFPWriterPNG.ColorDataGrayAW(color:TFPColor) : TColorData;
 begin
   result := ColorDataGrayW (color);
-  result := (result shl 16) and color.Alpha;
+  result := result or (qword(color.Alpha) shl 16);
 end;
 
 function TFPWriterPNG.ColorDataColorB(color:TFPColor) : TColorData;

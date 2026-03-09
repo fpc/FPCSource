@@ -29,8 +29,10 @@ begin
   Application.Title := 'RTL-Generics unit tests';
   Application.Run;
   Application.Free;
+{$IFDEF WINDOWS}  
 {$IFDEF WAIT_FOR_ENTER}
   WriteLn('Press enter...');
   ReadLn;
+{$ENDIF}
 {$ENDIF}
 end.

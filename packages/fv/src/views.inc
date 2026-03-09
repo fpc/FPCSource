@@ -210,7 +210,7 @@ CONST
    CFrame      = #1#1#2#2#3;                          { Frame palette }
    CScrollBar  = #4#5#5;                              { Scrollbar palette }
    CScroller   = #6#7;                                { Scroller palette }
-   CListViewer = #26#26#27#28#29#31;                  { Listviewer palette }
+   CListViewer = #26#26#27#28#29;                     { Listviewer palette }
 
    CBlueWindow = #8#9#10#11#12#13#14#15;              { Blue window palette }
    CCyanWindow = #16#17#18#19#20#21#22#23;            { Cyan window palette }
@@ -285,7 +285,11 @@ CONST
    MaxViewWidth = 1024;                                  { Max view width }
 {$else}
 {$ifdef windows}
-   MaxViewWidth = 255;                                  { Max view width }
+{$ifndef win16}
+   MaxViewWidth = 1024;                                  { Max view width }
+{$else}
+   MaxViewWidth = 255;                                   { Max view width }
+{$endif}
 {$else}
    MaxViewWidth = 255;                                   { Max view width }
 {$endif}
@@ -691,6 +695,7 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE SizeLimits (Var Min, Max: TPoint); Virtual;
+      PROCEDURE CalcBounds (Var Bounds: TRect; Delta: TPoint); Virtual;
    END;
    PWindow = ^TWindow;
 
@@ -4266,6 +4271,20 @@ BEGIN
    Min.Y := MinWinSize.Y;                             { Set min y size }
 END;
 
+{--TWindow------------------------------------------------------------------}
+{  CalcBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27jan2026 M        }
+{---------------------------------------------------------------------------}
+PROCEDURE TWindow.CalcBounds (Var Bounds: TRect; Delta: TPoint);
+VAR WinBounds : TRect;
+BEGIN
+  { Need to change ZoomRect as well. It is not great to assign new bounds
+    to ZoomRect directly in CalcBounds, but there is not much options. }
+  GetBounds(WinBounds);                   { Save current bounds }
+  SetBounds(ZoomRect);                    { Set ZoomRect as bounds }
+  inherited CalcBounds (ZoomRect,Delta);  { New bounds for ZoomRect }
+  SetBounds(WinBounds);                   { Restore bounds }
+  inherited CalcBounds (Bounds,Delta);    { Calc new bounds }
+END;
 
 
 {--TView--------------------------------------------------------------------}

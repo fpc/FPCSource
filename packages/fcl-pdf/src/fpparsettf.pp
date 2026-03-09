@@ -343,6 +343,8 @@ Type
     Property OS2Data : TOS2Data Read FOS2Data;
     Property PostScript : TPostScript Read FPostScript;
     property NameEntries: TNameEntries read FNameEntries;
+    { Returns True if the font contains CFF (PostScript) outlines instead of TrueType outlines }
+    function IsCFF: Boolean;
   end;
 
 type
@@ -888,6 +890,11 @@ function TTFFileInfo.Embeddable: Boolean;
 begin
   With FOS2Data do
     Result:=(FsType<> 2) and ((FsType and 512)= 0);
+end;
+
+function TTFFileInfo.IsCFF: Boolean;
+begin
+  Result := FTableDir.FontVersion.Version = $4F54544F; // 'OTTO'
 end;
 
 function TTFFileInfo.Ascender: SmallInt;

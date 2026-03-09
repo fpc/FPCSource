@@ -709,6 +709,18 @@ function CompilerStatus: boolean;
      event : tevent;
 
 begin
+  GetSystemEvent(Event);         { Load system event }
+  If (Event.What <> evNothing) Then
+  begin
+{$ifdef redircompiler}
+    RedirDisableAll;
+{$endif}
+    Application^.HandleEvent(Event); {Might be resize, handle it right away}
+{$ifdef redircompiler}
+    RedirEnableAll;
+{$endif}
+  end;
+
   GetKeyEvent(Event);
   if (Event.What=evKeyDown) and (Event.KeyCode=kbEsc) then
     begin

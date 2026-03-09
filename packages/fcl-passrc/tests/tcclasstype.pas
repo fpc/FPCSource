@@ -176,6 +176,7 @@ type
     Procedure TestLocalSimpleTypes;
     Procedure TestLocalSimpleConst;
     Procedure TestLocalSimpleConsts;
+    Procedure TestLocalGenericType;
     Procedure TestClassTypeAttributes;
     Procedure TestClassConstAttributes;
     procedure TestClassHelperEmpty;
@@ -2004,6 +2005,25 @@ begin
   AssertSame('Type parent is class',TheClass, Const2.Parent);
   AssertNotNull('Member 3 is procedure',Method3);
   AssertEquals('method name','Something', Method3.Name);
+end;
+
+procedure TTestClassType.TestLocalGenericType;
+begin
+  Add([
+  '{$mode objfpc}',
+  'type',
+  'TLazListAspectCapacityFieldConst = class(TLazListAspectCapacityFieldMem)',
+  'public type',
+  '  TCAWrap = class',
+  '    public type',
+  '    generic TCapacityAccessor<TMemHeaderT; TData> = object',
+  '    public',
+  '      class function ReadCapacity(const AMem: Pointer): Cardinal; inline; static;',
+  '    end;',
+  '  end;',
+  'end;'
+  ]);
+  ParseDeclarations;
 end;
 
 procedure TTestClassType.TestClassTypeAttributes;

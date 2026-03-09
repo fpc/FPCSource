@@ -417,6 +417,7 @@ end;
 function TCFileStream.Read(var Buffer; Count: Longint): Longint;
 begin
   CStreamError:=0;
+  Result:=0;
   BlockRead(FHandle,Buffer,Count,Result);
   If Result=-1 then Result:=0;
 end;
@@ -425,6 +426,7 @@ end;
 function TCFileStream.Write(const Buffer; Count: Longint): Longint;
 begin
   CStreamError:=0;
+  Result:=0;
   BlockWrite (FHandle,(@Buffer)^,Count,Result);
   If Result=-1 then Result:=0;
 end;

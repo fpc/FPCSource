@@ -1655,9 +1655,11 @@ PROCEDURE DoneVideo;
 BEGIN
   if not VideoInitialized then
     exit;
+{$IFNDEF WINDOWS}
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetVideoMode(StartupScreenMode);
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.ClearScreen;
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorPos(0,0);
+{$ENDIF}
 {$ifdef FV_UNICODE}
   {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.DoneEnhancedVideo;
 {$else FV_UNICODE}

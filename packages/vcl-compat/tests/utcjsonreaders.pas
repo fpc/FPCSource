@@ -92,8 +92,8 @@ end;
 
 procedure TTestTJsonTextReader.TeardownTextReader;
 begin
-  FreeAndNil(FReader);
-  FreeAndNil(FStringReader);
+  FreeAndNil(FReader); // CloseInput frees FStringReader
+  FStringReader := nil;
 end;
 
 procedure TTestTJsonTextReader.SetUp;
@@ -115,16 +115,12 @@ var
   Reader: TJsonTextReader;
 begin
   StringReader := TStringReader.Create('{}');
+  Reader := TJsonTextReader.Create(StringReader);
   try
-    Reader := TJsonTextReader.Create(StringReader);
-    try
-      AssertNotNull('Reader should be created', Reader);
-      AssertEquals('Initial state should be Start', Ord(TState.Start), Ord(Reader.CurrentState));
-    finally
-      Reader.Free;
-    end;
+    AssertNotNull('Reader should be created', Reader);
+    AssertEquals('Initial state should be Start', Ord(TState.Start), Ord(Reader.CurrentState));
   finally
-    StringReader.Free;
+    Reader.Free; // CloseInput frees StringReader
   end;
 end;
 
@@ -418,7 +414,7 @@ begin
   AssertEquals('Default MaxDepth should be 64', 64, FReader.MaxDepth);
   AssertEquals('Default QuoteChar should be "', '"', FReader.QuoteChar);
   AssertFalse('Default SupportMultipleContent should be false', FReader.SupportMultipleContent);
-  AssertFalse('Default CloseInput should be false', FReader.CloseInput);
+  AssertTrue('Default CloseInput should be true', FReader.CloseInput);
 
   // Test property setters
   FReader.MaxDepth := 32;
@@ -711,8 +707,7 @@ begin
       Exception.Free;
     end;
   finally
-    Reader.Free;
-    StringReader.Free;
+    Reader.Free; // CloseInput frees StringReader
   end;
 end;
 
@@ -747,8 +742,7 @@ begin
       Exception.Free;
     end;
   finally
-    Reader.Free;
-    StringReader.Free;
+    Reader.Free;  // CloseInput frees StringReader
   end;
 end;
 

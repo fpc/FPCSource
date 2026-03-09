@@ -167,6 +167,7 @@ type
     procedure RaiseErrorAtSrc(Msg: string; const aFilename: string; aRow, aCol: integer);
     procedure RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
     procedure HandleError(CurEngine: TTestEnginePasResolver; E: Exception);
+    property Resolvers : TObjectList Read FResolvers;
   Public
     constructor Create; override;
     destructor Destroy; override;
@@ -1029,6 +1030,19 @@ type
     Procedure TestLibrary_Initialization_Finalization;
     Procedure TestLibrary_ExportFuncOverloadFail;
     Procedure TestLibrary_UnitExports;
+
+    // operator overloading
+    Procedure TestOperatorOverload_Declare;
+    Procedure TestOperatorOverload_DeclareMultiple;
+    Procedure TestOperatorOverload_DeclareUnary;
+    Procedure TestOperatorOverload_DeclareCrossType;
+    Procedure TestOperatorOverload_RecordBinaryAddFail;
+    Procedure TestOperatorOverload_RecordBinarySubFail;
+    Procedure TestOperatorOverload_RecordBinaryMulFail;
+    Procedure TestOperatorOverload_RecordLessThanFail;
+    Procedure TestOperatorOverload_RecordUnaryMinusFail;
+    Procedure TestOperatorOverload_RecordUnaryNotFail;
+    Procedure TestOperatorOverload_IntegerRecordAddFail;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -4436,7 +4450,7 @@ begin
   '  end;',
   '']);
   ParseProgram;
-  CheckResolverUnexpectedHints;
+  CheckResolverHint(mtWarning,nCaseStatementNotCovered,'Case statement does not handle all possible cases');
 end;
 
 procedure TTestResolver.TestEnum_ForIn;
@@ -8048,8 +8062,8 @@ begin
   '  p:=procedure(w: word) begin end;',
   'end;',
   'begin']);
-  CheckResolverException('procedural type modifier "reference to" mismatch',
-    nXModifierMismatchY);
+  CheckResolverException('Incompatible types, got 0 parameters, expected 1',
+    nIncompatibleTypesGotParametersExpected);
 end;
 
 procedure TTestResolver.TestAnonymousProc_Assign_WrongParamListFail;
@@ -18662,6 +18676,8 @@ begin
 end;
 
 procedure TTestResolver.TestRecordHelper_ForByteFail;
+var
+  i : integer;
 begin
   StartProgram(false);
   Add([
@@ -18672,7 +18688,9 @@ begin
   '  end;',
   'begin',
   '']);
-  CheckResolverException('Type "Byte" cannot be extended by a record helper',nTypeXCannotBeExtendedByARecordHelper);
+  for I:=0 to FResolvers.Count-1 do
+    TTestEnginePasResolver(FResolvers[i]).MaximizeFPCCompatibility:=True;
+  CheckResolverException('record helper without modeswitch advancedrecords is not supported',nXIsNotSupported);
 end;
 
 procedure TTestResolver.TestRecordHelper_ClassNonStaticFail;
@@ -19631,6 +19649,216 @@ begin
   '  Run;',
   '']);
   ParseUnit;
+end;
+
+{ --- Operator overloading tests --- }
+
+procedure TTestResolver.TestOperatorOverload_Declare;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator +(A, B: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X + B.X;',
+  'end;',
+  'operator -(A, B: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X - B.X;',
+  'end;',
+  'operator =(A, B: TRec): Boolean;',
+  'begin',
+  '  Result := A.X = B.X;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestOperatorOverload_DeclareMultiple;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator +(A, B: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X + B.X;',
+  'end;',
+  'operator *(A, B: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X * B.X;',
+  'end;',
+  'operator <(A, B: TRec): Boolean;',
+  'begin',
+  '  Result := A.X < B.X;',
+  'end;',
+  'operator >(A, B: TRec): Boolean;',
+  'begin',
+  '  Result := A.X > B.X;',
+  'end;',
+  'operator <=(A, B: TRec): Boolean;',
+  'begin',
+  '  Result := A.X <= B.X;',
+  'end;',
+  'operator >=(A, B: TRec): Boolean;',
+  'begin',
+  '  Result := A.X >= B.X;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestOperatorOverload_DeclareUnary;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator -(A: TRec): TRec;',
+  'begin',
+  '  Result.X := -A.X;',
+  'end;',
+  'operator +(A: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestOperatorOverload_DeclareCrossType;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec1 = record X: LongInt; end;',
+  '  TRec2 = record Y: LongInt; end;',
+  'operator +(A: TRec1; B: TRec2): TRec1;',
+  'begin',
+  '  Result.X := A.X + B.Y;',
+  'end;',
+  'operator -(A: TRec2; B: TRec1): TRec2;',
+  'begin',
+  '  Result.Y := A.Y - B.X;',
+  'end;',
+  'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestOperatorOverload_RecordBinaryAddFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator +(A, B: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X + B.X;',
+  'end;',
+  'var A, B, C: TRec;',
+  'begin',
+  '  C := A + B;']);
+  CheckResolverException(sOperatorIsNotOverloadedAOpB,
+    nOperatorIsNotOverloadedAOpB);
+end;
+
+procedure TTestResolver.TestOperatorOverload_RecordBinarySubFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator -(A, B: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X - B.X;',
+  'end;',
+  'var A, B, C: TRec;',
+  'begin',
+  '  C := A - B;']);
+  CheckResolverException(sOperatorIsNotOverloadedAOpB,
+    nOperatorIsNotOverloadedAOpB);
+end;
+
+procedure TTestResolver.TestOperatorOverload_RecordBinaryMulFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator *(A, B: TRec): TRec;',
+  'begin',
+  '  Result.X := A.X * B.X;',
+  'end;',
+  'var A, B, C: TRec;',
+  'begin',
+  '  C := A * B;']);
+  CheckResolverException(sOperatorIsNotOverloadedAOpB,
+    nOperatorIsNotOverloadedAOpB);
+end;
+
+procedure TTestResolver.TestOperatorOverload_RecordLessThanFail;
+begin
+  // Record equality uses CheckEqualElCompatibility, not ComputeBinaryExprRes,
+  // so it succeeds in the base resolver. Test that < on records fails instead.
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator <(A, B: TRec): Boolean;',
+  'begin',
+  '  Result := A.X < B.X;',
+  'end;',
+  'var A, B: TRec;',
+  'begin',
+  '  if A < B then;']);
+  CheckResolverException(sOperatorIsNotOverloadedAOpB,
+    nOperatorIsNotOverloadedAOpB);
+end;
+
+procedure TTestResolver.TestOperatorOverload_RecordUnaryMinusFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'operator -(A: TRec): TRec;',
+  'begin',
+  '  Result.X := -A.X;',
+  'end;',
+  'var A, C: TRec;',
+  'begin',
+  '  C := -A;']);
+  CheckResolverException(sIllegalQualifierInFrontOf,
+    nIllegalQualifierInFrontOf);
+end;
+
+procedure TTestResolver.TestOperatorOverload_RecordUnaryNotFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'var A: TRec;',
+  '    B: Boolean;',
+  'begin',
+  '  B := not A;']);
+  CheckResolverException(sIllegalQualifierInFrontOf,
+    nIllegalQualifierInFrontOf);
+end;
+
+procedure TTestResolver.TestOperatorOverload_IntegerRecordAddFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TRec = record X: LongInt; end;',
+  'var A: TRec;',
+  '    I: LongInt;',
+  'begin',
+  '  I := I + A;']);
+  CheckResolverException(sOperatorIsNotOverloadedAOpB,
+    nOperatorIsNotOverloadedAOpB);
 end;
 
 initialization

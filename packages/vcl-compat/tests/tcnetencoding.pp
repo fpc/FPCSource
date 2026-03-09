@@ -80,7 +80,7 @@ end;
 procedure TTestHTMLEncoding.TearDown;
 begin
   inherited TearDown;
-  FEnc:=THTMLEncoding.Create;
+  FreeAndNil(FEnc);
 end;
 
 procedure TTestHTMLEncoding.TestHookUp;

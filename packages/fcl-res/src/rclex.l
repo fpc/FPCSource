@@ -3,7 +3,7 @@ var
   kwtmp: integer;
 
 const
-  KeywordDefs: array [0..33] of TIdentMapEntry = (
+  KeywordDefs: array [0..61] of TIdentMapEntry = (
     // attribs
     (Value: _LANGUAGE;             Name: 'LANGUAGE'),
     (Value: _CHARACTERISTICS;      Name: 'CHARACTERISTICS'),
@@ -40,7 +40,39 @@ const
     (Value: _FILETYPE;             Name: 'FILETYPE'),
     (Value: _FILESUBTYPE;          Name: 'FILESUBTYPE'),
     (Value: _BLOCK;                Name: 'BLOCK'),
-    (Value: _VALUE;                Name: 'VALUE')
+    (Value: _VALUE;                Name: 'VALUE'),
+    // resource types (previously declared as tokens but not in KeywordDefs)
+    (Value: _DIALOG;               Name: 'DIALOG'),
+    (Value: _DIALOGEX;             Name: 'DIALOGEX'),
+    (Value: _MENU;                 Name: 'MENU'),
+    (Value: _ACCELERATORS;         Name: 'ACCELERATORS'),
+    (Value: _MENUEX;               Name: 'MENUEX'),
+    // dialog option keywords
+    (Value: _CAPTION;              Name: 'CAPTION'),
+    (Value: _CLASS;                Name: 'CLASS'),
+    (Value: _EXSTYLE;              Name: 'EXSTYLE'),
+    (Value: _STYLE;                Name: 'STYLE'),
+    (Value: _FONT;                 Name: 'FONT'),
+    // style operator
+    (Value: _NOT;                  Name: 'NOT'),
+    // dialog control keywords
+    (Value: _CONTROL;              Name: 'CONTROL'),
+    (Value: _LTEXT;                Name: 'LTEXT'),
+    (Value: _RTEXT;                Name: 'RTEXT'),
+    (Value: _CTEXT;                Name: 'CTEXT'),
+    (Value: _PUSHBUTTON;           Name: 'PUSHBUTTON'),
+    (Value: _DEFPUSHBUTTON;        Name: 'DEFPUSHBUTTON'),
+    (Value: _EDITTEXT;             Name: 'EDITTEXT'),
+    (Value: _CHECKBOX;             Name: 'CHECKBOX'),
+    (Value: _AUTOCHECKBOX;         Name: 'AUTOCHECKBOX'),
+    (Value: _RADIOBUTTON;          Name: 'RADIOBUTTON'),
+    (Value: _AUTORADIOBUTTON;      Name: 'AUTORADIOBUTTON'),
+    (Value: _AUTO3STATE;           Name: 'AUTO3STATE'),
+    (Value: _STATE3;               Name: 'STATE3'),
+    (Value: _GROUPBOX;             Name: 'GROUPBOX'),
+    (Value: _COMBOBOX;             Name: 'COMBOBOX'),
+    (Value: _LISTBOX;              Name: 'LISTBOX'),
+    (Value: _SCROLLBAR;            Name: 'SCROLLBAR')
   );
 
 function KeywordToInt(k: string; out kw: integer): boolean;
@@ -111,7 +143,7 @@ END|}                   return(_END);
                          end;
 {NSWPSTR}         return(_NSWPSTR);
 [ \t\n\f]               ;
-[,()|^&+-*/%~]          returnc(yytext[1]);
+[,()|^&+\-*/%~=]        returnc(yytext[1]);
 .                       return(_ILLEGAL);
 %%
 

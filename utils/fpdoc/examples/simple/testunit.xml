@@ -19,7 +19,20 @@ We have here a description
 
 <topic name="MyTopic">
 <short>A short topic</short>
-<descr>Longer text for the topic</descr>
+<descr>
+<p>Longer text for the topic
+</p>
+<code>
+// var 
+//  AnAction: TBasicAction;
+//  AList: TActionList;
+// ...
+begin
+  for AnAction in AList do SomethingWith(AnAction);
+end;
+</code>
+
+</descr>
 <seealso>
 <link id="AnIntegerConst"/>
 </seealso>
@@ -30,6 +43,16 @@ We have here a description
 <element name="AnIntegerConst">
 <short>Aha this is not me</short>
 <descr>
+<code>
+// var 
+//  AnAction: TBasicAction;
+//  AList: TActionList;
+// ...
+begin
+  for AnAction in AList do SomethingWith(AnAction);
+end;
+</code>
+
 </descr>
 <version>
 Appears in 2.0

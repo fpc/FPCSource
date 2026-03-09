@@ -233,7 +233,7 @@ type
       Imports    : PImportCollection;
       LoadedFrom : PString;
       UsedUnits  : PSymbolCollection;
-      DependentUnits: PSymbolCollection;
+      DependentUnits: PSortedSymbolCollection;
       MainSource: PString;
       SourceFiles: pstringCollection;
       constructor Init(const AName, AMainSource: string);
@@ -1136,10 +1136,13 @@ begin
 end;
 
 procedure TModuleSymbol.AddDependentUnit(P: PSymbol);
+var I : Sw_Integer; S : String;
 begin
   if Assigned(DependentUnits)=false then
     New(DependentUnits, Init(10,10));
-  DependentUnits^.Insert(P);
+  S:=DependentUnits^.LookUp(P^.Name^,I);
+  if (I=-1) or (S<>P^.Name^) then { not found }
+    DependentUnits^.Insert(P);
 end;
 
 procedure TModuleSymbol.AddSourceFile(const Path: string);
@@ -2047,22 +2050,34 @@ begin
          begin
            name:=GetStr(T.Name);
            UnitS:=SearchModule(Name);
-           puu:=tused_unit(hp.used_units.first);
+           puu:=nil;
+           if assigned(hp.used_units) then
+             puu:=tused_unit(hp.used_units.first);
            while (puu<>nil) do
            begin
-             module:=GetStr(puu.u.modulename);
-             PM:=SearchModule(module);
-             if Assigned(PM) then
-               UnitS^.AddUsedUnit(PM);
+             if assigned(puu.u) then
+               if assigned(puu.u.modulename) then
+               begin
+                 module:=GetStr(puu.u.modulename);
+                 PM:=SearchModule(module);
+                 if Assigned(PM) then
+                   UnitS^.AddUsedUnit(PM);
+               end;
              puu:=tused_unit(puu.next);
            end;
-           pdu:=tdependent_unit(hp.dependent_units.first);
+           pdu:=nil;
+           if assigned(hp.dependent_units) then
+             pdu:=tdependent_unit(hp.dependent_units.first);
            while (pdu<>nil) do
            begin
-             name:=GetStr(tsymtable(pdu.u.globalsymtable).name);
-             PM:=SearchModule(Name);
-             if Assigned(PM) then
-               UnitS^.AddDependentUnit(PM);
+             if assigned(pdu.u) then
+               if assigned(pdu.u.globalsymtable) then
+               begin
+                 name:=GetStr(tsymtable(pdu.u.globalsymtable).name);
+                 PM:=SearchModule(Name);
+                 if Assigned(PM) then
+                   UnitS^.AddDependentUnit(PM);
+               end;
              pdu:=tdependent_unit(pdu.next);
            end;
          end;

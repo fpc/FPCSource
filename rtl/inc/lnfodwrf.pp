@@ -532,11 +532,12 @@ type
     function ReadNext(var dest; size : SizeInt) : Boolean;
     function ReadULEB128 : QWord;
     function ReadLEB128 : Int64;
+    procedure SkipLEB128s(count : longint);
     function ReadAddress(addr_size: smallint) : PtrUInt;
   {$ifdef CPUI8086}
     function ReadSegment() : Word;
   {$endif CPUI8086}
-    function ReadString : ShortString;
+    function ReadString(sp: PShortstring) : SizeInt;
     function ReadUHalf : Word;
   private
     function ReadNextBuffer : longint;
@@ -651,9 +652,29 @@ begin
     inc(bufp);
     inc(shift, 7);
   until ((bufp[-1] and $80) = 0);
-  { extend sign. Note that we can not use shl/shr since the latter does not
-    translate to arithmetic shifting for signed types }
-  ReadLEB128 := (not ((ReadLEB128 and (Int64(1) shl (shift-1)))-1)) or ReadLEB128;
+  { extend sign. }
+  ReadLEB128 := ReadLEB128 or -(ReadLEB128 and (Int64(1) shl (shift-1)));
+end;
+
+
+procedure TEReader.SkipLEB128s(count : longint);
+{$ifdef DEBUG_DWARF_PARSER}
+var temp : QWord;
+{$endif DEBUG_DWARF_PARSER}
+begin
+  while count > 0 do
+  begin
+{$ifdef DEBUG_DWARF_PARSER}
+    temp := er.ReadLEB128();
+    DEBUG_WRITELN('Skipping LEB128 : ', temp);
+{$else DEBUG_DWARF_PARSER}
+    repeat
+      if (bufp = bufe) and (ReadNextBuffer <= 0) then exit;
+      inc(bufp);
+    until bufp[-1] and $80 = 0;
+{$endif DEBUG_DWARF_PARSER}
+    dec(count);
+  end;
 end;
 
 
@@ -678,23 +699,34 @@ end;
 
 { Reads a zero-terminated string from the current input stream. If the
   string is larger than 255 chars (maximum allowed number of elements in
-  a ShortString, excess characters will be chopped off. }
-function TEReader.ReadString() : ShortString;
+  a ShortString, excess characters will be chopped off.
+  sp can be nil if not required. Returns the length of the string
+  (even when sp is nil; also can return >255 if it was past the shortstring limit). }
+function TEReader.ReadString(sp: PShortstring) : SizeInt;
 var
   nbufpart,zp,nmove : SizeInt;
 begin
-  ReadString[0] := #0;
+  if Assigned(sp) then
+    sp^[0] := #0;
+  ReadString := 0;
   repeat
-    if (bufp = bufe) and (ReadNextBuffer <= 0) then exit(''); { unexpected end of file occurred }
+    if (bufp = bufe) and (ReadNextBuffer <= 0) then
+    begin
+      if Assigned(sp) then
+        sp^ := '';
+      exit(0); { unexpected end of file occurred }
+    end;
     nbufpart := bufe - bufp;
     zp := IndexByte(bufp^, nbufpart, 0); { Search #0 in the available buffer. }
     if zp >= 0 then nbufpart := zp; { #0 found, copy up to it (otherwise copy the entire available buffer, and don’t end). }
-    nmove := 255 - length(ReadString);
-    if nmove <> 0 then begin
+    if Assigned(sp) then
+    begin
+      nmove := 255 - length(sp^);
       if nmove > nbufpart then nmove := nbufpart;
-      Move(bufp^, ReadString[1 + length(ReadString)], nmove);
-      inc(byte(ReadString[0]), nmove);
+      Move(bufp^, sp^[1 + length(sp^)], nmove);
+      inc(byte(sp^[0]), nmove);
     end;
+    inc(ReadString, nbufpart);
     inc(bufp, nbufpart);
   until zp >= 0;
   inc(bufp); { Null terminator. }
@@ -761,36 +793,24 @@ end;
 
 { Skips all line info directory entries }
 procedure SkipDirectories(var er: TEReader);
+{$ifdef DEBUG_DWARF_PARSER}
 var s : ShortString;
+{$endif}
 begin
-  while (true) do begin
-    s := er.ReadString();
-    if (s = '') then break;
+  while er.ReadString({$ifdef DEBUG_DWARF_PARSER} @s {$else} nil {$endif}) <> 0 do begin
     DEBUG_WRITELN('Skipping directory : ', s);
   end;
 end;
 
-{ Skips an LEB128 }
-procedure SkipLEB128(var er: TEReader);
-{$ifdef DEBUG_DWARF_PARSER}
-var temp : QWord;
-{$endif}
-begin
-  {$ifdef DEBUG_DWARF_PARSER}temp := {$endif}er.ReadLEB128();
-  DEBUG_WRITELN('Skipping LEB128 : ', temp);
-end;
-
 { Skips the filename section from the current file stream }
 procedure SkipFilenames(var er: TEReader);
+{$ifdef DEBUG_DWARF_PARSER}
 var s : ShortString;
+{$endif}
 begin
-  while (true) do begin
-    s := er.ReadString();
-    if (s = '') then break;
+  while er.ReadString({$ifdef DEBUG_DWARF_PARSER} @s {$else} nil {$endif}) <> 0 do begin
     DEBUG_WRITELN('Skipping filename : ', s);
-    SkipLEB128(er); { skip the directory index for the file }
-    SkipLEB128(er); { skip last modification time for file }
-    SkipLEB128(er); { skip length of file }
+    er.SkipLEB128s(3); { skip the (1) directory index for the file, (2) last modification time for file, (3) length of file }
   end;
 end;
 
@@ -809,13 +829,10 @@ begin
   directory := '';
   i := 1;
   er.Seek(filenameStart);
-  while (i <= file_id) do begin
-    filename := er.ReadString();
+  while (i <= file_id) and (er.ReadString(@filename) <> 0) do begin
     DEBUG_WRITELN('Found "', filename, '"');
-    if (filename = '') then break;
     dirindex := er.ReadLEB128(); { read the directory index for the file }
-    SkipLEB128(er); { skip last modification time for file }
-    SkipLEB128(er); { skip length of file }
+    er.SkipLEB128s(2); { skip (1) last modification time for file, (2) length of file }
     inc(i);
   end;
   { if we could not find the file index, exit }
@@ -826,9 +843,7 @@ begin
 
   er.Seek(directoryStart);
   i := 1;
-  while (i <= dirindex) do begin
-    directory := er.ReadString();
-    if (directory = '') then break;
+  while (i <= dirindex) and (er.ReadString(@directory) <> 0) do begin
     inc(i);
   end;
   if (directory<>'') and (directory[length(directory)]<>'/') then
@@ -838,7 +853,7 @@ end;
 
 
 function ParseCompilationUnit(var er : TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
-  var source : String; var line : longint; var found : Boolean) : QWord;
+  var source : ShortString; var line : longint; var found : Boolean) : QWord;
 var
   state : TMachineState;
   { we need both headers on the stack, although we only use the 64 bit one internally }
@@ -963,10 +978,8 @@ begin
           end;
 {$endif CPUI8086}
           DW_LNE_DEFINE_FILE : begin
-            {$ifdef DEBUG_DWARF_PARSER}s := {$endif}er.ReadString();
-            SkipLEB128(er);
-            SkipLEB128(er);
-            SkipLEB128(er);
+            er.ReadString({$ifdef DEBUG_DWARF_PARSER}@s{$else}nil{$endif});
+            er.SkipLEB128s(3);
             DEBUG_WRITELN('DW_LNE_DEFINE_FILE (', s, ')');
           end;
           else begin
@@ -1032,8 +1045,7 @@ begin
       else begin { special opcode }
         if (opcode < header64.opcode_base) then begin
           DEBUG_WRITELN('Unknown standard opcode $', hexstr(opcode, 2), '; skipping');
-          for i := 1 to numoptable[opcode] do
-            SkipLEB128(er);
+          er.SkipLEB128s(numoptable[opcode]);
         end else begin
           adjusted_opcode := opcode - header64.opcode_base;
           addrIncrement := CalculateAddressIncrement(opcode, header64);
@@ -1108,55 +1120,85 @@ end;
 
 
 type
+  TAbbrevRec = record
+    firstAttr: uint32; { Offset in Attrs. }
+    nAttrs: uint16;
+    tag, children: byte;
+  end;
+  TAttrRec = record
+    attr, form: byte;
+  end;
   TAbbrevs = record
-    Tags : array of QWord;
-    Children : array of Byte;
-    Attrs : array of array of record attr,form : QWord; end;
+    Abbrevs: array of TAbbrevRec;
+    { Attributes of Abbrevs[i] are Attrs[Abbrevs[i].firstAttr .. Abbrevs[i].firstAttr + Abbrevs[i].nAttrs - 1]. }
+    Attrs: array of TAttrRec;
+    nAbbrevs, nAttrs: SizeInt;
   end;
 
 procedure ReadAbbrevTable(var er: TEReader; var abbrevs: TAbbrevs);
   var
-   i : PtrInt;
    tag,
    nr,
    attr,
    form : Int64;
+   curAbbrev : ^TAbbrevRec;
+   curAttr : ^TAttrRec;
   begin
+    { Clear the old data and reuse allocations. Assumes nAbbrevs is initialized to 0 before the first use (see GetLineInfo);
+      on subsequent uses nAbbrevs value left from the previous use is the exact amount of Abbrevs cells to clear. }
+    FillChar(pointer(abbrevs.Abbrevs)^,abbrevs.nAbbrevs*sizeof(TAbbrevRec),0);
+    abbrevs.nAbbrevs:=0;
+    abbrevs.nAttrs:=0; { Clearing Attrs is not required because they are always filled sequentially while Abbrevs can be filled at random. }
     DEBUG_WRITELN('Starting to read abbrev. section at $',hexstr(Dwarf_Debug_Abbrev_Section_Offset+er.Pos,16));
     repeat
       nr:=er.ReadULEB128;
       if nr=0 then
         break;
 
-      if nr>high(abbrevs.Tags) then
+      if nr>=abbrevs.nAbbrevs then
         begin
-          SetLength(abbrevs.Tags,SizeUint(nr)+128+SizeUint(nr) div 4);
-          SetLength(abbrevs.Attrs,length(abbrevs.Tags));
-          SetLength(abbrevs.Children,length(abbrevs.Tags));
+          abbrevs.nAbbrevs:=nr+1;
+          if nr>high(abbrevs.Abbrevs) then
+          begin
+            if nr>8*1024*1024 then { Safeguard. }
+            begin
+              DEBUG_WRITELN('Implausible abbreviation ID (', nr, ') — GIVING UP.');
+              exit;
+            end;
+            SetLength(abbrevs.Abbrevs,SizeUint(nr)+128+SizeUint(nr) div 4);
+          end;
         end;
 
       { read tag }
       tag:=er.ReadULEB128;
-      abbrevs.Tags[nr]:=tag;
       DEBUG_WRITELN('Abbrev ',nr,' at offset ',er.Pos,' has tag $',hexstr(tag,4));
+      if tag>High(TAbbrevRec.tag) then
+        tag:=High(TAbbrevRec.tag); { Values outside the byte range aren’t used anyway (in fact, only DW_TAG_subprogram is tested); $ff is meaningless enough. }
+      curAbbrev:=@abbrevs.Abbrevs[nr];
+      curAbbrev^.tag:=tag;
       { read flag for children }
-      abbrevs.Children[nr]:=er.ReadNext;
-      i:=0;
-      { ensure that length(Abbrev_Attrs)=0 if an entry is overwritten (not sure if this will ever happen) and
-        the new entry has no attributes }
-      abbrevs.Attrs[nr]:=nil;
+      curAbbrev^.children:=er.ReadNext;
+      { ensure that the entry has no attributes if overwritten (not sure if this will ever happen) }
+      curAbbrev^.firstAttr:=abbrevs.nAttrs;
+      curAbbrev^.nAttrs:=0;
       repeat
         attr:=er.ReadULEB128;
+        if attr>High(TAttrRec.attr) then
+          attr:=High(TAttrRec.attr);
         form:=er.ReadULEB128;
-        if attr<>0 then
-          begin
-            SetLength(abbrevs.Attrs[nr],i+1);
-            abbrevs.Attrs[nr][i].attr:=attr;
-            abbrevs.Attrs[nr][i].form:=form;
-          end;
-        inc(i);
-      until attr=0;
-      DEBUG_WRITELN('Abbrev ',nr,' has ',Length(abbrevs.Attrs[nr]),' attributes');
+        if form>High(TAttrRec.form) then
+          form:=High(TAttrRec.form);
+        if attr=0 then
+          break;
+        if SizeInt(abbrevs.nAttrs)>High(abbrevs.Attrs) then
+          SetLength(abbrevs.Attrs, SizeInt(abbrevs.nAttrs)+128+SizeInt(SizeUint(abbrevs.nAttrs) div 4));
+        curAttr:=@abbrevs.Attrs[abbrevs.nAttrs];
+        curAttr^.attr:=attr;
+        curAttr^.form:=form;
+        inc(abbrevs.nAttrs);
+        inc(curAbbrev^.nAttrs);
+      until false;
+      DEBUG_WRITELN('Abbrev ',nr,' has ',curAbbrev^.nAttrs,' attributes');
     until false;
   end;
 
@@ -1239,7 +1281,8 @@ begin
 end;
 
 function ParseCompilationUnitForFunctionName(var er: TEReader; const addr : TOffset; const segment : TSegment; const file_offset : QWord;
-  var func : String; var found : Boolean) : QWord;
+  var abbrevs: TAbbrevs; { Just to reuse array allocations made by previous calls; otherwise could be local. }
+  var func : ShortString; var found : Boolean) : QWord;
 var
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TDebugInfoProgramHeader64;
@@ -1250,7 +1293,7 @@ var
   low_pc : QWord;
   temp_length : DWord;
   unit_length : QWord;
-  name : String;
+  name : ShortString;
   level : Integer;
 
 procedure SkipAttr(var er: TEReader; form : QWord);
@@ -1271,7 +1314,7 @@ procedure SkipAttr(var er: TEReader; form : QWord);
       DW_FORM_data2, DW_FORM_data4, DW_FORM_data8:
         nskip := 2 shl (form - DW_FORM_data2);
       DW_FORM_string:
-        er.ReadString;
+        er.ReadString(nil);
       DW_FORM_block,
       DW_FORM_exprloc:
         nskip := er.ReadULEB128;
@@ -1308,12 +1351,11 @@ procedure SkipAttr(var er: TEReader; form : QWord);
           nskip := 8
         else
           nskip := 4;
-      DW_FORM_udata:
-        er.ReadULEB128;
+      DW_FORM_udata,
+      DW_FORM_ref_udata:
+        er.SkipLEB128s(1);
       DW_FORM_ref1, DW_FORM_ref2, DW_FORM_ref4, DW_FORM_ref8:
         nskip := 1 shl (form - DW_FORM_ref1);
-      DW_FORM_ref_udata:
-        er.ReadULEB128;
       DW_FORM_indirect:
         SkipAttr(er, er.ReadULEB128);
       DW_FORM_flag_present: {none};
@@ -1329,7 +1371,7 @@ procedure SkipAttr(var er: TEReader; form : QWord);
 var
   i : PtrInt;
   prev_base,prev_size,prev_pos : TFilePos;
-  abbrevs : TAbbrevs;
+  curAbbrev : ^TAbbrevRec;
 
 begin
   found := false;
@@ -1380,43 +1422,42 @@ begin
   level:=0;
   while (abbrev <> 0) and (not found) do
     begin
+      if abbrev>=SizeUint(abbrevs.nAbbrevs) then { Safeguard. }
+      begin
+        DEBUG_WRITELN('Bad abbreviation ID (', abbrev, ')!');
+        exit;
+      end;
       DEBUG_WRITELN('Next abbrev: ',abbrev);
-      if abbrevs.Children[abbrev]<>0 then
+      curAbbrev:=@abbrevs.Abbrevs[abbrev];
+      if curAbbrev^.children<>0 then
         inc(level);
       { DW_TAG_subprogram? }
-      if abbrevs.Tags[abbrev]=$2e then
+      if curAbbrev^.tag=$2e then
         begin
           low_pc:=1;
           high_pc:=0;
           name:='';
-          for i:=0 to high(abbrevs.Attrs[abbrev]) do
-            begin
-              { DW_AT_low_pc }
-              if (abbrevs.Attrs[abbrev][i].attr=$11) and
-               (abbrevs.Attrs[abbrev][i].form=DW_FORM_addr) then
+          for i:=PtrInt(curAbbrev^.firstAttr) to PtrInt(curAbbrev^.firstAttr)+PtrInt(curAbbrev^.nAttrs)-1 do
+            case abbrevs.Attrs[i].attr or uint32(abbrevs.Attrs[i].form) shl 8 of { Dispatch on attr and form at once. }
+              $11 or DW_FORM_addr shl 8: { DW_AT_low_pc }
                 begin
                   low_pc:=0;
                   er.ReadNext(low_pc,header64.address_size);
-                end
-              { DW_AT_high_pc }
-              else if (abbrevs.Attrs[abbrev][i].attr=$12) and
-               (abbrevs.Attrs[abbrev][i].form=DW_FORM_addr) then
+                end;
+              $12 or DW_FORM_addr shl 8: { DW_AT_high_pc }
                 begin
                   high_pc:=0;
                   er.ReadNext(high_pc,header64.address_size);
-                end
-              { DW_AT_name }
-              else if (abbrevs.Attrs[abbrev][i].attr=$3) and
-                { avoid that we accidentally read an DW_FORM_strp entry accidentally }
-                (abbrevs.Attrs[abbrev][i].form=DW_FORM_string) then
+                end;
+              $3 or DW_FORM_string shl 8: { DW_AT_name; avoid that we accidentally read an DW_FORM_strp entry }
                 begin
-                  name:=er.ReadString;
-                end
+                  er.ReadString(@name);
+                end;
               else
-                SkipAttr(er, abbrevs.Attrs[abbrev][i].form);
+                SkipAttr(er, abbrevs.Attrs[i].form);
             end;
           DEBUG_WRITELN('Got DW_TAG_subprogram with low pc = $',hexStr(low_pc,header64.address_size*2),', high pc = $',hexStr(high_pc,header64.address_size*2),', name = ',name);
-          if (addr>low_pc) and (addr<high_pc) then
+          if (addr>=low_pc) and (addr<high_pc) then
             begin
               found:=true;
               func:=name;
@@ -1424,8 +1465,8 @@ begin
         end
       else
         begin
-          for i:=0 to high(abbrevs.Attrs[abbrev]) do
-            SkipAttr(er, abbrevs.Attrs[abbrev][i].form);
+          for i:=PtrInt(curAbbrev^.firstAttr) to PtrInt(curAbbrev^.firstAttr)+PtrInt(curAbbrev^.nAttrs)-1 do
+            SkipAttr(er, abbrevs.Attrs[i].form);
         end;
       abbrev:=er.ReadULEB128;
       { skip entries signaling that no more child entries are following }
@@ -1446,13 +1487,14 @@ var
 
   found, found_aranges : Boolean;
   er: TEReader;
+  abbrevs: TAbbrevs; { To reuse allocations between ParseCompilationUnitForFunctionName calls. }
 
 begin
 {$ifdef has_LineInfoCache}
   Lock(LiCacheLock);
   result := liCache.TryGet(CodePointer(addr), func, source, line);
   Unlock(LiCacheLock);
-  if result then exit;
+  if result then exit((func <> '') or (source <> '') or (line <> 0));
 {$endif has_LineInfoCache}
 
   func := '';
@@ -1464,6 +1506,11 @@ begin
   if not OpenDwarf(codepointer(addr)) then
   begin
     Unlock(DwarfLock);
+  {$ifdef has_LineInfoCache}
+    Lock(LiCacheLock);
+    liCache.Put(CodePointer(addr), '', '', 0); { Cache the failure, too; in particular, on Win64 some frames above main() point into kernel32 or something. }
+    Unlock(LiCacheLock);
+  {$endif has_LineInfoCache}
     exit;
   end;
 
@@ -1500,6 +1547,7 @@ begin
 
   { no function name found yet }
   found := false;
+  abbrevs.nAbbrevs := 0; { For reuse between ParseCompilationUnitForFunctionName calls. Other things don’t require initialization. }
 
   if found_aranges then
     begin
@@ -1510,7 +1558,7 @@ begin
       DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
       er.SetRange(current_offset, end_offset - current_offset);
-      current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, func, found);
+      current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, abbrevs, func, found);
       if found then
         DEBUG_WRITELN('Found .debug_info entry by using .debug_aranges information');
     end
@@ -1524,7 +1572,7 @@ begin
     DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
 
     er.SetRange(current_offset, end_offset - current_offset);
-    current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, func, found);
+    current_offset := ParseCompilationUnitForFunctionName(er, addr, segment, current_offset, abbrevs, func, found);
   end;
 
   if not AllowReuseOfLineInfoData then

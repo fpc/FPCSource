@@ -442,7 +442,7 @@ interface
 {$endif UNITALIASES}
 
 {*** Init / Done ***}
-    procedure IniTSymtable(Compiler: TCompilerBase);
+    procedure InitSymtable(Compiler: TCompilerBase);
     procedure DoneSymtable(Compiler: TCompilerBase);
 
     const
@@ -849,7 +849,7 @@ implementation
         def : tstoreddef;
         sym : tstoredsym;
       begin
-        { first deref the interface ttype symbols. This is needs
+        { first deref the interface ttype symbols. This needs
           to be done before the interface defs are derefed, because
           the interface defs can contain references to the type symbols
           which then already need to contain a resolved typedef field (PFV) }

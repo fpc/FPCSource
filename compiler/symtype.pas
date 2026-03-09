@@ -1114,7 +1114,7 @@ implementation
          2 : p.column:=(getbyte shl 16) or getword;
          3 : p.column:=getlongint;
         end;
-        p.moduleindex:=current_module.unit_index;
+        p.moduleindex:=current_module.moduleid;
       end;
 
 
