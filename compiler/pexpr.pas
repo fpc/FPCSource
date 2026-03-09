@@ -4530,7 +4530,7 @@ implementation
             loadvmtaddrn:
               srsym:=ttypenode(tloadvmtaddrnode(n).left).typedef.typesym;
             loadn:
-              if not searchsym_with_symoption(tloadnode(n).symtableentry.Name,srsym,srsymtable,sp_generic_dummy) then
+              if not compiler.symtablestack.searchsym_with_symoption(tloadnode(n).symtableentry.Name,srsym,srsymtable,sp_generic_dummy) then
                 srsym:=nil;
             calln:
               srsym:=tcallnode(n).symtableprocentry;

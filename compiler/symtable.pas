@@ -329,6 +329,7 @@ interface
          function searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean; inline;
          function searchsym_with_flags(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean; inline;
          function searchsym_maybe_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean; inline;
+         function searchsym_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean; inline;
        end;
 
 
@@ -364,7 +365,7 @@ interface
     function  searchsym_maybe_with_symoption(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags;option:tsymoption):boolean;
     { searches for a symbol with the given name that has the given option in
       symoptions set }
-    function  searchsym_with_symoption(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean;
+    function  searchsym_with_symoption(symtablestack:TSymtablestack;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable;option:tsymoption):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
@@ -2976,6 +2977,12 @@ implementation
         result:=symtable.searchsym_maybe_with_symoption(self,s,srsym,srsymtable,flags,option);
       end;
 
+    function TSymtablestackHelper.searchsym_with_symoption(const s: TIDString;
+        out srsym: tsym; out srsymtable: TSymtable; option: tsymoption): boolean; inline;
+      begin
+        result:=symtable.searchsym_with_symoption(self,s,srsym,srsymtable,option);
+      end;
+
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
@@ -3713,12 +3720,10 @@ implementation
         srsymtable:=nil;
       end;
 
-    function searchsym_with_symoption(const s: TIDString;out srsym:tsym;out
+    function searchsym_with_symoption(symtablestack:TSymtablestack;const s: TIDString;out srsym:tsym;out
       srsymtable:TSymtable;option:tsymoption):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=searchsym_maybe_with_symoption(compiler.symtablestack,s,srsym,srsymtable,[ssf_search_option],option);
+        result:=symtablestack.searchsym_maybe_with_symoption(s,srsym,srsymtable,[ssf_search_option],option);
       end;
 
     function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
