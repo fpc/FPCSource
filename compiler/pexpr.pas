@@ -3444,12 +3444,12 @@ implementation
                    consume(_ID);
                    consumeid:=false;
                    if current_scanner.token<>_POINT then
-                     searchsym_type(storedpattern+custom_attribute_suffix,srsym,srsymtable);
+                     compiler.symtablestack.searchsym_type(storedpattern+custom_attribute_suffix,srsym,srsymtable);
                  end;
                if not assigned(srsym) then
                  begin
                    if ef_type_only in flags then
-                     searchsym_type(storedpattern,srsym,srsymtable)
+                     compiler.symtablestack.searchsym_type(storedpattern,srsym,srsymtable)
                    else
                      compiler.symtablestack.searchsym(storedpattern,srsym,srsymtable);
                  end;

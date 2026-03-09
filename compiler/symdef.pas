@@ -1589,7 +1589,7 @@ implementation
         name : TIDString;
       begin
         name:=copy(internaltypeprefixName[prefix],2,length(internaltypeprefixName[prefix]));
-        if searchsym_type(name,srsym,srsymtable) then
+        if compiler.symtablestack.searchsym_type(name,srsym,srsymtable) then
           begin
             result:=trecorddef(ttypesym(srsym).typedef);
             exit
@@ -1625,7 +1625,7 @@ implementation
         { already created a message string table with this number of elements
           in this unit -> reuse the def }
         name:=internaltypeprefixName[prefix]+tostr(count);
-        if searchsym_type(copy(name,2,length(name)),srsym,srsymtable) then
+        if compiler.symtablestack.searchsym_type(copy(name,2,length(name)),srsym,srsymtable) then
           begin
             recdef:=trecorddef(ttypesym(srsym).typedef);
             fieldvarsym:=trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size);

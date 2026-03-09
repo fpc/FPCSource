@@ -530,7 +530,7 @@ implementation
      cutils,
      verbose,globals,systems,
      fmodule,
-     symtable,symutil,defutil;
+     symtable,symutil,defutil,compiler;
 
 {****************************************************************************
                        taggregateinformation
@@ -1658,7 +1658,7 @@ implementation
      begin
        name:=get_dynstring_rec_name(typ,winlike,len);
        { search in the interface of all units for the type to reuse it }
-       if searchsym_type(name,srsym,srsymtable) then
+       if acompiler.symtablestack.searchsym_type(name,srsym,srsymtable) then
          begin
            result:=trecorddef(ttypesym(srsym).typedef);
            exit;

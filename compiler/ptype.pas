@@ -397,7 +397,7 @@ implementation
              pos:=current_tokenpos;
            end;
          { Use the special searchsym_type that search only types }
-         if not searchsym_type(s,srsym,srsymtable) then
+         if not compiler.symtablestack.searchsym_type(s,srsym,srsymtable) then
            { for a good error message we need to know whether the symbol really did not exist or
              whether we found a non-type one }
            not_a_type:=compiler.symtablestack.searchsym(s,srsym,srsymtable)
