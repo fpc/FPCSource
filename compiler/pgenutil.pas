@@ -2777,7 +2777,7 @@ uses
               begin
                 { do we have a non-generic type of the same name
                   available? }
-                if not searchsym_with_flags(n,srsym,srsymtable,[ssf_no_addsymref]) then
+                if not compiler.symtablestack.searchsym_with_flags(n,srsym,srsymtable,[ssf_no_addsymref]) then
                   srsym:=nil;
               end
             else if sym.typ=procsym then
