@@ -28,7 +28,7 @@ interface
 uses
    compilerbase;
 
-    Procedure GenerateResourceStrings;
+    Procedure GenerateResourceStrings(compiler: TCompilerBase);
 
 
 implementation
@@ -359,9 +359,7 @@ uses
       end;
 
 
-    Procedure GenerateResourceStrings;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    Procedure GenerateResourceStrings(compiler: TCompilerBase);
       var
         resstrs : Tresourcestrings;
       begin

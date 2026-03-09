@@ -1805,7 +1805,7 @@ type
          compiler.nodeutils.InsertThreadvars;
 
          { Resource strings }
-         GenerateResourceStrings;
+         GenerateResourceStrings(compiler);
 
          { Widestring typed constants }
          compiler.nodeutils.InsertWideInits;
@@ -2588,7 +2588,7 @@ type
           current_debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
 
         { Resource strings }
-        GenerateResourceStrings;
+        GenerateResourceStrings(compiler);
 
         { Windows widestring needing initialization }
         compiler.nodeutils.InsertWideInits;
