@@ -23,7 +23,8 @@ interface
 uses
   System.SysUtils, System.Classes, System.StrUtils, System.FGL, Pascal.Lexlib, Pascal.Yacclib, System.Resources.Resource,
   System.Resources.Accelerator, System.Resources.GroupIcon, System.Resources.StringTable,
-  System.Resources.Bitmap, System.Resources.Version, System.Resources.VersionTypes, System.Resources.GroupCursor;
+  System.Resources.Bitmap, System.Resources.Version, System.Resources.VersionTypes, System.Resources.GroupCursor,
+  System.Resources.DialogResource;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   SysUtils, Classes, StrUtils, fgl, lexlib, yacclib, resource,
