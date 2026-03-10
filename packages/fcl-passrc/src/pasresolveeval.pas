@@ -4618,15 +4618,19 @@ begin
   {$IFDEF PAS2JS}
   Result:=TResEvalUTF16.CreateValue(Expr.Value);
   {$ELSE}
+  {$IFDEF FPC_HAS_CPSTRING}
   if (Length(Expr.Value) > 0) and (Expr.Value[1] in ['''', '#', '^']) then
+  {$ENDIF}
     // Backtick multiline strings: scanner wraps content in apostrophes
     // and doubles internal quotes (same format as regular string tokens).
     // Delegate to EvalPrimitiveExprString which returns TResEvalString.
     Result:=EvalPrimitiveExprString(Expr)
+  {$IFDEF FPC_HAS_CPSTRING}
   else
     // Delphi triple-quote strings: token value is raw text (no
     // apostrophe wrapping). Create TResEvalString directly.
     Result:=TResEvalString.CreateValue(Expr.Value);
+  {$ENDIF}
   {$ENDIF}
 end;
 
