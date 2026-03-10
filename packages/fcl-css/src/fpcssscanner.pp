@@ -542,8 +542,6 @@ begin
         Move(S[1],FCurTokenString[OLen + 1],Length(S));
         Inc(OLen, Length(S));
         end;
-      // Next char
-      // Inc(TokenStr);
       TokenStart := TokenStr+1;
       end;
     if TokenStr[0] = #0 then

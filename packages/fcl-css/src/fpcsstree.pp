@@ -426,7 +426,7 @@ type
   end;
   TCSSUnicodeRangeElementClass = class of TCSSUnicodeRangeElement;
 
-  { TCSSURLElement }
+  { TCSSURLElement - a quoted string literal }
 
   TCSSURLElement = Class(TCSSBaseStringElement)
   public
@@ -434,7 +434,7 @@ type
   end;
   TCSSURLElementClass = class of TCSSURLElement;
 
-  { TCSSStringElement }
+  { TCSSStringElement - a quoted string literal }
 
   TCSSStringElement = Class(TCSSBaseStringElement)
   private
@@ -451,6 +451,19 @@ type
   end;
   TCSSStringElementClass = class of TCSSStringElement;
 
+  { TCSSHashValueElement }
+
+  TCSSHashValueElement = Class(TCSSElement)
+  private
+    FValue: TCSSString;
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
+  Public
+    function Equals(Obj: TObject): boolean; override;
+    Property Value : TCSSString Read FValue Write FValue; // without leading #
+  end;
+  TCSSHashValueElementClass = class of TCSSHashValueElement;
+
   { TCSSIdentifierElement }
 
   TCSSIdentifierElement = Class(TCSSBaseStringElement)
@@ -464,7 +477,7 @@ type
   end;
   TCSSIdentifierElementClass = class of TCSSIdentifierElement;
 
-  { TCSSHashIdentifierElement }
+  { TCSSHashIdentifierElement - in selector }
 
   TCSSHashIdentifierElement = Class(TCSSIdentifierElement)
   Protected
@@ -474,7 +487,7 @@ type
   end;
   TCSSHashIdentifierElementClass = class of TCSSHashIdentifierElement;
 
-  { TCSSClassNameElement }
+  { TCSSClassNameElement - in selector }
 
   TCSSClassNameElement = Class(TCSSIdentifierElement)
   Protected
@@ -484,7 +497,7 @@ type
   end;
   TCSSClassNameElementClass = class of TCSSClassNameElement;
 
-  { TCSSPseudoClassElement }
+  { TCSSPseudoClassElement - in selector }
 
   TCSSPseudoClassElement = Class(TCSSIdentifierElement)
   Protected
@@ -663,10 +676,8 @@ end;
 function StringToCSSString(const S: TCSSString): TCSSString;
 
 Var
-  iIn,iOut,I,L : Integer;
+  iIn,iOut,L : Integer;
   O : TCSSString;
-  u : TCSSString;
-  W : Unicodestring;
   C : AnsiChar;
 
   Procedure AddO;
@@ -684,40 +695,27 @@ Var
 begin
   Result:='';
   L:=Length(S);
-  SetLength(Result,4*L);
+  SetLength(Result,4*L+2);
+  Result[1]:='"';
+  iOut:=1;
   iIn:=1;
-  iOut:=0;
   While iIn<=L do
     begin
     C:=S[iIn];
-    If C in [#0..' ','"'] then
+    If C in [#0..#31,'"'] then
       begin
       O:='\'+HexStr(Ord(C),2);
       AddO;
       end
-    else if Ord(C)<128 then
+    else
       begin
       inc(iOut);
       Result[iOut]:=C;
-      end
-    else
-      begin
-      I:=U8length(C);
-      if (I>0) then
-        begin
-        U:=Copy(S,iIn,I);
-        W:=Utf8Decode(U);
-        for I:=1 to Length(W) do
-          begin
-          O:='\'+HexStr(Ord(W[I]),4);
-          AddO;
-          end;
-        inc(iIn,I);
-        continue;
-        end;
       end;
     Inc(iIn);
     end;
+  inc(iOut);
+  Result[iOut]:='"';
   SetLength(Result,iOut);
 end;
 
@@ -1327,6 +1325,22 @@ begin
     begin
     if not CSSElementListEquals(FChildren,Src.FChildren) then exit(false);
     end;
+  Result:=inherited Equals(Obj);
+end;
+
+{ TCSSHashValueElement }
+
+function TCSSHashValueElement.GetAsString(aFormat: Boolean; const aIndent: TCSSString): TCSSString;
+begin
+  if aFormat then ;
+  if aIndent='' then ;
+  Result:='#'+Value;
+end;
+
+function TCSSHashValueElement.Equals(Obj: TObject): boolean;
+begin
+  if Obj is TCSSHashValueElement then
+    if TCSSHashValueElement(Obj).Value<>Value then exit(false);
   Result:=inherited Equals(Obj);
 end;
 
