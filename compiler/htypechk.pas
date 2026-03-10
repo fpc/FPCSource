@@ -3875,9 +3875,11 @@ implementation
                 FullTypeName(wrongpara.vardef,pt.left.resultdef))
           end
         else
-          CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
-            FullTypeName(pt.left.resultdef,wrongpara.vardef),
-            FullTypeName(wrongpara.vardef,pt.left.resultdef));
+          begin
+            CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
+              FullTypeName(pt.left.resultdef,wrongpara.vardef),
+              FullTypeName(wrongpara.vardef,pt.left.resultdef));
+          end;
       end;
 
 

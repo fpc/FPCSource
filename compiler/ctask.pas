@@ -28,7 +28,7 @@ unit ctask;
 interface
 
 uses
-  finput, fmodule, cclasses, globals, globstat;
+  finput, fmodule, cclasses, globals, globtype, globstat;
 
 type
   { ttask
@@ -857,6 +857,12 @@ begin
       writeln('ttask_handler.recompile_module ',m.modulename^,' ',m.statestr);
       Internalerror(2026022411);
     end;
+  {$IFDEF DEBUG_UR_RECOMPILE}
+  if (mf_release in m.moduleflags) and not m.is_initial then begin
+    writeln('ttask_handler.recompile_module UR ',m.modulename^,' ',m.statestr);
+    Internalerror(2026030915);
+  end;
+  {$ENDIF}
 
   Result:=restore_state(m);
   if m.recompile_reason=rr_unknown then
