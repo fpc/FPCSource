@@ -417,10 +417,10 @@ type
     procedure RegisterWorkerThread(aThread: TQueueWorkerThread);
     procedure UnRegisterWorkerThread(aThread: TQueueWorkerThread);
     // Adding/Removing work
-    function DoRemoveWorkItem(const WorkerData: IThreadPoolWorkItem): Boolean;
-    procedure DoQueueWorkItem(const WorkerData: IThreadPoolWorkItem; PreferThread : TQueueWorkerThread);
-    procedure AssignWorkToLocalQueue(const WorkerData: IThreadPoolWorkItem; aThread: TQueueWorkerThread);
-    procedure AssignWorkToGlobalQueue(const WorkerData: IThreadPoolWorkItem);
+    function DoRemoveWorkItem(WorkerData: IThreadPoolWorkItem): Boolean;
+    procedure DoQueueWorkItem(WorkerData: IThreadPoolWorkItem; PreferThread : TQueueWorkerThread);
+    procedure AssignWorkToLocalQueue(WorkerData: IThreadPoolWorkItem; aThread: TQueueWorkerThread);
+    procedure AssignWorkToGlobalQueue(WorkerData: IThreadPoolWorkItem);
     // Getting work.
     function CheckShouldTerminate(aThread: TQueueWorkerThread): Boolean;
     function GetWorkItemForThread(aThread: TQueueWorkerThread; out Itm: IThreadPoolWorkItem): Boolean;
@@ -1717,14 +1717,14 @@ begin
     FOnThreadTerminate(aThread);
 end;
 
-procedure TThreadPool.AssignWorkToLocalQueue(const WorkerData: IThreadPoolWorkItem; aThread: TQueueWorkerThread);
+procedure TThreadPool.AssignWorkToLocalQueue(WorkerData: IThreadPoolWorkItem; aThread: TQueueWorkerThread);
 
 begin
   aThread.WorkQueue.LocalPush(WorkerData);
   WorkQueued;
 end;
 
-procedure TThreadPool.AssignWorkToGlobalQueue(const WorkerData: IThreadPoolWorkItem);
+procedure TThreadPool.AssignWorkToGlobalQueue(WorkerData: IThreadPoolWorkItem);
 
 begin
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.AssignWorkToGlobalQueue','locking queue');{$ENDIF USE_THREADLOG}
@@ -1766,7 +1766,7 @@ begin
     TThread.Sleep(MonitorThreadDelay div 4);
 end;
 
-procedure TThreadPool.DoQueueWorkItem(const WorkerData: IThreadPoolWorkItem; PreferThread : TQueueWorkerThread);
+procedure TThreadPool.DoQueueWorkItem(WorkerData: IThreadPoolWorkItem; PreferThread : TQueueWorkerThread);
 begin
   {$IFDEF USE_THREADLOG}ThreadLog('TThreadPool.DoQueueWorkItem','enter');{$ENDIF USE_THREADLOG}
   if assigned(PreferThread) then
@@ -1985,7 +1985,7 @@ begin
   QueueThread:=Nil;
 end;
 
-function TThreadPool.DoRemoveWorkItem(const WorkerData: IThreadPoolWorkItem): Boolean;
+function TThreadPool.DoRemoveWorkItem(WorkerData: IThreadPoolWorkItem): Boolean;
 begin
   Result:=Assigned(QueueThread) and Assigned(QueueThread.WorkQueue);
   if Not Result then
