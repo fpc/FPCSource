@@ -73,6 +73,9 @@ interface
     { true, if we are parsing arguments allowing named parameters }
     named_args_allowed : boolean;
 
+    { true, if we got an @ to get the address }
+    got_addrn  : boolean;
+
     constructor Create(ACompiler: TCompilerBase);
 
     { reads a whole expression }
@@ -653,13 +656,13 @@ implementation
           in_addr_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.got_addrn:=true;
+              got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
-              compiler.parser.pbase.got_addrn:=false;
+              got_addrn:=false;
               compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -668,13 +671,13 @@ implementation
           in_faraddr_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.got_addrn:=true;
+              got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_faraddr_x,false,p1);
-              compiler.parser.pbase.got_addrn:=false;
+              got_addrn:=false;
               compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -685,14 +688,14 @@ implementation
               if target_info.system in systems_managed_vm then
                 message(parser_e_feature_unsupported_for_vm);
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.got_addrn:=true;
+              got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
               include(taddrnode(p1).addrnodeflags,anf_ofs);
-              compiler.parser.pbase.got_addrn:=false;
+              got_addrn:=false;
               { Ofs() returns a cardinal/qword, not a pointer }
               inserttypeconv_internal(p1,uinttype,compiler);
               compiler.parser.pbase.consume(_RKLAMMER);
@@ -702,13 +705,13 @@ implementation
           in_seg_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.got_addrn:=true;
+              got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_seg_x,false,p1,compiler);
-              compiler.parser.pbase.got_addrn:=false;
+              got_addrn:=false;
               compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -3368,6 +3371,7 @@ implementation
         afterassignment:=false;
         in_args:=false;
         named_args_allowed:=false;
+        got_addrn:=false;
       end;
 
 
@@ -4252,7 +4256,7 @@ implementation
              _KLAMMERAFFE :
                begin
                  compiler.parser.pbase.consume(_KLAMMERAFFE);
-                 compiler.parser.pbase.got_addrn:=true;
+                 got_addrn:=true;
                  { support both @<x> and @(<x>) }
                  if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
@@ -4277,7 +4281,7 @@ implementation
                     again:=true;
                     postfixoperators(p1,again,getaddr);
                   end;
-                 compiler.parser.pbase.got_addrn:=false;
+                 got_addrn:=false;
                  p1:=compiler.caddrnode(p1);
                  p1.fileinfo:=filepos;
                  if cs_typed_addresses in current_settings.localswitches then

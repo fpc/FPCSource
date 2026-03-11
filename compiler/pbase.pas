@@ -48,9 +48,6 @@ interface
       private
         FCompiler: TCompilerBase;
       public
-        { true, if we got an @ to get the address }
-        got_addrn  : boolean;
-
         { special for handling procedure vars }
         getprocvardef : tprocvardef;
 
@@ -118,7 +115,6 @@ implementation
      constructor TParserBaseHelpers.Create(ACompiler: TCompilerBase);
        begin
          FCompiler:=ACompiler;
-         got_addrn:=false;
          getprocvardef:=nil;
          getfuncrefdef:=nil;
        end;

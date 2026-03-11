@@ -508,7 +508,7 @@ implementation
          compiler.parser.pexpr.afterassignment:=false;
          compiler.parser.pexpr.in_args:=false;
          compiler.parser.pexpr.named_args_allowed:=false;
-         compiler.parser.pbase.got_addrn:=false;
+         compiler.parser.pexpr.got_addrn:=false;
          compiler.parser.pbase.getprocvardef:=nil;
          compiler.parser.pbase.getfuncrefdef:=nil;
 
