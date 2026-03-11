@@ -505,7 +505,7 @@ implementation
 
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
-         compiler.parser.pbase.afterassignment:=false;
+         compiler.parser.pexpr.afterassignment:=false;
          compiler.parser.pexpr.in_args:=false;
          compiler.parser.pbase.named_args_allowed:=false;
          compiler.parser.pbase.got_addrn:=false;

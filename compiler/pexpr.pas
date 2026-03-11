@@ -64,6 +64,9 @@ interface
                             out memberparentdef: tdef): boolean;
     function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
   public
+    { true, if we are after an assignment }
+    afterassignment : boolean;
+
     { true, if we are parsing arguments }
     in_args : boolean;
 
@@ -305,7 +308,7 @@ implementation
 
           in_new_x :
             begin
-              if compiler.parser.pbase.afterassignment or in_args then
+              if afterassignment or in_args then
                statement_syssym:=compiler.parser.pinline.new_function
               else
                statement_syssym:=compiler.parser.pinline.new_dispose_statement(true);
@@ -1092,8 +1095,8 @@ implementation
          currpara : tparavarsym;
          aprocdef : tprocdef;
       begin
-         prevafterassn:=compiler.parser.pbase.afterassignment;
-         compiler.parser.pbase.afterassignment:=false;
+         prevafterassn:=afterassignment;
+         afterassignment:=false;
          membercall:=false;
          aprocdef:=nil;
 
@@ -1254,7 +1257,7 @@ implementation
              if (tprocsym(sym).ProcdefList.count=1) and (po_anonymous in tprocdef(tprocsym(sym).procdeflist[0]).procoptions) then
                tcallnode(p1).procdefinition:=tprocdef(tprocsym(sym).procdeflist[0]);
            end;
-         compiler.parser.pbase.afterassignment:=prevafterassn;
+         afterassignment:=prevafterassn;
       end;
 
 
@@ -1366,7 +1369,7 @@ implementation
              paras:=compiler.ccallparanode(p2,paras);
            end;
          { we need only a write property if a := follows }
-         { if not(compiler.parser.pbase.afterassignment) and not(in_args) then }
+         { if not(afterassignment) and not(in_args) then }
          if current_scanner.token=_ASSIGNMENT then
            begin
               if propsym.getpropaccesslist(palt_write,propaccesslist) then
@@ -2776,7 +2779,7 @@ implementation
                               else
                                 p2:=nil;
                               { property setter? }
-                              if (current_scanner.token=_ASSIGNMENT) and not(compiler.parser.pbase.afterassignment) then
+                              if (current_scanner.token=_ASSIGNMENT) and not(afterassignment) then
                                 begin
                                   compiler.parser.pbase.consume(_ASSIGNMENT);
                                   { read the expression }
@@ -2788,7 +2791,7 @@ implementation
                               else
                               { this is only an approximation
                                 setting useresult if not necessary is only a waste of time, no more, no less (FK) }
-                              if compiler.parser.pbase.afterassignment or in_args or (current_scanner.token<>_SEMICOLON) then
+                              if afterassignment or in_args or (current_scanner.token<>_SEMICOLON) then
                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
                               else
                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
@@ -3359,6 +3362,7 @@ implementation
     constructor TExpressionParser.Create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
+        afterassignment:=false;
         in_args:=false;
       end;
 
@@ -3669,7 +3673,7 @@ implementation
                (current_scanner.token=_LKLAMMER) or
                (
                 (([m_tp7,m_delphi,m_mac,m_iso,m_extpas] * current_settings.modeswitches) <> []) and
-                (compiler.parser.pbase.afterassignment or in_args)
+                (afterassignment or in_args)
                )
               ) then
             begin
@@ -5008,13 +5012,13 @@ implementation
          oldafterassignment : boolean;
          p1 : tnode;
       begin
-         oldafterassignment:=compiler.parser.pbase.afterassignment;
-         compiler.parser.pbase.afterassignment:=true;
+         oldafterassignment:=afterassignment;
+         afterassignment:=true;
          p1:=sub_expr(opcompare,flags,nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
-         compiler.parser.pbase.afterassignment:=oldafterassignment;
+         afterassignment:=oldafterassignment;
          comp_expr:=p1;
       end;
 
@@ -5028,7 +5032,7 @@ implementation
          updatefpos          : boolean;
          oldflags : tnodeflags;
       begin
-         oldafterassignment:=compiler.parser.pbase.afterassignment;
+         oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,[ef_accept_equal],nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
@@ -5036,7 +5040,7 @@ implementation
           do_typecheckpass(p1);
          filepos:=current_tokenpos;
          if current_scanner.token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
-           compiler.parser.pbase.afterassignment:=true;
+           afterassignment:=true;
          updatefpos:=true;
          case current_scanner.token of
            _POINTPOINT :
@@ -5105,7 +5109,7 @@ implementation
          { transfer generic parameter flag }
          if nf_generic_para in oldflags then
            include(p1.flags,nf_generic_para);
-         compiler.parser.pbase.afterassignment:=oldafterassignment;
+         afterassignment:=oldafterassignment;
          if updatefpos then
            p1.fileinfo:=filepos;
          expr:=p1;

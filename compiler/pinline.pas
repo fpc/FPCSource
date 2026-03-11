@@ -524,7 +524,7 @@ implementation
             do_typecheckpass(p1);
             { search the constructor also in the symbol tables of
               the parents }
-            compiler.parser.pbase.afterassignment:=false;
+            compiler.parser.pexpr.afterassignment:=false;
             searchsym_in_class(classh,classh,current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
             compiler.parser.pbase.consume(_ID);
             compiler.parser.pexpr.do_member_read(classh,false,srsym,p1,again,[cnf_new_call],nil);
