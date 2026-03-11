@@ -436,6 +436,8 @@ end;
 procedure TGDBController.SetTBreak(tbreakstring : string);
 begin
   Command('-break-insert -t ' + tbreakstring);
+  if not GDB.ResultRecord.Success then
+    exit;
   TBreakNumber := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt;
 end;
 
