@@ -1516,9 +1516,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              exit;
           end;
         { parse the rest too, so we can continue with error checking }
-        compiler.parser.pbase.getprocvardef:=def;
+        compiler.parser.pexpr.getprocvardef:=def;
         n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-        compiler.parser.pbase.getprocvardef:=nil;
+        compiler.parser.pexpr.getprocvardef:=nil;
         if codegenerror then
           begin
             n.free;

@@ -48,9 +48,6 @@ interface
       private
         FCompiler: TCompilerBase;
       public
-        { special for handling procedure vars }
-        getprocvardef : tprocvardef;
-
         { special for function reference vars }
         getfuncrefdef : tobjectdef;
 
@@ -115,7 +112,6 @@ implementation
      constructor TParserBaseHelpers.Create(ACompiler: TCompilerBase);
        begin
          FCompiler:=ACompiler;
-         getprocvardef:=nil;
          getfuncrefdef:=nil;
        end;
 
