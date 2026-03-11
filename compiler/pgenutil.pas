@@ -616,7 +616,7 @@ uses
           begin
             { "first" is set to false at the end of the loop! }
             if not first then
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
             block_type:=bt_type;
             tmpparampos:=current_filepos;
             typeparam:=compiler.parser.pexpr.factor(false,[ef_accept_equal]);
@@ -627,7 +627,7 @@ uses
                 if tstoreddef(typeparam.resultdef).is_generic and
                     not is_or_belongs_to_current_genericdef(typeparam.resultdef) and
                     (
-                      not parse_generic or
+                      not compiler.parser.pbase.parse_generic or
                       not defs_belong_to_same_generic(typeparam.resultdef,current_genericdef)
                     ) then
                   Message(parser_e_no_generics_as_params);
@@ -1466,15 +1466,15 @@ uses
             internalerror(2019112401);
           end;
 
-        if not assigned(parsedtype) and not try_to_consume(_LT) then
+        if not assigned(parsedtype) and not compiler.parser.pbase.try_to_consume(_LT) then
           begin
-            consume(_LSHARPBRACKET);
+            compiler.parser.pbase.consume(_LSHARPBRACKET);
             { handle "<>" }
             if (current_scanner.token=_GT) or (current_scanner.token=_RSHARPBRACKET) then
               begin
                 Message(type_e_type_id_expected);
-                if not try_to_consume(_GT) then
-                  try_to_consume(_RSHARPBRACKET);
+                if not compiler.parser.pbase.try_to_consume(_GT) then
+                  compiler.parser.pbase.try_to_consume(_RSHARPBRACKET);
                 result:=generrordef;
                 exit;
               end;
@@ -1486,8 +1486,8 @@ uses
         err:=not parse_generic_specialization_types_internal(context.paramlist,context.poslist,context.prettyname,context.specializename,parsedtype,parsedpos);
         if err then
           begin
-            if not try_to_consume(_GT) then
-              try_to_consume(_RSHARPBRACKET);
+            if not compiler.parser.pbase.try_to_consume(_GT) then
+              compiler.parser.pbase.try_to_consume(_RSHARPBRACKET);
             context.free;
             context:=nil;
             result:=generrordef;
@@ -1602,9 +1602,9 @@ uses
 
         if not found or not (context.sym.typ in [typesym,procsym]) then
           begin
-            identifier_not_found(prettygenname);
-            if not try_to_consume(_GT) then
-              try_to_consume(_RSHARPBRACKET);
+            compiler.parser.pbase.identifier_not_found(prettygenname);
+            if not compiler.parser.pbase.try_to_consume(_GT) then
+              compiler.parser.pbase.try_to_consume(_RSHARPBRACKET);
             context.free;
             context:=nil;
             result:=generrordef;
@@ -1621,8 +1621,8 @@ uses
             result:=tstoreddef(tprocsym(context.sym).procdefList[0]);
           end;
 
-        if not try_to_consume(_GT) then
-          consume(_RSHARPBRACKET);
+        if not compiler.parser.pbase.try_to_consume(_GT) then
+          compiler.parser.pbase.consume(_RSHARPBRACKET);
       end;
 
     function TGenericsParseUtils.generate_specialization_phase2(context:tspecializationcontext;genericdef:tstoreddef;parse_class_parent:boolean;const _prettyname:ansistring):tdef;
@@ -1883,7 +1883,7 @@ uses
           begin
             specializest:=context.forwarddef.owner;
           end
-        else if parse_generic and not assigned(result) then
+        else if compiler.parser.pbase.parse_generic and not assigned(result) then
           begin
             srsymtable:=compiler.symtablestack.top;
             if (srsymtable.symtabletype in [localsymtable,parasymtable]) and tstoreddef(srsymtable.defowner).is_specialization then
@@ -2061,7 +2061,7 @@ uses
                 { use the index the module got from the current compilation process }
                 current_filepos.moduleindex:=hmodule.moduleid;
                 current_tokenpos:=current_filepos;
-                if parse_generic then
+                if compiler.parser.pbase.parse_generic then
                   begin
                     recordbuf:=current_scanner.recordtokenbuf;
                     current_scanner.recordtokenbuf:=nil;
@@ -2132,9 +2132,9 @@ uses
                     begin
                       if replaydepth<current_scanner.replay_stack_depth then
                         begin
-                          try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
+                          compiler.parser.pbase.try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
                           if replaydepth<current_scanner.replay_stack_depth then
-                            consume(_SEMICOLON);
+                            compiler.parser.pbase.consume(_SEMICOLON);
                         end;
 
                       if oo_is_forward in tobjectdef(result).objectoptions then
@@ -2153,9 +2153,9 @@ uses
                         begin
                           if not compiler.parser.pdecsub.check_proc_directive(true) then
                             begin
-                              hintsprocessed:=try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
+                              hintsprocessed:=compiler.parser.pbase.try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
                               if replaydepth<current_scanner.replay_stack_depth then
-                                consume(_SEMICOLON);
+                                compiler.parser.pbase.consume(_SEMICOLON);
                             end
                           else
                             hintsprocessed:=true;
@@ -2171,9 +2171,9 @@ uses
                       handle_calling_convention(result,flags);
                       if not hintsprocessed and (replaydepth<current_scanner.replay_stack_depth) then
                         begin
-                          try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
+                          compiler.parser.pbase.try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
                           if replaydepth<current_scanner.replay_stack_depth then
-                            consume(_SEMICOLON);
+                            compiler.parser.pbase.consume(_SEMICOLON);
                         end;
                     end;
                   procdef:
@@ -2184,29 +2184,29 @@ uses
                       else if genericdef.owner.symtabletype=recordsymtable then
                         include(pdflags,pd_record);
                       compiler.parser.pdecsub.parse_proc_directives(pd,pdflags);
-                      while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
-                        consume(_SEMICOLON);
-                      if parse_generic then
+                      while compiler.parser.pbase.try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
+                        compiler.parser.pbase.consume(_SEMICOLON);
+                      if compiler.parser.pbase.parse_generic then
                         handle_calling_convention(tprocdef(result),hcc_default_actions_intf)
                       else
                         handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
                       proc_add_definition(tprocdef(result));
                       { for partial specializations we implicitly declare the routine as
                         having its implementation although we'll not specialize it in reality }
-                      if parse_generic then
+                      if compiler.parser.pbase.parse_generic then
                         unset_forwarddef(result);
                     end;
                   else
                     { parse hint directives for records and arrays }
                     if replaydepth<current_scanner.replay_stack_depth then begin
-                      try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
+                      compiler.parser.pbase.try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
                       if replaydepth<current_scanner.replay_stack_depth then
-                        consume(_SEMICOLON);
+                        compiler.parser.pbase.consume(_SEMICOLON);
                     end;
                 end;
-                { Consume the remainder of the buffer }
+                { consume the remainder of the buffer }
                 while current_scanner.replay_stack_depth>replaydepth do
-                  consume(current_scanner.token);
+                  compiler.parser.pbase.consume(current_scanner.token);
 
                 if assigned(recordbuf) then
                   begin
@@ -2244,7 +2244,7 @@ uses
                 tdef(item).ChangeOwner(specializest);
                 { for partial specializations we implicitly declare any methods as having their
                   implementations although we'll not specialize them in reality }
-                if parse_generic or has_generic_paras(tstoreddef(item)) then
+                if compiler.parser.pbase.parse_generic or has_generic_paras(tstoreddef(item)) then
                   unset_forwarddef(tdef(item));
               end;
 
@@ -2259,7 +2259,7 @@ uses
             specialization_done(state);
 
             { procdefs are only added once we know which overload we use }
-            if not parse_generic and (result.typ<>procdef) and
+            if not compiler.parser.pbase.parse_generic and (result.typ<>procdef) and
               not has_generic_paras(tstoreddef(result)) then
                   current_module.pendingspecializations.add(result.typename,result);
           end;
@@ -2315,7 +2315,7 @@ uses
         allowconst:=true;
         is_const:=false;
         repeat
-          if allowconst and try_to_consume(_CONST) then
+          if allowconst and compiler.parser.pbase.try_to_consume(_CONST) then
             begin
               allowconst:=false;
               is_const:=true;
@@ -2332,10 +2332,10 @@ uses
               include(generictype.symoptions,sp_generic_para);
               result.add(current_scanner.orgpattern,generictype);
             end;
-          consume(_ID);
+          compiler.parser.pbase.consume(_ID);
           fileinfo:=current_tokenpos;
           { const restriction }
-          if is_const and try_to_consume(_COLON) then
+          if is_const and compiler.parser.pbase.try_to_consume(_COLON) then
             begin
               def:=nil;
               { parse the type and assign the const type to generictype  }
@@ -2370,7 +2370,7 @@ uses
               is_const:=false;
             end
           { type restriction }
-          else if try_to_consume(_COLON) then
+          else if compiler.parser.pbase.try_to_consume(_COLON) then
             begin
               if not allowconstraints then
                 Message(parser_e_generic_constraints_not_allowed_here);
@@ -2456,8 +2456,8 @@ uses
                     end;
                 end;
                 if doconsume then
-                  consume(current_scanner.token);
-              until not try_to_consume(_COMMA);
+                  compiler.parser.pbase.consume(current_scanner.token);
+              until not compiler.parser.pbase.try_to_consume(_COMMA);
 
               if ([gcf_class,gcf_constructor]*constraintdata.flags<>[]) or
                   (constraintdata.interfaces.count>1) or
@@ -2528,11 +2528,11 @@ uses
               is_const:=false;
               allowconst:=true;
             end;
-        until not (try_to_consume(_COMMA) or try_to_consume(_SEMICOLON));
+        until not (compiler.parser.pbase.try_to_consume(_COMMA) or compiler.parser.pbase.try_to_consume(_SEMICOLON));
         { if the constant parameter is not terminated then the type restriction was
           not specified and we need to give an error }
         if is_const then
-          consume(_COLON);
+          compiler.parser.pbase.consume(_COLON);
         { two different typeless parameters are considered as incompatible }
         for i:=firstidx to result.count-1 do
           if tsym(result[i]).typ<>constsym then
@@ -2682,7 +2682,7 @@ uses
         if not (m_delphi in current_settings.modeswitches) and
             (
               (
-                parse_generic and
+                compiler.parser.pbase.parse_generic and
                 assigned(genericlist) and
                 (genericlist.count>0)
               ) or
@@ -2852,8 +2852,8 @@ uses
       state.oldgenericdummysyms:=current_module.genericdummysyms;
       state.oldcurrent_genericdef:=current_genericdef;
       state.oldspecializestate:=pspecializationstate(current_module.specializestate);
-      state.oldoptoken:=optoken;
-      optoken:=NOTOKEN;
+      state.oldoptoken:=compiler.parser.pbase.optoken;
+      compiler.parser.pbase.optoken:=NOTOKEN;
       current_module.specializestate:=@state;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
       current_module.genericdummysyms:=tfphashobjectlist.create(true);
@@ -2941,7 +2941,7 @@ uses
       current_module.genericdummysyms.free;
       current_module.genericdummysyms:=state.oldgenericdummysyms;
       current_module.specializestate:=state.oldspecializestate;
-      optoken:=state.oldoptoken;
+      compiler.parser.pbase.optoken:=state.oldoptoken;
       compiler.symtablestack.free;
       tcompiler(compiler).symtablestack:=state.oldsymtablestack;
       { clear the state record to be on the safe side }
@@ -3136,7 +3136,7 @@ uses
         hmodule : tmodule;
         st : tsymtable;
       begin
-        if parse_generic then
+        if compiler.parser.pbase.parse_generic then
           exit;
         { transfer ownership of any unnamed syms to be the specialization }
         if unnamed_syms<>nil then

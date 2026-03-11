@@ -138,7 +138,7 @@ implementation
                   def:=generrordef;
                   result:=false;
                 end;
-               consume(_ID);
+               compiler.parser.pbase.consume(_ID);
                repeat
                  case current_scanner.token of
                    _ID,
@@ -150,7 +150,7 @@ implementation
                      begin
                        if not is_object(def) and not is_record(def) then
                          message(sym_e_type_must_be_rec_or_object);
-                       consume(_POINT);
+                       compiler.parser.pbase.consume(_POINT);
                        if assigned(def) then
                         begin
                           st:=def.GetSymtable(gs_record);
@@ -189,11 +189,11 @@ implementation
                           Message(parser_e_invalid_qualifier);
                           result:=false;
                         end;
-                       consume(_ID);
+                       compiler.parser.pbase.consume(_ID);
                      end;
                    _LECKKLAMMER :
                      begin
-                       consume(_LECKKLAMMER);
+                       compiler.parser.pbase.consume(_LECKKLAMMER);
                        repeat
                          if assigned(def) and (def.typ=arraydef) then
                           begin
@@ -224,8 +224,8 @@ implementation
                             Message(parser_e_invalid_qualifier);
                             result:=false;
                           end;
-                       until not try_to_consume(_COMMA);
-                       consume(_RECKKLAMMER);
+                       until not compiler.parser.pbase.try_to_consume(_COMMA);
+                       compiler.parser.pbase.consume(_RECKKLAMMER);
                      end;
                    else
                      begin
@@ -307,12 +307,12 @@ implementation
               haswrite:=true;
               hdispid:=0;
 
-              if try_to_consume(_READONLY) then
+              if compiler.parser.pbase.try_to_consume(_READONLY) then
                 haswrite:=false
-              else if try_to_consume(_WRITEONLY) then
+              else if compiler.parser.pbase.try_to_consume(_WRITEONLY) then
                 hasread:=false;
 
-              if try_to_consume(_DISPID) then
+              if compiler.parser.pbase.try_to_consume(_DISPID) then
                 begin
                   pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                   if is_constintnode(pt) then
@@ -392,8 +392,8 @@ implementation
 
          if current_scanner.token<>_ID then
            begin
-              consume(_ID);
-              consume(_SEMICOLON);
+              compiler.parser.pbase.consume(_ID);
+              compiler.parser.pbase.consume(_SEMICOLON);
               exit;
            end;
          { Generate propertysym and insert in symtablestack }
@@ -403,9 +403,9 @@ implementation
          if is_classproperty then
            include(p.symoptions, sp_static);
          compiler.symtablestack.top.insertsym(p);
-         consume(_ID);
+         compiler.parser.pbase.consume(_ID);
          { property parameters ? }
-         if try_to_consume(_LECKKLAMMER) then
+         if compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
            begin
               { Published indexed properties are allowed in Delphi in interfaces compiled with $M+. }
               if (p.visibility=vis_published) and
@@ -416,13 +416,13 @@ implementation
               compiler.symtablestack.push(p.parast);
               sc:=TFPObjectList.create(false);
               repeat
-                if try_to_consume(_VAR) then
+                if compiler.parser.pbase.try_to_consume(_VAR) then
                   varspez:=vs_var
-                else if try_to_consume(_CONST) then
+                else if compiler.parser.pbase.try_to_consume(_CONST) then
                   varspez:=vs_const
-                else if try_to_consume(_CONSTREF) then
+                else if compiler.parser.pbase.try_to_consume(_CONSTREF) then
                   varspez:=vs_constref
-                else if (m_out in current_settings.modeswitches) and try_to_consume(_OUT) then
+                else if (m_out in current_settings.modeswitches) and compiler.parser.pbase.try_to_consume(_OUT) then
                   varspez:=vs_out
                 else
                   varspez:=vs_value;
@@ -432,13 +432,13 @@ implementation
                   hreadparavs:=cparavarsym.create(current_scanner.orgpattern,10*paranr,varspez,generrordef,[]);
                   p.parast.insertsym(hreadparavs);
                   sc.add(hreadparavs);
-                  consume(_ID);
-                until not try_to_consume(_COMMA);
-                if try_to_consume(_COLON) then
+                  compiler.parser.pbase.consume(_ID);
+                until not compiler.parser.pbase.try_to_consume(_COMMA);
+                if compiler.parser.pbase.try_to_consume(_COLON) then
                   begin
-                    if try_to_consume(_ARRAY) then
+                    if compiler.parser.pbase.try_to_consume(_ARRAY) then
                       begin
-                        consume(_OF);
+                        compiler.parser.pbase.consume(_OF);
                         { define range and type of range }
                         hdef:=carraydef.create_openarray(compiler);
                         hdef.owner:=astruct.symtable;
@@ -453,11 +453,11 @@ implementation
                   hdef:=cformaltype;
                 for i:=0 to sc.count-1 do
                   tparavarsym(sc[i]).vardef:=hdef;
-              until not try_to_consume(_SEMICOLON);
+              until not compiler.parser.pbase.try_to_consume(_SEMICOLON);
               sc.free;
               sc := nil;
               compiler.symtablestack.pop(p.parast);
-              consume(_RECKKLAMMER);
+              compiler.parser.pbase.consume(_RECKKLAMMER);
 
               { the parser need to know if a property has parameters, the
                 index parameter doesn't count (PFV) }
@@ -473,7 +473,7 @@ implementation
              a global property }
          if (current_scanner.token=_COLON) or (paranr>0) or (astruct=nil) then
            begin
-              consume(_COLON);
+              compiler.parser.pbase.consume(_COLON);
               compiler.parser.ptype.single_type(p.propdef,[stoAllowSpecialization]);
 
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
@@ -481,7 +481,7 @@ implementation
 
               if (current_scanner.idtoken=_INDEX) then
                 begin
-                   consume(_INDEX);
+                   compiler.parser.pbase.consume(_INDEX);
                    pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                    { Only allow enum and integer indexes. Convert all integer
                      values to objpas.integer (s32int on 32- and 64-bit targets,
@@ -559,7 +559,7 @@ implementation
            begin
              gotreadorwrite:=false;
              { parse accessors }
-             if try_to_consume(_READ) then
+             if compiler.parser.pbase.try_to_consume(_READ) then
                begin
                  gotreadorwrite:=true;
                  p.propaccesslist[palt_read].clear;
@@ -581,7 +581,7 @@ implementation
                end
              else
                p.inherit_accessor(palt_read);
-             if try_to_consume(_WRITE) then
+             if compiler.parser.pbase.try_to_consume(_WRITE) then
                begin
                  gotreadorwrite:=true;
                  p.propaccesslist[palt_write].clear;
@@ -612,7 +612,7 @@ implementation
              if not(ppo_overrides in p.propoptions) and
                 not is_interface(astruct) and
                 not gotreadorwrite then
-               Consume(_READ);
+               compiler.parser.pbase.consume(_READ);
            end
          else
            parse_dispinterface(p,readprocdef,writeprocdef,paranr);
@@ -623,7 +623,7 @@ implementation
              { ppo_stored is default on for not overridden properties }
              if not assigned(p.overriddenpropsym) then
                include(p.propoptions,ppo_stored);
-             if try_to_consume(_STORED) then
+             if compiler.parser.pbase.try_to_consume(_STORED) then
               begin
                 include(p.propoptions,ppo_stored);
                 p.propaccesslist[palt_stored].clear;
@@ -667,7 +667,7 @@ implementation
                                 { do nothing - ppo_stored is already set to p.propoptions in "include(p.propoptions,ppo_stored);" above }
                                 { especially do not reset the default value - the stored specifier is independent on the default value! }
                               end;
-                            consume(_ID);
+                            compiler.parser.pbase.consume(_ID);
                           end
                        else if parse_symlist(p.propaccesslist[palt_stored],def) then
                         begin
@@ -718,7 +718,7 @@ implementation
            begin
               p.default:=0;
            end;
-         if not is_record(astruct) and try_to_consume(_DEFAULT) then
+         if not is_record(astruct) and compiler.parser.pbase.try_to_consume(_DEFAULT) then
            begin
               if not allow_default_property(p) then
                 begin
@@ -763,7 +763,7 @@ implementation
                   pt := nil;
                 end;
            end
-         else if not is_record(astruct) and try_to_consume(_NODEFAULT) then
+         else if not is_record(astruct) and compiler.parser.pbase.try_to_consume(_NODEFAULT) then
            begin
               p.default:=longint($80000000);
            end;
@@ -774,7 +774,7 @@ implementation
            end;
 *)
          { Parse possible "implements" keyword }
-         if not is_record(astruct) and try_to_consume(_IMPLEMENTS) then
+         if not is_record(astruct) and compiler.parser.pbase.try_to_consume(_IMPLEMENTS) then
            repeat
              compiler.parser.ptype.single_type(def,[]);
 
@@ -886,7 +886,7 @@ implementation
                end
              else
                message1(parser_e_implements_uses_non_implemented_interface,def.typename);
-           until not try_to_consume(_COMMA);
+           until not compiler.parser.pbase.try_to_consume(_COMMA);
 
          { register propgetter and propsetter procdefs }
          if assigned(current_module) and current_module.in_interface then
@@ -996,24 +996,24 @@ implementation
         end;
 
       { cdecl }
-      if try_to_consume(_CVAR) then
+      if compiler.parser.pbase.try_to_consume(_CVAR) then
         begin
-          consume(_SEMICOLON);
+          compiler.parser.pbase.consume(_SEMICOLON);
           is_cdecl:=true;
         end;
 
       { external }
-      is_weak_external:=try_to_consume(_WEAKEXTERNAL);
+      is_weak_external:=compiler.parser.pbase.try_to_consume(_WEAKEXTERNAL);
       if is_weak_external or
-         try_to_consume(_EXTERNAL) then
+         compiler.parser.pbase.try_to_consume(_EXTERNAL) then
         begin
           is_external_var:=true;
           { near/far? }
           if target_info.system in systems_allow_external_far_var then
             begin
-              if try_to_consume(_FAR) then
+              if compiler.parser.pbase.try_to_consume(_FAR) then
                 is_far:=true
-              else if try_to_consume(_NEAR) then
+              else if compiler.parser.pbase.try_to_consume(_NEAR) then
                 is_far:=false;
             end;
           if (current_scanner.idtoken<>_NAME) and (current_scanner.token<>_SEMICOLON) then
@@ -1023,26 +1023,26 @@ implementation
               if ExtractFileExt(dll_name)='' then
                 dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
             end;
-          if not(is_cdecl) and try_to_consume(_NAME) then
+          if not(is_cdecl) and compiler.parser.pbase.try_to_consume(_NAME) then
             C_name:=compiler.parser.pexpr.get_stringconst;
-          consume(_SEMICOLON);
+          compiler.parser.pbase.consume(_SEMICOLON);
         end;
 
       { export or public }
       if current_scanner.idtoken in [_EXPORT,_PUBLIC] then
         begin
-          consume(_ID);
+          compiler.parser.pbase.consume(_ID);
           if is_external_var then
             Message(parser_e_not_external_and_export)
           else
             is_public_var:=true;
-          if try_to_consume(_NAME) then
+          if compiler.parser.pbase.try_to_consume(_NAME) then
             C_name:=compiler.parser.pexpr.get_stringconst;
           if (target_info.system in systems_allow_section_no_semicolon) and
              (vs.typ=staticvarsym) and
-             try_to_consume (_SECTION) then
+             compiler.parser.pbase.try_to_consume (_SECTION) then
             section_name:=compiler.parser.pexpr.get_stringconst;
-          consume(_SEMICOLON);
+          compiler.parser.pbase.consume(_SEMICOLON);
         end;
 
       { Windows uses an indirect reference using import tables }
@@ -1114,9 +1114,9 @@ implementation
       begin
         if current_scanner.idtoken=_SECTION then
           begin
-            consume(_ID);
+            compiler.parser.pbase.consume(_ID);
             asection:=compiler.parser.pexpr.get_stringconst;
-            consume(_SEMICOLON);
+            compiler.parser.pbase.consume(_SEMICOLON);
           end;
       end;
 
@@ -1125,12 +1125,12 @@ implementation
       var
         extname: string;
       begin
-        if try_to_consume(_EXTERNAL) then
+        if compiler.parser.pbase.try_to_consume(_EXTERNAL) then
           begin
-            consume(_NAME);
+            compiler.parser.pbase.consume(_NAME);
             extname:=compiler.parser.pexpr.get_stringconst;
             tfieldvarsym(vs).set_externalname(extname);
-            consume(_SEMICOLON);
+            compiler.parser.pbase.consume(_SEMICOLON);
           end;
       end;
 
@@ -1160,7 +1160,7 @@ implementation
             Message(parser_e_initialized_only_one_var);
           if vo_is_thread_var in vs.varoptions then
             Message(parser_e_initialized_not_for_threadvar);
-          consume(_EQ);
+          compiler.parser.pbase.consume(_EQ);
           case vs.typ of
             localvarsym :
               begin
@@ -1173,7 +1173,7 @@ implementation
                   used, and will be re-parsed during specialisations (and the
                   current version is not type-correct and hence breaks code
                   generation for LLVM) }
-                if not parse_generic then
+                if not compiler.parser.pbase.parse_generic then
                   begin
                     vs.defaultconstsym:=tcsym;
                     current_asmdata.asmlists[al_typedconsts].concatlist(templist);
@@ -1198,7 +1198,7 @@ implementation
           vs : tabstractnormalvarsym;
           C_Name : string;
         begin
-          consume(_ID);
+          compiler.parser.pbase.consume(_ID);
           C_Name:=get_stringconst;
           vs:=tabstractnormalvarsym(sc[0]);
           if sc.count>1 then
@@ -1264,7 +1264,7 @@ implementation
 {$if defined(i386) or defined(i8086)}
               tcpuabsolutevarsym(abssym).absseg:=false;
               if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
-                  try_to_consume(_COLON) then
+                  compiler.parser.pbase.try_to_consume(_COLON) then
                 begin
                   pt.free;
                   pt:=expr(true);
@@ -1400,7 +1400,7 @@ implementation
          block_type:=bt_var;
          { Force an expected ID error message }
          if not (current_scanner.token in [_ID,_CASE,_END]) then
-           consume(_ID);
+           compiler.parser.pbase.consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
          first:=true;
@@ -1438,7 +1438,7 @@ implementation
                  end
                else
                  isgeneric:=false;
-               consume(_ID);
+               compiler.parser.pbase.consume(_ID);
                { when the first variable had been read the next declaration could be
                  a "generic procedure", "generic function" or
                  "generic class (function/procedure)" }
@@ -1467,14 +1467,14 @@ implementation
                    else
                      compiler.symtablestack.top.insertsym(vs);
                  end;
-             until not try_to_consume(_COMMA);
+             until not compiler.parser.pbase.try_to_consume(_COMMA);
 
              if had_generic then
                break;
 
              { read variable type def }
              block_type:=bt_var_type;
-             consume(_COLON);
+             compiler.parser.pbase.consume(_COLON);
              typepos:=current_tokenpos;
 
 {$ifdef gpc_mode}
@@ -1498,7 +1498,7 @@ implementation
                semicoloneaten:=true;
 
              { check for absolute }
-             if try_to_consume(_ABSOLUTE) then
+             if compiler.parser.pbase.try_to_consume(_ABSOLUTE) then
                begin
                  read_absolute(sc);
                  allowdefaultvalue:=false;
@@ -1515,7 +1515,7 @@ implementation
              { try to parse the hint directives }
              hintsymoptions:=[];
              deprecatedmsg:=nil;
-             try_consume_hintdirective(hintsymoptions,deprecatedmsg);
+             compiler.parser.pbase.try_consume_hintdirective(hintsymoptions,deprecatedmsg);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
@@ -1564,7 +1564,7 @@ implementation
              else
                begin
                  if not(semicoloneaten) then
-                   consume(_SEMICOLON);
+                   compiler.parser.pbase.consume(_SEMICOLON);
                end;
 
              { Support calling convention for procvars after semicolon }
@@ -1754,7 +1754,7 @@ implementation
 {$endif powerpc or powerpc64}
          { Force an expected ID error message }
          if not (current_scanner.token in [_ID,_CASE,_END]) then
-           consume(_ID);
+           compiler.parser.pbase.consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
          removeclassoption:=false;
@@ -1786,7 +1786,7 @@ implementation
                  end
                else
                  vs:=nil;
-               consume(_ID);
+               compiler.parser.pbase.consume(_ID);
                if assigned(vs) and
                   (
                     not had_generic or
@@ -1800,14 +1800,14 @@ implementation
                  end
                else
                  vs.free; // no nil needed
-             until not try_to_consume(_COMMA);
+             until not compiler.parser.pbase.try_to_consume(_COMMA);
              if m_delphi in current_settings.modeswitches then
                block_type:=bt_var_type
              else
                block_type:=old_block_type;
              if had_generic and (sc.count=0) then
                break;
-             consume(_COLON);
+             compiler.parser.pbase.consume(_COLON);
              if attr_element_count=0 then
                attr_element_count:=sc.Count;
 
@@ -1893,7 +1893,7 @@ implementation
              { try to parse the hint directives }
              hintsymoptions:=[];
              deprecatedmsg:=nil;
-             try_consume_hintdirective(hintsymoptions,deprecatedmsg);
+             compiler.parser.pbase.try_consume_hintdirective(hintsymoptions,deprecatedmsg);
 
              { update variable type and hints }
              for i:=0 to sc.count-1 do
@@ -1911,7 +1911,7 @@ implementation
              { for a record there doesn't need to be a ; before the END or )    }
              if not(current_scanner.token in [_END,_RKLAMMER]) and
                 not(semicoloneaten) then
-               consume(_SEMICOLON);
+               compiler.parser.pbase.consume(_SEMICOLON);
 
              { Parse procvar directives after ; }
              maybe_parse_proc_directives(hdef);
@@ -1946,9 +1946,9 @@ implementation
              if (vd_object in options) then
                begin
                  { if it is not a class var section and token=STATIC then it is a class field too }
-                 if not (vd_class in options) and try_to_consume(_STATIC) then
+                 if not (vd_class in options) and compiler.parser.pbase.try_to_consume(_STATIC) then
                    begin
-                     consume(_SEMICOLON);
+                     compiler.parser.pbase.consume(_SEMICOLON);
                      include(options,vd_class);
                      removeclassoption:=true;
                    end;
@@ -1982,7 +1982,7 @@ implementation
                      hstaticvs:=make_field_static(recst,fieldvs);
                      if vd_threadvar in options then
                        include(hstaticvs.varoptions,vo_is_thread_var);
-                     if not parse_generic then
+                     if not compiler.parser.pbase.parse_generic then
                        compiler.nodeutils.insertbssdata(hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
@@ -2018,7 +2018,7 @@ implementation
            block_type:=old_block_type;
          { Check for Case }
          if (vd_record in options) and
-            try_to_consume(_CASE) then
+            compiler.parser.pbase.try_to_consume(_CASE) then
            begin
               maxsize:=0;
               maxalignment:=0;
@@ -2041,8 +2041,8 @@ implementation
                   compiler.symtablestack.searchsym(hs,srsym,srsymtable);
                   if not(assigned(srsym) and (srsym.typ in [typesym,unitsym])) then
                     begin
-                      consume(_ID);
-                      consume(_COLON);
+                      compiler.parser.pbase.consume(_ID);
+                      compiler.parser.pbase.consume(_COLON);
                       fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
                       variantdesc^^.variantselector:=fieldvs;
                       compiler.symtablestack.top.insertsym(fieldvs);
@@ -2061,7 +2061,7 @@ implementation
 {$endif cpu64bitaddr}
                  then
                 Message(type_e_ordinal_expr_expected);
-              consume(_OF);
+              compiler.parser.pbase.consume(_OF);
 
               UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
               UnionDef:=crecorddef.create('',unionsymtable,compiler);
@@ -2083,7 +2083,7 @@ implementation
                     Message(parser_e_illegal_expression);
                   inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
-                  if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and try_to_consume(_POINTPOINT) then
+                  if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and compiler.parser.pbase.try_to_consume(_POINTPOINT) then
                     pt:=compiler.crangenode(pt,compiler.parser.pexpr.comp_expr([ef_accept_equal]))
                   else
                     begin
@@ -2096,7 +2096,7 @@ implementation
                   pt.free;
                   pt := nil;
                   if current_scanner.token=_COMMA then
-                    consume(_COMMA)
+                    compiler.parser.pbase.consume(_COMMA)
                   else
                     break;
                 until false;
@@ -2104,14 +2104,14 @@ implementation
                   block_type:=bt_var_type
                 else
                   block_type:=old_block_type;
-                consume(_COLON);
+                compiler.parser.pbase.consume(_COLON);
                 { read the vars }
-                consume(_LKLAMMER);
+                compiler.parser.pbase.consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if current_scanner.token<>_RKLAMMER then
                   read_record_fields([vd_record],nil,@variantdesc^^.branches[high(variantdesc^^.branches)].nestedvariant,hadgendummy,dummyattrelementcount);
                 dec(variantrecordlevel);
-                consume(_RKLAMMER);
+                compiler.parser.pbase.consume(_RKLAMMER);
 
                 { calculates maximal variant size }
                 maxsize:=max(maxsize,unionsymtable.datasize);
@@ -2122,7 +2122,7 @@ implementation
                 unionsymtable.fieldalignment:=startvarrecalign;
                 unionsymtable.padalignment:=startpadalign;
                 if (current_scanner.token<>_END) and (current_scanner.token<>_RKLAMMER) then
-                  consume(_SEMICOLON)
+                  compiler.parser.pbase.consume(_SEMICOLON)
                 else
                   break;
               until (current_scanner.token=_END) or (current_scanner.token=_RKLAMMER);

@@ -1142,7 +1142,7 @@ unit raatt;
        curlist:=TAsmList.Create;
 
        { we might need to know which parameters are passed in registers }
-       if not parse_generic then
+       if not compiler.parser.pbase.parse_generic then
          current_procinfo.generate_parameter_info;
 
        lasTSec:=sec_code;

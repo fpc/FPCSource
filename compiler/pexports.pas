@@ -103,14 +103,14 @@ implementation
          include(current_module.moduleflags,mf_has_exports);
          DefString:='';
          InternalProcName:='';
-         consume(_EXPORTS);
+         compiler.parser.pbase.consume(_EXPORTS);
          repeat
            hpname:='';
            options:=[];
            index:=0;
            if current_scanner.token=_ID then
              begin
-                consume_sym_orgid(srsym,srsymtable,orgs);
+                compiler.parser.pbase.consume_sym_orgid(srsym,srsymtable,orgs);
                 { current_scanner.orgpattern is still valid here }
                 InternalProcName:='';
                 case srsym.typ of
@@ -152,7 +152,7 @@ implementation
                         Message(parser_e_procname_to_short_for_export);
                        DefString:=srsym.realname+'='+InternalProcName;
                      end;
-                    if try_to_consume(_INDEX) then
+                    if compiler.parser.pbase.try_to_consume(_INDEX) then
                      begin
                        pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                        if pt.nodetype=ordconstn then
@@ -177,7 +177,7 @@ implementation
                        else
                         DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
                      end;
-                    if try_to_consume(_NAME) then
+                    if compiler.parser.pbase.try_to_consume(_NAME) then
                      begin
                        pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
                        if pt.nodetype=stringconstn then
@@ -191,18 +191,18 @@ implementation
                        pt := nil;
                        DefString:=hpname+'='+InternalProcName;
                      end;
-                    if try_to_consume(_RESIDENT) then
+                    if compiler.parser.pbase.try_to_consume(_RESIDENT) then
                      begin
                        include(options,eo_resident);
                        DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
                      end;
-                    if try_to_consume(_PROMISING) then
+                    if compiler.parser.pbase.try_to_consume(_PROMISING) then
                      begin
                        if target_info.system in systems_wasm then
                          begin
-                           if try_to_consume(_FIRST) then
+                           if compiler.parser.pbase.try_to_consume(_FIRST) then
                              include(options,eo_promising_first)
-                           else if try_to_consume(_LAST) then
+                           else if compiler.parser.pbase.try_to_consume(_LAST) then
                              include(options,eo_promising_last)
                            else
                              include(options,eo_promising_first);
@@ -210,8 +210,8 @@ implementation
                        else
                          begin
                            Message(parser_e_promising_exports_not_supported_on_current_platform);
-                           if not try_to_consume(_FIRST) then
-                             try_to_consume(_LAST);
+                           if not compiler.parser.pbase.try_to_consume(_FIRST) then
+                             compiler.parser.pbase.try_to_consume(_LAST);
                          end;
                      end;
                     if (DefString<>'') and
@@ -287,9 +287,9 @@ implementation
                    end; // Case srsym.typ
              end
            else
-             consume(_ID);
-         until not try_to_consume(_COMMA);
-         consume(_SEMICOLON);
+             compiler.parser.pbase.consume(_ID);
+         until not compiler.parser.pbase.try_to_consume(_COMMA);
+         compiler.parser.pbase.consume(_SEMICOLON);
         if not DefFile.empty then
          DefFile.writefile;
       end;

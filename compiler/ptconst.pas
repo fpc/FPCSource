@@ -100,9 +100,9 @@ implementation
           end;
 
         { Parse hints }
-        try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
+        compiler.parser.pbase.try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
 
-        consume(_SEMICOLON);
+        compiler.parser.pbase.consume(_SEMICOLON);
 
         { parse public/external/export/... }
         if not in_structure and
@@ -140,7 +140,7 @@ implementation
               end;
           end;
 
-        if not parse_generic then
+        if not compiler.parser.pbase.parse_generic then
           begin
             if vo_is_public in sym.varoptions then
               current_module.add_public_asmsym(sym.mangledname,AB_GLOBAL,AT_DATA);

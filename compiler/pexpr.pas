@@ -125,24 +125,24 @@ implementation
          p : tnode;
       begin
          def:=cshortstringtype;
-         consume(_STRING);
+         compiler.parser.pbase.consume(_STRING);
          if current_scanner.token=_LECKKLAMMER then
            begin
              if not(allowtypedef) then
                Message(parser_e_no_local_para_def);
-             consume(_LECKKLAMMER);
+             compiler.parser.pbase.consume(_LECKKLAMMER);
              p:=comp_expr([ef_accept_equal]);
              if not is_constintnode(p) then
                begin
                  Message(parser_e_illegal_expression);
                  { error recovery }
-                 consume(_RECKKLAMMER);
+                 compiler.parser.pbase.consume(_RECKKLAMMER);
                end
              else
                begin
                 { the node is a generic param while parsing a generic def
                   so disable the range checking for the string }
-                if parse_generic and
+                if compiler.parser.pbase.parse_generic and
                   (nf_generic_para in p.flags) then
                   tordconstnode(p).value:=255;
                 if tordconstnode(p).value<=0 then
@@ -161,7 +161,7 @@ implementation
                 else
                   if tordconstnode(p).value<>255 then
                     def:=cstringdef.createshort(int64(tordconstnode(p).value),true,compiler);
-                consume(_RECKKLAMMER);
+                compiler.parser.pbase.consume(_RECKKLAMMER);
               end;
              p.free;
              p := nil;
@@ -196,11 +196,11 @@ implementation
               exit;
            end;
          { save old values }
-         prev_in_args:=in_args;
-         old_named_args_allowed:=named_args_allowed;
+         prev_in_args:=compiler.parser.pbase.in_args;
+         old_named_args_allowed:=compiler.parser.pbase.named_args_allowed;
          { set para parsing values }
-         in_args:=true;
-         named_args_allowed:=false;
+         compiler.parser.pbase.in_args:=true;
+         compiler.parser.pbase.named_args_allowed:=false;
          p2:=nil;
          repeat
            if __namedpara then
@@ -212,10 +212,10 @@ implementation
                  end
                else
                  begin
-                   named_args_allowed:=true;
+                   compiler.parser.pbase.named_args_allowed:=true;
                    p1:=comp_expr([ef_accept_equal]);
-                   named_args_allowed:=false;
-                   if found_arg_name then
+                   compiler.parser.pbase.named_args_allowed:=false;
+                   if compiler.parser.pbase.found_arg_name then
                      begin
                        argname:=p1;
                        p1:=comp_expr([ef_accept_equal]);
@@ -224,7 +224,7 @@ implementation
                      end
                    else
                      p2:=compiler.ccallparanode(p1,p2);
-                   found_arg_name:=false;
+                   compiler.parser.pbase.found_arg_name:=false;
                  end;
              end
            else
@@ -235,20 +235,20 @@ implementation
            { it's for the str(l:5,s); }
            if __colon and (current_scanner.token=_COLON) then
              begin
-               consume(_COLON);
+               compiler.parser.pbase.consume(_COLON);
                p1:=comp_expr([ef_accept_equal]);
                p2:=compiler.ccallparanode(p1,p2);
                include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
-               if try_to_consume(_COLON) then
+               if compiler.parser.pbase.try_to_consume(_COLON) then
                  begin
                    p1:=comp_expr([ef_accept_equal]);
                    p2:=compiler.ccallparanode(p1,p2);
                    include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                  end
              end;
-         until not try_to_consume(_COMMA);
-         in_args:=prev_in_args;
-         named_args_allowed:=old_named_args_allowed;
+         until not compiler.parser.pbase.try_to_consume(_COMMA);
+         compiler.parser.pbase.in_args:=prev_in_args;
+         compiler.parser.pbase.named_args_allowed:=old_named_args_allowed;
          parse_paras:=p2;
       end;
 
@@ -297,12 +297,12 @@ implementation
         def : tdef;
         exit_procinfo: tprocinfo;
       begin
-        prev_in_args:=in_args;
+        prev_in_args:=compiler.parser.pbase.in_args;
         case l of
 
           in_new_x :
             begin
-              if afterassignment or in_args then
+              if compiler.parser.pbase.afterassignment or compiler.parser.pbase.in_args then
                statement_syssym:=compiler.parser.pinline.new_function
               else
                statement_syssym:=compiler.parser.pinline.new_dispose_statement(true);
@@ -316,10 +316,10 @@ implementation
           in_ord_x,
           in_chr_byte:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               p1:=geninlinenode(l,false,p1,compiler);
               statement_syssym := p1;
             end;
@@ -327,14 +327,14 @@ implementation
           in_exit :
             begin
               statement_syssym:=nil;
-              if try_to_consume(_LKLAMMER) then
+              if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                 begin
                   if not (m_mac in current_settings.modeswitches) then
                     begin
-                      if not(try_to_consume(_RKLAMMER)) then
+                      if not(compiler.parser.pbase.try_to_consume(_RKLAMMER)) then
                         begin
                           p1:=comp_expr([ef_accept_equal]);
-                          consume(_RKLAMMER);
+                          compiler.parser.pbase.consume(_RKLAMMER);
                           if not assigned(current_procinfo) or
                              (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
                              is_void(current_procinfo.procdef.returndef) then
@@ -386,8 +386,8 @@ implementation
                           else
                             Message(parser_e_macpas_exit_wrong_param);
                         end;
-                      consume(_ID);
-                      consume(_RKLAMMER);
+                      compiler.parser.pbase.consume(_ID);
+                      compiler.parser.pbase.consume(_RKLAMMER);
                       p1:=nil;
                     end
                 end
@@ -431,10 +431,10 @@ implementation
 
           in_typeof_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true;
               { Allow classrefdef, which is required for
@@ -459,10 +459,10 @@ implementation
           in_sizeof_x,
           in_bitsizeof_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               if ((p1.nodetype<>typen) and
                  (
                   (is_object(p1.resultdef) and
@@ -522,8 +522,8 @@ implementation
               if (l in [in_typeinfo_x,in_gettypekind_x,in_ismanagedtype_x]) or
                  (m_objectivec1 in current_settings.modeswitches) then
                 begin
-                  consume(_LKLAMMER);
-                  in_args:=true;
+                  compiler.parser.pbase.consume(_LKLAMMER);
+                  compiler.parser.pbase.in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
                   { When reading a class type it is parsed as loadvmtaddrn,
                     typeinfo only needs the type so we remove the loadvmtaddrn }
@@ -547,7 +547,7 @@ implementation
                        p1:=compiler.cerrornode;
                        Message(parser_e_illegal_parameter_list);
                     end;}
-                  consume(_RKLAMMER);
+                  compiler.parser.pbase.consume(_RKLAMMER);
                   p2:=geninlinenode(l,false,p1,compiler);
                   statement_syssym:=p2;
                 end
@@ -560,10 +560,10 @@ implementation
 
           in_isconstvalue_x:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               p2:=geninlinenode(l,false,p1,compiler);
               statement_syssym:=p2;
             end;
@@ -573,20 +573,20 @@ implementation
           in_volatile_x:
             begin
               err:=false;
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=compiler.ccallparanode(p1,nil);
               p2:=geninlinenode(l,false,p2,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
 
           in_assigned_x :
             begin
               err:=false;
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               { When reading a class type it is parsed as loadvmtaddrn,
                 typeinfo only needs the type so we remove the loadvmtaddrn }
@@ -637,36 +637,36 @@ implementation
                  p1 := nil;
                  p2:=compiler.cerrornode;
                end;
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
 
           in_addr_x :
             begin
-              consume(_LKLAMMER);
-              got_addrn:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
-              got_addrn:=false;
-              consume(_RKLAMMER);
+              compiler.parser.pbase.got_addrn:=false;
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
 
 {$ifdef i8086}
           in_faraddr_x :
             begin
-              consume(_LKLAMMER);
-              got_addrn:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_faraddr_x,false,p1);
-              got_addrn:=false;
-              consume(_RKLAMMER);
+              compiler.parser.pbase.got_addrn:=false;
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
 {$endif i8086}
@@ -675,98 +675,98 @@ implementation
             begin
               if target_info.system in systems_managed_vm then
                 message(parser_e_feature_unsupported_for_vm);
-              consume(_LKLAMMER);
-              got_addrn:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=compiler.caddrnode(p1);
               include(taddrnode(p1).addrnodeflags,anf_ofs);
-              got_addrn:=false;
+              compiler.parser.pbase.got_addrn:=false;
               { Ofs() returns a cardinal/qword, not a pointer }
               inserttypeconv_internal(p1,uinttype,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
 
           in_seg_x :
             begin
-              consume(_LKLAMMER);
-              got_addrn:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.got_addrn:=true;
               p1:=factor(true,[]);
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_seg_x,false,p1,compiler);
-              got_addrn:=false;
-              consume(_RKLAMMER);
+              compiler.parser.pbase.got_addrn:=false;
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
 
           in_high_x,
           in_low_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
 
           in_succ_x,
           in_pred_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
 
           in_inc_x,
           in_dec_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              if try_to_consume(_COMMA) then
+              if compiler.parser.pbase.try_to_consume(_COMMA) then
                 p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
               else
                 p2:=nil;
               p2:=compiler.ccallparanode(p1,p2);
               statement_syssym:=geninlinenode(l,false,p2,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
 
           in_slice_x:
             begin
-              if not(in_args) then
+              if not(compiler.parser.pbase.in_args) then
                 begin
                   message(parser_e_illegal_slice);
-                  consume(_LKLAMMER);
-                  in_args:=true;
+                  compiler.parser.pbase.consume(_LKLAMMER);
+                  compiler.parser.pbase.in_args:=true;
                   comp_expr([ef_accept_equal]).free; // no nil needed
-                  if try_to_consume(_COMMA) then
+                  if compiler.parser.pbase.try_to_consume(_COMMA) then
                     comp_expr([ef_accept_equal]).free; // no nil needed
                   statement_syssym:=compiler.cerrornode;
-                  consume(_RKLAMMER);
+                  compiler.parser.pbase.consume(_RKLAMMER);
                 end
               else
                 begin
-                  consume(_LKLAMMER);
-                  in_args:=true;
+                  compiler.parser.pbase.consume(_LKLAMMER);
+                  compiler.parser.pbase.in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
-                  Consume(_COMMA);
+                  compiler.parser.pbase.consume(_COMMA);
                   if not(codegenerror) then
                     p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
                   else
                     p2:=compiler.cerrornode;
                   p2:=compiler.ccallparanode(p1,p2);
                   statement_syssym:=geninlinenode(l,false,p2,compiler);
-                  consume(_RKLAMMER);
+                  compiler.parser.pbase.consume(_RKLAMMER);
                 end;
             end;
 
@@ -794,10 +794,10 @@ implementation
           in_readln_x,
           in_readstr_x:
             begin
-              if try_to_consume(_LKLAMMER) then
+              if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                begin
                  paras:=parse_paras(false,false,_RKLAMMER);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                end
               else
                paras:=nil;
@@ -814,12 +814,12 @@ implementation
             begin
               if (m_objectivec1 in current_settings.modeswitches) then
                 begin
-                  consume(_LKLAMMER);
-                  in_args:=true;
+                  compiler.parser.pbase.consume(_LKLAMMER);
+                  compiler.parser.pbase.in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
                   p1:=factor(true,[]);
                   p2:=geninlinenode(l,false,p1,compiler);
-                  consume(_RKLAMMER);
+                  compiler.parser.pbase.consume(_RKLAMMER);
                   statement_syssym:=p2;
                 end
               else
@@ -831,11 +831,11 @@ implementation
 
           in_length_x:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
 
@@ -843,10 +843,10 @@ implementation
           in_writeln_x,
           in_writestr_x :
             begin
-              if try_to_consume(_LKLAMMER) then
+              if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                begin
                  paras:=parse_paras(true,false,_RKLAMMER);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                end
               else
                paras:=nil;
@@ -856,23 +856,23 @@ implementation
 
           in_str_x_string :
             begin
-              consume(_LKLAMMER);
+              compiler.parser.pbase.consume(_LKLAMMER);
               paras:=parse_paras(true,false,_RKLAMMER);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               p1 := geninlinenode(l,false,paras,compiler);
               statement_syssym := p1;
             end;
 
           in_val_x:
             Begin
-              consume(_LKLAMMER);
-              in_args := true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args := true;
               p1:= compiler.ccallparanode(comp_expr([ef_accept_equal]), nil);
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
               p2 := compiler.ccallparanode(comp_expr([ef_accept_equal]),p1);
-              if try_to_consume(_COMMA) then
+              if compiler.parser.pbase.try_to_consume(_COMMA) then
                 p2 := compiler.ccallparanode(comp_expr([ef_accept_equal]),p2);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               p2 := geninlinenode(l,false,p2,compiler);
               statement_syssym := p2;
             End;
@@ -880,35 +880,35 @@ implementation
           in_include_x_y,
           in_exclude_x_y :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
 
           in_pack_x_y_z,
           in_unpack_x_y_z :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
               paras:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,compiler.ccallparanode(paras,nil))),compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
 
           in_assert_x_y :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              if try_to_consume(_COMMA) then
+              if compiler.parser.pbase.try_to_consume(_COMMA) then
                  p2:=comp_expr([ef_accept_equal])
               else
                begin
@@ -916,7 +916,7 @@ implementation
                  p2:=compiler.cstringconstnode_str('');
                end;
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
           in_get_frame:
             begin
@@ -925,24 +925,24 @@ implementation
 (*
           in_get_caller_frame:
             begin
-              if try_to_consume(_LKLAMMER) then
+              if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                 begin
                   {You used to call get_caller_frame as get_caller_frame(get_frame),
                    however, as a stack frame may not exist, it does more harm than
                    good, so ignore it.}
-                  in_args:=true;
+                  compiler.parser.pbase.in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
                   p1.free;
                   p1 := nil;
-                  consume(_RKLAMMER);
+                  compiler.parser.pbase.consume(_RKLAMMER);
                 end;
               statement_syssym:=geninlinenode(l,false,nil);
             end;
 *)
           in_default_x:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               def:=nil;
               compiler.parser.ptype.single_type(def,[stoAllowSpecialization]);
               statement_syssym:=compiler.cerrornode;
@@ -956,7 +956,7 @@ implementation
                     statement_syssym:=geninlinenode(in_default_x,false,compiler.ctypenode(def),compiler);
                   end;
               { consume the right bracket here for a nicer error position }
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
 
           in_setstring_x_y_z:
@@ -975,63 +975,63 @@ implementation
             end;
           in_const_eh_return_data_regno:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,true,p1,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
 
           in_atomic_inc,
           in_atomic_dec:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              if try_to_consume(_COMMA) then
+              if compiler.parser.pbase.try_to_consume(_COMMA) then
                 begin
                   p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
                 end
               else
                 p2:=nil;
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,p2),compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
 
           in_atomic_xchg:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,compiler.ccallparanode(p1,compiler.ccallparanode(p2,nil)),compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
 
           in_atomic_cmp_xchg:
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
+              compiler.parser.pbase.consume(_LKLAMMER);
+              compiler.parser.pbase.in_args:=true;
               paras:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
               tcallparanode(paras).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
-              consume(_COMMA);
+              compiler.parser.pbase.consume(_COMMA);
               tcallparanode(tcallparanode(paras).right).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
-              if try_to_consume(_COMMA) then
+              if compiler.parser.pbase.try_to_consume(_COMMA) then
                 begin
                   tcallparanode(tcallparanode(tcallparanode(paras).right).right).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
                 end;
               statement_syssym:=geninlinenode(l,false,paras,compiler);
-              consume(_RKLAMMER);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end;
 
           else
             internalerror(15);
 
         end;
-        in_args:=prev_in_args;
+        compiler.parser.pbase.in_args:=prev_in_args;
       end;
 
 
@@ -1089,8 +1089,8 @@ implementation
          currpara : tparavarsym;
          aprocdef : tprocdef;
       begin
-         prevafterassn:=afterassignment;
-         afterassignment:=false;
+         prevafterassn:=compiler.parser.pbase.afterassignment;
+         compiler.parser.pbase.afterassignment:=false;
          membercall:=false;
          aprocdef:=nil;
 
@@ -1101,15 +1101,15 @@ implementation
 
          { When we are expecting a procvar we also need
            to get the address in some cases }
-         if assigned(getprocvardef) or assigned(getfuncrefdef) then
+         if assigned(compiler.parser.pbase.getprocvardef) or assigned(compiler.parser.pbase.getfuncrefdef) then
           begin
             if (block_type=bt_const) or
                getaddr then
              begin
-               if assigned(getfuncrefdef) then
-                 aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef)
+               if assigned(compiler.parser.pbase.getfuncrefdef) then
+                 aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(compiler.parser.pbase.getfuncrefdef)
                else
-                 aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
+                 aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(compiler.parser.pbase.getprocvardef);
                getaddr:=true;
              end
             else
@@ -1117,10 +1117,10 @@ implementation
                  (m_mac_procvar in current_settings.modeswitches)) and
                 not(current_scanner.token in [_CARET,_POINT,_LKLAMMER]) then
               begin
-                if assigned(getfuncrefdef) then
-                  aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef)
+                if assigned(compiler.parser.pbase.getfuncrefdef) then
+                  aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(compiler.parser.pbase.getfuncrefdef)
                 else
-                  aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
+                  aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(compiler.parser.pbase.getprocvardef);
                 if assigned(aprocdef) then
                  getaddr:=true;
               end;
@@ -1146,11 +1146,11 @@ implementation
              { Retrieve info which procvar to call. For tp_procvar the
                aprocdef is already loaded above so we can reuse it }
              if not assigned(aprocdef) and
-                assigned(getprocvardef) then
-               aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
+                assigned(compiler.parser.pbase.getprocvardef) then
+               aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(compiler.parser.pbase.getprocvardef);
              if not assigned(aprocdef) and
-                assigned(getfuncrefdef) then
-               aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef);
+                assigned(compiler.parser.pbase.getfuncrefdef) then
+               aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(compiler.parser.pbase.getfuncrefdef);
 
              { ensure that the correct function is considered as captured }
              if assigned(current_procinfo) and
@@ -1181,8 +1181,8 @@ implementation
                     typecheckpass(p1);
                     if (p1.resultdef.typ=classrefdef) and
                        (
-                         assigned(getprocvardef) or
-                         assigned(getfuncrefdef)
+                         assigned(compiler.parser.pbase.getprocvardef) or
+                         assigned(compiler.parser.pbase.getfuncrefdef)
                        ) then
                       begin
                         p1:=compiler.cloadvmtaddrnode(p1);
@@ -1227,10 +1227,10 @@ implementation
               end
              else
               begin
-                if try_to_consume(_LKLAMMER) then
+                if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                  begin
                    para:=parse_paras(false,false,_RKLAMMER);
-                   consume(_RKLAMMER);
+                   compiler.parser.pbase.consume(_RKLAMMER);
                  end;
               end;
              { indicate if this call was generated by a member and
@@ -1251,7 +1251,7 @@ implementation
              if (tprocsym(sym).ProcdefList.count=1) and (po_anonymous in tprocdef(tprocsym(sym).procdeflist[0]).procoptions) then
                tcallnode(p1).procdefinition:=tprocdef(tprocsym(sym).procdeflist[0]);
            end;
-         afterassignment:=prevafterassn;
+         compiler.parser.pbase.afterassignment:=prevafterassn;
       end;
 
 
@@ -1350,10 +1350,10 @@ implementation
          paras:=nil;
          if (ppo_hasparameters in propsym.propoptions) then
            begin
-             if try_to_consume(_LECKKLAMMER) then
+             if compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
                begin
                  paras:=parse_paras(false,false,_RECKKLAMMER);
-                 consume(_RECKKLAMMER);
+                 compiler.parser.pbase.consume(_RECKKLAMMER);
                end;
            end;
          { indexed property }
@@ -1363,7 +1363,7 @@ implementation
              paras:=compiler.ccallparanode(p2,paras);
            end;
          { we need only a write property if a := follows }
-         { if not(afterassignment) and not(in_args) then }
+         { if not(compiler.parser.pbase.afterassignment) and not(compiler.parser.pbase.in_args) then }
          if current_scanner.token=_ASSIGNMENT then
            begin
               if propsym.getpropaccesslist(palt_write,propaccesslist) then
@@ -1380,22 +1380,22 @@ implementation
                          p1:=compiler.ccallnode(paras,tprocsym(sym),st,p1,callflags,nil);
                          addsymref(sym);
                          paras:=nil;
-                         consume(_ASSIGNMENT);
+                         compiler.parser.pbase.consume(_ASSIGNMENT);
                          { read the expression }
                          if propsym.propdef.typ=procvardef then
-                           getprocvardef:=tprocvardef(propsym.propdef)
+                           compiler.parser.pbase.getprocvardef:=tprocvardef(propsym.propdef)
                          else if is_invokable(propsym.propdef) then
-                           getfuncrefdef:=tobjectdef(propsym.propdef);
+                           compiler.parser.pbase.getfuncrefdef:=tobjectdef(propsym.propdef);
                          p2:=comp_expr([ef_accept_equal]);
-                         if assigned(getprocvardef) then
-                           handle_procvar(getprocvardef,p2)
-                         else if assigned(getfuncrefdef) then
-                           handle_funcref(getfuncrefdef,p2);
+                         if assigned(compiler.parser.pbase.getprocvardef) then
+                           handle_procvar(compiler.parser.pbase.getprocvardef,p2)
+                         else if assigned(compiler.parser.pbase.getfuncrefdef) then
+                           handle_funcref(compiler.parser.pbase.getfuncrefdef,p2);
                          tcallnode(p1).left:=compiler.ccallparanode(p2,tcallnode(p1).left);
                          { mark as property, both the tcallnode and the real call block }
                          include(p1.flags,nf_isproperty);
-                         getprocvardef:=nil;
-                         getfuncrefdef:=nil;
+                         compiler.parser.pbase.getprocvardef:=nil;
+                         compiler.parser.pbase.getfuncrefdef:=nil;
                        end;
                      fieldvarsym :
                        begin
@@ -1403,19 +1403,19 @@ implementation
                          if not handle_staticfield_access(sym,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
-                         consume(_ASSIGNMENT);
+                         compiler.parser.pbase.consume(_ASSIGNMENT);
                          { read the expression }
                          if propsym.propdef.typ=procvardef then
-                           getprocvardef:=tprocvardef(propsym.propdef)
+                           compiler.parser.pbase.getprocvardef:=tprocvardef(propsym.propdef)
                          else if is_invokable(propsym.propdef) then
-                           getfuncrefdef:=tobjectdef(propsym.propdef);
+                           compiler.parser.pbase.getfuncrefdef:=tobjectdef(propsym.propdef);
                          p2:=comp_expr([ef_accept_equal]);
-                         if assigned(getprocvardef) then
-                           handle_procvar(getprocvardef,p2)
-                         else if assigned(getfuncrefdef) then
-                           handle_funcref(getfuncrefdef,p2);
-                         getprocvardef:=nil;
-                         getfuncrefdef:=nil;
+                         if assigned(compiler.parser.pbase.getprocvardef) then
+                           handle_procvar(compiler.parser.pbase.getprocvardef,p2)
+                         else if assigned(compiler.parser.pbase.getfuncrefdef) then
+                           handle_funcref(compiler.parser.pbase.getfuncrefdef,p2);
+                         compiler.parser.pbase.getprocvardef:=nil;
+                         compiler.parser.pbase.getfuncrefdef:=nil;
                          p1:=compiler.cassignmentnode(p1,p2);
                       end
                     else
@@ -1648,10 +1648,10 @@ implementation
                  typesym:
                    begin
                      p1.free;
-                     if try_to_consume(_LKLAMMER) then
+                     if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                       begin
                         p1:=comp_expr([ef_accept_equal]);
-                        consume(_RKLAMMER);
+                        compiler.parser.pbase.consume(_RKLAMMER);
                         p1:=compiler.ctypeconvnode_explicit(p1,ttypesym(sym).typedef);
                       end
                      else
@@ -1773,10 +1773,10 @@ implementation
            can be an enumeration declaration or a set lke:
            (OrdinalType(const1)..OrdinalType(const2) }
          if (not typeonly or is_ordinal(hdef)) and
-            try_to_consume(_LKLAMMER) then
+            compiler.parser.pbase.try_to_consume(_LKLAMMER) then
           begin
             result:=comp_expr([ef_accept_equal]);
-            consume(_RKLAMMER);
+            compiler.parser.pbase.consume(_RKLAMMER);
             { type casts to class helpers aren't allowed }
             if is_objectpascal_helper(hdef) then
               Message(parser_e_no_category_as_types)
@@ -1788,7 +1788,7 @@ implementation
          else if (current_scanner.token=_POINT) and
             (is_object(hdef) or is_record(hdef)) then
            begin
-             consume(_POINT);
+             compiler.parser.pbase.consume(_POINT);
              { handles calling methods declared in parent objects
                using "parentobject.methodname()" }
              if assigned(current_structdef) and
@@ -1802,7 +1802,7 @@ implementation
                      (current_scanner.token=_ID) and
                      (current_scanner.idtoken=_SPECIALIZE) then
                    begin
-                     consume(_ID);
+                     compiler.parser.pbase.consume(_ID);
                      if current_scanner.token<>_ID then
                        message(type_e_type_id_expected);
                      isspecialize:=true;
@@ -1813,7 +1813,7 @@ implementation
                  searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                  if isspecialize then
                    begin
-                     consume(_ID);
+                     compiler.parser.pbase.consume(_ID);
                      if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                        begin
                          result.free;
@@ -1824,7 +1824,7 @@ implementation
                    begin
                      if assigned(srsym) then
                        check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                     consume(_ID);
+                     compiler.parser.pbase.consume(_ID);
                    end;
                  if result.nodetype<>errorn then
                    do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[],spezcontext)
@@ -1845,7 +1845,7 @@ implementation
                     (current_scanner.token=_ID) and
                     (current_scanner.idtoken=_SPECIALIZE) then
                   begin
-                    consume(_ID);
+                    compiler.parser.pbase.consume(_ID);
                     if current_scanner.token<>_ID then
                       message(type_e_type_id_expected);
                     isspecialize:=true;
@@ -1858,7 +1858,7 @@ implementation
                 srsym:=search_struct_member(tabstractrecorddef(hdef),current_scanner.pattern);
                 if isspecialize and assigned(srsym) then
                   begin
-                    consume(_ID);
+                    compiler.parser.pbase.consume(_ID);
                     if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                       erroroutresult:=false;
                   end
@@ -1867,7 +1867,7 @@ implementation
                     if assigned(srsym) then
                       begin
                         savedfilepos:=current_filepos;
-                        consume(_ID);
+                        compiler.parser.pbase.consume(_ID);
                         if not (sp_generic_dummy in srsym.symoptions) or
                             not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,savedfilepos)
@@ -1906,7 +1906,7 @@ implementation
                if getaddr and (current_scanner.token=_POINT) and
                   not is_javainterface(hdef) then
                 begin
-                  consume(_POINT);
+                  compiler.parser.pbase.consume(_POINT);
                   { allows @Object.Method }
                   { also allows static methods and variables }
                   result:=compiler.ctypenode(hdef);
@@ -1917,7 +1917,7 @@ implementation
                   if assigned(srsym) then
                    begin
                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                     consume(_ID);
+                     compiler.parser.pbase.consume(_ID);
                      { in case of @Object.Method1.Method2, we have to call
                        Method1 -> create a loadvmtaddr node as self instead of
                        a typen (the typenode would be changed to self of the
@@ -1932,7 +1932,7 @@ implementation
                   else
                    begin
                      Message1(sym_e_id_no_member,current_scanner.orgpattern);
-                     consume(_ID);
+                     compiler.parser.pbase.consume(_ID);
                    end;
                 end
                else
@@ -2001,22 +2001,22 @@ implementation
       procedure recoverconsume_postfixops;
        begin
          repeat
-           if not try_to_consume(_CARET) then
-             if try_to_consume(_POINT) then
-               try_to_consume(_ID)
-             else if try_to_consume(_LECKKLAMMER) then
+           if not compiler.parser.pbase.try_to_consume(_CARET) then
+             if compiler.parser.pbase.try_to_consume(_POINT) then
+               compiler.parser.pbase.try_to_consume(_ID)
+             else if compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
                begin
                  repeat
                    comp_expr([ef_accept_equal]);
-                 until not try_to_consume(_COMMA);
-                 consume(_RECKKLAMMER);
+                 until not compiler.parser.pbase.try_to_consume(_COMMA);
+                 compiler.parser.pbase.consume(_RECKKLAMMER);
                end
-             else if try_to_consume(_LKLAMMER) then
+             else if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                begin
                  repeat
                    comp_expr([ef_accept_equal]);
-                 until not try_to_consume(_COMMA);
-                 consume(_RKLAMMER);
+                 until not compiler.parser.pbase.try_to_consume(_COMMA);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                end
              else
                break;
@@ -2046,7 +2046,7 @@ implementation
          repeat
            p4:=comp_expr([ef_accept_equal]);
            elements.add(p4);
-         until not try_to_consume(_COMMA);
+         until not compiler.parser.pbase.try_to_consume(_COMMA);
 
          arraydef:=carraydef.getreusable(s32inttype,elements.count,compiler);
          temp:=compiler.ctempcreatenode(arraydef,arraydef.size,tt_persistent,false);
@@ -2067,12 +2067,12 @@ implementation
          elements.free;
          elements := nil;
 
-         consume(_RECKKLAMMER);
+         compiler.parser.pbase.consume(_RECKKLAMMER);
 
          { we need only a write access if a := follows }
          if current_scanner.token=_ASSIGNMENT then
            begin
-             consume(_ASSIGNMENT);
+             compiler.parser.pbase.consume(_ASSIGNMENT);
              p4:=comp_expr([ef_accept_equal]);
 
              { create call to fpc_vararray_put }
@@ -2130,7 +2130,7 @@ implementation
 
           paracount:=0;
           { check arguments and create an assignment calls }
-          if try_to_consume(_LKLAMMER) then
+          if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
             begin
               assnode:=internalstatements(compiler,assstatement);
               repeat
@@ -2142,8 +2142,8 @@ implementation
                       compiler.cordconstnode(paracount,arrdef.rangedef,false)),
                     comp_expr([ef_accept_equal])));
                 inc(paracount);
-              until not try_to_consume(_COMMA);
-              consume(_RKLAMMER);
+              until not compiler.parser.pbase.try_to_consume(_COMMA);
+              compiler.parser.pbase.consume(_RKLAMMER);
             end
           else
             assnode:=nil;
@@ -2223,7 +2223,7 @@ implementation
                       do_typecheckpass(node)
                     end;
                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                  consume(_ID);
+                  compiler.parser.pbase.consume(_ID);
                   do_member_read(nil,getaddr,srsym,node,again,[],nil);
                 end;
             end;
@@ -2274,7 +2274,7 @@ implementation
         case current_scanner.token of
           _CARET:
              begin
-               consume(_CARET);
+               compiler.parser.pbase.consume(_CARET);
 
                { support in tp/mac procvar mode procvar^ if the procvar returns a
                  pointer type }
@@ -2356,7 +2356,7 @@ implementation
                  end
                else
                  begin
-                   consume(_LECKKLAMMER);
+                   compiler.parser.pbase.consume(_LECKKLAMMER);
                    repeat
                      { in all of the cases below, p1 is changed }
                      case p1.resultdef.typ of
@@ -2368,7 +2368,7 @@ implementation
                               p1:=compiler.cderefnode(p1);
                             p2:=comp_expr([ef_accept_equal]);
                             { Support Pbytevar[0..9] which returns array [0..9].}
-                            if try_to_consume(_POINTPOINT) then
+                            if compiler.parser.pbase.try_to_consume(_POINTPOINT) then
                               p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                             p1:=compiler.cvecnode(p1,p2);
                          end;
@@ -2382,7 +2382,7 @@ implementation
                          begin
                            p2:=comp_expr([ef_accept_equal]);
                            { Support string[0..9] which returns array [0..9] of char.}
-                           if try_to_consume(_POINTPOINT) then
+                           if compiler.parser.pbase.try_to_consume(_POINTPOINT) then
                              p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                            p1:=compiler.cvecnode(p1,p2);
                          end;
@@ -2400,7 +2400,7 @@ implementation
                                (tloadnode(p1).symtableentry.name='MEML')) then
                              begin
 {$if defined(i8086)}
-                               consume(_COLON);
+                               compiler.parser.pbase.consume(_COLON);
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
                                p3:=compiler.cshlshrnode(shln,p2,compiler.cordconstnode($10,s16inttype,false));
@@ -2417,12 +2417,12 @@ implementation
                                end;
                                p1:=compiler.cderefnode(p2);
 {$elseif defined(i386)}
-                               if try_to_consume(_COLON) then
+                               if compiler.parser.pbase.try_to_consume(_COLON) then
                                 begin
                                   p3:=compiler.caddnode(muln,compiler.cordconstnode($10,s32inttype,false),p2);
                                   p2:=comp_expr([ef_accept_equal]);
                                   p2:=compiler.caddnode(addn,p2,p3);
-                                  if try_to_consume(_POINTPOINT) then
+                                  if compiler.parser.pbase.try_to_consume(_POINTPOINT) then
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
                                     p2:=compiler.crangenode(p2,compiler.caddnode(addn,comp_expr([ef_accept_equal]),p3.getcopy));
                                   p1:=compiler.cvecnode(p1,p2);
@@ -2431,7 +2431,7 @@ implementation
                                 end
                                else
                                 begin
-                                  if try_to_consume(_POINTPOINT) then
+                                  if compiler.parser.pbase.try_to_consume(_POINTPOINT) then
                                     { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
                                     p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                                   p1:=compiler.cvecnode(p1,p2);
@@ -2443,7 +2443,7 @@ implementation
                              end
                            else
                              begin
-                               if try_to_consume(_POINTPOINT) then
+                               if compiler.parser.pbase.try_to_consume(_POINTPOINT) then
                                  { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
                                  p2:=compiler.crangenode(p2,comp_expr([ef_accept_equal]));
                                p1:=compiler.cvecnode(p1,p2);
@@ -2460,8 +2460,8 @@ implementation
                          end;
                      end;
                      do_typecheckpass(p1);
-                   until not try_to_consume(_COMMA);
-                   consume(_RECKKLAMMER);
+                   until not compiler.parser.pbase.try_to_consume(_COMMA);
+                   compiler.parser.pbase.consume(_RECKKLAMMER);
                    { handle_variantarray eats the RECKKLAMMER and jumps here }
                  skipreckklammercheck:
                  end;
@@ -2469,11 +2469,11 @@ implementation
 
           _POINT :
              begin
-               consume(_POINT);
+               compiler.parser.pbase.consume(_POINT);
                allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in inline_specialization_block_types);
                if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
                  begin
-                   //consume(_ID);
+                   //compiler.parser.pbase.consume(_ID);
                    isspecialize:=true;
                  end
                else
@@ -2517,7 +2517,7 @@ implementation
                          end
                        else
                          expstr:='';
-                       consume(current_scanner.token);
+                       compiler.parser.pbase.consume(current_scanner.token);
                        if tordconstnode(p1).value.signed then
                          str(tordconstnode(p1).value.svalue,valstr)
                        else
@@ -2527,22 +2527,22 @@ implementation
                          case current_scanner.token of
                            _MINUS:
                              begin
-                               consume(current_scanner.token);
+                               compiler.parser.pbase.consume(current_scanner.token);
                                if current_scanner.token=_INTCONST then
                                  begin
                                    valstr:=valstr+'-'+current_scanner.pattern;
-                                   consume(current_scanner.token);
+                                   compiler.parser.pbase.consume(current_scanner.token);
                                  end
                                else
                                  haderror:=true;
                              end;
                            _PLUS:
                              begin
-                               consume(current_scanner.token);
+                               compiler.parser.pbase.consume(current_scanner.token);
                                if current_scanner.token=_INTCONST then
                                  begin
                                    valstr:=valstr+current_scanner.pattern;
-                                   consume(current_scanner.token);
+                                   compiler.parser.pbase.consume(current_scanner.token);
                                  end
                                else
                                  haderror:=true;
@@ -2550,7 +2550,7 @@ implementation
                            _INTCONST:
                              begin
                                valstr:=valstr+current_scanner.pattern;
-                               consume(_INTCONST);
+                               compiler.parser.pbase.consume(_INTCONST);
                              end;
                            else
                              haderror:=true;
@@ -2622,13 +2622,13 @@ implementation
                          if isspecialize then
                            begin
                              { consume the specialize }
-                             consume(_ID);
+                             compiler.parser.pbase.consume(_ID);
                              if current_scanner.token<>_ID then
-                               consume(_ID)
+                               compiler.parser.pbase.consume(_ID)
                              else
                                begin
                                  searchsym_in_record(structh,current_scanner.pattern,srsym,srsymtable);
-                                 consume(_ID);
+                                 compiler.parser.pbase.consume(_ID);
                                  if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                    erroroutp1:=false;
                                end;
@@ -2639,7 +2639,7 @@ implementation
                              if assigned(srsym) then
                                begin
                                  old_current_filepos:=current_filepos;
-                                 consume(_ID);
+                                 compiler.parser.pbase.consume(_ID);
                                  if not (sp_generic_dummy in srsym.symoptions) or
                                      not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
@@ -2651,7 +2651,7 @@ implementation
                                begin
                                  Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                  { try to clean up }
-                                 consume(_ID);
+                                 compiler.parser.pbase.consume(_ID);
                                end;
                            end;
                          if erroroutp1 then
@@ -2664,7 +2664,7 @@ implementation
                              do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                        end
                      else
-                     consume(_ID);
+                     compiler.parser.pbase.consume(_ID);
                    end;
                  enumdef:
                    begin
@@ -2676,7 +2676,7 @@ implementation
                              p1.free;
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                              p1:=genenumnode(tenumsym(srsym),compiler);
-                             consume(_ID);
+                             compiler.parser.pbase.consume(_ID);
                            end
                          else
                            if not try_type_helper(p1,nil) then
@@ -2684,14 +2684,14 @@ implementation
                                p1.free;
                                Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                p1:=compiler.cerrornode;
-                               consume(_ID);
+                               compiler.parser.pbase.consume(_ID);
                              end;
                        end
                      else
                        begin
                          p1.free;
                          p1:=compiler.cerrornode;
-                         consume(_ID);
+                         compiler.parser.pbase.consume(_ID);
                        end
                    end;
                  arraydef:
@@ -2706,7 +2706,7 @@ implementation
                                    begin
                                      if current_scanner.pattern='CREATE' then
                                        begin
-                                         consume(_ID);
+                                         compiler.parser.pbase.consume(_ID);
                                          p2:=parse_array_constructor(tarraydef(p1.resultdef));
                                          p1.free;
                                          p1:=p2;
@@ -2716,7 +2716,7 @@ implementation
                                          Message2(scan_f_syn_expected,'CREATE',current_scanner.pattern);
                                          p1.free;
                                          p1:=compiler.cerrornode;
-                                         consume(_ID);
+                                         compiler.parser.pbase.consume(_ID);
                                        end;
                                    end
                                  else
@@ -2724,7 +2724,7 @@ implementation
                                      Message(parser_e_invalid_qualifier);
                                      p1.free;
                                      p1:=compiler.cerrornode;
-                                     consume(_ID);
+                                     compiler.parser.pbase.consume(_ID);
                                    end;
                                end;
                            end
@@ -2733,7 +2733,7 @@ implementation
                              Message(parser_e_invalid_qualifier);
                              p1.free;
                              p1:=compiler.cerrornode;
-                             consume(_ID);
+                             compiler.parser.pbase.consume(_ID);
                            end;
                        end
                      else
@@ -2742,7 +2742,7 @@ implementation
                            Message(parser_e_invalid_qualifier);
                            p1.free;
                            p1:=compiler.cerrornode;
-                           consume(_ID);
+                           compiler.parser.pbase.consume(_ID);
                          end;
                    end;
                   variantdef:
@@ -2757,25 +2757,25 @@ implementation
                           if not try_type_helper(p1,nil) then
                             begin
                               dispatchstring:=current_scanner.orgpattern;
-                              consume(_ID);
+                              compiler.parser.pbase.consume(_ID);
                               calltype:=dct_method;
-                              if try_to_consume(_LKLAMMER) then
+                              if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                                 begin
                                   p2:=parse_paras(false,true,_RKLAMMER);
-                                  consume(_RKLAMMER);
+                                  compiler.parser.pbase.consume(_RKLAMMER);
                                 end
-                              else if try_to_consume(_LECKKLAMMER) then
+                              else if compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
                                 begin
                                   p2:=parse_paras(false,true,_RECKKLAMMER);
-                                  consume(_RECKKLAMMER);
+                                  compiler.parser.pbase.consume(_RECKKLAMMER);
                                   calltype:=dct_propget;
                                 end
                               else
                                 p2:=nil;
                               { property setter? }
-                              if (current_scanner.token=_ASSIGNMENT) and not(afterassignment) then
+                              if (current_scanner.token=_ASSIGNMENT) and not(compiler.parser.pbase.afterassignment) then
                                 begin
-                                  consume(_ASSIGNMENT);
+                                  compiler.parser.pbase.consume(_ASSIGNMENT);
                                   { read the expression }
                                   p3:=comp_expr([ef_accept_equal]);
                                   { concat value parameter too }
@@ -2785,14 +2785,14 @@ implementation
                               else
                               { this is only an approximation
                                 setting useresult if not necessary is only a waste of time, no more, no less (FK) }
-                              if afterassignment or in_args or (current_scanner.token<>_SEMICOLON) then
+                              if compiler.parser.pbase.afterassignment or compiler.parser.pbase.in_args or (current_scanner.token<>_SEMICOLON) then
                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
                               else
                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
                             end;
                         end
                       else { Error }
-                        Consume(_ID);
+                        compiler.parser.pbase.consume(_ID);
                      end;
                   classrefdef:
                     begin
@@ -2804,13 +2804,13 @@ implementation
                           if isspecialize then
                             begin
                               { consume the specialize }
-                              consume(_ID);
+                              compiler.parser.pbase.consume(_ID);
                               if current_scanner.token<>_ID then
-                                consume(_ID)
+                                compiler.parser.pbase.consume(_ID)
                               else
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
-                                  consume(_ID);
+                                  compiler.parser.pbase.consume(_ID);
                                   if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
@@ -2821,7 +2821,7 @@ implementation
                               if assigned(srsym) then
                                 begin
                                   old_current_filepos:=current_filepos;
-                                  consume(_ID);
+                                  compiler.parser.pbase.consume(_ID);
                                   if not (sp_generic_dummy in srsym.symoptions) or
                                       not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
@@ -2833,7 +2833,7 @@ implementation
                                 begin
                                   Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                   { try to clean up }
-                                  consume(_ID);
+                                  compiler.parser.pbase.consume(_ID);
                                 end;
                             end;
                           if erroroutp1 then
@@ -2846,7 +2846,7 @@ implementation
                               do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                         end
                       else { Error }
-                        Consume(_ID);
+                        compiler.parser.pbase.consume(_ID);
                     end;
                   objectdef:
                     begin
@@ -2858,13 +2858,13 @@ implementation
                           if isspecialize then
                             begin
                               { consume the "specialize" }
-                              consume(_ID);
+                              compiler.parser.pbase.consume(_ID);
                               if current_scanner.token<>_ID then
-                                consume(_ID)
+                                compiler.parser.pbase.consume(_ID)
                               else
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
-                                  consume(_ID);
+                                  compiler.parser.pbase.consume(_ID);
                                   if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
@@ -2875,7 +2875,7 @@ implementation
                               if assigned(srsym) then
                                 begin
                                    old_current_filepos:=current_filepos;
-                                   consume(_ID);
+                                   compiler.parser.pbase.consume(_ID);
                                    if not (sp_generic_dummy in srsym.symoptions) or
                                        not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
@@ -2887,7 +2887,7 @@ implementation
                                 begin
                                    Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                    { try to clean up }
-                                   consume(_ID);
+                                   compiler.parser.pbase.consume(_ID);
                                 end;
                             end;
                           if erroroutp1 then
@@ -2900,7 +2900,7 @@ implementation
                               do_member_read(structh,getaddr,srsym,p1,again,[],spezcontext);
                         end
                       else { Error }
-                        Consume(_ID);
+                        compiler.parser.pbase.consume(_ID);
                     end;
                   pointerdef:
                     begin
@@ -2911,7 +2911,7 @@ implementation
                             type that's currently in scope }
                           if search_objc_method(current_scanner.pattern,srsym,srsymtable) then
                             begin
-                              consume(_ID);
+                              compiler.parser.pbase.consume(_ID);
                               do_proc_call(srsym,srsymtable,nil,
                                 (getaddr and not(current_scanner.token in [_CARET,_POINT])),
                                 again,p1,[cnf_objc_id_call],nil);
@@ -2920,7 +2920,7 @@ implementation
                             end
                           else
                             begin
-                              consume(_ID);
+                              compiler.parser.pbase.consume(_ID);
                               Message(parser_e_methode_id_expected);
                             end;
                         end
@@ -2957,7 +2957,7 @@ implementation
                           p1.free;
                           p1:=compiler.cerrornode;
                           { Error }
-                          consume(_ID);
+                          compiler.parser.pbase.consume(_ID);
                         end;
                     end;
                end;
@@ -2982,18 +2982,18 @@ implementation
                   { Typenode for typecasting or expecting a procvar }
                   if (p1.nodetype=typen) or
                      (
-                      assigned(getprocvardef) and
-                      equal_defs(p1.resultdef,getprocvardef)
+                      assigned(compiler.parser.pbase.getprocvardef) and
+                      equal_defs(p1.resultdef,compiler.parser.pbase.getprocvardef)
                      ) or
                      (
-                      assigned(getfuncrefdef) and
-                      equal_defs(p1.resultdef,getfuncrefdef)
+                      assigned(compiler.parser.pbase.getfuncrefdef) and
+                      equal_defs(p1.resultdef,compiler.parser.pbase.getfuncrefdef)
                      ) then
                     begin
-                      if try_to_consume(_LKLAMMER) then
+                      if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr([ef_accept_equal]);
-                          consume(_RKLAMMER);
+                          compiler.parser.pbase.consume(_RKLAMMER);
                           p1:=compiler.ctypeconvnode_explicit(p1,p1.resultdef);
                         end
                       else
@@ -3001,10 +3001,10 @@ implementation
                     end
                   else
                     begin
-                      if try_to_consume(_LKLAMMER) then
+                      if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                         begin
                           p2:=parse_paras(false,false,_RKLAMMER);
-                          consume(_RKLAMMER);
+                          compiler.parser.pbase.consume(_RKLAMMER);
                           p1:=compiler.ccallnode_procvar(p2,p1);
                           { proc():= is never possible }
                           if current_scanner.token=_ASSIGNMENT then
@@ -3170,10 +3170,10 @@ implementation
                              spezcontext.free;
                              spezcontext := nil;
                              result:=compiler.cerrornode;
-                             if try_to_consume(_LKLAMMER) then
+                             if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                               begin
                                 parse_paras(false,false,_RKLAMMER);
-                                consume(_RKLAMMER);
+                                compiler.parser.pbase.consume(_RKLAMMER);
                               end;
                            end
                          else
@@ -3310,7 +3310,7 @@ implementation
                 end
               else
                 begin
-                  consume(_COLON);
+                  compiler.parser.pbase.consume(_COLON);
                   if tlabelsym(srsym).defined then
                     Message(sym_e_label_already_defined);
                   if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
@@ -3337,10 +3337,10 @@ implementation
           errorsym :
             begin
               result:=compiler.cerrornode;
-              if try_to_consume(_LKLAMMER) then
+              if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                begin
                  parse_paras(false,false,_RKLAMMER);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                end;
             end;
 
@@ -3415,7 +3415,7 @@ implementation
                             (block_type in inline_specialization_block_types);
            if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
              begin
-               consume(_ID);
+               compiler.parser.pbase.consume(_ID);
                isspecialize:=true;
              end
            else
@@ -3426,7 +3426,7 @@ implementation
              begin
                srsym:=generrorsym;
                srsymtable:=nil;
-               consume(_ID);
+               compiler.parser.pbase.consume(_ID);
                unit_found:=false;
              end
            else
@@ -3441,7 +3441,7 @@ implementation
                  begin
                    if not (ef_type_only in flags) then
                      internalerror(2019063001);
-                   consume(_ID);
+                   compiler.parser.pbase.consume(_ID);
                    consumeid:=false;
                    if current_scanner.token<>_POINT then
                      compiler.symtablestack.searchsym_type(storedpattern+custom_attribute_suffix,srsym,srsymtable);
@@ -3463,7 +3463,7 @@ implementation
                      include(cufflags,cuf_allow_specialize);
                    if ef_check_attr_suffix in flags then
                      include(cufflags,cuf_check_attr_suffix);
-                   unit_found:=try_consume_unitsym(srsym,srsymtable,t,cufflags,isspecialize,current_scanner.pattern);
+                   unit_found:=compiler.parser.pbase.try_consume_unitsym(srsym,srsymtable,t,cufflags,isspecialize,current_scanner.pattern);
                    if unit_found then
                      consumeid:=true;
                  end
@@ -3478,19 +3478,19 @@ implementation
                    orgstoredpattern:=current_scanner.orgpattern;
                    { store the position of the token before consuming it }
                    tokenpos:=current_filepos;
-                   consume(t);
+                   compiler.parser.pbase.consume(t);
                  end;
                { named parameter support }
-               found_arg_name:=false;
+               compiler.parser.pbase.found_arg_name:=false;
 
                if not(unit_found) and
                    not isspecialize and
-                  named_args_allowed and
+                  compiler.parser.pbase.named_args_allowed and
                   (current_scanner.token=_ASSIGNMENT) then
                   begin
-                    found_arg_name:=true;
+                    compiler.parser.pbase.found_arg_name:=true;
                     p1:=compiler.cstringconstnode_str(orgstoredpattern);
-                    consume(_ASSIGNMENT);
+                    compiler.parser.pbase.consume(_ASSIGNMENT);
                     exit;
                   end;
 
@@ -3498,7 +3498,7 @@ implementation
                  begin
                    if not assigned(srsym) then
                      begin
-                       identifier_not_found(orgstoredpattern,tokenpos);
+                       compiler.parser.pbase.identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
                        srsymtable:=nil;
                      end
@@ -3575,7 +3575,7 @@ implementation
                        not (m_delphi in current_settings.modeswitches) and
                        not isspecialize and
                        (
-                         not parse_generic or
+                         not compiler.parser.pbase.parse_generic or
                          not (
                            assigned(current_structdef) and
                            assigned(get_generic_in_hierarchy_by_name(srsym,current_structdef))
@@ -3649,7 +3649,7 @@ implementation
                        if wasgenericdummy then
                          messagepos(tokenpos,parser_e_no_generics_as_types)
                        else
-                         identifier_not_found(orgstoredpattern,tokenpos);
+                         compiler.parser.pbase.identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
                        srsymtable:=nil;
                      end;
@@ -3665,7 +3665,7 @@ implementation
                (current_scanner.token=_LKLAMMER) or
                (
                 (([m_tp7,m_delphi,m_mac,m_iso,m_extpas] * current_settings.modeswitches) <> []) and
-                (afterassignment or in_args)
+                (compiler.parser.pbase.afterassignment or compiler.parser.pbase.in_args)
                )
               ) then
             begin
@@ -3712,7 +3712,7 @@ implementation
            else
             repeat
               p1:=comp_expr([ef_accept_equal]);
-              if try_to_consume(_POINTPOINT) then
+              if compiler.parser.pbase.try_to_consume(_POINTPOINT) then
                 begin
                   p2:=comp_expr([ef_accept_equal]);
                   p1:=compiler.carrayconstructorrangenode(p1,p2);
@@ -3729,7 +3729,7 @@ implementation
                  lastp:=tarrayconstructornode(lastp.right);
                end;
            { there could be more elements }
-           until not try_to_consume(_COMMA);
+           until not compiler.parser.pbase.try_to_consume(_COMMA);
            if block_type in [bt_body,bt_except] then
              Include(buildp.arrayconstructornodeflags, acnf_allow_array_constructor);
            factor_read_set:=buildp;
@@ -3793,7 +3793,7 @@ implementation
            if (current_scanner.idtoken=_SELF) and can_load_self_node then
              begin
                p1:=load_self_node;
-               consume(_ID);
+               compiler.parser.pbase.consume(_ID);
                again:=true;
              end
            else
@@ -3849,7 +3849,7 @@ implementation
            case current_scanner.token of
              _RETURN :
                 begin
-                  consume(_RETURN);
+                  compiler.parser.pbase.consume(_RETURN);
                   p1:=nil;
                   if not(current_scanner.token in [_SEMICOLON,_ELSE,_END]) then
                     begin
@@ -3869,7 +3869,7 @@ implementation
              _INHERITED :
                begin
                  again:=true;
-                 consume(_INHERITED);
+                 compiler.parser.pbase.consume(_INHERITED);
                  if assigned(current_procinfo) and
                     assigned(current_structdef) and
                     ((current_structdef.typ=objectdef) or
@@ -3927,7 +3927,7 @@ implementation
                            (current_scanner.token=_ID) and
                            (current_scanner.idtoken=_SPECIALIZE) then
                          begin
-                           consume(_ID);
+                           compiler.parser.pbase.consume(_ID);
                            if current_scanner.token<>_ID then
                              message(parser_e_methode_id_expected);
                            isspecialize:=true;
@@ -3936,7 +3936,7 @@ implementation
                          isspecialize:=false;
                        hs:=current_scanner.pattern;
                        hsorg:=current_scanner.orgpattern;
-                       consume(_ID);
+                       compiler.parser.pbase.consume(_ID);
                        anon_inherited:=false;
                        { helpers have their own ways of dealing with inherited }
                        if is_objectpascal_helper(current_structdef) then
@@ -4090,7 +4090,7 @@ implementation
                  val(current_scanner.pattern,ic,code);
                  if code=0 then
                    begin
-                      consume(_INTCONST);
+                      compiler.parser.pbase.consume(_INTCONST);
                       int_to_type(ic,hdef);
                       p1:=compiler.cordconstnode(ic,hdef,true);
                    end
@@ -4100,7 +4100,7 @@ implementation
                      val(current_scanner.pattern,qc,code);
                      if code=0 then
                        begin
-                          consume(_INTCONST);
+                          compiler.parser.pbase.consume(_INTCONST);
                           int_to_type(qc,hdef);
                           p1:=compiler.cordconstnode(qc,hdef,true);
                        end;
@@ -4112,13 +4112,13 @@ implementation
                      if code<>0 then
                        begin
                           Message(parser_e_invalid_integer);
-                          consume(_INTCONST);
+                          compiler.parser.pbase.consume(_INTCONST);
                           l:=1;
                           p1:=compiler.cordconstnode(l,sinttype,true);
                        end
                      else
                        begin
-                          consume(_INTCONST);
+                          compiler.parser.pbase.consume(_INTCONST);
                           p1:=compiler.crealconstnode(d,pbestrealtype^);
                        end;
                    end
@@ -4135,7 +4135,7 @@ implementation
              _REALNUMBER :
                begin
                  p1:=real_const_node_from_pattern(current_scanner.pattern);
-                 consume(_REALNUMBER);
+                 compiler.parser.pbase.consume(_REALNUMBER);
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
@@ -4149,10 +4149,10 @@ implementation
                    Message(parser_e_nostringaliasinsystem);
                  string_dec(hdef,true);
                  { STRING can be also a type cast }
-                 if try_to_consume(_LKLAMMER) then
+                 if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
                     p1:=comp_expr([ef_accept_equal]);
-                    consume(_RKLAMMER);
+                    compiler.parser.pbase.consume(_RKLAMMER);
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
@@ -4173,12 +4173,12 @@ implementation
              _FILE :
                begin
                  hdef:=cfiletype;
-                 consume(_FILE);
+                 compiler.parser.pbase.consume(_FILE);
                  { FILE can be also a type cast }
-                 if try_to_consume(_LKLAMMER) then
+                 if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
                     p1:=comp_expr([ef_accept_equal]);
-                    consume(_RKLAMMER);
+                    compiler.parser.pbase.consume(_RKLAMMER);
                     p1:=compiler.ctypeconvnode_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
                     again:=true;
@@ -4193,7 +4193,7 @@ implementation
              _CSTRING :
                begin
                  p1:=compiler.cstringconstnode_pchar(pchar(current_scanner.cstringpattern),length(current_scanner.cstringpattern),nil);
-                 consume(_CSTRING);
+                 compiler.parser.pbase.consume(_CSTRING);
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
@@ -4204,7 +4204,7 @@ implementation
              _CCHAR :
                begin
                  p1:=compiler.cordconstnode(ord(current_scanner.pattern[1]),cansichartype,true);
-                 consume(_CCHAR);
+                 compiler.parser.pbase.consume(_CCHAR);
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
@@ -4218,7 +4218,7 @@ implementation
                    p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true)
                  else
                    p1:=compiler.cstringconstnode_unistr(current_scanner.patternw);
-                 consume(_CWSTRING);
+                 compiler.parser.pbase.consume(_CWSTRING);
                  if current_scanner.token in postfixoperator_tokens then
                    begin
                      again:=true;
@@ -4229,7 +4229,7 @@ implementation
              _CWCHAR:
                begin
                  p1:=compiler.cordconstnode(ord(getcharwidestring(current_scanner.patternw,0)),cwidechartype,true);
-                 consume(_CWCHAR);
+                 compiler.parser.pbase.consume(_CWCHAR);
                  if current_scanner.token=_POINT then
                    begin
                      again:=true;
@@ -4239,16 +4239,16 @@ implementation
 
              _KLAMMERAFFE :
                begin
-                 consume(_KLAMMERAFFE);
-                 got_addrn:=true;
+                 compiler.parser.pbase.consume(_KLAMMERAFFE);
+                 compiler.parser.pbase.got_addrn:=true;
                  { support both @<x> and @(<x>) }
-                 if try_to_consume(_LKLAMMER) then
+                 if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                   begin
                     p1:=factor(true,[]);
                     { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
                     if current_scanner.token<>_RKLAMMER then
                       p1:=sub_expr(opcompare,[ef_accept_equal],p1);
-                    consume(_RKLAMMER);
+                    compiler.parser.pbase.consume(_RKLAMMER);
                   end
                  else
                   p1:=factor(true,[]);
@@ -4265,7 +4265,7 @@ implementation
                     again:=true;
                     postfixoperators(p1,again,getaddr);
                   end;
-                 got_addrn:=false;
+                 compiler.parser.pbase.got_addrn:=false;
                  p1:=compiler.caddrnode(p1);
                  p1.fileinfo:=filepos;
                  if cs_typed_addresses in current_settings.localswitches then
@@ -4273,9 +4273,9 @@ implementation
                  { Store the procvar that we are expecting, the
                    addrn will use the information to find the correct
                    procdef or it will return an error }
-                 if assigned(getprocvardef) and
+                 if assigned(compiler.parser.pbase.getprocvardef) and
                     (taddrnode(p1).left.nodetype = loadn) then
-                   taddrnode(p1).getprocvardef:=getprocvardef;
+                   taddrnode(p1).compiler.parser.pbase.getprocvardef:=compiler.parser.pbase.getprocvardef;
                  if (current_scanner.token in postfixoperator_tokens) then
                   begin
                     again:=true;
@@ -4285,9 +4285,9 @@ implementation
 
              _LKLAMMER :
                begin
-                 consume(_LKLAMMER);
+                 compiler.parser.pbase.consume(_LKLAMMER);
                  p1:=comp_expr([ef_accept_equal]);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                  { it's not a good solution
                    but (a+b)^ makes some problems  }
                  if current_scanner.token in postfixoperator_tokens then
@@ -4299,21 +4299,21 @@ implementation
 
              _LECKKLAMMER :
                begin
-                 consume(_LECKKLAMMER);
+                 compiler.parser.pbase.consume(_LECKKLAMMER);
                  p1:=factor_read_set;
-                 consume(_RECKKLAMMER);
+                 compiler.parser.pbase.consume(_RECKKLAMMER);
                end;
 
              _PLUS :
                begin
-                 consume(_PLUS);
+                 compiler.parser.pbase.consume(_PLUS);
                  p1:=factor(false,[]);
                  p1:=compiler.cunaryplusnode(p1);
                end;
 
              _MINUS :
                begin
-                 consume(_MINUS);
+                 compiler.parser.pbase.consume(_MINUS);
                  if (current_scanner.token = _INTCONST) and not(m_isolike_unary_minus in current_settings.modeswitches) then
                     begin
                       { ugly hack, but necessary to be able to parse }
@@ -4353,14 +4353,14 @@ implementation
 
              _OP_NOT :
                begin
-                 consume(_OP_NOT);
+                 compiler.parser.pbase.consume(_OP_NOT);
                  p1:=factor(false,[]);
                  p1:=compiler.cnotnode(p1);
                end;
 
              _NIL :
                begin
-                 consume(_NIL);
+                 compiler.parser.pbase.consume(_NIL);
                  p1:=compiler.cnilnode;
                  { It's really ugly code nil^, but delphi allows it }
                  if current_scanner.token in [_CARET,_POINT] then
@@ -4378,10 +4378,10 @@ implementation
                    This code is for handling the second case. Because of 1),
                    we cannot simply use a system unit symbol.
                  }
-                 consume(_OBJCPROTOCOL);
-                 consume(_LKLAMMER);
+                 compiler.parser.pbase.consume(_OBJCPROTOCOL);
+                 compiler.parser.pbase.consume(_LKLAMMER);
                  p1:=factor(false,[]);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                  p1:=compiler.cinlinenode(in_objc_protocol_x,false,p1);
                end;
 
@@ -4392,13 +4392,13 @@ implementation
                      (m_anonymous_functions in current_settings.modeswitches) then
                    begin
                      filepos:=current_filepos;
-                     oldprocvardef:=getprocvardef;
-                     oldfuncrefdef:=getfuncrefdef;
-                     getprocvardef:=nil;
-                     getfuncrefdef:=nil;
+                     oldprocvardef:=compiler.parser.pbase.getprocvardef;
+                     oldfuncrefdef:=compiler.parser.pbase.getfuncrefdef;
+                     compiler.parser.pbase.getprocvardef:=nil;
+                     compiler.parser.pbase.getfuncrefdef:=nil;
                      pd:=compiler.parser.psub.read_proc([rpf_anonymous],nil);
-                     getprocvardef:=oldprocvardef;
-                     getfuncrefdef:=oldfuncrefdef;
+                     compiler.parser.pbase.getprocvardef:=oldprocvardef;
+                     compiler.parser.pbase.getfuncrefdef:=oldfuncrefdef;
                      { assume that we try to get the address except if certain
                        tokens follow that indicate a call }
                      do_proc_call(pd.procsym,pd.owner,nil,not (current_scanner.token in [_POINT,_CARET,_LECKKLAMMER]),
@@ -4416,7 +4416,7 @@ implementation
                      Message(parser_e_illegal_expression);
                      p1:=compiler.cerrornode;
                      { recover }
-                     consume(current_scanner.token);
+                     compiler.parser.pbase.consume(current_scanner.token);
                    end;
                end
 
@@ -4425,7 +4425,7 @@ implementation
                  Message(parser_e_illegal_expression);
                  p1:=compiler.cerrornode;
                  { recover }
-                 consume(current_scanner.token);
+                 compiler.parser.pbase.consume(current_scanner.token);
                end;
            end;
         end;
@@ -4774,7 +4774,7 @@ implementation
            begin
              oldt:=current_scanner.token;
              filepos:=current_tokenpos;
-             consume(current_scanner.token);
+             compiler.parser.pbase.consume(current_scanner.token);
              if pred_level=highest_precedence then
                p2:=factor(false,[])
              else
@@ -4839,7 +4839,7 @@ implementation
                              end
                            else
                              begin
-                               identifier_not_found(tspecializenode(p1).sym.realname);
+                               compiler.parser.pbase.identifier_not_found(tspecializenode(p1).sym.realname);
                                p1.free;
                                p1:=compiler.cerrornode;
                              end;
@@ -4856,7 +4856,7 @@ implementation
                            assigned(ttypenode(p1).typedef.typesym) and
                            not (sp_generic_para in ttypenode(p1).typedef.typesym.symoptions) then
                          begin
-                           identifier_not_found(ttypenode(p1).typedef.typesym.RealName);
+                           compiler.parser.pbase.identifier_not_found(ttypenode(p1).typedef.typesym.RealName);
                            p1.Free;
                            p1:=compiler.cerrornode;
                          end;
@@ -4979,7 +4979,7 @@ implementation
             (m_delphi in current_settings.modeswitches) then
           begin
             filepos:=current_tokenpos;
-            consume(current_scanner.token);
+            compiler.parser.pbase.consume(current_scanner.token);
             p2:=factor(false,[]);
             if maybe_handle_specialization(p1,p2,filepos) then
               begin
@@ -5004,13 +5004,13 @@ implementation
          oldafterassignment : boolean;
          p1 : tnode;
       begin
-         oldafterassignment:=afterassignment;
-         afterassignment:=true;
+         oldafterassignment:=compiler.parser.pbase.afterassignment;
+         compiler.parser.pbase.afterassignment:=true;
          p1:=sub_expr(opcompare,flags,nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
-         afterassignment:=oldafterassignment;
+         compiler.parser.pbase.afterassignment:=oldafterassignment;
          comp_expr:=p1;
       end;
 
@@ -5024,7 +5024,7 @@ implementation
          updatefpos          : boolean;
          oldflags : tnodeflags;
       begin
-         oldafterassignment:=afterassignment;
+         oldafterassignment:=compiler.parser.pbase.afterassignment;
          p1:=sub_expr(opcompare,[ef_accept_equal],nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
@@ -5032,37 +5032,37 @@ implementation
           do_typecheckpass(p1);
          filepos:=current_tokenpos;
          if current_scanner.token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
-           afterassignment:=true;
+           compiler.parser.pbase.afterassignment:=true;
          updatefpos:=true;
          case current_scanner.token of
            _POINTPOINT :
              begin
-                consume(_POINTPOINT);
+                compiler.parser.pbase.consume(_POINTPOINT);
                 p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                 p1:=compiler.crangenode(p1,p2);
              end;
            _ASSIGNMENT :
              begin
-                consume(_ASSIGNMENT);
+                compiler.parser.pbase.consume(_ASSIGNMENT);
                 if assigned(p1.resultdef) then
                   if (p1.resultdef.typ=procvardef) then
-                    getprocvardef:=tprocvardef(p1.resultdef)
+                    compiler.parser.pbase.getprocvardef:=tprocvardef(p1.resultdef)
                   else if is_invokable(p1.resultdef) then
-                    getfuncrefdef:=tobjectdef(p1.resultdef);
+                    compiler.parser.pbase.getfuncrefdef:=tobjectdef(p1.resultdef);
                 p2:=sub_expr(opcompare,[ef_accept_equal],nil);
-                if assigned(getprocvardef) then
-                  handle_procvar(getprocvardef,p2)
-                else if assigned(getfuncrefdef) then
-                  handle_funcref(getfuncrefdef,p2);
-                getprocvardef:=nil;
-                getfuncrefdef:=nil;
+                if assigned(compiler.parser.pbase.getprocvardef) then
+                  handle_procvar(compiler.parser.pbase.getprocvardef,p2)
+                else if assigned(compiler.parser.pbase.getfuncrefdef) then
+                  handle_funcref(compiler.parser.pbase.getfuncrefdef,p2);
+                compiler.parser.pbase.getprocvardef:=nil;
+                compiler.parser.pbase.getfuncrefdef:=nil;
                 p1:=compiler.cassignmentnode(p1,p2);
              end;
            _PLUSASN :
              begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
                  Message(parser_e_coperators_off);
-               consume(_PLUSASN);
+               compiler.parser.pbase.consume(_PLUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
@@ -5070,7 +5070,7 @@ implementation
             begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
                  Message(parser_e_coperators_off);
-               consume(_MINUSASN);
+               compiler.parser.pbase.consume(_MINUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
@@ -5078,7 +5078,7 @@ implementation
             begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
                  Message(parser_e_coperators_off);
-               consume(_STARASN  );
+               compiler.parser.pbase.consume(_STARASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
@@ -5086,7 +5086,7 @@ implementation
             begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
                  Message(parser_e_coperators_off);
-               consume(_SLASHASN  );
+               compiler.parser.pbase.consume(_SLASHASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(slashn,p1,p2);
             end;
@@ -5101,7 +5101,7 @@ implementation
          { transfer generic parameter flag }
          if nf_generic_para in oldflags then
            include(p1.flags,nf_generic_para);
-         afterassignment:=oldafterassignment;
+         compiler.parser.pbase.afterassignment:=oldafterassignment;
          if updatefpos then
            p1.fileinfo:=filepos;
          expr:=p1;

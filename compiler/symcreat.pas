@@ -188,8 +188,8 @@ implementation
       oldparse_only: boolean;
     begin
       Message1(parser_d_internal_parser_string,str);
-      oldparse_only:=parse_only;
-      parse_only:=true;
+      oldparse_only:=compiler.parser.pbase.parse_only;
+      compiler.parser.pbase.parse_only:=true;
       result:=false;
       { in case multiple strings are injected, make sure to always close the
         previous macro inputfile to prevent memory leaks }
@@ -218,7 +218,7 @@ implementation
       end;
       if assigned(pd) then
         result:=true;
-      parse_only:=oldparse_only;
+      compiler.parser.pbase.parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
       current_scanner.nextfile;
@@ -247,8 +247,8 @@ implementation
                Message1(parser_d_internal_parser_string,tmpstr+str);
              end;
         end;
-      oldparse_only:=parse_only;
-      parse_only:=false;
+      oldparse_only:=compiler.parser.pbase.parse_only;
+      compiler.parser.pbase.parse_only:=false;
       result:=false;
       { "const" starts a new kind of block and hence makes the scanner return }
       str:=str+'const;';
@@ -260,7 +260,7 @@ implementation
       if is_classdef then
         include(flags,rpf_classmethod);
       result_procdef:=compiler.parser.psub.read_proc(flags,usefwpd);
-      parse_only:=oldparse_only;
+      compiler.parser.pbase.parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
       current_scanner.nextfile;
@@ -294,14 +294,14 @@ implementation
       { a string that will be interpreted as the start of a new section ->
         typed constant parsing will stop }
       str:=str+'type ';
-      old_parse_only:=parse_only;
+      old_parse_only:=compiler.parser.pbase.parse_only;
       old_block_type:=block_type;
-      parse_only:=true;
+      compiler.parser.pbase.parse_only:=true;
       block_type:=bt_const;
       current_scanner.substitutemacro('typed_const_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
       compiler.parser.ptconst.read_typed_const(list,ssym,ssym.owner.symtabletype in [recordsymtable,objectsymtable]);
-      parse_only:=old_parse_only;
+      compiler.parser.pbase.parse_only:=old_parse_only;
       block_type:=old_block_type;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -322,8 +322,8 @@ implementation
      begin
       result:=nil;
       Message1(parser_d_internal_parser_string,str);
-      oldparse_only:=parse_only;
-      parse_only:=true;
+      oldparse_only:=compiler.parser.pbase.parse_only;
+      compiler.parser.pbase.parse_only:=true;
       { "const" starts a new kind of block and hence makes the scanner return }
       str:=str+'const;';
       block_type:=bt_type;
@@ -343,7 +343,7 @@ implementation
         end;
       if result=nil then
         internalerror(2024050401);
-      parse_only:=oldparse_only;
+      compiler.parser.pbase.parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
       current_scanner.nextfile;
@@ -1655,8 +1655,8 @@ implementation
 
    begin
     Message1(parser_d_internal_parser_string,str);
-    oldparse_only:=parse_only;
-    parse_only:=false;
+    oldparse_only:=compiler.parser.pbase.parse_only;
+    compiler.parser.pbase.parse_only:=false;
     { "const" starts a new kind of block and hence makes the scanner return }
     str:=str+'const;';
     block_type:=bt_none;
@@ -1666,7 +1666,7 @@ implementation
     current_scanner.substitutemacro('hidden_interface_method',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
     current_scanner.readtoken(false);
     Result:=compiler.parser.psub.read_proc([],Nil);
-    parse_only:=oldparse_only;
+    compiler.parser.pbase.parse_only:=oldparse_only;
     { remove the temporary macro input file again }
     current_scanner.closeinputfile;
     current_scanner.nextfile;

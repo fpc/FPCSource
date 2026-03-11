@@ -103,7 +103,7 @@ implementation
               variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
               while (current_scanner.token=_COMMA) and assigned(variantdesc) do
                 begin
-                  consume(_COMMA);
+                  compiler.parser.pbase.consume(_COMMA);
                   p2:=compiler.parser.pexpr.factor(false,[]);
                   do_typecheckpass(p2);
                   if p2.nodetype=ordconstn then
@@ -149,7 +149,7 @@ implementation
       begin
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
         { calc return type }
         if is_new then
@@ -189,8 +189,8 @@ implementation
                    p2.free;
                    p2 := nil;
                  new_dispose_statement := compiler.cerrornode;
-                 consume_all_until(_RKLAMMER);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume_all_until(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                  exit;
               end;
 
@@ -224,14 +224,14 @@ implementation
           end
         { constructor,destructor specified }
         else if (([m_mac,m_iso,m_extpas]*current_settings.modeswitches)=[]) and
-                try_to_consume(_COMMA) then
+                compiler.parser.pbase.try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
             { function styled new is handled in factor }
             { destructors have no parameters }
             destructorname:=current_scanner.pattern;
             destructorpos:=current_tokenpos;
-            consume(_ID);
+            compiler.parser.pbase.consume(_ID);
 
             if is_typeparam(p.resultdef) then
               begin
@@ -239,7 +239,7 @@ implementation
                  p:=compiler.parser.pexpr.factor(false,[]);
                  p.free;
                  p := nil;
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                  new_dispose_statement:=compiler.cnothingnode;
                  exit;
               end;
@@ -251,7 +251,7 @@ implementation
                  p:=compiler.parser.pexpr.factor(false,[]);
                  p.free;
                  p := nil;
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                  new_dispose_statement:=compiler.cerrornode;
                  exit;
               end;
@@ -262,8 +262,8 @@ implementation
                  p.free;
                  p := nil;
                  new_dispose_statement:=compiler.parser.pexpr.factor(false,[]);
-                 consume_all_until(_RKLAMMER);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume_all_until(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                  exit;
               end;
             { check, if the first parameter is a pointer to a _class_ }
@@ -272,8 +272,8 @@ implementation
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
                  new_dispose_statement:=compiler.parser.pexpr.factor(false,[]);
-                 consume_all_until(_RKLAMMER);
-                 consume(_RKLAMMER);
+                 compiler.parser.pbase.consume_all_until(_RKLAMMER);
+                 compiler.parser.pbase.consume(_RKLAMMER);
                  exit;
               end;
             { search cons-/destructor, also in parent classes }
@@ -320,13 +320,13 @@ implementation
                       begin
                         p2:=compiler.ccallnode(nil,tprocsym(sym),sym.owner,p2,[callflag],nil);
                         { support dispose(p,done()); }
-                        if try_to_consume(_LKLAMMER) then
+                        if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
                           begin
-                            if not try_to_consume(_RKLAMMER) then
+                            if not compiler.parser.pbase.try_to_consume(_RKLAMMER) then
                               begin
                                 Message(parser_e_no_paras_for_destructor);
-                                consume_all_until(_RKLAMMER);
-                                consume(_RKLAMMER);
+                                compiler.parser.pbase.consume_all_until(_RKLAMMER);
+                                compiler.parser.pbase.consume(_RKLAMMER);
                               end;
                           end;
                       end;
@@ -370,7 +370,7 @@ implementation
                    begin
                       p.free;
                       p := nil;
-                      consume(_RKLAMMER);
+                      compiler.parser.pbase.consume(_RKLAMMER);
                       new_dispose_statement:=compiler.cnothingnode;
                       exit;
                    end
@@ -455,7 +455,7 @@ implementation
                    end;
                end;
           end;
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
       end;
 
 
@@ -469,13 +469,13 @@ implementation
       begin
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         p1:=compiler.parser.pexpr.factor(false,[]);
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);
-           consume_all_until(_RKLAMMER);
-           consume(_RKLAMMER);
+           compiler.parser.pbase.consume_all_until(_RKLAMMER);
+           compiler.parser.pbase.consume(_RKLAMMER);
            p1.free;
            p1 := nil;
            new_function:=compiler.cerrornode;
@@ -485,15 +485,15 @@ implementation
         if (p1.resultdef.typ<>pointerdef) then
          begin
            Message1(type_e_pointer_type_expected,p1.resultdef.typename);
-           consume_all_until(_RKLAMMER);
-           consume(_RKLAMMER);
+           compiler.parser.pbase.consume_all_until(_RKLAMMER);
+           compiler.parser.pbase.consume(_RKLAMMER);
            p1.free;
            p1 := nil;
            new_function:=compiler.cerrornode;
            exit;
          end;
 
-        if try_to_consume(_RKLAMMER) then
+        if compiler.parser.pbase.try_to_consume(_RKLAMMER) then
           begin
             if (tpointerdef(p1.resultdef).pointeddef.typ=objectdef) and
                (oo_has_vmt in tobjectdef(tpointerdef(p1.resultdef).pointeddef).objectoptions)  then
@@ -506,12 +506,12 @@ implementation
           end
         else
           begin
-            consume(_COMMA);
+            compiler.parser.pbase.consume(_COMMA);
             if tpointerdef(p1.resultdef).pointeddef.typ<>objectdef then
              begin
                Message(parser_e_pointer_to_class_expected);
-               consume_all_until(_RKLAMMER);
-               consume(_RKLAMMER);
+               compiler.parser.pbase.consume_all_until(_RKLAMMER);
+               compiler.parser.pbase.consume(_RKLAMMER);
                p1.free;
                p1 := nil;
                new_function:=compiler.cerrornode;
@@ -524,9 +524,9 @@ implementation
             do_typecheckpass(p1);
             { search the constructor also in the symbol tables of
               the parents }
-            afterassignment:=false;
+            compiler.parser.pbase.afterassignment:=false;
             searchsym_in_class(classh,classh,current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
-            consume(_ID);
+            compiler.parser.pbase.consume(_ID);
             compiler.parser.pexpr.do_member_read(classh,false,srsym,p1,again,[cnf_new_call],nil);
             { we need to know which procedure is called }
             do_typecheckpass(p1);
@@ -541,7 +541,7 @@ implementation
             p1.resultdef:=p2.resultdef;
             p2.free;
             p2 := nil;
-            consume(_RKLAMMER);
+            compiler.parser.pbase.consume(_RKLAMMER);
           end;
         new_function:=p1;
       end;
@@ -551,9 +551,9 @@ implementation
       var
         paras: tnode;
       begin
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
         if not assigned(paras) then
          begin
            result:=compiler.cerrornode;
@@ -570,9 +570,9 @@ implementation
         procname: string;
         cp: tstringencoding;
       begin
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
         procname:='';
         if assigned(paras) and
            assigned(tcallparanode(paras).right) and
@@ -630,9 +630,9 @@ implementation
         { for easy exiting if something goes wrong }
         result := compiler.cerrornode;
 
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
         ppn:=tcallparanode(paras);
 
         if not assigned(paras) or
@@ -697,9 +697,9 @@ implementation
       begin
         result := compiler.cerrornode;
 
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         paras:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
         if not assigned(paras) and checkempty then
           begin
             CGMessage1(parser_e_wrong_parameter_size,name);

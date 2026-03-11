@@ -29,7 +29,7 @@ uses
   compilerbase,
   fmodule,
   pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj,
-  pdecl,psub,pinline,ptype,psystem;
+  pdecl,psub,pinline,ptype,psystem,pbase;
 
 type
 
@@ -38,6 +38,7 @@ type
   TParser = class
   private
     FCompiler: TCompilerBase;
+    FPBase: TParserBaseHelpers;
     FPModules: TModulesParser;
     FPGenUtil: TGenericsParseUtils;
     FPStatmnt: TStatementsParser;
@@ -65,6 +66,7 @@ type
     procedure parsing_done(module : tmodule);
 
     property Compiler: TCompilerBase read FCompiler;
+    property pbase: TParserBaseHelpers read FPBase;
     property pmodules: TModulesParser read FPModules;
     property pgenutil: TGenericsParseUtils read FPGenUtil;
     property pstatmnt: TStatementsParser read FPStatmnt;
@@ -97,7 +99,7 @@ implementation
       cscript,gendef,
       comphook,
       scanner,scandir,
-      pbase,ncgrtti,
+      ncgrtti,
       cpuinfo,procinfo;
 
     procedure TParser.parsing_done(module: tmodule);
@@ -359,6 +361,7 @@ implementation
       begin
         FCompiler:=acompiler;
         InitParser;
+        FPBase:=TParserBaseHelpers.Create(acompiler);
         FPModules:=TModulesParser.Create(acompiler);
         FPGenUtil:=TGenericsParseUtils.Create(acompiler);
         FPStatmnt:=TStatementsParser.Create(acompiler);
@@ -392,6 +395,7 @@ implementation
         FreeAndNil(FPStatmnt);
         FreeAndNil(FPGenUtil);
         FreeAndNil(FPModules);
+        FreeAndNil(FPBase);
         DoneParser;
         inherited;
       end;
@@ -501,12 +505,12 @@ implementation
 
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
-         afterassignment:=false;
-         in_args:=false;
-         named_args_allowed:=false;
-         got_addrn:=false;
-         getprocvardef:=nil;
-         getfuncrefdef:=nil;
+         compiler.parser.pbase.afterassignment:=false;
+         compiler.parser.pbase.in_args:=false;
+         compiler.parser.pbase.named_args_allowed:=false;
+         compiler.parser.pbase.got_addrn:=false;
+         compiler.parser.pbase.getprocvardef:=nil;
+         compiler.parser.pbase.getfuncrefdef:=nil;
 
        { show info }
          Message1(parser_i_compiling,module.mainsource);

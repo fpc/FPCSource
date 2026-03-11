@@ -193,7 +193,7 @@ var
       old_switchesstatestackpos:=switchesstatestackpos;
 
       { save cg }
-      oldparse_only:=parse_only;
+      oldparse_only:=compiler.parser.pbase.parse_only;
 
       { save akt... state }
       { handle the postponed case first }
@@ -268,7 +268,7 @@ var
       switchesstatestackpos:=old_switchesstatestackpos;
 
       { restore cg }
-      parse_only:=oldparse_only;
+      compiler.parser.pbase.parse_only:=oldparse_only;
 
       { restore symtable state }
       tcompiler(compiler).symtablestack:=oldsymtablestack;
@@ -340,7 +340,7 @@ var
 
       // keep "current_settings"
 
-      parse_only:=false;
+      _compiler.parser.pbase.parse_only:=false;
       current_asmdata:=nil;
       current_debuginfo:=nil;
 

@@ -32,69 +32,9 @@ interface
        ;
 
     const
-       { tokens that end a block or statement. And don't require
-         a ; on the statement before }
-       endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL,_EXCEPT,_FINALLY];
-
-       { true, if we are after an assignment }
-       afterassignment : boolean = false;
-
-       { true, if we are parsing arguments }
-       in_args : boolean = false;
-
-       { true, if we are parsing arguments allowing named parameters }
-       named_args_allowed : boolean = false;
-
-       { true, if we got an @ to get the address }
-       got_addrn  : boolean = false;
-
-       { special for handling procedure vars }
-       getprocvardef : tprocvardef = nil;
-
-       { special for function reference vars }
-       getfuncrefdef : tobjectdef = nil;
-
-    var
-       { for operators }
-       optoken : ttoken;
-
-       { true, if only routine headers should be parsed }
-       parse_only : boolean;
-
-       { true, if we found a name for a named arg }
-       found_arg_name : boolean;
-
-       { true, if we are parsing generic declaration }
-       parse_generic : boolean;
-
-    procedure identifier_not_found(const s:string);
-    procedure identifier_not_found(const s:string;const filepos:tfileposinfo);
-
-{    function tokenstring(i : ttoken):string;}
-
-    { consumes token i, if the current token is unequal i }
-    { a syntax error is written                           }
-    procedure consume(i : ttoken);
-
-    { Same as consume, but will not attempt to read next token if the token is a point }
-
-    procedure consume_last_dot;
-
-    {Tries to consume the token i, and returns true if it was consumed:
-     if token=i.}
-    function try_to_consume(i:Ttoken):boolean;
-
-    { consumes all tokens til atoken (for error recovering }
-    procedure consume_all_until(atoken : ttoken);
-
-    { consumes tokens while they are semicolons }
-    procedure consume_emptystats;
-
-    { reads a list of identifiers into a string list }
-    { consume a symbol, if not found give an error and
-      and return an errorsym }
-    function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
-    function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
+      { tokens that end a block or statement. And don't require
+        a ; on the statement before }
+      endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL,_EXCEPT,_FINALLY];
 
     type
       tconsume_unitsym_flag = (
@@ -104,14 +44,79 @@ interface
       );
       tconsume_unitsym_flags = set of tconsume_unitsym_flag;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;out is_specialize:boolean;sympattern:TSymStr):boolean;
-    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;sympattern:TSymStr):boolean;
+      TParserBaseHelpers = class
+      private
+        FCompiler: TCompilerBase;
+      public
+        { true, if we are after an assignment }
+        afterassignment : boolean;
 
-    function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
+        { true, if we are parsing arguments }
+        in_args : boolean;
 
-    { just for an accurate position of the end of a procedure (PM) }
-    var
-       last_endtoken_filepos: tfileposinfo;
+        { true, if we are parsing arguments allowing named parameters }
+        named_args_allowed : boolean;
+
+        { true, if we got an @ to get the address }
+        got_addrn  : boolean;
+
+        { special for handling procedure vars }
+        getprocvardef : tprocvardef;
+
+        { special for function reference vars }
+        getfuncrefdef : tobjectdef;
+
+        { for operators }
+        optoken : ttoken;
+
+        { true, if only routine headers should be parsed }
+        parse_only : boolean;
+
+        { true, if we found a name for a named arg }
+        found_arg_name : boolean;
+
+        { true, if we are parsing generic declaration }
+        parse_generic : boolean;
+
+        { just for an accurate position of the end of a procedure (PM) }
+        last_endtoken_filepos: tfileposinfo;
+
+        constructor Create(ACompiler: TCompilerBase);
+
+        procedure identifier_not_found(const s:string);
+        procedure identifier_not_found(const s:string;const filepos:tfileposinfo);
+
+    {    function tokenstring(i : ttoken):string;}
+
+        { consumes token i, if the current token is unequal i }
+        { a syntax error is written                           }
+        procedure consume(i : ttoken);
+
+        { Same as consume, but will not attempt to read next token if the token is a point }
+
+        procedure consume_last_dot;
+
+        {Tries to consume the token i, and returns true if it was consumed:
+         if token=i.}
+        function try_to_consume(i:Ttoken):boolean;
+
+        { consumes all tokens til atoken (for error recovering }
+        procedure consume_all_until(atoken : ttoken);
+
+        { consumes tokens while they are semicolons }
+        procedure consume_emptystats;
+
+        { reads a list of identifiers into a string list }
+        { consume a symbol, if not found give an error and
+          and return an errorsym }
+        function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
+        function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
+
+        function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;out is_specialize:boolean;sympattern:TSymStr):boolean;
+        function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;sympattern:TSymStr):boolean;
+
+        function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
+      end;
 
 
 implementation
@@ -119,11 +124,23 @@ implementation
     uses
        globals,scanner,verbose,fmodule,compiler;
 
+     constructor TParserBaseHelpers.Create(ACompiler: TCompilerBase);
+       begin
+         FCompiler:=ACompiler;
+         afterassignment:=false;
+         in_args:=false;
+         named_args_allowed:=false;
+         got_addrn:=false;
+         getprocvardef:=nil;
+         getfuncrefdef:=nil;
+       end;
+
+
 {****************************************************************************
                                Token Parsing
 ****************************************************************************}
 
-     procedure identifier_not_found(const s:string);
+     procedure TParserBaseHelpers.identifier_not_found(const s:string);
        begin
          Message1(sym_e_id_not_found,s);
          { show a fatal that you need -S2 or -Sd, but only
@@ -135,7 +152,7 @@ implementation
        end;
 
 
-     procedure identifier_not_found(const s:string;const filepos:tfileposinfo);
+     procedure TParserBaseHelpers.identifier_not_found(const s:string;const filepos:tfileposinfo);
        begin
          MessagePos1(filepos,sym_e_id_not_found,s);
          { show a fatal that you need -S2 or -Sd, but only
@@ -149,7 +166,7 @@ implementation
 
     { consumes token i, write error if token is different }
 
-    procedure consume(i : ttoken);
+    procedure TParserBaseHelpers.consume(i : ttoken);
 
     begin
         if (current_scanner.token<>i) and (current_scanner.idtoken<>i) then
@@ -171,7 +188,7 @@ implementation
           end;
       end;
 
-    procedure consume_last_dot;
+    procedure TParserBaseHelpers.consume_last_dot;
 
     begin
         if (current_scanner.token<>_POINT) then
@@ -185,7 +202,7 @@ implementation
           current_scanner.readtoken(true);
     end;
 
-    function try_to_consume(i:Ttoken):boolean;
+    function TParserBaseHelpers.try_to_consume(i:Ttoken):boolean;
       begin
         try_to_consume:=false;
         if (current_scanner.token=i) or (current_scanner.idtoken=i) then
@@ -198,14 +215,14 @@ implementation
       end;
 
 
-    procedure consume_all_until(atoken : ttoken);
+    procedure TParserBaseHelpers.consume_all_until(atoken : ttoken);
       begin
          while (current_scanner.token<>atoken) and (current_scanner.idtoken<>atoken) do
           begin
-            Consume(current_scanner.token);
+            consume(current_scanner.token);
             if current_scanner.token=_EOF then
              begin
-               Consume(atoken);
+               consume(atoken);
                if current_scanner.had_multiline_string then
                  Message2(scan_f_unterminated_multiline_string,
                           tostr(current_scanner.multiline_start_line),
@@ -218,7 +235,7 @@ implementation
       end;
 
 
-    procedure consume_emptystats;
+    procedure TParserBaseHelpers.consume_emptystats;
       begin
          repeat
          until not try_to_consume(_SEMICOLON);
@@ -231,7 +248,7 @@ implementation
       If this code is changed, it's likly that consume_sym_orgid and factor_read_id
       must be changed as well (FK)
     }
-    function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
+    function TParserBaseHelpers.consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -266,7 +283,7 @@ implementation
     { check if a symbol contains the hint directive, and if so gives out a hint
       if required and returns the id with it's original casing
     }
-    function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
+    function TParserBaseHelpers.consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
@@ -299,7 +316,7 @@ implementation
       end;
 
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;out is_specialize:boolean;sympattern:TSymStr):boolean;
+    function TParserBaseHelpers.try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;out is_specialize:boolean;sympattern:TSymStr):boolean;
       var
         hmodule: tmodule;
         ns:ansistring;
@@ -464,7 +481,7 @@ implementation
       end;
 
 
-    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;sympattern:TSymStr):boolean;
+    function TParserBaseHelpers.try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;flags:tconsume_unitsym_flags;sympattern:TSymStr):boolean;
       var
         dummy: Boolean;
       begin
@@ -472,7 +489,7 @@ implementation
         result:=try_consume_unitsym(srsym,srsymtable,tokentoconsume,flags,dummy,sympattern);
       end;
 
-    function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
+    function TParserBaseHelpers.try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
       var
         last_is_deprecated:boolean;
       begin

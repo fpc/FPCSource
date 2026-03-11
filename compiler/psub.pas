@@ -128,7 +128,7 @@ type
     procedure read_interface_declarations;
 
     { reads any routine in the implementation, or a non-method routine
-      declaration in the interface (depending on whether or not parse_only is
+      declaration in the interface (depending on whether or not compiler.parser.pbase.parse_only is
       true) }
     function read_proc(flags:tread_proc_flags; usefwpd: tprocdef):tprocdef;
 
@@ -394,7 +394,7 @@ implementation
            begin
              if (current_scanner.token=_END) then
                 begin
-                   consume(_END);
+                   compiler.parser.pbase.consume(_END);
                    { We need at least a node, else the entry/exit code is not
                      generated and thus no PASCALMAIN symbol which we need (PFV) }
                    if islibrary then
@@ -2462,7 +2462,7 @@ implementation
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
-         old_parse_generic:=parse_generic;
+         old_parse_generic:=compiler.parser.pbase.parse_generic;
 
          current_procinfo:=self;
          current_structdef:=procdef.struct;
@@ -2484,12 +2484,12 @@ implementation
          if procdef.is_generic then
            begin
              current_genericdef:=procdef;
-             parse_generic:=true;
+             compiler.parser.pbase.parse_generic:=true;
            end
          else if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
            begin
              current_genericdef:=current_structdef;
-             parse_generic:=true;
+             compiler.parser.pbase.parse_generic:=true;
            end;
          if assigned(current_structdef) and (df_specialization in current_structdef.defoptions) then
            current_specializedef:=current_structdef;
@@ -2550,7 +2550,7 @@ implementation
 
          { save exit info }
          exitswitches:=current_settings.localswitches;
-         exitpos:=last_endtoken_filepos;
+         exitpos:=compiler.parser.pbase.last_endtoken_filepos;
 
          { the procedure is now defined }
          procdef.forwarddef:=false;
@@ -2621,7 +2621,7 @@ implementation
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
          current_procinfo:=old_current_procinfo;
-         parse_generic:=old_parse_generic;
+         compiler.parser.pbase.parse_generic:=old_parse_generic;
 
          { Restore old state }
          block_type:=old_block_type;
@@ -2739,7 +2739,7 @@ implementation
                 (current_procinfo.procdef.owner.defowner=current_procinfo.procdef.struct)
               )
             ) then
-          consume(_SEMICOLON);
+          compiler.parser.pbase.consume(_SEMICOLON);
 
         if not isnestedproc then
           { current_procinfo is checked for nil later on }
@@ -2812,7 +2812,7 @@ implementation
            result:=usefwpd;
 
          { set the default function options }
-         if parse_only then
+         if compiler.parser.pbase.parse_only then
           begin
             result.forwarddef:=true;
             { set also the interface flag, for better error message when the
@@ -2840,11 +2840,11 @@ implementation
              if not (rpf_anonymous in flags) then
                { hint directives, these can be separated by semicolons here,
                  that needs to be handled here with a loop (PFV) }
-               while try_consume_hintdirective(result.symoptions,result.deprecatedmsg) do
-                Consume(_SEMICOLON);
+               while compiler.parser.pbase.try_consume_hintdirective(result.symoptions,result.deprecatedmsg) do
+                compiler.parser.pbase.consume(_SEMICOLON);
 
              { Set calling convention }
-             if parse_only then
+             if compiler.parser.pbase.parse_only then
                handle_calling_convention(result,hcc_default_actions_intf)
              else
                handle_calling_convention(result,hcc_default_actions_impl)
@@ -3147,7 +3147,7 @@ implementation
               _CLASS:
                 begin
                   is_classdef:=false;
-                  if try_to_consume(_CLASS) then
+                  if compiler.parser.pbase.try_to_consume(_CLASS) then
                    begin
                      { class modifier is only allowed for procedures, functions, }
                      { constructors, destructors                                 }
@@ -3188,7 +3188,7 @@ implementation
                    if (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
                      begin
                         Message(parser_e_syntax_error);
-                        consume_all_until(_SEMICOLON);
+                        compiler.parser.pbase.consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
                      (target_info.system in systems_unit_program_exports) then
@@ -3196,7 +3196,7 @@ implementation
                    else
                      begin
                         Message(parser_w_unsupported_feature);
-                        consume(_BEGIN);
+                        compiler.parser.pbase.consume(_BEGIN);
                      end;
                 end;
               _PROPERTY:
@@ -3236,7 +3236,7 @@ implementation
                         handle_unexpected_had_generic;
                         if not (m_delphi in current_settings.modeswitches) then
                           begin
-                            consume(_ID);
+                            compiler.parser.pbase.consume(_ID);
                             hadgeneric:=true;
                           end
                         else
@@ -3345,7 +3345,7 @@ implementation
                        if not (m_delphi in current_settings.modeswitches) then
                          begin
                            hadgeneric:=true;
-                           consume(_ID);
+                           compiler.parser.pbase.consume(_ID);
                          end
                        else
                          break;

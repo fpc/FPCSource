@@ -27,7 +27,7 @@ Unit Rax86int;
 
     uses
       cclasses,
-      cpubase,
+      cpubase,compilerbase,
       globtype,
       aasmbase,
       cgbase,
@@ -119,7 +119,7 @@ Unit Rax86int;
        cutils,
        { global }
        globals,verbose,
-       systems,
+       systems,compiler,
        { aasm }
        aasmdata,aasmcpu,
 {$ifdef i8086}
@@ -3200,6 +3200,8 @@ Unit Rax86int;
 
 
   function tx86intreader.Assemble: tlinkedlist;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     Var
       hl : tasmlabel;
       instr : Tx86Instruction;
@@ -3219,7 +3221,7 @@ Unit Rax86int;
       }
       curlist:=TAsmList.Create;
       { we might need to know which parameters are passed in registers }
-      if not parse_generic then
+      if not compiler.parser.pbase.parse_generic then
         current_procinfo.generate_parameter_info;
       { start tokenizer }
       gettoken;

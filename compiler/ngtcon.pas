@@ -303,9 +303,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
                { try to consume something useful }
                if current_scanner.token=_LKLAMMER then
-                 consume_all_until(_RKLAMMER)
+                 compiler.parser.pbase.consume_all_until(_RKLAMMER)
                else
-                 consume_all_until(_SEMICOLON);
+                 compiler.parser.pbase.consume_all_until(_SEMICOLON);
             end;
           else
             Message(parser_e_type_const_not_possible);
@@ -453,7 +453,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           internalerror(2007022010);
         ftcb.maybe_begin_aggregate(def);
         { begin of the array }
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         initbitpackval(bp,def.elepackedbitsize);
         i:=def.lowrange;
         { can't use for-loop, fails when cross-compiling from }
@@ -463,7 +463,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             { get next item of the packed array }
             if not parse_single_packed_const(def.elementdef,bp) then
               exit;
-            consume(_COMMA);
+            compiler.parser.pbase.consume(_COMMA);
             inc(i);
           end;
         { final item }
@@ -473,7 +473,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (bp.curbitoffset <> 0) then
           flush_packed_value(bp);
         ftcb.maybe_end_aggregate(def);
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
       end;
 
 
@@ -655,7 +655,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         begin
           if is_constnode(node) then
             IncompatibleTypes(node.resultdef, def)
-          else if not(parse_generic) then
+          else if not(compiler.parser.pbase.parse_generic) then
             Message(parser_e_illegal_expression);
         end;
 
@@ -1195,7 +1195,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             incompatibletypes(node.resultdef,def);
             node.free;
             node := nil;
-            consume_all_until(_SEMICOLON);
+            compiler.parser.pbase.consume_all_until(_SEMICOLON);
             result:=false;
             exit;
           end;
@@ -1282,13 +1282,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { dynamic array }
         if is_dynamic_array(def) then
           begin
-            if try_to_consume(_NIL) then
+            if compiler.parser.pbase.try_to_consume(_NIL) then
               begin
                 ftcb.emit_tai(Tai_const.Create_sym(nil),def);
               end
-            else if try_to_consume(LKlammerToken[m_delphi in current_settings.modeswitches]) then
+            else if compiler.parser.pbase.try_to_consume(LKlammerToken[m_delphi in current_settings.modeswitches]) then
               begin
-                if try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
+                if compiler.parser.pbase.try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
                   begin
                     ftcb.emit_tai(tai_const.create_sym(nil),def);
                   end
@@ -1310,10 +1310,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         read_typed_const_data(def.elementdef);
                         inc(dyncount);
-                        if try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
+                        if compiler.parser.pbase.try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
                           break
                         else
-                          consume(_COMMA);
+                          compiler.parser.pbase.consume(_COMMA);
                       end;
                     ftcb:=oldtcb;
 
@@ -1325,7 +1325,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   end;
               end
             else
-              consume(_LKLAMMER);
+              compiler.parser.pbase.consume(_LKLAMMER);
           end
         { packed array constant }
         else if is_packed_array(def) and
@@ -1336,7 +1336,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             parse_packed_array_def(def);
           end
         { normal array const between brackets }
-        else if try_to_consume(_LKLAMMER) then
+        else if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
           begin
             ftcb.maybe_begin_aggregate(def);
             oldoffset:=curoffset;
@@ -1350,11 +1350,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     read_typed_const_data(def.elementdef);
                     if current_scanner.token=_RKLAMMER then
                       begin
-                        consume(_RKLAMMER);
+                        compiler.parser.pbase.consume(_RKLAMMER);
                         break;
                       end
                     else
-                      consume(_COMMA);
+                      compiler.parser.pbase.consume(_COMMA);
                   end;
               end
             else
@@ -1366,14 +1366,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     if current_scanner.token=_RKLAMMER then
                       begin
                         Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
-                        consume(_RKLAMMER);
+                        compiler.parser.pbase.consume(_RKLAMMER);
                         exit;
                       end
                     else
-                      consume(_COMMA);
+                      compiler.parser.pbase.consume(_COMMA);
                   end;
                 read_typed_const_data(def.elementdef);
-                consume(_RKLAMMER);
+                compiler.parser.pbase.consume(_RKLAMMER);
               end;
             curoffset:=oldoffset;
             if ErrorCount=0 then
@@ -1487,7 +1487,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         else
           begin
             { we want the ( }
-            consume(_LKLAMMER);
+            compiler.parser.pbase.consume(_LKLAMMER);
           end;
       end;
 
@@ -1504,7 +1504,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         { Procvars and pointers are no longer compatible.  }
         { under tp:  =nil or =var under fpc: =nil or =@var }
-        if try_to_consume(_NIL) then
+        if compiler.parser.pbase.try_to_consume(_NIL) then
           begin
              ftcb.maybe_begin_aggregate(def);
              { we need the procdef type called by the procvar here, not the
@@ -1516,9 +1516,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              exit;
           end;
         { parse the rest too, so we can continue with error checking }
-        getprocvardef:=def;
+        compiler.parser.pbase.getprocvardef:=def;
         n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-        getprocvardef:=nil;
+        compiler.parser.pbase.getprocvardef:=nil;
         if codegenerror then
           begin
             n.free;
@@ -1703,7 +1703,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           { packedbitsize will be set separately for each field }
           initbitpackval(bp,0);
         { normal record }
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         recoffset:=0;
         sorg:='';
         symidx:=0;
@@ -1716,8 +1716,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;
-            consume(_ID);
-            consume(_COLON);
+            compiler.parser.pbase.consume(_ID);
+            compiler.parser.pbase.consume(_COLON);
             recsym := tsym(def.symtable.Find(s));
             if not assigned(recsym) or (recsym.typ<>fieldvarsym) then
               begin
@@ -1767,7 +1767,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   end;
               end;
             if error then
-              consume_all_until(_SEMICOLON)
+              compiler.parser.pbase.consume_all_until(_SEMICOLON)
             else
               begin
                 { if needed fill (alignment) }
@@ -1821,9 +1821,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 srsym:=get_next_varsym(def,SymList,symidx);
 
                 if current_scanner.token=_SEMICOLON then
-                  consume(_SEMICOLON)
+                  compiler.parser.pbase.consume(_SEMICOLON)
                 else if (current_scanner.token=_COMMA) and (m_mac in current_settings.modeswitches) then
-                  consume(_COMMA)
+                  compiler.parser.pbase.consume(_COMMA)
                 else
                   break;
               end;
@@ -1855,7 +1855,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             ftcb.maybe_end_aggregate(def);
           end;
 
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
       end;
 
 
@@ -1884,7 +1884,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             if n.nodetype<>niln then
               begin
                 Message(parser_e_type_const_not_possible);
-                consume_all_until(_SEMICOLON);
+                compiler.parser.pbase.consume_all_until(_SEMICOLON);
               end
             else
               ftcb.emit_tai(Tai_const.Create_sym(nil),def);
@@ -1903,7 +1903,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
         ftcb.maybe_begin_aggregate(def);
 
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         startoffset:=curoffset;
         objoffset:=0;
         vmtwritten:=false;
@@ -1911,8 +1911,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;
-            consume(_ID);
-            consume(_COLON);
+            compiler.parser.pbase.consume(_ID);
+            compiler.parser.pbase.consume(_COLON);
             srsym:=nil;
             obj:=tobjectdef(def);
             st:=obj.symtable;
@@ -1934,7 +1934,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   Message1(sym_e_id_not_found,sorg)
                 else
                   Message1(sym_e_illegal_field,sorg);
-                consume_all_until(_RKLAMMER);
+                compiler.parser.pbase.consume_all_until(_RKLAMMER);
                 break;
               end
             else
@@ -1965,7 +1965,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   curoffset:=startoffset+fieldoffset;
                   read_typed_const_data(vardef);
 
-                  if not try_to_consume(_SEMICOLON) then
+                  if not compiler.parser.pbase.try_to_consume(_SEMICOLON) then
                     break;
                 end;
           end;
@@ -1981,7 +1981,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             objoffset:=def.vmt_offset+tfieldvarsym(def.vmt_field).vardef.size;
           end;
         ftcb.maybe_end_aggregate(def);
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
       end;
 
 
@@ -2003,12 +2003,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if is_dynamic_array(def) then
           begin
             { Only allow nil initialization }
-            consume(_NIL);
+            compiler.parser.pbase.consume(_NIL);
             addstatement(statmnt,compiler.cassignmentnode_internal(basenode,compiler.cnilnode));
             basenode:=nil;
           end
         { array const between brackets }
-        else if try_to_consume(_LKLAMMER) then
+        else if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
           begin
             orgbase:=basenode;
             for i:=def.lowrange to def.highrange-1 do
@@ -2018,15 +2018,15 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if current_scanner.token=_RKLAMMER then
                   begin
                     Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
-                    consume(_RKLAMMER);
+                    compiler.parser.pbase.consume(_RKLAMMER);
                     exit;
                   end
                 else
-                  consume(_COMMA);
+                  compiler.parser.pbase.consume(_COMMA);
               end;
             basenode:=compiler.cvecnode(orgbase,compiler.ctypeconvnode_explicit(genintconstnode(def.highrange,compiler),tarraydef(def).rangedef));
             read_typed_const_data(def.elementdef);
-            consume(_RKLAMMER);
+            compiler.parser.pbase.consume(_RKLAMMER);
           end
         { if array of char then we allow also a string }
         else if is_anychar(def.elementdef) then
@@ -2038,7 +2038,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         else
           begin
             { we want the ( }
-            consume(_LKLAMMER);
+            compiler.parser.pbase.consume(_LKLAMMER);
           end;
       end;
 
@@ -2109,7 +2109,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { bitpacked record? }
         is_packed:=is_packed_record_or_object(def);
         { normal record }
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         recoffset:=0;
         sorg:='';
         symidx:=0;
@@ -2122,8 +2122,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;
-            consume(_ID);
-            consume(_COLON);
+            compiler.parser.pbase.consume(_ID);
+            compiler.parser.pbase.consume(_COLON);
             error := false;
             recsym := tsym(def.symtable.Find(s));
             if not assigned(recsym) then
@@ -2174,7 +2174,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   end;
               end;
             if error then
-              consume_all_until(_SEMICOLON)
+              compiler.parser.pbase.consume_all_until(_SEMICOLON)
             else
               begin
                 { skipping fill bytes happens automatically, since we only
@@ -2200,9 +2200,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { goto next field }
                 srsym:=get_next_varsym(def,SymList,symidx);
                 if current_scanner.token=_SEMICOLON then
-                  consume(_SEMICOLON)
+                  compiler.parser.pbase.consume(_SEMICOLON)
                 else if (current_scanner.token=_COMMA) and (m_mac in current_settings.modeswitches) then
-                  consume(_COMMA)
+                  compiler.parser.pbase.consume(_COMMA)
                 else
                   break;
               end;
@@ -2220,7 +2220,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         orgbasenode := nil;
         basenode:=nil;
 
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
       end;
 
 
@@ -2248,7 +2248,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             if n.nodetype<>niln then
               begin
                 Message(parser_e_type_const_not_possible);
-                consume_all_until(_SEMICOLON);
+                compiler.parser.pbase.consume_all_until(_SEMICOLON);
               end
             else
               begin
@@ -2269,7 +2269,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             exit;
           end;
 
-        consume(_LKLAMMER);
+        compiler.parser.pbase.consume(_LKLAMMER);
         objoffset:=0;
         orgbasenode:=basenode;
         basenode:=nil;
@@ -2277,8 +2277,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             s:=current_scanner.pattern;
             sorg:=current_scanner.orgpattern;
-            consume(_ID);
-            consume(_COLON);
+            compiler.parser.pbase.consume(_ID);
+            compiler.parser.pbase.consume(_COLON);
             srsym:=nil;
             obj:=tobjectdef(def);
             st:=obj.symtable;
@@ -2300,7 +2300,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   Message1(sym_e_id_not_found,sorg)
                 else
                   Message1(sym_e_illegal_field,sorg);
-                consume_all_until(_RKLAMMER);
+                compiler.parser.pbase.consume_all_until(_RKLAMMER);
                 break;
               end
             else
@@ -2317,11 +2317,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   basenode:=compiler.csubscriptnode(srsym,orgbasenode.getcopy);
                   read_typed_const_data(vardef);
 
-                  if not try_to_consume(_SEMICOLON) then
+                  if not compiler.parser.pbase.try_to_consume(_SEMICOLON) then
                     break;
                 end;
           end;
-        consume(_RKLAMMER);
+        compiler.parser.pbase.consume(_RKLAMMER);
       end;
 
 
