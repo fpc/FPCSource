@@ -46,6 +46,8 @@ uses
 const
   PrinterDevice : string = 'prn';
 
+var InitialHelpFileCount : Sw_Word;
+
 {$ifdef useresstrings}
 resourcestring
 {$else}
@@ -479,6 +481,7 @@ begin
     inc(I);
     if S<>'' then HelpFiles^.Insert(NewStr(S));
   until S='';
+  InitialHelpFileCount:=I-2;
   { Editor }
   DefaultTabSize:=INIFile^.GetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   DefaultIndentSize:=INIFile^.GetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
@@ -705,6 +708,11 @@ begin
       S:=HelpFiles^.At(I-1)^;
       INIFile^.SetEntry(secHelp, ieHelpFile + IntToStr(I), EscapeIniText(S));
     end;
+  if InitialHelpFileCount>HelpFileCount then
+    for I:=HelpFileCount+1 to InitialHelpFileCount do
+      { Have to actively delete file entries that are not in use anymore. }
+      INIFile^.DeleteEntry(secHelp, ieHelpFile + IntToStr(I));
+  InitialHelpFileCount:=HelpFileCount;
   { Editor }
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
