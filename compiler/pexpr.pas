@@ -84,6 +84,8 @@ interface
 
     constructor Create(ACompiler: TCompilerBase);
 
+    procedure Reset;
+
     { reads a whole expression }
     function expr(dotypecheck:boolean) : tnode;
 
@@ -3374,6 +3376,12 @@ implementation
     constructor TExpressionParser.Create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
+        Reset;
+      end;
+
+
+    procedure TExpressionParser.Reset;
+      begin
         afterassignment:=false;
         in_args:=false;
         named_args_allowed:=false;

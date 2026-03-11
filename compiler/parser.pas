@@ -56,6 +56,7 @@ type
 
     procedure initparser;
     procedure doneparser;
+    procedure Reset;
   public
     constructor Create(acompiler: TCompilerBase);
     destructor Destroy; override;
@@ -401,6 +402,12 @@ implementation
       end;
 
 
+    procedure TParser.Reset;
+      begin
+        FPExpr.Reset;
+      end;
+
+
 {$ifdef PREPROCWRITE}
     procedure TParser.preprocess(const filename:string);
       var
@@ -505,12 +512,7 @@ implementation
 
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
-         compiler.parser.pexpr.afterassignment:=false;
-         compiler.parser.pexpr.in_args:=false;
-         compiler.parser.pexpr.named_args_allowed:=false;
-         compiler.parser.pexpr.got_addrn:=false;
-         compiler.parser.pexpr.getprocvardef:=nil;
-         compiler.parser.pexpr.getfuncrefdef:=nil;
+         Reset;
 
        { show info }
          Message1(parser_i_compiling,module.mainsource);
