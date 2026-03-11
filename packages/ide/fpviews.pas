@@ -466,6 +466,7 @@ function GetNextEditorBounds(var Bounds: TRect): boolean;
 function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer): PSourceWindow;
 function IOpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_integer; ShowIt: boolean): PSourceWindow;
 function LastSourceEditor : PSourceWindow;
+function SourceOnDesktop(SearchFor:PSourceWindow) : PSourceWindow;
 function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
 function TryToOpenFileMulti(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
@@ -3984,6 +3985,21 @@ function LastSourceEditor : PSourceWindow;
 
 begin
   LastSourceEditor:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
+end;
+
+function SourceOnDesktop(SearchFor:PSourceWindow) : PSourceWindow;
+
+function IsSearchedSource(P: PView) : boolean;
+begin
+  if assigned(P) and
+     (TypeOf(P^)=TypeOf(TSourceWindow)) then
+       IsSearchedSource:=(PSourceWindow(P)=SearchFor)
+     else
+       IsSearchedSource:=false;
+end;
+
+begin
+  SourceOnDesktop:=PSourceWindow(Desktop^.FirstThat(@IsSearchedSource));
 end;
 
 
