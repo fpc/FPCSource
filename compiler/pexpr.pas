@@ -63,6 +63,9 @@ interface
     { true, if the inherited call is anonymous }
     anon_inherited : boolean;
 
+    { last def found, only used by anon. inherited calls to insert proper type casts }
+    srdef : tdef;
+
     property Compiler: TCompilerBase read FCompiler;
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
@@ -134,10 +137,6 @@ implementation
        scanner,
        pbase,pinline,ptype,pgenutil,psub,procinfo,cpuinfo
        ;
-
-    const
-       { last def found, only used by anon. inherited calls to insert proper type casts }
-       srdef : tdef = nil;
 
     procedure TExpressionParser.string_dec(var def:tdef; allowtypedef: boolean);
     { reads a string type with optional length }
@@ -3391,6 +3390,7 @@ implementation
         getprocvardef:=nil;
         getfuncrefdef:=nil;
         anon_inherited:=false;
+        srdef:=nil;
       end;
 
 
