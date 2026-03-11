@@ -60,6 +60,9 @@ interface
     { special for function reference vars }
     getfuncrefdef : tobjectdef;
 
+    { true, if the inherited call is anonymous }
+    anon_inherited : boolean;
+
     property Compiler: TCompilerBase read FCompiler;
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
@@ -133,8 +136,6 @@ implementation
        ;
 
     const
-       { true, if the inherited call is anonymous }
-       anon_inherited : boolean = false;
        { last def found, only used by anon. inherited calls to insert proper type casts }
        srdef : tdef = nil;
 
@@ -3389,6 +3390,7 @@ implementation
         got_addrn:=false;
         getprocvardef:=nil;
         getfuncrefdef:=nil;
+        anon_inherited:=false;
       end;
 
 
