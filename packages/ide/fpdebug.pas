@@ -1373,7 +1373,13 @@ begin
 
   if (fn=LastFileName) then
     begin
-      W:=PSourceWindow(LastSource);
+      { Check if source window is still open }
+      W:=SourceOnDesktop(PSourceWindow(LastSource));
+      if not assigned(W) then
+      begin
+        W:=TryToOpenFile(nil,s,0,Line,false);
+        LastSource:=W;
+      end;
       if assigned(W) then
         begin
           W^.Editor^.SetCurPtr(0,Line);
