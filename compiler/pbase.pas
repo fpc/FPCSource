@@ -51,9 +51,6 @@ interface
         { true, if we are after an assignment }
         afterassignment : boolean;
 
-        { true, if we are parsing arguments }
-        in_args : boolean;
-
         { true, if we are parsing arguments allowing named parameters }
         named_args_allowed : boolean;
 
@@ -128,7 +125,6 @@ implementation
        begin
          FCompiler:=ACompiler;
          afterassignment:=false;
-         in_args:=false;
          named_args_allowed:=false;
          got_addrn:=false;
          getprocvardef:=nil;

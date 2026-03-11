@@ -64,6 +64,9 @@ interface
                             out memberparentdef: tdef): boolean;
     function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
   public
+    { true, if we are parsing arguments }
+    in_args : boolean;
+
     constructor Create(ACompiler: TCompilerBase);
 
     { reads a whole expression }
@@ -196,10 +199,10 @@ implementation
               exit;
            end;
          { save old values }
-         prev_in_args:=compiler.parser.pbase.in_args;
+         prev_in_args:=in_args;
          old_named_args_allowed:=compiler.parser.pbase.named_args_allowed;
          { set para parsing values }
-         compiler.parser.pbase.in_args:=true;
+         in_args:=true;
          compiler.parser.pbase.named_args_allowed:=false;
          p2:=nil;
          repeat
@@ -247,7 +250,7 @@ implementation
                  end
              end;
          until not compiler.parser.pbase.try_to_consume(_COMMA);
-         compiler.parser.pbase.in_args:=prev_in_args;
+         in_args:=prev_in_args;
          compiler.parser.pbase.named_args_allowed:=old_named_args_allowed;
          parse_paras:=p2;
       end;
@@ -297,12 +300,12 @@ implementation
         def : tdef;
         exit_procinfo: tprocinfo;
       begin
-        prev_in_args:=compiler.parser.pbase.in_args;
+        prev_in_args:=in_args;
         case l of
 
           in_new_x :
             begin
-              if compiler.parser.pbase.afterassignment or compiler.parser.pbase.in_args then
+              if compiler.parser.pbase.afterassignment or in_args then
                statement_syssym:=compiler.parser.pinline.new_function
               else
                statement_syssym:=compiler.parser.pinline.new_dispose_statement(true);
@@ -317,7 +320,7 @@ implementation
           in_chr_byte:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               compiler.parser.pbase.consume(_RKLAMMER);
               p1:=geninlinenode(l,false,p1,compiler);
@@ -432,7 +435,7 @@ implementation
           in_typeof_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               compiler.parser.pbase.consume(_RKLAMMER);
               if p1.nodetype=typen then
@@ -460,7 +463,7 @@ implementation
           in_bitsizeof_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               compiler.parser.pbase.consume(_RKLAMMER);
               if ((p1.nodetype<>typen) and
@@ -523,7 +526,7 @@ implementation
                  (m_objectivec1 in current_settings.modeswitches) then
                 begin
                   compiler.parser.pbase.consume(_LKLAMMER);
-                  compiler.parser.pbase.in_args:=true;
+                  in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
                   { When reading a class type it is parsed as loadvmtaddrn,
                     typeinfo only needs the type so we remove the loadvmtaddrn }
@@ -561,7 +564,7 @@ implementation
           in_isconstvalue_x:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               compiler.parser.pbase.consume(_RKLAMMER);
               p2:=geninlinenode(l,false,p1,compiler);
@@ -574,7 +577,7 @@ implementation
             begin
               err:=false;
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=compiler.ccallparanode(p1,nil);
               p2:=geninlinenode(l,false,p2,compiler);
@@ -586,7 +589,7 @@ implementation
             begin
               err:=false;
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               { When reading a class type it is parsed as loadvmtaddrn,
                 typeinfo only needs the type so we remove the loadvmtaddrn }
@@ -708,7 +711,7 @@ implementation
           in_low_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
               compiler.parser.pbase.consume(_RKLAMMER);
@@ -719,7 +722,7 @@ implementation
           in_pred_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
               compiler.parser.pbase.consume(_RKLAMMER);
@@ -730,7 +733,7 @@ implementation
           in_dec_x :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               if compiler.parser.pbase.try_to_consume(_COMMA) then
                 p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
@@ -743,11 +746,11 @@ implementation
 
           in_slice_x:
             begin
-              if not(compiler.parser.pbase.in_args) then
+              if not(in_args) then
                 begin
                   message(parser_e_illegal_slice);
                   compiler.parser.pbase.consume(_LKLAMMER);
-                  compiler.parser.pbase.in_args:=true;
+                  in_args:=true;
                   comp_expr([ef_accept_equal]).free; // no nil needed
                   if compiler.parser.pbase.try_to_consume(_COMMA) then
                     comp_expr([ef_accept_equal]).free; // no nil needed
@@ -757,7 +760,7 @@ implementation
               else
                 begin
                   compiler.parser.pbase.consume(_LKLAMMER);
-                  compiler.parser.pbase.in_args:=true;
+                  in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
                   compiler.parser.pbase.consume(_COMMA);
                   if not(codegenerror) then
@@ -815,7 +818,7 @@ implementation
               if (m_objectivec1 in current_settings.modeswitches) then
                 begin
                   compiler.parser.pbase.consume(_LKLAMMER);
-                  compiler.parser.pbase.in_args:=true;
+                  in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
                   p1:=factor(true,[]);
                   p2:=geninlinenode(l,false,p1,compiler);
@@ -832,7 +835,7 @@ implementation
           in_length_x:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1,compiler);
               compiler.parser.pbase.consume(_RKLAMMER);
@@ -866,7 +869,7 @@ implementation
           in_val_x:
             Begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args := true;
+              in_args := true;
               p1:= compiler.ccallparanode(comp_expr([ef_accept_equal]), nil);
               compiler.parser.pbase.consume(_COMMA);
               p2 := compiler.ccallparanode(comp_expr([ef_accept_equal]),p1);
@@ -881,7 +884,7 @@ implementation
           in_exclude_x_y :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               compiler.parser.pbase.consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
@@ -893,7 +896,7 @@ implementation
           in_unpack_x_y_z :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               compiler.parser.pbase.consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
@@ -906,7 +909,7 @@ implementation
           in_assert_x_y :
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               if compiler.parser.pbase.try_to_consume(_COMMA) then
                  p2:=comp_expr([ef_accept_equal])
@@ -930,7 +933,7 @@ implementation
                   {You used to call get_caller_frame as get_caller_frame(get_frame),
                    however, as a stack frame may not exist, it does more harm than
                    good, so ignore it.}
-                  compiler.parser.pbase.in_args:=true;
+                  in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
                   p1.free;
                   p1 := nil;
@@ -942,7 +945,7 @@ implementation
           in_default_x:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               def:=nil;
               compiler.parser.ptype.single_type(def,[stoAllowSpecialization]);
               statement_syssym:=compiler.cerrornode;
@@ -976,7 +979,7 @@ implementation
           in_const_eh_return_data_regno:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,true,p1,compiler);
               compiler.parser.pbase.consume(_RKLAMMER);
@@ -987,7 +990,7 @@ implementation
           in_atomic_dec:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               if compiler.parser.pbase.try_to_consume(_COMMA) then
                 begin
@@ -1002,7 +1005,7 @@ implementation
           in_atomic_xchg:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               p1:=comp_expr([ef_accept_equal]);
               compiler.parser.pbase.consume(_COMMA);
               p2:=comp_expr([ef_accept_equal]);
@@ -1013,7 +1016,7 @@ implementation
           in_atomic_cmp_xchg:
             begin
               compiler.parser.pbase.consume(_LKLAMMER);
-              compiler.parser.pbase.in_args:=true;
+              in_args:=true;
               paras:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
               compiler.parser.pbase.consume(_COMMA);
               tcallparanode(paras).right:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil);
@@ -1031,7 +1034,7 @@ implementation
             internalerror(15);
 
         end;
-        compiler.parser.pbase.in_args:=prev_in_args;
+        in_args:=prev_in_args;
       end;
 
 
@@ -1363,7 +1366,7 @@ implementation
              paras:=compiler.ccallparanode(p2,paras);
            end;
          { we need only a write property if a := follows }
-         { if not(compiler.parser.pbase.afterassignment) and not(compiler.parser.pbase.in_args) then }
+         { if not(compiler.parser.pbase.afterassignment) and not(in_args) then }
          if current_scanner.token=_ASSIGNMENT then
            begin
               if propsym.getpropaccesslist(palt_write,propaccesslist) then
@@ -2785,7 +2788,7 @@ implementation
                               else
                               { this is only an approximation
                                 setting useresult if not necessary is only a waste of time, no more, no less (FK) }
-                              if compiler.parser.pbase.afterassignment or compiler.parser.pbase.in_args or (current_scanner.token<>_SEMICOLON) then
+                              if compiler.parser.pbase.afterassignment or in_args or (current_scanner.token<>_SEMICOLON) then
                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,cvarianttype)
                               else
                                 p1:=translate_disp_call(p1,p2,calltype,dispatchstring,0,voidtype);
@@ -3356,6 +3359,7 @@ implementation
     constructor TExpressionParser.Create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
+        in_args:=false;
       end;
 
 
@@ -3665,7 +3669,7 @@ implementation
                (current_scanner.token=_LKLAMMER) or
                (
                 (([m_tp7,m_delphi,m_mac,m_iso,m_extpas] * current_settings.modeswitches) <> []) and
-                (compiler.parser.pbase.afterassignment or compiler.parser.pbase.in_args)
+                (compiler.parser.pbase.afterassignment or in_args)
                )
               ) then
             begin
