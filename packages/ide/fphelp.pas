@@ -476,6 +476,7 @@ procedure InitHelpSystem;
 var I,P: sw_integer;
     S: string;
     Param: string;
+    TOC_index : Sw_Integer;
 begin
   New(HelpFacility, Init);
 
@@ -487,13 +488,31 @@ begin
   WHTMLHlp.RegisterHelpType; // Also registers chm and html index (.htx)
 
   PushStatus(msg_LoadingHelpFiles);
+  { Look for toc.chm and add that first }
+  TOC_index:=-1;
   for I:=0 to HelpFiles^.Count-1 do
     begin
       S:=HelpFiles^.At(I)^; Param:='';
       P:=Pos('|',S);
       if P>0 then
         begin Param:=copy(S,P+1,High(S)); S:=copy(S,1,P-1); end;
-      AddHelpFile(S,Param);
+      if (length(S)>=7) and (LowerCase(copy(S,length(S)-6,7))='toc.chm') then
+      begin
+        TOC_index:=I;
+        AddHelpFile(S,Param);
+        fog('TOC '+inttostr(TOC_index)+'  '+S);
+        break;
+      end;
+    end;
+  { Add every other help file (except toc.chm) }
+  for I:=0 to HelpFiles^.Count-1 do
+    begin
+      S:=HelpFiles^.At(I)^; Param:='';
+      P:=Pos('|',S);
+      if P>0 then
+        begin Param:=copy(S,P+1,High(S)); S:=copy(S,1,P-1); end;
+      if TOC_index<>I then
+        AddHelpFile(S,Param);
     end;
   PopStatus;
 end;
