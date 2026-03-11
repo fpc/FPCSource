@@ -48,9 +48,6 @@ interface
       private
         FCompiler: TCompilerBase;
       public
-        { true, if we are parsing arguments allowing named parameters }
-        named_args_allowed : boolean;
-
         { true, if we got an @ to get the address }
         got_addrn  : boolean;
 
@@ -121,7 +118,6 @@ implementation
      constructor TParserBaseHelpers.Create(ACompiler: TCompilerBase);
        begin
          FCompiler:=ACompiler;
-         named_args_allowed:=false;
          got_addrn:=false;
          getprocvardef:=nil;
          getfuncrefdef:=nil;

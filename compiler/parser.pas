@@ -507,7 +507,7 @@ implementation
          important for the IDE }
          compiler.parser.pexpr.afterassignment:=false;
          compiler.parser.pexpr.in_args:=false;
-         compiler.parser.pbase.named_args_allowed:=false;
+         compiler.parser.pexpr.named_args_allowed:=false;
          compiler.parser.pbase.got_addrn:=false;
          compiler.parser.pbase.getprocvardef:=nil;
          compiler.parser.pbase.getfuncrefdef:=nil;

@@ -70,6 +70,9 @@ interface
     { true, if we are parsing arguments }
     in_args : boolean;
 
+    { true, if we are parsing arguments allowing named parameters }
+    named_args_allowed : boolean;
+
     constructor Create(ACompiler: TCompilerBase);
 
     { reads a whole expression }
@@ -203,10 +206,10 @@ implementation
            end;
          { save old values }
          prev_in_args:=in_args;
-         old_named_args_allowed:=compiler.parser.pbase.named_args_allowed;
+         old_named_args_allowed:=named_args_allowed;
          { set para parsing values }
          in_args:=true;
-         compiler.parser.pbase.named_args_allowed:=false;
+         named_args_allowed:=false;
          p2:=nil;
          repeat
            if __namedpara then
@@ -218,9 +221,9 @@ implementation
                  end
                else
                  begin
-                   compiler.parser.pbase.named_args_allowed:=true;
+                   named_args_allowed:=true;
                    p1:=comp_expr([ef_accept_equal]);
-                   compiler.parser.pbase.named_args_allowed:=false;
+                   named_args_allowed:=false;
                    if compiler.parser.pbase.found_arg_name then
                      begin
                        argname:=p1;
@@ -254,7 +257,7 @@ implementation
              end;
          until not compiler.parser.pbase.try_to_consume(_COMMA);
          in_args:=prev_in_args;
-         compiler.parser.pbase.named_args_allowed:=old_named_args_allowed;
+         named_args_allowed:=old_named_args_allowed;
          parse_paras:=p2;
       end;
 
@@ -3364,6 +3367,7 @@ implementation
         FCompiler:=ACompiler;
         afterassignment:=false;
         in_args:=false;
+        named_args_allowed:=false;
       end;
 
 
@@ -3493,7 +3497,7 @@ implementation
 
                if not(unit_found) and
                    not isspecialize and
-                  compiler.parser.pbase.named_args_allowed and
+                  named_args_allowed and
                   (current_scanner.token=_ASSIGNMENT) then
                   begin
                     compiler.parser.pbase.found_arg_name:=true;
