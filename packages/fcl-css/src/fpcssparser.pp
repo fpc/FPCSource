@@ -92,7 +92,7 @@ Type
     function ParseInteger: TCSSElement; virtual;
     function ParseFloat: TCSSElement; virtual;
     function ParseString: TCSSElement; virtual;
-    function ParseColor: TCSSElement; virtual;
+    function ParseHashValue: TCSSElement; virtual;
     Function ParseUnicodeRange : TCSSElement; virtual;
     function ParseArray(aPrefix: TCSSElement): TCSSElement; virtual;
     function ParseURL: TCSSElement; virtual;
@@ -116,6 +116,7 @@ Type
     CSSPseudoClassElementClass: TCSSPseudoClassElementClass;
     CSSRuleElementClass: TCSSRuleElementClass;
     CSSStringElementClass: TCSSStringElementClass;
+    CSSHashValueElementClass: TCSSHashValueElementClass;
     CSSUnaryElementClass: TCSSUnaryElementClass;
     CSSUnicodeRangeElementClass: TCSSUnicodeRangeElementClass;
     CSSURLElementClass: TCSSURLElementClass;
@@ -126,6 +127,7 @@ Type
     Function ParseInline : TCSSElement;
     Property CurrentToken : TCSSToken Read FCurrent;
     Property CurrentTokenString : TCSSString Read FCurrentTokenString;
+    Property PreviousToken : TCSSToken Read FPrevious;
     Function GetNextToken : TCSSToken;
     Function PeekNextToken : TCSSToken;
     Property Scanner : TCSSScanner Read FScanner;
@@ -341,6 +343,7 @@ begin
   CSSPseudoClassElementClass:=TCSSPseudoClassElement;
   CSSRuleElementClass:=TCSSRuleElement;
   CSSStringElementClass:=TCSSStringElement;
+  CSSHashValueElementClass:=TCSSHashValueElement;
   CSSUnaryElementClass:=TCSSUnaryElement;
   CSSUnicodeRangeElementClass:=TCSSUnicodeRangeElement;
   CSSURLElementClass:=TCSSURLElement;
@@ -694,6 +697,7 @@ end;
 
 function TCSSParser.Parse: TCSSElement;
 begin
+  FPrevious:=ctkUNKNOWN;
   GetNextToken;
   if CurrentToken=ctkLBRACE then
     Result:=ParseRule
@@ -705,6 +709,7 @@ function TCSSParser.ParseInline: TCSSElement;
 var
   aRule: TCSSRuleElement;
 begin
+  FPrevious:=ctkUNKNOWN;
   GetNextToken;
   aRule:=TCSSRuleElement(CreateElement(CSSRuleElementClass));
   try
@@ -1189,7 +1194,7 @@ begin
     ctkTilde: Result:=ParseUnary;
     ctkUnicodeRange: Result:=ParseUnicodeRange;
     ctkSTRING: Result:=ParseString;
-    ctkHASH: Result:=ParseColor;
+    ctkHASH: Result:=ParseHashValue;
     ctkINTEGER: Result:=ParseInteger;
     ctkFloat : Result:=ParseFloat;
     ctkPSEUDOFUNCTION,
@@ -1200,7 +1205,7 @@ begin
   else
     Result:=nil;
   end;
-  if aToken in FinalTokens then
+  if (aToken in FinalTokens) or (PreviousToken=ctkWHITESPACE) then
     exit;
   if (CurrentToken=ctkLBRACKET) then
     Result:=ParseArray(Result);
@@ -1700,20 +1705,21 @@ begin
   end;
 end;
 
-function TCSSParser.ParseColor: TCSSElement;
+function TCSSParser.ParseHashValue: TCSSElement;
 var
-  aStr: TCSSStringElement;
+  aHash: TCSSHashValueElement;
   aValue: TCSSString;
 begin
   aValue:=CurrentTokenString;
-  aStr:=TCSSStringElement(CreateElement(CSSStringElementClass));
+  system.delete(aValue,1,1);
+  aHash:=TCSSHashValueElement(CreateElement(CSSHashValueElementClass));
   try
-    aStr.Value:=aValue;
+    aHash.Value:=aValue;
     Consume(ctkHASH); // e.g. #rrggbb
-    Result:=aStr;
-    aStr:=nil;
+    Result:=aHash;
+    aHash:=nil;
   finally
-    aStr.Free;
+    aHash.Free;
   end;
 end;
 

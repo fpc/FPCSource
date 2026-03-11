@@ -135,6 +135,7 @@ Type
 
   TCSSScanner = class
   private
+    FPreviousToken: TCSSToken;
     FOnWarn: TCSSScannerWarnEvent;
     FOptions: TCSSScannerOptions;
     FSourceFile: TLineReader;
@@ -185,6 +186,7 @@ Type
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TCSSToken read FCurToken;
     property CurTokenString: TCSSString read FCurTokenString;
+    property PreviousToken: TCSSToken read FPreviousToken;
     property DisablePseudo : Boolean Index csoDisablePseudo Read GetOption Write SetOption;
     property OnWarn: TCSSScannerWarnEvent read FOnWarn write FOnWarn; // if not set raise ECSSScanner
   end;
@@ -897,6 +899,7 @@ function TCSSScanner.DoFetchToken: TCSSToken;
   end;
 
 begin
+  FPreviousToken:=FCurToken;
   if TokenStr = nil then
     begin
     if not FetchLine then

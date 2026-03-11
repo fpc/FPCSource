@@ -672,8 +672,8 @@ begin
   AssertEquals('selector count',0,R.SelectorCount);
   D:=CheckDeclaration(R,0,'a');
   AssertEquals('Value count', 1, D.ChildCount);
-  S:=TCSSStringElement(CheckClass('Value', TCSSStringElement,D.Children[0]));
-  AssertEquals('Value ','#ABABAB',S.Value);
+  S:=TCSSStringElement(CheckClass('Value', TCSSHashValueElement,D.Children[0]));
+  AssertEquals('Value ','ABABAB',S.Value);
 end;
 
 procedure TTestCSSParser.TestOneDeclarationURLValue;
