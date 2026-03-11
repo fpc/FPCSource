@@ -101,7 +101,7 @@
 
     msg_nohelpfilesinstalled1 = 'To keep the size of the FPC download reasonably low, the CHM help files';
     msg_nohelpfilesinstalled2 = 'which are necessary for the IDE help to function, are omitted.';
-    msg_nohelpfilesinstalled3 = 'To get these docs, go to ftp://ftp.freepascal.org/pub/fpc/dist/ and get doc-chm.zip';
+    msg_nohelpfilesinstalled3 = 'To get these docs, go to https://www.freepascal.org/down/docs/docs.var and get doc-chm.zip';
     msg_nohelpfilesinstalled4 = 'for your version. Extract the CHM files and add them to the IDE using Help|Files,';
     msg_nohelpfilesinstalled5 = 'add toc.chm first.';
     msg_helpindex = 'Help index';
