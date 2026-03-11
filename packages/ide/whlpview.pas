@@ -1165,11 +1165,18 @@ begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) then
-      if (Event.Buttons=mbLeftButton) and (Event.Double) then
       begin
-        inherited HandleEvent(Event);
-        if CurLink<>-1 then
-           SelectLink(CurLink);
+        if (Event.Buttons=mbLeftButton) and (Event.Double) then
+        begin
+          inherited HandleEvent(Event);
+          if CurLink<>-1 then
+             SelectLink(CurLink);
+        end;
+        if (Event.Buttons=mbXButton1) then
+        begin
+          PrevTopic;
+          ClearEvent(Event);
+        end;
       end;
     evBroadcast :
       case Event.Command of
