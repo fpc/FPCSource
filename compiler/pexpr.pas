@@ -47,6 +47,19 @@ interface
   TExpressionParser = class
   private
     FCompiler: TCompilerBase;
+
+    { true, if we are parsing arguments }
+    in_args : boolean;
+
+    { true, if we are parsing arguments allowing named parameters }
+    named_args_allowed : boolean;
+
+    { true, if we got an @ to get the address }
+    got_addrn  : boolean;
+
+    { special for function reference vars }
+    getfuncrefdef : tobjectdef;
+
     property Compiler: TCompilerBase read FCompiler;
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
@@ -67,20 +80,8 @@ interface
     { true, if we are after an assignment }
     afterassignment : boolean;
 
-    { true, if we are parsing arguments }
-    in_args : boolean;
-
-    { true, if we are parsing arguments allowing named parameters }
-    named_args_allowed : boolean;
-
-    { true, if we got an @ to get the address }
-    got_addrn  : boolean;
-
     { special for handling procedure vars }
     getprocvardef : tprocvardef;
-
-    { special for function reference vars }
-    getfuncrefdef : tobjectdef;
 
     constructor Create(ACompiler: TCompilerBase);
 
