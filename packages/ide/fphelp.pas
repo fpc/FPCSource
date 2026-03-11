@@ -496,7 +496,6 @@ begin
       begin
         TOC_index:=I;
         AddHelpFile(S,Param);
-        fog('TOC '+inttostr(TOC_index)+'  '+S);
         break;
       end;
     end;
