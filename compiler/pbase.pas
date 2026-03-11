@@ -48,9 +48,6 @@ interface
       private
         FCompiler: TCompilerBase;
       public
-        { special for function reference vars }
-        getfuncrefdef : tobjectdef;
-
         { for operators }
         optoken : ttoken;
 
@@ -112,7 +109,6 @@ implementation
      constructor TParserBaseHelpers.Create(ACompiler: TCompilerBase);
        begin
          FCompiler:=ACompiler;
-         getfuncrefdef:=nil;
        end;
 
 

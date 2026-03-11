@@ -79,6 +79,9 @@ interface
     { special for handling procedure vars }
     getprocvardef : tprocvardef;
 
+    { special for function reference vars }
+    getfuncrefdef : tobjectdef;
+
     constructor Create(ACompiler: TCompilerBase);
 
     { reads a whole expression }
@@ -1116,13 +1119,13 @@ implementation
 
          { When we are expecting a procvar we also need
            to get the address in some cases }
-         if assigned(getprocvardef) or assigned(compiler.parser.pbase.getfuncrefdef) then
+         if assigned(getprocvardef) or assigned(getfuncrefdef) then
           begin
             if (block_type=bt_const) or
                getaddr then
              begin
-               if assigned(compiler.parser.pbase.getfuncrefdef) then
-                 aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(compiler.parser.pbase.getfuncrefdef)
+               if assigned(getfuncrefdef) then
+                 aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef)
                else
                  aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
                getaddr:=true;
@@ -1132,8 +1135,8 @@ implementation
                  (m_mac_procvar in current_settings.modeswitches)) and
                 not(current_scanner.token in [_CARET,_POINT,_LKLAMMER]) then
               begin
-                if assigned(compiler.parser.pbase.getfuncrefdef) then
-                  aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(compiler.parser.pbase.getfuncrefdef)
+                if assigned(getfuncrefdef) then
+                  aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef)
                 else
                   aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
                 if assigned(aprocdef) then
@@ -1164,8 +1167,8 @@ implementation
                 assigned(getprocvardef) then
                aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
              if not assigned(aprocdef) and
-                assigned(compiler.parser.pbase.getfuncrefdef) then
-               aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(compiler.parser.pbase.getfuncrefdef);
+                assigned(getfuncrefdef) then
+               aprocdef:=Tprocsym(sym).Find_procdef_byfuncrefdef(getfuncrefdef);
 
              { ensure that the correct function is considered as captured }
              if assigned(current_procinfo) and
@@ -1197,7 +1200,7 @@ implementation
                     if (p1.resultdef.typ=classrefdef) and
                        (
                          assigned(getprocvardef) or
-                         assigned(compiler.parser.pbase.getfuncrefdef)
+                         assigned(getfuncrefdef)
                        ) then
                       begin
                         p1:=compiler.cloadvmtaddrnode(p1);
@@ -1400,17 +1403,17 @@ implementation
                          if propsym.propdef.typ=procvardef then
                            getprocvardef:=tprocvardef(propsym.propdef)
                          else if is_invokable(propsym.propdef) then
-                           compiler.parser.pbase.getfuncrefdef:=tobjectdef(propsym.propdef);
+                           getfuncrefdef:=tobjectdef(propsym.propdef);
                          p2:=comp_expr([ef_accept_equal]);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2)
-                         else if assigned(compiler.parser.pbase.getfuncrefdef) then
-                           handle_funcref(compiler.parser.pbase.getfuncrefdef,p2);
+                         else if assigned(getfuncrefdef) then
+                           handle_funcref(getfuncrefdef,p2);
                          tcallnode(p1).left:=compiler.ccallparanode(p2,tcallnode(p1).left);
                          { mark as property, both the tcallnode and the real call block }
                          include(p1.flags,nf_isproperty);
                          getprocvardef:=nil;
-                         compiler.parser.pbase.getfuncrefdef:=nil;
+                         getfuncrefdef:=nil;
                        end;
                      fieldvarsym :
                        begin
@@ -1423,14 +1426,14 @@ implementation
                          if propsym.propdef.typ=procvardef then
                            getprocvardef:=tprocvardef(propsym.propdef)
                          else if is_invokable(propsym.propdef) then
-                           compiler.parser.pbase.getfuncrefdef:=tobjectdef(propsym.propdef);
+                           getfuncrefdef:=tobjectdef(propsym.propdef);
                          p2:=comp_expr([ef_accept_equal]);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2)
-                         else if assigned(compiler.parser.pbase.getfuncrefdef) then
-                           handle_funcref(compiler.parser.pbase.getfuncrefdef,p2);
+                         else if assigned(getfuncrefdef) then
+                           handle_funcref(getfuncrefdef,p2);
                          getprocvardef:=nil;
-                         compiler.parser.pbase.getfuncrefdef:=nil;
+                         getfuncrefdef:=nil;
                          p1:=compiler.cassignmentnode(p1,p2);
                       end
                     else
@@ -3001,8 +3004,8 @@ implementation
                       equal_defs(p1.resultdef,getprocvardef)
                      ) or
                      (
-                      assigned(compiler.parser.pbase.getfuncrefdef) and
-                      equal_defs(p1.resultdef,compiler.parser.pbase.getfuncrefdef)
+                      assigned(getfuncrefdef) and
+                      equal_defs(p1.resultdef,getfuncrefdef)
                      ) then
                     begin
                       if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
@@ -3376,6 +3379,7 @@ implementation
         named_args_allowed:=false;
         got_addrn:=false;
         getprocvardef:=nil;
+        getfuncrefdef:=nil;
       end;
 
 
@@ -4413,12 +4417,12 @@ implementation
                    begin
                      filepos:=current_filepos;
                      oldprocvardef:=getprocvardef;
-                     oldfuncrefdef:=compiler.parser.pbase.getfuncrefdef;
+                     oldfuncrefdef:=getfuncrefdef;
                      getprocvardef:=nil;
-                     compiler.parser.pbase.getfuncrefdef:=nil;
+                     getfuncrefdef:=nil;
                      pd:=compiler.parser.psub.read_proc([rpf_anonymous],nil);
                      getprocvardef:=oldprocvardef;
-                     compiler.parser.pbase.getfuncrefdef:=oldfuncrefdef;
+                     getfuncrefdef:=oldfuncrefdef;
                      { assume that we try to get the address except if certain
                        tokens follow that indicate a call }
                      do_proc_call(pd.procsym,pd.owner,nil,not (current_scanner.token in [_POINT,_CARET,_LECKKLAMMER]),
@@ -5068,14 +5072,14 @@ implementation
                   if (p1.resultdef.typ=procvardef) then
                     getprocvardef:=tprocvardef(p1.resultdef)
                   else if is_invokable(p1.resultdef) then
-                    compiler.parser.pbase.getfuncrefdef:=tobjectdef(p1.resultdef);
+                    getfuncrefdef:=tobjectdef(p1.resultdef);
                 p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                 if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2)
-                else if assigned(compiler.parser.pbase.getfuncrefdef) then
-                  handle_funcref(compiler.parser.pbase.getfuncrefdef,p2);
+                else if assigned(getfuncrefdef) then
+                  handle_funcref(getfuncrefdef,p2);
                 getprocvardef:=nil;
-                compiler.parser.pbase.getfuncrefdef:=nil;
+                getfuncrefdef:=nil;
                 p1:=compiler.cassignmentnode(p1,p2);
              end;
            _PLUSASN :

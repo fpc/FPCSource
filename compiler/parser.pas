@@ -510,7 +510,7 @@ implementation
          compiler.parser.pexpr.named_args_allowed:=false;
          compiler.parser.pexpr.got_addrn:=false;
          compiler.parser.pexpr.getprocvardef:=nil;
-         compiler.parser.pbase.getfuncrefdef:=nil;
+         compiler.parser.pexpr.getfuncrefdef:=nil;
 
        { show info }
          Message1(parser_i_compiling,module.mainsource);
