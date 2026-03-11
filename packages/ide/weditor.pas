@@ -613,6 +613,7 @@ type
       procedure   TabSizeChanged; virtual;
       procedure   SyntaxStateChanged; virtual;
       procedure   StoreUndoChanged; virtual;
+      procedure   ChangeCommands; virtual;
       procedure   SelectionChanged; virtual;
       procedure   HighlightChanged; virtual;
    {a}procedure   DoLimitsChanged; virtual;
@@ -7735,21 +7736,9 @@ begin
   UnLock;
 end;
 
-procedure TCustomCodeEditor.SelectionChanged;
+procedure TCustomCodeEditor.ChangeCommands;
 var Enable,CanPaste: boolean;
 begin
-  if GetLineCount=0 then
-    begin
-      SelStart.X:=0; SelStart.Y:=0; SelEnd:=SelStart;
-    end
-  else
-    if SelEnd.Y>GetLineCount-1 then
-     if (SelEnd.Y<>GetLineCount) or (SelEnd.X<>0) then
-      begin
-        SelEnd.Y:=GetLineCount-1;
-        SelEnd.X:=length(GetDisplayText(SelEnd.Y));
-      end;
-
   { we change the CurCommandSet, but only if we are top view }
   if ((State and sfFocused)<>0) then
     begin
@@ -7761,8 +7750,33 @@ begin
       SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
       SetCmdState(UndoCmd,(GetUndoActionCount>0));
       SetCmdState(RedoCmd,(GetRedoActionCount>0));
-      Message(Application,evBroadcast,cmCommandSetChanged,nil);
+      //Message(Application,evBroadcast,cmCommandSetChanged,nil);
     end;
+end;
+
+procedure TCustomCodeEditor.SelectionChanged;
+begin
+  if GetLineCount=0 then
+    begin
+      SelStart.X:=0; SelStart.Y:=0; SelEnd:=SelStart;
+    end
+  else
+    begin
+      if SelStart.Y>GetLineCount-1 then
+       if (SelStart.Y<>GetLineCount) or (SelStart.X<>0) then
+        begin
+          SelStart.Y:=GetLineCount-1;
+          SelStart.X:=length(GetDisplayText(SelEnd.Y));
+          SelEnd:=SelStart;
+        end;
+      if SelEnd.Y>GetLineCount-1 then
+       if (SelEnd.Y<>GetLineCount) or (SelEnd.X<>0) then
+        begin
+          SelEnd.Y:=GetLineCount-1;
+          SelEnd.X:=length(GetDisplayText(SelEnd.Y));
+        end;
+    end;
+  ChangeCommands;
   DrawView;
 end;
 

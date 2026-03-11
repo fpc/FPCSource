@@ -88,6 +88,8 @@ type
       constructor Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
       destructor  Done;virtual;
       procedure   InitHelpView; virtual;
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   UpdateCommands; virtual;
       procedure   Show; {virtual;}
       procedure   Hide; {virtual;}
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -492,7 +494,7 @@ const
       EditorCmds  : TCommandSet =
         ([cmPrint,cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch,cmSelectAll,cmUnselect]);
       CompileCmds : TCommandSet =
-        ([cmMake,cmBuild,cmRun]);
+        ([cmMake,cmBuild,cmRun,cmStepOver,cmTraceInto,cmContToCursor]);
 
       CalcClipboard   : extended = 0;
 
@@ -2501,6 +2503,28 @@ begin
   HelpView^.GrowMode:=gfGrowHiX+gfGrowHiY;
 end;
 
+procedure TFPHelpWindow.SetState(AState: Word; Enable: Boolean);
+var OldState: word;
+begin
+  OldState:=State;
+  inherited SetState(AState,Enable);
+  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
+    UpdateCommands;
+end;
+
+procedure TFPHelpWindow.UpdateCommands;
+var Active, Visible: boolean;
+begin
+  Visible:=GetState(sfVisible);
+  Active:=GetState(sfActive) and Visible;
+  SetCmdState(SourceCmds+CompileCmds,False);
+  SetCmdState(EditorCmds,True);
+  if Assigned(HelpView) then
+    HelpView^.ChangeCommands;
+  SetCmdState([cmHide],Active);
+  SetCmdState([cmTile,cmCascade,cmTileVertical,cmStepped,cmSteppedReverse],Visible or IsThereAnyVisibleEditorWindow);
+end;
+
 procedure TFPHelpWindow.Show;
 begin
   inherited Show;
@@ -2681,7 +2705,8 @@ begin
     SetCmdState(SourceCmds+CompileCmds,Active);
     SetCmdState(EditorCmds,Active);
   end;
-  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd+[cmHide],Active);
+  Editor^.ChangeCommands;
+  SetCmdState([cmHide],Active);
   SetCmdState([cmTile,cmCascade,cmTileVertical,cmStepped,cmSteppedReverse],Visible or IsThereAnyVisibleEditorWindow);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;

@@ -1093,13 +1093,13 @@ begin
       NewItem(menu_help_about,'',kbNoKey, cmAbout, hcAbout,
       nil))))))))),
     nil)))))))))))));
-   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
 end;
 
 procedure TIDEApp.InitMenuBar;
 
 begin
   LoadMenuBar;
+  SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
   SetCmdState([cmTile,cmCascade],false);
   SetCmdState([cmSymPrevious],false);
