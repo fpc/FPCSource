@@ -33,6 +33,10 @@ type
   TObjectDeclarationsParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     procedure constr_destr_finish_head(pd: tprocdef; const astruct: tabstractrecorddef);
     procedure setinterfacemethodoptions;
     procedure setobjcclassmethodoptions;
@@ -49,7 +53,7 @@ type
     procedure parse_object_members;
     property Compiler: TCompilerBase read FCompiler;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     { parses a object declaration }
     function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
@@ -73,7 +77,7 @@ implementation
       symbase,symsym,symtable,symcreat,defcmp,
       node,ncon,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,pparautl,ppu
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,pgenutil,pparautl,parser,ppu
 {$ifdef jvm}
       ,jvmdef,pjvm;
 {$else}
@@ -90,8 +94,25 @@ implementation
       current_objectdef : tobjectdef absolute current_structdef;
 
 
-    constructor TObjectDeclarationsParser.Create(ACompiler: TCompilerBase);
+    type
+
+      { TObjectDeclarationsParserHelper }
+
+      TObjectDeclarationsParserHelper = class helper for TObjectDeclarationsParser
+        function Parser: TParser; inline;
+      end;
+
+    { TObjectDeclarationsParserHelper }
+
+    function TObjectDeclarationsParserHelper.Parser: TParser;
       begin
+        Result:=TParser(FParser);
+      end;
+
+
+    constructor TObjectDeclarationsParser.Create(AParser: TObject; ACompiler: TCompilerBase);
+      begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -101,11 +122,11 @@ implementation
         case astruct.typ of
           recorddef:
             begin
-              compiler.parser.pdecsub.parse_record_proc_directives(pd);
+              parser.pdecsub.parse_record_proc_directives(pd);
             end;
           objectdef:
             begin
-              compiler.parser.pdecsub.parse_object_proc_directives(pd);
+              parser.pdecsub.parse_object_proc_directives(pd);
             end
           else
             internalerror(2011040502);
@@ -124,7 +145,7 @@ implementation
         if (po_virtualmethod in pd.procoptions) then
           include(astruct.objectoptions,oo_has_virtual);
 
-        compiler.parser.ptype.maybe_parse_hint_directives(pd);
+        parser.ptype.maybe_parse_hint_directives(pd);
       end;
 
 
@@ -133,18 +154,18 @@ implementation
         pd : tprocdef;
       begin
         result:=nil;
-        compiler.parser.pbase.consume(_CONSTRUCTOR);
+        parser.pbase.consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_class_constructor,[],nil,nil,pd);
+        parser.pdecsub.parse_proc_head(current_structdef,potype_class_constructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
             exit;
           end;
         pd.calcparas;
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_constructor);
-        compiler.parser.pbase.consume(_SEMICOLON);
+        parser.pbase.consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_constructor);
         include(current_module.moduleflags,mf_classinits);
         { no return value }
@@ -158,18 +179,18 @@ implementation
         pd : tprocdef;
       begin
         result:=nil;
-        compiler.parser.pbase.consume(_CONSTRUCTOR);
+        parser.pbase.consume(_CONSTRUCTOR);
         { must be at same level as in implementation }
-        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_constructor,[],nil,nil,pd);
+        parser.pdecsub.parse_proc_head(current_structdef,potype_constructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
             exit;
           end;
         if (cs_constructor_name in current_settings.globalswitches) and
            (pd.procsym.name<>'INIT') then
           Message(parser_e_constructorname_must_be_init);
-        compiler.parser.pbase.consume(_SEMICOLON);
+        parser.pbase.consume(_SEMICOLON);
         include(current_structdef.objectoptions,oo_has_constructor);
         { Set return type, class and record constructors return the
           created instance, helper types return the extended type,
@@ -203,10 +224,10 @@ implementation
                 is_objectpascal_helper(current_structdef) or is_java_class_or_interface(current_structdef)) or
                (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
           Message(parser_e_syntax_error);
-        compiler.parser.pbase.consume(_PROPERTY);
-        p:=compiler.parser.pdecvar.read_property_dec(is_classproperty,current_structdef);
-        compiler.parser.pbase.consume(_SEMICOLON);
-        if compiler.parser.pbase.try_to_consume(_DEFAULT) then
+        parser.pbase.consume(_PROPERTY);
+        p:=parser.pdecvar.read_property_dec(is_classproperty,current_structdef);
+        parser.pbase.consume(_SEMICOLON);
+        if parser.pbase.try_to_consume(_DEFAULT) then
           begin
             if oo_has_default_property in current_structdef.objectoptions then
               message(parser_e_only_one_default_property);
@@ -217,12 +238,12 @@ implementation
             if (current_scanner.token=_COLON) then
               begin
                 Message(parser_e_field_not_allowed_here);
-                compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                parser.pbase.consume_all_until(_SEMICOLON);
               end;
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
           end;
         { parse possible enumerator modifier }
-        if compiler.parser.pbase.try_to_consume(_ENUMERATOR) then
+        if parser.pbase.try_to_consume(_ENUMERATOR) then
           begin
             if (current_scanner.token = _ID) then
             begin
@@ -240,11 +261,11 @@ implementation
               end
               else
                 Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
-              compiler.parser.pbase.consume(current_scanner.token);
+              parser.pbase.consume(current_scanner.token);
             end
             else
               Message(parser_e_enumerator_identifier_required);
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
           end;
         { in case of a previous error, p might not be assigned }
         if assigned(p) then
@@ -253,8 +274,8 @@ implementation
 
             { hint directives, these can be separated by semicolons here,
               that needs to be handled here with a loop (PFV) }
-            while compiler.parser.pbase.try_consume_hintdirective(p.symoptions,p.deprecatedmsg) do
-              compiler.parser.pbase.consume(_SEMICOLON);
+            while parser.pbase.try_consume_hintdirective(p.symoptions,p.deprecatedmsg) do
+              parser.pbase.consume(_SEMICOLON);
           end
         else
           begin
@@ -262,8 +283,8 @@ implementation
 
             { hint directives, these can be separated by semicolons here,
               that needs to be handled here with a loop (PFV) }
-            while compiler.parser.pbase.try_consume_hintdirective(_symoptions,_deprecatedmsg) do
-              compiler.parser.pbase.consume(_SEMICOLON);
+            while parser.pbase.try_consume_hintdirective(_symoptions,_deprecatedmsg) do
+              parser.pbase.consume(_SEMICOLON);
           end;
       end;
 
@@ -273,17 +294,17 @@ implementation
         pd : tprocdef;
       begin
         result:=nil;
-        compiler.parser.pbase.consume(_DESTRUCTOR);
-        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_class_destructor,[],nil,nil,pd);
+        parser.pbase.consume(_DESTRUCTOR);
+        parser.pdecsub.parse_proc_head(current_structdef,potype_class_destructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
             exit;
           end;
         pd.calcparas;
         if (pd.maxparacount>0) then
           Message(parser_e_no_paras_for_class_destructor);
-        compiler.parser.pbase.consume(_SEMICOLON);
+        parser.pbase.consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_destructor);
         include(current_module.moduleflags,mf_classinits);
         { no return value }
@@ -297,11 +318,11 @@ implementation
         pd : tprocdef;
       begin
         result:=nil;
-        compiler.parser.pbase.consume(_DESTRUCTOR);
-        compiler.parser.pdecsub.parse_proc_head(current_structdef,potype_destructor,[],nil,nil,pd);
+        parser.pbase.consume(_DESTRUCTOR);
+        parser.pdecsub.parse_proc_head(current_structdef,potype_destructor,[],nil,nil,pd);
         if not assigned(pd) then
           begin
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
             exit;
           end;
         if (cs_constructor_name in current_settings.globalswitches) and
@@ -311,7 +332,7 @@ implementation
         if not(pd.maxparacount=0) and
            (m_fpc in current_settings.modeswitches) then
           Message(parser_e_no_paras_for_destructor);
-        compiler.parser.pbase.consume(_SEMICOLON);
+        parser.pbase.consume(_SEMICOLON);
         include(current_structdef.objectoptions,oo_has_destructor);
         include(current_structdef.objectoptions,oo_has_new_destructor);
         { no return value }
@@ -414,10 +435,10 @@ implementation
       var
         hdef : tdef;
       begin
-        while compiler.parser.pbase.try_to_consume(_COMMA) do
+        while parser.pbase.try_to_consume(_COMMA) do
           begin
              { use single_type instead of id_type for specialize support }
-             compiler.parser.ptype.single_type(hdef,[stoAllowSpecialization,stoParseClassParent]);
+             parser.ptype.single_type(hdef,[stoAllowSpecialization,stoParseClassParent]);
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
@@ -439,7 +460,7 @@ implementation
         p : tnode;
         valid : boolean;
       begin
-        p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+        p:=parser.pexpr.comp_expr([ef_accept_equal]);
         if p.nodetype=stringconstn then
           begin
             stringdispose(current_objectdef.iidstr);
@@ -464,13 +485,13 @@ implementation
          (defined at the class level instead of per method, so that you cannot
          define some methods as external and some not)
         }
-        if compiler.parser.pbase.try_to_consume(_EXTERNAL) then
+        if parser.pbase.try_to_consume(_EXTERNAL) then
           begin
             hs:='';
             if current_scanner.token in [_CSTRING,_CWSTRING,_CCHAR,_CWCHAR] then
               begin
                 { Always add library prefix and suffix to create an uniform name }
-                hs:=compiler.parser.pexpr.get_stringconst;
+                hs:=parser.pexpr.get_stringconst;
                 if ExtractFileExt(hs)='' then
                   hs:=ChangeFileExt(hs,target_info.sharedlibext);
                 if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
@@ -485,8 +506,8 @@ implementation
                 od.import_lib:=stringdup(hs);
               end;
             { check if we shall use another name for the class }
-            if compiler.parser.pbase.try_to_consume(_NAME) then
-              od.objextname:=stringdup(compiler.parser.pexpr.get_stringconst)
+            if parser.pbase.try_to_consume(_NAME) then
+              od.objextname:=stringdup(parser.pexpr.get_stringconst)
             else
               od.objextname:=stringdup(od.objrealname^);
             include(od.objectoptions,oo_is_external);
@@ -504,10 +525,10 @@ implementation
           external (defined at the class level instead of per method, so
           that you cannot define some methods as external and some not)
         }
-        if compiler.parser.pbase.try_to_consume(_EXTERNAL) then
+        if parser.pbase.try_to_consume(_EXTERNAL) then
           begin
-            if compiler.parser.pbase.try_to_consume(_NAME) then
-              od.objextname:=stringdup(compiler.parser.pexpr.get_stringconst)
+            if parser.pbase.try_to_consume(_NAME) then
+              od.objextname:=stringdup(parser.pexpr.get_stringconst)
             else
               { the external name doesn't matter for formally declared
                 classes, and allowing to specify one would mean that we would
@@ -532,10 +553,10 @@ implementation
               gotexternal:=false;
               while true do
                 begin
-                  if compiler.parser.pbase.try_to_consume(_ABSTRACT) then
+                  if parser.pbase.try_to_consume(_ABSTRACT) then
                     include(current_structdef.objectoptions,oo_is_abstract)
                   else
-                  if compiler.parser.pbase.try_to_consume(_SEALED) then
+                  if parser.pbase.try_to_consume(_SEALED) then
                     include(current_structdef.objectoptions,oo_is_sealed)
                   else if (current_objectdef.objecttype=odt_javaclass) and
                           (current_scanner.token=_ID) and
@@ -582,9 +603,9 @@ implementation
         if (current_scanner.token=_LKLAMMER) or
            is_objccategory(current_structdef) then
           begin
-            compiler.parser.pbase.consume(_LKLAMMER);
+            parser.pbase.consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
-            compiler.parser.ptype.single_type(hdef,[stoAllowSpecialization, stoParseClassParent]);
+            parser.ptype.single_type(hdef,[stoAllowSpecialization, stoParseClassParent]);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin
@@ -737,7 +758,7 @@ implementation
                     handleImplementedProtocolOrJavaIntf(intfchildof);
                 readImplementedInterfacesAndProtocols(current_objectdef.objecttype=odt_class);
               end;
-            compiler.parser.pbase.consume(_RKLAMMER);
+            parser.pbase.consume(_RKLAMMER);
           end;
       end;
 
@@ -801,11 +822,11 @@ implementation
         if not is_objectpascal_helper(current_structdef) then
           Internalerror(2011021103);
 
-        compiler.parser.pbase.consume(_FOR);
+        parser.pbase.consume(_FOR);
         { set extendeddef to non-Nil so that potential checks for it won't trigger
           access violations }
         current_objectdef.extendeddef:=generrordef;
-        compiler.parser.ptype.single_type(hdef,[stoParseClassParent]);
+        parser.ptype.single_type(hdef,[stoParseClassParent]);
         if not assigned(hdef) or (hdef.typ=errordef) then
           begin
             case helpertype of
@@ -875,10 +896,10 @@ implementation
       begin
         { read GUID }
         if (current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) and
-           compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
+           parser.pbase.try_to_consume(_LECKKLAMMER) then
           begin
             readinterfaceiid;
-            compiler.parser.pbase.consume(_RECKKLAMMER);
+            parser.pbase.consume(_RECKKLAMMER);
           end
         else if (current_objectdef.objecttype=odt_dispinterface) then
           message(parser_e_dispinterface_needs_a_guid);
@@ -948,21 +969,21 @@ implementation
                  not(oo_can_have_published in astruct.objectoptions) then
                 Message(parser_e_cant_have_published);
 
-              oldparse_only:=compiler.parser.pbase.parse_only;
-              compiler.parser.pbase.parse_only:=true;
+              oldparse_only:=parser.pbase.parse_only;
+              parser.pbase.parse_only:=true;
               flags:=[];
               if is_classdef then
                 include(flags,ppf_classmethod);
               if hadgeneric then
                 include(flags,ppf_generic);
-              result:=compiler.parser.pdecsub.parse_proc_dec(flags,astruct);
+              result:=parser.pdecsub.parse_proc_dec(flags,astruct);
 
               { this is for error recovery as well as forward }
               { interface mappings, i.e. mapping to a method  }
               { which isn't declared yet                      }
               if assigned(result) then
                 begin
-                  compiler.parser.pdecsub.parse_object_proc_directives(result);
+                  parser.pdecsub.parse_object_proc_directives(result);
 
                   { check if dispid is set }
                   if is_dispinterface(result.struct) and not (po_dispid in result.procoptions) then
@@ -1008,9 +1029,9 @@ implementation
                   chkjava(result);
                 end;
 
-              compiler.parser.ptype.maybe_parse_hint_directives(result);
+              parser.ptype.maybe_parse_hint_directives(result);
 
-              compiler.parser.pbase.parse_only:=oldparse_only;
+              parser.pbase.parse_only:=oldparse_only;
             end;
           _CONSTRUCTOR :
             begin
@@ -1037,8 +1058,8 @@ implementation
               if is_classdef and (oo_has_class_constructor in astruct.objectoptions) then
                 Message1(parser_e_only_one_class_constructor_allowed, astruct.objrealname^);
 
-              oldparse_only:=compiler.parser.pbase.parse_only;
-              compiler.parser.pbase.parse_only:=true;
+              oldparse_only:=parser.pbase.parse_only;
+              parser.pbase.parse_only:=true;
               if is_classdef then
                 result:=class_constructor_head(current_structdef)
               else
@@ -1054,7 +1075,7 @@ implementation
 
               chkcpp(result);
 
-              compiler.parser.pbase.parse_only:=oldparse_only;
+              parser.pbase.parse_only:=oldparse_only;
             end;
           _DESTRUCTOR :
             begin
@@ -1084,8 +1105,8 @@ implementation
               if is_classdef and (oo_has_class_destructor in astruct.objectoptions) then
                 Message1(parser_e_only_one_class_destructor_allowed, astruct.objrealname^);
 
-              oldparse_only:=compiler.parser.pbase.parse_only;
-              compiler.parser.pbase.parse_only:=true;
+              oldparse_only:=parser.pbase.parse_only;
+              parser.pbase.parse_only:=true;
               if is_classdef then
                 result:=class_destructor_head(current_structdef)
               else
@@ -1093,7 +1114,7 @@ implementation
 
               chkcpp(result);
 
-              compiler.parser.pbase.parse_only:=oldparse_only;
+              parser.pbase.parse_only:=oldparse_only;
             end;
           else
             internalerror(2011032102);
@@ -1128,7 +1149,7 @@ implementation
         begin
           if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
             Message(parser_e_type_var_const_only_in_records_and_classes);
-          compiler.parser.pbase.consume(_CONST);
+          parser.pbase.consume(_CONST);
           object_member_blocktype:=bt_const;
           final_fields:=is_final;
           is_final:=false;
@@ -1143,9 +1164,9 @@ implementation
                  is_final and is_classdef) then
             Message(parser_e_type_var_const_only_in_records_and_classes);
           if isthreadvar then
-            compiler.parser.pbase.consume(_THREADVAR)
+            parser.pbase.consume(_THREADVAR)
           else
-            compiler.parser.pbase.consume(_VAR);
+            parser.pbase.consume(_VAR);
           fields_allowed:=true;
           object_member_blocktype:=bt_general;
           class_fields:=is_classdef;
@@ -1160,7 +1181,7 @@ implementation
         begin
           is_classdef:=false;
           { read class method/field/property }
-          compiler.parser.pbase.consume(_CLASS);
+          parser.pbase.consume(_CLASS);
           { class modifier is only allowed for procedures, functions, }
           { constructors, destructors, fields and properties          }
           if not((current_scanner.token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_THREADVAR]) or (current_scanner.token=_CONSTRUCTOR)) then
@@ -1195,7 +1216,7 @@ implementation
              is_javainterface(current_structdef) then
             Message(parser_e_no_access_specifier_in_interfaces);
           current_structdef.symtable.currentvisibility:=vis;
-          compiler.parser.pbase.consume(current_scanner.token);
+          parser.pbase.consume(current_scanner.token);
           if (oo<>oo_none) then
             include(current_structdef.objectoptions,oo);
           fields_allowed:=true;
@@ -1235,18 +1256,18 @@ implementation
                 check_unbound_attributes;
                 if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
                   Message(parser_e_type_var_const_only_in_records_and_classes);
-                compiler.parser.pbase.consume(_TYPE);
+                parser.pbase.consume(_TYPE);
                 object_member_blocktype:=bt_type;
 
                 if (current_scanner.token=_LECKKLAMMER) and (m_prefixed_attributes in current_settings.modeswitches) then
                   begin
                     check_unbound_attributes;
-                    compiler.parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def);
+                    parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def);
                   end
                 else
                   { expect at least one type declaration }
                   if current_scanner.token<>_ID then
-                    compiler.parser.pbase.consume(_ID);
+                    parser.pbase.consume(_ID);
               end;
             _VAR :
               begin
@@ -1255,7 +1276,7 @@ implementation
                 parse_var(false);
                 { expect at least one var declaration }
                 if current_scanner.token<>_ID then
-                  compiler.parser.pbase.consume(_ID);
+                  parser.pbase.consume(_ID);
               end;
             _CONST:
               begin
@@ -1264,7 +1285,7 @@ implementation
                 parse_const;
                 { expect at least one constant declaration }
                 if current_scanner.token<>_ID then
-                  compiler.parser.pbase.consume(_ID);
+                  parser.pbase.consume(_ID);
               end;
             _THREADVAR :
               begin
@@ -1278,7 +1299,7 @@ implementation
                 parse_var(true);
                 { expect at least one threadvar declaration }
                 if current_scanner.token<>_ID then
-                  compiler.parser.pbase.consume(_ID);
+                  parser.pbase.consume(_ID);
               end;
             _ID :
               begin
@@ -1287,7 +1308,7 @@ implementation
                     (current_scanner.idtoken=_OPTIONAL)) then
                   begin
                     current_structdef.symtable.currentlyoptional:=(current_scanner.idtoken=_OPTIONAL);
-                    compiler.parser.pbase.consume(current_scanner.idtoken)
+                    parser.pbase.consume(current_scanner.idtoken)
                   end
                 else case current_scanner.idtoken of
                   _PRIVATE :
@@ -1312,19 +1333,19 @@ implementation
                           is_objc_protocol_or_category(current_structdef) or
                           is_javainterface(current_structdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
-                         compiler.parser.pbase.consume(_STRICT);
+                         parser.pbase.consume(_STRICT);
                         if current_scanner.token=_ID then
                           begin
                             case current_scanner.idtoken of
                               _PRIVATE:
                                 begin
-                                  compiler.parser.pbase.consume(_PRIVATE);
+                                  parser.pbase.consume(_PRIVATE);
                                   current_structdef.symtable.currentvisibility:=vis_strictprivate;
                                   include(current_structdef.objectoptions,oo_has_strictprivate);
                                 end;
                               _PROTECTED:
                                 begin
-                                  compiler.parser.pbase.consume(_PROTECTED);
+                                  parser.pbase.consume(_PROTECTED);
                                   current_structdef.symtable.currentvisibility:=vis_strictprotected;
                                   include(current_structdef.objectoptions,oo_has_strictprotected);
                                 end;
@@ -1351,7 +1372,7 @@ implementation
                         if (current_structdef.typ<>objectdef) or
                            not(oo_is_external in tobjectdef(current_structdef).objectoptions) then
                           Message(parser_e_final_only_external);
-                        compiler.parser.pbase.consume(_final);
+                        parser.pbase.consume(_final);
                         is_final:=true;
                         if current_scanner.token=_CLASS then
                           parse_class;
@@ -1371,7 +1392,7 @@ implementation
                               begin
                                 if hadgeneric then
                                   Message(parser_e_procedure_or_function_expected);
-                                compiler.parser.pbase.consume(_ID);
+                                parser.pbase.consume(_ID);
                                 hadgeneric:=true;
                                 if not (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS]) then
                                   Message(parser_e_procedure_or_function_expected);
@@ -1407,7 +1428,7 @@ implementation
                                   include(vdoptions,vd_threadvar);
                                 // Record count
                                 fldCount:=FieldList.Count;
-                                compiler.parser.pdecvar.read_record_fields(vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(vdoptions,fieldlist,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -1442,7 +1463,7 @@ implementation
                         else if object_member_blocktype=bt_type then
                           begin
                           check_unbound_attributes;
-                          compiler.parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
+                          parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
                           end
                         else if object_member_blocktype=bt_const then
                           begin
@@ -1455,7 +1476,7 @@ implementation
                                 typedconstswritable:=cs_typed_const_writable in current_settings.localswitches;
                                 exclude(current_settings.localswitches,cs_typed_const_writable);
                               end;
-                            compiler.parser.pdecl.consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
+                            parser.pdecl.consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
                               include(current_settings.localswitches,cs_typed_const_writable);
@@ -1491,18 +1512,18 @@ implementation
             _LECKKLAMMER:
               begin
                 if m_prefixed_attributes in current_settings.modeswitches then
-                  compiler.parser.pdecl.parse_rttiattributes(rtti_attrs_def)
+                  parser.pdecl.parse_rttiattributes(rtti_attrs_def)
                 else
-                  compiler.parser.pbase.consume(_ID);
+                  parser.pbase.consume(_ID);
               end;
             _END :
               begin
                 check_unbound_attributes;
-                compiler.parser.pbase.consume(_END);
+                parser.pbase.consume(_END);
                 break;
               end;
             else
-              compiler.parser.pbase.consume(_ID); { Give a ident expected message, like tp7 }
+              parser.pbase.consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
 
@@ -1527,7 +1548,7 @@ implementation
         old_current_structdef:=current_structdef;
         old_current_genericdef:=current_genericdef;
         old_current_specializedef:=current_specializedef;
-        old_parse_generic:=compiler.parser.pbase.parse_generic;
+        old_parse_generic:=parser.pbase.parse_generic;
 
         current_structdef:=nil;
         current_genericdef:=nil;
@@ -1660,18 +1681,18 @@ implementation
             else
               begin
                 if is_objectpascal_helper(current_structdef) then
-                  compiler.parser.pbase.consume(_FOR);
+                  parser.pbase.consume(_FOR);
                 { add to the list of definitions to check that the forward
                   is resolved. this is required for delphi mode }
                 current_module.checkforwarddefs.add(current_structdef);
 
                 compiler.symtablestack.push(current_structdef.symtable);
-                compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+                parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
                 { when we are parsing a generic already then this is a generic as
                   well }
                 if old_parse_generic then
                   include(current_structdef.defoptions,df_generic);
-                compiler.parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
+                parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
 
                 { *don't* add the strict private symbol for non-Delphi modes for
                   forward defs }
@@ -1697,16 +1718,16 @@ implementation
               parse_object_options;
 
             compiler.symtablestack.push(current_structdef.symtable);
-            compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
+            parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
             { when we are parsing a generic already then this is a generic as
               well }
             if old_parse_generic then
               include(current_structdef.defoptions, df_generic);
-            compiler.parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
+            parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
 
             { in non-Delphi modes we need a strict private symbol without type
               count and type parameters in the name to simplify resolving }
-            compiler.parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
+            parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
 
             { parse list of parent classes }
             { for record helpers in mode Delphi this is not allowed }
@@ -1788,7 +1809,7 @@ implementation
               { need method to hold the initialization code for typed constants? }
               if (target_info.system in systems_typed_constants_node_init) and
                  not is_any_interface_kind(current_structdef) then
-                compiler.parser.ptype.add_typedconst_init_routine(current_structdef);
+                parser.ptype.add_typedconst_init_routine(current_structdef);
             end;
 
             compiler.symtablestack.pop(current_structdef.symtable);
@@ -1804,7 +1825,7 @@ implementation
         if not(oo_has_vmt in current_structdef.objectoptions) and
            not(current_objectdef.objecttype in [odt_class]) and
            not(oo_is_forward in current_structdef.objectoptions) and
-           not(compiler.parser.pbase.parse_generic) and
+           not(parser.pbase.parse_generic) and
            { no vmt for helpers ever }
            not is_objectpascal_helper(current_structdef) and
             ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_structdef.objectoptions<>[])
@@ -1861,7 +1882,7 @@ implementation
         current_structdef:=old_current_structdef;
         current_genericdef:=old_current_genericdef;
         current_specializedef:=old_current_specializedef;
-        compiler.parser.pbase.parse_generic:=old_parse_generic;
+        parser.pbase.parse_generic:=old_parse_generic;
       end;
 
 end.
