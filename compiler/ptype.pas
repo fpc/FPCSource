@@ -41,13 +41,17 @@ interface
   TTypesParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
     function try_parse_structdef_nested_type(out def: tdef; basedef: tabstractrecorddef; isfowarddef: boolean): boolean;
     procedure parse_record_members(recsym:tsym);
     function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
     property Compiler: TCompilerBase read FCompiler;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     procedure resolve_forward_types;
 
@@ -95,16 +99,32 @@ implementation
        node,
        nset,ncnv,ncon,nld,
        { parser }
-       scanner,
+       scanner,parser,
        pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil,pparautl,procdefutil
 {$ifdef jvm}
        ,pjvm
 {$endif}
        ;
 
+    type
 
-    constructor TTypesParser.Create(ACompiler: TCompilerBase);
+      { TTypesParserHelper }
+
+      TTypesParserHelper = class helper for TTypesParser
+        function Parser: TParser; inline;
+      end;
+
+    { TTypesParserHelper }
+
+    function TTypesParserHelper.Parser: TParser;
       begin
+        Result:=TParser(FParser);
+      end;
+
+
+    constructor TTypesParser.Create(AParser: TObject; ACompiler: TCompilerBase);
+      begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -124,8 +144,8 @@ implementation
             dummysymoptions:=[];
             deprecatedmsg:=nil;
           end;
-        while compiler.parser.pbase.try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
-          compiler.parser.pbase.consume(_SEMICOLON);
+        while parser.pbase.try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
+          parser.pbase.consume(_SEMICOLON);
         if assigned(pd) then
           begin
             pd.symoptions:=pd.symoptions+dummysymoptions;
@@ -251,7 +271,7 @@ implementation
                   { generate specializations for generic forwarddefs }
                   if not (oo_is_forward in tobjectdef(def).objectoptions) and
                       tstoreddef(def).is_generic then
-                    compiler.parser.pgenutil.generate_specializations_for_forwarddef(def);
+                    parser.pgenutil.generate_specializations_for_forwarddef(def);
                  end;
               else
                 internalerror(200811071);
@@ -292,13 +312,13 @@ implementation
                begin
                  if (def.typ=objectdef) then
                    def:=compiler.symtablestack.find_real_class_definition(tobjectdef(def),false);
-                 compiler.parser.pbase.consume(_POINT);
+                 parser.pbase.consume(_POINT);
                  if (structstackindex>=0) and
                     (tabstractrecorddef(currentstructstack[structstackindex]).objname^=current_scanner.pattern) then
                    begin
                      def:=tdef(currentstructstack[structstackindex]);
                      dec(structstackindex);
-                     compiler.parser.pbase.consume(_ID);
+                     parser.pbase.consume(_ID);
                    end
                  else
                    begin
@@ -319,7 +339,7 @@ implementation
                        begin
                          if not allowspecialization then
                            Message(parser_e_no_local_para_def);
-                         compiler.parser.pgenutil.generate_specialization(t2,isunitspecific,false,'',srsym.name,srsymtable);
+                         parser.pgenutil.generate_specialization(t2,isunitspecific,false,'',srsym.name,srsymtable);
                        end;
                      def:=t2;
                    end;
@@ -344,7 +364,7 @@ implementation
            begin
              if (tabstractrecorddef(structdef).objname^=current_scanner.pattern) then
                begin
-                 compiler.parser.pbase.consume(_ID);
+                 parser.pbase.consume(_ID);
                  def:=structdef;
                  { we found the top-most match, now check how far down we can
                    follow }
@@ -390,7 +410,7 @@ implementation
            exit;
          if not allowunitsym and not (m_delphi in current_settings.modeswitches) and (current_scanner.idtoken=_SPECIALIZE) then
            begin
-             compiler.parser.pbase.consume(_ID);
+             parser.pbase.consume(_ID);
              is_specialize:=true;
              s:=current_scanner.pattern;
              sorg:=current_scanner.orgpattern;
@@ -405,13 +425,13 @@ implementation
            not_a_type:=false;
          { handle unit specification like System.Writeln }
          if allowunitsym then
-           is_unit_specific:=compiler.parser.pbase.try_consume_unitsym(srsym,srsymtable,t,[cuf_consume_id,cuf_allow_specialize],is_specialize,s)
+           is_unit_specific:=parser.pbase.try_consume_unitsym(srsym,srsymtable,t,[cuf_consume_id,cuf_allow_specialize],is_specialize,s)
          else
            begin
              t:=_ID;
              is_unit_specific:=false;
            end;
-         compiler.parser.pbase.consume(t);
+         parser.pbase.consume(t);
          if not_a_type then
            begin
              { reset the symbol and symtable to not leak any unexpected values }
@@ -487,7 +507,7 @@ implementation
 
        function handle_dummysym(sym:tsym):tdef;
          begin
-           sym:=compiler.parser.pgenutil.resolve_generic_dummysym(sym.name);
+           sym:=parser.pgenutil.resolve_generic_dummysym(sym.name);
            if assigned(sym) and
                not (sp_generic_dummy in sym.symoptions) and
                (sym.typ=typesym) then
@@ -517,15 +537,15 @@ implementation
            again:=false;
              case current_scanner.token of
                _STRING:
-                 compiler.parser.pexpr.string_dec(def,stoAllowTypeDef in options);
+                 parser.pexpr.string_dec(def,stoAllowTypeDef in options);
                _FILE:
                  begin
-                    compiler.parser.pbase.consume(_FILE);
+                    parser.pbase.consume(_FILE);
                     if (current_scanner.token=_OF) then
                       begin
                          if not(stoAllowTypeDef in options) then
                            Message(parser_e_no_local_para_def);
-                         compiler.parser.pbase.consume(_OF);
+                         parser.pbase.consume(_OF);
                          single_type(t2,[stoAllowTypeDef]);
                          if is_managed_type(t2) then
                            Message(parser_e_no_refcounted_typed_file);
@@ -537,7 +557,7 @@ implementation
 
                _ID:
                  begin
-                   if not (m_delphi in current_settings.modeswitches) and compiler.parser.pbase.try_to_consume(_SPECIALIZE) then
+                   if not (m_delphi in current_settings.modeswitches) and parser.pbase.try_to_consume(_SPECIALIZE) then
                      begin
                        if ([stoAllowSpecialization,stoAllowTypeDef] * options = []) then
                          begin
@@ -545,7 +565,7 @@ implementation
 
                            { try to recover }
                            while current_scanner.token<>_SEMICOLON do
-                             compiler.parser.pbase.consume(current_scanner.token);
+                             parser.pbase.consume(current_scanner.token);
                            def:=generrordef;
                          end
                        else
@@ -589,7 +609,7 @@ implementation
         if def.typ=errordef then
           begin
             while (current_scanner.token<>_SEMICOLON) and (current_scanner.token<>_RKLAMMER) do
-              compiler.parser.pbase.consume(current_scanner.token);
+              parser.pbase.consume(current_scanner.token);
           end
         else if dospecialize then
           begin
@@ -612,7 +632,7 @@ implementation
               end
             else
               symname:='';
-            compiler.parser.pgenutil.generate_specialization(def,isunitspecific,stoParseClassParent in options,'',symname,srsymtable);
+            parser.pgenutil.generate_specialization(def,isunitspecific,stoParseClassParent in options,'',symname,srsymtable);
             parse_nested_types(def,stoIsForwardDef in options,[stoAllowSpecialization,stoAllowTypeDef]*options<>[],nil);
           end
         else
@@ -639,7 +659,7 @@ implementation
             else if tstoreddef(def).is_generic and
                 not
                   (
-                    compiler.parser.pbase.parse_generic and
+                    parser.pbase.parse_generic and
                     (
                       { if this is a generic parameter than it has already been checked that this is
                         a valid usage of a generic }
@@ -664,7 +684,7 @@ implementation
             else if (def.typ=undefineddef) and
                 (sp_generic_dummy in srsym.symoptions) then
               begin
-                if compiler.parser.pbase.parse_generic and
+                if parser.pbase.parse_generic and
                     (current_genericdef.typ in [recorddef,objectdef]) and
                     (Pos(upper(srsym.realname),tabstractrecorddef(current_genericdef).objname^)=1) then
                   begin
@@ -743,7 +763,7 @@ implementation
             _TYPE :
               begin
                 check_unbound_attributes;
-                compiler.parser.pbase.consume(_TYPE);
+                parser.pbase.consume(_TYPE);
                 member_blocktype:=bt_type;
 
                 { local and anonymous records can not have inner types. skip top record symtable }
@@ -753,7 +773,7 @@ implementation
             _VAR :
               begin
                 check_unbound_attributes;
-                compiler.parser.pbase.consume(_VAR);
+                parser.pbase.consume(_VAR);
                 fields_allowed:=true;
                 member_blocktype:=bt_general;
                 classfields:=is_classdef;
@@ -769,7 +789,7 @@ implementation
                     { for error recovery we enforce class fields }
                     is_classdef:=true;
                   end;
-                compiler.parser.pbase.consume(_THREADVAR);
+                parser.pbase.consume(_THREADVAR);
                 fields_allowed:=true;
                 member_blocktype:=bt_general;
                 classfields:=is_classdef;
@@ -779,7 +799,7 @@ implementation
             _CONST:
               begin
                 check_unbound_attributes;
-                compiler.parser.pbase.consume(_CONST);
+                parser.pbase.consume(_CONST);
                 member_blocktype:=bt_const;
 
                 { local and anonymous records can not have constants. skip top record symtable }
@@ -792,7 +812,7 @@ implementation
                   _PRIVATE :
                     begin
                       check_unbound_attributes;
-                       compiler.parser.pbase.consume(_PRIVATE);
+                       parser.pbase.consume(_PRIVATE);
                        current_structdef.symtable.currentvisibility:=vis_private;
                        include(current_structdef.objectoptions,oo_has_private);
                        fields_allowed:=true;
@@ -805,7 +825,7 @@ implementation
                      begin
                        check_unbound_attributes;
                        Message1(parser_e_not_allowed_in_record,tokeninfo^[_PROTECTED].str);
-                       compiler.parser.pbase.consume(_PROTECTED);
+                       parser.pbase.consume(_PROTECTED);
                        current_structdef.symtable.currentvisibility:=vis_protected;
                        include(current_structdef.objectoptions,oo_has_protected);
                        fields_allowed:=true;
@@ -817,7 +837,7 @@ implementation
                    _PUBLIC :
                      begin
                        check_unbound_attributes;
-                       compiler.parser.pbase.consume(_PUBLIC);
+                       parser.pbase.consume(_PUBLIC);
                        current_structdef.symtable.currentvisibility:=vis_public;
                        fields_allowed:=true;
                        is_classdef:=false;
@@ -829,7 +849,7 @@ implementation
                      begin
                        check_unbound_attributes;
                        Message(parser_e_no_record_published);
-                       compiler.parser.pbase.consume(_PUBLISHED);
+                       parser.pbase.consume(_PUBLISHED);
                        current_structdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
                        is_classdef:=false;
@@ -839,13 +859,13 @@ implementation
                      end;
                    _STRICT :
                      begin
-                        compiler.parser.pbase.consume(_STRICT);
+                        parser.pbase.consume(_STRICT);
                         if current_scanner.token=_ID then
                           begin
                             case current_scanner.idtoken of
                               _PRIVATE:
                                 begin
-                                  compiler.parser.pbase.consume(_PRIVATE);
+                                  parser.pbase.consume(_PRIVATE);
                                   current_structdef.symtable.currentvisibility:=vis_strictprivate;
                                   include(current_structdef.objectoptions,oo_has_strictprivate);
                                 end;
@@ -853,7 +873,7 @@ implementation
                                 begin
                                   { "strict protected" is not allowed for records }
                                   Message1(parser_e_not_allowed_in_record,tokeninfo^[_STRICT].str+' '+tokeninfo^[_PROTECTED].str);
-                                  compiler.parser.pbase.consume(_PROTECTED);
+                                  parser.pbase.consume(_PROTECTED);
                                   current_structdef.symtable.currentvisibility:=vis_strictprotected;
                                   include(current_structdef.objectoptions,oo_has_strictprotected);
                                 end;
@@ -873,7 +893,7 @@ implementation
                     if is_classdef and (current_scanner.idtoken=_OPERATOR) then
                       begin
                         check_unbound_attributes;
-                        pd:=compiler.parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,false);
+                        pd:=parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,false);
                         fields_allowed:=false;
                         is_classdef:=false;
                       end
@@ -887,7 +907,7 @@ implementation
                               begin
                                 if hadgeneric then
                                   Message(parser_e_procedure_or_function_expected);
-                                compiler.parser.pbase.consume(_ID);
+                                parser.pbase.consume(_ID);
                                 hadgeneric:=true;
                                 if not (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS]) then
                                   Message(parser_e_procedure_or_function_expected);
@@ -904,7 +924,7 @@ implementation
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
                                 fldCount:=current_structdef.symtable.SymList.Count;
-                                compiler.parser.pdecvar.read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
+                                parser.pdecvar.read_record_fields(vdoptions,nil,nil,hadgeneric,attr_element_count);
                                 {
                                   attr_element_count returns the number of fields to which the attribute must be applied.
                                   For
@@ -931,9 +951,9 @@ implementation
                               end;
                           end
                         else if member_blocktype=bt_type then
-                          compiler.parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
+                          parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def)
                         else if member_blocktype=bt_const then
-                          compiler.parser.pdecl.consts_dec(true,true,hadgeneric)
+                          parser.pdecl.consts_dec(true,true,hadgeneric)
                         else
                           internalerror(201001110);
                       end;
@@ -943,7 +963,7 @@ implementation
               begin
                 if IsAnonOrLocal then
                   Message(parser_e_no_properties_in_local_anonymous_records);
-                compiler.parser.pdecobj.struct_property_dec(is_classdef, rtti_attrs_def);
+                parser.pdecobj.struct_property_dec(is_classdef, rtti_attrs_def);
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
@@ -952,7 +972,7 @@ implementation
                 check_unbound_attributes;
                 is_classdef:=false;
                 { read class method/field/property }
-                compiler.parser.pbase.consume(_CLASS);
+                parser.pbase.consume(_CLASS);
                 { class modifier is only allowed for procedures, functions, }
                 { constructors, destructors, fields and properties          }
                 if (hadgeneric and not (current_scanner.token in [_FUNCTION,_PROCEDURE])) or
@@ -970,7 +990,7 @@ implementation
               begin
                 if IsAnonOrLocal then
                   Message(parser_e_no_methods_in_local_anonymous_records);
-                pd:=compiler.parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
+                pd:=parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
                 if assigned(rtti_attrs_def) then
                   begin
                   trtti_attribute_list.bind(rtti_attrs_def,pd.rtti_attribute_list);
@@ -992,18 +1012,18 @@ implementation
                 if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
                   Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
 
-                oldparse_only:=compiler.parser.pbase.parse_only;
-                compiler.parser.pbase.parse_only:=true;
+                oldparse_only:=parser.pbase.parse_only;
+                parser.pbase.parse_only:=true;
                 if is_classdef then
-                  pd:=compiler.parser.pdecobj.class_constructor_head(current_structdef)
+                  pd:=parser.pdecobj.class_constructor_head(current_structdef)
                 else
                   begin
-                    pd:=compiler.parser.pdecobj.constructor_head;
+                    pd:=parser.pdecobj.constructor_head;
                     if pd.minparacount = 0 then
                       MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
                   end;
 
-                compiler.parser.pbase.parse_only:=oldparse_only;
+                parser.pbase.parse_only:=oldparse_only;
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
@@ -1019,23 +1039,23 @@ implementation
                 if is_classdef and (oo_has_class_destructor in current_structdef.objectoptions) then
                   Message1(parser_e_only_one_class_destructor_allowed, current_structdef.objrealname^);
 
-                oldparse_only:=compiler.parser.pbase.parse_only;
-                compiler.parser.pbase.parse_only:=true;
+                oldparse_only:=parser.pbase.parse_only;
+                parser.pbase.parse_only:=true;
                 if is_classdef then
-                  pd:=compiler.parser.pdecobj.class_destructor_head(current_structdef)
+                  pd:=parser.pdecobj.class_destructor_head(current_structdef)
                 else
-                  pd:=compiler.parser.pdecobj.destructor_head;
+                  pd:=parser.pdecobj.destructor_head;
 
-                compiler.parser.pbase.parse_only:=oldparse_only;
+                parser.pbase.parse_only:=oldparse_only;
                 fields_allowed:=false;
                 is_classdef:=false;
               end;
             _LECKKLAMMER:
               begin
                 if m_prefixed_attributes in current_settings.modeswitches then
-                  compiler.parser.pdecl.parse_rttiattributes(rtti_attrs_def)
+                  parser.pdecl.parse_rttiattributes(rtti_attrs_def)
                 else
-                  compiler.parser.pbase.consume(_ID);
+                  parser.pbase.consume(_ID);
               end;
             _END :
               begin
@@ -1044,11 +1064,11 @@ implementation
 {$endif}
                 if target_info.system in systems_typed_constants_node_init then
                   add_typedconst_init_routine(current_structdef);
-                compiler.parser.pbase.consume(_END);
+                parser.pbase.consume(_END);
                 break;
               end;
             else
-              compiler.parser.pbase.consume(_ID); { Give a ident expected message, like tp7 }
+              parser.pbase.consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
       end;
@@ -1091,7 +1111,7 @@ implementation
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
-         old_parse_generic:=compiler.parser.pbase.parse_generic;
+         old_parse_generic:=parser.pbase.parse_generic;
 
          current_genericdef:=nil;
          current_specializedef:=nil;
@@ -1131,17 +1151,17 @@ implementation
              (df_generic in old_current_structdef.defoptions) then
            include(current_structdef.defoptions,df_generic);
 
-         compiler.parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+         parser.pgenutil.insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
          { when we are parsing a generic already then this is a generic as
            well }
          if old_parse_generic then
            include(current_structdef.defoptions, df_generic);
-         compiler.parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
-         if compiler.parser.pbase.parse_generic and not assigned(current_genericdef) then
+         parser.pbase.parse_generic:=(df_generic in current_structdef.defoptions);
+         if parser.pbase.parse_generic and not assigned(current_genericdef) then
            current_genericdef:=current_structdef;
          { in non-Delphi modes we need a strict private symbol without type
            count and type parameters in the name to simply resolving }
-         compiler.parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
+         parser.pgenutil.maybe_insert_generic_rename_symbol(n,genericlist);
          { apply $RTTI directive to current object }
          current_structdef.apply_rtti_directive(current_module.rtti_directive);
 
@@ -1161,22 +1181,22 @@ implementation
            end
          else
            begin
-             compiler.parser.pdecvar.read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
+             parser.pdecvar.read_record_fields([vd_record],nil,nil,hadgendummy,dummyattrelcount);
 {$ifdef jvm}
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));
 {$endif}
              if target_info.system in systems_typed_constants_node_init then
                add_typedconst_init_routine(current_structdef);
-             compiler.parser.pbase.consume(_END);
+             parser.pbase.consume(_END);
             end;
 
          reset_typesym;
 
          if (current_scanner.token=_ID) and (current_scanner.pattern='ALIGN') then
            begin
-             compiler.parser.pbase.consume(_ID);
-             alignment:=compiler.parser.pexpr.get_intconst.svalue;
+             parser.pbase.consume(_ID);
+             alignment:=parser.pexpr.get_intconst.svalue;
              { "(alignment and not $7F) = 0" means it's between 0 and 127, and
                PopCnt = 1 for powers of 2 }
              if ((alignment and not $7F) <> 0) or (PopCnt(Byte(alignment))<>1) then
@@ -1199,7 +1219,7 @@ implementation
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
            Message(type_e_no_packed_inittable);
          { restore old state }
-         compiler.parser.pbase.parse_generic:=old_parse_generic;
+         parser.pbase.parse_generic:=old_parse_generic;
          current_structdef:=old_current_structdef;
          current_genericdef:=old_current_genericdef;
          current_specializedef:=old_current_specializedef;
@@ -1239,11 +1259,11 @@ implementation
              if try_parse_structdef_nested_type(def,current_structdef,false) then
                exit;
            { we can't accept a equal in type }
-           pt1:=compiler.parser.pexpr.comp_expr([ef_type_only]);
-           if compiler.parser.pbase.try_to_consume(_POINTPOINT) then
+           pt1:=parser.pexpr.comp_expr([ef_type_only]);
+           if parser.pbase.try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=compiler.parser.pexpr.comp_expr([]);
+               pt2:=parser.pexpr.comp_expr([]);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
@@ -1335,7 +1355,7 @@ implementation
                          def:=current_structdef;
                        if assigned(def) then
                          { handle nested types }
-                         compiler.parser.pexpr.post_comp_expr_gendef(def)
+                         parser.pexpr.post_comp_expr_gendef(def)
                        else
                          def:=generrordef;
                      end;
@@ -1343,10 +1363,10 @@ implementation
                      begin
                        if not assigned(ttypenode(pt1).typesym) then
                          internalerror(2025103102);
-                       compiler.parser.pgenutil.generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
+                       parser.pgenutil.generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
                        { handle nested types }
                        if assigned(def) then
-                         compiler.parser.pexpr.post_comp_expr_gendef(def);
+                         parser.pexpr.post_comp_expr_gendef(def);
                      end
                    else
                      begin
@@ -1362,7 +1382,7 @@ implementation
                            { TODO : check once nested generics are allowed }
                            not
                              (
-                               compiler.parser.pbase.parse_generic and
+                               parser.pbase.parse_generic and
                                (current_genericdef.typ in [recorddef,objectdef]) and
                                (def.typ in [recorddef,objectdef]) and
                                (
@@ -1383,10 +1403,10 @@ implementation
                              begin
                                if ttypesym(def.typesym).typedef.typ<>undefineddef then
                                  { non-Delphi modes... }
-                                 compiler.parser.pgenutil.split_generic_name(def.typesym.name,genstr,gencount)
+                                 parser.pgenutil.split_generic_name(def.typesym.name,genstr,gencount)
                                else
                                  genstr:=def.typesym.name;
-                               sym:=compiler.parser.pgenutil.resolve_generic_dummysym(genstr);
+                               sym:=parser.pgenutil.resolve_generic_dummysym(genstr);
                              end
                            else
                              sym:=nil;
@@ -1418,8 +1438,8 @@ implementation
 
       procedure set_dec;
         begin
-          compiler.parser.pbase.consume(_SET);
-          compiler.parser.pbase.consume(_OF);
+          parser.pbase.consume(_SET);
+          parser.pbase.consume(_OF);
           read_anon_type(tt2,true,nil);
           if assigned(tt2) then
            begin
@@ -1470,7 +1490,7 @@ implementation
         var
           sym: tsym;
         begin
-          compiler.parser.pbase.consume(_CARET);
+          parser.pbase.consume(_CARET);
           single_type(tt2,
               SingleTypeOptionsInTypeBlock[block_type=bt_type]+[stoAllowSpecialization]
             );
@@ -1481,7 +1501,7 @@ implementation
               assigned(tt2.typesym) and
               (sp_generic_dummy in tt2.typesym.symoptions) then
             begin
-              sym:=compiler.parser.pgenutil.resolve_generic_dummysym(tt2.typesym.name);
+              sym:=parser.pgenutil.resolve_generic_dummysym(tt2.typesym.name);
               if assigned(sym) and
                   not (sp_generic_dummy in sym.symoptions) and
                   (sym.typ=typesym) then
@@ -1561,13 +1581,13 @@ implementation
         begin
            old_current_genericdef:=current_genericdef;
            old_current_specializedef:=current_specializedef;
-           old_parse_generic:=compiler.parser.pbase.parse_generic;
+           old_parse_generic:=parser.pbase.parse_generic;
 
            current_genericdef:=nil;
            current_specializedef:=nil;
            first:=true;
            arrdef:=carraydef.create(0,0,s32inttype,compiler);
-           compiler.parser.pbase.consume(_ARRAY);
+           parser.pbase.consume(_ARRAY);
 
            { usage of specialized type inside its generic template }
            if assigned(genericdef) then
@@ -1576,21 +1596,21 @@ implementation
            else if assigned(genericlist) then
              current_genericdef:=arrdef;
            compiler.symtablestack.push(arrdef.symtable);
-           compiler.parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
+           parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
            { there are two possibilities for the following to be true:
              * the array declaration itself is generic
              * the array is declared inside a generic
-             in both cases we need "compiler.parser.pbase.parse_generic" and "current_genericdef"
+             in both cases we need "parser.pbase.parse_generic" and "current_genericdef"
              so that e.g. specializations of another generic inside the
              current generic can be used (either inline ones or "type" ones) }
            if old_parse_generic then
              include(arrdef.defoptions,df_generic);
-           compiler.parser.pbase.parse_generic:=(df_generic in arrdef.defoptions);
-           if compiler.parser.pbase.parse_generic and not assigned(current_genericdef) then
+           parser.pbase.parse_generic:=(df_generic in arrdef.defoptions);
+           if parser.pbase.parse_generic and not assigned(current_genericdef) then
              current_genericdef:=old_current_genericdef;
 
            { open array? }
-           if compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
+           if parser.pbase.try_to_consume(_LECKKLAMMER) then
              begin
                 { defaults }
                 indexdef:=generrordef;
@@ -1609,7 +1629,7 @@ implementation
                    end
                   else
                    begin
-                     pt:=compiler.parser.pexpr.expr(true);
+                     pt:=parser.pexpr.expr(true);
                      isgeneric:=false;
                      if pt.nodetype=typen then
                        setdefdecl(pt.resultdef)
@@ -1653,7 +1673,7 @@ implementation
                                    indexdef:=trangenode(pt).left.resultdef;
                                end
                              else
-                               if not compiler.parser.pbase.parse_generic then
+                               if not parser.pbase.parse_generic then
                                  Message(type_e_cant_eval_constant_expr)
                                else
                                  { we need a valid range for debug information }
@@ -1676,7 +1696,7 @@ implementation
                       arrdef:=tarraydef(arrdef.elementdef);
                       compiler.symtablestack.push(arrdef.symtable);
                       { correctly update the generic information of the new array def }
-                      compiler.parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
+                      parser.pgenutil.insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
                       if old_parse_generic then
                         include(arrdef.defoptions,df_generic);
                     end
@@ -1694,11 +1714,11 @@ implementation
                     include(arrdef.arrayoptions,ado_IsGeneric);
 
                   if current_scanner.token=_COMMA then
-                    compiler.parser.pbase.consume(_COMMA)
+                    parser.pbase.consume(_COMMA)
                   else
                     break;
                 until false;
-                compiler.parser.pbase.consume(_RECKKLAMMER);
+                parser.pbase.consume(_RECKKLAMMER);
              end
            else
              begin
@@ -1710,7 +1730,7 @@ implementation
                 include(arrdef.arrayoptions,ado_IsDynamicArray);
                 def:=arrdef;
              end;
-           compiler.parser.pbase.consume(_OF);
+           parser.pbase.consume(_OF);
            read_anon_type(tt2,true,nil);
            { set element type of the last array definition }
            if assigned(arrdef) then
@@ -1722,7 +1742,7 @@ implementation
                  Message(type_e_no_packed_inittable);
              end;
            { restore old state }
-           compiler.parser.pbase.parse_generic:=old_parse_generic;
+           parser.pbase.parse_generic:=old_parse_generic;
            current_genericdef:=old_current_genericdef;
            current_specializedef:=old_current_specializedef;
         end;
@@ -1739,7 +1759,7 @@ implementation
           begin
             old_current_genericdef:=current_genericdef;
             old_current_specializedef:=current_specializedef;
-            old_parse_generic:=compiler.parser.pbase.parse_generic;
+            old_parse_generic:=parser.pbase.parse_generic;
 
             current_genericdef:=nil;
             current_specializedef:=nil;
@@ -1747,9 +1767,9 @@ implementation
 
             is_func:=(current_scanner.token=_FUNCTION);
             if current_scanner.token in [_FUNCTION,_PROCEDURE] then
-              compiler.parser.pbase.consume(current_scanner.token)
+              parser.pbase.consume(current_scanner.token)
             else
-              compiler.parser.pbase.consume(_FUNCTION);
+              parser.pbase.consume(_FUNCTION);
             pd:=cprocvardef.create(normal_function_level,doregister,compiler);
 
             if assigned(sym) then
@@ -1766,38 +1786,38 @@ implementation
             else if assigned(genericlist) then
               current_genericdef:=pd;
             compiler.symtablestack.push(pd.parast);
-            compiler.parser.pgenutil.insert_generic_parameter_types(pd,genericdef,genericlist,false);
+            parser.pgenutil.insert_generic_parameter_types(pd,genericdef,genericlist,false);
             { there are two possibilities for the following to be true:
               * the procvar declaration itself is generic
               * the procvar is declared inside a generic
-              in both cases we need "compiler.parser.pbase.parse_generic" and "current_genericdef"
+              in both cases we need "parser.pbase.parse_generic" and "current_genericdef"
               so that e.g. specializations of another generic inside the
               current generic can be used (either inline ones or "type" ones) }
             if old_parse_generic then
               include(pd.defoptions,df_generic);
-            compiler.parser.pbase.parse_generic:=(df_generic in pd.defoptions);
-            if compiler.parser.pbase.parse_generic and not assigned(current_genericdef) then
+            parser.pbase.parse_generic:=(df_generic in pd.defoptions);
+            if parser.pbase.parse_generic and not assigned(current_genericdef) then
               current_genericdef:=old_current_genericdef;
 
             if current_scanner.token=_LKLAMMER then
-              compiler.parser.pdecsub.parse_parameter_dec(pd);
+              parser.pdecsub.parse_parameter_dec(pd);
             if is_func then
               begin
-                compiler.parser.pbase.consume(_COLON);
+                parser.pbase.consume(_COLON);
                 pd.proctypeoption:=potype_function;
                 pd.returndef:=result_type([stoAllowSpecialization]);
               end
             else
               pd.proctypeoption:=potype_procedure;
-            if compiler.parser.pbase.try_to_consume(_OF) then
+            if parser.pbase.try_to_consume(_OF) then
               begin
-                compiler.parser.pbase.consume(_OBJECT);
+                parser.pbase.consume(_OBJECT);
                 include(pd.procoptions,po_methodpointer);
               end
             else if (m_nested_procvars in current_settings.modeswitches) and
-                    compiler.parser.pbase.try_to_consume(_IS) then
+                    parser.pbase.try_to_consume(_IS) then
               begin
-                compiler.parser.pbase.consume(_NESTED);
+                parser.pbase.consume(_NESTED);
                 pd.parast.symtablelevel:=normal_function_level+1;
                 pd.check_mark_as_nested;
               end;
@@ -1805,13 +1825,13 @@ implementation
             { possible proc directives }
             if parseprocvardir then
               begin
-                if compiler.parser.pdecsub.check_proc_directive(true) then
-                  compiler.parser.pdecsub.parse_proctype_directives(pd);
+                if parser.pdecsub.check_proc_directive(true) then
+                  parser.pdecsub.parse_proctype_directives(pd);
                 { Add implicit hidden parameters and function result }
                 handle_calling_convention(pd,hcc_default_actions_intf);
               end;
             { restore old state }
-            compiler.parser.pbase.parse_generic:=old_parse_generic;
+            parser.pbase.parse_generic:=old_parse_generic;
             current_genericdef:=old_current_genericdef;
             current_specializedef:=old_current_specializedef;
 
@@ -1851,7 +1871,7 @@ implementation
                )
              ) and
              (current_scanner.token<>_STRING) and (current_scanner.token<>_FILE) then
-           compiler.parser.pbase.consume(_ID);
+           parser.pbase.consume(_ID);
          case current_scanner.token of
             _STRING,_FILE:
               begin
@@ -1862,7 +1882,7 @@ implementation
               end;
            _LKLAMMER:
               begin
-                compiler.parser.pbase.consume(_LKLAMMER);
+                parser.pbase.consume(_LKLAMMER);
                 first:=true;
                 { allow negativ value_str }
                 l:=int64(-1);
@@ -1901,20 +1921,20 @@ implementation
                     end;
                   s:=current_scanner.orgpattern;
                   defpos:=current_tokenpos;
-                  compiler.parser.pbase.consume(_ID);
+                  parser.pbase.consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
                   if not(m_tp7 in current_settings.modeswitches) and
                      (
                       { in fpc mode also allow := to be compatible
                         with previous 1.0.x versions }
                       ((m_fpc in current_settings.modeswitches) and
-                       compiler.parser.pbase.try_to_consume(_ASSIGNMENT)) or
-                      compiler.parser.pbase.try_to_consume(_EQ)
+                       parser.pbase.try_to_consume(_ASSIGNMENT)) or
+                      parser.pbase.try_to_consume(_EQ)
                      ) then
                     begin
                        oldlocalswitches:=current_settings.localswitches;
                        include(current_settings.localswitches,cs_allow_enum_calc);
-                       p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+                       p:=parser.pexpr.comp_expr([ef_accept_equal]);
                        current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin
@@ -1960,9 +1980,9 @@ implementation
                         tstoredsymtable(aktenumdef.owner).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       current_tokenpos:=storepos;
                     end;
-                until not compiler.parser.pbase.try_to_consume(_COMMA);
+                until not parser.pbase.try_to_consume(_COMMA);
                 def:=aktenumdef;
-                compiler.parser.pbase.consume(_RKLAMMER);
+                parser.pbase.consume(_RKLAMMER);
 {$ifdef jvm}
                 jvm_maybe_create_enum_class(name,def);
 {$endif}
@@ -1975,11 +1995,11 @@ implementation
               pointer_dec;
             _RECORD:
               begin
-                compiler.parser.pbase.consume(current_scanner.token);
+                parser.pbase.consume(current_scanner.token);
                 if (current_scanner.idtoken=_HELPER) and (m_advanced_records in current_settings.modeswitches) then
                   begin
-                    compiler.parser.pbase.consume(_HELPER);
-                    def:=compiler.parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
+                    parser.pbase.consume(_HELPER);
+                    def:=parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
                   def:=record_dec(name,newsym,genericdef,genericlist);
@@ -1990,7 +2010,7 @@ implementation
                 bitpacking :=
                   (cs_bitpacking in current_settings.localswitches) or
                   (current_scanner.token = _BITPACKED);
-                compiler.parser.pbase.consume(current_scanner.token);
+                parser.pbase.consume(current_scanner.token);
                 if current_scanner.token=_ARRAY then
                   array_dec(bitpacking,genericdef,genericlist)
                 else if current_scanner.token=_SET then
@@ -2008,16 +2028,16 @@ implementation
                     case current_scanner.token of
                       _CLASS :
                         begin
-                          compiler.parser.pbase.consume(_CLASS);
-                          def:=compiler.parser.pdecobj.object_dec(odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
+                          parser.pbase.consume(_CLASS);
+                          def:=parser.pdecobj.object_dec(odt_class,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       _OBJECT :
                         begin
-                          compiler.parser.pbase.consume(_OBJECT);
-                          def:=compiler.parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                          parser.pbase.consume(_OBJECT);
+                          def:=parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
                         end;
                       else begin
-                        compiler.parser.pbase.consume(_RECORD);
+                        parser.pbase.consume(_RECORD);
                         def:=record_dec(name,newsym,genericdef,genericlist);
                       end;
                     end;
@@ -2030,12 +2050,12 @@ implementation
                   in all pascal modes }
                 if not(m_class in current_settings.modeswitches) then
                   Message(parser_f_need_objfpc_or_delphi_mode);
-                compiler.parser.pbase.consume(current_scanner.token);
-                def:=compiler.parser.pdecobj.object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
+                parser.pbase.consume(current_scanner.token);
+                def:=parser.pdecobj.object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CLASS :
               begin
-                compiler.parser.pbase.consume(current_scanner.token);
+                parser.pbase.consume(current_scanner.token);
                 { Delphi only allows class of in type blocks }
                 if (current_scanner.token=_OF) and
                    (
@@ -2043,7 +2063,7 @@ implementation
                     (block_type=bt_type)
                    ) then
                   begin
-                    compiler.parser.pbase.consume(_OF);
+                    parser.pbase.consume(_OF);
                     single_type(hdef,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                     if is_class(hdef) or
                        is_objcclass(hdef) or
@@ -2061,24 +2081,24 @@ implementation
                 else
                 if (current_scanner.idtoken=_HELPER) then
                   begin
-                    compiler.parser.pbase.consume(_HELPER);
-                    def:=compiler.parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
+                    parser.pbase.consume(_HELPER);
+                    def:=parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_class);
                   end
                 else
-                  def:=compiler.parser.pdecobj.object_dec(default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
+                  def:=parser.pdecobj.object_dec(default_class_type,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _CPPCLASS :
               begin
-                compiler.parser.pbase.consume(current_scanner.token);
-                def:=compiler.parser.pdecobj.object_dec(odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                parser.pbase.consume(current_scanner.token);
+                def:=parser.pdecobj.object_dec(odt_cppclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _OBJCCLASS :
               begin
                 if not(m_objectivec1 in current_settings.modeswitches) then
                   Message(parser_f_need_objc);
 
-                compiler.parser.pbase.consume(current_scanner.token);
-                def:=compiler.parser.pdecobj.object_dec(odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
+                parser.pbase.consume(current_scanner.token);
+                def:=parser.pdecobj.object_dec(odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _INTERFACE :
               begin
@@ -2086,14 +2106,14 @@ implementation
                   in all pascal modes }
                 if not(m_class in current_settings.modeswitches) then
                   Message(parser_f_need_objfpc_or_delphi_mode);
-                compiler.parser.pbase.consume(current_scanner.token);
+                parser.pbase.consume(current_scanner.token);
                 case current_settings.interfacetype of
                   it_interfacecom:
-                    def:=compiler.parser.pdecobj.object_dec(odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacecorba:
-                    def:=compiler.parser.pdecobj.object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(odt_interfacecorba,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacejava:
-                    def:=compiler.parser.pdecobj.object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
+                    def:=parser.pdecobj.object_dec(odt_interfacejava,name,newsym,genericdef,genericlist,nil,ht_none);
                 end;
               end;
             _OBJCPROTOCOL :
@@ -2101,21 +2121,21 @@ implementation
                 if not(m_objectivec1 in current_settings.modeswitches) then
                   Message(parser_f_need_objc);
 
-                compiler.parser.pbase.consume(current_scanner.token);
-                def:=compiler.parser.pdecobj.object_dec(odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
+                parser.pbase.consume(current_scanner.token);
+                def:=parser.pdecobj.object_dec(odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJCCATEGORY :
                begin
                 if not(m_objectivec1 in current_settings.modeswitches) then
                   Message(parser_f_need_objc);
 
-                compiler.parser.pbase.consume(current_scanner.token);
-                def:=compiler.parser.pdecobj.object_dec(odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
+                parser.pbase.consume(current_scanner.token);
+                def:=parser.pdecobj.object_dec(odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);
                end;
             _OBJECT :
               begin
-                compiler.parser.pbase.consume(current_scanner.token);
-                def:=compiler.parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
+                parser.pbase.consume(current_scanner.token);
+                def:=parser.pdecobj.object_dec(odt_object,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -2136,8 +2156,8 @@ implementation
                           { reset hadtypetoken, so that calling code knows that it should not be handled
                             as a "unique" type }
                           hadtypetoken:=false;
-                          compiler.parser.pbase.consume(_HELPER);
-                          def:=compiler.parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                          parser.pbase.consume(_HELPER);
+                          def:=parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
                         end
                       else
                         expr_type
@@ -2146,8 +2166,8 @@ implementation
                     begin
                       if current_settings.modeswitches*[m_blocks,m_function_references]<>[] then
                         begin
-                          compiler.parser.pbase.consume(_REFERENCE);
-                          compiler.parser.pbase.consume(_TO);
+                          parser.pbase.consume(_REFERENCE);
+                          parser.pbase.consume(_TO);
                           { don't register the def as a non-cblock function
                             reference will be converted to an interface }
                           def:=procvar_dec(genericdef,genericlist,newsym,false);
@@ -2168,7 +2188,7 @@ implementation
             else
               if (current_scanner.token=_KLAMMERAFFE) and (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
                 begin
-                  compiler.parser.pbase.consume(_KLAMMERAFFE);
+                  parser.pbase.consume(_KLAMMERAFFE);
                   single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
                   def:=cpointerdef.create(tt2,compiler);
                   if tt2.typ=forwarddef then

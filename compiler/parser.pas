@@ -375,7 +375,7 @@ implementation
         FPDecl:=TDeclarationParser.Create(Self,acompiler);
         FPSub:=TSubroutineParser.Create(Self,acompiler);
         FPInline:=TInlineParser.Create(Self,acompiler);
-        FPType:=TTypesParser.Create(acompiler);
+        FPType:=TTypesParser.Create(Self,acompiler);
         FPSystem:=TSystemUnitParser.Create(acompiler);
       end;
 
