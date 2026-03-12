@@ -68,6 +68,10 @@ interface
   TSubroutineDeclarationParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     procedure check_msg_para(p:TObject;arg:pointer);
     procedure pd_compilerproc(pd:tabstractprocdef);
     procedure pd_far(pd:tabstractprocdef);
@@ -100,7 +104,7 @@ interface
 
     property Compiler: TCompilerBase read FCompiler;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     function  check_proc_directive(isprocvar:boolean):boolean;
 
@@ -151,17 +155,32 @@ implementation
        { parser }
        scanner,
        syscinfo,
-       pbase,pexpr,ptype,pdecl,pparautl,pgenutil
+       pbase,pexpr,ptype,pdecl,pparautl,pgenutil,parser
 {$ifdef jvm}
        ,pjvm
 {$endif}
        ;
+
+    type
+
+       { TSubroutineDeclarationParserHelper }
+
+       TSubroutineDeclarationParserHelper = class helper for TSubroutineDeclarationParser
+         function Parser: TParser; inline;
+       end;
 
     const
       { Please leave this here, this module should NOT use
         these variables.
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
+
+    { TSubroutineDeclarationParserHelper }
+
+    function TSubroutineDeclarationParserHelper.Parser: TParser;
+      begin
+        Result:=TParser(FParser);
+      end;
 
     function TSubroutineDeclarationParser.push_child_hierarchy(obj:tabstractrecorddef):integer;
       var
@@ -275,7 +294,7 @@ implementation
           begin
             { only allowed for types that can be represented by a
               constant expression }
-            if compiler.parser.pbase.try_to_consume(_EQ) then
+            if parser.pbase.try_to_consume(_EQ) then
              begin
                if (hdef.typ in [recorddef,variantdef,filedef,formaldef]) or
                   is_object(hdef) or
@@ -290,7 +309,7 @@ implementation
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }
-               defaultvalue:=compiler.parser.pdecl.ReadConstant('$def'+vs.name,vs.fileinfo,nodetype);
+               defaultvalue:=parser.pdecl.ReadConstant('$def'+vs.name,vs.fileinfo,nodetype);
                block_type:=bt;
                if assigned(defaultvalue) then
                  begin
@@ -314,10 +333,10 @@ implementation
       begin
         old_block_type:=block_type;
         explicit_paraloc:=false;
-        compiler.parser.pbase.consume(_LKLAMMER);
+        parser.pbase.consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
-        if compiler.parser.pbase.try_to_consume(_RKLAMMER) and
+        if parser.pbase.try_to_consume(_RKLAMMER) and
           not(m_tp7 in current_settings.modeswitches) then
           exit;
         { parsing a proc or procvar ? }
@@ -330,35 +349,35 @@ implementation
         is_univ:=false;
         repeat
           parseprocvar:=pv_none;
-          if compiler.parser.pbase.try_to_consume(_VAR) then
+          if parser.pbase.try_to_consume(_VAR) then
             varspez:=vs_var
           else
-            if compiler.parser.pbase.try_to_consume(_CONST) then
+            if parser.pbase.try_to_consume(_CONST) then
               varspez:=vs_const
           else
             if (m_out in current_settings.modeswitches) and
-               compiler.parser.pbase.try_to_consume(_OUT) then
+               parser.pbase.try_to_consume(_OUT) then
               varspez:=vs_out
           else
-           if compiler.parser.pbase.try_to_consume(_CONSTREF) then
+           if parser.pbase.try_to_consume(_CONSTREF) then
              varspez:=vs_constref
           else
             if (m_mac in current_settings.modeswitches) and
-               compiler.parser.pbase.try_to_consume(_POINTPOINTPOINT) then
+               parser.pbase.try_to_consume(_POINTPOINTPOINT) then
               begin
                 include(pd.procoptions,po_varargs);
                 break;
               end
           else
             if (m_nested_procvars in current_settings.modeswitches) and
-               compiler.parser.pbase.try_to_consume(_PROCEDURE) then
+               parser.pbase.try_to_consume(_PROCEDURE) then
               begin
                 parseprocvar:=pv_proc;
                 varspez:=vs_const;
               end
           else
             if (m_nested_procvars in current_settings.modeswitches) and
-               compiler.parser.pbase.try_to_consume(_FUNCTION) then
+               parser.pbase.try_to_consume(_FUNCTION) then
               begin
                 parseprocvar:=pv_func;
                 varspez:=vs_const;
@@ -377,8 +396,8 @@ implementation
              sc.add(vs)
             else
              vs.free; // no nil needed
-            compiler.parser.pbase.consume(_ID);
-          until not compiler.parser.pbase.try_to_consume(_COMMA);
+            parser.pbase.consume(_ID);
+          until not parser.pbase.try_to_consume(_COMMA);
           locationstr:='';
           { macpas anonymous procvar }
           if parseprocvar<>pv_none then
@@ -390,8 +409,8 @@ implementation
              if parseprocvar=pv_func then
               begin
                 block_type:=bt_var_type;
-                compiler.parser.pbase.consume(_COLON);
-                compiler.parser.ptype.single_type(pv.returndef,[]);
+                parser.pbase.consume(_COLON);
+                parser.ptype.single_type(pv.returndef,[]);
                 block_type:=bt_var;
               end;
              { possible proc directives }
@@ -409,27 +428,27 @@ implementation
           { read type declaration, force reading for value paras }
            if (current_scanner.token=_COLON) or (varspez=vs_value) then
            begin
-             compiler.parser.pbase.consume(_COLON);
+             parser.pbase.consume(_COLON);
              { check for an open array }
              need_array:=false;
              { bitpacked open array are not yet supported }
              if (current_scanner.token=_PACKED) and
                 not(cs_bitpacking in current_settings.localswitches) then
                begin
-                 compiler.parser.pbase.consume(_PACKED);
+                 parser.pbase.consume(_PACKED);
                  need_array:=true;
                end;
              if (current_scanner.token=_ARRAY) or
                 need_array then
               begin
-                compiler.parser.pbase.consume(_ARRAY);
-                compiler.parser.pbase.consume(_OF);
+                parser.pbase.consume(_ARRAY);
+                parser.pbase.consume(_OF);
                 { define range and type of range }
                 hdef:=carraydef.create_openarray(compiler);
                 { array of const ? }
                 if (current_scanner.token=_CONST) and (m_objpas in current_settings.modeswitches) then
                  begin
-                   compiler.parser.pbase.consume(_CONST);
+                   parser.pbase.consume(_CONST);
                    srsym:=search_system_type('TVARREC');
                    tarraydef(hdef).elementdef:=ttypesym(srsym).typedef;
                    include(tarraydef(hdef).arrayoptions,ado_IsArrayOfConst);
@@ -441,7 +460,7 @@ implementation
                      stoptions:=[stoAllowSpecialization]
                    else
                      stoptions:=[];
-                   compiler.parser.ptype.single_type(arrayelementdef,stoptions);
+                   parser.ptype.single_type(arrayelementdef,stoptions);
                    if assigned(arrayelementdef.typesym) then
                      check_hints(arrayelementdef.typesym,arrayelementdef.typesym.symoptions,arrayelementdef.typesym.deprecatedmsg);
                    tarraydef(hdef).elementdef:=arrayelementdef;
@@ -450,15 +469,15 @@ implementation
              else
               begin
                 if (m_mac in current_settings.modeswitches) then
-                  is_univ:=compiler.parser.pbase.try_to_consume(_UNIV);
+                  is_univ:=parser.pbase.try_to_consume(_UNIV);
 
                 { this is not really working and generates internal errors
-                if compiler.parser.pbase.try_to_consume(_TYPE) then
+                if parser.pbase.try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
                 else }
                   begin
                     block_type:=bt_var_type;
-                    compiler.parser.ptype.single_type(hdef,[stoAllowSpecialization]);
+                    parser.ptype.single_type(hdef,[stoAllowSpecialization]);
                     block_type:=bt_var;
                   end;
 
@@ -492,9 +511,9 @@ implementation
                   begin
                     if (current_scanner.idtoken=_LOCATION) then
                       begin
-                        compiler.parser.pbase.consume(_LOCATION);
+                        parser.pbase.consume(_LOCATION);
                         locationstr:=current_scanner.cstringpattern;
-                        compiler.parser.pbase.consume(_CSTRING);
+                        parser.pbase.consume(_CSTRING);
                       end
                     else
                       begin
@@ -563,7 +582,7 @@ implementation
                 Message(parser_e_wasm_ref_types_can_only_be_passed_by_value);
 {$endif wasm}
             end;
-        until not compiler.parser.pbase.try_to_consume(_SEMICOLON);
+        until not parser.pbase.try_to_consume(_SEMICOLON);
 
         if explicit_paraloc then
           include(pd.procoptions,po_explicitparaloc);
@@ -573,7 +592,7 @@ implementation
         sc := nil;
         { reset object options }
         block_type:=old_block_type;
-        compiler.parser.pbase.consume(_RKLAMMER);
+        parser.pbase.consume(_RKLAMMER);
       end;
 
 
@@ -611,7 +630,7 @@ implementation
          begin
            if (lasttoken in [first_overloaded..last_overloaded]) then
             begin
-              compiler.parser.pbase.optoken:=current_scanner.token;
+              parser.pbase.optoken:=current_scanner.token;
             end
            else
             begin
@@ -620,42 +639,42 @@ implementation
                   Message1(parser_e_overload_operator_failed,'**');
                 _ID:
                   case lastidtoken of
-                    _ENUMERATOR:compiler.parser.pbase.optoken:=_OP_ENUMERATOR;
-                    _EXPLICIT:compiler.parser.pbase.optoken:=_OP_EXPLICIT;
-                    _INC:compiler.parser.pbase.optoken:=_OP_INC;
-                    _DEC:compiler.parser.pbase.optoken:=_OP_DEC;
-                    _INITIALIZE:compiler.parser.pbase.optoken:=_OP_INITIALIZE;
-                    _FINALIZE:compiler.parser.pbase.optoken:=_OP_FINALIZE;
-                    _ADDREF:compiler.parser.pbase.optoken:=_OP_ADDREF;
-                    _COPY:compiler.parser.pbase.optoken:=_OP_COPY;
+                    _ENUMERATOR:parser.pbase.optoken:=_OP_ENUMERATOR;
+                    _EXPLICIT:parser.pbase.optoken:=_OP_EXPLICIT;
+                    _INC:parser.pbase.optoken:=_OP_INC;
+                    _DEC:parser.pbase.optoken:=_OP_DEC;
+                    _INITIALIZE:parser.pbase.optoken:=_OP_INITIALIZE;
+                    _FINALIZE:parser.pbase.optoken:=_OP_FINALIZE;
+                    _ADDREF:parser.pbase.optoken:=_OP_ADDREF;
+                    _COPY:parser.pbase.optoken:=_OP_COPY;
                     else
                     if (m_delphi in current_settings.modeswitches) then
                       case lastidtoken of
-                        _IMPLICIT:compiler.parser.pbase.optoken:=_ASSIGNMENT;
-                        _NEGATIVE:compiler.parser.pbase.optoken:=_MINUS;
-                        _POSITIVE:compiler.parser.pbase.optoken:=_PLUS;
-                        _LOGICALNOT:compiler.parser.pbase.optoken:=_OP_NOT;
-                        _IN:compiler.parser.pbase.optoken:=_OP_IN;
-                        _EQUAL:compiler.parser.pbase.optoken:=_EQ;
-                        _NOTEQUAL:compiler.parser.pbase.optoken:=_NE;
-                        _GREATERTHAN:compiler.parser.pbase.optoken:=_GT;
-                        _GREATERTHANOREQUAL:compiler.parser.pbase.optoken:=_GTE;
-                        _LESSTHAN:compiler.parser.pbase.optoken:=_LT;
-                        _LESSTHANOREQUAL:compiler.parser.pbase.optoken:=_LTE;
-                        _ADD:compiler.parser.pbase.optoken:=_PLUS;
-                        _SUBTRACT:compiler.parser.pbase.optoken:=_MINUS;
-                        _MULTIPLY:compiler.parser.pbase.optoken:=_STAR;
-                        _DIVIDE:compiler.parser.pbase.optoken:=_SLASH;
-                        _INTDIVIDE:compiler.parser.pbase.optoken:=_OP_DIV;
-                        _MODULUS:compiler.parser.pbase.optoken:=_OP_MOD;
-                        _LEFTSHIFT:compiler.parser.pbase.optoken:=_OP_SHL;
-                        _RIGHTSHIFT:compiler.parser.pbase.optoken:=_OP_SHR;
-                        _LOGICALAND:compiler.parser.pbase.optoken:=_OP_AND;
-                        _LOGICALOR:compiler.parser.pbase.optoken:=_OP_OR;
-                        _LOGICALXOR:compiler.parser.pbase.optoken:=_OP_XOR;
-                        _BITWISEAND:compiler.parser.pbase.optoken:=_OP_AND;
-                        _BITWISEOR:compiler.parser.pbase.optoken:=_OP_OR;
-                        _BITWISEXOR:compiler.parser.pbase.optoken:=_OP_XOR;
+                        _IMPLICIT:parser.pbase.optoken:=_ASSIGNMENT;
+                        _NEGATIVE:parser.pbase.optoken:=_MINUS;
+                        _POSITIVE:parser.pbase.optoken:=_PLUS;
+                        _LOGICALNOT:parser.pbase.optoken:=_OP_NOT;
+                        _IN:parser.pbase.optoken:=_OP_IN;
+                        _EQUAL:parser.pbase.optoken:=_EQ;
+                        _NOTEQUAL:parser.pbase.optoken:=_NE;
+                        _GREATERTHAN:parser.pbase.optoken:=_GT;
+                        _GREATERTHANOREQUAL:parser.pbase.optoken:=_GTE;
+                        _LESSTHAN:parser.pbase.optoken:=_LT;
+                        _LESSTHANOREQUAL:parser.pbase.optoken:=_LTE;
+                        _ADD:parser.pbase.optoken:=_PLUS;
+                        _SUBTRACT:parser.pbase.optoken:=_MINUS;
+                        _MULTIPLY:parser.pbase.optoken:=_STAR;
+                        _DIVIDE:parser.pbase.optoken:=_SLASH;
+                        _INTDIVIDE:parser.pbase.optoken:=_OP_DIV;
+                        _MODULUS:parser.pbase.optoken:=_OP_MOD;
+                        _LEFTSHIFT:parser.pbase.optoken:=_OP_SHL;
+                        _RIGHTSHIFT:parser.pbase.optoken:=_OP_SHR;
+                        _LOGICALAND:parser.pbase.optoken:=_OP_AND;
+                        _LOGICALOR:parser.pbase.optoken:=_OP_OR;
+                        _LOGICALXOR:parser.pbase.optoken:=_OP_XOR;
+                        _BITWISEAND:parser.pbase.optoken:=_OP_AND;
+                        _BITWISEOR:parser.pbase.optoken:=_OP_OR;
+                        _BITWISEXOR:parser.pbase.optoken:=_OP_XOR;
                         else
                           Message1(parser_e_overload_operator_failed,'');
                       end
@@ -666,7 +685,7 @@ implementation
                   Message1(parser_e_overload_operator_failed,'');
               end;
             end;
-           sp:=overloaded_names[compiler.parser.pbase.optoken];
+           sp:=overloaded_names[parser.pbase.optoken];
            orgsp:=sp;
            spnongen:=sp;
            orgspnongen:=orgsp;
@@ -696,11 +715,11 @@ implementation
             genericparams:=nil;
             hadspecialize:=false;
             if potype=potype_operator then
-              compiler.parser.pbase.optoken:=NOTOKEN;
+              parser.pbase.optoken:=NOTOKEN;
             if (potype=potype_operator) and (current_scanner.token<>_ID) then
               begin
                 parse_operator_name;
-                compiler.parser.pbase.consume(current_scanner.token);
+                parser.pbase.consume(current_scanner.token);
               end
             else
               begin
@@ -712,16 +731,16 @@ implementation
                     not (m_delphi in current_settings.modeswitches) and
                     (current_scanner.idtoken=_SPECIALIZE) then
                   hadspecialize:=true;
-                compiler.parser.pbase.consume(_ID);
+                parser.pbase.consume(_ID);
                 if ((ppf_generic in flags) or (m_delphi in current_settings.modeswitches)) and
                     (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                   begin
-                    compiler.parser.pbase.consume(current_scanner.token);
+                    parser.pbase.consume(current_scanner.token);
                     if current_scanner.token in [_GT,_RSHARPBRACKET] then
                       message(type_e_type_id_expected)
                     else
                       begin
-                        genericparams:=compiler.parser.pgenutil.parse_generic_parameters(true);
+                        genericparams:=parser.pgenutil.parse_generic_parameters(true);
                         if not assigned(genericparams) then
                           internalerror(2015061201);
                         if genericparams.count=0 then
@@ -733,8 +752,8 @@ implementation
                         sp:=sp+'$'+s;
                         orgsp:=orgsp+'$'+s;
                       end;
-                    if not compiler.parser.pbase.try_to_consume(_GT) then
-                      compiler.parser.pbase.consume(_RSHARPBRACKET);
+                    if not parser.pbase.try_to_consume(_GT) then
+                      parser.pbase.consume(_RSHARPBRACKET);
                   end;
               end;
             firstpart:=false;
@@ -751,7 +770,7 @@ implementation
             if not assigned(result) then
               begin
                 if gen_error then
-                  compiler.parser.pbase.identifier_not_found(orgsp);
+                  parser.pbase.identifier_not_found(orgsp);
                 result:=generrorsym;
               end;
             current_tokenpos:=storepos;
@@ -810,7 +829,7 @@ implementation
 
             if not compiler.symtablestack.searchsym(sp,typesrsym,typesrsymtable) or (typesrsym.typ<>typesym) then
               begin
-                compiler.parser.pbase.identifier_not_found(sp);
+                parser.pbase.identifier_not_found(sp);
                 srsym:=generrorsym;
                 exit;
               end;
@@ -823,7 +842,7 @@ implementation
             if hierarchy<>'' then
               hierarchy:='.'+hierarchy;
 
-            genname:=compiler.parser.pgenutil.generate_generic_name(sp,specializename,module.modulename^+hierarchy);
+            genname:=parser.pgenutil.generate_generic_name(sp,specializename,module.modulename^+hierarchy);
             ugenname:=upper(genname);
 
             srsym:=search_object_name(ugenname,false);
@@ -838,7 +857,7 @@ implementation
           var
             node : tnode;
           begin
-            node:=compiler.parser.pexpr.factor(false,[ef_type_only,ef_had_specialize]);
+            node:=parser.pexpr.factor(false,[ef_type_only,ef_had_specialize]);
             if node.nodetype=typen then
               begin
                 sp:=ttypenode(node).typedef.typesym.name;
@@ -895,7 +914,7 @@ implementation
 
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
-        old_parse_generic:=compiler.parser.pbase.parse_generic;
+        old_parse_generic:=parser.pbase.parse_generic;
 
         firstpart:=true;
         result:=false;
@@ -946,7 +965,7 @@ implementation
              begin
                if hadspecialize and (current_scanner.token=_ID) then
                  specialize_generic_interface;
-               compiler.parser.pbase.consume(_POINT);
+               parser.pbase.consume(_POINT);
                if hadspecialize or not handle_generic_interface then
                  srsym:=search_object_name(sp,true);
                { qualifier is interface? }
@@ -959,9 +978,9 @@ implementation
                  begin
                    Message(parser_e_interface_id_expected);
                    { error recovery }
-                   compiler.parser.pbase.consume(_ID);
-                   if compiler.parser.pbase.try_to_consume(_EQ) then
-                     compiler.parser.pbase.consume(_ID);
+                   parser.pbase.consume(_ID);
+                   if parser.pbase.try_to_consume(_EQ) then
+                     parser.pbase.consume(_ID);
                    exit;
                  end
                else
@@ -973,14 +992,14 @@ implementation
                { must be a directly implemented interface }
                if Assigned(ImplIntf.ImplementsGetter) then
                  Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
-               compiler.parser.pbase.consume(_ID);
+               parser.pbase.consume(_ID);
                { Create unique name <interface>.<method> }
                hs:=sp+'.'+current_scanner.pattern;
-               compiler.parser.pbase.consume(_EQ);
+               parser.pbase.consume(_EQ);
                if assigned(ImplIntf) and
                   (current_scanner.token=_ID) then
                  ImplIntf.AddMapping(hs,current_scanner.pattern);
-               compiler.parser.pbase.consume(_ID);
+               parser.pbase.consume(_ID);
                result:=true;
                exit;
              end;
@@ -992,7 +1011,7 @@ implementation
             srsym:=nil;
             if not assigned(astruct) and
                (compiler.symtablestack.top.symtablelevel=main_program_level) and
-               compiler.parser.pbase.try_to_consume(_POINT) then
+               parser.pbase.try_to_consume(_POINT) then
              begin
                repeat
                  classstartfilepos:=procstartfilepos;
@@ -1028,7 +1047,7 @@ implementation
                       if (potype in [potype_class_constructor,potype_class_destructor]) then
                         sp:=lower(sp)
                       else
-                      if (potype=potype_operator) and (compiler.parser.pbase.optoken=NOTOKEN) then
+                      if (potype=potype_operator) and (parser.pbase.optoken=NOTOKEN) then
                         parse_operator_name;
                     srsym:=tsym(astruct.symtable.Find(sp));
                     if assigned(srsym) then
@@ -1040,7 +1059,7 @@ implementation
                           (ttypesym(srsym).typedef.typ in [objectdef,recorddef]) then
                          begin
                            searchagain:=true;
-                           compiler.parser.pbase.consume(_POINT);
+                           parser.pbase.consume(_POINT);
                          end
                        else
                          begin
@@ -1068,7 +1087,7 @@ implementation
             else
              begin
                { check for constructor/destructor/class operators which are not allowed here }
-               if (not compiler.parser.pbase.parse_only) and
+               if (not parser.pbase.parse_only) and
                   ((potype in [potype_constructor,potype_destructor,
                                potype_class_constructor,potype_class_destructor]) or
                    ((potype=potype_operator) and (m_delphi in current_settings.modeswitches))) then
@@ -1085,7 +1104,7 @@ implementation
                  searchagain:=false;
                  current_tokenpos:=procstartfilepos;
 
-                 if (potype=potype_operator)and(compiler.parser.pbase.optoken=NOTOKEN) then
+                 if (potype=potype_operator)and(parser.pbase.optoken=NOTOKEN) then
                    parse_operator_name;
 
                  srsym:=tsym(insertst.Find(sp));
@@ -1093,7 +1112,7 @@ implementation
                  { Also look in the globalsymtable if we didn't found
                    the symbol in the localsymtable }
                  if not assigned(srsym) and
-                    not(compiler.parser.pbase.parse_only) and
+                    not(parser.pbase.parse_only) and
                     (compiler.symtablestack.top=current_module.localsymtable) and
                     assigned(current_module.globalsymtable) then
                    srsym:=tsym(current_module.globalsymtable.Find(sp));
@@ -1242,12 +1261,12 @@ implementation
                      if tsym(genericparams[i]).typ=typesym then
                        tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
                   end;
-                compiler.parser.pgenutil.insert_generic_parameter_types(pd,nil,genericparams,false);
+                parser.pgenutil.insert_generic_parameter_types(pd,nil,genericparams,false);
                 { the list is no longer required }
                 genericparams.free;
                 genericparams:=nil;
                 compiler.symtablestack.pop(pd.parast);
-                compiler.parser.pbase.parse_generic:=true;
+                parser.pbase.parse_generic:=true;
                 { also generate a dummy symbol if none exists already }
                 if assigned(astruct) then
                   dummysym:=tsym(astruct.symtable.find(spnongen))
@@ -1279,7 +1298,7 @@ implementation
                 if not (sp_generic_dummy in dummysym.symoptions) then
                   begin
                     include(dummysym.symoptions,sp_generic_dummy);
-                    compiler.parser.pgenutil.add_generic_dummysym(dummysym,'');
+                    parser.pgenutil.add_generic_dummysym(dummysym,'');
                   end;
                 if dummysym.typ=procsym then
                   tprocsym(dummysym).add_generic_overload(aprocsym);
@@ -1289,7 +1308,7 @@ implementation
               end;
           end
         else if assigned(genericdef) then
-          compiler.parser.pgenutil.insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist,false);
+          parser.pgenutil.insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist,false);
 
         { methods inherit df_generic or df_specialization from the objectdef }
         if assigned(pd.struct) and
@@ -1298,7 +1317,7 @@ implementation
             if (df_generic in pd.struct.defoptions) then
               begin
                 include(pd.defoptions,df_generic);
-                compiler.parser.pbase.parse_generic:=true;
+                parser.pbase.parse_generic:=true;
               end;
             if (df_specialization in pd.struct.defoptions) then
               begin
@@ -1411,7 +1430,7 @@ implementation
               end;
           end;
 
-        compiler.parser.pbase.parse_generic:=old_parse_generic;
+        parser.pbase.parse_generic:=old_parse_generic;
         result:=true;
       end;
 
@@ -1430,7 +1449,7 @@ implementation
             old_current_genericdef,
             old_current_specializedef: tstoreddef;
           begin
-            old_parse_generic:=compiler.parser.pbase.parse_generic;
+            old_parse_generic:=parser.pbase.parse_generic;
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
             old_current_structdef:=nil;
@@ -1464,10 +1483,10 @@ implementation
                 else
                   internalerror(2016090203);
               end;
-            compiler.parser.pbase.parse_generic:=(df_generic in pd.defoptions);
+            parser.pbase.parse_generic:=(df_generic in pd.defoptions);
             if pd.is_generic or pd.is_specialization then
               compiler.symtablestack.push(pd.parast);
-            pd.returndef:=compiler.parser.ptype.result_type([stoAllowSpecialization]);
+            pd.returndef:=parser.ptype.result_type([stoAllowSpecialization]);
 
             // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
@@ -1493,7 +1512,7 @@ implementation
               end;
             current_genericdef:=old_current_genericdef;
             current_specializedef:=old_current_specializedef;
-            compiler.parser.pbase.parse_generic:=old_parse_generic;
+            parser.pbase.parse_generic:=old_parse_generic;
           end;
 
       begin
@@ -1515,15 +1534,15 @@ implementation
                   if current_scanner.token<>_ID then
                     begin
                        if not(m_result in current_settings.modeswitches) then
-                         compiler.parser.pbase.consume(_ID);
+                         parser.pbase.consume(_ID);
                     end
                   else
                     begin
                       pd.resultname:=stringdup(current_scanner.orgpattern);
-                      compiler.parser.pbase.consume(_ID);
+                      parser.pbase.consume(_ID);
                     end;
                 end;
-              if compiler.parser.pbase.try_to_consume(_COLON) then
+              if parser.pbase.try_to_consume(_COLON) then
                begin
                  read_returndef(pd);
                  if (target_info.system in [system_m68k_amiga]) then
@@ -1532,9 +1551,9 @@ implementation
                     begin
                      if po_explicitparaloc in pd.procoptions then
                       begin
-                       compiler.parser.pbase.consume(_LOCATION);
+                       parser.pbase.consume(_LOCATION);
                        locationstr:=current_scanner.cstringpattern;
-                       compiler.parser.pbase.consume(_CSTRING);
+                       parser.pbase.consume(_CSTRING);
                       end
                      else
                       { I guess this needs a new message... (KB) }
@@ -1553,13 +1572,13 @@ implementation
               else
                begin
                   if (
-                      compiler.parser.pbase.parse_only and
+                      parser.pbase.parse_only and
                       not(is_interface(pd.struct))
                      ) or
                      (m_repeat_forward in current_settings.modeswitches) then
                   begin
-                    compiler.parser.pbase.consume(_COLON);
-                    compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                    parser.pbase.consume(_COLON);
+                    parser.pbase.consume_all_until(_SEMICOLON);
                   end;
                end;
               if ppf_classmethod in flags then
@@ -1614,18 +1633,18 @@ implementation
               if current_scanner.token<>_ID then
                 begin
                    if not(m_result in current_settings.modeswitches) then
-                     compiler.parser.pbase.consume(_ID);
+                     parser.pbase.consume(_ID);
                 end
               else
                 begin
                   pd.resultname:=stringdup(current_scanner.orgpattern);
-                  compiler.parser.pbase.consume(_ID);
+                  parser.pbase.consume(_ID);
                 end;
               { operators without result (management operators) }
-              if compiler.parser.pbase.optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF, _OP_COPY] then
+              if parser.pbase.optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF, _OP_COPY] then
                 begin
                   { single var parameter to point the record }
-                  if (compiler.parser.pbase.optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF]) and
+                  if (parser.pbase.optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF]) and
                      (
                       (pd.parast.SymList.Count<>1) or
                       (tparavarsym(pd.parast.SymList[0]).vardef<>pd.struct) or
@@ -1633,7 +1652,7 @@ implementation
                      ) then
                     Message(parser_e_overload_impossible)
                   { constref (source) and var (dest) parameter to point the records }
-                  else if (compiler.parser.pbase.optoken=_OP_COPY) and
+                  else if (parser.pbase.optoken=_OP_COPY) and
                      (
                       (pd.parast.SymList.Count<>2) or
                       (tparavarsym(pd.parast.SymList[0]).vardef<>pd.struct) or
@@ -1644,15 +1663,15 @@ implementation
                     Message(parser_e_overload_impossible);
 
                   trecordsymtable(pd.procsym.Owner).includemanagementoperator(
-                    token2managementoperator(compiler.parser.pbase.optoken));
+                    token2managementoperator(parser.pbase.optoken));
                   pd.returndef:=voidtype
                 end
               else
-                if not compiler.parser.pbase.try_to_consume(_COLON) then
+                if not parser.pbase.try_to_consume(_COLON) then
                   begin
-                    compiler.parser.pbase.consume(_COLON);
+                    parser.pbase.consume(_COLON);
                     pd.returndef:=generrordef;
-                    compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                    parser.pbase.consume_all_until(_SEMICOLON);
                   end
                 else
                  begin
@@ -1677,11 +1696,11 @@ implementation
                      end;
                    if not assigned(pd.struct) or assigned(astruct) then
                      begin
-                       if (compiler.parser.pbase.optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
+                       if (parser.pbase.optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
                           equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
                           (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
                          message(parser_e_no_such_assignment)
-                       else if not isoperatoracceptable(pd,compiler.parser.pbase.optoken) then
+                       else if not isoperatoracceptable(pd,parser.pbase.optoken) then
                          Message(parser_e_overload_impossible);
                      end;
                  end;
@@ -1703,10 +1722,10 @@ implementation
             if (current_scanner.token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
               begin
                 message(parser_e_field_not_allowed_here);
-                compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                parser.pbase.consume_all_until(_SEMICOLON);
               end;
             if not (ppf_anonymous in flags) then
-              compiler.parser.pbase.consume(_SEMICOLON);
+              parser.pbase.consume(_SEMICOLON);
           end;
 
         if locationstr<>'' then
@@ -1728,9 +1747,9 @@ implementation
             if current_scanner.token=_COLON then
               begin
                 message(parser_e_field_not_allowed_here);
-                compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                parser.pbase.consume_all_until(_SEMICOLON);
               end;
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
           end;
 
       begin
@@ -1739,7 +1758,7 @@ implementation
         case current_scanner.token of
           _FUNCTION :
             begin
-              compiler.parser.pbase.consume(_FUNCTION);
+              parser.pbase.consume(_FUNCTION);
               if parse_proc_head(astruct,potype_function,flags,nil,nil,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
@@ -1751,15 +1770,15 @@ implementation
               else
                 begin
                   { recover }
-                  compiler.parser.pbase.consume(_COLON);
-                  compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                  parser.pbase.consume(_COLON);
+                  parser.pbase.consume_all_until(_SEMICOLON);
                   recover:=true;
                 end;
             end;
 
           _PROCEDURE :
             begin
-              compiler.parser.pbase.consume(_PROCEDURE);
+              parser.pbase.consume(_PROCEDURE);
               if parse_proc_head(astruct,potype_procedure,flags,nil,nil,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
@@ -1774,7 +1793,7 @@ implementation
 
           _CONSTRUCTOR :
             begin
-              compiler.parser.pbase.consume(_CONSTRUCTOR);
+              parser.pbase.consume(_CONSTRUCTOR);
               if ppf_classmethod in flags then
                 recover:=not parse_proc_head(astruct,potype_class_constructor,[],nil,nil,pd)
               else
@@ -1785,7 +1804,7 @@ implementation
 
           _DESTRUCTOR :
             begin
-              compiler.parser.pbase.consume(_DESTRUCTOR);
+              parser.pbase.consume(_DESTRUCTOR);
               if ppf_classmethod in flags then
                 recover:=not parse_proc_head(astruct,potype_class_destructor,[],nil,nil,pd)
               else
@@ -1802,7 +1821,7 @@ implementation
                 _LSHARPBRACKET and _RSHARPBRACKET for "<>" }
               old_block_type:=block_type;
               block_type:=bt_body;
-              compiler.parser.pbase.consume(_OPERATOR);
+              parser.pbase.consume(_OPERATOR);
               parse_proc_head(astruct,potype_operator,[],nil,nil,pd);
               block_type:=old_block_type;
               if assigned(pd) then
@@ -1810,9 +1829,9 @@ implementation
               else
                 begin
                   { recover }
-                  compiler.parser.pbase.try_to_consume(_ID);
-                  compiler.parser.pbase.consume(_COLON);
-                  compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                  parser.pbase.try_to_consume(_ID);
+                  parser.pbase.consume(_COLON);
+                  parser.pbase.consume_all_until(_SEMICOLON);
                   recover:=true;
                 end;
             end;
@@ -1823,10 +1842,10 @@ implementation
             if (current_scanner.token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
               begin
                 message(parser_e_field_not_allowed_here);
-                compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                parser.pbase.consume_all_until(_SEMICOLON);
               end;
             if not (ppf_anonymous in flags) then
-              compiler.parser.pbase.consume(_SEMICOLON);
+              parser.pbase.consume(_SEMICOLON);
           end;
 
         { we've parsed the final semicolon, so stop recording tokens }
@@ -1844,8 +1863,8 @@ implementation
         oldparse_only: boolean;
         flags : tparse_proc_flags;
       begin
-        oldparse_only:=compiler.parser.pbase.parse_only;
-        compiler.parser.pbase.parse_only:=true;
+        oldparse_only:=parser.pbase.parse_only;
+        parser.pbase.parse_only:=true;
         flags:=[];
         if is_classdef then
           include(flags,ppf_classmethod);
@@ -1879,9 +1898,9 @@ implementation
               astruct.symtable.includeoption(sto_has_generic);
           end;
 
-        compiler.parser.ptype.maybe_parse_hint_directives(result);
+        parser.ptype.maybe_parse_hint_directives(result);
 
-        compiler.parser.pbase.parse_only:=oldparse_only;
+        parser.pbase.parse_only:=oldparse_only;
       end;
 
 
@@ -1894,9 +1913,9 @@ var
   v : Tconstexprint;
 begin
   { check for optional syssym index }
-  if compiler.parser.pbase.try_to_consume(_COLON) then
+  if parser.pbase.try_to_consume(_COLON) then
     begin
-      v:=compiler.parser.pexpr.get_intconst;
+      v:=parser.pexpr.get_intconst;
       if (v<int64(low(longint))) or (v>int64(high(longint))) then
         message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
       else if not assigned(tsyssym.find_by_number(longint(v.svalue))) then
@@ -1938,8 +1957,8 @@ procedure TSubroutineDeclarationParser.pd_alias(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304266);
-  compiler.parser.pbase.consume(_COLON);
-  tprocdef(pd).aliasnames.insert(compiler.parser.pexpr.get_stringconst);
+  parser.pbase.consume(_COLON);
+  tprocdef(pd).aliasnames.insert(parser.pexpr.get_stringconst);
   include(pd.procoptions,po_has_public_name);
 end;
 
@@ -1948,9 +1967,9 @@ procedure TSubroutineDeclarationParser.pd_public(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042601);
-  if compiler.parser.pbase.try_to_consume(_NAME) then
+  if parser.pbase.try_to_consume(_NAME) then
     begin
-      tprocdef(pd).aliasnames.insert(compiler.parser.pexpr.get_stringconst);
+      tprocdef(pd).aliasnames.insert(parser.pexpr.get_stringconst);
       include(pd.procoptions,po_has_public_name);
     end;
 end;
@@ -1963,12 +1982,12 @@ begin
   if current_scanner.token=_CCHAR then
     begin
       tprocdef(pd).aliasnames.insert(target_info.Cprefix+current_scanner.pattern);
-      compiler.parser.pbase.consume(_CCHAR)
+      parser.pbase.consume(_CCHAR)
     end
   else
     begin
       tprocdef(pd).aliasnames.insert(target_info.Cprefix+current_scanner.cstringpattern);
-      compiler.parser.pbase.consume(_CSTRING);
+      parser.pbase.consume(_CSTRING);
     end;
   { we don't need anything else }
   tprocdef(pd).forwarddef:=false;
@@ -1982,8 +2001,8 @@ var v:Tconstexprint;
 begin
   if pd.typ<>procdef then
     internalerror(200304268);
-  compiler.parser.pbase.consume(_COLON);
-  v:=compiler.parser.pexpr.get_intconst;
+  parser.pbase.consume(_COLON);
+  v:=parser.pexpr.get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
@@ -1998,8 +2017,8 @@ var v:Tconstexprint;
 begin
   if pd.typ<>procdef then
     internalerror(2003042602);
-  compiler.parser.pbase.consume(_COLON);
-  v:=compiler.parser.pexpr.get_intconst;
+  parser.pbase.consume(_COLON);
+  v:=parser.pexpr.get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
@@ -2072,7 +2091,7 @@ begin
     end
     else
       Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
-    compiler.parser.pbase.consume(current_scanner.token);
+    parser.pbase.consume(current_scanner.token);
   end
   else
     Message(parser_e_enumerator_identifier_required);
@@ -2126,7 +2145,7 @@ var pt:Tnode;
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
-  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -2212,7 +2231,7 @@ begin
       if paracnt<>1 then
         Message(parser_e_ill_msg_param);
     end;
-  pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+  pt:=parser.pexpr.comp_expr([ef_accept_equal]);
   { message is 1-character long }
   if is_constcharnode(pt) then
     begin
@@ -2291,7 +2310,7 @@ procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
                   begin
                     if target_info.system in syscall^.validon then
                       begin
-                        compiler.parser.pbase.consume(current_scanner.idtoken);
+                        parser.pbase.consume(current_scanner.idtoken);
                         include(pd.procoptions,syscall^.procoption);
                       end
                   end
@@ -2357,14 +2376,14 @@ begin
 
   if target_info.system in [system_arm_palmos, system_m68k_palmos] then
     begin
-      v:=compiler.parser.pexpr.get_intconst;
+      v:=parser.pexpr.get_intconst;
       tprocdef(pd).extnumber:=longint(v.svalue);
       if ((v<0) or (v>high(word))) then
         message(parser_e_range_check_error);
 
-      if compiler.parser.pbase.try_to_consume(_COMMA) then
+      if parser.pbase.try_to_consume(_COMMA) then
         begin
-          v:=compiler.parser.pexpr.get_intconst;
+          v:=parser.pexpr.get_intconst;
           if ((v<0) or (v>high(word))) then
             message(parser_e_range_check_error);
           tprocdef(pd).import_nr:=longint(v.svalue);
@@ -2375,13 +2394,13 @@ begin
 
   if target_info.system = system_m68k_atari then
     begin
-      v:=compiler.parser.pexpr.get_intconst;
+      v:=parser.pexpr.get_intconst;
       if ((v<0) or (v>15)) then
         message(parser_e_range_check_error)
       else
         tprocdef(pd).extnumber:=longint(v.svalue);
 
-      v:=compiler.parser.pexpr.get_intconst;
+      v:=parser.pexpr.get_intconst;
       if ((v<0) or (v>high(smallint))) then
         message(parser_e_range_check_error)
       else
@@ -2392,7 +2411,7 @@ begin
 
   if target_info.system = system_m68k_human68k then
     begin
-      v:=compiler.parser.pexpr.get_intconst;
+      v:=parser.pexpr.get_intconst;
       if ((v<$ff00) or (v>high(word))) then
         message(parser_e_range_check_error)
       else
@@ -2401,7 +2420,7 @@ begin
       exit;
     end;
 
-  if compiler.parser.pbase.consume_sym(sym,symtable) then
+  if parser.pbase.consume_sym(sym,symtable) then
     if ((sym.typ=staticvarsym) or
         (sym.typ=absolutevarsym) and (tabsolutevarsym(sym).abstyp=toaddr)) and
        ((tabstractvarsym(sym).vardef.typ=pointerdef) or
@@ -2424,7 +2443,7 @@ begin
   paramanager.create_funcretloc_info(pd,calleeside);
   paramanager.create_funcretloc_info(pd,callerside);
 
-  v:=compiler.parser.pexpr.get_intconst;
+  v:=parser.pexpr.get_intconst;
   if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
   else
@@ -2476,7 +2495,7 @@ begin
          not(current_scanner.token=_SEMICOLON) and not(current_scanner.idtoken=_NAME) then
         begin
           { Always add library prefix and suffix to create an uniform name }
-          hs:=compiler.parser.pexpr.get_stringconst;
+          hs:=parser.pexpr.get_stringconst;
           if ExtractFileExt(hs)='' then
             hs:=ChangeFileExt(hs,target_info.sharedlibext);
           if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
@@ -2488,8 +2507,8 @@ begin
           include(procoptions,po_has_importdll);
           if (current_scanner.idtoken=_NAME) then
            begin
-             compiler.parser.pbase.consume(_NAME);
-             import_name:=stringdup(compiler.parser.pexpr.get_stringconst);
+             parser.pbase.consume(_NAME);
+             import_name:=stringdup(parser.pexpr.get_stringconst);
              include(procoptions,po_has_importname);
              if import_name^='' then
                message(parser_e_empty_import_name);
@@ -2497,8 +2516,8 @@ begin
           if (current_scanner.idtoken=_INDEX) then
            begin
              {After the word index follows the index number in the DLL.}
-             compiler.parser.pbase.consume(_INDEX);
-             v:=compiler.parser.pexpr.get_intconst;
+             parser.pbase.consume(_INDEX);
+             v:=parser.pexpr.get_intconst;
              if (v<int64(low(import_nr))) or (v>int64(high(import_nr))) then
                message(parser_e_range_check_error)
              else
@@ -2508,25 +2527,25 @@ begin
            begin
              if (target_info.system in systems_wasm) then
               begin
-                compiler.parser.pbase.consume(_SUSPENDING);
+                parser.pbase.consume(_SUSPENDING);
                 include(procoptions,po_wasm_suspending);
                 synthetickind:=tsk_wasm_suspending_first;
                 if current_scanner.idtoken=_FIRST then
-                  compiler.parser.pbase.consume(_FIRST)
+                  parser.pbase.consume(_FIRST)
                 else if current_scanner.idtoken=_LAST then
                   begin
-                    compiler.parser.pbase.consume(_LAST);
+                    parser.pbase.consume(_LAST);
                     synthetickind:=tsk_wasm_suspending_last;
                   end;
               end
              else
               begin
                 message(parser_e_suspending_externals_not_supported_on_current_platform);
-                compiler.parser.pbase.consume(_SUSPENDING);
+                parser.pbase.consume(_SUSPENDING);
                 if current_scanner.idtoken=_FIRST then
-                  compiler.parser.pbase.consume(_FIRST)
+                  parser.pbase.consume(_FIRST)
                 else if current_scanner.idtoken=_LAST then
-                  compiler.parser.pbase.consume(_LAST);
+                  parser.pbase.consume(_LAST);
               end;
            end;
           { default is to used the realname of the procedure }
@@ -2541,8 +2560,8 @@ begin
           if (current_scanner.idtoken=_NAME) or
              is_java_external then
            begin
-             compiler.parser.pbase.consume(_NAME);
-             import_name:=stringdup(compiler.parser.pexpr.get_stringconst);
+             parser.pbase.consume(_NAME);
+             import_name:=stringdup(parser.pexpr.get_stringconst);
              include(procoptions,po_has_importname);
              if import_name^='' then
                message(parser_e_empty_import_name);
@@ -2588,9 +2607,9 @@ begin
   if not (target_info.system in systems_allow_section) then
     Message(parser_e_section_directive_not_allowed_for_target);
 {$ifdef symansistr}
-  tprocdef(pd).section:=compiler.parser.pexpr.get_stringconst;
+  tprocdef(pd).section:=parser.pexpr.get_stringconst;
 {$else symansistr}
-  tprocdef(pd).section:=stringdup(compiler.parser.pexpr.get_stringconst);
+  tprocdef(pd).section:=stringdup(parser.pexpr.get_stringconst);
 {$endif}
 end;
 
@@ -3128,8 +3147,9 @@ const
    );
 
 
-    constructor TSubroutineDeclarationParser.Create(ACompiler: TCompilerBase);
+    constructor TSubroutineDeclarationParser.Create(AParser: TObject; ACompiler: TCompilerBase);
       begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -3187,7 +3207,7 @@ const
              _DEPRECATED :
                if (m_delphi in current_settings.modeswitches) and (pd.typ=procdef) then
                  begin
-                   compiler.parser.ptype.maybe_parse_hint_directives(tprocdef(pd));
+                   parser.ptype.maybe_parse_hint_directives(tprocdef(pd));
                    { could the new token still be a directive? }
                    if current_scanner.token<>_ID then
                      exit;
@@ -3247,7 +3267,7 @@ const
         tokenloc := current_tokenpos;
 
         { consume directive, and turn flag on }
-        compiler.parser.pbase.consume(current_scanner.token);
+        parser.pbase.consume(current_scanner.token);
         parse_proc_direc:=true;
 
         { Conflicts between directives? }
@@ -3554,12 +3574,12 @@ const
             ) do
          begin
            if not (m_prefixed_attributes in current_settings.modeswitches) and
-              compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
+              parser.pbase.try_to_consume(_LECKKLAMMER) then
             begin
               repeat
                 parse_proc_direc(pd,pdflags);
-              until not compiler.parser.pbase.try_to_consume(_COMMA);
-              compiler.parser.pbase.consume(_RECKKLAMMER);
+              until not parser.pbase.try_to_consume(_COMMA);
+              parser.pbase.consume(_RECKKLAMMER);
               { we always expect at least '[];' }
               res:=true;
             end
@@ -3593,9 +3613,9 @@ const
                       if (current_scanner.token=_COLON) then
                         begin
                           Message(parser_e_field_not_allowed_here);
-                          compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                          parser.pbase.consume_all_until(_SEMICOLON);
                         end;
-                      compiler.parser.pbase.consume(_SEMICOLON)
+                      parser.pbase.consume(_SEMICOLON)
                     end;
                 end;
             end
@@ -3611,7 +3631,7 @@ const
            and in not required if the function is first forward declared
            if it is a procdef that has forwardef set to true
            we postpone the possible error message to the real implementation
-           compiler.parser.pbase.parse_only does not need to be considered as po_nostackframe
+           parser.pbase.parse_only does not need to be considered as po_nostackframe
            is an implementation only directive  }
          if (po_nostackframe in pd.procoptions) and
             not (po_assembler in pd.procoptions) and

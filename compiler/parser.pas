@@ -370,7 +370,7 @@ implementation
         FPExports:=TExportsParser.Create(Self,acompiler);
         FPTConst:=TTypedConstParser.Create(Self,acompiler);
         FPDecVar:=TVariableDeclarationsParser.Create(Self,acompiler);
-        FPDecSub:=TSubroutineDeclarationParser.Create(acompiler);
+        FPDecSub:=TSubroutineDeclarationParser.Create(Self,acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(acompiler);
         FPDecl:=TDeclarationParser.Create(acompiler);
         FPSub:=TSubroutineParser.Create(acompiler);
