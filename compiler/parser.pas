@@ -372,7 +372,7 @@ implementation
         FPDecVar:=TVariableDeclarationsParser.Create(Self,acompiler);
         FPDecSub:=TSubroutineDeclarationParser.Create(Self,acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(Self,acompiler);
-        FPDecl:=TDeclarationParser.Create(acompiler);
+        FPDecl:=TDeclarationParser.Create(Self,acompiler);
         FPSub:=TSubroutineParser.Create(acompiler);
         FPInline:=TInlineParser.Create(acompiler);
         FPType:=TTypesParser.Create(acompiler);

@@ -40,12 +40,16 @@ type
   TDeclarationParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     function is_system_custom_attribute_descendant(def:tdef):boolean;
     function find_create_constructor(objdef:tobjectdef):tsymentry;
     procedure pd_set_objc_related_result(def: tobject; para: pointer);
     property Compiler: TCompilerBase read FCompiler;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
@@ -79,7 +83,7 @@ implementation
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,pparautl,
-       procdefutil,
+       procdefutil,parser,
 {$ifdef jvm}
        pjvm,
 {$endif}
@@ -87,8 +91,24 @@ implementation
        cpuinfo
        ;
 
-    constructor TDeclarationParser.Create(ACompiler: TCompilerBase);
+    type
+
+      { TDeclarationParserHelper }
+
+      TDeclarationParserHelper = class helper for TDeclarationParser
+        function Parser: TParser; inline;
+      end;
+
+    { TDeclarationParserHelper }
+
+    function TDeclarationParserHelper.Parser: TParser;
       begin
+        Result:=TParser(FParser);
+      end;
+
+    constructor TDeclarationParser.Create(AParser: TObject; ACompiler: TCompilerBase);
+      begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -114,7 +134,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+        p:=parser.pexpr.comp_expr([ef_accept_equal]);
         nodetype:=p.nodetype;
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
@@ -194,7 +214,7 @@ implementation
                  generic type as its argument. As we don't know certain
                  information about the final type yet, we need to use safe
                  values (mostly 0, except for (Bit)SizeOf()) }
-               if not compiler.parser.pbase.parse_generic then
+               if not parser.pbase.parse_generic then
                  Message(parser_e_cannot_evaluate_expression_at_compile_time);
                case tinlinenode(p).inlinenumber of
                  in_sizeof_x:
@@ -235,7 +255,7 @@ implementation
 
     procedure TDeclarationParser.const_dec(out had_generic:boolean);
       begin
-        compiler.parser.pbase.consume(_CONST);
+        parser.pbase.consume(_CONST);
         consts_dec(false,true,had_generic);
       end;
 
@@ -265,17 +285,17 @@ implementation
            orgname:=current_scanner.orgpattern;
            filepos:=current_tokenpos;
            isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
-           compiler.parser.pbase.consume(_ID);
+           parser.pbase.consume(_ID);
            case current_scanner.token of
 
              _EQ:
                 begin
-                   compiler.parser.pbase.consume(_EQ);
+                   parser.pbase.consume(_EQ);
                    sym:=readconstant(orgname,filepos,nodetype);
                    { Support hint directives }
                    dummysymoptions:=[];
                    deprecatedmsg:=nil;
-                   compiler.parser.pbase.try_consume_hintdirective(dummysymoptions,deprecatedmsg);
+                   parser.pbase.try_consume_hintdirective(dummysymoptions,deprecatedmsg);
                    if assigned(sym) then
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
@@ -297,7 +317,7 @@ implementation
                      end
                    else
                      stringdispose(deprecatedmsg);
-                   compiler.parser.pbase.consume(_SEMICOLON);
+                   parser.pbase.consume(_SEMICOLON);
                 end;
 
              _COLON:
@@ -305,13 +325,13 @@ implementation
                    if not allow_typed_const then
                      begin
                        Message(parser_e_no_typed_const);
-                       compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                       parser.pbase.consume_all_until(_SEMICOLON);
                      end;
                    { set the blocktype first so a consume also supports a
                      caret, to support const s : ^string = nil }
                    block_type:=bt_const_type;
-                   compiler.parser.pbase.consume(_COLON);
-                   compiler.parser.ptype.read_anon_type(hdef,false,nil);
+                   parser.pbase.consume(_COLON);
+                   parser.ptype.read_anon_type(hdef,false,nil);
                    block_type:=bt_const;
                    { create symbol }
                    storetokenpos:=current_tokenpos;
@@ -333,7 +353,7 @@ implementation
                      begin
                        { note: we keep hdef so that we might at least read the
                                constant data correctly for error recovery }
-                       compiler.parser.pdecvar.check_allowed_for_var_or_const(hdef,false);
+                       parser.pdecvar.check_allowed_for_var_or_const(hdef,false);
                        sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
                        compiler.symtablestack.top.insertsym(sym);
                        sym:=make_field_static(compiler.symtablestack.top,tfieldvarsym(sym));
@@ -355,9 +375,9 @@ implementation
                        (hdef.typesym=nil) then
                     begin
                       { Either "procedure; stdcall" or "procedure stdcall" }
-                      expect_directive:=compiler.parser.pbase.try_to_consume(_SEMICOLON);
-                      if compiler.parser.pdecsub.check_proc_directive(true) then
-                        compiler.parser.pdecsub.parse_proctype_directives(hdef)
+                      expect_directive:=parser.pbase.try_to_consume(_SEMICOLON);
+                      if parser.pdecsub.check_proc_directive(true) then
+                        parser.pdecsub.parse_proctype_directives(hdef)
                       else if expect_directive then
                        begin
                          Message(parser_e_proc_directive_expected);
@@ -373,9 +393,9 @@ implementation
                    { Parse the initialiser }
                    if not skip_initialiser then
                     begin
-                      compiler.parser.pbase.consume(_EQ);
+                      parser.pbase.consume(_EQ);
                       maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner);
-                      compiler.parser.ptconst.read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
+                      parser.ptconst.read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;
 
@@ -387,7 +407,7 @@ implementation
                   end
                 else
                   { generate an error }
-                  compiler.parser.pbase.consume(_EQ);
+                  parser.pbase.consume(_EQ);
            end;
 
            first:=false;
@@ -404,12 +424,12 @@ implementation
       var
         labelsym : tlabelsym;
       begin
-         compiler.parser.pbase.consume(_LABEL);
+         parser.pbase.consume(_LABEL);
          if not(cs_support_goto in current_settings.moduleswitches) then
            Message(sym_e_goto_and_label_not_supported);
          repeat
            if not(current_scanner.token in [_ID,_INTCONST]) then
-             compiler.parser.pbase.consume(_ID)
+             parser.pbase.consume(_ID)
            else
              begin
                 if current_scanner.token=_ID then
@@ -441,11 +461,11 @@ implementation
                     { the buffer will be setup later, but avoid a hint }
                     tabstractvarsym(labelsym.jumpbuf).varstate:=vs_written;
                   end;
-                compiler.parser.pbase.consume(current_scanner.token);
+                parser.pbase.consume(current_scanner.token);
              end;
-           if current_scanner.token<>_SEMICOLON then compiler.parser.pbase.consume(_COMMA);
+           if current_scanner.token<>_SEMICOLON then parser.pbase.consume(_COMMA);
          until not(current_scanner.token in [_ID,_INTCONST]);
-         compiler.parser.pbase.consume(_SEMICOLON);
+         parser.pbase.consume(_SEMICOLON);
       end;
 
     function TDeclarationParser.find_create_constructor(objdef:tobjectdef):tsymentry;
@@ -467,14 +487,14 @@ implementation
         var
           old_block_type : tblock_type;
         begin
-          if compiler.parser.pbase.try_to_consume(_LKLAMMER) then
+          if parser.pbase.try_to_consume(_LKLAMMER) then
             begin
               { we only want constants here }
               old_block_type:=block_type;
               block_type:=bt_const;
-              result:=compiler.parser.pexpr.parse_paras(false,false,_RKLAMMER);
+              result:=parser.pexpr.parse_paras(false,false,_RKLAMMER);
               block_type:=old_block_type;
-              compiler.parser.pbase.consume(_RKLAMMER);
+              parser.pbase.consume(_RKLAMMER);
             end
           else
             result:=nil;
@@ -490,11 +510,11 @@ implementation
         typesym : ttypesym;
         parasok : boolean;
       begin
-        compiler.parser.pbase.consume(_LECKKLAMMER);
+        parser.pbase.consume(_LECKKLAMMER);
 
         repeat
           { Parse attribute type }
-          p:=compiler.parser.pexpr.factor(false,[ef_type_only,ef_check_attr_suffix]);
+          p:=parser.pexpr.factor(false,[ef_type_only,ef_check_attr_suffix]);
           if p.nodetype=typen then
             begin
               typesym:=ttypesym(ttypenode(p).typesym);
@@ -597,9 +617,9 @@ implementation
 
           p.free;
           p := nil;
-        until not compiler.parser.pbase.try_to_consume(_COMMA);
+        until not parser.pbase.try_to_consume(_COMMA);
 
-        compiler.parser.pbase.consume(_RECKKLAMMER);
+        parser.pbase.consume(_RECKKLAMMER);
       end;
 
 
@@ -645,15 +665,15 @@ implementation
              else
                internalerror(200811072);
            end;
-           compiler.parser.pbase.consume(current_scanner.token);
+           parser.pbase.consume(current_scanner.token);
            if assigned(genericdef) then
              gendef:=tstoreddef(genericdef)
            else
              { determine the generic def in case we are in a nested type
                of a specialization }
-             gendef:=compiler.parser.pgenutil.determine_generic_def(gentypename);
+             gendef:=parser.pgenutil.determine_generic_def(gentypename);
            { we can ignore the result, the definition is modified }
-           compiler.parser.pdecobj.object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
+           parser.pdecobj.object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
            if wasforward and
              (tobjectdef(ttypesym(sym).typedef).objecttype<>objecttype) then
              Message1(type_e_forward_interface_type_does_not_match,tobjectdef(ttypesym(sym).typedef).GetTypeName);
@@ -775,12 +795,12 @@ implementation
 
            { fpc generic declaration? }
            if first then
-             had_generic:=not(m_delphi in current_settings.modeswitches) and compiler.parser.pbase.try_to_consume(_GENERIC);
+             had_generic:=not(m_delphi in current_settings.modeswitches) and parser.pbase.try_to_consume(_GENERIC);
            isgeneric:=had_generic;
 
            typename:=current_scanner.pattern;
            orgtypename:=current_scanner.orgpattern;
-           compiler.parser.pbase.consume(_ID);
+           parser.pbase.consume(_ID);
 
            { delphi generic declaration? }
            if (m_delphi in current_settings.modeswitches) then
@@ -792,9 +812,9 @@ implementation
                if assigned(current_genericdef) then
                  Message(parser_f_no_generic_inside_generic);
 
-               compiler.parser.pbase.consume(_LSHARPBRACKET);
-               generictypelist:=compiler.parser.pgenutil.parse_generic_parameters(true);
-               compiler.parser.pbase.consume(_RSHARPBRACKET);
+               parser.pbase.consume(_LSHARPBRACKET);
+               generictypelist:=parser.pgenutil.parse_generic_parameters(true);
+               parser.pbase.consume(_RSHARPBRACKET);
 
                str(generictypelist.Count,s);
                gentypename:=typename+'$'+s;
@@ -806,10 +826,10 @@ implementation
                genorgtypename:=orgtypename;
              end;
 
-           compiler.parser.pbase.consume(_EQ);
+           parser.pbase.consume(_EQ);
 
            { support 'ttype=type word' syntax }
-           isunique:=compiler.parser.pbase.try_to_consume(_TYPE);
+           isunique:=parser.pbase.try_to_consume(_TYPE);
 
            { MacPas object model is more like Delphi's than like TP's, but }
            { uses the object keyword instead of class                      }
@@ -877,7 +897,7 @@ implementation
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=compiler.symtablestack.top.currentvisibility;
                       { add as dummy symbol before adding it to the symtable stack }
-                      compiler.parser.pgenutil.add_generic_dummysym(sym,typename);
+                      parser.pgenutil.add_generic_dummysym(sym,typename);
                       compiler.symtablestack.top.insertsym(sym);
                       ttypesym(sym).typedef.owner:=sym.owner;
                     end
@@ -890,7 +910,7 @@ implementation
                         { we need to find this symbol even if it's a variable or
                           something else when doing an inline specialization }
                         Include(sym.symoptions,sp_generic_dummy);
-                        compiler.parser.pgenutil.add_generic_dummysym(sym,'');
+                        parser.pgenutil.add_generic_dummysym(sym,'');
                       end;
                 end
               else
@@ -910,7 +930,7 @@ implementation
 
                   { determine the generic def in case we are in a nested type
                     of a specialization }
-                  gendef:=compiler.parser.pgenutil.determine_generic_def(gentypename);
+                  gendef:=parser.pgenutil.determine_generic_def(gentypename);
                 end;
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
@@ -922,7 +942,7 @@ implementation
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
               { read the type definition }
-              compiler.parser.ptype.read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
+              parser.ptype.read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
               { update the definition of the type }
               if assigned(hdef) then
                 begin
@@ -953,10 +973,10 @@ implementation
                           tstoreddef(hdef2).orgdef:=tstoreddef(hdef);
                           hdef:=hdef2;
                           { check if it is an ansistring(codepage) declaration }
-                          if is_ansistring(hdef) and compiler.parser.pbase.try_to_consume(_LKLAMMER) then
+                          if is_ansistring(hdef) and parser.pbase.try_to_consume(_LKLAMMER) then
                             begin
-                              p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-                              compiler.parser.pbase.consume(_RKLAMMER);
+                              p:=parser.pexpr.comp_expr([ef_accept_equal]);
+                              parser.pbase.consume(_RKLAMMER);
                               if not is_constintnode(p) then
                                 begin
                                   Message(parser_e_illegal_expression);
@@ -989,7 +1009,7 @@ implementation
                     begin
                       hdef.typesym:=newtype;
                       if sp_generic_dummy in newtype.symoptions then
-                        compiler.parser.pgenutil.add_generic_dummysym(newtype,'');
+                        parser.pgenutil.add_generic_dummysym(newtype,'');
                     end;
                 end;
               { in non-Delphi modes we need a reference to the generic def
@@ -1035,18 +1055,18 @@ implementation
               case hdef.typ of
                 pointerdef :
                   begin
-                    compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                    compiler.parser.pbase.consume(_SEMICOLON);
+                    parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                    parser.pbase.consume(_SEMICOLON);
 {$ifdef x86}
   {$ifdef i8086}
-                    if compiler.parser.pbase.try_to_consume(_HUGE) then
+                    if parser.pbase.try_to_consume(_HUGE) then
                      begin
                        tcpupointerdef(hdef).x86pointertyp:=x86pt_huge;
-                       compiler.parser.pbase.consume(_SEMICOLON);
+                       parser.pbase.consume(_SEMICOLON);
                      end
                     else
   {$endif i8086}
-                    if compiler.parser.pbase.try_to_consume(_FAR) then
+                    if parser.pbase.try_to_consume(_FAR) then
                      begin
   {$if defined(i8086)}
                        tcpupointerdef(hdef).x86pointertyp:=x86pt_far;
@@ -1057,14 +1077,14 @@ implementation
                          far pointer = regular pointer on x86_64 }
                        Message1(parser_w_ptr_type_ignored,'FAR');
   {$endif}
-                       compiler.parser.pbase.consume(_SEMICOLON);
+                       parser.pbase.consume(_SEMICOLON);
                      end
                     else
-                      if compiler.parser.pbase.try_to_consume(_NEAR) then
+                      if parser.pbase.try_to_consume(_NEAR) then
                        begin
                          if current_scanner.token <> _SEMICOLON then
                            begin
-                             segment_register:=compiler.parser.pexpr.get_stringconst;
+                             segment_register:=parser.pexpr.get_stringconst;
                              case UpCase(segment_register) of
                                'CS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_cs;
                                'DS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_ds;
@@ -1078,15 +1098,15 @@ implementation
                            end
                          else
                            tcpupointerdef(hdef).x86pointertyp:=x86pt_near;
-                         compiler.parser.pbase.consume(_SEMICOLON);
+                         parser.pbase.consume(_SEMICOLON);
                        end;
 {$else x86}
                     { Previous versions of FPC support declaring a pointer as
                       far even on non-x86 platforms. }
-                    if compiler.parser.pbase.try_to_consume(_FAR) then
+                    if parser.pbase.try_to_consume(_FAR) then
                      begin
                        Message1(parser_w_ptr_type_ignored,'FAR');
-                       compiler.parser.pbase.consume(_SEMICOLON);
+                       parser.pbase.consume(_SEMICOLON);
                      end;
 {$endif x86}
                   end;
@@ -1095,17 +1115,17 @@ implementation
                     { in case of type renaming, don't parse proc directives }
                     if istyperenaming then
                       begin
-                        compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                        compiler.parser.pbase.consume(_SEMICOLON);
+                        parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                        parser.pbase.consume(_SEMICOLON);
                       end
                     else
                      begin
-                       if not compiler.parser.pdecsub.check_proc_directive(true) then
+                       if not parser.pdecsub.check_proc_directive(true) then
                          begin
-                           compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                           compiler.parser.pbase.consume(_SEMICOLON);
+                           parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                           parser.pbase.consume(_SEMICOLON);
                          end;
-                       compiler.parser.pdecsub.parse_proctype_directives(tprocvardef(hdef));
+                       parser.pdecsub.parse_proctype_directives(tprocvardef(hdef));
                        if po_is_function_ref in tprocvardef(hdef).procoptions then
                          begin
                            if not (m_function_references in current_settings.modeswitches) and
@@ -1133,27 +1153,27 @@ implementation
                               not (tprocvardef(hdef).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
                              message(type_e_cblock_callconv);
                          end;
-                       if compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
-                         compiler.parser.pbase.consume(_SEMICOLON);
+                       if parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
+                         parser.pbase.consume(_SEMICOLON);
                      end;
                   end;
                 objectdef :
                   begin
                     if is_funcref(hdef) then
                       begin
-                        if not compiler.parser.pdecsub.check_proc_directive(true) then
+                        if not parser.pdecsub.check_proc_directive(true) then
                           begin
-                            compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                            compiler.parser.pbase.consume(_SEMICOLON);
+                            parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                            parser.pbase.consume(_SEMICOLON);
                           end;
-                        compiler.parser.pdecsub.parse_proctype_directives(hdef);
-                        if compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
-                          compiler.parser.pbase.consume(_SEMICOLON);
+                        parser.pdecsub.parse_proctype_directives(hdef);
+                        if parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
+                          parser.pbase.consume(_SEMICOLON);
                       end
                     else
                       begin
-                        compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                        compiler.parser.pbase.consume(_SEMICOLON);
+                        parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                        parser.pbase.consume(_SEMICOLON);
                       end;
 
                     { change a forward and external class declaration into
@@ -1193,13 +1213,13 @@ implementation
                   end;
                 recorddef :
                   begin
-                    compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                    compiler.parser.pbase.consume(_SEMICOLON);
+                    parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                    parser.pbase.consume(_SEMICOLON);
                   end;
                 else
                   begin
-                    compiler.parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                    compiler.parser.pbase.consume(_SEMICOLON);
+                    parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                    parser.pbase.consume(_SEMICOLON);
                   end;
               end;
 
@@ -1245,7 +1265,7 @@ implementation
                (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC) then
              begin
                had_generic:=true;
-               compiler.parser.pbase.consume(_ID);
+               parser.pbase.consume(_ID);
                if current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS] then
                  break;
              end
@@ -1267,7 +1287,7 @@ implementation
                   (current_scanner.idtoken=_FINAL))));
          { resolve type block forward declarations and restore a unit
            container for them }
-         compiler.parser.ptype.resolve_forward_types;
+         parser.ptype.resolve_forward_types;
          current_module.checkforwarddefs.free;
          current_module.checkforwarddefs:=old_checkforwarddefs;
          block_type:=old_block_type;
@@ -1279,7 +1299,7 @@ implementation
       var
         rtti_attrs_def: trtti_attribute_list;
       begin
-        compiler.parser.pbase.consume(_TYPE);
+        parser.pbase.consume(_TYPE);
         rtti_attrs_def := nil;
         types_dec(false,had_generic,rtti_attrs_def);
         rtti_attrs_def.free;
@@ -1291,8 +1311,8 @@ implementation
     { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
-        compiler.parser.pbase.consume(_VAR);
-        compiler.parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
+        parser.pbase.consume(_VAR);
+        parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
       end;
 
 
@@ -1301,14 +1321,14 @@ implementation
       var
          old_block_type: tblock_type;
       begin
-         compiler.parser.pbase.consume(_PROPERTY);
+         parser.pbase.consume(_PROPERTY);
          if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_property_only_sgr);
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
-           compiler.parser.pdecvar.read_property_dec(false, nil);
-           compiler.parser.pbase.consume(_SEMICOLON);
+           parser.pdecvar.read_property_dec(false, nil);
+           parser.pbase.consume(_SEMICOLON);
          until current_scanner.token<>_ID;
          block_type:=old_block_type;
       end;
@@ -1318,15 +1338,15 @@ implementation
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
       begin
-        compiler.parser.pbase.consume(_THREADVAR);
+        parser.pbase.consume(_THREADVAR);
         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
         if f_threading in features then
-          compiler.parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
+          parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
           begin
             Message1(parser_f_unsupported_feature,featurestr[f_threading]);
-            compiler.parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
+            parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
           end;
       end;
 
@@ -1348,7 +1368,7 @@ implementation
       begin
          if target_info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
-         compiler.parser.pbase.consume(_RESOURCESTRING);
+         parser.pbase.consume(_RESOURCESTRING);
          if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);
          first:=true;
@@ -1359,12 +1379,12 @@ implementation
            orgname:=current_scanner.orgpattern;
            filepos:=current_tokenpos;
            isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
-           compiler.parser.pbase.consume(_ID);
+           parser.pbase.consume(_ID);
            case current_scanner.token of
              _EQ:
                 begin
-                   compiler.parser.pbase.consume(_EQ);
-                   p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+                   parser.pbase.consume(_EQ);
+                   p:=parser.pexpr.comp_expr([ef_accept_equal]);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;
@@ -1421,7 +1441,7 @@ implementation
                    { Support hint directives }
                    dummysymoptions:=[];
                    deprecatedmsg:=nil;
-                   compiler.parser.pbase.try_consume_hintdirective(dummysymoptions,deprecatedmsg);
+                   parser.pbase.try_consume_hintdirective(dummysymoptions,deprecatedmsg);
                    if assigned(sym) then
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
@@ -1430,7 +1450,7 @@ implementation
                      end
                    else
                      stringdispose(deprecatedmsg);
-                   compiler.parser.pbase.consume(_SEMICOLON);
+                   parser.pbase.consume(_SEMICOLON);
                    p.free;
                    p := nil;
                 end;
@@ -1442,7 +1462,7 @@ implementation
                     break;
                   end
                 else
-                  compiler.parser.pbase.consume(_EQ);
+                  parser.pbase.consume(_EQ);
            end;
            first:=false;
          until current_scanner.token<>_ID;
