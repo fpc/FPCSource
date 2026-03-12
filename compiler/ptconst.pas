@@ -34,9 +34,13 @@ type
   TTypedConstParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     property Compiler: TCompilerBase read FCompiler;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
     procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_structure:boolean);
   end;
 
@@ -46,14 +50,31 @@ implementation
     uses
        globtype,systems,globals,verbose,cutils,tokens,
        aasmbase,aasmtai,
-       fmodule,compiler,
+       fmodule,compiler,parser,
        scanner,pbase,pdecvar,
        node,ngtcon,
        symconst,symbase,symdef
        ;
 
-    constructor TTypedConstParser.Create(ACompiler: TCompilerBase);
+    type
+
+       { TTypedConstParserHelper }
+
+       TTypedConstParserHelper = class helper for TTypedConstParser
+         function Parser: TParser; inline;
+       end;
+
+    { TTypedConstParserHelper }
+
+    function TTypedConstParserHelper.Parser: TParser;
       begin
+        Result:=TParser(FParser);
+      end;
+
+
+    constructor TTypedConstParser.Create(AParser: TObject; ACompiler: TCompilerBase);
+      begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -100,9 +121,9 @@ implementation
           end;
 
         { Parse hints }
-        compiler.parser.pbase.try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
+        parser.pbase.try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
 
-        compiler.parser.pbase.consume(_SEMICOLON);
+        parser.pbase.consume(_SEMICOLON);
 
         { parse public/external/export/... }
         if not in_structure and
@@ -120,7 +141,7 @@ implementation
              )
             )
            ) then
-          compiler.parser.pdecvar.read_public_and_external(sym);
+          parser.pdecvar.read_public_and_external(sym);
 
 
         { try to parse a section directive }
@@ -128,7 +149,7 @@ implementation
            (compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
            (current_scanner.idtoken=_SECTION) then
           begin
-            compiler.parser.pdecvar.try_consume_sectiondirective(section);
+            parser.pdecvar.try_consume_sectiondirective(section);
             if section<>'' then
               begin
                 if (sym.varoptions *[vo_is_external,vo_is_weak_external])<>[] then
@@ -140,7 +161,7 @@ implementation
               end;
           end;
 
-        if not compiler.parser.pbase.parse_generic then
+        if not parser.pbase.parse_generic then
           begin
             if vo_is_public in sym.varoptions then
               current_module.add_public_asmsym(sym.mangledname,AB_GLOBAL,AT_DATA);

@@ -368,7 +368,7 @@ implementation
         FPStatmnt:=TStatementsParser.Create(Self,acompiler);
         FPExpr:=TExpressionParser.Create(Self,acompiler);
         FPExports:=TExportsParser.Create(Self,acompiler);
-        FPTConst:=TTypedConstParser.Create(acompiler);
+        FPTConst:=TTypedConstParser.Create(Self,acompiler);
         FPDecVar:=TVariableDeclarationsParser.Create(acompiler);
         FPDecSub:=TSubroutineDeclarationParser.Create(acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(acompiler);
