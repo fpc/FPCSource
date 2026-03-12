@@ -34,6 +34,10 @@ type
   TModulesParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     property Compiler: TCompilerBase read FCompiler;
   private type
     TProgramParam = record
@@ -74,7 +78,7 @@ type
     procedure proc_library_header(curr: tmodule);
     procedure proc_program_header(curr: tmodule; out sc : TProgramParamArray);
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
     function proc_unit(curr: tmodule):boolean;
     function parse_unit_interface_declarations(curr : tmodule) : boolean;
     function proc_unit_implementation(curr: tmodule):boolean;
@@ -92,7 +96,7 @@ implementation
        systems,tokens,
        cutils,cfileutl,cclasses,comphook,
        globals,verbose,finput,globstat,fpcp,fpkg,
-       compiler,
+       compiler,parser,
        symtype,symdef,symsym,symtable,defutil,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmbase,aasmcpu,
@@ -105,6 +109,23 @@ implementation
        wpobase,
        scanner,pbase,pexpr,psystem,pgenutil,pparautl,ncgvmt,ncgrtti,
        cpuinfo;
+
+
+    type
+
+      { TModulesParserHelper }
+
+      TModulesParserHelper = class helper for TModulesParser
+        function Parser: TParser; inline;
+      end;
+
+
+    { TModulesParserHelper }
+
+    function TModulesParserHelper.Parser: TParser;
+      begin
+        Result:=TParser(FParser);
+      end;
 
 
     procedure TModulesParser.create_objectfile(curr : tmodule);
@@ -385,8 +406,8 @@ implementation
          begin
            systemunit:=tglobalsymtable(curr.localsymtable);
            { create system defines }
-           compiler.parser.psystem.create_intern_types;
-           compiler.parser.psystem.create_intern_symbols;
+           parser.psystem.create_intern_types;
+           parser.psystem.create_intern_symbols;
            { Set the owner of errorsym and errortype to symtable to
              prevent crashes when accessing .owner }
            generrorsym.owner:=systemunit;
@@ -403,7 +424,7 @@ implementation
         { load_intern_types resets the scanner... }
         current_scanner.tempcloseinputfile;
         state:=tglobalstate.create(false,compiler);
-        compiler.parser.psystem.load_intern_types;
+        parser.psystem.load_intern_types;
         state.restore;
         FreeAndNil(state);
         current_scanner.tempopeninputfile;
@@ -667,24 +688,24 @@ implementation
 
 
       begin
-        compiler.parser.pbase.consume(_USES);
+        parser.pbase.consume(_USES);
         repeat
           s:=current_scanner.pattern;
           sorg:=current_scanner.orgpattern;
           filepos:=current_tokenpos;
-          compiler.parser.pbase.consume(_ID);
+          parser.pbase.consume(_ID);
           while current_scanner.token=_POINT do
             begin
-              compiler.parser.pbase.consume(_POINT);
+              parser.pbase.consume(_POINT);
               s:=s+'.'+current_scanner.pattern;
               sorg:=sorg+'.'+current_scanner.orgpattern;
-              compiler.parser.pbase.consume(_ID);
+              parser.pbase.consume(_ID);
             end;
           { support "<unit> in '<file>'" construct, but not for tp7 }
           fn:='';
           if not(m_tp7 in current_settings.modeswitches) and
-             compiler.parser.pbase.try_to_consume(_OP_IN) then
-            fn:=FixFileName(compiler.parser.pexpr.get_stringconst);
+             parser.pbase.try_to_consume(_OP_IN) then
+            fn:=FixFileName(parser.pexpr.get_stringconst);
           { Give a warning if lineinfo is loaded }
           if s='LINEINFO' then
             begin
@@ -732,7 +753,7 @@ implementation
           if current_scanner.token=_COMMA then
            begin
              current_scanner.pattern:='';
-             compiler.parser.pbase.consume(_COMMA);
+             parser.pbase.consume(_COMMA);
            end
           else
            break;
@@ -1149,7 +1170,7 @@ implementation
             else
               break;
           end;
-          compiler.parser.pbase.consume(current_scanner.token);
+          parser.pbase.consume(current_scanner.token);
           { handle deprecated message }
           if ((current_scanner.token=_CSTRING) or (current_scanner.token=_CCHAR)) and last_is_deprecated then
             begin
@@ -1159,7 +1180,7 @@ implementation
                 deprecatedmsg:=stringdup(current_scanner.cstringpattern)
               else
                 deprecatedmsg:=stringdup(current_scanner.pattern);
-              compiler.parser.pbase.consume(current_scanner.token);
+              parser.pbase.consume(current_scanner.token);
               include(moduleopt,mo_has_deprecated_msg);
             end;
         until false;
@@ -1224,7 +1245,7 @@ type
           use the symbols from those units }
         if curr.consume_semicolon_after_uses then
           begin
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
             curr.consume_semicolon_after_uses:=false;
           end;
 
@@ -1295,7 +1316,7 @@ type
 
         if curr.consume_semicolon_after_uses then
           begin
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
             curr.consume_semicolon_after_uses:=false;
           end;
         { now push our own symtable }
@@ -1312,7 +1333,7 @@ type
          { fake classdef to represent the class corresponding to the unit }
          addmoduleclass(curr);
 {$endif}
-        compiler.parser.psub.read_interface_declarations;
+        parser.psub.read_interface_declarations;
 
 
         { Export macros defined in the interface for macpas. The macros
@@ -1353,12 +1374,12 @@ type
         curr.interface_compiled:=true;
 
         { Parse the implementation section }
-        if (m_mac in current_settings.modeswitches) and compiler.parser.pbase.try_to_consume(_END) then
+        if (m_mac in current_settings.modeswitches) and parser.pbase.try_to_consume(_END) then
           curr.interface_only:=true
         else
           curr.interface_only:=false;
 
-        compiler.parser.pbase.parse_only:=false;
+        parser.pbase.parse_only:=false;
 
         { create static symbol table }
         curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid,compiler);
@@ -1368,7 +1389,7 @@ type
         maybe_load_got(curr);
         if not curr.interface_only then
           begin
-            compiler.parser.pbase.consume(_IMPLEMENTATION);
+            parser.pbase.consume(_IMPLEMENTATION);
             Message1(unit_u_loading_implementation_units,curr.modulename^);
             { Read the implementation units }
             if current_scanner.token=_USES then
@@ -1412,17 +1433,17 @@ type
          if m_mac in current_settings.modeswitches then
            curr.mode_switch_allowed:= false;
 
-         compiler.parser.pbase.consume(_UNIT);
+         parser.pbase.consume(_UNIT);
          if curr.is_initial then
           Status.IsExe:=false;
 
          _unitname:=current_scanner.orgpattern;
-         compiler.parser.pbase.consume(_ID);
+         parser.pbase.consume(_ID);
          while current_scanner.token=_POINT do
            begin
-             compiler.parser.pbase.consume(_POINT);
+             parser.pbase.consume(_POINT);
              _unitname:=_unitname+'.'+current_scanner.orgpattern;
-             compiler.parser.pbase.consume(_ID);
+             parser.pbase.consume(_ID);
            end;
 
          { create filenames and unit name }
@@ -1470,7 +1491,7 @@ type
          { parse hint directives }
          try_consume_hintdirective(curr.moduleoptions, curr.deprecatedmsg);
 
-         compiler.parser.pbase.consume(_SEMICOLON);
+         parser.pbase.consume(_SEMICOLON);
 
          { handle the global switches, do this before interface, because after interface has been
            read, all following directives are parsed as well }
@@ -1493,7 +1514,7 @@ type
            if feature in features then
              def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
 
-         compiler.parser.pbase.consume(_INTERFACE);
+         parser.pbase.consume(_INTERFACE);
 
          { global switches are read, so further changes aren't allowed  }
          curr.in_global:=false;
@@ -1511,7 +1532,7 @@ type
          if (curr.modulename^='MACPAS') then
            exclude(current_settings.modeswitches,m_mac);
 
-         compiler.parser.pbase.parse_only:=true;
+         parser.pbase.parse_only:=true;
 
          { load default units, like language mode units }
          if not(cs_compilesystem in current_settings.moduleswitches) then
@@ -1609,7 +1630,7 @@ type
          init_procinfo:=finishstate.init_procinfo;
 
          { Generate specializations of objectdefs methods }
-         compiler.parser.pgenutil.generate_specialization_procs;
+         parser.pgenutil.generate_specialization_procs;
 
          // This needs to be done before we generate the VMTs
          if (target_cpu=tsystemcpu.cpu_wasm32) then
@@ -1715,7 +1736,7 @@ type
          { the last char should always be a point }
          { Do not attempt to read next token after dot,
            there may be a #0 when the unit was finished in a separate stage }
-         compiler.parser.pbase.consume_last_dot;
+         parser.pbase.consume_last_dot;
 
          { reset wpo flags for all defs }
          reset_all_defs(module);
@@ -1967,7 +1988,7 @@ type
          Result:=True;
          Status.IsPackage:=true;
          Status.IsExe:=true;
-         compiler.parser.pbase.parse_only:=false;
+         parser.pbase.parse_only:=false;
          main_procinfo:=nil;
          {init_procinfo:=nil;
          finalize_procinfo:=nil;}
@@ -2005,15 +2026,15 @@ type
          curr.SetFileName(main_file.path+main_file.name,true);
 
          { consume _PACKAGE word }
-         compiler.parser.pbase.consume(_ID);
+         parser.pbase.consume(_ID);
 
          module_name:=current_scanner.orgpattern;
-         compiler.parser.pbase.consume(_ID);
+         parser.pbase.consume(_ID);
          while current_scanner.token=_POINT do
            begin
-             compiler.parser.pbase.consume(_POINT);
+             parser.pbase.consume(_POINT);
              module_name:=module_name+'.'+current_scanner.orgpattern;
-             compiler.parser.pbase.consume(_ID);
+             parser.pbase.consume(_ID);
            end;
 
          curr.setmodulename(module_name);
@@ -2033,7 +2054,7 @@ type
          XMLInitializeNodeFile('package', module_name);
 {$endif DEBUG_NODE_XML}
 
-         compiler.parser.pbase.consume(_SEMICOLON);
+         parser.pbase.consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
          curr.in_global:=false;
@@ -2059,29 +2080,29 @@ type
          if (current_scanner.token=_ID) and (current_scanner.idtoken=_REQUIRES) then
            begin
              { consume _REQUIRES word }
-             compiler.parser.pbase.consume(_ID);
+             parser.pbase.consume(_ID);
              while true do
                begin
                  if current_scanner.token=_ID then
                    begin
                      module_name:=current_scanner.orgpattern;
-                     compiler.parser.pbase.consume(_ID);
+                     parser.pbase.consume(_ID);
                      while current_scanner.token=_POINT do
                        begin
-                         compiler.parser.pbase.consume(_POINT);
+                         parser.pbase.consume(_POINT);
                          module_name:=module_name+'.'+current_scanner.orgpattern;
-                         compiler.parser.pbase.consume(_ID);
+                         parser.pbase.consume(_ID);
                        end;
                      add_package(module_name,false,true);
                    end
                  else
-                   compiler.parser.pbase.consume(_ID);
+                   parser.pbase.consume(_ID);
                  if current_scanner.token=_COMMA then
-                   compiler.parser.pbase.consume(_COMMA)
+                   parser.pbase.consume(_COMMA)
                  else
                    break;
                end;
-             compiler.parser.pbase.consume(_SEMICOLON);
+             parser.pbase.consume(_SEMICOLON);
            end;
 
          { now load all packages, so that we can determine whether a unit is
@@ -2094,7 +2115,7 @@ type
                packages, so load it }
              AddUnit(curr,'system',false);
              systemunit:=tglobalsymtable(compiler.symtablestack.top);
-             compiler.parser.psystem.load_intern_types;
+             parser.psystem.load_intern_types;
              { system unit is loaded, now insert feature defines }
              for feature:=low(tfeature) to high(tfeature) do
                if feature in features then
@@ -2105,33 +2126,33 @@ type
          if (current_scanner.token=_ID) and (current_scanner.idtoken=_CONTAINS) then
            begin
              { consume _CONTAINS word }
-             compiler.parser.pbase.consume(_ID);
+             parser.pbase.consume(_ID);
              while true do
                begin
                  if current_scanner.token=_ID then
                    begin
                      module_name:=current_scanner.orgpattern;
-                     compiler.parser.pbase.consume(_ID);
+                     parser.pbase.consume(_ID);
                      while current_scanner.token=_POINT do
                        begin
-                         compiler.parser.pbase.consume(_POINT);
+                         parser.pbase.consume(_POINT);
                          module_name:=module_name+'.'+current_scanner.orgpattern;
-                         compiler.parser.pbase.consume(_ID);
+                         parser.pbase.consume(_ID);
                        end;
                      hp:=AddUnit(curr,module_name);
                      if (hp.modulename^='SYSTEM') and not assigned(systemunit) then
                        begin
                          systemunit:=tglobalsymtable(hp.globalsymtable);
-                         compiler.parser.psystem.load_intern_types;
+                         parser.psystem.load_intern_types;
                        end;
                    end
                  else
-                   compiler.parser.pbase.consume(_ID);
+                   parser.pbase.consume(_ID);
                  if current_scanner.token=_COMMA then
-                   compiler.parser.pbase.consume(_COMMA)
+                   parser.pbase.consume(_COMMA)
                  else break;
                end;
-             compiler.parser.pbase.consume(_SEMICOLON);
+             parser.pbase.consume(_SEMICOLON);
            end;
 
          { All units are read, now give them a number }
@@ -2201,8 +2222,8 @@ type
          compiler.symtablestack.pop(curr.localsymtable);
 
          { consume the last point }
-         compiler.parser.pbase.consume(_END);
-         compiler.parser.pbase.consume(_POINT);
+         parser.pbase.consume(_END);
+         parser.pbase.consume(_POINT);
 
          if (Errorcount=0) then
            begin
@@ -2260,7 +2281,7 @@ type
              if not assigned(systemunit) and (uu.u.modulename^='SYSTEM') then
                begin
                  systemunit:=tglobalsymtable(uu.u.globalsymtable);
-                 compiler.parser.psystem.load_intern_types;
+                 parser.psystem.load_intern_types;
                end;
              if not assigned(uu.u.package) then
                export_unit(uu.u);
@@ -2661,7 +2682,7 @@ type
           might cause internal errors, see tw8611 }
         if curr.consume_semicolon_after_uses then
           begin
-            compiler.parser.pbase.consume(_SEMICOLON);
+            parser.pbase.consume(_SEMICOLON);
             curr.consume_semicolon_after_uses:=false;
           end;
 
@@ -2748,7 +2769,7 @@ type
 
         { Generate specializations of objectdefs methods }
         if Errorcount=0 then
-          compiler.parser.pgenutil.generate_specialization_procs;
+          parser.pgenutil.generate_specialization_procs;
 
         { This needs to be done before we generate the VMTs }
         if (target_cpu=tsystemcpu.cpu_wasm32) then
@@ -2834,7 +2855,7 @@ type
         compiler.symtablestack.pop(curr.localsymtable);
 
         { consume the last point }
-        compiler.parser.pbase.consume(_POINT);
+        parser.pbase.consume(_POINT);
 
 
         proc_program_after_parsing(curr,islibrary);
@@ -2847,14 +2868,14 @@ type
         program_name : ansistring;
 
       begin
-        compiler.parser.pbase.consume(_LIBRARY);
+        parser.pbase.consume(_LIBRARY);
         program_name:=current_scanner.orgpattern;
-        compiler.parser.pbase.consume(_ID);
+        parser.pbase.consume(_ID);
         while current_scanner.token=_POINT do
          begin
-           compiler.parser.pbase.consume(_POINT);
+           parser.pbase.consume(_POINT);
            program_name:=program_name+'.'+current_scanner.orgpattern;
-           compiler.parser.pbase.consume(_ID);
+           parser.pbase.consume(_ID);
          end;
         curr.setmodulename(program_name);
         curr.islibrary:=true;
@@ -2884,21 +2905,21 @@ type
 
         begin
           sc:=nil;
-          compiler.parser.pbase.consume(_PROGRAM);
+          parser.pbase.consume(_PROGRAM);
           program_name:=current_scanner.orgpattern;
-          compiler.parser.pbase.consume(_ID);
+          parser.pbase.consume(_ID);
           while current_scanner.token=_POINT do
             begin
-              compiler.parser.pbase.consume(_POINT);
+              parser.pbase.consume(_POINT);
               program_name:=program_name+'.'+current_scanner.orgpattern;
-              compiler.parser.pbase.consume(_ID);
+              parser.pbase.consume(_ID);
             end;
           curr.setmodulename(program_name);
           if (target_info.system in systems_unit_program_exports) then
             exportlib.preparelib(program_name);
           if current_scanner.token=_LKLAMMER then
             begin
-               compiler.parser.pbase.consume(_LKLAMMER);
+               parser.pbase.consume(_LKLAMMER);
                paramnum:=1;
                repeat
                  if m_isolike_program_para in current_settings.modeswitches then
@@ -2915,9 +2936,9 @@ type
                          inc(paramnum);
                        end;
                    end;
-                 compiler.parser.pbase.consume(_ID);
-               until not compiler.parser.pbase.try_to_consume(_COMMA);
-               compiler.parser.pbase.consume(_RKLAMMER);
+                 parser.pbase.consume(_ID);
+               until not parser.pbase.try_to_consume(_COMMA);
+               parser.pbase.consume(_RKLAMMER);
             end;
 
           { setup things using the switches, do this before the semicolon, because after the semicolon has been
@@ -2930,8 +2951,9 @@ type
 {$endif DEBUG_NODE_XML}
         end;
 
-    constructor TModulesParser.Create(ACompiler: TCompilerBase);
+    constructor TModulesParser.Create(AParser: TObject; ACompiler: TCompilerBase);
       begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -2952,7 +2974,7 @@ type
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
          Status.IsExe:=true;
-         compiler.parser.pbase.parse_only:=false;
+         parser.pbase.parse_only:=false;
          consume_semicolon_after_loaded:=false;
 
          { make the compiler happy and avoid an uninitialized variable warning on Setlength(sc,length(sc)+1); }
@@ -3032,7 +3054,7 @@ type
 
          { consume the semicolon now that the system unit is loaded }
          if consume_semicolon_after_loaded then
-           compiler.parser.pbase.consume(_SEMICOLON);
+           parser.pbase.consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
          curr.in_global:=false;
