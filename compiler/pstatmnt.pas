@@ -35,6 +35,10 @@ type
   TStatementsParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     property Compiler: TCompilerBase read FCompiler;
     function statement : tnode;
     function if_statement : tnode;
@@ -51,7 +55,7 @@ type
     function _asm_statement : tnode;
     function tp_inline_statement : tnode;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     function statement_block(starttoken : ttoken) : tnode;
 
@@ -66,7 +70,7 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       systems,compiler,
+       systems,compiler,parser,
        { aasm }
        cpubase,aasmtai,aasmdata,aasmbase,
        { symtable }
@@ -85,20 +89,35 @@ implementation
        { scanner }
        switches;
 
+    type
+
+       { TStatementsParserHelper }
+
+       TStatementsParserHelper = class helper for TStatementsParser
+         function Parser: TParser; inline;
+       end;
+
+    { TStatementsParserHelper }
+
+    function TStatementsParserHelper.Parser: TParser;
+      begin
+        Result:=TParser(FParser);
+      end;
+
 
     function TStatementsParser.if_statement : tnode;
       var
          ex,if_a,else_a : tnode;
       begin
-         compiler.parser.pbase.consume(_IF);
-         ex:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-         compiler.parser.pbase.consume(_THEN);
+         parser.pbase.consume(_IF);
+         ex:=parser.pexpr.comp_expr([ef_accept_equal]);
+         parser.pbase.consume(_THEN);
          if not(current_scanner.token in endtokens) then
            if_a:=statement
          else
            if_a:=nil;
 
-         if compiler.parser.pbase.try_to_consume(_ELSE) then
+         if parser.pbase.try_to_consume(_ELSE) then
             else_a:=statement
          else
            else_a:=nil;
@@ -126,11 +145,11 @@ implementation
                    last.right:=compiler.cstatementnode(statement,nil);
                    last:=tstatementnode(last.right);
                 end;
-              if not compiler.parser.pbase.try_to_consume(_SEMICOLON) then
+              if not parser.pbase.try_to_consume(_SEMICOLON) then
                 break;
-              compiler.parser.pbase.consume_emptystats;
+              parser.pbase.consume_emptystats;
            end;
-         compiler.parser.pbase.consume(_END);
+         parser.pbase.consume(_END);
          statements_til_end:=compiler.cblocknode(first);
          if assigned(first) then
            statements_til_end.fileinfo:=first.fileinfo;
@@ -147,8 +166,8 @@ implementation
          casedeferror, caseofstring : boolean;
          casenode : tcasenode;
       begin
-         compiler.parser.pbase.consume(_CASE);
-         caseexpr:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+         parser.pbase.consume(_CASE);
+         caseexpr:=parser.pexpr.comp_expr([ef_accept_equal]);
          { determines result type }
          do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
@@ -178,13 +197,13 @@ implementation
           end;
          { Create casenode }
          casenode:=compiler.ccasenode(caseexpr);
-         compiler.parser.pbase.consume(_OF);
+         parser.pbase.consume(_OF);
          { Parse all case blocks }
          blockid:=0;
          repeat
            { maybe an instruction has more case labels }
            repeat
-             p:=compiler.parser.pexpr.expr(true);
+             p:=parser.pexpr.expr(true);
              if is_widechar(casedef) then
                begin
                   if (p.nodetype=rangen) then
@@ -287,11 +306,11 @@ implementation
              sl2 := nil;
 
              if current_scanner.token=_COMMA then
-               compiler.parser.pbase.consume(_COMMA)
+               parser.pbase.consume(_COMMA)
              else
                break;
            until false;
-           compiler.parser.pbase.consume(_COLON);
+           parser.pbase.consume(_COLON);
 
            { add instruction block }
            casenode.addblock(blockid,statement);
@@ -300,17 +319,17 @@ implementation
            inc(blockid);
 
            if not(current_scanner.token in [_ELSE,_OTHERWISE,_END]) then
-             compiler.parser.pbase.consume(_SEMICOLON);
+             parser.pbase.consume(_SEMICOLON);
          until (current_scanner.token in [_ELSE,_OTHERWISE,_END]);
 
          if (current_scanner.token in [_ELSE,_OTHERWISE]) then
            begin
-              if not compiler.parser.pbase.try_to_consume(_ELSE) then
-                compiler.parser.pbase.consume(_OTHERWISE);
+              if not parser.pbase.try_to_consume(_ELSE) then
+                parser.pbase.consume(_OTHERWISE);
               casenode.addelseblock(statements_til_end);
            end
          else
-           compiler.parser.pbase.consume(_END);
+           parser.pbase.consume(_END);
 
          result:=casenode;
       end;
@@ -322,7 +341,7 @@ implementation
          first,last,p_e : tnode;
 
       begin
-         compiler.parser.pbase.consume(_REPEAT);
+         parser.pbase.consume(_REPEAT);
 
          first:=nil;
          last:=nil;
@@ -338,14 +357,14 @@ implementation
                    tstatementnode(last).right:=compiler.cstatementnode(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
-              if not compiler.parser.pbase.try_to_consume(_SEMICOLON) then
+              if not parser.pbase.try_to_consume(_SEMICOLON) then
                 break;
-              compiler.parser.pbase.consume_emptystats;
+              parser.pbase.consume_emptystats;
            end;
-         compiler.parser.pbase.consume(_UNTIL);
+         parser.pbase.consume(_UNTIL);
 
          first:=compiler.cblocknode(first);
-         p_e:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+         p_e:=parser.pexpr.comp_expr([ef_accept_equal]);
          result:=compiler.cwhilerepeatnode(p_e,first,false,true);
       end;
 
@@ -356,9 +375,9 @@ implementation
          p_e,p_a : tnode;
 
       begin
-         compiler.parser.pbase.consume(_WHILE);
-         p_e:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-         compiler.parser.pbase.consume(_DO);
+         parser.pbase.consume(_WHILE);
+         p_e:=parser.pexpr.comp_expr([ef_accept_equal]);
+         parser.pbase.consume(_DO);
          p_a:=statement;
          result:=compiler.cwhilerepeatnode(p_e,p_a,true,false);
       end;
@@ -495,18 +514,18 @@ implementation
              else
                MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-             hfrom:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+             hfrom:=parser.pexpr.comp_expr([ef_accept_equal]);
 
-             if compiler.parser.pbase.try_to_consume(_DOWNTO) then
+             if parser.pbase.try_to_consume(_DOWNTO) then
                backward:=true
              else
                begin
-                 compiler.parser.pbase.consume(_TO);
+                 parser.pbase.consume(_TO);
                  backward:=false;
                end;
 
-             hto:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-             compiler.parser.pbase.consume(_DO);
+             hto:=parser.pexpr.comp_expr([ef_accept_equal]);
+             parser.pbase.consume(_DO);
 
              { Check if the constants fit in the range }
              check_range(hfrom,hloopvar.resultdef);
@@ -559,9 +578,9 @@ implementation
               else
                 loopvarsym:=nil;
 
-              expr:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+              expr:=parser.pexpr.comp_expr([ef_accept_equal]);
 
-              compiler.parser.pbase.consume(_DO);
+              parser.pbase.consume(_DO);
 
               set_varstate(hloopvar,vs_written,[]);
               set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
@@ -580,18 +599,18 @@ implementation
          hloopvar: tnode;
       begin
          { parse loop header }
-         compiler.parser.pbase.consume(_FOR);
+         parser.pbase.consume(_FOR);
 
-         hloopvar:=compiler.parser.pexpr.factor(false,[]);
+         hloopvar:=parser.pexpr.factor(false,[]);
          valid_for_loopvar(hloopvar,true);
 
-         if compiler.parser.pbase.try_to_consume(_ASSIGNMENT) then
+         if parser.pbase.try_to_consume(_ASSIGNMENT) then
            result:=for_loop_create(hloopvar)
-         else if compiler.parser.pbase.try_to_consume(_IN) then
+         else if parser.pbase.try_to_consume(_IN) then
            result:=for_in_loop_create(hloopvar)
          else
            begin
-             compiler.parser.pbase.consume(_ASSIGNMENT); // fail
+             parser.pbase.consume(_ASSIGNMENT); // fail
              result:=compiler.cerrornode;
            end;
       end;
@@ -645,7 +664,7 @@ implementation
 
       begin
          calltempnode:=nil;
-         p:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+         p:=parser.pexpr.comp_expr([ef_accept_equal]);
          do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
@@ -801,11 +820,11 @@ implementation
                 withsymtablelist.add(st);
               end;
 
-            if compiler.parser.pbase.try_to_consume(_COMMA) then
+            if parser.pbase.try_to_consume(_COMMA) then
               p:=_with_statement()
             else
               begin
-                compiler.parser.pbase.consume(_DO);
+                parser.pbase.consume(_DO);
                 if current_scanner.token<>_SEMICOLON then
                   p:=statement
                 else
@@ -836,14 +855,14 @@ implementation
             p.free;
             p := nil;
             { try to recover from error }
-            if compiler.parser.pbase.try_to_consume(_COMMA) then
+            if parser.pbase.try_to_consume(_COMMA) then
              begin
                hp:=_with_statement();
                if (hp=nil) then; { remove warning about unused }
              end
             else
              begin
-               compiler.parser.pbase.consume(_DO);
+               parser.pbase.consume(_DO);
                { ignore all }
                if current_scanner.token<>_SEMICOLON then
                 statement;
@@ -855,7 +874,7 @@ implementation
 
     function TStatementsParser.with_statement : tnode;
       begin
-         compiler.parser.pbase.consume(_WITH);
+         parser.pbase.consume(_WITH);
          with_statement:=_with_statement();
       end;
 
@@ -867,16 +886,16 @@ implementation
          pobj:=nil;
          paddr:=nil;
          pframe:=nil;
-         compiler.parser.pbase.consume(_RAISE);
+         parser.pbase.consume(_RAISE);
          if not(current_scanner.token in endtokens) then
            begin
               { object }
-              pobj:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-              if compiler.parser.pbase.try_to_consume(_AT) then
+              pobj:=parser.pexpr.comp_expr([ef_accept_equal]);
+              if parser.pbase.try_to_consume(_AT) then
                 begin
-                   paddr:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
-                   if compiler.parser.pbase.try_to_consume(_COMMA) then
-                     pframe:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+                   paddr:=parser.pexpr.comp_expr([ef_accept_equal]);
+                   if parser.pbase.try_to_consume(_COMMA) then
+                     pframe:=parser.pexpr.comp_expr([ef_accept_equal]);
                 end;
            end
          else
@@ -925,7 +944,7 @@ implementation
          last:=nil;
 
          { read statements to try }
-         compiler.parser.pbase.consume(_TRY);
+         parser.pbase.consume(_TRY);
          filepostry:=current_filepos;
          first:=nil;
          inc(exceptblockcounter);
@@ -946,13 +965,13 @@ implementation
                    tstatementnode(last).right:=compiler.cstatementnode(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
-              if not compiler.parser.pbase.try_to_consume(_SEMICOLON) then
+              if not parser.pbase.try_to_consume(_SEMICOLON) then
                 break;
-              compiler.parser.pbase.consume_emptystats;
+              parser.pbase.consume_emptystats;
            end;
          p_try_block:=compiler.cblocknode(first);
 
-         if compiler.parser.pbase.try_to_consume(_FINALLY) then
+         if parser.pbase.try_to_consume(_FINALLY) then
            begin
               inc(exceptblockcounter);
               current_exceptblock := exceptblockcounter;
@@ -962,7 +981,7 @@ implementation
            end
          else
            begin
-              compiler.parser.pbase.consume(_EXCEPT);
+              parser.pbase.consume(_EXCEPT);
               block_type:=bt_except;
               inc(exceptblockcounter);
               current_exceptblock := exceptblockcounter;
@@ -972,7 +991,7 @@ implementation
                 { catch specific exceptions }
                 begin
                    repeat
-                     compiler.parser.pbase.consume(_ON);
+                     parser.pbase.consume(_ON);
                      if current_scanner.token=_ID then
                        begin
                           objname:=current_scanner.pattern;
@@ -980,11 +999,11 @@ implementation
                           { can't use consume_sym here, because we need already
                             to check for the colon }
                           compiler.symtablestack.searchsym(objname,srsym,srsymtable);
-                          compiler.parser.pbase.consume(_ID);
+                          parser.pbase.consume(_ID);
                           { is a explicit name for the exception given ? }
-                          if compiler.parser.pbase.try_to_consume(_COLON) then
+                          if parser.pbase.try_to_consume(_COLON) then
                             begin
-                              compiler.parser.ptype.single_type(ot,[]);
+                              parser.ptype.single_type(ot,[]);
                               check_type_valid(ot);
                               sym:=clocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
@@ -994,20 +1013,20 @@ implementation
                                  with "e: Exception" the e is not necessary }
 
                                { support unit.identifier }
-                               unit_found:=compiler.parser.pbase.try_consume_unitsym_no_specialize(srsym,srsymtable,t,[],objname);
+                               unit_found:=parser.pbase.try_consume_unitsym_no_specialize(srsym,srsymtable,t,[],objname);
                                if srsym=nil then
                                  begin
-                                   compiler.parser.pbase.identifier_not_found(objrealname);
+                                   parser.pbase.identifier_not_found(objrealname);
                                    srsym:=generrorsym;
                                  end;
                                if unit_found then
-                                 compiler.parser.pbase.consume(t);
+                                 parser.pbase.consume(t);
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
                                if (srsym.typ=typesym) then
                                  begin
                                    ot:=ttypesym(srsym).typedef;
-                                   compiler.parser.ptype.parse_nested_types(ot,false,false,nil);
+                                   parser.ptype.parse_nested_types(ot,false,false,nil);
                                    check_type_valid(ot);
                                  end
                                else
@@ -1027,8 +1046,8 @@ implementation
                           compiler.symtablestack.push(excepTSymtable);
                        end
                      else
-                       compiler.parser.pbase.consume(_ID);
-                     compiler.parser.pbase.consume(_DO);
+                       parser.pbase.consume(_ID);
+                     parser.pbase.consume(_DO);
                      hp:=compiler.connode(nil,statement);
                      if ot.typ=errordef then
                        begin
@@ -1063,17 +1082,17 @@ implementation
                              excepTSymtable := nil;
                            end;
                        end;
-                     if not compiler.parser.pbase.try_to_consume(_SEMICOLON) then
+                     if not parser.pbase.try_to_consume(_SEMICOLON) then
                         break;
-                     compiler.parser.pbase.consume_emptystats;
+                     parser.pbase.consume_emptystats;
                    until (current_scanner.token in [_END,_ELSE]);
-                   if compiler.parser.pbase.try_to_consume(_ELSE) then
+                   if parser.pbase.try_to_consume(_ELSE) then
                      begin
                        { catch the other exceptions }
                        p_default:=statements_til_end;
                      end
                    else
-                     compiler.parser.pbase.consume(_END);
+                     parser.pbase.consume(_END);
                 end
               else
                 begin
@@ -1132,7 +1151,7 @@ implementation
            current_procinfo.procdef.funcretsym.IncRefCount;
 {$endif}
          { Read first the _ASM statement }
-         compiler.parser.pbase.consume(_ASM);
+         parser.pbase.consume(_ASM);
 
          { Force an empty register list for pure assembler routines,
            so that pass2 won't allocate volatile registers for them. }
@@ -1140,7 +1159,7 @@ implementation
            Include(asmstat.asmnodeflags,asmnf_has_registerlist);
 
          { END is read, got a list of changed registers? }
-         if compiler.parser.pbase.try_to_consume(_LECKKLAMMER) then
+         if parser.pbase.try_to_consume(_LECKKLAMMER) then
            begin
              if current_scanner.token<>_RECKKLAMMER then
               begin
@@ -1171,15 +1190,15 @@ implementation
                   else
                     Message(asmr_e_invalid_register);
                   if current_scanner.token=_CCHAR then
-                    compiler.parser.pbase.consume(_CCHAR)
+                    parser.pbase.consume(_CCHAR)
                   else
-                    compiler.parser.pbase.consume(_CSTRING);
-                  if not compiler.parser.pbase.try_to_consume(_COMMA) then
+                    parser.pbase.consume(_CSTRING);
+                  if not parser.pbase.try_to_consume(_COMMA) then
                     break;
                 until false;
                 Include(asmstat.asmnodeflags,asmnf_has_registerlist);
               end;
-             compiler.parser.pbase.consume(_RECKKLAMMER);
+             parser.pbase.consume(_RECKKLAMMER);
            end;
 
          Inside_asm_statement:=false;
@@ -1197,7 +1216,7 @@ implementation
           cv : Tconstexprint;
           def: tdef;
         begin
-          cv:=compiler.parser.pexpr.get_intconst;
+          cv:=parser.pexpr.get_intconst;
           case actype of
             aitconst_8bit:
               def:=s8inttype;
@@ -1224,8 +1243,8 @@ implementation
         nesting : integer;
         tokenbuf : tdynamicarray;
       begin
-        compiler.parser.pbase.consume(_INLINE);
-        compiler.parser.pbase.consume(_LKLAMMER);
+        parser.pbase.consume(_INLINE);
+        parser.pbase.consume(_LKLAMMER);
         hl:=TAsmList.create;
         asmstat:=compiler.casmnode(hl);
         asmstat.fileinfo:=current_filepos;
@@ -1251,11 +1270,11 @@ implementation
                       break;
                   end;
                 _SEMICOLON:
-                  compiler.parser.pbase.consume(_RKLAMMER); { error }
+                  parser.pbase.consume(_RKLAMMER); { error }
                 else
                   ; {no action}
               end;
-              compiler.parser.pbase.consume(current_scanner.token);
+              parser.pbase.consume(current_scanner.token);
             end;
           current_scanner.stoprecordtokens;
           { Set the current token to ; to make the constant evaluator happy }
@@ -1270,10 +1289,10 @@ implementation
             end;
 
           { Data size override }
-          if compiler.parser.pbase.try_to_consume(_GT) then
+          if parser.pbase.try_to_consume(_GT) then
             actype:=aitconst_16bit
           else
-            if compiler.parser.pbase.try_to_consume(_LT) then
+            if parser.pbase.try_to_consume(_LT) then
               actype:=aitconst_8bit
             else
               actype:=aitconst_128bit; { default size }
@@ -1285,7 +1304,7 @@ implementation
                   if sym.typ in [staticvarsym,localvarsym,paravarsym] then
                     begin
                       { Address of the static symbol or base offset for local symbols }
-                      compiler.parser.pbase.consume(_ID);
+                      parser.pbase.consume(_ID);
                       if (sym.typ=staticvarsym) and not (actype in [aitconst_128bit,aitconst_ptr]) then
                         Message1(type_e_integer_expr_expected,sym.name);
                       { Additional offset }
@@ -1314,7 +1333,7 @@ implementation
                       sym:=nil
                     else
                       begin
-                        compiler.parser.pbase.consume(_ID);
+                        parser.pbase.consume(_ID);
                         Message(asmr_e_wrong_sym_type);
                       end;
                 end;
@@ -1337,8 +1356,8 @@ implementation
               end;
             end;
 
-          if not compiler.parser.pbase.try_to_consume(_SEMICOLON) then
-            compiler.parser.pbase.consume(_RKLAMMER); {error}
+          if not parser.pbase.try_to_consume(_SEMICOLON) then
+            parser.pbase.consume(_RKLAMMER); {error}
         until nesting<0;
         tokenbuf.free;
         tokenbuf := nil;
@@ -1354,8 +1373,9 @@ implementation
       end;
 
 
-    constructor TStatementsParser.Create(ACompiler: TCompilerBase);
+    constructor TStatementsParser.Create(AParser: TObject; ACompiler: TCompilerBase);
       begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -1377,7 +1397,7 @@ implementation
              begin
                 if not(cs_support_goto in current_settings.moduleswitches) then
                   Message(sym_e_goto_and_label_not_supported);
-                compiler.parser.pbase.consume(_GOTO);
+                parser.pbase.consume(_GOTO);
                 if (current_scanner.token<>_INTCONST) and (current_scanner.token<>_ID) then
                   begin
                     Message(sym_e_label_not_found);
@@ -1386,7 +1406,7 @@ implementation
                 else
                   begin
                      if current_scanner.token=_ID then
-                       compiler.parser.pbase.consume_sym(srsym,srsymtable)
+                       parser.pbase.consume_sym(srsym,srsymtable)
                      else
                       begin
                         if current_scanner.token<>_INTCONST then
@@ -1400,11 +1420,11 @@ implementation
                         compiler.symtablestack.searchsym(current_scanner.pattern,srsym,srsymtable);
                         if srsym=nil then
                           begin
-                            compiler.parser.pbase.identifier_not_found(current_scanner.pattern);
+                            parser.pbase.identifier_not_found(current_scanner.pattern);
                             srsym:=generrorsym;
                             srsymtable:=nil;
                           end;
-                        compiler.parser.pbase.consume(current_scanner.token);
+                        parser.pbase.consume(current_scanner.token);
                       end;
 
                      if srsym.typ<>labelsym then
@@ -1462,19 +1482,19 @@ implementation
              begin
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
-                compiler.parser.pbase.consume(_FAIL);
+                parser.pbase.consume(_FAIL);
                 code:=compiler.nodeutils.call_fail_node;
              end;
            _ASM :
              begin
-               if compiler.parser.pbase.parse_generic then
+               if parser.pbase.parse_generic then
                  Message(parser_e_no_assembler_in_generic);
                code:=_asm_statement;
              end;
            _PLUS:
              begin
                Message(parser_e_syntax_error);
-               compiler.parser.pbase.consume(_PLUS);
+               parser.pbase.consume(_PLUS);
              end;
            _INLINE:
              begin
@@ -1492,7 +1512,7 @@ implementation
              { don't typecheck yet, because that will also simplify, which may
                result in not detecting certain kinds of syntax errors --
                see mantis #15594 }
-             p:=compiler.parser.pexpr.expr(false);
+             p:=parser.pexpr.expr(false);
              { save the current_scanner.pattern here for latter usage, the label could be "000",
                even if we read an expression, the current_scanner.pattern is still valid if it's really
                a label (FK)
@@ -1503,7 +1523,7 @@ implementation
 
              { When a colon follows a intconst then transform it into a label }
              if (p.nodetype=ordconstn) and
-                compiler.parser.pbase.try_to_consume(_COLON) then
+                parser.pbase.try_to_consume(_COLON) then
               begin
                 { in iso mode, 0003: is equal to 3: }
                 if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
@@ -1618,7 +1638,7 @@ implementation
          first:=nil;
          last:=nil;
          filepos:=current_tokenpos;
-         compiler.parser.pbase.consume(starttoken);
+         parser.pbase.consume(starttoken);
 
          while not((current_scanner.token=_END) or (current_scanner.token=_FINALIZATION)) do
            begin
@@ -1639,19 +1659,19 @@ implementation
                    { if no semicolon, then error and go on }
                    if current_scanner.token<>_SEMICOLON then
                      begin
-                        compiler.parser.pbase.consume(_SEMICOLON);
-                        compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                        parser.pbase.consume(_SEMICOLON);
+                        parser.pbase.consume_all_until(_SEMICOLON);
                      end;
-                   compiler.parser.pbase.consume(_SEMICOLON);
+                   parser.pbase.consume(_SEMICOLON);
                 end;
-              compiler.parser.pbase.consume_emptystats;
+              parser.pbase.consume_emptystats;
            end;
 
          { don't consume the finalization token, it is consumed when
            reading the finalization block, but allow it only after
            an initialization ! }
          if (starttoken<>_INITIALIZATION) or (current_scanner.token<>_FINALIZATION) then
-           compiler.parser.pbase.consume(_END);
+           parser.pbase.consume(_END);
 
          last:=compiler.cblocknode(first);
          last.fileinfo:=filepos;
@@ -1667,7 +1687,7 @@ implementation
         {$endif not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
         srsym : tsym;
       begin
-         if compiler.parser.pbase.parse_generic then
+         if parser.pbase.parse_generic then
            message(parser_e_no_assembler_in_generic);
 
          { Rename the funcret so that recursive calls are possible }
@@ -1686,7 +1706,7 @@ implementation
 
          { force the asm statement }
          if current_scanner.token<>_ASM then
-           compiler.parser.pbase.consume(_ASM);
+           parser.pbase.consume(_ASM);
          include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
@@ -1728,7 +1748,7 @@ implementation
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }
-        compiler.parser.pbase.last_endtoken_filepos:=current_tokenpos;
+        parser.pbase.last_endtoken_filepos:=current_tokenpos;
 
         assembler_block:=p;
       end;
