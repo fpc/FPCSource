@@ -116,10 +116,14 @@ type
   TSubroutineParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
     property Compiler: TCompilerBase read FCompiler;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
     { reads the declaration blocks }
     procedure read_declarations(islibrary : boolean);
@@ -128,7 +132,7 @@ type
     procedure read_interface_declarations;
 
     { reads any routine in the implementation, or a non-method routine
-      declaration in the interface (depending on whether or not compiler.parser.pbase.parse_only is
+      declaration in the interface (depending on whether or not parser.pbase.parse_only is
       true) }
     function read_proc(flags:tread_proc_flags; usefwpd: tprocdef):tprocdef;
 
@@ -165,7 +169,7 @@ implementation
 {$endif}
        { parser }
        scanner,gendef,
-       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
+       pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,parser,
        { codegen }
        tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
 
@@ -189,8 +193,24 @@ implementation
        {$endif}
        ;
 
-    constructor TSubroutineParser.Create(ACompiler: TCompilerBase);
+    type
+
+       { TSubroutineParserHelper }
+
+       TSubroutineParserHelper = class helper for TSubroutineParser
+         function Parser: TParser; inline;
+       end;
+
+    { TSubroutineParserHelper }
+
+    function TSubroutineParserHelper.Parser: TParser;
       begin
+        Result:=TParser(FParser);
+      end;
+
+    constructor TSubroutineParser.Create(AParser: TObject; ACompiler: TCompilerBase);
+      begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -2713,7 +2733,7 @@ implementation
               begin
                 { also generate the bodies for all previously done
                   specializations so that we might inline them }
-                compiler.parser.pgenutil.generate_specialization_procs;
+                parser.pgenutil.generate_specialization_procs;
                 { convert all load nodes that might have been captured by a
                   capture object }
                 tcgprocinfo(current_procinfo).convert_captured_syms;
@@ -2739,7 +2759,7 @@ implementation
                 (current_procinfo.procdef.owner.defowner=current_procinfo.procdef.struct)
               )
             ) then
-          compiler.parser.pbase.consume(_SEMICOLON);
+          parser.pbase.consume(_SEMICOLON);
 
         if not isnestedproc then
           { current_procinfo is checked for nil later on }
@@ -2807,12 +2827,12 @@ implementation
 
          if not assigned(usefwpd) then
            { parse procedure declaration }
-           result:=compiler.parser.pdecsub.parse_proc_dec(convert_flags_to_ppf,old_current_structdef)
+           result:=parser.pdecsub.parse_proc_dec(convert_flags_to_ppf,old_current_structdef)
          else
            result:=usefwpd;
 
          { set the default function options }
-         if compiler.parser.pbase.parse_only then
+         if parser.pbase.parse_only then
           begin
             result.forwarddef:=true;
             { set also the interface flag, for better error message when the
@@ -2835,16 +2855,16 @@ implementation
          if not assigned(usefwpd) then
            begin
              { parse the directives that may follow }
-             compiler.parser.pdecsub.parse_proc_directives(result,pdflags);
+             parser.pdecsub.parse_proc_directives(result,pdflags);
 
              if not (rpf_anonymous in flags) then
                { hint directives, these can be separated by semicolons here,
                  that needs to be handled here with a loop (PFV) }
-               while compiler.parser.pbase.try_consume_hintdirective(result.symoptions,result.deprecatedmsg) do
-                compiler.parser.pbase.consume(_SEMICOLON);
+               while parser.pbase.try_consume_hintdirective(result.symoptions,result.deprecatedmsg) do
+                parser.pbase.consume(_SEMICOLON);
 
              { Set calling convention }
-             if compiler.parser.pbase.parse_only then
+             if parser.pbase.parse_only then
                handle_calling_convention(result,hcc_default_actions_intf)
              else
                handle_calling_convention(result,hcc_default_actions_impl)
@@ -2895,7 +2915,7 @@ implementation
            end;
 
          { Set mangled name }
-         compiler.parser.pdecsub.proc_set_mangledname(result);
+         parser.pdecsub.proc_set_mangledname(result);
 
          { inherit generic flags from parent routine }
          if assigned(old_current_procinfo) and
@@ -2975,7 +2995,7 @@ implementation
                      hlcg.handle_external_proc(
                        current_asmdata.asmlists[al_procedures],
                        result,
-                       compiler.parser.pdecsub.proc_get_importname(result));
+                       parser.pdecsub.proc_get_importname(result));
                      destroy_hlcodegen;
                    end
                end;
@@ -3018,16 +3038,16 @@ implementation
           begin
             if assigned (pd.import_name) then
               current_module.AddExternalImport(pd.import_dll^,
-                pd.import_name^,compiler.parser.pdecsub.proc_get_importname(pd),
+                pd.import_name^,parser.pdecsub.proc_get_importname(pd),
                 pd.import_nr,false,false)
             else
               current_module.AddExternalImport(pd.import_dll^,
-                compiler.parser.pdecsub.proc_get_importname(pd),compiler.parser.pdecsub.proc_get_importname(pd),
+                parser.pdecsub.proc_get_importname(pd),parser.pdecsub.proc_get_importname(pd),
                 pd.import_nr,false,true);
           end
         else
           begin
-            name:=compiler.parser.pdecsub.proc_get_importname(pd);
+            name:=parser.pdecsub.proc_get_importname(pd);
             { add import name to external list for DLL scanning }
             if tf_has_dllscanner in target_info.flags then
               current_module.dllscannerinputlist.Add(name,pd);
@@ -3122,32 +3142,32 @@ implementation
               _LABEL:
                 begin
                   handle_unexpected_had_generic;
-                  compiler.parser.pdecl.label_dec;
+                  parser.pdecl.label_dec;
                 end;
               _CONST:
                 begin
                   handle_unexpected_had_generic;
-                  compiler.parser.pdecl.const_dec(hadgeneric);
+                  parser.pdecl.const_dec(hadgeneric);
                 end;
               _TYPE:
                 begin
                   handle_unexpected_had_generic;
-                  compiler.parser.pdecl.type_dec(hadgeneric);
+                  parser.pdecl.type_dec(hadgeneric);
                 end;
               _VAR:
                 begin
                   handle_unexpected_had_generic;
-                  compiler.parser.pdecl.var_dec(hadgeneric);
+                  parser.pdecl.var_dec(hadgeneric);
                 end;
               _THREADVAR:
                 begin
                   handle_unexpected_had_generic;
-                  compiler.parser.pdecl.threadvar_dec(hadgeneric);
+                  parser.pdecl.threadvar_dec(hadgeneric);
                 end;
               _CLASS:
                 begin
                   is_classdef:=false;
-                  if compiler.parser.pbase.try_to_consume(_CLASS) then
+                  if parser.pbase.try_to_consume(_CLASS) then
                    begin
                      { class modifier is only allowed for procedures, functions, }
                      { constructors, destructors                                 }
@@ -3188,22 +3208,22 @@ implementation
                    if (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
                      begin
                         Message(parser_e_syntax_error);
-                        compiler.parser.pbase.consume_all_until(_SEMICOLON);
+                        parser.pbase.consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
                      (target_info.system in systems_unit_program_exports) then
-                     compiler.parser.pexports.read_exports
+                     parser.pexports.read_exports
                    else
                      begin
                         Message(parser_w_unsupported_feature);
-                        compiler.parser.pbase.consume(_BEGIN);
+                        parser.pbase.consume(_BEGIN);
                      end;
                 end;
               _PROPERTY:
                 begin
                   handle_unexpected_had_generic;
                   if (m_fpc in current_settings.modeswitches) then
-                    compiler.parser.pdecl.property_dec
+                    parser.pdecl.property_dec
                   else
                     break;
                 end;
@@ -3216,7 +3236,7 @@ implementation
                         { m_class is needed, because the resourcestring
                           loading is in the ObjPas unit }
 {                        if (m_class in current_settings.modeswitches) then}
-                          compiler.parser.pdecl.resourcestring_dec(hadgeneric)
+                          parser.pdecl.resourcestring_dec(hadgeneric)
 {                        else
                           break;}
                       end;
@@ -3236,7 +3256,7 @@ implementation
                         handle_unexpected_had_generic;
                         if not (m_delphi in current_settings.modeswitches) then
                           begin
-                            compiler.parser.pbase.consume(_ID);
+                            parser.pbase.consume(_ID);
                             hadgeneric:=true;
                           end
                         else
@@ -3291,22 +3311,22 @@ implementation
              _CONST :
                begin
                  handle_unexpected_had_generic;
-                 compiler.parser.pdecl.const_dec(hadgeneric);
+                 parser.pdecl.const_dec(hadgeneric);
                end;
              _TYPE :
                begin
                  handle_unexpected_had_generic;
-                 compiler.parser.pdecl.type_dec(hadgeneric);
+                 parser.pdecl.type_dec(hadgeneric);
                end;
              _VAR :
                begin
                  handle_unexpected_had_generic;
-                 compiler.parser.pdecl.var_dec(hadgeneric);
+                 parser.pdecl.var_dec(hadgeneric);
                end;
              _THREADVAR :
                begin
                  handle_unexpected_had_generic;
-                 compiler.parser.pdecl.threadvar_dec(hadgeneric);
+                 parser.pdecl.threadvar_dec(hadgeneric);
                end;
              _FUNCTION,
              _PROCEDURE,
@@ -3329,13 +3349,13 @@ implementation
                    _RESOURCESTRING :
                      begin
                        handle_unexpected_had_generic;
-                       compiler.parser.pdecl.resourcestring_dec(hadgeneric);
+                       parser.pdecl.resourcestring_dec(hadgeneric);
                      end;
                    _PROPERTY:
                      begin
                        handle_unexpected_had_generic;
                        if (m_fpc in current_settings.modeswitches) then
-                         compiler.parser.pdecl.property_dec
+                         parser.pdecl.property_dec
                        else
                          break;
                      end;
@@ -3345,7 +3365,7 @@ implementation
                        if not (m_delphi in current_settings.modeswitches) then
                          begin
                            hadgeneric:=true;
-                           compiler.parser.pbase.consume(_ID);
+                           parser.pbase.consume(_ID);
                          end
                        else
                          break;

@@ -373,7 +373,7 @@ implementation
         FPDecSub:=TSubroutineDeclarationParser.Create(Self,acompiler);
         FPDecObj:=TObjectDeclarationsParser.Create(Self,acompiler);
         FPDecl:=TDeclarationParser.Create(Self,acompiler);
-        FPSub:=TSubroutineParser.Create(acompiler);
+        FPSub:=TSubroutineParser.Create(Self,acompiler);
         FPInline:=TInlineParser.Create(acompiler);
         FPType:=TTypesParser.Create(acompiler);
         FPSystem:=TSystemUnitParser.Create(acompiler);
