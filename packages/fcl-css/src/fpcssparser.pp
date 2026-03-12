@@ -94,7 +94,7 @@ Type
     function ParseString: TCSSElement; virtual;
     function ParseHashValue: TCSSElement; virtual;
     Function ParseUnicodeRange : TCSSElement; virtual;
-    function ParseArray(aPrefix: TCSSElement): TCSSElement; virtual;
+    function ParseArray(aPrefix: TCSSElement; AllowRules: boolean): TCSSElement; virtual;
     function ParseURL: TCSSElement; virtual;
     function ParseInvalidToken: TCSSElement; virtual;
     Property CurrentSource : TCSSString Read GetCurSource;
@@ -1186,7 +1186,7 @@ begin
     ctkURL: Result:=ParseURL;
     ctkPSEUDO: Result:=ParsePseudoClass;
     ctkLBRACE: Result:=ParseRule;
-    ctkLBRACKET: Result:=ParseArray(Nil);
+    ctkLBRACKET: Result:=ParseArray(Nil,false);
     ctkMinus,
     ctkPlus,
     ctkDiv,
@@ -1208,7 +1208,7 @@ begin
   if (aToken in FinalTokens) or (PreviousToken=ctkWHITESPACE) then
     exit;
   if (CurrentToken=ctkLBRACKET) then
-    Result:=ParseArray(Result);
+    Result:=ParseArray(Result,false);
 end;
 
 function TCSSParser.ParseSelector: TCSSElement;
@@ -1526,6 +1526,7 @@ var
   aCall : TCSSCallElement;
   l : Integer;
   aValue: TCSSElement;
+  aList: TCSSListElement;
 begin
   aCall:=TCSSCallElement(CreateElement(CSSCallElementClass));
   try
@@ -1556,13 +1557,34 @@ begin
       begin
       aValue:=ParseComponentValue;
       if aValue=nil then
-      begin
+        begin
         aValue:=TCSSElement(CreateElement(TCSSElement));
         GetNextToken;
-      end;
-      aCall.AddArg(aValue);
-      if (CurrentToken=ctkCOMMA) then
-        GetNextToken;
+        end;
+      if (CurrentToken in [ctkCOMMA,ctkRPARENTHESIS,ctkEOF]) then
+        begin
+        aCall.AddArg(aValue);
+        if CurrentToken=ctkCOMMA then
+          GetNextToken;
+        end
+      else
+        begin
+        // e.g. repeat(5, 1em 2em)  the "1em 2em" is one arg
+        aList:=TCSSListElement(CreateElement(CSSListElementClass));
+        aList.AddChild(aValue);
+        aCall.AddArg(aList);
+        repeat
+          aValue:=ParseComponentValue;
+          if aValue=nil then
+            begin
+            aValue:=TCSSElement(CreateElement(TCSSElement));
+            GetNextToken;
+            end;
+          aList.AddChild(aValue);
+        until CurrentToken in [ctkCOMMA,ctkRPARENTHESIS,ctkEOF];
+        if CurrentToken=ctkCOMMA then
+          GetNextToken;
+        end;
       end;
     if CurrentToken=ctkEOF then
       DoError(SErrUnexpectedEndOfFile,[aName]);
@@ -1741,7 +1763,7 @@ begin
   end;
 end;
 
-function TCSSParser.ParseArray(aPrefix: TCSSElement): TCSSElement;
+function TCSSParser.ParseArray(aPrefix: TCSSElement; AllowRules: boolean): TCSSElement;
 
 Var
   aEl : TCSSElement;
@@ -1755,7 +1777,7 @@ begin
     Consume(ctkLBRACKET);
     While CurrentToken<>ctkRBRACKET do
       begin
-      aEl:=ParseComponentValueList;
+      aEl:=ParseComponentValueList(AllowRules);
       aArray.AddChild(aEl);
       end;
     Consume(ctkRBRACKET);
