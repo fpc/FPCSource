@@ -367,7 +367,7 @@ implementation
         FPGenUtil:=TGenericsParseUtils.Create(Self,acompiler);
         FPStatmnt:=TStatementsParser.Create(Self,acompiler);
         FPExpr:=TExpressionParser.Create(Self,acompiler);
-        FPExports:=TExportsParser.Create(acompiler);
+        FPExports:=TExportsParser.Create(Self,acompiler);
         FPTConst:=TTypedConstParser.Create(acompiler);
         FPDecVar:=TVariableDeclarationsParser.Create(acompiler);
         FPDecSub:=TSubroutineDeclarationParser.Create(acompiler);

@@ -35,9 +35,13 @@ type
   TExportsParser = class
   private
     FCompiler: TCompilerBase;
+
+    { we use TObject instead of TParser to avoid cyclic unit reference }
+    FParser: TObject;
+
     property Compiler: TCompilerBase read FCompiler;
   public
-    constructor Create(ACompiler: TCompilerBase);
+    constructor Create(AParser: TObject; ACompiler: TCompilerBase);
     { reads an exports statement in a library }
     procedure read_exports;
   end;
@@ -50,7 +54,7 @@ implementation
        { global }
        globals,globtype,tokens,verbose,constexp,
        systems,
-       ppu,fmodule,compiler,
+       ppu,fmodule,compiler,parser,
        { symtable }
        symconst,symbase,symdef,symtype,symsym,
        { pass 1 }
@@ -65,8 +69,24 @@ implementation
        gendef,export
        ;
 
-    constructor TExportsParser.Create(ACompiler: TCompilerBase);
+    type
+
+      { TExportsParserHelper }
+
+      TExportsParserHelper = class helper for TExportsParser
+        function Parser: TParser; inline;
+      end;
+
+    { TExportsParserHelper }
+
+    function TExportsParserHelper.Parser: TParser;
       begin
+        Result:=TParser(FParser);
+      end;
+
+    constructor TExportsParser.Create(AParser: TObject; ACompiler: TCompilerBase);
+      begin
+        FParser:=AParser;
         FCompiler:=ACompiler;
       end;
 
@@ -103,14 +123,14 @@ implementation
          include(current_module.moduleflags,mf_has_exports);
          DefString:='';
          InternalProcName:='';
-         compiler.parser.pbase.consume(_EXPORTS);
+         parser.pbase.consume(_EXPORTS);
          repeat
            hpname:='';
            options:=[];
            index:=0;
            if current_scanner.token=_ID then
              begin
-                compiler.parser.pbase.consume_sym_orgid(srsym,srsymtable,orgs);
+                parser.pbase.consume_sym_orgid(srsym,srsymtable,orgs);
                 { current_scanner.orgpattern is still valid here }
                 InternalProcName:='';
                 case srsym.typ of
@@ -152,9 +172,9 @@ implementation
                         Message(parser_e_procname_to_short_for_export);
                        DefString:=srsym.realname+'='+InternalProcName;
                      end;
-                    if compiler.parser.pbase.try_to_consume(_INDEX) then
+                    if parser.pbase.try_to_consume(_INDEX) then
                      begin
-                       pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+                       pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                        if pt.nodetype=ordconstn then
                         if (Tordconstnode(pt).value<int64(low(index))) or
                            (Tordconstnode(pt).value>int64(high(index))) then
@@ -177,9 +197,9 @@ implementation
                        else
                         DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
                      end;
-                    if compiler.parser.pbase.try_to_consume(_NAME) then
+                    if parser.pbase.try_to_consume(_NAME) then
                      begin
-                       pt:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
+                       pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                        if pt.nodetype=stringconstn then
                          hpname:=strpas(pchar(@tstringconstnode(pt).valueas[0]))
                        else if is_constcharnode(pt) then
@@ -191,18 +211,18 @@ implementation
                        pt := nil;
                        DefString:=hpname+'='+InternalProcName;
                      end;
-                    if compiler.parser.pbase.try_to_consume(_RESIDENT) then
+                    if parser.pbase.try_to_consume(_RESIDENT) then
                      begin
                        include(options,eo_resident);
                        DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
                      end;
-                    if compiler.parser.pbase.try_to_consume(_PROMISING) then
+                    if parser.pbase.try_to_consume(_PROMISING) then
                      begin
                        if target_info.system in systems_wasm then
                          begin
-                           if compiler.parser.pbase.try_to_consume(_FIRST) then
+                           if parser.pbase.try_to_consume(_FIRST) then
                              include(options,eo_promising_first)
-                           else if compiler.parser.pbase.try_to_consume(_LAST) then
+                           else if parser.pbase.try_to_consume(_LAST) then
                              include(options,eo_promising_last)
                            else
                              include(options,eo_promising_first);
@@ -210,8 +230,8 @@ implementation
                        else
                          begin
                            Message(parser_e_promising_exports_not_supported_on_current_platform);
-                           if not compiler.parser.pbase.try_to_consume(_FIRST) then
-                             compiler.parser.pbase.try_to_consume(_LAST);
+                           if not parser.pbase.try_to_consume(_FIRST) then
+                             parser.pbase.try_to_consume(_LAST);
                          end;
                      end;
                     if (DefString<>'') and
@@ -287,9 +307,9 @@ implementation
                    end; // Case srsym.typ
              end
            else
-             compiler.parser.pbase.consume(_ID);
-         until not compiler.parser.pbase.try_to_consume(_COMMA);
-         compiler.parser.pbase.consume(_SEMICOLON);
+             parser.pbase.consume(_ID);
+         until not parser.pbase.try_to_consume(_COMMA);
+         parser.pbase.consume(_SEMICOLON);
         if not DefFile.empty then
          DefFile.writefile;
       end;
