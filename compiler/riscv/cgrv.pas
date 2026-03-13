@@ -840,7 +840,7 @@ unit cgrv;
               list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,postcompensation));
           end;
 
-        if (target_info.system in (systems_freertos+systems_embedded)) and (po_interrupt in current_procinfo.procdef.procoptions) then
+        if (compiler.target.info.system in (systems_freertos+systems_embedded)) and (po_interrupt in current_procinfo.procdef.procoptions) then
           begin
             list.concat(Taicpu.Op_none(A_MRET));
           end
@@ -861,7 +861,7 @@ unit cgrv;
 
     procedure tcgrv.g_profilecode(list: TAsmList);
       begin
-        if target_info.system in [system_riscv32_linux,system_riscv64_linux] then
+        if compiler.target.info.system in [system_riscv32_linux,system_riscv64_linux] then
           begin
             list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_X10,NR_RETURN_ADDRESS_REG,0));
             a_call_name(list,'_mcount',false);

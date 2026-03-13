@@ -41,7 +41,7 @@ type
 implementation
 
 uses
-  globals,cutils,systems,
+  globals,cutils,systems,compiler,
   aasmtai,aasmcnst,
   symdef,
   fmodule;
@@ -60,8 +60,8 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
        (_bind in [AB_GLOBAL,AB_COMMON,AB_PRIVATE_EXTERN]) and
        (_typ<>AT_DATA_NOINDIRECT) and
        (((_typ=AT_DATA) and
-         (tf_supports_packages in target_info.flags) and
-         (target_info.system in systems_indirect_var_imports)
+         (tf_supports_packages in compiler.target.info.flags) and
+         (compiler.target.info.system in systems_indirect_var_imports)
         ) or
         (_typ=AT_DATA_FORCEINDIRECT)
        ) then
@@ -77,7 +77,7 @@ function TAsmDataDef.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: 
           ptrdef.alignment));
         tcb.free;
         tcb := nil;
-        if (_typ=AT_DATA_FORCEINDIRECT) and not (target_info.system in systems_indirect_var_imports) then
+        if (_typ=AT_DATA_FORCEINDIRECT) and not (compiler.target.info.system in systems_indirect_var_imports) then
           current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
       end;
   end;

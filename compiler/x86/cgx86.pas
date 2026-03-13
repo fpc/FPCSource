@@ -28,7 +28,7 @@ unit cgx86;
   interface
 
     uses
-       globtype,
+       globtype,compilerbase,
        cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,rgx86,
@@ -191,7 +191,7 @@ unit cgx86;
   implementation
 
     uses
-       globals,verbose,systems,cutils,
+       globals,verbose,systems,cutils,compiler,
        symcpu,
        paramgr,procinfo,
        tgobj,ncgutil;
@@ -223,13 +223,15 @@ unit cgx86;
       end;
 
     function GetRefAlignment(ref: treference): Byte; {$IFDEF USEINLINE}inline;{$ENDIF}
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef x86_64}
         { The stack pointer and base pointer will be aligned to 16-byte boundaries if the machine code is well-behaved }
         if (ref.base = NR_STACK_POINTER_REG) or (ref.base = current_procinfo.framepointer) then
           begin
-            if (ref.index = NR_NO) and ((ref.offset mod target_info.stackalign) = 0) then
-              Result := target_info.stackalign
+            if (ref.index = NR_NO) and ((ref.offset mod compiler.target.info.stackalign) = 0) then
+              Result := compiler.target.info.stackalign
             else
               Result := ref.alignment;
           end
@@ -563,7 +565,7 @@ unit cgx86;
               end
             else
               { Always use RIP relative symbol addressing for Windows and Darwin targets. }
-              if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim])) and (ref.base<>NR_RIP) then
+              if (compiler.target.info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim])) and (ref.base<>NR_RIP) then
                 begin
                   if (ref.refaddr=addr_no) and (ref.base=NR_NO) and (ref.index=NR_NO) then
                     begin
@@ -601,7 +603,7 @@ unit cgx86;
           end;
 {$elseif defined(i386)}
         add_hreg:=false;
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+        if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
             if assigned(ref.symbol) and
                not(assigned(ref.relsymbol)) and
@@ -829,7 +831,7 @@ unit cgx86;
       var
         r: treference;
       begin
-        if (target_info.system <> system_i386_darwin) then
+        if (compiler.target.info.system <> system_i386_darwin) then
           list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
         else
           begin
@@ -885,7 +887,7 @@ unit cgx86;
         r : treference;
       begin
 
-        if (target_info.system <> system_i386_darwin) then
+        if (compiler.target.info.system <> system_i386_darwin) then
           begin
             if not(weak) then
               sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION)
@@ -894,7 +896,7 @@ unit cgx86;
             reference_reset_symbol(r,sym,0,sizeof(pint),[]);
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin's assembler doesn't want @PLT after call symbols }
-               not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
+               not(compiler.target.info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
               begin
                 r.refaddr:=addr_pic;
               end
@@ -1107,7 +1109,7 @@ unit cgx86;
               begin
                 { Convert thread local address to a process global address
                   as we cannot handle far pointers.}
-                case target_info.system of
+                case compiler.target.info.system of
                   system_i386_linux,system_i386_android:
                     if segment=NR_GS then
                       begin
@@ -1139,7 +1141,7 @@ unit cgx86;
               begin
                 { Convert thread local address to a process global address
                   as we cannot handle far pointers.}
-                case target_info.system of
+                case compiler.target.info.system of
                   system_x86_64_linux:
                     if segment=NR_FS then
                       begin
@@ -1170,7 +1172,7 @@ unit cgx86;
               begin
                 if assigned(dirref.symbol) then
                   begin
-                    if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+                    if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) and
                        ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                         (cs_create_pic in current_settings.moduleswitches)) then
                       begin
@@ -1214,7 +1216,7 @@ unit cgx86;
                           a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
                       end
 {$ifdef x86_64}
-                    else if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim]))
+                    else if (compiler.target.info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim]))
 			 or (cs_create_pic in current_settings.moduleswitches)
 			 then
                       begin
@@ -3243,7 +3245,7 @@ unit cgx86;
         mcountprefix : String[4];
 
       begin
-        case target_info.system of
+        case compiler.target.info.system of
         {$ifndef NOTARGETWIN}
            system_i386_win32,
         {$endif}
@@ -3251,7 +3253,7 @@ unit cgx86;
            system_i386_netbsd,
            system_i386_wdosx :
              begin
-                Case target_info.system Of
+                Case compiler.target.info.system Of
                  system_i386_freebsd : mcountprefix:='.';
                  system_i386_netbsd : mcountprefix:='__';
                 else
@@ -3264,12 +3266,12 @@ unit cgx86;
                 new_section(list,sec_code,lower(current_procinfo.procdef.mangledname),0);
                 list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EDX));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
-                a_call_name(list,target_info.Cprefix+mcountprefix+'mcount',false);
+                a_call_name(list,compiler.target.info.Cprefix+mcountprefix+'mcount',false);
                 list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
              end;
 
            system_i386_linux:
-             a_call_name(list,target_info.Cprefix+'mcount',false);
+             a_call_name(list,compiler.target.info.Cprefix+'mcount',false);
 
            system_i386_go32v2,system_i386_watcom:
              begin
@@ -3327,7 +3329,7 @@ unit cgx86;
 {$ifndef NOTARGETWIN}
            { windows guards only a few pages for stack growing,
              so we have to access every page first              }
-           if (target_info.system in [system_i386_win32,system_i386_wince]) and
+           if (compiler.target.info.system in [system_i386_win32,system_i386_wince]) and
               (localsize>=winstackpagesize) then
              begin
                if localsize div winstackpagesize<=5 then
@@ -3371,7 +3373,7 @@ unit cgx86;
 {$ifndef NOTARGETWIN}
            { windows guards only a few pages for stack growing,
              so we have to access every page first              }
-           if (target_info.system=system_x86_64_win64) and
+           if (compiler.target.info.system=system_x86_64_win64) and
               (localsize>=winstackpagesize) then
              begin
                if localsize div winstackpagesize<=5 then
@@ -3496,7 +3498,7 @@ unit cgx86;
           Additional details here: http://www.geary.com/fixds.html }
         if (current_settings.x86memorymodel<>mm_huge) and
            (po_exports in current_procinfo.procdef.procoptions) and
-           (target_info.system=system_i8086_win16) then
+           (compiler.target.info.system=system_i8086_win16) then
           begin
             if cs_win16_smartcallbacks in current_settings.moduleswitches then
               list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SS,NR_AX))
@@ -3588,7 +3590,7 @@ unit cgx86;
 {$ifdef i8086}
                 if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
                     ((po_exports in current_procinfo.procdef.procoptions) and
-                     (target_info.system=system_i8086_win16))) and
+                     (compiler.target.info.system=system_i8086_win16))) and
                     is_proc_far(current_procinfo.procdef) then
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,1,current_procinfo.framepointer);
 {$endif i8086}
@@ -3616,13 +3618,13 @@ unit cgx86;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.stackalign>sizeof(pint)) and
+               ((compiler.target.info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if target_info.stackalign>sizeof(pint) then
-                  localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
+                if compiler.target.info.stackalign>sizeof(pint) then
+                  localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
@@ -3640,7 +3642,7 @@ unit cgx86;
               { win16 exported proc prologue follow-up (see the huge comment above for details) }
               if (current_settings.x86memorymodel<>mm_huge) and
                  (po_exports in current_procinfo.procdef.procoptions) and
-                 (target_info.system=system_i8086_win16) then
+                 (compiler.target.info.system=system_i8086_win16) then
                 begin
                   list.concat(Taicpu.op_reg(A_PUSH,S_W,NR_DS));
                   list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,NR_DS));
@@ -3669,7 +3671,7 @@ unit cgx86;
               since Windows is compiled with Microsoft compilers, these registers
               must be saved for exported procedures (BP7 for Win16 also does this). }
             if (po_exports in current_procinfo.procdef.procoptions) and
-               (target_info.system=system_i8086_win16) then
+               (compiler.target.info.system=system_i8086_win16) then
               begin
                 list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_SI));
                 list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_DI));

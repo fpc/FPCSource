@@ -169,7 +169,7 @@ end;
                   for the fragile abi, and the metaclass of the superclass for the non-fragile ABI }
                 { NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
                     (but also on all iPhone SDK revisions we support) }
-                if (target_info.system in systems_objc_nfabi) and
+                if (compiler.target.info.system in systems_objc_nfabi) and
                    (not MacOSXVersionMin.isvalid or
                     (MacOSXVersionMin.relationto(10,6,0)>=0)) then
                   result:=compiler.cloadvmtaddrnode(compiler.ctypenode(tobjectdef(tclassrefdef(def).pointeddef).childof))
@@ -202,7 +202,7 @@ end;
 
           NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
             (but also on all iPhone SDK revisions we support) }
-        if not(target_info.system in systems_objc_nfabi) or
+        if not(compiler.target.info.system in systems_objc_nfabi) or
            (MacOSXVersionMin.isvalid and
             (MacOSXVersionMin.relationto(10,6,0)<0)) then
           result:=objcloadbasefield(result,'SUPERCLASS');
@@ -289,11 +289,13 @@ end;
 
     procedure exportobjcclassfields(objccls: tobjectdef);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       i: longint;
       vf: tfieldvarsym;
       prefix: string;
     begin
-      prefix:=target_info.cprefix+'OBJC_IVAR_$_'+objccls.objextname^+'.';
+      prefix:=compiler.target.info.cprefix+'OBJC_IVAR_$_'+objccls.objextname^+'.';
       for i:=0 to objccls.symtable.SymList.Count-1 do
         if tsym(objccls.symtable.SymList[i]).typ=fieldvarsym then
           begin
@@ -308,7 +310,7 @@ end;
 
     procedure TObjectiveCUtils.exportobjcclass(def: tobjectdef);
       begin
-        if (target_info.system in systems_objc_nfabi) then
+        if (compiler.target.info.system in systems_objc_nfabi) then
           begin
             { export class and metaclass symbols }
             exportname(def.rtti_mangledname(objcclassrtti),[]);

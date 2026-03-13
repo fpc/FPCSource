@@ -343,7 +343,7 @@ unit agz80asm;
                                end;
                         end; { end for i:=0 to... }
                       if quoted then writer.AsmWrite('"');
-                        writer.AsmWrite(target_info.newline);
+                        writer.AsmWrite(compiler.target.info.newline);
                       counter := counter+line_length;
                    end; { end for j:=0 ... }
                  { do last line of lines }

@@ -276,7 +276,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we always save R14, so we can use it }
-        if (target_info.system<>system_arm_ios) then
+        if (compiler.target.info.system<>system_arm_ios) then
             begin
               if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_R11) then
                 rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
@@ -387,7 +387,7 @@ unit cgcpu;
             ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) and
              (oppostfix in [PF_SH,PF_H])) then
            begin
-             if target_info.endian=endian_big then
+             if compiler.target.info.endian=endian_big then
                dir:=-1
              else
                dir:=1;
@@ -410,7 +410,7 @@ unit cgcpu;
                    else
                      usedtmpref:=ref;
 
-                   if target_info.endian=endian_big then
+                   if compiler.target.info.endian=endian_big then
                      inc(usedtmpref.offset,1);
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
@@ -445,7 +445,7 @@ unit cgcpu;
                    shifterop_reset(so);so.shiftmode:=SM_LSL;
                    if ref.alignment=2 then
                      begin
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,2);
                        a_internal_load_ref_reg(list,OS_16,OS_16,usedtmpref,reg);
                        inc(usedtmpref.offset,dir*2);
@@ -456,7 +456,7 @@ unit cgcpu;
                    else
                      begin
                        tmpreg2:=getintregister(list,OS_INT);
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,3);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
 
@@ -645,7 +645,7 @@ unit cgcpu;
           sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
         reference_reset_symbol(r,sym,0,sizeof(pint),[]);
 
-        if (tf_pic_uses_got in target_info.flags) and
+        if (tf_pic_uses_got in compiler.target.info.flags) and
            (cs_create_pic in current_settings.moduleswitches) then
           begin
             r.refaddr:=addr_pic
@@ -1426,7 +1426,7 @@ unit cgcpu;
             ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) and
              (oppostfix =PF_H)) then
            begin
-             if target_info.endian=endian_big then
+             if compiler.target.info.endian=endian_big then
                dir:=-1
              else
                dir:=1;
@@ -1435,7 +1435,7 @@ unit cgcpu;
                  begin
                    tmpreg:=getintregister(list,OS_INT);
                    usedtmpref:=ref;
-                   if target_info.endian=endian_big then
+                   if compiler.target.info.endian=endian_big then
                      inc(usedtmpref.offset,1);
                    usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,usedtmpref);
                    inc(usedtmpref.offset,dir);
@@ -1448,7 +1448,7 @@ unit cgcpu;
                    usedtmpref:=ref;
                    if ref.alignment=2 then
                      begin
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,2);
                        usedtmpref:=a_internal_load_reg_ref(list,OS_16,OS_16,reg,usedtmpref);
                        a_op_const_reg_reg(list,OP_SHR,OS_INT,16,reg,tmpreg);
@@ -1457,7 +1457,7 @@ unit cgcpu;
                      end
                    else
                      begin
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,3);
                        usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,usedtmpref);
                        a_op_const_reg_reg(list,OP_SHR,OS_INT,8,reg,tmpreg);
@@ -1926,7 +1926,7 @@ unit cgcpu;
 
     procedure tbasecgarm.g_profilecode(list : TAsmList);
       begin
-        if target_info.system = system_arm_linux then
+        if compiler.target.info.system = system_arm_linux then
           begin
             list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R14]));
             a_call_name(list,'__gnu_mcount_nc',false);
@@ -2005,7 +2005,7 @@ unit cgcpu;
             ref.index:=NR_STACK_POINTER_REG;
             ref.addressmode:=AM_PREINDEXED;
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-            if not(target_info.system in systems_darwin) then
+            if not(compiler.target.info.system in systems_darwin) then
               begin
                 a_reg_alloc(list,NR_STACK_POINTER_REG);
                 if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -2309,16 +2309,16 @@ unit cgcpu;
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             if (pi_do_call in current_procinfo.flags) or
                (regs<>[]) or
-               ((target_info.system in systems_darwin) and
+               ((compiler.target.info.system in systems_darwin) and
                 (current_procinfo.framepointer<>NR_STACK_POINTER_REG)) then
               begin
                 exclude(regs,RS_R14);
                 include(regs,RS_R15);
-                if (target_info.system in systems_darwin) then
+                if (compiler.target.info.system in systems_darwin) then
                   include(regs,RS_FRAME_POINTER_REG);
               end;
 
-            if not(target_info.system in systems_darwin) then
+            if not(compiler.target.info.system in systems_darwin) then
               begin
                 { restore saved stack pointer to SP (R13) and saved lr to PC (R15).
                   The saved PC came after that but is discarded, since we restore
@@ -2359,7 +2359,7 @@ unit cgcpu;
                 end;
             stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
-               (target_info.system in systems_darwin) then
+               (compiler.target.info.system in systems_darwin) then
               begin
                 LocalSize:=current_procinfo.calc_stackframe_size;
                 if (LocalSize<>0) or
@@ -2388,7 +2388,7 @@ unit cgcpu;
                       end;
                   end;
 
-                if (target_info.system in systems_darwin) and
+                if (compiler.target.info.system in systems_darwin) and
                    (saveregs<>[]) then
                   list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,saveregs),PF_FD));
 
@@ -2431,7 +2431,7 @@ unit cgcpu;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
            (pi_needs_got in current_procinfo.flags) and
-           (tf_pic_uses_got in target_info.flags) then
+           (tf_pic_uses_got in compiler.target.info.flags) then
           begin
             { Procedure parametrs are not initialized at this stage.
               Before GOT initialization code, allocate registers used for procedure parameters
@@ -2553,7 +2553,7 @@ unit cgcpu;
         indirection_done:=false;
         if assigned(ref.symbol) then
           begin
-            if (target_info.system=system_arm_ios) and
+            if (compiler.target.info.system=system_arm_ios) and
                (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN,AB_COMMON]) then
               begin
                 tmpreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
@@ -2575,7 +2575,7 @@ unit cgcpu;
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
               end
             else if (cs_create_pic in current_settings.moduleswitches) then
-              if (tf_pic_uses_got in target_info.flags) then
+              if (tf_pic_uses_got in compiler.target.info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
               else
                 begin
@@ -2611,7 +2611,7 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
 
             if (cs_create_pic in current_settings.moduleswitches) and
-               (tf_pic_uses_got in target_info.flags) and
+               (tf_pic_uses_got in compiler.target.info.flags) and
                assigned(ref.symbol) then
               begin
                 {$ifdef EXTDEBUG}
@@ -3859,7 +3859,7 @@ unit cgcpu;
               localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
 
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
-               (target_info.system in systems_darwin) then
+               (compiler.target.info.system in systems_darwin) then
               begin
                 if (LocalSize<>0) or
                    ((stackmisalignment<>0) and
@@ -3928,7 +3928,7 @@ unit cgcpu;
          end;
          if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize]) then
            begin
-             if target_info.endian=endian_big then
+             if compiler.target.info.endian=endian_big then
                dir:=-1
              else
                dir:=1;
@@ -3951,7 +3951,7 @@ unit cgcpu;
                    else
                      usedtmpref:=ref;
 
-                   if target_info.endian=endian_big then
+                   if compiler.target.info.endian=endian_big then
                      inc(usedtmpref.offset,1);
                    tmpreg:=getintregister(list,OS_INT);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
@@ -3986,7 +3986,7 @@ unit cgcpu;
 
                    if ref.alignment=2 then
                      begin
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,2);
                        a_internal_load_ref_reg(list,OS_16,OS_16,usedtmpref,reg);
                        inc(usedtmpref.offset,dir*2);
@@ -3996,7 +3996,7 @@ unit cgcpu;
                      end
                    else
                      begin
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,3);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
                        inc(usedtmpref.offset,dir);
@@ -4375,7 +4375,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we save R14 always, so we can use it }
-        if (target_info.system<>system_arm_ios) then
+        if (compiler.target.info.system<>system_arm_ios) then
           rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])
@@ -4471,7 +4471,7 @@ unit cgcpu;
          end;
          if (ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize]) then
            begin
-             if target_info.endian=endian_big then
+             if compiler.target.info.endian=endian_big then
                dir:=-1
              else
                dir:=1;
@@ -4494,7 +4494,7 @@ unit cgcpu;
                    else
                      usedtmpref:=ref;
 
-                   if target_info.endian=endian_big then
+                   if compiler.target.info.endian=endian_big then
                      inc(usedtmpref.offset,1);
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
@@ -4529,7 +4529,7 @@ unit cgcpu;
                    shifterop_reset(so);so.shiftmode:=SM_LSL;
                    if ref.alignment=2 then
                      begin
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,2);
                        a_internal_load_ref_reg(list,OS_16,OS_16,usedtmpref,reg);
                        inc(usedtmpref.offset,dir*2);
@@ -4539,7 +4539,7 @@ unit cgcpu;
                      end
                    else
                      begin
-                       if target_info.endian=endian_big then
+                       if compiler.target.info.endian=endian_big then
                          inc(usedtmpref.offset,3);
                        a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
                        inc(usedtmpref.offset,dir);

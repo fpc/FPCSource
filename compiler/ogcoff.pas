@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,
+       cclasses,globtype,compilerbase,
        { target }
        systems,
        { assembler }
@@ -306,7 +306,7 @@ implementation
        Windows,
 {$endif win32}
        SysUtils,
-       cutils,verbose,globals,
+       cutils,verbose,globals,compiler,
        cpubase,cpuinfo,
        fmodule,
        ogmap,
@@ -594,8 +594,10 @@ implementation
          size  : longword;
        end; }
    procedure MaybeSwap(var v : tcoffpedatadir);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.vaddr:=SwapEndian(v.vaddr);
             v.size:=SwapEndian(v.size);
@@ -612,8 +614,10 @@ implementation
          flag   : word;
        end; *)
    procedure MaybeSwap(var v : tcoffheader);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.mach:=SwapEndian(v.mach);
             v.nsects:=SwapEndian(v.nsects);
@@ -638,8 +642,10 @@ implementation
          NumberOfSymbols : longword;
        end; *)
    procedure MaybeSwap(var v : tcoffbigobjheader);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.Sig1:=SwapEndian(v.Sig1);
             v.Sig2:=SwapEndian(v.Sig2);
@@ -691,9 +697,11 @@ implementation
        end; *)
     procedure MaybeSwap(var v : tcoffpeoptheader);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.Magic:=SwapEndian(v.Magic);
             v.tsize:=SwapEndian(v.tsize);
@@ -744,8 +752,10 @@ implementation
          flags    : longword;
        end; *)
     procedure MaybeSwap(var v : tcoffsechdr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.vsize:=SwapEndian(v.vsize);
             v.rvaofs:=SwapEndian(v.rvaofs);
@@ -770,8 +780,10 @@ implementation
          data_start : longint;
        end; *)
     procedure MaybeSwap(var v : coffdjoptheader);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.magic:=SwapEndian(v.magic);
             v.vstamp:=SwapEndian(v.vstamp);
@@ -794,8 +806,10 @@ implementation
          empty   : array[0..2] of char;
        end; *)
     procedure MaybeSwap(var v : coffsectionrec);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.len:=SwapEndian(v.len);
             v.nrelocs:=SwapEndian(v.nrelocs);
@@ -811,8 +825,10 @@ implementation
          reloctype : word;
        end; *)
     procedure MaybeSwap(var v : coffreloc);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.address:=SwapEndian(v.address);
             v.sym:=SwapEndian(v.sym);
@@ -825,8 +841,10 @@ implementation
          Offset : longword;
        end;*)
     procedure MaybeSwap(var v : strtableoffset);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.Zeroes:=SwapEndian(v.Zeroes);
             v.Offset:=SwapEndian(v.Offset);
@@ -843,8 +861,10 @@ implementation
          aux     : byte;
        end; *)
     procedure MaybeSwap(var v : coffsymbol);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             if v.name[0]=#0 then
               v.strpos:=SwapEndian(v.strpos);
@@ -868,8 +888,10 @@ implementation
        end; *)
 
     procedure MaybeSwap(var v : coffbigobjsymbol);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             if (true) then
               MaybeSwap(v.Name.Offset);
@@ -888,8 +910,10 @@ implementation
        end;
      *)
     procedure MaybeSwap(var v : tlsdirectory);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.data_start:=SwapEndian(v.data_start);
             v.data_end:=SwapEndian(v.data_end);
@@ -915,8 +939,10 @@ implementation
        end;
      *)
     procedure MaybeSwap(var v : TPECoffExpDir);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.flag:=SwapEndian(v.flag);
             v.stamp:=SwapEndian(v.stamp);
@@ -1600,6 +1626,8 @@ const pemagic : array[0..3] of byte = (
 
     function TCoffObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sep     : string[3];
         secname : string;
       begin
@@ -1610,7 +1638,7 @@ const pemagic : array[0..3] of byte = (
           begin
             { non-PECOFF targets lack rodata support }
             if (atype in [sec_rodata,sec_rodata_norel]) and
-               not (target_info.system in systems_all_windows) then
+               not (compiler.target.info.system in systems_all_windows) then
               atype:=sec_data;
             secname:=coffsecnames[atype];
             if create_smartlink_sections and
@@ -1643,6 +1671,8 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TCoffObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         multi = record
           case integer of
@@ -1738,7 +1768,7 @@ const pemagic : array[0..3] of byte = (
             if reloctype=RELOC_RVA then
               internalerror(200603033);
           end;
-        if target_info.endian<>source_info.endian then
+        if compiler.target.info.endian<>source_info.endian then
           begin
             ba.q:=0;
             if (len<=sizeof(data)) then
@@ -2156,6 +2186,8 @@ const pemagic : array[0..3] of byte = (
 
     function TCoffObjOutput.writedata(data:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         datapos,
         sympos   : aword;
         i        : longint;
@@ -2234,7 +2266,7 @@ const pemagic : array[0..3] of byte = (
            FWriter.writearray(FCoffSyms);
            { Strings }
            i:=FCoffStrs.size+4;
-           if source_info.endian<>target_info.endian then
+           if source_info.endian<>compiler.target.info.endian then
              i:=SwapEndian(i);
            FWriter.write(i,4);
            FWriter.writearray(FCoffStrs);
@@ -2680,6 +2712,8 @@ const pemagic : array[0..3] of byte = (
 
     function  TCoffObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         secalign : longint;
         secofs,
         strpos,
@@ -2843,7 +2877,7 @@ const pemagic : array[0..3] of byte = (
                  begin
                    if (Pos('.edata',secname)=1) or
                       (Pos('.rsrc',secname)=1) or
-                      ((target_info.system=system_arm_wince) and (Pos('.pdata',secname)=1)) or
+                      ((compiler.target.info.system=system_arm_wince) and (Pos('.pdata',secname)=1)) or
                       (Pos('.fpc',secname)=1) then
                      include(secoptions,oso_keep);
                    if (Pos('.idata',secname)=1) then
@@ -2901,13 +2935,15 @@ const pemagic : array[0..3] of byte = (
 ****************************************************************************}
 
     constructor TCoffexeoutput.createcoff(awin32:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited create;
         win32:=awin32;
-        if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
+        if compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64] then
           MaxMemPos:=$FFFFFFFF
         else
-          if target_info.system in systems_wince then
+          if compiler.target.info.system in systems_wince then
             MaxMemPos:=$1FFFFFF
           else
             MaxMemPos:=$7FFFFFFF;
@@ -2978,6 +3014,8 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffexeoutput.ExeSectionList_write_header(p:TObject;arg:pointer);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sechdr   : tcoffsechdr;
         s        : string;
         strpos   : aword;
@@ -3019,7 +3057,7 @@ const pemagic : array[0..3] of byte = (
             sechdr.relocpos:=0;
             if win32 then
               begin
-                if (target_info.system in systems_nativent) and
+                if (compiler.target.info.system in systems_nativent) and
                    (apptype = app_native) then
                   sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign) or PE_SCN_MEM_NOT_PAGED
                 else
@@ -3098,6 +3136,8 @@ const pemagic : array[0..3] of byte = (
 
 
     function TCoffexeoutput.writedata:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i           : longword;
         header      : tcoffheader;
@@ -3183,7 +3223,7 @@ const pemagic : array[0..3] of byte = (
             asm symbol into PE_DATADIR_TLS with the correct
             size of this table (different for win32/win64 }
           tlsexesymbol:=texesymbol(ExeSymbolList.Find(
-            target_info.Cprefix+'_tls_used'));
+            compiler.target.info.Cprefix+'_tls_used'));
           if assigned(tlsexesymbol) then
             begin
               tlssymbol:=tlsexesymbol.ObjSymbol;
@@ -3244,7 +3284,7 @@ const pemagic : array[0..3] of byte = (
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
-            if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
+            if compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64] then
               header.flag:=header.flag or PE_FILE_LARGE_ADDRESS_AWARE
             else
               header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
@@ -3311,7 +3351,7 @@ const pemagic : array[0..3] of byte = (
               end
             else
               begin
-                if target_info.system in systems_wince then
+                if compiler.target.info.system in systems_wince then
                   peoptheader.MajorSubsystemVersion:=3
                 else
                   peoptheader.MajorSubsystemVersion:=4;
@@ -3321,12 +3361,12 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
             peoptheader.CheckSum:=0;
-            if (target_info.system in systems_nativent) and (not IsSharedLibrary or (apptype = app_native)) then
+            if (compiler.target.info.system in systems_nativent) and (not IsSharedLibrary or (apptype = app_native)) then
               { Although I did not really test this, it seems that Subsystem is
                 not checked in DLLs except for maybe drivers}
               peoptheader.Subsystem:=PE_SUBSYSTEM_NATIVE
             else
-              if target_info.system in systems_wince then
+              if compiler.target.info.system in systems_wince then
                 peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
               else
                 if apptype=app_gui then
@@ -3334,7 +3374,7 @@ const pemagic : array[0..3] of byte = (
                 else
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
 
-            if target_info.system in [system_aarch64_win64] then
+            if compiler.target.info.system in [system_aarch64_win64] then
               peoptheader.DllCharacteristics:=PE_DLLCHARACTERISTICS_DYNAMIC_BASE or
                                               PE_DLLCHARACTERISTICS_NX_COMPAT or
                                               PE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
@@ -3380,7 +3420,7 @@ const pemagic : array[0..3] of byte = (
         { For some unknown reason WM 6.1 requires .idata section to be read only.
           Otherwise it refuses to load DLLs greater than 64KB.
           Earlier versions of WinCE load DLLs regardless of .idata flags. }
-        if target_info.system in systems_wince then
+        if compiler.target.info.system in systems_wince then
           begin
             idataExeSec:=FindExeSection('.idata');
             if idataExeSec<>nil then
@@ -3403,7 +3443,7 @@ const pemagic : array[0..3] of byte = (
           begin
             { Strings }
             i:=FCoffStrs.size+4;
-            if source_info.endian<>target_info.endian then
+            if source_info.endian<>compiler.target.info.endian then
               i:=SwapEndian(i);
             FWriter.write(i,4);
             FWriter.writearray(FCoffStrs);
@@ -3458,12 +3498,14 @@ const pemagic : array[0..3] of byte = (
 
     procedure TPECoffexeoutput.MarkTargetSpecificSections(WorkList:TFPObjectList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         exesec:TExeSection;
         objsec,textsec:TObjSection;
         objreloc:TObjRelocation;
         i,j:longint;
       begin
-        if not (target_info.system in [system_x86_64_win64,system_aarch64_win64]) then
+        if not (compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64]) then
           exit;
         exesec:=FindExeSection('.pdata');
         if exesec=nil then
@@ -3493,7 +3535,7 @@ const pemagic : array[0..3] of byte = (
                         .eh_frame sections. }
                     break;
                   end;
-                if target_info.system=system_aarch64_win64 then
+                if compiler.target.info.system=system_aarch64_win64 then
                   inc(j,2)
                 else
                   inc(j,3);
@@ -3503,6 +3545,8 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TPECoffexeoutput.AfterUnusedSectionRemoval;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         basedllname : string;
 
@@ -3527,11 +3571,11 @@ const pemagic : array[0..3] of byte = (
         begin
           { idata4 }
           idata4objsection.writezeros(sizeof(longint));
-          if target_info.system in systems_peoptplus then
+          if compiler.target.info.system in systems_peoptplus then
             idata4objsection.writezeros(sizeof(longint));
           { idata5 }
           idata5objsection.writezeros(sizeof(longint));
-          if target_info.system in systems_peoptplus then
+          if compiler.target.info.system in systems_peoptplus then
             idata5objsection.writezeros(sizeof(longint));
         end;
 
@@ -3565,27 +3609,27 @@ const pemagic : array[0..3] of byte = (
             if AOrdNr <= 0 then
               begin
                 objsec.writereloc_internal(idata6objsection,idata6objsection.size,sizeof(longint),RELOC_RVA);
-                if target_info.system in systems_peoptplus then
+                if compiler.target.info.system in systems_peoptplus then
                   objsec.writezeros(sizeof(longint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=AOrdNr;
-                if target_info.system in systems_peoptplus then
+                if compiler.target.info.system in systems_peoptplus then
                   begin
-                    if source_info.endian<>target_info.endian then
+                    if source_info.endian<>compiler.target.info.endian then
                       ordint:=SwapEndian(ordint);
                     objsec.write(ordint,4);
                     ordint:=$80000000;
-                    if source_info.endian<>target_info.endian then
+                    if source_info.endian<>compiler.target.info.endian then
                       ordint:=SwapEndian(ordint);
                     objsec.write(ordint,4);
                   end
                 else
                   begin
                     ordint:=ordint or $80000000;
-                    if source_info.endian<>target_info.endian then
+                    if source_info.endian<>compiler.target.info.endian then
                       ordint:=SwapEndian(ordint);
                     objsec.write(ordint,4);
                   end;
@@ -3630,7 +3674,7 @@ const pemagic : array[0..3] of byte = (
             begin
               { index hint, function name, null terminator and align }
               word_ordint:=abs(AOrdNr);
-              if source_info.endian<>target_info.endian then
+              if source_info.endian<>compiler.target.info.endian then
                       word_ordint:=SwapEndian(word_ordint);
               idata6objsection.write(word_ordint,2);
               idata6objsection.writestr(afuncname);
@@ -3713,6 +3757,8 @@ const pemagic : array[0..3] of byte = (
 
     procedure TPECoffexeoutput.GenerateRelocs;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         pgaddr, hdrpos : longword;
 
       procedure FinishBlock;
@@ -3726,7 +3772,7 @@ const pemagic : array[0..3] of byte = (
         p:=internalObjData.CurrObjSec.Data.Pos;
         internalObjData.CurrObjSec.Data.seek(hdrpos+4);
         len:=p-hdrpos;
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           len:=SwapEndian(len);
         internalObjData.CurrObjSec.Data.write(len,4);
         internalObjData.CurrObjSec.Data.seek(p);
@@ -3772,7 +3818,7 @@ const pemagic : array[0..3] of byte = (
                         FinishBlock;
                         pgaddr:=(offset div 4096)*4096;
                         hdrpos:=internalObjData.CurrObjSec.Data.Pos;
-                        if source_info.endian<>target_info.endian then
+                        if source_info.endian<>compiler.target.info.endian then
                           pgaddr:=SwapEndian(pgaddr);
                         internalObjData.writebytes(pgaddr,4);
                         { Reserving space for block size. The size will be written later in FinishBlock }
@@ -3785,7 +3831,7 @@ const pemagic : array[0..3] of byte = (
 {$endif cpu64bitaddr}
                       w:=IMAGE_REL_BASED_HIGHLOW;
                     w:=(w shl 12) or (offset-pgaddr);
-                    if source_info.endian<>target_info.endian then
+                    if source_info.endian<>compiler.target.info.endian then
                       w:=SwapEndian(w);
                     internalObjData.writebytes(w,2);
                   end;
@@ -3876,14 +3922,14 @@ const pemagic : array[0..3] of byte = (
         result:=false;
         fillchar(sechdr,sizeof(sechdr),0);
 {$ifdef win32}
-        if (target_info.system=system_x86_64_win64) and
+        if (compiler.target.info.system=system_x86_64_win64) and
           assigned(Wow64DisableWow64FsRedirection) then
           Wow64DisableWow64FsRedirection(p);
 {$endif win32}
         DLLReader:=TObjectReader.Create;
         DLLReader.OpenFile(dllname);
 {$ifdef win32}
-        if (target_info.system=system_x86_64_win64) and
+        if (compiler.target.info.system=system_x86_64_win64) and
           assigned(Wow64RevertWow64FsRedirection) then
           Wow64RevertWow64FsRedirection(p);
 {$endif win32}

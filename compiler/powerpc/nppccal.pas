@@ -61,7 +61,7 @@ implementation
       begin
         if assigned(varargsparas) then
           begin
-            if (target_info.abi = abi_powerpc_sysv) then
+            if (compiler.target.info.abi = abi_powerpc_sysv) then
               begin
                 if va_uses_float_reg in varargsparas.varargsinfo then
                   current_asmdata.CurrAsmList.concat(taicpu.op_const_const_const(A_CREQV,6,6,6))
@@ -84,7 +84,7 @@ implementation
       var
         tmpref: treference;
       begin
-        case target_info.system of
+        case compiler.target.info.system of
           system_powerpc_amiga:
             begin
               { one syscall convention for AmigaOS/PowerPC

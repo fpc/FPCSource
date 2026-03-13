@@ -62,10 +62,10 @@ implementation
       initList:=TAsmList.create;
       finalList:=TAsmList.create;
 
-      initList.Concat(tai_align.Create(target_info.alignment.procalign));
-      finalList.Concat(tai_align.Create(target_info.alignment.procalign));
+      initList.Concat(tai_align.Create(compiler.target.info.alignment.procalign));
+      finalList.Concat(tai_align.Create(compiler.target.info.alignment.procalign));
 
-      case target_info.abi of
+      case compiler.target.info.abi of
         abi_xtensa_call0:
           begin
             // Store return address on stack
@@ -97,7 +97,7 @@ implementation
         end;
 
       // Restore return address for call0 ABI
-      if target_info.abi = abi_xtensa_call0 then
+      if compiler.target.info.abi = abi_xtensa_call0 then
         begin
           initlist.concat(taicpu.op_reg_reg_const(A_L32I, NR_A0, NR_A1, 12));
           initlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,16));

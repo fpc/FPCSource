@@ -1959,7 +1959,7 @@ implementation
               write_system_parameter_lists('fpc_shortstr_copy');
               write_system_parameter_lists('fpc_char_copy');
               write_system_parameter_lists('fpc_unicodestr_copy');
-              if tf_winlikewidestring in target_info.flags then
+              if tf_winlikewidestring in compiler.target.info.flags then
                 write_system_parameter_lists('fpc_widestr_copy');
               write_system_parameter_lists('fpc_ansistr_copy');
               write_dynarray_copy;
@@ -3474,7 +3474,7 @@ implementation
 
               in_typeof_x:
                 begin
-                  if target_info.system in systems_managed_vm then
+                  if compiler.target.info.system in systems_managed_vm then
                     message(parser_e_feature_unsupported_for_vm);
                   typecheckpass(left);
                   set_varstate(left,vs_read,[]);
@@ -3607,7 +3607,7 @@ implementation
 
               in_typeinfo_x:
                 begin
-                  if target_info.system in systems_managed_vm then
+                  if compiler.target.info.system in systems_managed_vm then
                     message(parser_e_feature_unsupported_for_vm);
                    if (left.resultdef.typ=enumdef) and
                       (tenumdef(left.resultdef).has_jumps) and
@@ -3622,7 +3622,7 @@ implementation
 
               in_gettypekind_x:
                 begin
-                  if target_info.system in systems_managed_vm then
+                  if compiler.target.info.system in systems_managed_vm then
                     message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=typekindtype;
@@ -3630,7 +3630,7 @@ implementation
 
               in_ismanagedtype_x:
                 begin
-                  if target_info.system in systems_managed_vm then
+                  if compiler.target.info.system in systems_managed_vm then
                     message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=pasbool1type;
@@ -3868,7 +3868,7 @@ implementation
 
               in_settextbuf_file_x :
                 begin
-                  if target_info.system in systems_managed_vm then
+                  if compiler.target.info.system in systems_managed_vm then
                     message(parser_e_feature_unsupported_for_vm);
                   resultdef:=voidtype;
                   { now we know the type of buffer }
@@ -3926,7 +3926,7 @@ implementation
 
               in_slice_x:
                 begin
-                  if target_info.system in systems_managed_vm then
+                  if compiler.target.info.system in systems_managed_vm then
                     message(parser_e_feature_unsupported_for_vm);
                   result:=nil;
                   resultdef:=tcallparanode(left).left.resultdef;
@@ -4882,7 +4882,7 @@ implementation
 {$ifdef cpufpemu}
             or (current_settings.fputype=fpu_soft)
 {$endif cpufpemu}
-            ) and not (target_info.system in systems_wince) then
+            ) and not (compiler.target.info.system in systems_wince) then
           begin
             case tfloatdef(temp_pnode^.resultdef).floattype of
               s32real:
@@ -5542,7 +5542,7 @@ implementation
 
      function tinlinenode.typecheck_seg: tnode;
        begin
-         if target_info.system in systems_managed_vm then
+         if compiler.target.info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
          set_varstate(left,vs_read,[]);
          result:=compiler.cordconstnode(0,s32inttype,false);
@@ -5604,7 +5604,7 @@ implementation
            write_system_parameter_lists('fpc_shortstr_insert');
            write_system_parameter_lists('fpc_shortstr_insert_char');
            write_system_parameter_lists('fpc_unicodestr_insert');
-           if tf_winlikewidestring in target_info.flags then
+           if tf_winlikewidestring in compiler.target.info.flags then
              write_system_parameter_lists('fpc_widestr_insert');
            write_system_parameter_lists('fpc_ansistr_insert');
            MessagePos1(fileinfo,sym_e_param_list,'Insert(Dynamic Array;var Dynamic Array;'+sinttype.typename+');');
@@ -5743,7 +5743,7 @@ implementation
            CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Delete');
            write_system_parameter_lists('fpc_shortstr_delete');
            write_system_parameter_lists('fpc_unicodestr_delete');
-           if tf_winlikewidestring in target_info.flags then
+           if tf_winlikewidestring in compiler.target.info.flags then
              write_system_parameter_lists('fpc_widestr_delete');
            write_system_parameter_lists('fpc_ansistr_delete');
            MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+sinttype.typename+';'+sinttype.typename+');');
@@ -5930,7 +5930,7 @@ implementation
                    var-parameter (and finalization, which is performed by the
                    ttempcreate node and which takes care of the initialization
                    on native targets, is a noop on managed VM targets) }
-                 if (target_info.system in systems_managed_vm) and
+                 if (compiler.target.info.system in systems_managed_vm) and
                     is_managed_type(arrn.resultdef) then
                    addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
                      false,

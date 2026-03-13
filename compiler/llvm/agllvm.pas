@@ -862,7 +862,7 @@ implementation
     procedure TLLVMAssember.WriteExtraHeader;
       begin
         writer.AsmWrite('target datalayout = "');
-        writer.AsmWrite(target_info.llvmdatalayout);
+        writer.AsmWrite(compiler.target.info.llvmdatalayout);
         writer.AsmWriteln('"');
         writer.AsmWrite('target triple = "');
         writer.AsmWrite(targettriplet(triplet_llvm));
@@ -1030,7 +1030,7 @@ implementation
         begin
           { function attributes }
           if (pos('FPC_SETJMP',upper(pd.mangledname))<>0) or
-             (pd.mangledname=(target_info.cprefix+'setjmp')) then
+             (pd.mangledname=(compiler.target.info.cprefix+'setjmp')) then
             writer.AsmWrite(' returns_twice');
           if po_inline in pd.procoptions then
             writer.AsmWrite(' inlinehint')
@@ -1732,7 +1732,7 @@ implementation
         { pic }
         if cs_create_pic in current_settings.moduleswitches then
           optstr:=optstr+' -fpic'
-        else if not(target_info.system in systems_darwin) then
+        else if not(compiler.target.info.system in systems_darwin) then
           optstr:=optstr+' -static'
         else
           optstr:=optstr+' -mdynamic-no-pic';
@@ -1742,7 +1742,7 @@ implementation
 
         { restrict march to aarch64 for now to fix x86_64 compilation failure }
         if (cputypestr[current_settings.cputype]<>'')
-           and (target_info.system in [system_aarch64_darwin, system_aarch64_linux]) then
+           and (compiler.target.info.system in [system_aarch64_darwin, system_aarch64_linux]) then
           optstr:=optstr+' -march='+cputypestr[current_settings.cputype];
 
         if ([cs_sanitize_address]*current_settings.moduleswitches)<>[] then

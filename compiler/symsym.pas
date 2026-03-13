@@ -1043,6 +1043,8 @@ implementation
 
     procedure tprocsym.check_forward;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i  : longint;
         pd : tprocdef;
       begin
@@ -1059,7 +1061,7 @@ implementation
                 if (m_mac in current_settings.modeswitches) and
                    (pd.interfacedef) then
                   begin
-                    pd.setmangledname(target_info.CPrefix+tprocdef(pd).procsym.realname);
+                    pd.setmangledname(compiler.target.info.CPrefix+tprocdef(pd).procsym.realname);
                     if (not current_module.interface_only) then
                       MessagePos1(pd.fileinfo,sym_w_forward_not_resolved,pd.fullprocname(false));
                   end
@@ -2134,7 +2136,7 @@ implementation
 {$endif symansistr}
             else
               begin
-                result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
+                result:=compiler.target.info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
 {$ifdef symansistr}
                 cachedmangledname:=result;
 {$else symansistr}
@@ -2189,11 +2191,13 @@ implementation
       end;
 
     function tabstractnormalvarsym.globalasmsym: boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=
           (owner.symtabletype=globalsymtable) or
           (create_smartlink and
-           not(tf_smartlink_sections in target_info.flags)) or
+           not(tf_smartlink_sections in compiler.target.info.flags)) or
           current_module.islibrary or
           (assigned(current_procinfo) and
            ((po_inline in current_procinfo.procdef.procoptions) or

@@ -1068,7 +1068,7 @@ implementation
                        begin
                          a_load_ref_reg(list,u32inttype,location^.def,tmpref,location^.register);
                          dec(sizeleft,4);
-                         if target_info.endian=endian_big then
+                         if compiler.target.info.endian=endian_big then
                            a_op_const_reg(list,OP_SHL,location^.def,sizeleft*8,location^.register);
                          inc(tmpref.offset,4);
                          reghasvalue:=true;
@@ -1081,7 +1081,7 @@ implementation
                          dec(sizeleft,2);
                          if reghasvalue then
                            begin
-                             if target_info.endian=endian_big then
+                             if compiler.target.info.endian=endian_big then
                                a_op_const_reg(list,OP_SHL,location^.def,sizeleft*8,tmpreg)
                              else
                                a_op_const_reg(list,OP_SHL,location^.def,(orgsizeleft-(sizeleft+2))*8,tmpreg);
@@ -1089,7 +1089,7 @@ implementation
                            end
                          else
                            begin
-                             if target_info.endian=endian_big then
+                             if compiler.target.info.endian=endian_big then
                                a_op_const_reg_reg(list,OP_SHL,location^.def,sizeleft*8,tmpreg,location^.register)
                              else
                                a_load_reg_reg(list,location^.def,location^.def,tmpreg,location^.register);
@@ -1104,7 +1104,7 @@ implementation
                          dec(sizeleft,1);
                          if reghasvalue then
                            begin
-                             if target_info.endian=endian_little then
+                             if compiler.target.info.endian=endian_little then
                                a_op_const_reg(list,OP_SHL,location^.def,(orgsizeleft-(sizeleft+1))*8,tmpreg);
                              a_op_reg_reg(list,OP_OR,location^.def,tmpreg,location^.register)
                            end
@@ -1536,7 +1536,7 @@ implementation
           { can't use a_load_reg_subsetreg to merge the results, as that one
             does not support sizes > AIntBits either }
           tmpreg:=hlcg.getintregister(list,tosize);
-          if target_info.endian=endian_big then
+          if compiler.target.info.endian=endian_big then
             begin
               a_op_const_reg_reg(list,OP_SHL,tosize,sref.bitlen-AIntBits,valuereg,tmpreg);
               if is_signed(fromsubsetsize) then
@@ -1583,7 +1583,7 @@ implementation
               tosreg.subsetreg:=valuereg;
               tosreg.subsetregsize:=def_cgsize(aluuinttype);
               { subsetregs always count bits from right to left }
-              if (target_info.endian=endian_big) then
+              if (compiler.target.info.endian=endian_big) then
                 tosreg.startbit:=loadbitsize-(sref.startbit+sref.bitlen)
               else
                 tosreg.startbit:=sref.startbit;
@@ -1595,7 +1595,7 @@ implementation
             begin
               if (sref.startbit<>0) then
                 internalerror(2006081510);
-              if (target_info.endian=endian_big) then
+              if (compiler.target.info.endian=endian_big) then
                 begin
                   a_op_reg_reg(list,OP_SHL,aluuinttype,sref.bitindexreg,valuereg);
                   if is_signed(fromsubsetsize) then
@@ -1669,12 +1669,12 @@ implementation
           tmpsref.bitlen:=AIntBits;
           fromreg1:=hlcg.getintregister(list,aluuinttype);
           a_load_reg_reg(list,fromsize,aluuinttype,fromreg,fromreg1);
-          if target_info.endian=endian_big then
+          if compiler.target.info.endian=endian_big then
             begin
               inc(tmpsref.ref.offset,sref.bitlen-AIntBits);
             end;
           a_load_reg_subsetref(list,aluuinttype,aluuinttype,fromreg1,tmpsref);
-          if target_info.endian=endian_big then
+          if compiler.target.info.endian=endian_big then
             begin
               tmpsref.ref.offset:=sref.ref.offset;
             end
@@ -1730,12 +1730,12 @@ implementation
             internalerror(2019052902);
           tmpsref:=sref;
           tmpsref.bitlen:=AIntBits;
-          if target_info.endian=endian_big then
+          if compiler.target.info.endian=endian_big then
             begin
               inc(tmpsref.ref.offset,sref.bitlen-AIntBits);
             end;
           a_load_const_subsetref(list,tosubsetsize,aint(a),tmpsref);
-          if target_info.endian=endian_big then
+          if compiler.target.info.endian=endian_big then
             begin
               tmpsref.ref.offset:=sref.ref.offset;
             end
@@ -1811,7 +1811,7 @@ implementation
     begin
       tmpvalue:=getintregister(list,valuesize);
 
-      if (target_info.endian=endian_little) then
+      if (compiler.target.info.endian=endian_little) then
         begin
           { rotate value register "bitnumber" bits to the right }
           a_op_reg_reg_reg(list,OP_SHR,valuesize,bitnumber,value,tmpvalue);
@@ -1924,7 +1924,7 @@ implementation
     begin
       tmpvalue:=getintregister(list,destsize);
 
-      if (target_info.endian=endian_little) then
+      if (compiler.target.info.endian=endian_little) then
         begin
           a_load_const_reg(list,destsize,1,tmpvalue);
           { rotate bit "bitnumber" bits to the left }
@@ -2124,7 +2124,7 @@ implementation
     var
       restbits: byte;
     begin
-      if (target_info.endian=endian_big) then
+      if (compiler.target.info.endian=endian_big) then
         begin
           { valuereg contains the upper bits, extra_value_reg the lower }
           restbits:=(sref.bitlen-(loadbitsize-sref.startbit));
@@ -2176,7 +2176,7 @@ implementation
       inc(tmpref.offset,loadbitsize div 8);
       extra_value_reg:=getintregister(list,aluuinttype);
 
-      if (target_info.endian=endian_big) then
+      if (compiler.target.info.endian=endian_big) then
         begin
           { since this is a dynamic index, it's possible that the value   }
           { is entirely in valuereg.                                      }
@@ -2281,7 +2281,7 @@ implementation
               tosreg.subsetreg:=valuereg;
               tosreg.subsetregsize:=def_cgsize(aluuinttype);
               { subsetregs always count bits from right to left }
-              if (target_info.endian=endian_big) then
+              if (compiler.target.info.endian=endian_big) then
                 tosreg.startbit:=loadbitsize-(sref.startbit+sref.bitlen)
               else
                 tosreg.startbit:=sref.startbit;
@@ -2300,7 +2300,7 @@ implementation
               { zero the bits we have to insert }
               if (slopt<>SL_SETMAX) then
                 begin
-                  if (slopt=SL_SETZERO) and (sref.bitlen=1) and (target_info.endian=endian_little) then
+                  if (slopt=SL_SETZERO) and (sref.bitlen=1) and (compiler.target.info.endian=endian_little) then
                     begin
                       a_bit_set_reg_reg(list,false,aluuinttype,aluuinttype,sref.bitindexreg,valuereg);
 
@@ -2313,7 +2313,7 @@ implementation
                   else
                     begin
                       maskreg:=getintregister(list,aluuinttype);
-                      if (target_info.endian = endian_big) then
+                      if (compiler.target.info.endian = endian_big) then
                         begin
                           a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
                           a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,maskreg);
@@ -2336,7 +2336,7 @@ implementation
                     a_load_reg_reg(list,fromsize,aluuinttype,fromreg,tmpreg)
                   { setting of a single bit?
                     then we might take advantage of the CPU's bit set instruction }
-                  else if (sref.bitlen=1) and (target_info.endian=endian_little) then
+                  else if (sref.bitlen=1) and (compiler.target.info.endian=endian_little) then
                     begin
                       a_bit_set_reg_reg(list,true,aluuinttype,aluuinttype,sref.bitindexreg,valuereg);
 
@@ -2350,7 +2350,7 @@ implementation
                     a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1), tmpreg)
                   else
                     a_load_const_reg(list,aluuinttype,-1,tmpreg);
-                  if (target_info.endian=endian_big) then
+                  if (compiler.target.info.endian=endian_big) then
                     begin
                       a_op_const_reg(list,OP_SHL,aluuinttype,loadbitsize-sref.bitlen,tmpreg);
                       if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
@@ -2399,7 +2399,7 @@ implementation
               { transfer first part }
               fromsreg.bitlen:=loadbitsize-sref.startbit;
               tosreg.bitlen:=fromsreg.bitlen;
-              if (target_info.endian=endian_big) then
+              if (compiler.target.info.endian=endian_big) then
                 begin
                   { valuereg must contain the upper bits of the value at bits [0..loadbitsize-startbit] }
 
@@ -2434,7 +2434,7 @@ implementation
 {$endif}
 
               { transfer second part }
-              if (target_info.endian = endian_big) then
+              if (compiler.target.info.endian = endian_big) then
                 begin
                   { extra_value_reg must contain the lower bits of the value at bits  }
                   { [(loadbitsize-(bitlen-(loadbitsize-startbit)))..loadbitsize]  }
@@ -2480,7 +2480,7 @@ implementation
               if (slopt <> SL_SETMAX) then
                 begin
                   maskreg := getintregister(list,aluuinttype);
-                  if (target_info.endian = endian_big) then
+                  if (compiler.target.info.endian = endian_big) then
                     begin
                       a_load_const_reg(list,aluuinttype,tcgint(((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen)),maskreg);
                       a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,maskreg);
@@ -2505,7 +2505,7 @@ implementation
                     a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen) - 1), tmpreg)
                   else
                     a_load_const_reg(list,aluuinttype,-1,tmpreg);
-                  if (target_info.endian = endian_big) then
+                  if (compiler.target.info.endian = endian_big) then
                     begin
                       a_op_const_reg(list,OP_SHL,aluuinttype,loadbitsize-sref.bitlen,tmpreg);
                       if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
@@ -2549,7 +2549,7 @@ implementation
               if (slopt<>SL_SETMAX) then
                 begin
                   maskreg:=getintregister(list,aluuinttype);
-                  if (target_info.endian=endian_big) then
+                  if (compiler.target.info.endian=endian_big) then
                     begin
                       a_op_const_reg_reg(list,OP_ADD,aluuinttype,sref.bitlen-2*loadbitsize,sref.bitindexreg,tmpindexreg);
                       a_op_reg_reg(list,OP_NEG,aluuinttype,tmpindexreg,tmpindexreg);
@@ -2571,7 +2571,7 @@ implementation
 
               if (slopt<>SL_SETZERO) then
                 begin
-                  if (target_info.endian=endian_big) then
+                  if (compiler.target.info.endian=endian_big) then
                     a_op_reg_reg(list,OP_SHL,aluuinttype,tmpindexreg,tmpreg)
                   else
                     begin
@@ -2666,7 +2666,7 @@ implementation
       result.subsetreg:=setreg;
       result.subsetregsize:=def_cgsize(setregsize);
       { subsetregs always count from the least significant to the most significant bit }
-      if (target_info.endian=endian_big) then
+      if (compiler.target.info.endian=endian_big) then
         result.startbit:=(setregsize.size*8)-bitnumber-1
       else
         result.startbit:=bitnumber;
@@ -3917,8 +3917,8 @@ implementation
 
   function thlcgobj.def_needs_indirect(t:tdef):boolean;
     begin
-      result:=(tf_supports_packages in target_info.flags) and
-                (target_info.system in systems_indirect_var_imports) and
+      result:=(tf_supports_packages in compiler.target.info.flags) and
+                (compiler.target.info.system in systems_indirect_var_imports) and
                 (cs_imported_data in current_settings.localswitches) and
                 (findunitsymtable(t.owner).moduleid<>current_module.moduleid);
     end;
@@ -4245,7 +4245,7 @@ implementation
       sym: tasmsymbol;
     begin
       maybe_new_object_file(list);
-      new_section(list,sec_code,wrappername,target_info.alignment.procalign);
+      new_section(list,sec_code,wrappername,compiler.target.info.alignment.procalign);
       if global then
         begin
           sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);
@@ -4963,7 +4963,7 @@ implementation
             they can be interpreted as all different starting symbols of
             subsections and be reordered }
           if (item<>firstitem) and
-             (target_info.system in (systems_darwin+systems_wasm)) then
+             (compiler.target.info.system in (systems_darwin+systems_wasm)) then
             begin
               { the .set already defines the symbol, so can't emit a tai_symbol as that will redefine it }
               if global then
@@ -5097,7 +5097,7 @@ implementation
          not(po_assembler in current_procinfo.procdef.procoptions) then
         begin
           { non-win32 can call mcout even in main }
-          if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
+          if not (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) or
              not (current_procinfo.procdef.proctypeoption=potype_proginit) then
             begin
               g_profilecode(list);
@@ -5110,7 +5110,7 @@ implementation
          { initialize units }
          if not(current_module.islibrary) then
            begin
-             if tf_init_final_units_by_calls in target_info.flags then
+             if tf_init_final_units_by_calls in compiler.target.info.flags then
                begin
                  { Only insert call if there are init functions }
                  if compiler.nodeutils.has_init_list then
@@ -5248,7 +5248,7 @@ implementation
             include(current_procinfo.flags,pi_needs_implicit_finally);
             location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,
               is_open_array(tparavarsym(p).vardef) or
-              ((target_info.system in systems_caller_copy_addr_value_para) and
+              ((compiler.target.info.system in systems_caller_copy_addr_value_para) and
                paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
               sizeof(pint));
             if is_open_array(tparavarsym(p).vardef) then
@@ -5271,7 +5271,7 @@ implementation
           end;
        end;
       { open arrays can contain elements requiring init/final code, so the else has been removed here }
-      if not(target_info.system in systems_caller_copy_addr_value_para) and
+      if not(compiler.target.info.system in systems_caller_copy_addr_value_para) and
          (tparavarsym(p).varspez=vs_value) and
          (is_open_array(tparavarsym(p).vardef) or
           is_array_of_const(tparavarsym(p).vardef)) then
@@ -5312,7 +5312,7 @@ implementation
                    begin
                      location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
                        is_open_array(tparavarsym(p).vardef) or
-                       ((target_info.system in systems_caller_copy_addr_value_para) and
+                       ((compiler.target.info.system in systems_caller_copy_addr_value_para) and
                         paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
                        sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
@@ -5425,7 +5425,7 @@ implementation
       if (tsym(p).typ=paravarsym) and
          (tparavarsym(p).is_used) and
          ((vo_has_local_copy in tparavarsym(p).varoptions) or
-          (not(target_info.system in systems_caller_copy_addr_value_para) and
+          (not(compiler.target.info.system in systems_caller_copy_addr_value_para) and
            (is_open_array(tparavarsym(p).vardef) or
             is_array_of_const(tparavarsym(p).vardef)) and
            (tparavarsym(p).varspez=vs_value))) then

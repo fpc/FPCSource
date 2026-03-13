@@ -332,7 +332,7 @@ unit scandir;
 {$if defined(m68k) or defined(arm)}
     procedure dir_appid;
       begin
-        if target_info.system<>system_m68k_palmos then
+        if compiler.target.info.system<>system_m68k_palmos then
           Message(scan_w_appid_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
@@ -342,7 +342,7 @@ unit scandir;
 
     procedure dir_appname;
       begin
-        if target_info.system<>system_m68k_palmos then
+        if compiler.target.info.system<>system_m68k_palmos then
           Message(scan_w_appname_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
@@ -353,9 +353,11 @@ unit scandir;
 
     procedure dir_apptype;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          hs : string;
       begin
-        if not (target_info.system in systems_all_windows + [system_i386_os2,
+        if not (compiler.target.info.system in systems_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macosclassic,
                                        system_arm_nds, system_i8086_msdos,
                                        system_i8086_embedded, system_m68k_atari] +
@@ -374,24 +376,24 @@ unit scandir;
               begin
                  current_scanner.skipspace;
                  hs:=current_scanner.readid;
-                 if (hs='GUI') and not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+                 if (hs='GUI') and not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_gui)
-                 else if (hs='CONSOLE') and not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+                 else if (hs='CONSOLE') and not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_cui)
-                 else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
+                 else if (hs='NATIVE') and (compiler.target.info.system in systems_windows + systems_nativent) then
                    SetApptype(app_native)
-                 else if (hs='FS') and (target_info.system in [system_i386_os2,
+                 else if (hs='FS') and (compiler.target.info.system in [system_i386_os2,
                                                              system_i386_emx]) then
                    SetApptype(app_fs)
-                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macosclassic]) then
+                 else if (hs='TOOL') and (compiler.target.info.system in [system_powerpc_macosclassic]) then
                    SetApptype(app_tool)
-                 else if (hs='ARM9') and (target_info.system in [system_arm_nds]) then
+                 else if (hs='ARM9') and (compiler.target.info.system in [system_arm_nds]) then
                    SetApptype(app_arm9)
-                 else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
+                 else if (hs='ARM7') and (compiler.target.info.system in [system_arm_nds]) then
                    SetApptype(app_arm7)
-                 else if (hs='COM') and (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+                 else if (hs='COM') and (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_com)
-                 else if (hs='EXE') and (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+                 else if (hs='EXE') and (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_cui)
                  else
                    Message1(scan_w_unsupported_app_type,hs);
@@ -421,11 +423,13 @@ unit scandir;
 
     procedure dir_checkpointer;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         switch: char;
       begin
         switch:=do_localswitchdefault(cs_checkpointer);
         if (switch='+') and
-           not(target_info.system in systems_support_checkpointer) then
+           not(compiler.target.info.system in systems_support_checkpointer) then
           Message1(scan_e_unsupported_switch,'CHECKPOINTER+');
       end;
 
@@ -487,8 +491,10 @@ unit scandir;
       end;
 
     procedure dir_description;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
+        if not (compiler.target.info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
                  system_i386_netware,system_i386_wdosx,system_i386_netwlibc,system_i8086_win16]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
@@ -499,8 +505,10 @@ unit scandir;
       end;
 
     procedure dir_screenname; {ad}
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
+        if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {Message(scan_w_description_not_support);}
           comment (V_Warning,'Screenname only supported for target netware');
         current_scanner.skipspace;
@@ -508,8 +516,10 @@ unit scandir;
       end;
 
       procedure dir_threadname; {ad}
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
+        if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {Message(scan_w_description_not_support);}
           comment (V_Warning,'Threadname only supported for target netware');
         current_scanner.skipspace;
@@ -517,8 +527,10 @@ unit scandir;
       end;
 
       procedure dir_copyright; {ad}
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
+        if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {Message(scan_w_description_not_support);}
           comment (V_Warning,'Copyright only supported for target netware');
         current_scanner.skipspace;
@@ -536,8 +548,10 @@ unit scandir;
       end;
 
     procedure dir_forcefarcalls;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded])
+        if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
            or (current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
@@ -574,10 +588,12 @@ unit scandir;
      end;
 
     procedure dir_frameworkpath;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
-        else if not(target_info.system in systems_darwin) then
+        else if not(compiler.target.info.system in systems_darwin) then
           begin
             Message(scan_w_frameworks_darwin_only);
             current_scanner.skipspace;
@@ -606,8 +622,10 @@ unit scandir;
       end;
 
     procedure dir_imagebase;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in (systems_windows+systems_wince)) then
+        if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           Message(scan_w_imagebase_not_support);
         current_scanner.skipspace;
         imagebase:=current_scanner.readval;
@@ -696,23 +714,7 @@ unit scandir;
 
     procedure dir_link;
       var
-        s : string;
-      begin
-        current_scanner.skipspace;
-        if current_scanner.c = '''' then
-          begin
-            s:= current_scanner.readquotedstring;
-            current_scanner.readcomment
-          end
-        else
-          s:= trimspace(current_scanner.readcomment);
-        s:=FixFileName(s);
-        if ExtractFileExt(s)='' then
-          s:=ChangeFileExt(s,target_info.objext);
-        current_module.linkotherofiles.add(s,link_always);
-      end;
-
-    procedure dir_linkframework;
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
       begin
@@ -725,13 +727,35 @@ unit scandir;
         else
           s:= trimspace(current_scanner.readcomment);
         s:=FixFileName(s);
-        if (target_info.system in systems_darwin) then
+        if ExtractFileExt(s)='' then
+          s:=ChangeFileExt(s,compiler.target.info.objext);
+        current_module.linkotherofiles.add(s,link_always);
+      end;
+
+    procedure dir_linkframework;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
+        s : string;
+      begin
+        current_scanner.skipspace;
+        if current_scanner.c = '''' then
+          begin
+            s:= current_scanner.readquotedstring;
+            current_scanner.readcomment
+          end
+        else
+          s:= trimspace(current_scanner.readcomment);
+        s:=FixFileName(s);
+        if (compiler.target.info.system in systems_darwin) then
           current_module.linkotherframeworks.add(s,link_always)
         else
           Message(scan_w_frameworks_darwin_only);
       end;
 
     procedure dir_linklib;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         tLinkMode=(lm_shared,lm_static);
       var
@@ -784,7 +808,7 @@ unit scandir;
         if linkModeStr='' then
          begin
            libext:=ExtractFileExt(libname);
-           if libext=target_info.staticClibext then
+           if libext=compiler.target.info.staticClibext then
              linkMode:=lm_static;
          end
         else if linkModeStr='STATIC' then
@@ -863,8 +887,10 @@ unit scandir;
       end;
 
     procedure dir_maxstacksize;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in (systems_windows+systems_wince)) then
+        if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           Message(scan_w_maxstacksize_not_support);
         current_scanner.skipspace;
         maxstacksize:=current_scanner.readval;
@@ -878,7 +904,7 @@ unit scandir;
         maxheapsize_limit: int64;
       begin
 {$if defined(i8086)}
-        if target_info.system=system_i8086_win16 then
+        if compiler.target.info.system=system_i8086_win16 then
           begin
             heapsize_limit:=65520;
             maxheapsize_limit:=65520;
@@ -987,8 +1013,10 @@ unit scandir;
 
 
     procedure dir_minstacksize;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in (systems_windows+systems_wince)) then
+        if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           Message(scan_w_minstacksize_not_support);
         current_scanner.skipspace;
         minstacksize:=current_scanner.readval;
@@ -1277,11 +1305,13 @@ unit scandir;
 
     procedure dir_packrecords;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
         v : longint;
       begin
         { can't change packrecords setting on managed vm targets }
-        if target_info.system in systems_managed_vm then
+        if compiler.target.info.system in systems_managed_vm then
           Message1(scanner_w_directive_ignored_on_target, 'PACKRECORDS');
         current_scanner.skipspace;
         if not(current_scanner.c in ['0'..'9']) then
@@ -1335,9 +1365,11 @@ unit scandir;
 
 
     procedure dir_pic;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { windows doesn't need/support pic }
-        if tf_no_pic_supported in target_info.flags then
+        if tf_no_pic_supported in compiler.target.info.flags then
           message(scan_w_pic_ignored)
         else
           do_moduleswitch(cs_create_pic);
@@ -1449,6 +1481,8 @@ unit scandir;
 
     procedure dir_resource;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         current_scanner.skipspace;
@@ -1470,8 +1504,8 @@ unit scandir;
             end;
         s:=FixFileName(s);
         if ExtractFileExt(s)='' then
-          s:=ChangeFileExt(s,target_info.resext);
-        if target_info.res<>res_none then
+          s:=ChangeFileExt(s,compiler.target.info.resext);
+        if compiler.target.info.res<>res_none then
           begin
             include(current_module.moduleflags,mf_has_resourcefiles);
             if (res_single_file in target_res.resflags) and
@@ -1611,9 +1645,11 @@ unit scandir;
 
     procedure dir_setpeflags;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         flags : int64;
       begin
-        if not (target_info.system in (systems_all_windows)) then
+        if not (compiler.target.info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
         if current_scanner.readpreprocint(flags,'SETPEFLAGS') then
           begin
@@ -1626,9 +1662,11 @@ unit scandir;
 
     procedure dir_setpeoptflags;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         flags : int64;
       begin
-        if not (target_info.system in (systems_all_windows)) then
+        if not (compiler.target.info.system in (systems_all_windows)) then
           Message(scan_w_setpeoptflags_not_support);
         if current_scanner.readpreprocint(flags,'SETPEOPTFLAGS') then
           begin
@@ -1641,10 +1679,12 @@ unit scandir;
 
     procedure dir_setpeuserversion;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         dummystr : string;
         dummyrev : word;
       begin
-        if not (target_info.system in systems_all_windows) then
+        if not (compiler.target.info.system in systems_all_windows) then
           Message(scan_w_setpeuserversion_not_support);
         if (not current_module.is_initial) then
           Message(scan_n_only_exe_version)
@@ -1654,10 +1694,12 @@ unit scandir;
 
     procedure dir_setpeosversion;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         dummystr : string;
         dummyrev : word;
       begin
-        if not (target_info.system in systems_all_windows) then
+        if not (compiler.target.info.system in systems_all_windows) then
           Message(scan_w_setpeosversion_not_support);
         if (not current_module.is_initial) then
           Message(scan_n_only_exe_version)
@@ -1667,10 +1709,12 @@ unit scandir;
 
     procedure dir_setpesubsysversion;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         dummystr : string;
         dummyrev : word;
       begin
-        if not (target_info.system in systems_all_windows) then
+        if not (compiler.target.info.system in systems_all_windows) then
           Message(scan_w_setpesubsysversion_not_support);
         if (not current_module.is_initial) then
           Message(scan_n_only_exe_version)
@@ -1679,10 +1723,12 @@ unit scandir;
       end;
 
     procedure dir_smartlink;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         do_moduleswitch(cs_create_smart);
         if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
-            not(target_info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) and
+            not(compiler.target.info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and
             not (af_outputbinary in target_asm.flags) then
@@ -1724,6 +1770,8 @@ unit scandir;
 
     procedure dir_syscall;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sctype : string;
         syscall : psyscallinfo;
       begin
@@ -1733,7 +1781,7 @@ unit scandir;
         syscall:=get_syscall_by_name(sctype);
         if assigned(syscall) then
           begin
-            if not (target_info.system in syscall^.validon) then
+            if not (compiler.target.info.system in syscall^.validon) then
               Message(scan_w_syscall_convention_not_useable_on_target)
             else
               set_default_syscall(syscall^.procoption);
@@ -1794,8 +1842,10 @@ unit scandir;
       end;
 
     procedure dir_varparacopyoutcheck;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(target_info.system in systems_jvm) then
+        if not(compiler.target.info.system in systems_jvm) then
           begin
             Message1(scan_w_illegal_switch,current_scanner.pattern);
             exit;
@@ -1815,10 +1865,12 @@ unit scandir;
 
     procedure dir_version;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
+        if not (compiler.target.info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
                  system_i386_netware,system_i386_wdosx,
                  system_i386_netwlibc]) then
           begin
@@ -1854,7 +1906,7 @@ unit scandir;
                     exit;
                   end;
                 if (current_scanner.c='.') and
-                   (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
+                   (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
                   begin
                      current_scanner.readchar;
                      current_scanner.readnumber;
@@ -2064,8 +2116,10 @@ unit scandir;
       end;
 
     procedure dir_hugecode;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded])
+        if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
            or (current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
@@ -2079,9 +2133,11 @@ unit scandir;
 
     procedure dir_hugepointernormalization;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
       begin
-        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+        if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
             exit;
@@ -2110,8 +2166,10 @@ unit scandir;
       end;
 
     procedure dir_hugepointerarithmeticnormalization;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+        if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
             exit;
@@ -2120,8 +2178,10 @@ unit scandir;
       end;
 
     procedure dir_hugepointercomparisonnormalization;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+        if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
             exit;

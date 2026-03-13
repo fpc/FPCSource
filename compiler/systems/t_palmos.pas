@@ -111,7 +111,7 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  if not (target_info.system in systems_internal_sysinit) then
+  if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       { add objectfiles, start with crt0 always  }
       { using crt0, we should stick C compatible }
@@ -150,7 +150,7 @@ begin
      S:=SharedLibFiles.GetFirst;
      if s<>'c' then
       begin
-        i:=Pos(target_info.sharedlibext,S);
+        i:=Pos(compiler.target.info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);

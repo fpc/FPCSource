@@ -96,7 +96,7 @@ function TLinkerMSXDOS.WriteResponseFile_Sdld: Boolean;
     { Write the origin (i.e. the program load address) }
     LinkRes.Add('-b _CODE='+tostr(FOrigin));
 
-    if not (target_info.system in systems_internal_sysinit) and (prtobj <> '') then
+    if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
       begin
         s:=FindObjectFile(prtobj,'',false);
         LinkRes.AddFileName(s);
@@ -146,7 +146,7 @@ function TLinkerMSXDOS.WriteResponseFile_Vlink: Boolean;
 
     LinkRes.Add('INPUT (');
 
-    if not (target_info.system in systems_internal_sysinit) and (prtobj <> '') then
+    if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
       begin
         s:=FindObjectFile(prtobj,'',false);
         LinkRes.AddFileName(maybequoted(FixFileName(s)));
@@ -340,7 +340,7 @@ procedure TInternalLinkerMSXDOS.DefaultLinkScript;
   begin
     prtobj:='prt0';
 
-    if not (target_info.system in systems_internal_sysinit) and (prtobj <> '') then
+    if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj <> '') then
       LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile(prtobj,'',false)));
 
     while not ObjectFiles.Empty do

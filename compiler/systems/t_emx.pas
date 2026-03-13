@@ -346,7 +346,7 @@ end;
         for i:=0 to current_module.ImportLibraryList.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            LibName:=FixFileName(ImportLibrary.Name + Target_Info.StaticCLibExt);
+            LibName:=FixFileName(ImportLibrary.Name + compiler.target.info.StaticCLibExt);
             seq_no:=1;
             current_module.linkotherstaticlibs.add(libname,link_always);
             assign(out_file,current_module.outputpath+libname);
@@ -436,7 +436,7 @@ begin
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.GetFirst;
-     i:=Pos(target_info.sharedlibext,S);
+     i:=Pos(compiler.target.info.sharedlibext,S);
      if i>0 then
       Delete(S,i,255);
      LinkRes.Add('-l'+s);

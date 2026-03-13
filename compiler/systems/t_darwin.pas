@@ -28,12 +28,15 @@ unit t_darwin;
 
 interface
 
+  uses
+    compilerbase;
+
 implementation
 
   uses
     sysutils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globtype,globals,
+    verbose,systems,globtype,globals,compiler,
     symconst,cscript,triplet,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,comprsrc,rescmn,i_darwin,expunix,
@@ -168,12 +171,14 @@ implementation
 
 
     function tlinkerdarwin.GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not isdll then
           begin
             if not(cs_profile in current_settings.moduleswitches) then
               begin
-                case target_info.system of
+                case compiler.target.info.system of
                   system_powerpc_darwin,
                   system_powerpc64_darwin,
                   system_i386_darwin,
@@ -184,7 +189,7 @@ implementation
                         exit('');
                       { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
                       { others: crt1.10.5 -> crt1.o }
-                      if (target_info.system in [system_i386_darwin,system_x86_64_darwin]) and
+                      if (compiler.target.info.system in [system_i386_darwin,system_x86_64_darwin]) and
                          (MacOSXVersionMin.relationto(10,6,0)>=0) then
                         exit('crt1.10.6.o');
                       if MacOSXVersionMin.relationto(10,5,0)>=0 then
@@ -236,7 +241,7 @@ implementation
           begin
             if (apptype=app_bundle) then
               begin
-                case target_info.system of
+                case compiler.target.info.system of
                   system_powerpc_darwin,
                   system_powerpc64_darwin,
                   system_i386_darwin,
@@ -272,7 +277,7 @@ implementation
               end
             else
               begin
-                case target_info.system of
+                case compiler.target.info.system of
                   system_powerpc_darwin,
                   system_powerpc64_darwin,
                   system_i386_darwin,
@@ -331,8 +336,10 @@ implementation
 
 
     function tlinkerdarwin.GetLinkArch: TCmdStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        case target_info.system of
+        case compiler.target.info.system of
           system_powerpc_darwin:
             result:='-arch ppc';
           system_i386_darwin,
@@ -358,6 +365,8 @@ implementation
 
 
     function tlinkerdarwin.GetLinkVersion: TCmdStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if MacOSXVersionMin.isvalid then
           begin
@@ -370,7 +379,7 @@ implementation
           end
         else if iPhoneOSVersionMin.isvalid then
           begin
-            if target_info.system in [system_i386_iphonesim,system_x86_64_iphonesim,system_aarch64_iphonesim] then
+            if compiler.target.info.system in [system_i386_iphonesim,system_x86_64_iphonesim,system_aarch64_iphonesim] then
               result:='-ios_simulator_version_min '+iPhoneOSVersionMin.str
             else
               result:='-iphoneos_version_min '+iPhoneOSVersionMin.str;
@@ -430,6 +439,8 @@ implementation
 
     function tlinkerdarwin.GetLibraries: TCmdStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s: TCmdStr;
         i: longint;
       begin
@@ -439,7 +450,7 @@ implementation
             s:=SharedLibFiles.GetFirst;
             if (s<>'c') or ReOrderEntries then
               begin
-                i:=Pos(target_info.sharedlibext,s);
+                i:=Pos(compiler.target.info.sharedlibext,s);
                 if i>0 then
                   Delete(s,i,length(s));
                 result:=result+' '+maybequoted('-l'+s);

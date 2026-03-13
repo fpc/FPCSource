@@ -54,7 +54,7 @@ implementation
       var
         tmpref: treference;
       begin
-        case target_info.system of
+        case compiler.target.info.system of
           system_x86_64_aros:
             begin
               if ([po_syscall_baselast,po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then

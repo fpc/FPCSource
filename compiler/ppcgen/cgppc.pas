@@ -263,7 +263,7 @@ unit cgppc;
           begin
             if (cs_create_pic in current_settings.moduleswitches) and
                (pi_needs_got in current_procinfo.flags) then
-              case target_info.system of
+              case compiler.target.info.system of
                 system_powerpc_darwin,
                 system_powerpc64_darwin:
                   begin
@@ -296,7 +296,7 @@ unit cgppc;
 
     function tcgppcgen.g_indirect_sym_load(list: TAsmList; const symname: string; const flags: tindsymflags): tregister;
       begin
-        case target_info.system of
+        case compiler.target.info.system of
           system_powerpc_macosclassic,
           system_powerpc_aix,
           system_powerpc64_aix:
@@ -389,7 +389,7 @@ unit cgppc;
          fixref(list,ref2);
          if assigned(ref2.symbol) then
            begin
-             if target_info.system = system_powerpc_macosclassic then
+             if compiler.target.info.system = system_powerpc_macosclassic then
                begin
                  if macos_direct_globals then
                    begin
@@ -466,7 +466,7 @@ unit cgppc;
         toc_offset: longint;
       begin
         tmpreg:=NR_NO;
-        if target_info.system in systems_aix then
+        if compiler.target.info.system in systems_aix then
           begin
             { load function address in R0, and swap "reg" for R0 }
             reference_reset_base(tmpref,reg,0,ctempposinvalid,sizeof(pint),[]);
@@ -477,7 +477,7 @@ unit cgppc;
             reg:=NR_R0;
           end;
         list.concat(taicpu.op_reg(A_MTCTR,reg));
-        if target_info.system in systems_aix then
+        if compiler.target.info.system in systems_aix then
           begin
             { load target TOC and possible link register }
             reference_reset_base(tmpref,tmpreg,sizeof(pint),ctempposinvalid,sizeof(pint),[]);
@@ -485,7 +485,7 @@ unit cgppc;
             tmpref.offset:=2*sizeof(pint);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R11);
           end
-        else if target_info.abi=abi_powerpc_elfv2 then
+        else if compiler.target.info.abi=abi_powerpc_elfv2 then
           begin
             { functions must be called via R12 for this ABI }
             if reg<>NR_R12 then
@@ -495,9 +495,9 @@ unit cgppc;
               end;
           end;
         list.concat(taicpu.op_none(A_BCTRL));
-        if target_info.abi in abis_ppc_toc then
+        if compiler.target.info.abi in abis_ppc_toc then
           begin
-            if (target_info.abi=abi_powerpc_elfv2) and
+            if (compiler.target.info.abi=abi_powerpc_elfv2) and
                (reg<>NR_R12) then
               ungetcpuregister(list,NR_R12);
             { restore our TOC }
@@ -577,7 +577,7 @@ unit cgppc;
          ref2: treference;
 
        begin
-         if target_info.system in systems_aix then
+         if compiler.target.info.system in systems_aix then
            g_load_check_simple(list,ref,65536);
          if not(fromsize in [OS_F32,OS_F64]) or
             not(tosize in [OS_F32,OS_F64]) then
@@ -669,7 +669,7 @@ unit cgppc;
       paraloc1 : tcgpara;
       pd : tprocdef;
     begin
-      if (target_info.system in [system_powerpc_darwin]) then
+      if (compiler.target.info.system in [system_powerpc_darwin]) then
         begin
           pd:=search_system_proc('mcount');
           paraloc1.init;
@@ -737,7 +737,7 @@ unit cgppc;
 
  function tcgppcgen.get_rtoc_offset: longint;
    begin
-     case target_info.abi of
+     case compiler.target.info.abi of
        abi_powerpc_aix:
          result:=LA_RTOC_AIX;
 {$if defined(powerpc64)}
@@ -759,14 +759,14 @@ unit cgppc;
       l: tasmsymbol;
       ref: treference;
     begin
-      if (target_info.system=system_powerpc64_freebsd) or (target_info.system=system_powerpc64_linux) then
+      if (compiler.target.info.system=system_powerpc64_freebsd) or (compiler.target.info.system=system_powerpc64_linux) then
         begin
           l:=current_asmdata.getasmsymbol(symbol);
           reference_reset_symbol(ref,l,0,sizeof(pint),[]);
           ref.base:=NR_RTOC;
           ref.refaddr:=addr_pic;
         end
-      else if target_info.system in systems_aix+[system_powerpc_macosclassic] then
+      else if compiler.target.info.system in systems_aix+[system_powerpc_macosclassic] then
         get_aix_toc_sym(list,symbol,flags,ref,false)
       else
         internalerror(2007102010);
@@ -1000,14 +1000,14 @@ unit cgppc;
         {$IFDEF EXTDEBUG}
         list.concat(tai_comment.create(strpnew('fixref0 ' + ref2string(ref))));
         {$ENDIF EXTDEBUG}
-        if (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) and
+        if (compiler.target.info.system in [system_powerpc_darwin,system_powerpc64_darwin]) and
            assigned(ref.symbol) and
            not assigned(ref.relsymbol) and
            ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN,AB_COMMON]) or
             (cs_create_pic in current_settings.moduleswitches))then
           begin
             if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL,AB_PRIVATE_EXTERN,AB_COMMON]) or
-               ((target_info.system=system_powerpc64_darwin) and
+               ((compiler.target.info.system=system_powerpc64_darwin) and
                 (ref.symbol.bind=AB_GLOBAL)) then
               begin
                 tmpreg := g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
@@ -1034,9 +1034,9 @@ unit cgppc;
           end;
 
         { if we have to create PIC, add the symbol to the TOC/GOT }
-        if ((((target_info.system=system_powerpc64_freebsd) or (target_info.system = system_powerpc64_linux)) and
+        if ((((compiler.target.info.system=system_powerpc64_freebsd) or (compiler.target.info.system = system_powerpc64_linux)) and
              (cs_create_pic in current_settings.moduleswitches)) or
-            (target_info.system in systems_aix+[system_powerpc_macosclassic])) and
+            (compiler.target.info.system in systems_aix+[system_powerpc_macosclassic])) and
            (assigned(ref.symbol) and
             not assigned(ref.relsymbol)) then
           begin
@@ -1099,7 +1099,7 @@ unit cgppc;
         tmpreg := NR_NO;
         largeOffset:= hasLargeOffset(ref);
 
-        if target_info.system in ([system_powerpc_macosclassic]+systems_aix) then
+        if compiler.target.info.system in ([system_powerpc_macosclassic]+systems_aix) then
           begin
 
             if assigned(ref.symbol) and
@@ -1172,7 +1172,7 @@ unit cgppc;
             else
               list.concat(taicpu.op_reg_ref(op,reg,ref));
           end
-        else {if target_info.system <> system_powerpc_macosclassic}
+        else {if compiler.target.info.system <> system_powerpc_macosclassic}
           begin
             if assigned(ref.symbol) or
                largeOffset then

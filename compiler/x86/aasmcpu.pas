@@ -3720,7 +3720,7 @@ implementation
 {$endif i8086}
 {$ifdef i386}
                   if (oper[opidx]^.ref^.refaddr=addr_pic) and
-                     (tf_pic_uses_got in target_info.flags) then
+                     (tf_pic_uses_got in compiler.target.info.flags) then
                     begin
                       currrelreloc:=RELOC_PLT32;
                       currabsreloc:=RELOC_GOT32;
@@ -3807,7 +3807,7 @@ implementation
              which needs a special relocation type R_386_GOTPC }
            if assigned (p) and
               (p.name='_GLOBAL_OFFSET_TABLE_') and
-              (tf_pic_uses_got in target_info.flags) then
+              (tf_pic_uses_got in compiler.target.info.flags) then
              begin
                { nothing else than a 4 byte relocation should occur
                  for GOT }
@@ -4738,7 +4738,7 @@ implementation
                              currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
 {$ifdef i386}
                              if (oper[opidx]^.ref^.refaddr=addr_pic) and
-                                (tf_pic_uses_got in target_info.flags) then
+                                (tf_pic_uses_got in compiler.target.info.flags) then
                                currabsreloc:=RELOC_GOT32
                              else
 {$endif i386}
@@ -4781,7 +4781,7 @@ implementation
 {$endif x86_64}
 {$ifdef i386}
                          if (oper[opidx]^.ref^.refaddr=addr_pic) and
-                            (tf_pic_uses_got in target_info.flags) then
+                            (tf_pic_uses_got in compiler.target.info.flags) then
                            currabsreloc:=RELOC_GOT32
                          else if oper[opidx]^.ref^.refaddr=addr_tlsgd then
                            currabsreloc:=RELOC_TLSGD

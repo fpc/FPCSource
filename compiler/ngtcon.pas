@@ -366,9 +366,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     { > AIntBits in case of spillover)                                       }
     procedure bitpackval(value: aword; var bp: tbitpackedval);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         shiftcount: longint;
       begin
-        if (target_info.endian=endian_big) then
+        if (compiler.target.info.endian=endian_big) then
           begin
             { bitpacked format: left-aligned (i.e., "big endian bitness") }
             if (bp.packedbitsize<AIntBits) and
@@ -419,7 +421,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end;
         while (bitstowrite>=8) do
           begin
-            if (target_info.endian=endian_little) then
+            if (compiler.target.info.endian=endian_little) then
               begin
                 { write lowest byte }
                 writeval:=byte(bp.curval);
@@ -615,7 +617,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      end
                    else
                      begin
-                       winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
+                       winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in compiler.target.info.flags);
                        ll:=ftcb.emit_unicodestring_const(fdatalist,
                               tstringconstnode(node).valuews,
                               def.encoding,
@@ -1094,7 +1096,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { this writing is endian-dependant   }
                 if not is_smallset(def) then
                   begin
-                    if source_info.endian=target_info.endian then
+                    if source_info.endian=compiler.target.info.endian then
                       begin
                         for i:=0 to node.resultdef.size-1 do
                           ftcb.emit_tai(tai_const.create_8bit(Psetbytes(tsetconstnode(node).value_set)^[i]),u8inttype);
@@ -1111,7 +1113,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       could automatically merge the bytes inside the
                       typed const builder, but it's not easy :/ ) }
                     setval:=0;
-                    if source_info.endian=target_info.endian then
+                    if source_info.endian=compiler.target.info.endian then
                       begin
                         for i:=0 to node.resultdef.size-1 do
                           setval:=setval or (Psetbytes(tsetconstnode(node).value_set)^[i] shl (i*8));
@@ -1126,13 +1128,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                         ftcb.emit_tai(tai_const.create_8bit(setval),def);
                       2:
                         begin
-                          if target_info.endian=endian_big then
+                          if compiler.target.info.endian=endian_big then
                             setval:=swapendian(word(setval));
                           ftcb.emit_tai(tai_const.create_16bit(setval),def);
                         end;
                       4:
                         begin
-                          if target_info.endian=endian_big then
+                          if compiler.target.info.endian=endian_big then
                             setval:=swapendian(cardinal(setval));
                           ftcb.emit_tai(tai_const.create_32bit(longint(setval)),def);
                         end;
@@ -1225,7 +1227,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               addstabx:=true;
             asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_GLOBAL,AT_DATA,tcsym.vardef)
           end
-        else if tf_supports_hidden_symbols in target_info.flags then
+        else if tf_supports_hidden_symbols in compiler.target.info.flags then
           asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_PRIVATE_EXTERN,AT_DATA,tcsym.vardef)
         else
           asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_LOCAL,AT_DATA,tcsym.vardef);

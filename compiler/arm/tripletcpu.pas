@@ -39,8 +39,8 @@ function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
     if tripletstyle=triplet_llvmrt then
       begin
-        if (target_info.abi=abi_eabihf) and
-           not(target_info.system in systems_windows) then
+        if (compiler.target.info.abi=abi_eabihf) and
+           not(compiler.target.info.system in systems_windows) then
           result:='armhf'
         else
           result:='arm';
@@ -51,7 +51,7 @@ function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
     if (tripletstyle=triplet_llvm) and
        (current_settings.instructionset=is_thumb) then
       result:='thumb'+copy(result,4,255);
-    if target_info.endian=endian_big then
+    if compiler.target.info.endian=endian_big then
       result:=result+'be';
   end;
 

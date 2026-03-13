@@ -1267,7 +1267,7 @@ unit raatt;
              Begin
                Consume(AS_ALIGN);
                l1:=BuildConstExpression(false,false);
-               if (target_info.system in [system_i386_GO32V2]) then
+               if (compiler.target.info.system in [system_i386_GO32V2]) then
                  if (l1>=0) and (l1<=16) then
                    l1:=tcgint(1) shl l1
                  else
@@ -1377,7 +1377,7 @@ unit raatt;
              begin
                { .rva generally applies to systems with COFF output format,
                  not just Windows. }
-               if not (target_info.system in systems_all_windows) then
+               if not (compiler.target.info.system in systems_all_windows) then
                  Message1(asmr_e_unsupported_directive,token2str[AS_RVA]);
                Consume(AS_RVA);
                BuildRva;

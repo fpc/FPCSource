@@ -74,7 +74,7 @@ implementation
           begin
             if not(checkgenjumps(setparts,numparts,use_small)) and
               use_small and
-              (target_info.endian=endian_little) then
+              (compiler.target.info.endian=endian_little) then
               expectloc:=LOC_FLAGS;
           end;
       end;
@@ -87,7 +87,7 @@ implementation
         { the code below needs changes for big endian targets (they start
           counting from the most significant bit)
         }
-        if target_info.endian=endian_big then
+        if compiler.target.info.endian=endian_big then
           begin
             inherited;
             exit;

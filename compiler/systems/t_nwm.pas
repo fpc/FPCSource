@@ -284,10 +284,10 @@ begin
   WriteResponseFile:=False;
 
   ProgNam := current_module.exefilename;
-  i:=Pos(target_info.exeext,ProgNam);
+  i:=Pos(compiler.target.info.exeext,ProgNam);
   if i>0 then
     Delete(ProgNam,i,255);
-  NlmNam := ProgNam + target_info.exeext;
+  NlmNam := ProgNam + compiler.target.info.exeext;
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);             {for ld}
@@ -340,7 +340,7 @@ begin
 
   { add objectfiles, start with nwpre always }
   LinkRes.Add ('INPUT(');
-  if target_info.system = system_i386_netwlibc then
+  if compiler.target.info.system = system_i386_netwlibc then
    begin
      s2 := FindObjectFile('nwplibc','',false);
      if s2 = '' then
@@ -350,7 +350,7 @@ begin
   Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
-  if target_info.system = system_i386_netwlibc then
+  if compiler.target.info.system = system_i386_netwlibc then
    begin
      if isDll then  {needed to provide main}
        s2 := FindObjectFile('nwl_dlle','',false)
@@ -382,7 +382,7 @@ begin
 
   { start and stop-procedures }
 
-  if target_info.system = system_i386_netwlibc then
+  if compiler.target.info.system = system_i386_netwlibc then
     begin
       NLMConvLinkFile.Add ('START _LibCPrelude');
       NLMConvLinkFile.Add ('EXIT _LibCPostlude');
@@ -421,7 +421,7 @@ begin
            Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
-           i:=Pos(target_info.staticlibext,S);
+           i:=Pos(compiler.target.info.staticlibext,S);
            if i>0 then
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
@@ -452,7 +452,7 @@ begin
         if s<>'' then
          begin
            s2:=s;
-           i:=Pos(target_info.sharedlibext,S);
+           i:=Pos(compiler.target.info.sharedlibext,S);
            if i>0 then
              Delete(S,i,255);
            if s[1] = '!' then
@@ -743,7 +743,7 @@ end;
             end;
             option := GetToken(s,';');
           end;
-          if target_info.system = system_i386_netwlibc then
+          if compiler.target.info.system = system_i386_netwlibc then
             result := 'libcpre'
           else
             result := 'nwpre';
@@ -779,7 +779,7 @@ end;
            { While not SharedLibFiles.Empty do
               begin
                 S:=SharedLibFiles.GetFirst;
-                if FindLibraryFile(s,target_info.staticClibprefix,target_info.importlibext,s2) then
+                if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.importlibext,s2) then
                 begin
                   Comment (V_Debug,'adding LibraryFile '+s);
                   Concat('READSTATICLIBRARY '+MaybeQuoted(s2));
@@ -923,7 +923,7 @@ end;
                 Concat ('STACKSIZE '+tostr(stacksize));
               end else
                 Concat ('STACKSIZE '+tostr(minStackSize));
-              if target_info.system = system_i386_netwlibc then
+              if compiler.target.info.system = system_i386_netwlibc then
                 Concat ('REENTRANT');            { needed by older libc versions }
           end;
 
@@ -950,7 +950,7 @@ end;
 
     procedure TInternalLinkerNetware.InitSysInitUnitName;
       begin
-        //if target_info.system=system_i386_netware then
+        //if compiler.target.info.system=system_i386_netware then
         //  GlobalInitSysInitUnitName(self);
       end;
 

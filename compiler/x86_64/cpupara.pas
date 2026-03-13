@@ -89,7 +89,7 @@ unit cpupara;
 
     uses
        cutils,verbose,
-       systems,
+       systems,compiler,
        globals,defutil,
        symtable,symutil,
        cpupi,cpuinfo,
@@ -1517,7 +1517,7 @@ unit cpupara;
                             for backward compatibility. On other platforms, it
                             doesn't and hence we don't either }
                           if (i=0) and
-                             not(target_info.system in systems_darwin) and
+                             not(compiler.target.info.system in systems_darwin) and
                              (result.intsize in [1,2]) then
                             begin
                               paraloc^.size:=int_cgsize(result.intsize);
@@ -1858,7 +1858,7 @@ unit cpupara;
                                 attributes by definition only apply to the
                                 caller side }
 {$ifndef LLVM}
-                              if not(target_info.system in systems_darwin) and
+                              if not(compiler.target.info.system in systems_darwin) and
                                  (side=calleeside) and
                                  (hp.paraloc[side].intsize in [1,2]) then
                                 begin
@@ -2043,7 +2043,7 @@ unit cpupara;
                   begin
                     with paraloc^ do
                      if (loc=LOC_REFERENCE) then
-                       inc(reference.offset,target_info.first_parm_offset);
+                       inc(reference.offset,compiler.target.info.first_parm_offset);
                     paraloc:=paraloc^.next;
                   end;
               end;

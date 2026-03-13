@@ -246,7 +246,7 @@ uses
         tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_end,tcalo_data_force_indirect,tcalo_is_public_asm],compiler);
         tcb.begin_anonymous_record(internaltypeprefixName[itp_emptyrec],
           default_settings.packrecords,sizeof(pint),
-          targetinfos[target_info.system]^.alignment.recordalignmin);
+          targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         current_asmdata.AsmLists[al_resourcestrings].concatList(
           tcb.get_final_asmlist_vectorized_dead_strip(
             nil,tcb.end_anonymous_record,'RESSTR','',current_module.localsymtable,sizeof(pint)

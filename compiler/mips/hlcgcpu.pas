@@ -65,7 +65,7 @@ implementation
       sym: tasmsymbol;
     begin
 
-      if not (target_info.system in systems_ps1) then begin
+      if not (compiler.target.info.system in systems_ps1) then begin
 
         if weak then
           sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)

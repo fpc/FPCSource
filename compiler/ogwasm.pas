@@ -938,12 +938,12 @@ implementation
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
-        result:=not(target_info.system in systems_darwin) and
+        result:=not(compiler.target.info.system in systems_darwin) and
            create_smartlink_sections and
            (atype<>sec_toc) and
            (atype<>sec_user) and
            { on embedded systems every byte counts, so smartlink bss too }
-           ((atype<>sec_bss) or (target_info.system in (systems_embedded+systems_freertos)));
+           ((atype<>sec_bss) or (compiler.target.info.system in (systems_embedded+systems_freertos)));
       end;
 
     function TWasmObjData.sectionname_gas(atype: TAsmSectiontype;
@@ -1038,12 +1038,12 @@ implementation
           Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
         if (atype in [sec_rodata,sec_rodata_norel]) and
-          (target_info.system in [system_i386_go32v2,system_m68k_palmos]) then
+          (compiler.target.info.system in [system_i386_go32v2,system_m68k_palmos]) then
           secname:='.data';
 
         { Windows correctly handles reallocations in readonly sections }
         if (atype=sec_rodata) and
-          (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
+          (compiler.target.info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
           secname:='.rodata';
 
         { section type user gives the user full control on the section name }
@@ -2130,7 +2130,7 @@ implementation
         WriteName(FWasmCustomSections[wcstProducers],'processed-by');
         WriteUleb(FWasmCustomSections[wcstProducers],1);
         WriteName(FWasmCustomSections[wcstProducers],'Free Pascal Compiler (FPC)');
-        WriteName(FWasmCustomSections[wcstProducers],full_version_string+' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname);
+        WriteName(FWasmCustomSections[wcstProducers],full_version_string+' ['+date_string+'] for '+target_cpu_string+' - '+compiler.target.info.shortname);
 
         code_section_nr:=-1;
         data_section_nr:=-1;

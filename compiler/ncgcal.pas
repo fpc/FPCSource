@@ -924,7 +924,7 @@ implementation
            begin
              if not(right.location.size in [OS_PAIR,OS_SPAIR]) then
                internalerror(2014081401);
-             if (target_info.endian=endian_big) then
+             if (compiler.target.info.endian=endian_big) then
                srcreg:=right.location.registerhi
              else
                srcreg:=right.location.register;
@@ -1302,7 +1302,7 @@ implementation
                returned as a para which is considered a normal para on the
                c-side, so the funcret has to be pop'ed normally. }
              if not ((procdefinition.proccalloption=pocall_safecall) and
-                     (tf_safecall_exceptions in target_info.flags)) and
+                     (tf_safecall_exceptions in compiler.target.info.flags)) and
                 paramanager.ret_in_param(procdefinition.returndef,procdefinition) then
                dec(pop_size,sizeof(pint));
              { Remove parameters/alignment from the stack }
@@ -1315,7 +1315,7 @@ implementation
            This does not apply to interrupt procedures, their ret statement never clears any stack parameters }
          else if paramanager.use_fixed_stack and
                  not(po_interrupt in procdefinition.procoptions) and
-                 (target_info.abi=abi_i386_dynalignedstack) then
+                 (compiler.target.info.abi=abi_i386_dynalignedstack) then
            begin
              { however, a delphi style frame pointer for a nested subroutine
                is not cleared by the callee, so we have to compensate for this

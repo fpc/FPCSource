@@ -1062,7 +1062,7 @@ implementation
 {$ifdef jvm}
                 add_java_default_record_methods_intf(trecorddef(current_structdef));
 {$endif}
-                if target_info.system in systems_typed_constants_node_init then
+                if compiler.target.info.system in systems_typed_constants_node_init then
                   add_typedconst_init_routine(current_structdef);
                 parser.pbase.consume(_END);
                 break;
@@ -1117,7 +1117,7 @@ implementation
          current_specializedef:=nil;
          { create recdef }
          if (n<>'') or
-            not(target_info.system in systems_jvm) then
+            not(compiler.target.info.system in systems_jvm) then
            begin
              recst:=trecordsymtable.create(n,current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
              { can't use recst.realname^ instead of n, because recst.realname is
@@ -1186,7 +1186,7 @@ implementation
              { we need a constructor to create temps, a deep copy helper, ... }
              add_java_default_record_methods_intf(trecorddef(current_structdef));
 {$endif}
-             if target_info.system in systems_typed_constants_node_init then
+             if compiler.target.info.system in systems_typed_constants_node_init then
                add_typedconst_init_routine(current_structdef);
              parser.pbase.consume(_END);
             end;

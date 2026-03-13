@@ -282,10 +282,10 @@ begin
   WriteResponseFile:=False;
 
   ProgNam := current_module.exefilename;
-  i:=Pos(target_info.exeext,ProgNam);
+  i:=Pos(compiler.target.info.exeext,ProgNam);
   if i>0 then
     Delete(ProgNam,i,255);
-  NlmNam := ProgNam + target_info.exeext;
+  NlmNam := ProgNam + compiler.target.info.exeext;
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);             {for ld}
@@ -402,7 +402,7 @@ begin
            Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
-           i:=Pos(target_info.staticlibext,S);
+           i:=Pos(compiler.target.info.staticlibext,S);
            if i>0 then
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
@@ -434,7 +434,7 @@ begin
         if s<>'' then
          begin
            s2:=s;
-           i:=Pos(target_info.sharedlibext,S);
+           i:=Pos(compiler.target.info.sharedlibext,S);
            if i>0 then
              Delete(S,i,255);
            if s[1] = '!' then

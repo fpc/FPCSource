@@ -141,7 +141,7 @@ implementation
            overhead. In theory, we could also not do it if "-a" is not used. The Mac OS X assembler (which is
            based on GNU as) "natively" supports full register names.}
           if create_smartlink_library and
-             (target_info.system <> system_powerpc_darwin) then
+             (compiler.target.info.system <> system_powerpc_darwin) then
             result:=gas_regname_short_table[p]
           else
             result:=gas_regname_table[p]

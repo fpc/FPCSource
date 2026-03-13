@@ -63,13 +63,13 @@ implementation
     begin
       if sym.globalasmsym then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,_typ,sym.vardef)
-      else if tf_supports_hidden_symbols in target_info.flags then
+      else if tf_supports_hidden_symbols in compiler.target.info.flags then
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_PRIVATE_EXTERN,_typ,sym.vardef)
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,_typ,sym.vardef);
       if not(vo_is_thread_var in sym.varoptions) then
         list.concat(taillvmdecl.createdef(asmsym,sym,sym.vardef,nil,sec_data,varalign))
-      else if tf_section_threadvars in target_info.flags then
+      else if tf_section_threadvars in compiler.target.info.flags then
         list.concat(taillvmdecl.createtls(asmsym,sym,sym.vardef,varalign))
       else
         list.concat(taillvmdecl.createdef(asmsym,sym,
@@ -178,7 +178,7 @@ implementation
           fields[1]:=cprocvardef.getreusableprocaddr(pd,pc_address_only);
           fields[2]:=voidpointertype;
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
-            targetinfos[target_info.system]^.alignment.recordalignmin);
+            targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           include(itemdef.defoptions,df_llvm_no_struct_packing);
           include(itemdef.defoptions,df_llvm_no_typename);
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
@@ -295,7 +295,7 @@ implementation
       if (m_objectivec1 in current_settings.modeswitches) then
         begin
           { Objective-C ABI version }
-          if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
+          if not(compiler.target.info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
              (MacOSXVersionMin.relationto(10,5,0)>=0) then
             objcabiversion:=2
           else

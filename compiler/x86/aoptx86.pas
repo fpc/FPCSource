@@ -33,7 +33,7 @@ unit aoptx86;
 
     uses
       globtype,cclasses,
-      cpubase,
+      cpubase,compilerbase,
       aasmtai,aasmcpu,
       cgbase,cgutils,
       aopt,aoptobj;
@@ -286,7 +286,7 @@ unit aoptx86;
 
     uses
       cutils,verbose,
-      systems,
+      systems,compiler,
       globals,
       cpuinfo,
       procinfo,
@@ -18049,6 +18049,8 @@ unit aoptx86;
 
     function TX86AsmOptimizer.PostPeepholeOptCall(var p : tai) : Boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hp1,hp3 : tai;
 {$ifndef x86_64}
         hp2 : taicpu;
@@ -18100,7 +18102,7 @@ unit aoptx86;
           begin
             if (cs_opt_level4 in current_settings.optimizerswitches) and
               { we might destroy stack alignment here if we do not do a call }
-              (target_info.stackalign<=sizeof(SizeUInt)) then
+              (compiler.target.info.stackalign<=sizeof(SizeUInt)) then
               begin
                 taicpu(p).opcode := A_JMP;
                 taicpu(p).is_jmp := true;

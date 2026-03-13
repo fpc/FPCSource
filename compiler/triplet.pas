@@ -26,74 +26,76 @@ unit triplet;
 interface
 
 uses
-  globtype;
+  globtype,compilerbase;
 
 function targettriplet(tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
-  globals,systems,
+  globals,systems,compiler,
   cpuinfo,tripletcpu;
 
   function targettriplet(tripletstyle: ttripletstyle): ansistring;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { architecture }
       result:=tripletcpustr(tripletstyle);
       { vendor and/or OS }
-      if target_info.system in systems_darwin then
+      if compiler.target.info.system in systems_darwin then
         begin
           result:=result+'-apple';
-          if target_info.system in systems_macosx then
+          if compiler.target.info.system in systems_macosx then
             result:=result+'-macosx'+MacOSXVersionMin.str
-          else if target_info.system = system_aarch64_iphonesim then
+          else if compiler.target.info.system = system_aarch64_iphonesim then
             result:=result+'-ios-simulator'+iPhoneOSVersionMin.str
           else
             result:=result+'-ios'+iPhoneOSVersionMin.str;
         end
-      else if target_info.system in (systems_linux+systems_android) then
+      else if compiler.target.info.system in (systems_linux+systems_android) then
         result:=result+'-unknown-linux'
-      else if target_info.system in systems_all_windows then
+      else if compiler.target.info.system in systems_all_windows then
         begin
           { WinCE isn't supported (yet) by llvm, but if/when added this is
             presumably how they will differentiate it }
-          if target_info.system in systems_windows then
+          if compiler.target.info.system in systems_windows then
             result:=result+'-pc';
           result:=result+'-windows-msvc19'
         end
-      else if target_info.system in systems_freebsd then
+      else if compiler.target.info.system in systems_freebsd then
         result:=result+'-unknown-freebsd'
-      else if target_info.system in systems_openbsd then
+      else if compiler.target.info.system in systems_openbsd then
         result:=result+'-unknown-openbsd'
-      else if target_info.system in systems_netbsd then
+      else if compiler.target.info.system in systems_netbsd then
         result:=result+'-unknown-netbsd'
-      else if target_info.system in systems_solaris then
+      else if compiler.target.info.system in systems_solaris then
         result:=result+'-sun-solaris2'
-      else if target_info.system in systems_aix then
+      else if compiler.target.info.system in systems_aix then
         result:=result+'-ibm-aix53'
-      else if target_info.system in [system_i386_haiku] then
+      else if compiler.target.info.system in [system_i386_haiku] then
         result:=result+'-unknown-haiku'
-      else if target_info.system in systems_embedded then
+      else if compiler.target.info.system in systems_embedded then
         result:=result+'-none'
       else
         result:=result+'-unknown';
 
       { environment/ABI }
-      if target_info.system in systems_android then
+      if compiler.target.info.system in systems_android then
         result:=result+'-android'
       else
 {$ifdef arm}
-      if target_info.abi=abi_eabihf then
+      if compiler.target.info.abi=abi_eabihf then
         result:=result+'-gnueabihf'
-      else if target_info.system in systems_embedded then
+      else if compiler.target.info.system in systems_embedded then
         result:=result+'-eabi'
-      else if target_info.abi=abi_eabi then
+      else if compiler.target.info.abi=abi_eabi then
         result:=result+'-gnueabi'
       else
 {$endif}
-      if target_info.system in systems_embedded then
+      if compiler.target.info.system in systems_embedded then
         result:=result+'-elf'
-      else if target_info.system in systems_linux then
+      else if compiler.target.info.system in systems_linux then
         result:=result+'-gnu';
     end;
 

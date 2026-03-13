@@ -249,7 +249,7 @@ unit cgcpu;
                   begin
                     if assigned(symbol) then
                       begin
-                        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+                        if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) and
                            ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                             (cs_create_pic in current_settings.moduleswitches)) then
                           begin
@@ -403,10 +403,10 @@ unit cgcpu;
            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
              list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 
-           if ((target_info.system <> system_i386_win32) or
-               (target_info.abi=abi_old_win32_gnu)) and
+           if ((compiler.target.info.system <> system_i386_win32) or
+               (compiler.target.info.abi=abi_old_win32_gnu)) and
               not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
-               (tf_safecall_exceptions in target_info.flags)) and
+               (tf_safecall_exceptions in compiler.target.info.flags)) and
               paramanager.ret_in_param(current_procinfo.procdef.returndef,
                                        current_procinfo.procdef) then
              list.concat(Taicpu.Op_const(A_RET,S_W,sizeof(aint)))
@@ -480,7 +480,7 @@ unit cgcpu;
 {$ifndef __NOWINPECOFF__}
         { windows guards only a few pages for stack growing, }
         { so we have to access every page first              }
-        if target_info.system=system_i386_win32 then
+        if compiler.target.info.system=system_i386_win32 then
           begin
              current_asmdata.getjumplabel(again);
              current_asmdata.getjumplabel(ok);
@@ -577,10 +577,10 @@ unit cgcpu;
         tmpreg: TRegister;
       begin
         { allocate PIC register }
-        if (tf_pic_uses_got in target_info.flags) and
+        if (tf_pic_uses_got in compiler.target.info.flags) and
           (pi_needs_got in current_procinfo.flags) then
           begin
-            if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+            if not (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
                 { Use ECX as a temp register by default }
                 if current_procinfo.got = NR_EBX then

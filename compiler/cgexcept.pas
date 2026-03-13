@@ -27,7 +27,7 @@ unit cgexcept;
   interface
 
     uses
-      globtype,
+      globtype,compilerbase,
       aasmbase, aasmdata,
       symtype,symdef,
       cgbase,cgutils,pass_2;
@@ -93,6 +93,7 @@ unit cgexcept;
       globals,
       systems,
       fmodule,
+      compiler,
       aasmtai,
       symconst,symtable,defutil,
       parabase,paramgr,
@@ -105,13 +106,15 @@ unit cgexcept;
 *****************************************************************************}
 
     class function tcgexceptionstatehandler.use_cleanup(const exceptframekind: texceptframekind): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { in case of an exception caught by the implicit exception frame of
           a safecall routine, this is not a cleanup frame but one that
           catches the exception and returns a value from the function }
         result:=
           (exceptframekind=tek_implicitfinally) and
-          not((tf_safecall_exceptions in target_info.flags) and
+          not((tf_safecall_exceptions in compiler.target.info.flags) and
              (current_procinfo.procdef.proccalloption=pocall_safecall));
       end;
 
@@ -283,6 +286,8 @@ unit cgexcept;
 
     class procedure tcgexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         pd: tprocdef;
         href2: treference;
         fpc_catches_res,
@@ -293,8 +298,8 @@ unit cgexcept;
       begin
         paraloc1.init;
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
-        indirect:=(tf_supports_packages in target_info.flags) and
-                    (target_info.system in systems_indirect_var_imports) and
+        indirect:=(tf_supports_packages in compiler.target.info.flags) and
+                    (compiler.target.info.system in systems_indirect_var_imports) and
                     (cs_imported_data in current_settings.localswitches) and
                     otherunit;
 

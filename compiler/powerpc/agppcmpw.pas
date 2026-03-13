@@ -829,7 +829,7 @@ interface
                         if assigned(tai_const(hp).sym) then
                           internalerror(2004042905);
                         writer.AsmWrite(ait_const2str[aitconst_32bit]);
-                        if target_info.endian = endian_little then
+                        if compiler.target.info.endian = endian_little then
                           begin
                             writer.AsmWrite(tostr(longint(lo(tai_const(hp).value))));
                             writer.AsmWrite(',');

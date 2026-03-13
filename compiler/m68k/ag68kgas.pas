@@ -68,7 +68,7 @@ interface
       const
         MachineArgNewOld: array[boolean] of string = ('-march=','-m');
       begin
-        result:=MachineArgNewOld[target_info.system in [system_m68k_amiga,system_m68k_palmos]]+GasCpuTypeStr[current_settings.cputype];
+        result:=MachineArgNewOld[compiler.target.info.system in [system_m68k_amiga,system_m68k_palmos]]+GasCpuTypeStr[current_settings.cputype];
       end;
 
  {****************************************************************************}
@@ -125,7 +125,7 @@ interface
                 s:=s+symbol.name;
                 if (offset <> 0) then
                   s:=s+tostr_with_plus(offset);
-                if (target_info.system = system_m68k_palmos) and (symbol.typ = AT_DATA) then
+                if (compiler.target.info.system = system_m68k_palmos) and (symbol.typ = AT_DATA) then
                   s:=s+'@END';
               end
             else

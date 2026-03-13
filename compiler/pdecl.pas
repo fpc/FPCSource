@@ -1366,7 +1366,7 @@ implementation
          pw : tcompilerwidestring;
 
       begin
-         if target_info.system in systems_managed_vm then
+         if compiler.target.info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
          parser.pbase.consume(_RESOURCESTRING);
          if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then

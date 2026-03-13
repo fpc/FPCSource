@@ -122,7 +122,7 @@ unit cpugas;
       begin
          result := Inherited MakeCmdLine;
          { ABI selection }
-         Replace(result,'$ABI','-mabi='+gas_abitype(target_info.abi));
+         Replace(result,'$ABI','-mabi='+gas_abitype(compiler.target.info.abi));
          { float selection }
          Replace(result,'$FLOATABI',gas_float_option(current_settings.fputype));
          { ARCH selection }

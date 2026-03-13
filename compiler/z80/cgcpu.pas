@@ -2214,13 +2214,13 @@ unit cgcpu;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.stackalign>sizeof(pint)) and
+               ((compiler.target.info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if target_info.stackalign>sizeof(pint) then
-                  localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
+                if compiler.target.info.stackalign>sizeof(pint) then
+                  localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
@@ -2247,13 +2247,13 @@ unit cgcpu;
         if not nostackframe then
           begin
             stacksize:=current_procinfo.calc_stackframe_size;
-            if (target_info.stackalign>4) and
+            if (compiler.target.info.stackalign>4) and
                ((stacksize <> 0) or
                 (pi_do_call in current_procinfo.flags) or
                 { can't detect if a call in this case -> use nostackframe }
                 { if you (think you) know what you are doing              }
                 (po_assembler in current_procinfo.procdef.procoptions)) then
-              stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
+              stacksize := align(stacksize+sizeof(aint),compiler.target.info.stackalign) - sizeof(aint);
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 if stacksize<>0 then

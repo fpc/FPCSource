@@ -26,7 +26,7 @@ unit t_win;
 interface
 
     uses
-       cutils,cclasses,
+       cutils,cclasses,compilerbase,
        aasmbase,aasmtai,aasmdata,aasmcpu,fmodule,globtype,globals,systems,verbose,
        symconst,symdef,symsym,
        cscript,gendef,
@@ -95,7 +95,7 @@ implementation
 
   uses
     SysUtils,
-    cfileutl,
+    cfileutl,compiler,
     cgutils,dbgbase,
     owar,ogbase
 {$ifdef SUPPORT_OMF}
@@ -131,10 +131,12 @@ implementation
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       hp           : tmodule;
       linkcygwin : boolean;
     begin
-      if target_info.system=system_i386_win32 then
+      if compiler.target.info.system=system_i386_win32 then
         begin
           linkcygwin := false;
           hp:=tmodule(loaded_units.first);
@@ -152,7 +154,7 @@ implementation
           else
             linker.sysinitunit:='sysinitpas';
         end
-      else if target_info.system in [system_x86_64_win64,system_aarch64_win64] then
+      else if compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64] then
         linker.sysinitunit:='sysinit';
     end;
 
@@ -162,6 +164,8 @@ implementation
 *****************************************************************************}
 
     procedure TImportLibWin.generateimportlib;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         ObjWriter        : tarobjectwriter;
         ObjOutput        : TPECoffObjOutput;
@@ -188,7 +192,7 @@ implementation
               s:=asmprefix+tostr(SmartHeaderCount)+'t';
           end;
           inc(SmartFilesCount);
-          result:=ObjOutput.NewObjData(FixFileName(s+tostr(SmartFilesCount)+target_info.objext));
+          result:=ObjOutput.NewObjData(FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.objext));
           ObjOutput.startobjectfile(Result.Name);
         end;
 
@@ -252,12 +256,12 @@ implementation
           { idata4 }
           objdata.SetSection(idata4objsection);
           objdata.writebytes(emptyint,sizeof(emptyint));
-          if target_info.system in systems_peoptplus then
+          if compiler.target.info.system in systems_peoptplus then
             objdata.writebytes(emptyint,sizeof(emptyint));
           { idata5 }
           objdata.SetSection(idata5objsection);
           objdata.writebytes(emptyint,sizeof(emptyint));
-          if target_info.system in systems_peoptplus then
+          if compiler.target.info.system in systems_peoptplus then
             objdata.writebytes(emptyint,sizeof(emptyint));
           { idata7 }
           objdata.SetSection(idata7objsection);
@@ -316,14 +320,14 @@ implementation
               begin
                 { import by name }
                 objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-                if target_info.system in systems_peoptplus then
+                if compiler.target.info.system in systems_peoptplus then
                   objdata.writebytes(emptyint,sizeof(emptyint));
               end
             else
               begin
                 { import by ordinal }
                 ordint:=ordnr;
-                if target_info.system in systems_peoptplus then
+                if compiler.target.info.system in systems_peoptplus then
                   begin
                     objdata.writeUInt32LE(ordint);
                     ordint:=$80000000;
@@ -427,6 +431,8 @@ implementation
 
     procedure TImportLibWin.generateidatasection;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          templab,
          l1,l2,l3,l4 {$ifdef ARM} ,l5 {$endif ARM} : tasmlabel;
          importname : string;
@@ -496,12 +502,12 @@ implementation
                 if ImportSymbol.Name<>'' then
                   begin
                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(ImportLabels[j])));
-                    if target_info.system in systems_peoptplus then
+                    if compiler.target.info.system in systems_peoptplus then
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
                   end
                 else
                   begin
-                    if target_info.system in systems_peoptplus then
+                    if compiler.target.info.system in systems_peoptplus then
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_64bit(int64($8000000000000000) or ImportSymbol.ordnr))
                     else
                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or ImportSymbol.ordnr));
@@ -509,7 +515,7 @@ implementation
               end;
             { finalize the names ... }
             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
-            if target_info.system in systems_peoptplus then
+            if compiler.target.info.system in systems_peoptplus then
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
             { then the addresses and create also the indirect jump }
@@ -585,12 +591,12 @@ implementation
                 else
                   current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0,voidpointertype));
                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(Importlabels[j])));
-                if target_info.system in systems_peoptplus then
+                if compiler.target.info.system in systems_peoptplus then
                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
               end;
             { finalize the addresses }
             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
-            if target_info.system in systems_peoptplus then
+            if compiler.target.info.system in systems_peoptplus then
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
             { finally the import information }
@@ -712,6 +718,8 @@ implementation
 
     procedure TExportLibWin.generatelib;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          ordinal_base,ordinal_max,ordinal_min : longint;
          current_index : longint;
          entries,named_entries : longint;
@@ -831,9 +839,9 @@ implementation
          { the name }
          current_asmdata.asmlists[al_exports].concat(Tai_label.Create(dll_name_label));
          if st='' then
-           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(current_module.modulename^+target_info.sharedlibext+#0))
+           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(current_module.modulename^+compiler.target.info.sharedlibext+#0))
          else
-           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(st+target_info.sharedlibext+#0));
+           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(st+compiler.target.info.sharedlibext+#0));
 
          {  export address table }
          address_table:=TAsmList.create;
@@ -963,6 +971,8 @@ implementation
 
 
     procedure TInternalLinkerWin.DefaultLinkScript;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         ScriptAddSourceStatements(true);
         with LinkScript do
@@ -975,7 +985,7 @@ implementation
                 if IsSharedLibrary then
                   imagebase:={$ifdef cpu64bitaddr} $110000000 {$else} $10000000 {$endif}
                 else
-                  if target_info.system in systems_wince then
+                  if compiler.target.info.system in systems_wince then
                     imagebase:=$10000
                   else
 {$ifdef cpu64bitaddr}
@@ -1020,7 +1030,7 @@ implementation
             Concat('  SYMBOL __data_start__');
             Concat('  OBJSECTION .data*');
             Concat('  OBJSECTION .fpc*');
-            Concat('  PROVIDE '+target_info.Cprefix+'_tls_index');
+            Concat('  PROVIDE '+compiler.target.info.Cprefix+'_tls_index');
             Concat('  LONG 0');
             Concat('  SYMBOL edata');
             Concat('  SYMBOL __data_end__');
@@ -1172,6 +1182,8 @@ implementation
 
 
     Function TExternalLinkerWin.WriteResponseFile(isdll:boolean) : Boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       Var
         linkres : TLinkRes;
         HPath   : TCmdStrListItem;
@@ -1239,14 +1251,14 @@ implementation
                While not SharedLibFiles.Empty do
                 begin
                   S:=SharedLibFiles.GetFirst;
-                  if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+                  if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
                     begin
                       Add(MaybeQuoted(s2));
                       continue;
                     end;
-                  if pos(target_info.sharedlibprefix,s)=1 then
-                    s:=copy(s,length(target_info.sharedlibprefix)+1,255);
-                  i:=Pos(target_info.sharedlibext,S);
+                  if pos(compiler.target.info.sharedlibprefix,s)=1 then
+                    s:=copy(s,length(compiler.target.info.sharedlibprefix)+1,255);
+                  i:=Pos(compiler.target.info.sharedlibext,S);
                   if i>0 then
                    Delete(S,i,255);
                   Add('-l'+s);
@@ -1305,7 +1317,7 @@ implementation
             Add('    *(.data2)');
             Add('    *(SORT(.data$*))');
             Add('    *(.jcr)');
-            Add('    PROVIDE ('+target_info.Cprefix+'_tls_index = .);');
+            Add('    PROVIDE ('+compiler.target.info.Cprefix+'_tls_index = .);');
             Add('    LONG (0);');
             Add('    __data_end__ = . ;');
             Add('    *(.data_cygwin_nocopy)');
@@ -1408,6 +1420,8 @@ implementation
 
     function TExternalLinkerWin.MakeExecutable:boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         MapStr,
         binstr,
         cmdstr  : TCmdStr;
@@ -1441,7 +1455,7 @@ implementation
           RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
           GCSectionsStr:='--gc-sections';
-        if target_info.system in systems_wince then
+        if compiler.target.info.system in systems_wince then
           AppTypeStr:='--subsystem wince'
         else
           begin
@@ -1620,6 +1634,8 @@ implementation
 
 
     function TExternalLinkerWin.postprocessexecutable(const fn : string;isdll:boolean):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         tdosheader = packed record
            e_magic : word;
@@ -1679,7 +1695,7 @@ implementation
              cmdstr:=cmdstr+' --version '+dllversion;
            cmdstr:=cmdstr+' --input '+maybequoted(fn);
            cmdstr:=cmdstr+' --stack '+tostr(stacksize);
-           if target_info.system in [system_i386_win32, system_i386_wdosx] then
+           if compiler.target.info.system in [system_i386_win32, system_i386_wdosx] then
              DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
            postprocessexecutable:=true;
            exit;
@@ -1692,7 +1708,7 @@ implementation
           Message1(execinfo_f_cant_open_executable,fn);
         { read headers }
         blockread(f,dosheader,sizeof(tdosheader));
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           dosheader.e_lfanew:=SwapEndian(dosheader.e_lfanew);
         peheaderpos:=dosheader.e_lfanew;
         { skip to headerpos and skip pe magic }
@@ -1721,7 +1737,7 @@ implementation
         { gui=2 }
         { cui=3 }
         { wincegui=9 }
-        if target_info.system in systems_wince then
+        if compiler.target.info.system in systems_wince then
           peoptheader.Subsystem:=9
         else
           case apptype of
@@ -1842,17 +1858,19 @@ implementation
 
     function TDLLScannerWin.scan(const binname:string):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs,
         dllname : TCmdStr;
       begin
         result:=false;
         { is there already an import library the we will use that one }
-        if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
+        if FindLibraryFile(binname,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,hs) then
           exit;
         { check if we can find the dll }
         hs:=binname;
         if ExtractFileExt(hs)='' then
-          hs:=ChangeFileExt(hs,target_info.sharedlibext);
+          hs:=ChangeFileExt(hs,compiler.target.info.sharedlibext);
         if not FindDll(hs,dllname) then
           exit;
         importfound:=false;

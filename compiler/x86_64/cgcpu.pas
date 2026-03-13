@@ -28,7 +28,7 @@ unit cgcpu;
     uses
        cgbase,cgutils,cgobj,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       cpubase,parabase,
+       cpubase,parabase,compilerbase,
        symdef,
        symconst,rgx86,procinfo;
 
@@ -59,7 +59,7 @@ unit cgcpu;
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,cclasses,
+       globtype,globals,verbose,systems,cutils,cclasses,compiler,
        cpuinfo,
        symtable,paramgr,cpupi,
        rgcpu,ncgutil;
@@ -135,7 +135,7 @@ unit cgcpu;
         regs_to_save_mm: tcpuregisterarray;
       begin
         result:=0;
-        if (target_info.system<>system_x86_64_win64) or
+        if (compiler.target.info.system<>system_x86_64_win64) or
            (not uses_registers(R_MMREGISTER)) then
           exit;
         regs_to_save_mm:=paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption);
@@ -165,7 +165,7 @@ unit cgcpu;
       procedure push_one_reg(reg: tregister);
         begin
           list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],reg));
-          if (target_info.system=system_x86_64_win64) then
+          if (compiler.target.info.system=system_x86_64_win64) then
             begin
               list.concat(cai_seh_directive.create_reg(ash_pushreg,reg));
               include(current_procinfo.flags,pi_has_unwind_info);
@@ -252,25 +252,25 @@ unit cgcpu;
             xmmsize:=saved_xmm_reg_size;
             if use_push and (xmmsize<>0) then
               begin
-                localsize:=align(localsize,target_info.stackalign)+xmmsize;
+                localsize:=align(localsize,compiler.target.info.stackalign)+xmmsize;
                 reference_reset_base(current_procinfo.save_regs_ref,NR_STACK_POINTER_REG,
                   localsize-xmmsize,ctempposinvalid,tcgsize2size[OS_VECTOR],[]);
               end;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.stackalign>sizeof(pint)) and
+               ((compiler.target.info.stackalign>sizeof(pint)) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if target_info.stackalign>sizeof(pint) then
-                  localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
+                if compiler.target.info.stackalign>sizeof(pint) then
+                  localsize := align(localsize+stackmisalignment,compiler.target.info.stackalign)-stackmisalignment;
                 g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,regsize+localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
-                if (target_info.system=system_x86_64_win64) then
+                if (compiler.target.info.system=system_x86_64_win64) then
                   begin
                     if localsize<>0 then
                       list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
@@ -410,7 +410,7 @@ unit cgcpu;
                       list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                     current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
                   end
-                else if (target_info.system=system_x86_64_win64) then
+                else if (compiler.target.info.system=system_x86_64_win64) then
                   begin
                     { Comply with Win64 unwinding mechanism, which only recognizes
                       'add $constant,%rsp' and 'lea offset(FPREG),%rsp' as belonging to
@@ -462,7 +462,7 @@ unit cgcpu;
         href: treference;
         pd: tprocdef;
       begin
-        if (target_info.system<>system_x86_64_win64) then
+        if (compiler.target.info.system<>system_x86_64_win64) then
           begin
             inherited g_local_unwind(list,l);
             exit;
@@ -549,13 +549,15 @@ unit cgcpu;
         if assigned(current_procinfo) then
           use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption)
         else
-          use_ms_abi:=target_info.system=system_x86_64_win64;
+          use_ms_abi:=compiler.target.info.system=system_x86_64_win64;
       end;
 
 
     procedure create_codegen;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        cg:=tcgx86_64.create;
+        cg:=tcgx86_64.create(compiler);
         cg128:=tcg128.create;
       end;
 

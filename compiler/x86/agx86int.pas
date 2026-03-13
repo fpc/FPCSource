@@ -29,7 +29,7 @@ unit agx86int;
 interface
 
     uses
-      cpubase,constexp,
+      cpubase,constexp,compilerbase,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
@@ -54,7 +54,7 @@ implementation
 
     uses
       SysUtils,math,
-      cutils,globtype,globals,systems,cclasses,
+      cutils,globtype,globals,systems,cclasses,compiler,
       verbose,cscript,cpuinfo,
       itx86int,
       cgbase
@@ -511,6 +511,8 @@ implementation
 
     procedure tx86IntelAssembler.WriteTree(p:TAsmList);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       s,
       prefix,
       suffix   : string;
@@ -734,7 +736,7 @@ implementation
                               end;
                        end; { end for i:=0 to... }
                      if quoted then writer.AsmWrite('"');
-                       writer.AsmWrite(target_info.newline);
+                       writer.AsmWrite(compiler.target.info.newline);
                      counter := counter+line_length;
                   end; { end for j:=0 ... }
                 { do last line of lines }

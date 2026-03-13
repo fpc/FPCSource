@@ -62,7 +62,7 @@ implementation
       restbits: byte;
     begin
       { the code below is only valid for big endian }
-      if target_info.endian=endian_little then
+      if compiler.target.info.endian=endian_little then
         begin
          inherited;
          exit
@@ -130,16 +130,16 @@ implementation
         { use R12 for dispatch because most ABIs don't care and ELFv2
           requires it }
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
-        if (target_info.system in systems_aix) or (target_info.system = system_powerpc64_freebsd) or
-           ((target_info.system = system_powerpc64_linux) and
-            (target_info.abi=abi_powerpc_sysv)) then
+        if (compiler.target.info.system in systems_aix) or (compiler.target.info.system = system_powerpc64_freebsd) or
+           ((compiler.target.info.system = system_powerpc64_linux) and
+            (compiler.target.info.abi=abi_powerpc_sysv)) then
           begin
             reference_reset_base(href, voidpointertype, NR_R12, 0, ctempposinvalid, sizeof(pint),[]);
             cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R12);
           end;
         list.concat(taicpu.op_reg(A_MTCTR,NR_R12));
         list.concat(taicpu.op_none(A_BCTR));
-        if (target_info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then
+        if (compiler.target.info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then
           list.concat(taicpu.op_none(A_NOP));
       end;
 
@@ -179,7 +179,7 @@ implementation
         end
       { case 0 }
       else
-        case target_info.system of
+        case compiler.target.info.system of
           system_powerpc_darwin,
           system_powerpc64_darwin:
             list.concat(taicpu.op_sym(A_B,tcgppcgen(cg).get_darwin_call_stub(procdef.mangledname,false)));
@@ -190,7 +190,7 @@ implementation
                 list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname,AT_FUNCTION)))
               else
                 list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
-              if (target_info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then
+              if (compiler.target.info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then
                 list.concat(taicpu.op_none(A_NOP));
             end;
         end;
@@ -202,7 +202,7 @@ implementation
     var
       href : treference;
     begin
-      if not(target_info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then begin
+      if not(compiler.target.info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then begin
         inherited;
         exit;
       end;
@@ -225,7 +225,7 @@ implementation
 
       }
       list.concat(taicpu.op_reg(A_MFLR, NR_R0));
-      if target_info.abi=abi_powerpc_sysv then
+      if compiler.target.info.abi=abi_powerpc_sysv then
         reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, [])
       else
         reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, ctempposinvalid, 8, []);
@@ -238,7 +238,7 @@ implementation
       list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, MINIMUM_STACKFRAME_SIZE));
 
 
-      if target_info.abi=abi_powerpc_sysv then
+      if compiler.target.info.abi=abi_powerpc_sysv then
         reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, [])
       else
         reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, ctempposinvalid, 8, []);

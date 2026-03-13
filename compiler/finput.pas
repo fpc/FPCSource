@@ -200,7 +200,7 @@ uses
 {$endif heaptrc}
 {$endif not GENERIC_CPU}
   cfileutl,
-  Globals,Systems
+  Globals,Systems,Compiler
   ;
 
 
@@ -615,15 +615,15 @@ uses
                  p:=OutputExeDir;
            end;
          outputpath:=p;
-         asmfilename:=p+n+target_info.asmext;
-         objfilename:=p+n+target_info.objext;
-         ppufilename:=p+n+target_info.unitext;
+         asmfilename:=p+n+compiler.target.info.asmext;
+         objfilename:=p+n+compiler.target.info.objext;
+         ppufilename:=p+n+compiler.target.info.unitext;
 {$ifdef DEBUG_NODE_XML}
          ppxfilename:=p+n+'-node-dump.xml';
 {$endif DEBUG_NODE_XML}
-         importlibfilename:=p+target_info.importlibprefix+n+target_info.importlibext;
-         staticlibfilename:=p+target_info.staticlibprefix+n+target_info.staticlibext;
-         exportfilename:=p+'exp'+n+target_info.objext;
+         importlibfilename:=p+compiler.target.info.importlibprefix+n+compiler.target.info.importlibext;
+         staticlibfilename:=p+compiler.target.info.staticlibprefix+n+compiler.target.info.staticlibext;
+         exportfilename:=p+'exp'+n+compiler.target.info.objext;
 
          { output dir of exe can be specified separately }
          if AllowOutput and (OutputExeDir<>'') then
@@ -641,16 +641,16 @@ uses
            end
          else
            begin
-             exefilename:=p+n+target_info.exeext;
+             exefilename:=p+n+compiler.target.info.exeext;
              if Assigned(OutputPrefix) then
                prefix := OutputPrefix^
              else
-               prefix := target_info.sharedlibprefix;
+               prefix := compiler.target.info.sharedlibprefix;
              if Assigned(OutputSuffix) then
                suffix := OutputSuffix^
              else
                suffix := '';
-             sharedlibfilename:=p+prefix+n+suffix+target_info.sharedlibext;
+             sharedlibfilename:=p+prefix+n+suffix+compiler.target.info.sharedlibext;
            end;
          mapfilename:=p+n+'.map';
          dbgfilename:=p+n+'.dbg';

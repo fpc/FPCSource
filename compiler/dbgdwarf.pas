@@ -40,7 +40,7 @@ unit dbgdwarf;
 interface
 
     uses
-      cclasses,globtype,
+      cclasses,globtype,compilerbase,
       cgbase,
       aasmbase,aasmtai,aasmdata,
       symbase,symconst,symtype,symdef,symsym,
@@ -269,7 +269,7 @@ implementation
 
     uses
       sysutils,cutils,cfileutl,constexp,
-      version,globals,verbose,systems,
+      version,globals,verbose,systems,compiler,
       cpubase,cpuinfo,paramgr,
       fmodule,
       defutil,symtable,symcpu,ppu
@@ -629,22 +629,24 @@ implementation
 
 
     procedure TDebugInfoDwarf.set_use_64bit_headers(state: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          _use_64bit_headers:=state;
          if not(state) then
            begin
-             if (target_info.system in systems_windows+systems_wince) then
+             if (compiler.target.info.system in systems_windows+systems_wince) then
                offsetabstype:=aitconst_secrel32_symbol
              else
                offsetabstype:=aitconst_32bit_unaligned;
-             if (target_info.system in systems_darwin) then
+             if (compiler.target.info.system in systems_darwin) then
                 offsetreltype:=aitconst_darwin_dwarf_delta32
               else
                 offsetreltype:=aitconst_32bit_unaligned;
            end
          else
            begin
-             if (target_info.system in systems_darwin) then
+             if (compiler.target.info.system in systems_darwin) then
                 offsetreltype:=aitconst_darwin_dwarf_delta64
              else
                offsetreltype:=aitconst_64bit_unaligned;
@@ -654,6 +656,8 @@ implementation
 
 
     function TDebugInfoDwarf.get_def_dwarf_labs(def:tdef): PDwarfHashSetItem;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         needstructdeflab: boolean;
       begin
@@ -670,7 +674,7 @@ implementation
             { Mark as initialised }
             result^.HashSetItem.Data:=self;
             needstructdeflab:=is_implicit_pointer_object_type(def);
-            if not(tf_dwarf_only_local_labels in target_info.flags) then
+            if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
               begin
                 if (ds_dwarf_dbg_info_written in def.defstates) then
                   begin
@@ -1015,9 +1019,11 @@ implementation
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         AddConstToAbbrev(ord(attr));
-        if not(tf_dwarf_only_local_labels in target_info.flags) then
+        if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
           append_labelentry_addr_ref(sym)
         else
           begin
@@ -1153,6 +1159,8 @@ implementation
 
 
     procedure TDebugInfoDwarf.append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         {
           used for writing dwarf lineptr, loclistptr, macptr and rangelistptr classes as FORM_dataN
@@ -1160,7 +1168,7 @@ implementation
           Must be relative to another symbol on tf_dwarf_relative_addresses
           targets
         }
-        if (tf_dwarf_relative_addresses in target_info.flags) then
+        if (tf_dwarf_relative_addresses in compiler.target.info.flags) then
           { use append_labelentry_dataptr_rel instead }
           internalerror(2007020210);
         append_labelentry_dataptr_common(attr);
@@ -1442,6 +1450,8 @@ implementation
       end;
 
     procedure TDebugInfoDwarf.appenddef_float(list:TAsmList;def:tfloatdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case def.floattype of
           s32real,
@@ -1463,7 +1473,7 @@ implementation
                         of the high order bit of a value of the given type
                         from the high order bit of the storage unit used to
                         contain that value." }
-                    if target_info.endian=endian_little then
+                    if compiler.target.info.endian=endian_little then
                       append_attribute(DW_AT_bit_offset,DW_FORM_data1,[(def.size-10)*8]);
                   end;
               end
@@ -1699,6 +1709,8 @@ implementation
 
 
     procedure TDebugInfoDwarf.appenddef_string(list:TAsmList;def:tstringdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure addnormalstringdef(const name: shortstring; lendef: tdef; maxlen: asizeuint);
         var
@@ -1715,7 +1727,7 @@ implementation
             slen:=maxlen;
 {$pop}
           { create a structure with two elements }
-          if not(tf_dwarf_only_local_labels in target_info.flags) then
+          if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
             current_asmdata.getglobaldatalabel(arr)
           else
             current_asmdata.getaddrlabel(arr);
@@ -1813,6 +1825,8 @@ implementation
       end;
 
     procedure TDebugInfoDwarf.appenddef_procvar(list:TAsmList;def:tprocvardef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure doappend;
         var
@@ -1851,7 +1865,7 @@ implementation
         if not def.is_addressonly then
           begin
             { create a structure with two elements }
-            if not(tf_dwarf_only_local_labels in target_info.flags) then
+            if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
               current_asmdata.getglobaldatalabel(proc)
             else
               current_asmdata.getaddrlabel(proc);
@@ -2006,6 +2020,8 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendprocdef(list:TAsmList; def:tprocdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function dwarf_calling_convention(def: tprocdef): Tdwarf_calling_convention;
         begin
@@ -2166,7 +2182,7 @@ implementation
             append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
-            if not(target_info.system in systems_darwin) then
+            if not(compiler.target.info.system in systems_darwin) then
               begin
                 current_asmdata.asmlists[al_dwarf_aranges].Concat(
                   tai_const.create_type_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry,AT_FUNCTION)));
@@ -2350,6 +2366,8 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; const flags: tdwarfvarsymflags);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         templist : TAsmList;
         blocksize,size_of_int : longint;
         tag : tdwarf_tag;
@@ -2437,7 +2455,7 @@ implementation
                 staticvarsym:
                   begin
                     if (vo_is_thread_var in sym.varoptions) and
-                       (not (target_info.system in systems_wasm) or
+                       (not (compiler.target.info.system in systems_wasm) or
                             (ts_wasm_threads in current_settings.targetswitches)) then
                       begin
 {$ifdef wasm}
@@ -2449,7 +2467,7 @@ implementation
                         templist.concat(tai_const.create_8bit(ord(DW_OP_plus)));
                         blocksize:=4+2*sizeof(puint);
 {$else wasm}
-                        if tf_section_threadvars in target_info.flags then
+                        if tf_section_threadvars in compiler.target.info.flags then
                           begin
                             case sizeof(puint) of
                               2:
@@ -2465,10 +2483,10 @@ implementation
 {$warn 6018 off}            { Unreachable code due to compile time evaluation }
                             templist.concat(tai_const.Create_type_name(aitconst_dtpoff,sym.mangledname,0));
                             { so far, aitconst_dtpoff is solely 32 bit }
-                            if (sizeof(puint)=8) and (target_info.endian=endian_little) then
+                            if (sizeof(puint)=8) and (compiler.target.info.endian=endian_little) then
                               templist.concat(tai_const.create_32bit(0));
                             templist.concat(tai_const.create_8bit(ord(DW_OP_GNU_push_tls_address)));
-                            if (sizeof(puint)=8) and (target_info.endian=endian_big) then
+                            if (sizeof(puint)=8) and (compiler.target.info.endian=endian_big) then
                               templist.concat(tai_const.create_32bit(0));
 {$pop}
 
@@ -2682,6 +2700,8 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         bitoffset,
         fieldoffset,
         fieldnatsize: asizeint;
@@ -2720,7 +2740,7 @@ implementation
             fieldoffset:=(sym.fieldoffset div (fieldnatsize*8)) * fieldnatsize;
             inc(fieldoffset,offset);
             bitoffset:=sym.fieldoffset mod (fieldnatsize*8);
-            if (target_info.endian=endian_little) then
+            if (compiler.target.info.endian=endian_little) then
               bitoffset:=(fieldnatsize*8)-bitoffset-sym.vardef.packedbitsize;
             append_entry(DW_TAG_member,false,[
               DW_AT_name,DW_FORM_string,symname(sym, false)+#0,
@@ -2749,6 +2769,8 @@ implementation
     end;
 
     procedure TDebugInfoDwarf.appendsym_const_member(list:TAsmList;sym:tconstsym;ismember:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,
         size: aint;
@@ -2836,7 +2858,7 @@ implementation
               while (i<size) do
                 begin
                   b:=pbyte(sym.value.valueptr+i)^;
-                  if (target_info.endian<>source_info.endian) then
+                  if (compiler.target.info.endian<>source_info.endian) then
                     b:=reverse_byte(b);
 		  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(b));
                   inc(i);
@@ -3053,6 +3075,8 @@ implementation
 
     procedure TDebugInfoDwarf.insertmoduleinfo;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         templist: TAsmList;
         linelist: TAsmList;
         lbl   : tasmlabel;
@@ -3062,7 +3086,7 @@ implementation
         flist : TFPList;
         dbgname : TSymStr;
       begin
-        if not (target_info.system in systems_wasm) then
+        if not (compiler.target.info.system in systems_wasm) then
           begin
             { insert DEBUGSTART and DEBUGEND labels }
             dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
@@ -3071,20 +3095,20 @@ implementation
               make them local; we don't need the debugtable stuff there either,
               so it doesn't matter that they are not global.
             }
-            if (target_info.system in systems_darwin) then
+            if (compiler.target.info.system in systems_darwin) then
               dbgname:='L'+dbgname;
             new_section(current_asmdata.asmlists[al_start],sec_code,dbgname,0,secorder_begin);
-            if not(target_info.system in systems_darwin) then
+            if not(compiler.target.info.system in systems_darwin) then
               current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,voidpointertype))
             else
               current_asmdata.asmlists[al_start].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,voidpointertype));
 
             dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
             { See above. }
-            if (target_info.system in systems_darwin) then
+            if (compiler.target.info.system in systems_darwin) then
               dbgname:='L'+dbgname;
             new_section(current_asmdata.asmlists[al_end],sec_code,dbgname,0,secorder_end);
-            if not(target_info.system in systems_darwin) then
+            if not(compiler.target.info.system in systems_darwin) then
               current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_METADATA,0,voidpointertype))
             else
               current_asmdata.asmlists[al_end].concat(tai_symbol.Createname(dbgname,AT_METADATA,0,voidpointertype));
@@ -3240,6 +3264,8 @@ implementation
 
     procedure TDebugInfoDwarf.inserttypeinfo;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         storefilepos  : tfileposinfo;
         lenstartlabel,arangestartlabel: tasmlabel;
         i : longint;
@@ -3282,7 +3308,7 @@ implementation
         { start abbrev section }
         new_section(current_asmdata.asmlists[al_dwarf_abbrev],sec_debug_abbrev,'',0);
 
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           begin
             { start aranges section }
             new_section(current_asmdata.asmlists[al_dwarf_aranges],sec_debug_aranges,'',0);
@@ -3298,7 +3324,7 @@ implementation
 
             current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_16bit_unaligned(2));
 
-            if not(tf_dwarf_relative_addresses in target_info.flags) then
+            if not(tf_dwarf_relative_addresses in compiler.target.info.flags) then
               current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_type_sym(offsetabstype,
                 current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_info0',AB_LOCAL,AT_METADATA,voidpointertype)))
             else
@@ -3337,7 +3363,7 @@ implementation
         { version }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(dwarf_version));
         { abbrev table (=relative from section start)}
-        if not(tf_dwarf_relative_addresses in target_info.flags) then
+        if not(tf_dwarf_relative_addresses in compiler.target.info.flags) then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
             current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,voidpointertype)))
         else
@@ -3377,7 +3403,7 @@ implementation
 {$endif i8086}
 
         { reference to line info section }
-        if not(tf_dwarf_relative_addresses in target_info.flags) then
+        if not(tf_dwarf_relative_addresses in compiler.target.info.flags) then
           append_labelentry_dataptr_abs(DW_AT_stmt_list,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_line0',AB_LOCAL,AT_METADATA,voidpointertype))
         else
           append_labelentry_dataptr_rel(DW_AT_stmt_list,
@@ -3387,7 +3413,7 @@ implementation
         if (m_objectivec1 in current_settings.modeswitches) then
           append_attribute(DW_AT_APPLE_major_runtime_vers,DW_FORM_data1,[1]);
 
-        if target_info.system in systems_wasm then
+        if compiler.target.info.system in systems_wasm then
           begin
             append_attribute(DW_AT_low_pc,DW_FORM_data4,[0]);
             { todo: append DW_AT_ranges }
@@ -3395,7 +3421,7 @@ implementation
         else
           begin
             dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
-            if (target_info.system in systems_darwin) then
+            if (compiler.target.info.system in systems_darwin) then
               begin
                 bind:=AB_LOCAL;
                 dbgname:='L'+dbgname;
@@ -3404,7 +3430,7 @@ implementation
               bind:=AB_GLOBAL;
             append_labelentry(DW_AT_low_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
             dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
-            if (target_info.system in systems_darwin) then
+            if (compiler.target.info.system in systems_darwin) then
               dbgname:='L'+dbgname;
             append_labelentry(DW_AT_high_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
           end;
@@ -3447,7 +3473,7 @@ implementation
         { end of abbrev table }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
 
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           begin
             { end of aranges table }
 {$ifdef i8086}
@@ -3487,11 +3513,13 @@ implementation
 
     procedure TDebugInfoDwarf.referencesections(list:TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hp : tmodule;
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
         { to prevent eliminating them by smartlinking                 }
-        if (target_info.system in ([system_powerpc_macosclassic]+systems_darwin+systems_wasm)) then
+        if (compiler.target.info.system in ([system_powerpc_macosclassic]+systems_darwin+systems_wasm)) then
           exit;
         new_section(list,sec_fpc,'links',0);
 
@@ -3566,6 +3594,8 @@ implementation
 
 
     procedure TDebugInfoDwarf.insertlineinfo(list:TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
@@ -3688,7 +3718,7 @@ implementation
                          same goes for Solaris native assembler
                          ... and riscv }
 
-                       (target_info.system in systems_darwin+[system_riscv32_linux,system_riscv64_linux,
+                       (compiler.target.info.system in systems_darwin+[system_riscv32_linux,system_riscv64_linux,
                                                               system_riscv32_embedded,system_riscv64_embedded,
                                                               system_riscv32_freertos]) or
                        (target_asm.id=as_solaris_as) then
@@ -3775,7 +3805,7 @@ implementation
         { end sequence }
         if haslineinfo or
            { WasmTime doesn't like it when we emit an end sequence without any previous lines }
-           not (target_info.system in systems_wasm) then
+           not (compiler.target.info.system in systems_wasm) then
           begin
             asmline.concat(tai_const.Create_8bit(DW_LNS_extended_op));
             asmline.concat(tai_const.Create_8bit(1));
@@ -3849,10 +3879,12 @@ implementation
       end;
 
     procedure TDebugInfoDwarf2.append_object_struct(def: tobjectdef; const createlabel: boolean; const objectname: PShortString);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if createlabel then
           begin
-            if not(tf_dwarf_only_local_labels in target_info.flags) then
+            if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
               current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
             else
               current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
@@ -3959,6 +3991,8 @@ implementation
 
     procedure TDebugInfoDwarf2.appenddef_set_intern(list:TAsmList;def: tsetdef; force_tag_set: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         lab: tasmlabel;
       begin
         if force_tag_set or
@@ -3977,7 +4011,7 @@ implementation
                 ]);
             if assigned(def.elementdef) then
               begin
-                if not(tf_dwarf_only_local_labels in target_info.flags) then
+                if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
                   current_asmdata.getglobaldatalabel(lab)
                 else
                   current_asmdata.getaddrlabel(lab);
@@ -4116,6 +4150,8 @@ implementation
 
 
     procedure tdebuginfodwarf3.appenddef_string(list: tasmlist; def: tstringdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure addstringdef(const name: shortstring; chardef: tdef; deref: boolean; lensize: aint);
         var
@@ -4155,7 +4191,7 @@ implementation
           { now the information about the length of the string }
           if deref then
             begin
-              if not (is_widestring(def) and (tf_winlikewidestring in target_info.flags)) then
+              if not (is_widestring(def) and (tf_winlikewidestring in compiler.target.info.flags)) then
                 upperopcodes:=14
               else
                 upperopcodes:=17;
@@ -4289,6 +4325,8 @@ implementation
       end;
 
     procedure TDebugInfoDwarf3.appenddef_object(list:TAsmList;def: tobjectdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure dostruct(tag: tdwarf_tag);
         begin
@@ -4321,7 +4359,7 @@ implementation
         var
           obj : tasmlabel;
         begin
-          if not(tf_dwarf_only_local_labels in target_info.flags) then
+          if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
             current_asmdata.getglobaldatalabel(obj)
           else
             current_asmdata.getaddrlabel(obj);

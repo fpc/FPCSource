@@ -187,7 +187,7 @@ implementation
                 (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
                ((ref.symbol.typ=AT_DATA) and
                 (ref.symbol.bind=AB_LOCAL)) or
-               (target_info.system=system_aarch64_win64) then
+               (compiler.target.info.system=system_aarch64_win64) then
               href.refaddr:=addr_page
             else
               href.refaddr:=addr_gotpage;
@@ -201,7 +201,7 @@ implementation
                 (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL])) or
                ((ref.symbol.typ=AT_DATA) and
                 (ref.symbol.bind=AB_LOCAL)) or
-               (target_info.system=system_aarch64_win64) then
+               (compiler.target.info.system=system_aarch64_win64) then
               begin
                 href.base:=NR_NO;
                 href.refaddr:=addr_pageoffset;
@@ -849,7 +849,7 @@ implementation
               reg:=makeregsize(reg,OS_64);
             fromsize:=tosize;
           end;
-        if not(target_info.system=system_aarch64_darwin) and (ref.alignment<>0) and
+        if not(compiler.target.info.system=system_aarch64_darwin) and (ref.alignment<>0) and
            (ref.alignment<tcgsize2size[tosize]) then
           begin
             a_load_reg_ref_unaligned(list,fromsize,tosize,reg,ref);
@@ -898,7 +898,7 @@ implementation
         }
         if fromsize in [OS_8,OS_16,OS_32] then
           reg:=makeregsize(reg,OS_32);
-        if not(target_info.system=system_aarch64_darwin) and (ref.alignment<>0) and
+        if not(compiler.target.info.system=system_aarch64_darwin) and (ref.alignment<>0) and
            (ref.alignment<tcgsize2size[fromsize]) then
           begin
             a_load_ref_reg_unaligned(list,fromsize,tosize,ref,reg);
@@ -946,7 +946,7 @@ implementation
               { split into two 32 bit loads }
               hreg1:=getintregister(list,OS_32);
               hreg2:=getintregister(list,OS_32);
-              if target_info.endian=endian_big then
+              if compiler.target.info.endian=endian_big then
                 begin
                   tmpreg:=hreg1;
                   hreg1:=hreg2;
@@ -972,14 +972,14 @@ implementation
               if ref.alignment=2 then
                 begin
                   href:=ref;
-                  if target_info.endian=endian_big then
+                  if compiler.target.info.endian=endian_big then
                     inc(href.offset,tcgsize2size[fromsize]-2);
                   tmpreg:=getintregister(list,OS_32);
                   a_load_ref_reg(list,OS_16,OS_32,href,tmpreg);
                   tmpreg2:=getintregister(list,OS_32);
                   for i:=1 to (tcgsize2size[fromsize]-1) div 2 do
                     begin
-                      if target_info.endian=endian_big then
+                      if compiler.target.info.endian=endian_big then
                         dec(href.offset,2)
                       else
                         inc(href.offset,2);
@@ -991,14 +991,14 @@ implementation
               else
                 begin
                   href:=ref;
-                  if target_info.endian=endian_big then
+                  if compiler.target.info.endian=endian_big then
                     inc(href.offset,tcgsize2size[fromsize]-1);
                   tmpreg:=getintregister(list,OS_32);
                   a_load_ref_reg(list,OS_8,OS_32,href,tmpreg);
                   tmpreg2:=getintregister(list,OS_32);
                   for i:=1 to tcgsize2size[fromsize]-1 do
                     begin
-                      if target_info.endian=endian_big then
+                      if compiler.target.info.endian=endian_big then
                         dec(href.offset)
                       else
                         inc(href.offset);
@@ -1338,7 +1338,7 @@ implementation
             hreg2:=getintregister(list,OS_32);
             a_load_reg_reg(list,OS_32,OS_32,makeregsize(register,OS_32),hreg1);
             a_op_const_reg_reg(list,OP_SHR,OS_64,32,register,makeregsize(hreg2,OS_64));
-            if target_info.endian=endian_big then
+            if compiler.target.info.endian=endian_big then
               begin
                 tmpreg:=hreg1;
                 hreg1:=hreg2;
@@ -1757,7 +1757,7 @@ implementation
         pairreg:=NR_NO;
         { for SEH on Win64 we can only store consecutive register pairs, others
           need to be stored with STR }
-        if target_info.system=system_aarch64_win64 then
+        if compiler.target.info.system=system_aarch64_win64 then
           begin
             if rt=R_INTREGISTER then
               begin
@@ -1845,7 +1845,7 @@ implementation
          begin
            { windows guards only a few pages for stack growing,
              so we have to access every page first              }
-           if (target_info.system=system_aarch64_win64) and
+           if (compiler.target.info.system=system_aarch64_win64) and
               (localsize>=winstackpagesize) then
              begin
                if localsize div winstackpagesize<=4 then
@@ -1877,7 +1877,7 @@ implementation
            else
              begin
                handle_reg_imm12_reg(list,A_SUB,OS_ADDR,NR_SP,localsize,NR_SP,NR_IP0,false,true);
-               if target_info.system=system_aarch64_win64 then
+               if compiler.target.info.system=system_aarch64_win64 then
                  list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
              end;
          end;
@@ -1913,7 +1913,7 @@ implementation
             { stack pointer has to be aligned to 16 bytes at all times }
             localsize:=align(localsize,16);
 
-            if target_info.system=system_aarch64_win64 then
+            if compiler.target.info.system=system_aarch64_win64 then
               include(current_procinfo.flags,pi_has_unwind_info);
             if not(pi_no_framepointer_needed in current_procinfo.flags) then
               begin
@@ -1924,21 +1924,21 @@ implementation
                 current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
                 current_asmdata.asmcfi.cfa_offset(list,NR_FP,-16);
                 current_asmdata.asmcfi.cfa_offset(list,NR_LR,-8);
-                if target_info.system=system_aarch64_win64 then
+                if compiler.target.info.system=system_aarch64_win64 then
                   list.concat(cai_seh_directive.create_offset(ash_savefplr_x,16));
                 { initialise frame pointer }
                 if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
                   begin
                     a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
                     current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FP);
-                    if target_info.system=system_aarch64_win64 then
+                    if compiler.target.info.system=system_aarch64_win64 then
                       list.concat(cai_seh_directive.create(ash_setfp));
                   end
                 else
                   begin
                     { do this after the prologue is done for aarch64-win64 as
                       there is no SEH directive for setting FP to a register }
-                    if target_info.system<>system_aarch64_win64 then
+                    if compiler.target.info.system<>system_aarch64_win64 then
                       gen_load_frame_for_exceptfilter(list)
                     else
                       genloadframeforexcept:=true;
@@ -1991,7 +1991,7 @@ implementation
             }
             if current_procinfo.has_nestedprocs or
                (
-                 (target_info.system=system_aarch64_win64) and
+                 (compiler.target.info.system=system_aarch64_win64) and
                  (current_procinfo.flags*[pi_has_implicit_finally,pi_needs_implicit_finally,pi_uses_exceptions]<>[])
                ) then
               begin
@@ -2058,7 +2058,7 @@ implementation
         regcount:=0;
         { due to SEH on Win64 we can only load consecutive registers and single
           ones are done using LDR, so we need to handle this differently there }
-        if target_info.system=system_aarch64_win64 then
+        if compiler.target.info.system=system_aarch64_win64 then
           begin
             setlength(aiarr,highsr-lowsr+1);
             pairreg:=NR_NO;
@@ -2165,7 +2165,7 @@ implementation
                 load_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE);
                 { on Windows also restore SP even if the add should be enough
                   to have matching exit sequence to the entry sequence }
-                if target_info.system=system_aarch64_win64 then
+                if compiler.target.info.system=system_aarch64_win64 then
                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FP,NR_SP);
               end
             else if current_procinfo.final_localsize<>0 then
@@ -2173,7 +2173,7 @@ implementation
                 { restore stack pointer }
                 { Note: for Windows we need to restore the stack using an ADD
                         and to set FP back to SP }
-                if target_info.system=system_aarch64_win64 then
+                if compiler.target.info.system=system_aarch64_win64 then
                   begin
                     handle_reg_imm12_reg(list,A_ADD,OS_ADDR,current_procinfo.framepointer,current_procinfo.final_localsize,
                       current_procinfo.framepointer,NR_IP0,false,true);
@@ -2691,7 +2691,7 @@ implementation
 
     procedure tcgaarch64.g_profilecode(list : TAsmList);
       begin
-        if target_info.system = system_aarch64_linux then
+        if compiler.target.info.system = system_aarch64_linux then
           begin
             list.concat(taicpu.op_reg_reg(A_MOV,NR_X0,NR_X30));
             a_call_name(list,'_mcount',false);

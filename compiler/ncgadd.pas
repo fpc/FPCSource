@@ -73,7 +73,7 @@ interface
   implementation
 
     uses
-      globtype,systems,
+      globtype,systems,compiler,
       verbose,globals,
       symconst,symdef,
       aasmbase,aasmdata,defutil,
@@ -331,7 +331,7 @@ interface
         setbase:=tsetdef(left.resultdef).setbase;
         if (right.location.loc = LOC_CONSTANT) then
           begin
-            if (target_info.endian=endian_big) then
+            if (compiler.target.info.endian=endian_big) then
               mask:=aint((aword(1) shl (resultdef.size*8-1)) shr aword(right.location.value-setbase))
             else
               mask:=aint(1 shl (right.location.value-setbase));
@@ -340,7 +340,7 @@ interface
           end
         else
           begin
-            if (target_info.endian=endian_big) then
+            if (compiler.target.info.endian=endian_big) then
               begin
                 mask:=aint((aword(1) shl (resultdef.size*8-1)));
                 cgop:=OP_SHR

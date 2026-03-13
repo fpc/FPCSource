@@ -2311,7 +2311,7 @@ implementation
           code generator will load it into the function result location),
           because the code to this that we add in tnodeutils.wrap_proc_body()
           gets inserted before the exit label to which this node will jump }
-        if (target_info.system in systems_fpnestedstruct) and
+        if (compiler.target.info.system in systems_fpnestedstruct) and
            not(nf_internal in flags) and
            current_procinfo.procdef.get_funcretsym_info(ressym,resdef) and
            (tabstractnormalvarsym(ressym).inparentfpstruct) then
@@ -2727,7 +2727,7 @@ implementation
                 right:=compiler.caddrnode(compiler.cloadnode(current_addr.labsym,current_addr.labsym.owner));
 
                 { raise address off by one so we are for sure inside the action area for the raise }
-                if tf_use_psabieh in target_info.flags then
+                if tf_use_psabieh in compiler.target.info.flags then
                   right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
               end;
 

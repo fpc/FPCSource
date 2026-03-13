@@ -96,7 +96,7 @@ implementation
               else
                 begin
                   location.size:=newsize;
-                  if (target_info.endian = ENDIAN_BIG) and
+                  if (compiler.target.info.endian = ENDIAN_BIG) and
                      (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                     begin
                       inc(location.reference.offset,TCGSize2Size[left.location.size]-TCGSize2Size[location.size]);

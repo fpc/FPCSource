@@ -46,7 +46,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      verbose,globals,compiler,
       symconst,symdef,defutil,cutils,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,tgobj,
@@ -168,7 +168,7 @@ implementation
         href.scalefactor:=sizeof(aint);
 {$endif i8086}
 
-        if (not (target_info.system in [system_i386_darwin,system_i386_iphonesim])) and
+        if (not (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim])) and
            (cs_create_pic in current_settings.moduleswitches) then
           begin
             labeltyp:=aitconst_gotoff_symbol;
@@ -181,7 +181,7 @@ implementation
         else
           emit_ref(A_JMP,S_NO,href);
         { generate jump table }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+        if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) then
           jtlist:=current_asmdata.asmlists[al_const]
         else
           jtlist:=current_procinfo.aktlocaldata;

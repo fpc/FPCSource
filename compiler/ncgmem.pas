@@ -116,8 +116,8 @@ implementation
                    - the target does not use indirect references
                    - the class is located inside the same unit }
                  otherunit:=findunitsymtable(left.resultdef.owner).moduleid<>current_module.moduleid;
-                 indirect:=(tf_supports_packages in target_info.flags) and
-                           (target_info.system in systems_indirect_var_imports) and
+                 indirect:=(tf_supports_packages in compiler.target.info.flags) and
+                           (compiler.target.info.system in systems_indirect_var_imports) and
                            otherunit;
                  vmtname:=tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname;
                  reference_reset_symbol(href,
@@ -131,7 +131,7 @@ implementation
                begin
                  pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
                  entry:=pool.FindOrAdd(@tobjectdef(left.resultdef).objextname^[1],length(tobjectdef(left.resultdef).objextname^));
-                 if (target_info.system in systems_objc_nfabi) then
+                 if (compiler.target.info.system in systems_objc_nfabi) then
                    begin
                      { find/add necessary classref/classname pool entries }
                      compiler.objcgutl.objcfinishclassrefnfpoolentry(entry,tobjectdef(left.resultdef));
@@ -350,7 +350,7 @@ implementation
          if is_implicit_pointer_object_type(left.resultdef) then
            begin
              if (not is_managed_type(left.resultdef)) or
-                (target_info.system in systems_garbage_collected_managed_types) then
+                (compiler.target.info.system in systems_garbage_collected_managed_types) then
                begin
                  { take care of the alignment of the fields }
                  if not(left.resultdef is tabstractrecorddef) then
@@ -484,7 +484,7 @@ implementation
                            else
                              awordoffset:=sizeof(aword)*8;
 
-                           if (vs.fieldoffset>=awordoffset) xor (target_info.endian=endian_big) then
+                           if (vs.fieldoffset>=awordoffset) xor (compiler.target.info.endian=endian_big) then
                              location.sreg.subsetreg := left.location.registerhi
                            else
                              location.sreg.subsetreg := left.location.register;
@@ -502,7 +502,7 @@ implementation
 
                        if not is_packed_record_or_object(left.resultdef) then
                          begin
-                           if (target_info.endian = ENDIAN_BIG) then
+                           if (compiler.target.info.endian = ENDIAN_BIG) then
                              location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8+offsetcorrection
                            else
                              location.sreg.startbit := (vs.fieldoffset * 8)-offsetcorrection;
@@ -511,7 +511,7 @@ implementation
                        else
                          begin
                            location.sreg.bitlen := resultdef.packedbitsize;
-                           if (target_info.endian = ENDIAN_BIG) then
+                           if (compiler.target.info.endian = ENDIAN_BIG) then
                              location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset+offsetcorrection
                            else
                              location.sreg.startbit := vs.fieldoffset-offsetcorrection;
@@ -524,7 +524,7 @@ implementation
                    location.size:=def_cgsize(resultdef);
                    if not is_packed_record_or_object(left.resultdef) then
                      begin
-                       if (target_info.endian = ENDIAN_BIG) then
+                       if (compiler.target.info.endian = ENDIAN_BIG) then
                          inc(location.sreg.startbit, (left.resultdef.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
                        else
                          inc(location.sreg.startbit, vs.fieldoffset * 8);
@@ -533,7 +533,7 @@ implementation
                    else
                      begin
                        location.sreg.bitlen := resultdef.packedbitsize;
-                       if (target_info.endian = ENDIAN_BIG) then
+                       if (compiler.target.info.endian = ENDIAN_BIG) then
                          inc(location.sreg.startbit, left.location.sreg.bitlen - location.sreg.bitlen - vs.fieldoffset)
                        else
                          inc(location.sreg.startbit, vs.fieldoffset);
@@ -545,7 +545,7 @@ implementation
            end;
 
          if is_objc_class_or_protocol(left.resultdef) and
-            (target_info.system in systems_objc_nfabi) then
+            (compiler.target.info.system in systems_objc_nfabi) then
            begin
              if (location.loc<>LOC_REFERENCE) or
                 (location.reference.index<>NR_NO) then
@@ -1036,7 +1036,7 @@ implementation
 {$if defined(cpu64bitalu)}
                       hreg:=left.location.register;
 {$else defined(cpu64bitalu)}
-                      if target_info.endian=endian_little then
+                      if compiler.target.info.endian=endian_little then
                         begin
                           if location.reference.offset>3 then
                             hreg:=left.location.register64.reghi

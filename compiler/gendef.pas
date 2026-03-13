@@ -25,7 +25,7 @@ unit gendef;
 
 interface
 uses
-  globtype,cclasses;
+  globtype,cclasses,compilerbase;
 
 type
   tdeffile=class
@@ -51,7 +51,7 @@ implementation
 
 uses
   SysUtils,
-  systems,cutils,globals;
+  systems,cutils,globals,compiler;
 
 {******************************************************************************
                                TDefFile
@@ -102,6 +102,8 @@ end;
 
 procedure tdeffile.writefile;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   t : text;
 begin
   If WrittenOnDisk then
@@ -113,7 +115,7 @@ begin
   {$pop}
   if ioresult<>0 then
    exit;
-  case target_info.system of
+  case compiler.target.info.system of
     system_i386_Os2, system_i386_emx:
       begin
         write(t,'NAME '+ChangeFileExt(inputfilename,''));

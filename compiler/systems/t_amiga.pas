@@ -104,7 +104,7 @@ end;
 
 procedure TLinkerAmiga.SetDefaultInfo;
 begin
-  case (target_info.system) of
+  case (compiler.target.info.system) of
     system_m68k_amiga:      SetAmiga68kInfo;
     system_powerpc_amiga:   SetAmigaPPCInfo;
     else
@@ -154,7 +154,7 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  if not (target_info.system in systems_internal_sysinit) then
+  if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       s:=FindObjectFile('prt0','',false);
       LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
@@ -199,7 +199,7 @@ begin
       S:=SharedLibFiles.GetFirst;
       if s<>'c' then
        begin
-        i:=Pos(target_info.sharedlibext,S);
+        i:=Pos(compiler.target.info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);
@@ -222,12 +222,12 @@ begin
     while not SharedLibFiles.Empty do
      begin
       S:=SharedLibFiles.GetFirst;
-      LinkRes.Add('lib'+s+target_info.staticlibext);
+      LinkRes.Add('lib'+s+compiler.target.info.staticlibext);
      end;
     LinkRes.Add(')');
    end;
 
-  if (target_info.system = system_powerpc_amiga) and UseVLink then
+  if (compiler.target.info.system = system_powerpc_amiga) and UseVLink then
    begin
     with linkres do
      begin
@@ -438,7 +438,7 @@ begin
   WriteResponseFile(false);
 
   success:=false;
-  case (target_info.system) of
+  case (compiler.target.info.system) of
     system_m68k_amiga:      success:=MakeAmiga68kExe;
     system_powerpc_amiga:   success:=MakeAmigaPPCExe;
     else

@@ -340,7 +340,7 @@ var
                exit;
              end;
           { check target }
-            if tsystem(ppufile.header.common.target)<>target_info.system then
+            if tsystem(ppufile.header.common.target)<>compiler.target.info.system then
              begin
                psi:=targetinfos[tsystem(ppufile.header.common.target)];
                if assigned(psi) then
@@ -514,7 +514,7 @@ var
            Found:=false;
            singlepathstring:=FixPath(s,false);
          { Check for PPU file }
-           Found:=UnitExists(target_info.unitext,hs,prefix);
+           Found:=UnitExists(compiler.target.info.unitext,hs,prefix);
            if Found then
             Begin
               SetFileName(hs,false);
@@ -551,7 +551,7 @@ var
             end;
            if not Found and
               ((m_mac in current_settings.modeswitches) or
-               (tf_p_ext_support in target_info.flags)) then
+               (tf_p_ext_support in compiler.target.info.flags)) then
             begin
               { Check for .p, if mode is macpas}
               Found:=UnitExists(pext,hs,prefix);
@@ -699,7 +699,7 @@ var
              end;
             if (fnd=[]) and
                ((m_mac in current_settings.modeswitches) or
-                (tf_p_ext_support in target_info.flags)) then
+                (tf_p_ext_support in compiler.target.info.flags)) then
              begin
                if CheckVerbosity(V_Tried) then
                  Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pext));
@@ -750,7 +750,7 @@ var
             Found:=false;
             singlepathstring:=FixPath(s,false);
           { Check for PPU file }
-            Found:=UnitExists(target_info.unitext,hs);
+            Found:=UnitExists(compiler.target.info.unitext,hs);
             if Found then
              Begin
                SetFileName(hs,false);
@@ -1883,7 +1883,7 @@ var
          ppufile.header.indirect_checksum:=indirect_crc;
          ppufile.header.common.compiler:=wordversion;
          ppufile.header.common.cpu:=word(compiler.target.cpu);
-         ppufile.header.common.target:=word(target_info.system);
+         ppufile.header.common.target:=word(compiler.target.info.system);
          ppufile.header.common.flags:=headerflags;
          ppufile.header.deflistsize:=current_module.deflist.count;
          ppufile.header.symlistsize:=current_module.symlist.count;
@@ -2017,7 +2017,7 @@ var
          ppufile.header.indirect_checksum:=indirect_crc;
          ppufile.header.common.compiler:=wordversion;
          ppufile.header.common.cpu:=word(compiler.target.cpu);
-         ppufile.header.common.target:=word(target_info.system);
+         ppufile.header.common.target:=word(compiler.target.info.system);
          ppufile.header.common.flags:=headerflags;
          ppufile.writeheader;
 

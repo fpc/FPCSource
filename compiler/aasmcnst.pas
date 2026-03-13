@@ -927,7 +927,7 @@ implementation
        { on Darwin, dead code/data stripping happens based on non-temporary
          labels (any label that doesn't start with "L" -- it doesn't have
          to be global) }
-       if target_info.system in systems_darwin then
+       if compiler.target.info.system in systems_darwin then
          current_asmdata.getstaticdatalabel(result)
        else if create_smartlink_library then
          current_asmdata.getglobaldatalabel(result)
@@ -1021,7 +1021,7 @@ implementation
          kept via the linker script) }
        if tcalo_no_dead_strip in options then
          begin
-           if (target_info.system in systems_darwin) then
+           if (compiler.target.info.system in systems_darwin) then
              begin
               { Objective-C section declarations contain "no_dead_strip"
                 attributes if none of their symbols need to be stripped -> don't
@@ -1088,7 +1088,7 @@ implementation
 
            indtcb.free;
            indtcb := nil;
-           if not (target_info.system in systems_indirect_var_imports) then
+           if not (compiler.target.info.system in systems_indirect_var_imports) then
              current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
          end;
      end;
@@ -1198,11 +1198,13 @@ implementation
 
 
    class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
+     var
+       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
        { darwin's linker does not support negative offsets }
-       if not(target_info.system in systems_darwin+systems_wasm) and
+       if not(_compiler.target.info.system in systems_darwin+systems_wasm) and
           { it seems that clang's assembler has a bug with the ADRP instruction... }
-          (target_info.system<>system_aarch64_win64) then
+          (_compiler.target.info.system<>system_aarch64_win64) then
          result:=0
        else
          result:=get_string_header_size(typ,winlikewidestring);
@@ -1210,11 +1212,13 @@ implementation
 
 
    class function ttai_typedconstbuilder.get_dynarray_symofs:pint;
+     var
+       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
        { darwin's linker does not support negative offsets }
-       if not (target_info.system in systems_darwin) and
+       if not (_compiler.target.info.system in systems_darwin) and
           { it seems that clang's assembler has a bug with the ADRP instruction... }
-          (target_info.system<>system_aarch64_win64) then
+          (_compiler.target.info.system<>system_aarch64_win64) then
          result:=0
        else
          result:=get_dynarray_header_size;
@@ -1331,7 +1335,7 @@ implementation
                  temporary labels (any label that doesn't start with "L" -- it
                  doesn't have to be global) -> add a non-temporary lobel at the
                  start of every kind of subsection created in this builder }
-               if target_info.system in systems_darwin then
+               if compiler.target.info.system in systems_darwin then
                  l:=get_internal_data_section_start_label;
              end;
            foundsec:=length(finternal_data_section_info);
@@ -1624,10 +1628,12 @@ implementation
 
 
    class function ttai_typedconstbuilder.is_smartlink_vectorized_dead_strip: boolean;
+     var
+       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
-       result:=(tf_smartlink_sections in target_info.flags) and
-               (not(target_info.system in systems_darwin) or
-                (tf_supports_symbolorderfile in target_info.flags));
+       result:=(tf_smartlink_sections in _compiler.target.info.flags) and
+               (not(_compiler.target.info.system in systems_darwin) or
+                (tf_supports_symbolorderfile in _compiler.target.info.flags));
      end;
 
 
@@ -1704,7 +1710,7 @@ implementation
        else
          begin
            result:=crecorddef.create_global_internal('$'+name,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin,acompiler);
+             targetinfos[acompiler.target.info.system]^.alignment.recordalignmin,acompiler);
            { length in bytes }
            result.add_field_by_def('',s32inttype);
            streledef:=cwidechartype;
@@ -1753,7 +1759,7 @@ implementation
            result.lab:=startlab;
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
              4,4,
-             targetinfos[target_info.system]^.alignment.recordalignmin);
+             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
@@ -2352,7 +2358,7 @@ implementation
        { relocated before all other data, so make this data relocatable,  }
        { otherwise the end label won't be moved with the rest             }
        if (tcalo_vectorized_dead_strip_end in options) and
-          (target_info.system in (systems_darwin+systems_aix)) then
+          (compiler.target.info.system in (systems_darwin+systems_aix)) then
          fasmlist.concat(Tai_const.create_sym(asmsym));
      end;
 

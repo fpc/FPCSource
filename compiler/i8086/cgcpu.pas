@@ -149,7 +149,7 @@ unit cgcpu;
 
     procedure tcg8086.do_register_allocation(list:TAsmList;headertai:tai);
       begin
-        if (tf_pic_uses_got in target_info.flags) and (pi_needs_got in current_procinfo.flags) then
+        if (tf_pic_uses_got in compiler.target.info.flags) and (pi_needs_got in current_procinfo.flags) then
           begin
             if getsupreg(current_procinfo.got) < first_int_imreg then
               include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
@@ -2421,15 +2421,15 @@ unit cgcpu;
         if not nostackframe then
           begin
             stacksize:=current_procinfo.calc_stackframe_size;
-            if (target_info.stackalign>4) and
+            if (compiler.target.info.stackalign>4) and
                ((stacksize <> 0) or
                 (pi_do_call in current_procinfo.flags) or
                 { can't detect if a call in this case -> use nostackframe }
                 { if you (think you) know what you are doing              }
                 (po_assembler in current_procinfo.procdef.procoptions)) then
-              stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
+              stacksize := align(stacksize+sizeof(aint),compiler.target.info.stackalign) - sizeof(aint);
             if (po_exports in current_procinfo.procdef.procoptions) and
-               (target_info.system=system_i8086_win16) then
+               (compiler.target.info.system=system_i8086_win16) then
               begin
                 maybe_move_sp;
                 list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DI));
@@ -2438,7 +2438,7 @@ unit cgcpu;
             if ((current_settings.x86memorymodel=mm_huge) and
                 not (po_interrupt in current_procinfo.procdef.procoptions)) or
                ((po_exports in current_procinfo.procdef.procoptions) and
-                (target_info.system=system_i8086_win16)) then
+                (compiler.target.info.system=system_i8086_win16)) then
               begin
                 maybe_move_sp;
                 list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
@@ -2453,7 +2453,7 @@ unit cgcpu;
                 generate_leave(list);
                 if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
                     ((po_exports in current_procinfo.procdef.procoptions) and
-                     (target_info.system=system_i8086_win16))) and
+                     (compiler.target.info.system=system_i8086_win16))) and
                     is_proc_far(current_procinfo.procdef) then
                   cg.a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
               end;
@@ -2481,9 +2481,9 @@ unit cgcpu;
            { but not on win32 }
            { and not for safecall with hidden exceptions, because the result }
            { which contains the exception is passed in EAX }
-           if (target_info.system <> system_i386_win32) and
+           if (compiler.target.info.system <> system_i386_win32) and
               not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
-               (tf_safecall_exceptions in target_info.flags)) and
+               (tf_safecall_exceptions in compiler.target.info.flags)) and
               paramanager.ret_in_param(current_procinfo.procdef.returndef,
                                        current_procinfo.procdef) then
              list.concat(Taicpu.Op_const(ret_instr,S_W,sizeof(aint)))

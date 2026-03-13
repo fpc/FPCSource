@@ -119,7 +119,7 @@ implementation
          exit;
        end;
     { check target }
-      if tsystem(pcpfile.header.common.target)<>target_info.system then
+      if tsystem(pcpfile.header.common.target)<>compiler.target.info.system then
        begin
          pcpfile.free;
          pcpfile:=nil;
@@ -172,7 +172,7 @@ implementation
         singlepathstring:=FixPath(s,false);
         { Check for package file }
         { TODO }
-        found:=package_exists({target_info.pkginfoext}'.pcp',hs);
+        found:=package_exists({compiler.target.info.pkginfoext}'.pcp',hs);
         if found then
           begin
             setfilename(hs,false);
@@ -230,7 +230,7 @@ implementation
         else
           if (OutputExeDir<>'') then
             p:=OutputExeDir;
-      pcpfilename:=p+n+{target_info.pkginfoext}'.pcp';
+      pcpfilename:=p+n+{compiler.target.info.pkginfoext}'.pcp';
     end;
 
   procedure tpcppackage.writecontainernames;
@@ -495,7 +495,7 @@ implementation
       pcpfile.header.checksum:=pcpfile.crc;
       pcpfile.header.common.compiler:=wordversion;
       pcpfile.header.common.cpu:=word(compiler.target.cpu);
-      pcpfile.header.common.target:=word(target_info.system);
+      pcpfile.header.common.target:=word(compiler.target.info.system);
       //pcpfile.header.flags:=flags;
       pcpfile.header.ppulistsize:=containedmodules.count;
       pcpfile.header.requiredlistsize:=requiredpackages.count;

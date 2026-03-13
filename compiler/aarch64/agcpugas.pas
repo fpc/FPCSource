@@ -646,7 +646,7 @@ unit agcpugas;
     function TAArch64ClangGASAssembler.sectionflags(secflags:TSectionFlags):string;
       begin
         Result:=inherited sectionflags(secflags);
-        if (target_info.system=system_aarch64_win64) then
+        if (compiler.target.info.system=system_aarch64_win64) then
           begin
             { we require an explicit "r" if write is not allowed }
             if not (SF_W in secflags) then
@@ -659,7 +659,7 @@ unit agcpugas;
       begin
         { clang does not support all the directives we need, so we need to
           manually transform them to pdata/xdata records }
-        if target_info.system=system_aarch64_win64 then
+        if compiler.target.info.system=system_aarch64_win64 then
           begin
             TransformSEHDirectives(current_asmdata.AsmLists[al_pure_assembler]);
             TransformSEHDirectives(current_asmdata.AsmLists[al_procedures]);
@@ -693,7 +693,7 @@ unit agcpugas;
                      (ref.shiftmode<>SM_None) or
                      (ref.offset<>0) then
                     internalerror(2014121501);
-                  if target_info.system in systems_darwin then
+                  if compiler.target.info.system in systems_darwin then
                     result:=ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                   else
                     result:=linux_addrpage2str[ref.refaddr]+ref.symbol.name
@@ -739,7 +739,7 @@ unit agcpugas;
                       addr_gotpageoffset,
                       addr_pageoffset:
                         begin
-                          if target_info.system in systems_darwin then
+                          if compiler.target.info.system in systems_darwin then
                             result:=result+', '+ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                           else
                             result:=result+', '+linux_addrpage2str[ref.refaddr]+ref.symbol.name

@@ -271,7 +271,7 @@ implementation
           varexport(ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',u.localsymtable,[]).name);
         end;
 
-      if not (target_info.system in systems_indirect_var_imports) then
+      if not (compiler.target.info.system in systems_indirect_var_imports) then
         for i:=0 to u.publicasmsyms.count-1 do
           begin
             sym:=tasmsymbol(u.publicasmsyms[i]);
@@ -475,7 +475,7 @@ implementation
       name,
       uname : string;
     begin
-      if not (tf_supports_packages in target_info.flags) then
+      if not (tf_supports_packages in compiler.target.info.flags) then
         exit;
       i:=0;
       while i<packagelist.count do
@@ -566,7 +566,7 @@ implementation
       i : longint;
       pkgname : tpathstr;
     begin
-      if target_info.system in systems_indirect_var_imports then
+      if compiler.target.info.system in systems_indirect_var_imports then
         { we're using import libraries anyway }
         exit;
       for i:=0 to packagelist.count-1 do
@@ -576,10 +576,10 @@ implementation
             begin
               //writeln('package used: ',pkgentry^.realpkgname);
               pkgname:=pkgentry^.package.pplfilename;
-              if copy(pkgname,1,length(target_info.sharedlibprefix))=target_info.sharedlibprefix then
-                delete(pkgname,1,length(target_info.sharedlibprefix));
-              if copy(pkgname,length(pkgname)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext))=target_info.sharedlibext then
-                delete(pkgname,length(pkgname)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext));
+              if copy(pkgname,1,length(compiler.target.info.sharedlibprefix))=compiler.target.info.sharedlibprefix then
+                delete(pkgname,1,length(compiler.target.info.sharedlibprefix));
+              if copy(pkgname,length(pkgname)-length(compiler.target.info.sharedlibext)+1,length(compiler.target.info.sharedlibext))=compiler.target.info.sharedlibext then
+                delete(pkgname,length(pkgname)-length(compiler.target.info.sharedlibext)+1,length(compiler.target.info.sharedlibext));
               //writeln('adding library: ', pkgname);
               l.sharedlibfiles.concat(pkgname);
             end

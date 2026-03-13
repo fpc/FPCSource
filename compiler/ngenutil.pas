@@ -251,7 +251,7 @@ implementation
         in parentfpstruct will be initialised when that struct gets initialised,
         and references to it will actually be translated into references to the
         field in the parentfpstruct (so we'll initialise it twice) }
-      if (target_info.system in systems_fpnestedstruct) and
+      if (compiler.target.info.system in systems_fpnestedstruct) and
          (p.nodetype=loadn) and
          (tloadnode(p).symtableentry.typ=localvarsym) and
          tlocalvarsym(tloadnode(p).symtableentry).inparentfpstruct then
@@ -301,7 +301,7 @@ implementation
       hs : string;
     begin
       { see comment in initialize_data_node above }
-      if (target_info.system in systems_fpnestedstruct) and
+      if (compiler.target.info.system in systems_fpnestedstruct) and
          (p.nodetype=loadn) and
          (tloadnode(p).symtableentry.typ=localvarsym) and
          tlocalvarsym(tloadnode(p).symtableentry).inparentfpstruct then
@@ -573,7 +573,7 @@ implementation
   function tnodeutils.force_init: boolean;
     begin
       result:=
-        (target_info.system in systems_typed_constants_node_init) and
+        (compiler.target.info.system in systems_typed_constants_node_init) and
         assigned(current_module.tcinitcode);
     end;
 
@@ -715,7 +715,7 @@ implementation
           result:=block;
         end;
 
-      if target_info.system in systems_typed_constants_node_init then
+      if compiler.target.info.system in systems_typed_constants_node_init then
         begin
           case pd.proctypeoption of
             potype_class_constructor:
@@ -773,7 +773,7 @@ implementation
             end;
           end;
         end;
-      if (target_info.system in systems_fpnestedstruct) and
+      if (compiler.target.info.system in systems_fpnestedstruct) and
          pd.get_funcretsym_info(ressym,resdef) and
          (tabstractnormalvarsym(ressym).inparentfpstruct) then
         begin
@@ -997,7 +997,7 @@ implementation
               Message1(scanner_w_alignment_larger_than_max,sym.name);
               varalign:=explicitalign;
             end
-          else if (wantedalign>varalign) and (target_info.alignment.varalignmax>1) then
+          else if (wantedalign>varalign) and (compiler.target.info.alignment.varalignmax>1) then
             begin
               { varalign:=wantedalign; this can lead to
                 troubles on systems like for instance
@@ -1006,7 +1006,7 @@ implementation
 	    end;
 	end;
       asmtype:=AT_DATA;
-      if tf_section_threadvars in target_info.flags then
+      if tf_section_threadvars in compiler.target.info.flags then
         begin
           if (vo_is_thread_var in sym.varoptions) then
             begin
@@ -1211,7 +1211,7 @@ implementation
     begin
       unitinits:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       unitinits.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin);
+        targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
 
       { tablecount }
       unitinits.emit_ord_const(entries.count,aluuinttype);
@@ -1327,11 +1327,11 @@ implementation
       placeholder: ttypedconstplaceholder;
       tabledef: tdef;
     begin
-      if (tf_section_threadvars in target_info.flags) then
+      if (tf_section_threadvars in compiler.target.info.flags) then
         exit;
       count:=0;
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
-      tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[target_info.system]^.alignment.recordalignmin);
+      tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
       placeholder:=tcb.emit_placeholder(sizesinttype);
 
       hp:=tused_unit(usedunits.first);
@@ -1405,10 +1405,10 @@ implementation
       tabledef: trecorddef;
       add : boolean;
     begin
-       if (tf_section_threadvars in target_info.flags) then
+       if (tf_section_threadvars in compiler.target.info.flags) then
          exit;
        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
-       tabledef:=tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[target_info.system]^.alignment.recordalignmin);
+       tabledef:=tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
        if assigned(current_module.globalsymtable) then
          current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
        current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,tcb);
@@ -1441,7 +1441,7 @@ implementation
     begin
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin
+        targetinfos[compiler.target.info.system]^.alignment.recordalignmin
       );
       { placeholder for the count }
       countplaceholder:=tcb.emit_placeholder(sizesinttype);
@@ -1497,7 +1497,7 @@ implementation
       s:=make_mangledname(prefix,current_module.localsymtable,'');
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section],compiler);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin);
+        targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
       repeat
         { optimize away unused local/static symbols }
         if (item.sym.refs>0) or (item.sym.owner.symtabletype=globalsymtable) then
@@ -1562,7 +1562,7 @@ implementation
       count:=0;
       hp:=tmodule(loaded_units.first);
       tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
-        targetinfos[target_info.system]^.alignment.recordalignmin);
+        targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
       countplaceholder:=tcb.emit_placeholder(sizesinttype);
       while assigned(hp) do
         begin
@@ -1604,7 +1604,7 @@ implementation
       if (target_res.id in [res_elf,res_macho,res_xcoff,res_wasm]) or
          { generate the FPC_RESLOCATION symbol even when using external resources,
            because in SysInit we can only reference it unconditionally }
-         ((target_res.id=res_ext) and (target_info.system in systems_darwin)) then
+         ((target_res.id=res_ext) and (compiler.target.info.system in systems_darwin)) then
         begin
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
 
@@ -1639,7 +1639,7 @@ implementation
       { Insert Ident of the compiler in the .fpc.version section }
       tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip],compiler);
       s:='FPC '+full_version_string+
-        ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname;
+        ' ['+date_string+'] for '+target_cpu_string+' - '+compiler.target.info.shortname;
 {$ifdef m68k}
       { Ensure that the size of s is multiple of 2 to avoid problems
         like on m68k-amiga which has a .balignw just after,
@@ -1657,8 +1657,8 @@ implementation
       );
       tcb.free;
 
-      if (tf_emit_stklen in target_info.flags) or
-          not(tf_no_generic_stackcheck in target_info.flags) then
+      if (tf_emit_stklen in compiler.target.info.flags) or
+          not(tf_no_generic_stackcheck in compiler.target.info.flags) then
         begin
           { stacksize can be specified and is now simulated }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
@@ -1672,7 +1672,7 @@ implementation
         end;
 
       { allocate the stack on the ZX Spectrum system }
-      if target_info.system in [system_z80_zxspectrum] then
+      if compiler.target.info.system in [system_z80_zxspectrum] then
         begin
           { tai_datablock cannot yet be handled via the high level typed const
             builder, because it implies the generation of a symbol, while this
@@ -1684,7 +1684,7 @@ implementation
         end;
 {$IFDEF POWERPC}
       { AmigaOS4 "stack cookie" support }
-      if ( target_info.system = system_powerpc_amiga ) then
+      if ( compiler.target.info.system = system_powerpc_amiga ) then
        begin
          { this symbol is needed to ignite powerpc amigaos' }
          { stack allocation magic for us with the given stack size. }
@@ -1715,7 +1715,7 @@ implementation
       tcb := nil;
 
       { allocate an initial heap on embedded systems }
-      if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
+      if compiler.target.info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
         begin
           { tai_datablock cannot yet be handled via the high level typed const
             builder, because it implies the generation of a symbol, while this
@@ -1787,7 +1787,7 @@ implementation
      begin
        { stub for calling FPC_SYSTEMMAIN from the C main -> add argc/argv/argp }
        if (tprocdef(pd).proctypeoption=potype_mainstub) and
-          (target_info.system in (systems_darwin+[system_powerpc_macosclassic]+systems_aix)) then
+          (compiler.target.info.system in (systems_darwin+[system_powerpc_macosclassic]+systems_aix)) then
          begin
            pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
            tprocdef(pd).parast.insertsym(pvs);
@@ -1799,7 +1799,7 @@ implementation
          end
        { package stub for Windows is a DLLMain }
        else if (tprocdef(pd).proctypeoption=potype_pkgstub) and
-           (target_info.system in systems_all_windows+systems_nativent) then
+           (compiler.target.info.system in systems_all_windows+systems_nativent) then
          begin
            pvs:=cparavarsym.create('HINSTANCE',1,vs_const,uinttype,[]);
            tprocdef(pd).parast.insertsym(pvs);

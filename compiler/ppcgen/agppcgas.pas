@@ -124,7 +124,7 @@ unit agppcgas;
               end
             else
               begin
-                if target_info.system in [system_powerpc_darwin,system_powerpc64_darwin] then
+                if compiler.target.info.system in [system_powerpc_darwin,system_powerpc64_darwin] then
                   s := refaddr2str_darwin[refaddr]
                 else
                   s :='';
@@ -161,12 +161,12 @@ unit agppcgas;
              begin
                s := s+')';
                if (refaddr in verbose_refaddrs) and
-                  not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
+                  not(compiler.target.info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
                  s := s+refaddr2str[refaddr];
              end;
 {$ifdef cpu64bitaddr}
-           if (refaddr=addr_pic) and ((target_info.system=system_powerpc64_linux) or 
-             (target_info.system=system_powerpc64_freebsd)) then
+           if (refaddr=addr_pic) and ((compiler.target.info.system=system_powerpc64_linux) or 
+             (compiler.target.info.system=system_powerpc64_freebsd)) then
              s := s + '@got';
 {$endif cpu64bitaddr}
 
@@ -426,7 +426,7 @@ unit agppcgas;
 {$else cpu64bitaddr}
         { MorphOS has an old 2.9.1 GNU AS, with a bunch of patches
           to support the system, and it doesn't know the -a32 argument }
-        if target_info.system = system_powerpc_morphos then
+        if compiler.target.info.system = system_powerpc_morphos then
           Replace(result,'$ARCH','')
         else
           Replace(result,'$ARCH','-a32');
@@ -438,7 +438,7 @@ unit agppcgas;
       var
          i : longint;
       begin
-        if target_info.abi = abi_powerpc_elfv2 then
+        if compiler.target.info.abi = abi_powerpc_elfv2 then
           writer.AsmWriteln(#9'.abiversion 2');
         for i:=0 to 31 do
           writer.AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));

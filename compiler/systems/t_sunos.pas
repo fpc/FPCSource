@@ -31,12 +31,15 @@ interface
 {-$DEFINE LinkTest} { DON't del link.res and write Info }
 {$DEFINE GnuLd}{The other is not implemented }
 
+  uses
+    compilerbase;
+
 implementation
 
   uses
     sysutils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globtype,globals,
+    verbose,systems,globtype,globals,compiler,
     cscript,
     fmodule,
     import,export,expunix,link,comprsrc,rescmn,i_sunos,ogbase;
@@ -169,6 +172,8 @@ end;
 
 
 Function TLinkersolaris.WriteResponseFile(isdll:boolean) : Boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   i            : longint;
 {  cprtobj,
@@ -294,7 +299,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-           i:=Pos(target_info.sharedlibext,S);
+           i:=Pos(compiler.target.info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);
@@ -419,7 +424,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-           i:=Pos(target_info.sharedlibext,S);
+           i:=Pos(compiler.target.info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);

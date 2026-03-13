@@ -692,7 +692,7 @@ implementation
           end;
 
         AsmFileName:=obj.jvm_full_typename(false);
-        AsmFileName:=Path+FixFileName(AsmFileName)+target_info.asmext;
+        AsmFileName:=Path+FixFileName(AsmFileName)+compiler.target.info.asmext;
         writer.AsmCreate(cut_normal);
       end;
 

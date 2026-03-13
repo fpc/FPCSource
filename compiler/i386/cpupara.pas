@@ -93,7 +93,7 @@ unit cpupara;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
-        case target_info.system of
+        case compiler.target.info.system of
           system_i386_win32 :
             begin
               case def.typ of
@@ -192,7 +192,7 @@ unit cpupara;
                 variants are somethings very delphi/windows specific so do it like
                 windows/delphi (FK)
               }
-              if ((target_info.system=system_i386_win32) and
+              if ((compiler.target.info.system=system_i386_win32) and
                  (calloption in [pocall_stdcall,pocall_safecall]) and
                  (varspez=vs_const)) or
                  (calloption=pocall_register) then
@@ -205,7 +205,7 @@ unit cpupara;
           recorddef :
             begin
               { Delphi stdcall passes records on the stack for call by value }
-              if (target_info.system=system_i386_win32) and
+              if (compiler.target.info.system=system_i386_win32) and
                  (calloption=pocall_stdcall) and
                  (varspez=vs_value) then
                 result:=false
@@ -213,7 +213,7 @@ unit cpupara;
                 result:=
                   (not(calloption in (cdecl_pocalls)) and
                    (def.size>sizeof(aint))) or
-                  (((calloption = pocall_mwpascal) or (target_info.system=system_i386_wince)) and
+                  (((calloption = pocall_mwpascal) or (compiler.target.info.system=system_i386_wince)) and
                    (varspez=vs_const));
             end;
           arraydef :
@@ -252,7 +252,7 @@ unit cpupara;
       begin
         if calloption=pocall_oldfpccall then
           begin
-            if target_info.system in [system_i386_go32v2,system_i386_watcom] then
+            if compiler.target.info.system in [system_i386_go32v2,system_i386_watcom] then
               result:=2
             else
               result:=4;
@@ -336,7 +336,7 @@ unit cpupara;
           usedef:=forcetempdef;
         { on darwin/i386, if a record has only one field and that field is a
           single or double, it has to be returned like a single/double }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,
+        if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim,
                                    system_i386_freebsd,system_i386_openbsd,
                                    system_i386_os2,system_i386_emx]) and
            ((usedef.typ=recorddef) or
@@ -357,7 +357,7 @@ unit cpupara;
 
         { darwin/x86 requires that results < sizeof(aint) are sign/zero
           extended to sizeof(aint) }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+        if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) and
            (side=calleeside) and
            (result.intsize>0) and
            (result.intsize<sizeof(aint)) then
@@ -486,7 +486,7 @@ unit cpupara;
             hp.paraloc[side].Alignment:=paraalign;
             { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
             { zero extended to sizeof(aint)                                }
-            if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+            if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) and
                (side = callerside) and
                (paralen > 0) and
                (paralen < sizeof(aint)) then
@@ -512,11 +512,11 @@ unit cpupara;
                 { read past the end of the heap since the value is only }
                 { 10 bytes long (JM)                                    }
                 if (paracgsize = OS_F80) and
-                   (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
+                   (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) then
                   paralen:=16;
                 paraloc^.reference.offset:=parasize;
                 if side=calleeside then
-                  inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                  inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
                 parasize:=align(parasize+paralen,varalign);
               end
             else
@@ -559,7 +559,7 @@ unit cpupara;
                     paraloc^.reference.offset:=parasize;
                     if side=calleeside then
                       if not(po_nostackframe in p.procoptions) then
-                        inc(paraloc^.reference.offset,target_info.first_parm_offset)
+                        inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset)
                       else
                         { return address }
                         inc(paraloc^.reference.offset,4);
@@ -682,7 +682,7 @@ unit cpupara;
                               varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
                               paraloc^.reference.offset:=parasize;
                               if side=calleeside then
-                                inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
                               parasize:=align(parasize+paralen,varalign);
                             end
                           else
@@ -723,7 +723,7 @@ unit cpupara;
                                   varalign:=used_align(size_2_align(l),paraalign,paraalign);
                                   paraloc^.reference.offset:=parasize;
                                   if side=calleeside then
-                                    inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                    inc(paraloc^.reference.offset,compiler.target.info.first_parm_offset);
                                   parasize:=align(parasize+l,varalign);
                                   dec(paralen,l);
                                   firstparaloc:=false;

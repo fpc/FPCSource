@@ -27,7 +27,7 @@ unit t_android;
 interface
 
   uses
-    globtype,
+    globtype,compilerbase,
     aasmdata,
     symsym,symdef,ppu,
     import,export,expunix,link;
@@ -70,7 +70,7 @@ implementation
   uses
     SysUtils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globals,
+    verbose,systems,globals,compiler,
     symconst,cscript,
     fmodule,
     aasmbase,aasmtai,aasmcpu,cpubase,hlcgcpu,hlcgobj,
@@ -208,6 +208,8 @@ begin
 end;
 
 Function TLinkerAndroid.WriteResponseFile(isdll:boolean) : Boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -261,7 +263,7 @@ begin
 
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
-      if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
+      if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj<>'') then
         AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
       { Add libc startup object file }
       if isdll then
@@ -307,7 +309,7 @@ begin
              While not SharedLibFiles.Empty do
               begin
                 S:=SharedLibFiles.GetFirst;
-                i:=Pos(target_info.sharedlibext,S);
+                i:=Pos(compiler.target.info.sharedlibext,S);
                 if i>0 then
                   Delete(S,i,255);
                 Add('-l'+s);

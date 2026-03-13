@@ -47,7 +47,7 @@ interface
 {$ENDIF}
       GlobType,
       CUtils,CClasses,
-      Systems;
+      Systems,CompilerBase;
 
     type
       TCachedDirectory = class(TFPHashObject)
@@ -163,7 +163,8 @@ implementation
 
     uses
       Comphook,
-      Globals;
+      Globals,
+      Compiler;
 
 {$undef AllFilesMaskIsInRTL}
 
@@ -905,14 +906,18 @@ end;
 
 
    Function TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
-       result:=_FixPath(s,allowdot,target_info,':');
+       result:=_FixPath(s,allowdot,compiler.target.info,':');
      end;
 
 
    function TargetFixFileName(const s:TCmdStr):TCmdStr;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
-       result:=_FixFileName(s,target_info);
+       result:=_FixFileName(s,compiler.target.info);
      end;
 
 
@@ -1275,6 +1280,8 @@ end;
 
 
     function maybequoted(const s:string):string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
       FORBIDDEN_CHARS_DOS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                          '{', '}', '''', '`', '~'];
@@ -1290,7 +1297,7 @@ end;
       if not(cs_link_on_target in current_settings.globalswitches) then
         quote_script:=source_info.script
       else
-        quote_script:=target_info.script;
+        quote_script:=compiler.target.info.script;
       if quote_script=script_dos then
         forbidden_chars:=FORBIDDEN_CHARS_DOS
       else
@@ -1411,12 +1418,14 @@ end;
 
     function maybequoted(const s:ansistring):ansistring;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         quote_script: tscripttype;
       begin
         if not(cs_link_on_target in current_settings.globalswitches) then
           quote_script:=source_info.script
         else
-          quote_script:=target_info.script;
+          quote_script:=compiler.target.info.script;
         result:=maybequoted_for_script(s,quote_script);
       end;
 
@@ -1480,6 +1489,8 @@ end;
 
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: AnsiString; Flags: TExecuteFlags): Longint;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         quote_script: tscripttype;
       begin
 
@@ -1487,7 +1498,7 @@ end;
           do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
             ComLine+'"');
         if (cs_link_on_target in current_settings.globalswitches) then
-          quote_script:=target_info.script
+          quote_script:=compiler.target.info.script
         else
           quote_script:=source_info.script;
         if quote_script=script_unix then

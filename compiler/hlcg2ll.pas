@@ -334,7 +334,7 @@ unit hlcg2ll;
 implementation
 
     uses
-       globals,systems,
+       globals,systems,compiler,
        verbose,defutil,symsym,
        procinfo,paramgr,
        cgobj,tgobj,cutils,
@@ -1201,7 +1201,7 @@ implementation
                    { be increased in this case, since they have the      }
                    { MSB first in memory and e.g. byte(word_var) should  }
                    { return  the second byte in this case (JM)           }
-                   if (target_info.endian = ENDIAN_BIG) and
+                   if (compiler.target.info.endian = ENDIAN_BIG) and
                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                      begin
                        inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_cgsize]);
@@ -1751,7 +1751,7 @@ implementation
                       case tcgsize2size[paraloc^.size] of
                         8:
                           begin
-                            if (target_info.endian=ENDIAN_BIG) then
+                            if (compiler.target.info.endian=ENDIAN_BIG) then
                               begin
                                 { paraloc^ -> high
                                   paraloc^.next -> low }
@@ -1779,7 +1779,7 @@ implementation
                               It is needed to copy them to 2 64-bit int registers.
                               A code generator or a target cpu must support loading of a 32-bit MM register to
                               a 64-bit int register, zero extending it. }
-                            if target_info.endian=ENDIAN_BIG then
+                            if compiler.target.info.endian=ENDIAN_BIG then
                               internalerror(2018101702);  // Big endian support not implemented yet
                             gen_alloc_regloc(list,destloc,vardef);
                             tempreg:=cg.getintregister(list,OS_64);
@@ -1839,7 +1839,7 @@ implementation
 {$if defined(cpu8bitalu)}
                         { 8 paralocs? }
                         8:
-                          if (target_info.endian=ENDIAN_BIG) then
+                          if (compiler.target.info.endian=ENDIAN_BIG) then
                             begin
                               { is there any big endian 8 bit ALU/16 bit Addr CPU? }
                               internalerror(2015041003);
@@ -1885,7 +1885,7 @@ implementation
 {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                         { 4 paralocs? }
                         4:
-                          if (target_info.endian=ENDIAN_BIG) then
+                          if (compiler.target.info.endian=ENDIAN_BIG) then
                             begin
                               { paraloc^ -> high
                                 paraloc^.next^.next -> low }
@@ -1916,7 +1916,7 @@ implementation
                             end;
 {$endif defined(cpu16bitalu) or defined(cpu8bitalu)}
                         2:
-                          if (target_info.endian=ENDIAN_BIG) then
+                          if (compiler.target.info.endian=ENDIAN_BIG) then
                             begin
                               { paraloc^ -> high
                                 paraloc^.next -> low }
@@ -2145,7 +2145,7 @@ implementation
                   could reallocate this register and overwrite it }
                 unget_para(paraloc^);
                 gen_alloc_regloc(list,destloc,vardef);
-                if (target_info.endian=endian_big) then
+                if (compiler.target.info.endian=endian_big) then
                   { paraloc^ -> high
                     paraloc^.next -> low }
                   reg64:=joinreg64(tempreg,paraloc^.register)

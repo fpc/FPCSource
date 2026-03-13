@@ -703,7 +703,7 @@ unit cpubase;
       { Low part of 64bit return value }
     function NR_FUNCTION_RESULT64_LOW_REG: tregister; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
-      if target_info.endian=endian_little then
+      if compiler.target.info.endian=endian_little then
         result:=NR_R0
       else
         result:=NR_R1;
@@ -711,7 +711,7 @@ unit cpubase;
 
     function RS_FUNCTION_RESULT64_LOW_REG: shortint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
-      if target_info.endian=endian_little then
+      if compiler.target.info.endian=endian_little then
         result:=RS_R0
       else
         result:=RS_R1;
@@ -720,7 +720,7 @@ unit cpubase;
       { High part of 64bit return value }
     function NR_FUNCTION_RESULT64_HIGH_REG: tregister; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
-      if target_info.endian=endian_little then
+      if compiler.target.info.endian=endian_little then
         result:=NR_R1
       else
         result:=NR_R0;
@@ -728,7 +728,7 @@ unit cpubase;
 
     function RS_FUNCTION_RESULT64_HIGH_REG: shortint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     begin
-      if target_info.endian=endian_little then
+      if compiler.target.info.endian=endian_little then
         result:=RS_R1
       else
         result:=RS_R0;

@@ -74,7 +74,7 @@ function ti386raisenode.pass_1 : tnode;
     raisenode : tcallnode;
   begin
     { difference from generic code is that address stack is not popped on reraise }
-    if (target_info.system<>system_i386_win32) or assigned(left) then
+    if (compiler.target.info.system<>system_i386_win32) or assigned(left) then
       result:=inherited pass_1
     else
       begin
@@ -92,7 +92,7 @@ procedure ti386onnode.pass_generate_code;
     oldflowcontrol : tflowcontrol;
     exceptvarsym : tlocalvarsym;
   begin
-    if (target_info.system<>system_i386_win32) then
+    if (compiler.target.info.system<>system_i386_win32) then
       begin
         inherited pass_generate_code;
         exit;
@@ -160,7 +160,7 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
 constructor ti386tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
-    if (target_info.system<>system_i386_win32) or
+    if (compiler.target.info.system<>system_i386_win32) or
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
@@ -180,7 +180,7 @@ constructor ti386tryfinallynode.create(l, r: TNode);
 constructor ti386tryfinallynode.create_implicit(l, r: TNode);
   begin
     inherited create_implicit(l, r);
-    if (target_info.system<>system_i386_win32) then
+    if (compiler.target.info.system<>system_i386_win32) then
       exit;
 
     { safecall procedures can handle implicit finalization as part of "except" flow }
@@ -202,7 +202,7 @@ function ti386tryfinallynode.pass_1: tnode;
     selfsym: tparavarsym;
   begin
     result:=inherited pass_1;
-    if (target_info.system=system_i386_win32) then
+    if (compiler.target.info.system=system_i386_win32) then
       begin
         { safecall method will access 'self' from except block -> make it non-regable }
         if implicitframe and (current_procinfo.procdef.proccalloption=pocall_safecall) and
@@ -221,7 +221,7 @@ function ti386tryfinallynode.dogetcopy: tnode;
     n: ti386tryfinallynode;
   begin
     n:=ti386tryfinallynode(inherited dogetcopy);
-    if target_info.system=system_i386_win32 then
+    if compiler.target.info.system=system_i386_win32 then
       begin
         n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
         n.finalizepi.force_nested;
@@ -245,7 +245,7 @@ function ti386tryfinallynode.dogetcopy: tnode;
 function ti386tryfinallynode.simplify(forinline: boolean): tnode;
   begin
     result:=inherited simplify(forinline);
-    if (target_info.system<>system_i386_win32) then
+    if (compiler.target.info.system<>system_i386_win32) then
       exit;
 
     { actually, this is not really the right place to do a node transformation like this }
@@ -313,7 +313,7 @@ procedure ti386tryfinallynode.pass_generate_code;
     is_safecall: boolean;
     sym : tasmsymbol;
   begin
-    if (target_info.system<>system_i386_win32) then
+    if (compiler.target.info.system<>system_i386_win32) then
       begin
         inherited pass_generate_code;
         exit;
@@ -494,7 +494,7 @@ procedure ti386tryexceptnode.pass_generate_code;
   label
     errorexit;
   begin
-    if (target_info.system<>system_i386_win32) then
+    if (compiler.target.info.system<>system_i386_win32) then
       begin
         inherited pass_generate_code;
         exit;

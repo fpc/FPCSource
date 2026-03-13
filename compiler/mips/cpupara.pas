@@ -358,7 +358,7 @@ implementation
             locdef:=paradef;
             if (paracgsize=OS_NO) or
               { Ordinals on caller side must be promoted to machine word }
-              ((target_info.endian=endian_big) and     // applies to little-endian too?
+              ((compiler.target.info.endian=endian_big) and     // applies to little-endian too?
               (paradef.typ<>recorddef) and
               (side=callerside) and
               (paralen<tcgsize2size[OS_INT]))then
@@ -487,7 +487,7 @@ implementation
 
                        { big-endian targets require that record data stored in parameter
                          registers is left-aligned }
-                       if (target_info.endian=endian_big) and
+                       if (compiler.target.info.endian=endian_big) and
                           (paradef.typ=recorddef) and
                           (paralen<tcgsize2size[OS_INT]) then
                          begin
@@ -532,7 +532,7 @@ implementation
                           end;
                         paraloc^.reference.offset:=intparasize;
 
-                        if (target_info.endian=endian_big) and
+                        if (compiler.target.info.endian=endian_big) and
                            (paralen<tcgsize2size[OS_INT]) and
                            (paradef.typ<>recorddef) then
                           inc(paraloc^.reference.offset,4-paralen);

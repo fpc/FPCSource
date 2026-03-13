@@ -26,7 +26,7 @@ unit syscinfo;
 interface
 
 uses
-  systems, tokens, symconst;
+  systems, tokens, symconst, compilerbase;
 
 type
   tsyscallinfo = record
@@ -59,7 +59,7 @@ procedure set_default_syscall(sc: tprocoption);
 implementation
 
 uses
-  verbose;
+  verbose,compiler;
 
 const
   syscall_conventions_po = [ po_syscall, po_syscall_legacy, po_syscall_basenone,
@@ -115,12 +115,14 @@ end;
 
 function get_default_syscall: tprocoption;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   i: longint;
 begin
   if not (default_syscall_convention in syscall_conventions_po) then
     begin
       for i:=low(default_syscall_conventions) to high(default_syscall_conventions) do
-        if default_syscall_conventions[i].system = target_info.system then
+        if default_syscall_conventions[i].system = compiler.target.info.system then
           default_syscall_convention:=default_syscall_conventions[i].procoption;
       if not (default_syscall_convention in syscall_conventions_po) then
         internalerror(2016090302);

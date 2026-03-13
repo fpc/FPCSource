@@ -2027,7 +2027,7 @@ implementation
                   begin
                     if vo_is_thread_var in sym.varoptions then
                       begin
-                        if tf_section_threadvars in target_info.flags then
+                        if tf_section_threadvars in compiler.target.info.flags then
                           begin
                             case sizeof(puint) of
                               2:
@@ -2043,10 +2043,10 @@ implementation
 {$warn 6018 off}            { Unreachable code due to compile time evaluation }
                             templist.concat(tai_const.Create_type_name(aitconst_dtpoff,sym.mangledname,0));
                             { so far, aitconst_dtpoff is solely 32 bit }
-                            if (sizeof(puint)=8) and (target_info.endian=endian_little) then
+                            if (sizeof(puint)=8) and (compiler.target.info.endian=endian_little) then
                               templist.concat(tai_const.create_32bit(0));
                             templist.concat(tai_const.create_8bit(ord(DW_OP_GNU_push_tls_address)));
-                            if (sizeof(puint)=8) and (target_info.endian=endian_big) then
+                            if (sizeof(puint)=8) and (compiler.target.info.endian=endian_big) then
                               templist.concat(tai_const.create_32bit(0));
 {$pop}
 
@@ -2327,7 +2327,7 @@ implementation
             fieldoffset:=(sym.fieldoffset div (fieldnatsize*8)) * fieldnatsize;
             inc(fieldoffset,offset);
             bitoffset:=sym.fieldoffset mod (fieldnatsize*8);
-            if (target_info.endian=endian_little) then
+            if (compiler.target.info.endian=endian_little) then
               bitoffset:=(fieldnatsize*8)-bitoffset-sym.vardef.packedbitsize;
             append_entry(DW_TAG_member,false,[
               DW_AT_name,DW_FORM_string,symname(sym, false)+#0,
@@ -2694,10 +2694,10 @@ implementation
         fcunode.addmetadatarefto('file',file_getmetanode(current_filepos.moduleindex,current_filepos.fileindex));
         fcunode.addstring('producer','Free Pascal Compiler '+full_version_string);
         fcunode.addboolean('isOptimized',cs_opt_level2 in current_settings.optimizerswitches);
-        if target_info.system in systems_objc_supported then
+        if compiler.target.info.system in systems_objc_supported then
           begin
             if ([m_objectivec1,m_objectivec2]*current_settings.modeswitches)<>[] then
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 objcruntimeversion:=2
               else
                 objcruntimeversion:=1
@@ -2747,7 +2747,7 @@ implementation
         current_asmdata.AsmLists[al_dwarf_info].Concat(fderefexpression);
         fderefexpression:=nil;
 
-        if target_info.system in systems_darwin then
+        if compiler.target.info.system in systems_darwin then
           fcunode.addenum('nameTableKind','GNU');
         current_asmdata.AsmLists[al_dwarf_info].Concat(fcunode);
         culist:=tai_llvmnamedmetadatanode.create('llvm.dbg.cu');

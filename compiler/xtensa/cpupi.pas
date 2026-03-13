@@ -69,7 +69,7 @@ unit cpupi;
       begin
         inherited create(aparent);
         maxpushedparasize:=0;
-        if target_info.abi=abi_xtensa_windowed then
+        if compiler.target.info.abi=abi_xtensa_windowed then
           begin
             callins:=A_CALL8;
             callxins:=A_CALLX8;
@@ -95,7 +95,7 @@ unit cpupi;
         localsize : aint;
         i : longint;
       begin
-        maxpushedparasize:=Align(maxpushedparasize,target_info.alignment.localalignmax);
+        maxpushedparasize:=Align(maxpushedparasize,compiler.target.info.alignment.localalignmax);
         tg.setfirsttemp(maxpushedparasize);
 
         if po_nostackframe in procdef.procoptions then
@@ -104,7 +104,7 @@ unit cpupi;
         { estimate stack frame size }
         if pi_estimatestacksize in flags then
           begin
-            stackframesize:=align(maxpushedparasize,target_info.alignment.localalignmax);
+            stackframesize:=align(maxpushedparasize,compiler.target.info.alignment.localalignmax);
             localsize:=0;
             for i:=0 to procdef.localst.SymList.Count-1 do
               if tsym(procdef.localst.SymList[i]).typ=localvarsym then
@@ -113,7 +113,7 @@ unit cpupi;
                   inc(localsize,tabstractnormalvarsym(procdef.localst.SymList[i]).getsize);
                 end;
             inc(stackframesize,localsize);
-            stackframesize:=align(stackframesize,target_info.alignment.localalignmax);
+            stackframesize:=align(stackframesize,compiler.target.info.alignment.localalignmax);
 
             localsize:=0;
             for i:=0 to procdef.parast.SymList.Count-1 do
@@ -139,7 +139,7 @@ unit cpupi;
                 end;
             inc(stackframesize,localsize);
 
-            stackframesize:=align(stackframesize,target_info.alignment.localalignmax);
+            stackframesize:=align(stackframesize,compiler.target.info.alignment.localalignmax);
             inc(stackframesize,estimatedtempsize);
 
             stackframesize:=align(stackframesize,4);
@@ -159,7 +159,7 @@ unit cpupi;
             if pi_do_call in current_procinfo.flags then
               inc(stackframesize,maxcall*4);
 
-            stackframesize:=Align(stackframesize,target_info.alignment.localalignmax);
+            stackframesize:=Align(stackframesize,compiler.target.info.alignment.localalignmax);
           end;
       end;
 
@@ -193,7 +193,7 @@ unit cpupi;
 
     procedure txtensaprocinfo.init_framepointer;
       begin
-        if target_info.abi=abi_xtensa_call0 then
+        if compiler.target.info.abi=abi_xtensa_call0 then
           begin
             RS_FRAME_POINTER_REG:=RS_A15;
             NR_FRAME_POINTER_REG:=NR_A15;

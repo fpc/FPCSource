@@ -81,7 +81,7 @@ unit cpupi;
         { ???:
           align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
-        if target_info.stackalign<=2 then
+        if compiler.target.info.stackalign<=2 then
           result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmax,2))
         else
           { aligned during stack frame allocation, because also depends number

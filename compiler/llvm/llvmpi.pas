@@ -150,7 +150,7 @@ implementation
             exactly two fields in this struct) }
           landingpaddef:=llvmgettemprecorddef([voidpointertype,u32inttype],
             1,
-            targetinfos[target_info.system]^.alignment.recordalignmin);
+            targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           reg:=hlcg.getregisterfordef(list,landingpaddef);
           landingpad:=taillvm.landingpad(reg,landingpaddef,{clause}nil);
           list.concat(landingpad);
@@ -299,8 +299,8 @@ implementation
               if assigned(excepttype) then
                 begin
                   otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
-                  indirect:=(tf_supports_packages in target_info.flags) and
-                          (target_info.system in systems_indirect_var_imports) and
+                  indirect:=(tf_supports_packages in compiler.target.info.flags) and
+                          (compiler.target.info.system in systems_indirect_var_imports) and
                           (cs_imported_data in current_settings.localswitches) and
                           otherunit;
                   { add "catch exceptiontype" clause to the landing pad }

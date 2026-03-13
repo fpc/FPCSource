@@ -262,7 +262,7 @@ implementation
                     paraloc^.loc:=LOC_REGISTER;
                     paraloc^.register:=newreg(R_INTREGISTER,hparasupregs^[curintreg],R_SUBWHOLE);
                     { left align }
-                    if (target_info.endian=endian_big) and
+                    if (compiler.target.info.endian=endian_big) and
                        not(paraloc^.size in [OS_64,OS_S64]) and
                        (paradef.typ in [setdef,recorddef,arraydef,objectdef]) then
                       begin
@@ -275,14 +275,14 @@ implementation
             else
               begin
                 paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.reference.offset:=target_info.first_parm_offset+cur_stack_offset;
+                paraloc^.reference.offset:=compiler.target.info.first_parm_offset+cur_stack_offset;
                 if side=callerside then
                   paraloc^.reference.index:=NR_STACK_POINTER_REG
                 else
                   paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                 inc(paraloc^.reference.offset,STACK_BIAS);
 
-                if (target_info.endian=endian_big) and
+                if (compiler.target.info.endian=endian_big) and
                    (paralen<tcgsize2size[OS_INT]) and
                    (paradef.typ<>recorddef) then
                   inc(paraloc^.reference.offset,4-paralen);

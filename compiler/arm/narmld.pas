@@ -61,9 +61,9 @@ implementation
         l : TAsmLabel;
       begin
         handled:=false;
-        if tf_section_threadvars in target_info.flags then
+        if tf_section_threadvars in compiler.target.info.flags then
           begin
-            if target_info.system in [system_arm_linux] then
+            if compiler.target.info.system in [system_arm_linux] then
               begin
                 if not(pi_uses_threadvar in current_procinfo.flags) then
                   internalerror(2012012101);

@@ -275,7 +275,7 @@ end;
 
 procedure TLinkerMacOS.SetDefaultInfo;
 begin
-  case (target_info.system) of
+  case (compiler.target.info.system) of
     system_m68k_macosclassic:      SetMacOS68kInfo;
     else
       ;
@@ -323,7 +323,7 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  if not (target_info.system in systems_internal_sysinit) then
+  if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       s:=FindObjectFile('prt0','',false);
       LinkRes.AddFileName(maybequoted(s));
@@ -358,7 +358,7 @@ begin
       S:=SharedLibFiles.GetFirst;
       if s<>'c' then
        begin
-        i:=Pos(target_info.sharedlibext,S);
+        i:=Pos(compiler.target.info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);

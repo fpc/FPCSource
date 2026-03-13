@@ -120,7 +120,7 @@ begin
         Message(asmr_e_invalid_reference_syntax);
 
       { darwin/ppc64's relocation symbols are 32 bits }
-      if (target_info.system = system_powerpc64_darwin) and
+      if (compiler.target.info.system = system_powerpc64_darwin) and
         (not (oper.opr.ref.refaddr in [addr_no, addr_low, addr_higha])) then
         Message(asmr_e_invalid_reference_syntax);
 
@@ -197,7 +197,7 @@ begin
             begin
               { replace global symbol reference with TOC entry name
                 for AIX }
-              if target_info.system in systems_aix then
+              if compiler.target.info.system in systems_aix then
                 begin
                   oper.opr.ref.symbol.increfs;
                   tcgppcgen(cg).get_aix_toc_sym(nil,oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol),oper.opr.ref,true);
@@ -780,7 +780,7 @@ end;
 
 function tppcattreader.is_targetdirective(const s: string): boolean;
   begin
-    if (target_info.abi=abi_powerpc_elfv2) and
+    if (compiler.target.info.abi=abi_powerpc_elfv2) and
        (s='.localentry') then
       result:=true
     else
@@ -794,7 +794,7 @@ procedure tppcattreader.HandleTargetDirective;
     val     : aint;
     symtyp  : TAsmsymtype;
   begin
-    if (target_info.abi=abi_powerpc_elfv2) and
+    if (compiler.target.info.abi=abi_powerpc_elfv2) and
        (actasmpattern='.localentry') then
       begin
         { .localentry funcname, .-funcname }

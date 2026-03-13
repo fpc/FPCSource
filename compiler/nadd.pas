@@ -514,7 +514,7 @@ const
                  compiler.cpointerconstnode(0,voidpointertype));
 
               { COM widestrings have 32-bit lengths, and can explicitly have 0 while being non-nil. }
-              if is_widestring(tinlinenode(L).left.resultdef) and (tf_winlikewidestring in target_info.flags) then
+              if is_widestring(tinlinenode(L).left.resultdef) and (tf_winlikewidestring in compiler.target.info.flags) then
                 begin
                   { Expand to “(pointer(L.left) = nil) or (PUint32(L.left)[-1] = 0)”. }
                   resn:=compiler.caddnode_internal(orn,
@@ -3555,7 +3555,7 @@ const
                     var-parameter (and finalization, which is performed by the
                     ttempcreate node and which takes care of the initialization
                     on native targets, is a noop on managed VM targets) }
-                  if (target_info.system in systems_managed_vm) and
+                  if (compiler.target.info.system in systems_managed_vm) and
                      is_managed_type(resultdef) then
                     addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
                       false,
@@ -3611,14 +3611,14 @@ const
                     end;
                   if is_shortstring(left.resultdef) or
                      (nodetype in [gtn,gten,ltn,lten]) or
-                     (target_info.system in systems_managed_vm) then
+                     (compiler.target.info.system in systems_managed_vm) then
                     { compare the length with 0 }
                     result := compiler.caddnode(nodetype,
                       compiler.cinlinenode(in_length_x,false,left),
                       compiler.cordconstnode(0,s8inttype,false))
                   else { nodetype in [equaln,unequaln] }
                     begin
-                      if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
+                      if is_widestring(left.resultdef) and (tf_winlikewidestring in compiler.target.info.flags) then
                         begin
                           { windows like widestrings requires that we also check the length }
                           result:=compiler.cinlinenode(in_length_x,false,left);
@@ -3978,7 +3978,7 @@ const
                     var-parameter (and finalization, which is performed by the
                     ttempcreate node and which takes care of the initialization
                     on native targets, is a noop on managed VM targets) }
-                  if (target_info.system in systems_managed_vm) and
+                  if (compiler.target.info.system in systems_managed_vm) and
                      is_managed_type(resultdef) then
                     addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
                       false,
@@ -4341,7 +4341,7 @@ const
         notnode:=false;
         result:=nil;
         fdef:=nil;
-        if not(target_info.system in systems_wince) then
+        if not(compiler.target.info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -4441,7 +4441,7 @@ const
             end;
           end;
         { cast softfpu result? }
-        if not(target_info.system in systems_wince) then
+        if not(compiler.target.info.system in systems_wince) then
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
               resultdef:=pasbool1type;

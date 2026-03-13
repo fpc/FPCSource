@@ -70,7 +70,7 @@ interface
 implementation
 
     uses
-      globtype,widestr,systems,
+      globtype,widestr,systems,compiler,
       verbose,globals,cutils,
       aasmcnst,
       symconst,symdef,aasmtai,aasmdata,defutil,
@@ -178,7 +178,7 @@ implementation
                       internalerror(10120);
 {$endif not cpufloat128}
                   end;
-                  if (tf_needs_symbol_size in target_info.flags) then
+                  if (tf_needs_symbol_size in compiler.target.info.flags) then
                     current_asmdata.asmlists[al_typedconsts].concat(Tai_symbol_end.Create(lastlabel));
                end;
           end;
@@ -264,7 +264,7 @@ implementation
             location.value:=0;
             exit;
           end;
-         winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags);
+         winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in compiler.target.info.flags);
          { const already used ? }
          if not assigned(lab_str) then
            begin
@@ -411,7 +411,7 @@ implementation
         lab_set:=lab;
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign],compiler);
         tcb.maybe_begin_aggregate(resultdef);
-        if (source_info.endian=target_info.endian) then
+        if (source_info.endian=compiler.target.info.endian) then
           for i:=0 to resultdef.size-1 do
             tcb.emit_tai(tai_const.create_8bit(Psetbytes(value_set)^[i]),u8inttype)
         else
@@ -452,7 +452,7 @@ implementation
         procedure smallsetconst;
           begin
             location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
-            if (source_info.endian=target_info.endian) then
+            if (source_info.endian=compiler.target.info.endian) then
               begin
                 { not plongint, because that will "sign extend" the set on 64 bit platforms }
                 { if changed to "paword", please also modify "32-resultdef.size*8" and      }
@@ -464,7 +464,7 @@ implementation
               begin
                 location.value:=aint(reverse_longword(Pcardinal(value_set)^));
               end;
-            if (target_info.endian=endian_big) then
+            if (compiler.target.info.endian=endian_big) then
               location.value:=location.value shr (32-resultdef.size*8);
           end;
 

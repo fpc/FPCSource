@@ -115,12 +115,12 @@ implementation
              funcret-para is (from the 'c'-point of view) a normal parameter
              which has to be added to the end of the parameter-list }
            if (pd.proccalloption in (pushleftright_pocalls)) or
-              ((tf_safecall_exceptions in target_info.flags) and
+              ((tf_safecall_exceptions in compiler.target.info.flags) and
                (pd.proccalloption=pocall_safecall)) then
              paranr:=paranr_result_leftright
            else
 {$elseif defined(SUPPORT_SAFECALL)}
-           if (tf_safecall_exceptions in target_info.flags) and
+           if (tf_safecall_exceptions in compiler.target.info.flags) and
               (pd.proccalloption = pocall_safecall)  then
              paranr:=paranr_result_leftright
            else
@@ -171,7 +171,7 @@ implementation
               paranr:=paranr_parentfp_delphi_cc;
             { Generate frame pointer. It can't be put in a register since it
               must be accessible from nested routines }
-            if not(target_info.system in systems_fpnestedstruct) or
+            if not(compiler.target.info.system in systems_fpnestedstruct) or
                { in case of errors or declared procvardef types, prevent invalid
                  type cast and possible nil pointer dereference }
                not assigned(pd.owner.defowner) or
@@ -454,7 +454,7 @@ implementation
               paramanager.push_addr_param(varspez,vardef,pd.proccalloption) and
               not(is_open_array(vardef) or
                   is_array_of_const(vardef)) and
-              (not(target_info.system in systems_caller_copy_addr_value_para) or
+              (not(compiler.target.info.system in systems_caller_copy_addr_value_para) or
                ((pd.proccalloption in cdecl_pocalls) and
                 (vardef.typ=arraydef))) then
              include(varoptions,vo_has_local_copy);

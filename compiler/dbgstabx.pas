@@ -194,7 +194,7 @@ implementation
       if not assigned(def.procstarttai) then
         exit;
       mangledname:=ApplyAsmSymbolRestrictions(def.mangledname);
-      if target_info.system in systems_dotted_function_names then
+      if compiler.target.info.system in systems_dotted_function_names then
         mangledname:='.'+mangledname;
       result.concat(tai_stab.create(stabx_function,
         strpnew(mangledname+','+mangledname+',16,044,LT.'+mangledname+'-'+mangledname)));

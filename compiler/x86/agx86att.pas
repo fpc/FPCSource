@@ -28,7 +28,7 @@ unit agx86att;
 interface
 
     uses
-      cpubase,systems,
+      cpubase,systems,compilerbase,
       globtype,cgutils,
       aasmtai,assemble,aggas;
 
@@ -67,6 +67,7 @@ interface
     uses
       cutils,
       verbose,
+      compiler,
       itcpugas,
       cgbase,
       aasmcpu;
@@ -84,11 +85,13 @@ interface
 
     function TX86ATTAssembler.MakeCmdLine: TCmdStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         FormatName : string;
       begin
         result:=Inherited MakeCmdLine;
 {$ifdef i386}
-        case target_info.system of
+        case compiler.target.info.system of
           system_i386_go32v2:
             FormatName:='coff';
           system_i386_wdosx,
@@ -106,7 +109,7 @@ interface
         end;
 {$endif i386}
 {$ifdef x86_64}
-        case target_info.system of
+        case compiler.target.info.system of
           system_x86_64_win64:
             FormatName:='win64';
           system_x86_64_darwin:

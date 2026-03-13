@@ -141,7 +141,7 @@ implementation
                       pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);
                       if (Tprocsym(srsym).ProcdefList.Count>1) or
                          (po_kylixlocal in pd.procoptions) or
-                         ((tf_need_export in target_info.flags) and
+                         ((tf_need_export in compiler.target.info.flags) and
                           not(po_exports in pd.procoptions)) then
                         Message(parser_e_illegal_symbol_exported)
                       else
@@ -163,7 +163,7 @@ implementation
                          an underline }
                        if InternalProcName[1]='_' then
                          delete(InternalProcName,1,1)
-                       else if (target_info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince]) and UseDeffileForExports then
+                       else if (compiler.target.info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince]) and UseDeffileForExports then
                          begin
                            Message(parser_e_dlltool_unit_var_problem);
                            Message(parser_e_dlltool_unit_var_problem2);
@@ -192,7 +192,7 @@ implementation
                        include(options,eo_index);
                        pt.free;
                        pt := nil;
-                       if target_info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince] then
+                       if compiler.target.info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince] then
                         DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(index)
                        else
                         DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
@@ -218,7 +218,7 @@ implementation
                      end;
                     if parser.pbase.try_to_consume(_PROMISING) then
                      begin
-                       if target_info.system in systems_wasm then
+                       if compiler.target.info.system in systems_wasm then
                          begin
                            if parser.pbase.try_to_consume(_FIRST) then
                              include(options,eo_promising_first)
@@ -264,14 +264,14 @@ implementation
 
                            if not (eo_name in options) then
                              { Export names are not mangled on Windows and OS/2 }
-                             if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) then
+                             if (compiler.target.info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) then
                                hpname:=orgs
                              { Use set mangled name in case of cdecl/cppdecl/mwpascal }
                              { and no name specified                                  }
                              else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
-                               hpname:=target_info.cprefix+tprocsym(srsym).realname
+                               hpname:=compiler.target.info.cprefix+tprocsym(srsym).realname
                              else if (tprocdef(tprocsym(srsym).procdeflist[0]).proccalloption in [pocall_cppdecl]) then
-                               hpname:=target_info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
+                               hpname:=compiler.target.info.cprefix+tprocdef(tprocsym(srsym).procdeflist[0]).cplusplusmangledname
                              else
                                hpname:=orgs;
 

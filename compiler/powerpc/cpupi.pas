@@ -82,7 +82,7 @@ unit cpupi;
       begin
         if not(po_assembler in procdef.procoptions) then
           begin
-            case target_info.abi of
+            case compiler.target.info.abi of
               abi_powerpc_aix,
               abi_powerpc_darwin:
                 ofs:=maxpushedparasize+LinkageAreaSizeAIX;
@@ -143,7 +143,7 @@ unit cpupi;
             first_save_fpu_reg := 32;
             first_save_int_reg := 32;
             { FIXME: has to be R_F14 instead of R_F8 for SYSV-64bit }
-            case target_info.abi of
+            case compiler.target.info.abi of
               abi_powerpc_aix,
               abi_powerpc_darwin:
                 low_nonvol_fpu_reg := RS_F14;
@@ -170,9 +170,9 @@ unit cpupi;
               end;
             if not(pi_do_call in flags) and
                (not uses_stack_temps) and
-               (((target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) and
+               (((compiler.target.info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) and
                  ((32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8 <= 220)) or
-                ((target_info.abi = abi_powerpc_sysv) and
+                ((compiler.target.info.abi = abi_powerpc_sysv) and
                  (first_save_int_reg + first_save_fpu_reg = 64))) then
               begin
                 { don't allocate a stack frame }
@@ -196,7 +196,7 @@ unit cpupi;
 
     procedure tcpuprocinfo.allocate_got_register(list: TAsmList);
       begin
-        if (target_info.system = system_powerpc_darwin) and
+        if (compiler.target.info.system = system_powerpc_darwin) and
            (cs_create_pic in current_settings.moduleswitches) then
           begin
             got := cg.getaddressregister(list);

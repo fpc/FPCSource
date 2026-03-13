@@ -144,12 +144,12 @@ unit agarmgas;
         else
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' '+result;
 
-        if target_info.abi = abi_eabihf then
+        if compiler.target.info.abi = abi_eabihf then
           { options based on what gcc uses on debian armhf }
           result:='-mfloat-abi=hard -meabi=5 '+result
-        else if (target_info.abi = abi_eabi) and not(current_settings.fputype = fpu_soft) then
+        else if (compiler.target.info.abi = abi_eabi) and not(current_settings.fputype = fpu_soft) then
           result:='-mfloat-abi=softfp -meabi=5 '+result
-        else if (target_info.abi = abi_eabi) and (current_settings.fputype = fpu_soft) then
+        else if (compiler.target.info.abi = abi_eabi) and (current_settings.fputype = fpu_soft) then
           result:='-mfloat-abi=soft -meabi=5 '+result;
       end;
 

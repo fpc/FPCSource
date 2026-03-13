@@ -27,12 +27,14 @@ unit t_bsd;
 
 interface
 
+  uses
+    compilerbase;
 
 implementation
 
   uses
     sysutils,
-    cutils,cfileutl,cclasses,
+    cutils,cfileutl,cclasses,compiler,
     verbose,systems,globtype,globals,
     symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
@@ -67,6 +69,8 @@ implementation
 
 function ModulesLinkToLibc:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   hp: tmodule;
 begin
   result:=false;
@@ -77,9 +81,9 @@ begin
   hp:=tmodule(loaded_units.first);
   while assigned(hp) do
     begin
-      result:=Assigned(hp.ImportLibraryList.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext));
+      result:=Assigned(hp.ImportLibraryList.find(compiler.target.info.sharedClibprefix+'c'+compiler.target.info.sharedClibext));
       if result then break;
-      result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
+      result:=hp.linkothersharedlibs.find(compiler.target.info.sharedClibprefix+'c'+compiler.target.info.sharedClibext);
       if result then break;
       result:=hp.linkothersharedlibs.find('c');
       if result then break;
@@ -110,10 +114,12 @@ end;
 *****************************************************************************}
 
 Constructor TLinkerBSD.Create;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
-   if target_info.system in systems_openbsd then
+   if compiler.target.info.system in systems_openbsd then
      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
    else
      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
@@ -121,6 +127,8 @@ end;
 
 
 procedure TLinkerBSD.SetDefaultInfo;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {
   This will also detect which libc version will be used
 }
@@ -129,12 +137,12 @@ var
 begin
   { Force ld.lld usage for x86_64 openbsd system,
     because GNU linker generates wrong executable's on x86_64 OpenBSD 7.5 }
-  if (cs_link_lld in current_settings.globalswitches) or (target_info.system = system_x86_64_openbsd) then
+  if (cs_link_lld in current_settings.globalswitches) or (compiler.target.info.system = system_x86_64_openbsd) then
     LdProgram:='ld.lld'
-  else if target_info.system in (systems_openbsd+systems_freebsd+[system_x86_64_dragonfly]) then
+  else if compiler.target.info.system in (systems_openbsd+systems_freebsd+[system_x86_64_dragonfly]) then
     LdProgram:='ld.bfd';
   LibrarySuffix:=' ';
-  LdSupportsNoResponseFile := (target_info.system in ([system_m68k_netbsd]+systems_darwin));
+  LdSupportsNoResponseFile := (compiler.target.info.system in ([system_m68k_netbsd]+systems_darwin));
   with Info do
    begin
      if LdSupportsNoResponseFile then
@@ -149,19 +157,19 @@ begin
        end;
      DllCmd[2]:='strip --strip-unneeded $EXE';
      { OpenBSD seems to use a wrong dynamic linker by default }
-     if target_info.system in systems_openbsd then
+     if compiler.target.info.system in systems_openbsd then
       DynamicLinker:='/usr/libexec/ld.so'
-     else if target_info.system in systems_netbsd then
+     else if compiler.target.info.system in systems_netbsd then
       DynamicLinker:='/usr/libexec/ld.elf_so'
-     else if target_info.system in systems_freebsd then
+     else if compiler.target.info.system in systems_freebsd then
        begin
-	 if (target_info.system = system_i386_freebsd) and
+	 if (compiler.target.info.system = system_i386_freebsd) and
             FileExists('/usr/libexec/ld-elf32.so.1',true) then
            DynamicLinker:='/usr/libexec/ld-elf32.so.1'
          else
            DynamicLinker:='/usr/libexec/ld-elf.so.1'
        end
-     else if target_info.system=system_x86_64_dragonfly then
+     else if compiler.target.info.system=system_x86_64_dragonfly then
       DynamicLinker:='/libexec/ld-elf.so.2'
      else
        DynamicLinker:='';
@@ -169,10 +177,12 @@ begin
 end;
 
 procedure TLinkerBSD.LoadPredefinedLibraryOrder;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 // put your linkorder/linkalias overrides here.
 // Note: assumes only called when reordering/aliasing is used.
 Begin
-  if (target_info.system =system_i386_freebsd) and
+  if (compiler.target.info.system =system_i386_freebsd) and
      not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
     Begin
       LinkLibraryOrder.add('gcc','',15);
@@ -189,6 +199,8 @@ End;
 
 procedure TLinkerBSD.InitSysInitUnitName;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   cprtobj,
   gprtobj,
   si_cprt,
@@ -196,7 +208,7 @@ var
 begin
   linklibc:=ModulesLinkToLibc;
   if current_module.islibrary and
-     (target_info.system in systems_bsd) then
+     (compiler.target.info.system in systems_bsd) then
     begin
       prtobj:='dllprt0';
       cprtobj:='dllprt0';
@@ -242,6 +254,8 @@ end;
 
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -289,7 +303,7 @@ begin
   { several RTL symbols of FPC-compiled shared libraries   }
   { will be bound to those of a single shared library or   }
   { to the main program                                    }
-  if (isdll) and (target_info.system in systems_bsd) then
+  if (isdll) and (compiler.target.info.system in systems_bsd) then
     begin
       LinkRes.add('VERSION');
       LinkRes.add('{');
@@ -310,7 +324,7 @@ begin
   if not LdSupportsNoResponseFile then
     LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
-  if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
+  if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj<>'') then
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
   if linklibc then
@@ -318,9 +332,9 @@ begin
      if librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
      if ((cs_create_pic in current_settings.moduleswitches) and
-         not (target_info.system in systems_openbsd)) or
+         not (compiler.target.info.system in systems_openbsd)) or
         (current_module.islibrary and
-         (target_info.system in systems_openbsd)) then
+         (compiler.target.info.system in systems_openbsd)) then
        begin
          if librarysearchpath.FindFile('crtbeginS.o',false,s) then
            LinkRes.AddFileName(s);
@@ -375,7 +389,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if (s<>'c') or reorder then
          begin
-           i:=Pos(target_info.sharedlibext,S);
+           i:=Pos(compiler.target.info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);
@@ -400,7 +414,7 @@ begin
      if (cs_link_staticflag in current_settings.globalswitches) then
       LinkRes.Add('-lgcc');
      if linkdynamic and (Info.DynamicLinker<>'') and
-        not(target_info.system in systems_openbsd) then
+        not(compiler.target.info.system in systems_openbsd) then
       LinkRes.AddFileName(Info.DynamicLinker);
      if not LdSupportsNoResponseFile then
        LinkRes.Add(')');
@@ -410,9 +424,9 @@ begin
   if linklibc then
    begin
      if ((cs_create_pic in current_settings.moduleswitches) and
-         not (target_info.system in systems_openbsd)) or
+         not (compiler.target.info.system in systems_openbsd)) or
         (current_module.islibrary and
-         (target_info.system in systems_openbsd)) then
+         (compiler.target.info.system in systems_openbsd)) then
        Fl1:=librarysearchpath.FindFile('crtendS.o',false,s1)
      else
        Fl1:=librarysearchpath.FindFile('crtend.o',false,s1);
@@ -436,6 +450,8 @@ end;
 
 
 function TLinkerBSD.MakeExecutable:boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   binstr,
   cmdstr,
@@ -468,7 +484,7 @@ begin
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
-  if target_info.system=system_i386_freebsd then
+  if compiler.target.info.system=system_i386_freebsd then
     begin
       if cs_link_lld in current_settings.globalswitches then
         targetstr:='-b elf'
@@ -484,9 +500,9 @@ begin
 
   if (cs_link_staticflag in current_settings.globalswitches) then
     begin
-      if (target_info.system=system_m68k_netbsd) and
+      if (compiler.target.info.system=system_m68k_netbsd) and
          ((cs_link_on_target in current_settings.globalswitches) or
-          (target_info.system=source_info.system)) then
+          (compiler.target.info.system=source_info.system)) then
         StaticStr:='-Bstatic'
       else
         StaticStr:='-static';
@@ -495,13 +511,13 @@ begin
     StripStr:='-s';
 
   if (cs_link_smart in current_settings.globalswitches) and
-     (tf_smartlink_sections in target_info.flags) then
+     (tf_smartlink_sections in compiler.target.info.flags) then
     GCSectionsStr:='--gc-sections';
 
   if (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and
       ((not SharedLibFiles.Empty) or
-       (target_info.system in systems_openbsd))) then
+       (compiler.target.info.system in systems_openbsd))) then
     DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
   if rlinkpath<>'' then
@@ -512,12 +528,12 @@ begin
    end;
 
 { Use -nopie on OpenBSD if PIC support is turned off }
-  if (target_info.system in systems_openbsd) and
+  if (compiler.target.info.system in systems_openbsd) and
      not(cs_create_pic in current_settings.moduleswitches) then
     Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
 
 { -N seems to be needed on NetBSD/earm }
-  if (target_info.system in [system_arm_netbsd]) then
+  if (compiler.target.info.system in [system_arm_netbsd]) then
     Info.ExtraOptions:=Info.ExtraOptions+' -N';
 
 { Write used files and libraries }
@@ -558,7 +574,7 @@ begin
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
         if cs_link_on_target in current_settings.globalswitches then
-          BinStr:='.'+target_info.dirsep+BinStr
+          BinStr:='.'+compiler.target.info.dirsep+BinStr
         else
           BinStr:='.'+source_info.dirsep+BinStr;
       CmdStr:='';
@@ -585,6 +601,8 @@ end;
 
 
 Function TLinkerBSD.MakeSharedLibrary:boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   InitStr,
   FiniStr,
@@ -615,7 +633,7 @@ begin
   ordersymfile:=WriteSymbolOrderFile;
 
   if (cs_link_smart in current_settings.globalswitches) and
-     (tf_smartlink_sections in target_info.flags) then
+     (tf_smartlink_sections in compiler.target.info.flags) then
      { disabled because not tested
       GCSectionsStr:='--gc-sections' }
     ;
@@ -626,7 +644,7 @@ begin
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
-  if target_info.system=system_i386_freebsd then
+  if compiler.target.info.system=system_i386_freebsd then
     begin
       targetstr:='-b elf32-i386-freebsd';
       emulstr:='-m elf_i386_fbsd';
@@ -672,7 +690,7 @@ begin
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
         if cs_link_on_target in current_settings.globalswitches then
-          BinStr:='.'+target_info.dirsep+BinStr
+          BinStr:='.'+compiler.target.info.dirsep+BinStr
         else
           BinStr:='.'+source_info.dirsep+BinStr;
       CmdStr:='';

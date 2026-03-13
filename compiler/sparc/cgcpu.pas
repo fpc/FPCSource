@@ -326,7 +326,7 @@ interface
     procedure create_codegen;
       begin
         cg:=TCgSparc.Create;
-        if target_info.system=system_sparc_linux then
+        if compiler.target.info.system=system_sparc_linux then
           TCgSparc(cg).use_unlimited_pic_mode:=true
         else
           TCgSparc(cg).use_unlimited_pic_mode:=false;

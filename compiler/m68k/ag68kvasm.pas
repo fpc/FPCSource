@@ -75,7 +75,7 @@ unit ag68kvasm;
             { map sec_rodata and sec_nodata_norel as read-write, otherwise the linker
               (vlink) complains if it has to write into the relocations in a rodata,
               and if it has to merge rodata and data sections on Amiga/Atari. (KB) }
-            case target_info.system of
+            case compiler.target.info.system of
               system_m68k_atari,
               system_m68k_amiga:
                 result:='adrw';
@@ -97,7 +97,7 @@ unit ag68kvasm;
       begin
         result:=asminfo^.asmcmd;
 
-        case target_info.system of
+        case compiler.target.info.system of
           { a.out doesn't support named sections, lets use ELF for interoperability }
           system_m68k_amiga,
           system_m68k_atari,
@@ -108,7 +108,7 @@ unit ag68kvasm;
           internalerror(2016052601);
         end;
 
-        if (target_info.system = system_m68k_amiga) then
+        if (compiler.target.info.system = system_m68k_amiga) then
           begin
             Replace(result,'$ASM',maybequoted(ScriptFixFileName(Unix2AmigaPath(AsmFileName))));
             Replace(result,'$OBJ',maybequoted(ScriptFixFileName(Unix2AmigaPath(ObjFileName))));

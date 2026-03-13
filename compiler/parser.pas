@@ -204,7 +204,7 @@ implementation
 
          { memory sizes }
          if stacksize=0 then
-           stacksize:=target_info.stacksize;
+           stacksize:=compiler.target.info.stacksize;
 
          { RTTI writer }
          tcompiler(compiler).RTTIWriter:=TRTTIWriter.Create(compiler);
@@ -216,7 +216,7 @@ implementation
            GenerateAsmRes(outputexedir+'ppas');
 
          { open deffile }
-         DefFile:=TDefFile.Create(outputexedir+ChangeFileExt(inputfilename,target_info.defext));
+         DefFile:=TDefFile.Create(outputexedir+ChangeFileExt(inputfilename,compiler.target.info.defext));
 
          { list of generated .o files, so the linker can remove them }
          SmartLinkOFiles:=TCmdStrList.Create;
@@ -226,7 +226,7 @@ implementation
            printnode_reset;
 
          { target specific stuff }
-         case target_info.system of
+         case compiler.target.info.system of
            system_arm_aros,
            system_arm_palmos,
            system_m68k_amiga,

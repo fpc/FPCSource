@@ -3157,6 +3157,8 @@ implementation
 
      procedure addsymref(sym:tsym;def:tdef);
        var
+         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+       var
          owner,procowner : tsymtable;
        begin
          { for symbols used in preprocessor expressions, we don't want to
@@ -3191,7 +3193,7 @@ implementation
              end;
          { static symbols that are used in public functions must be exported
            for packages as well }
-         if ([tf_supports_packages,tf_supports_hidden_symbols]<=target_info.flags) and
+         if ([tf_supports_packages,tf_supports_hidden_symbols]<=compiler.target.info.flags) and
              (owner.symtabletype=staticsymtable) and
              assigned(current_procinfo) and
              (

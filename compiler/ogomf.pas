@@ -846,7 +846,7 @@ implementation
 
     procedure MayBeSwapTISTrailer(var h: TTISTrailer);
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           with h do
             begin
               tis_vendor:=swapendian(tis_vendor);
@@ -1613,7 +1613,7 @@ implementation
         Translator_COMENT:=TOmfRecord_COMENT.Create;
         Translator_COMENT.CommentClass:=CC_Translator;
         Translator_COMENT.CommentString:='FPC '+full_version_string+
-        ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname;
+        ' ['+date_string+'] for '+target_cpu_string+' - '+compiler.target.info.shortname;
         Translator_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;

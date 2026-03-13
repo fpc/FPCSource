@@ -1406,7 +1406,7 @@ implementation
               info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
           end;
         mangledname:=ApplyAsmSymbolRestrictions(def.mangledname);
-        if target_info.system in systems_dotted_function_names then
+        if compiler.target.info.system in systems_dotted_function_names then
           mangledname:='.'+mangledname;
         result.concat(Tai_stab.Create_ansistr(stabsdir,'"'+obj+':'+RType+def_stab_number(def.returndef)+info+'",'+
           base_stabs_str(procdef_stab,'0',tostr(def.fileinfo.line),mangledname)));
@@ -1426,7 +1426,7 @@ implementation
         if dbgtype<>dbg_stabx then
           begin
             mangledname:=def.mangledname;
-            if target_info.system in systems_dotted_function_names then
+            if compiler.target.info.system in systems_dotted_function_names then
               mangledname:='.'+mangledname;
             // LBRAC
             if af_stabs_use_function_absolute_addresses in target_asm.flags then
@@ -1453,7 +1453,7 @@ implementation
             { version is required on other platforms                          }
             { This stab must come after all other stabs for the procedure,    }
             { including the LBRAC/RBRAC ones                                  }
-            if (target_info.system in systems_darwin) then
+            if (compiler.target.info.system in systems_darwin) then
               result.concat(Tai_stab.create(stabsdir,
                 strpnew('"",'+base_stabs_str(procdef_stab,'0','0',stabsendlabel.name+'-'+mangledname))));
           end;
@@ -1698,7 +1698,7 @@ implementation
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
         include(current_module.moduleflags,mf_has_stabs_debuginfo);
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           begin
             new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),sizeof(pint));
             current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
@@ -1845,7 +1845,7 @@ implementation
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         infile:=current_module.sourcefiles.get_file(1);
         new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),sizeof(pint),secorder_begin);
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
 {$ifdef MIPS}
        { at least mipsel needs an explicit '.set nomips16' before any reference to
@@ -1861,12 +1861,12 @@ implementation
         { for darwin, you need a "module marker" too to work around      }
         { either some assembler or gdb bug (radar 4386531 according to a }
         { comment in dbxout.c of Apple's gcc)                            }
-        if (target_info.system in systems_darwin) then
+        if (compiler.target.info.system in systems_darwin) then
           current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(STABS_N_OSO,'0','0','0')));
         { emit empty n_sourcefile for end of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),sizeof(pint),secorder_end);
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
@@ -1880,11 +1880,11 @@ implementation
         dbgtable : tai_symbol;
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
-        if (target_info.system in ([system_powerpc_macosclassic]+systems_darwin)) then
+        if (compiler.target.info.system in ([system_powerpc_macosclassic]+systems_darwin)) then
           exit;
         new_section(list,sec_fpc,'links',0);
         { make sure the debuginfo doesn't get stripped out }
-        if (target_info.system in systems_darwin) then
+        if (compiler.target.info.system in systems_darwin) then
           begin
             dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_METADATA,0,voidpointertype);
             list.concat(tai_directive.create(asd_no_dead_strip,dbgtable.sym.name));

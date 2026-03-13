@@ -88,7 +88,7 @@ unit cpupi;
           end;
         if tg.direction = -1 then
           begin
-            if (target_info.system<>system_arm_ios) then
+            if (compiler.target.info.system<>system_arm_ios) then
               { Non-Darwin, worst case: r4-r10,r11,r13,r14,r15 is saved -> -28-16, but we
                 always adjust the frame pointer to point to the first stored
                 register (= last register in list above) -> + 4 }
@@ -245,7 +245,7 @@ unit cpupi;
 
     procedure tcpuprocinfo.init_framepointer;
       begin
-        if (target_info.system in systems_darwin) or GenerateThumbCode then
+        if (compiler.target.info.system in systems_darwin) or GenerateThumbCode then
           begin
             RS_FRAME_POINTER_REG:=RS_R7;
             NR_FRAME_POINTER_REG:=NR_R7;
@@ -268,7 +268,7 @@ unit cpupi;
     procedure tcpuprocinfo.allocate_got_register(list: TAsmList);
       begin
         { darwin doesn't use a got }
-        if tf_pic_uses_got in target_info.flags then
+        if tf_pic_uses_got in compiler.target.info.flags then
           got := cg.getaddressregister(list);
       end;
 

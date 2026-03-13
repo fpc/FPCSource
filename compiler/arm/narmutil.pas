@@ -94,7 +94,7 @@ interface
       begin
         inherited InsertObjectInfo;
         { write eabi attributes to object file? }
-        if (target_info.system in [system_arm_linux]) and (target_info.abi in [abi_eabihf,abi_eabi]) then
+        if (compiler.target.info.system in [system_arm_linux]) and (compiler.target.info.abi in [abi_eabihf,abi_eabi]) then
           begin
             case current_settings.cputype of
               cpu_armv2,
@@ -237,7 +237,7 @@ interface
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,2))
             else
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,1));
-            if target_info.abi=abi_eabihf then
+            if compiler.target.info.abi=abi_eabihf then
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_VFP_args,1))
             else
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ABI_VFP_args,0));
@@ -288,7 +288,7 @@ interface
         entry : pinitfinalentry;
         i : longint;
       begin
-        if not(tf_init_final_units_by_calls in target_info.flags) then
+        if not(tf_init_final_units_by_calls in compiler.target.info.flags) then
           begin
             inherited insert_init_final_table(main,entries);
             exit;

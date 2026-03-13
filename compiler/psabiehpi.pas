@@ -116,6 +116,7 @@ implementation
       cutils,
       verbose,
       systems,
+      compiler,
       dwarfbase,
       cfidwarf,
       globals,
@@ -372,7 +373,7 @@ implementation
     procedure tpsabiehprocinfo.set_eh_info;
       begin
         inherited set_eh_info;
-        if (tf_use_psabieh in target_info.flags) and not(pi_has_except_table_data in flags) then
+        if (tf_use_psabieh in compiler.target.info.flags) and not(pi_has_except_table_data in flags) then
           LSDALabel:=nil
         else
           current_asmdata.AsmCFI.get_cfa_list.concat(tdwarfitem.create_sym(DW_Set_LSDALabel,doe_32bit,LSDALabel));
@@ -398,7 +399,7 @@ implementation
       var
         gcc_except_table: tai_section;
       begin
-        if tf_use_psabieh in target_info.flags then
+        if tf_use_psabieh in compiler.target.info.flags then
           begin
             CreateExceptionTable:=foreachnode(code,@find_exception_handling,nil);
 
@@ -440,7 +441,7 @@ implementation
       var
         i: Integer;
       begin
-        if tf_use_psabieh in target_info.flags then
+        if tf_use_psabieh in compiler.target.info.flags then
           begin
             if pi_has_except_table_data in flags then
               begin
@@ -720,8 +721,8 @@ implementation
             if assigned(excepttype) then
               begin
                 otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
-                indirect:=(tf_supports_packages in target_info.flags) and
-                        (target_info.system in systems_indirect_var_imports) and
+                indirect:=(tf_supports_packages in compiler.target.info.flags) and
+                        (compiler.target.info.system in systems_indirect_var_imports) and
                         (cs_imported_data in current_settings.localswitches) and
                         otherunit;
                 { add "catch exceptiontype" clause to the landing pad }

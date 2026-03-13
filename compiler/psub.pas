@@ -566,7 +566,7 @@ implementation
                     end
                 else
                   if is_javaclass(current_structdef) or
-                     ((target_info.system in systems_jvm) and
+                     ((compiler.target.info.system in systems_jvm) and
                       is_record(current_structdef)) then
                     begin
                       if (current_procinfo.procdef.proctypeoption=potype_constructor) and
@@ -781,7 +781,7 @@ implementation
           begin
             withexceptblock:=
               withexceptblock and
-              not(target_info.system in systems_garbage_collected_managed_types);
+              not(compiler.target.info.system in systems_garbage_collected_managed_types);
             { Don't test self and the vmt here. See generate_bodyexit_block }
             { why (JM)                                                      }
             oldlocalswitches:=current_settings.localswitches;
@@ -974,7 +974,7 @@ implementation
            (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
            not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
-           not(target_info.system in systems_garbage_collected_managed_types) and
+           not(compiler.target.info.system in systems_garbage_collected_managed_types) and
            (f_exceptions in features) then
           begin
             { Any result of managed type must be returned in parameter }
@@ -1138,9 +1138,9 @@ implementation
                   ) and
                 ((flags*([pi_has_assembler_block,pi_is_assembler,
                         pi_needs_stackframe]+
-                        exception_flags[((target_info.cpu=cpu_i386) and (not paramanager.use_fixed_stack))
+                        exception_flags[((compiler.target.info.cpu=cpu_i386) and (not paramanager.use_fixed_stack))
 {$ifndef DISABLE_WIN64_SEH}
-                        or (target_info.system=system_x86_64_win64)
+                        or (compiler.target.info.system=system_x86_64_win64)
 {$endif DISABLE_WIN64_SEH}
                         ]))=[])
                )
@@ -1366,7 +1366,7 @@ implementation
     procedure tcgprocinfo.set_eh_info;
       begin
         inherited;
-         if (tf_use_psabieh in target_info.flags) and
+         if (tf_use_psabieh in compiler.target.info.flags) and
             ((pi_uses_exceptions in flags) or
              ((cs_implicit_exceptions in current_settings.moduleswitches) and
               (pi_needs_implicit_finally in flags))) or
@@ -2023,7 +2023,7 @@ implementation
 
 {$ifdef SUPPORT_SAFECALL}
         { set implicit_finally flag for if procedure is safecall }
-        if (tf_safecall_exceptions in target_info.flags) and
+        if (tf_safecall_exceptions in compiler.target.info.flags) and
            (procdef.proccalloption=pocall_safecall) then
           include(flags, pi_needs_implicit_finally);
 {$endif}
@@ -2143,7 +2143,7 @@ implementation
 
             if assigned(finalize_procinfo) then
               begin
-                if target_info.system in [system_aarch64_win64] then
+                if compiler.target.info.system in [system_aarch64_win64] then
                   tcgprocinfo(finalize_procinfo).store_tempflags
                 else
                   generate_exceptfilter(tcgprocinfo(finalize_procinfo));
@@ -2182,7 +2182,7 @@ implementation
 
             { make sure the got/pic register doesn't get freed in the }
             { middle of a loop                                        }
-            if (tf_pic_uses_got in target_info.flags) and
+            if (tf_pic_uses_got in compiler.target.info.flags) and
               (pi_needs_got in flags) and
               (got<>NR_NO) then
               cg.a_reg_sync(aktproccode,got);
@@ -2202,7 +2202,7 @@ implementation
 
             { Already reserve all registers for stack checking code and
               generate the call to the helper function }
-            if not(tf_no_generic_stackcheck in target_info.flags) and
+            if not(tf_no_generic_stackcheck in compiler.target.info.flags) and
                (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
                (procdef.proctypeoption<>potype_proginit) then
@@ -2259,7 +2259,7 @@ implementation
               maintain location lists }
             procdef.parast.SymList.ForEachCall(@translate_registers,templist);
             procdef.localst.SymList.ForEachCall(@translate_registers,templist);
-            if (tf_pic_uses_got in target_info.flags) and (pi_needs_got in flags) and
+            if (tf_pic_uses_got in compiler.target.info.flags) and (pi_needs_got in flags) and
                not(cs_no_regalloc in current_settings.globalswitches) and
                (got<>NR_NO) then
               cg.translate_register(got);
@@ -2275,7 +2275,7 @@ implementation
             gen_restore_used_regs(aktproccode);
             { We know the size of the stack, now we can generate the
               parameter that is passed to the stack checking code }
-            if not(tf_no_generic_stackcheck in target_info.flags) and
+            if not(tf_no_generic_stackcheck in compiler.target.info.flags) and
                (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
                (procdef.proctypeoption<>potype_proginit) then
@@ -2294,7 +2294,7 @@ implementation
 {$ifdef SUPPORT_SAFECALL}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
-               (tf_safecall_exceptions in target_info.flags) and
+               (tf_safecall_exceptions in compiler.target.info.flags) and
                (procdef.proccalloption=pocall_safecall) then
               cg.a_load_const_reg(aktproccode,OS_ADDR,0,NR_FUNCTION_RETURN_REG);
 {$endif}
@@ -2309,12 +2309,12 @@ implementation
                not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
                (pi_needs_implicit_finally in flags) and
                not(pi_has_implicit_finally in flags) and
-               not(target_info.system in systems_garbage_collected_managed_types) then
+               not(compiler.target.info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
 
              { sanity check }
              if not(assigned(current_procinfo.procdef.personality)) and
-                (tf_use_psabieh in target_info.flags) and
+                (tf_use_psabieh in compiler.target.info.flags) and
                 ((pi_uses_exceptions in flags) or
                  ((cs_implicit_exceptions in current_settings.moduleswitches) and
                   (pi_needs_implicit_finally in flags))) then
@@ -2696,7 +2696,7 @@ implementation
 
         { Handle Export of this procedure }
         if (po_exports in pd.procoptions) and
-           (target_info.system in [system_i386_os2,system_i386_emx]) then
+           (compiler.target.info.system in [system_i386_os2,system_i386_emx]) then
           begin
             pd.aliasnames.insert(pd.procsym.realname);
             if cs_link_deffile in current_settings.globalswitches then
@@ -3049,7 +3049,7 @@ implementation
           begin
             name:=parser.pdecsub.proc_get_importname(pd);
             { add import name to external list for DLL scanning }
-            if tf_has_dllscanner in target_info.flags then
+            if tf_has_dllscanner in compiler.target.info.flags then
               current_module.dllscannerinputlist.Add(name,pd);
             { needed for units that use functions in packages this way }
             current_module.add_extern_asmsym(name,AB_EXTERNAL,AT_FUNCTION);
@@ -3211,7 +3211,7 @@ implementation
                         parser.pbase.consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
-                     (target_info.system in systems_unit_program_exports) then
+                     (compiler.target.info.system in systems_unit_program_exports) then
                      parser.pexports.read_exports
                    else
                      begin

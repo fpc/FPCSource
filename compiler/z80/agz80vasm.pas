@@ -174,7 +174,7 @@ unit agz80vasm;
         count:=tai_realconst(hp).datasize;
         { write bytes in inverse order if source and target endianess don't
           match }
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             { go from back to front }
             index:=count-1;

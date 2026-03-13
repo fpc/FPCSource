@@ -100,7 +100,7 @@ implementation
         storefilepos:=current_filepos;
         current_filepos:=sym.fileinfo;
 
-        if not(target_info.system in systems_typed_constants_node_init) then
+        if not(compiler.target.info.system in systems_typed_constants_node_init) then
           begin
             maybe_new_object_file(list);
             tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym,compiler);
@@ -145,7 +145,7 @@ implementation
 
 
         { try to parse a section directive }
-        if not in_structure and (target_info.system in systems_allow_section) and
+        if not in_structure and (compiler.target.info.system in systems_allow_section) and
            (compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
            (current_scanner.idtoken=_SECTION) then
           begin
@@ -166,7 +166,7 @@ implementation
             if vo_is_public in sym.varoptions then
               current_module.add_public_asmsym(sym.mangledname,AB_GLOBAL,AT_DATA);
 
-            if not(target_info.system in systems_typed_constants_node_init) then
+            if not(compiler.target.info.system in systems_typed_constants_node_init) then
               begin
                 { only now get the final asmlist, because inserting the symbol
                   information depends on potential section information set above }

@@ -37,7 +37,7 @@ uses
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
-    if target_info.system in systems_darwin then
+    if compiler.target.info.system in systems_darwin then
       result:='arm64'
     else
       result:='aarch64'

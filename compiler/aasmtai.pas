@@ -33,7 +33,7 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,systems,
+       globtype,systems,compilerbase,
        cpuinfo,cpubase,
 {$ifdef llvm}
        { overrides max_operands }
@@ -1104,6 +1104,7 @@ implementation
       SysUtils,
       verbose,
       globals,
+      compiler,
       ppu;
 
     const
@@ -1418,8 +1419,10 @@ implementation
       end;
 
     constructor tai_datablock.Create_hidden(const _name: string; _size: asizeint; def: tdef; _typ:Tasmsymtype);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if tf_supports_hidden_symbols in target_info.flags then
+        if tf_supports_hidden_symbols in compiler.target.info.flags then
           begin
             inherited Create;
             typ:=ait_datablock;
@@ -1536,8 +1539,10 @@ implementation
       end;
 
     constructor tai_symbol.Createname_hidden(const _name: string; _symtyp: Tasmsymtype; siz: longint; def: tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if tf_supports_hidden_symbols in target_info.flags then
+        if tf_supports_hidden_symbols in compiler.target.info.flags then
           begin
             inherited Create;
             typ:=ait_symbol;
@@ -2189,6 +2194,8 @@ implementation
 
 
     function tai_const.size:longint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case consttype of
           aitconst_8bit :
@@ -2203,7 +2210,7 @@ implementation
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
-            if target_info.system in systems_peoptplus then
+            if compiler.target.info.system in systems_peoptplus then
               result:=sizeof(longint)
             else
               result:=sizeof(pint);

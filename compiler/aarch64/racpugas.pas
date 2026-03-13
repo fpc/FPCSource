@@ -127,7 +127,7 @@ Unit racpugas;
         i: TAsmSehDirective;
       begin
         result:=false;
-        if target_info.system<>system_aarch64_win64 then
+        if compiler.target.info.system<>system_aarch64_win64 then
           exit;
 
         for i:=low(TAsmSehDirective) to high(TAsmSehDirective) do

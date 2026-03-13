@@ -185,6 +185,7 @@ interface
             { indicates that the default value of the ts_wasm_threads target switch is 'on' for this target }
             tf_wasm_threads
        );
+       tsystemflagset = set of tsystemflags;
        psysteminfo = ^tsysteminfo;
        { using packed causes bus errors on processors which require alignment }
        tsysteminfo = record
@@ -562,6 +563,7 @@ interface
       TCompilerTarget = class
       private
         Fcpu  : tsystemcpu;
+        Finfo : tsysteminfo;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -570,8 +572,13 @@ interface
         function set_target_asm(t:tasm):boolean;
         function set_target_ar(t:tar):boolean;
         function set_target_res(t:tres):boolean;
+        procedure set_target_resobjext(const t:string);
         function set_target_dbg(t:tdbg):boolean;
+        procedure set_target_abi(t:tabi);
+        procedure set_target_endian(t: tendian);
+        procedure set_target_flags(const t:tsystemflagset);
         property cpu: tsystemcpu read Fcpu;
+        property info : tsysteminfo read Finfo;
       end;
 
     var
@@ -582,7 +589,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_info : tsysteminfo;
        target_asm  : tasminfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
@@ -656,13 +662,13 @@ begin
   set_target:=false;
   if assigned(targetinfos[t]) then
    begin
-     target_info:=targetinfos[t]^;
-     set_target_asm(target_info.assem);
-     set_target_ar(target_info.ar);
-     set_target_res(target_info.res);
-     set_target_dbg(target_info.dbg);
-     Fcpu:=target_info.cpu;
-     target_os_string:=lower(target_info.shortname);
+     Finfo:=targetinfos[t]^;
+     set_target_asm(Finfo.assem);
+     set_target_ar(Finfo.ar);
+     set_target_res(Finfo.res);
+     set_target_dbg(Finfo.dbg);
+     Fcpu:=Finfo.cpu;
+     target_os_string:=lower(Finfo.shortname);
      target_cpu_string:=cpu2str[Fcpu];
      target_full_string:=target_cpu_string+'-'+target_os_string;
      set_target:=true;
@@ -675,7 +681,7 @@ function TCompilerTarget.set_target_asm(t:tasm):boolean;
 begin
   set_target_asm:=false;
   if assigned(asminfos[t]) and
-    ((target_info.system in asminfos[t]^.supported_targets) or
+    ((Finfo.system in asminfos[t]^.supported_targets) or
      (system_any in asminfos[t]^.supported_targets)) then
    begin
      target_asm:=asminfos[t]^;
@@ -711,6 +717,12 @@ begin
 end;
 
 
+procedure TCompilerTarget.set_target_resobjext(const t:string);
+begin
+  Finfo.resobjext:=t;
+end;
+
+
 function TCompilerTarget.set_target_dbg(t:tdbg):boolean;
 begin
   result:=false;
@@ -721,6 +733,24 @@ begin
      result:=true;
      exit;
    end;
+end;
+
+
+procedure TCompilerTarget.set_target_abi(t:tabi);
+begin
+  Finfo.abi:=t;
+end;
+
+
+procedure TCompilerTarget.set_target_endian(t: tendian);
+begin
+  Finfo.endian:=t;
+end;
+
+
+procedure TCompilerTarget.set_target_flags(const t:tsystemflagset);
+begin
+  Finfo.flags:=t;
 end;
 
 
@@ -922,7 +952,7 @@ procedure TCompilerTarget.default_target(t:tsystem);
 begin
   set_target(t);
   if source_info.name='' then
-    source_info:=target_info;
+    source_info:=Finfo;
 end;
 
 

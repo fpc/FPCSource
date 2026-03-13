@@ -837,7 +837,7 @@ implementation
         vmtdef:=crecorddef.create_internal(
           '$vmtdef',
           0,
-          target_info.alignment.recordalignmin,
+          compiler.target.info.alignment.recordalignmin,
           _class.symtable,
           compiler);
 {$ifdef llvm}

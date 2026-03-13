@@ -27,7 +27,7 @@ unit objcasm;
   interface
 
   uses
-    aasmbase;
+    aasmbase,compilerbase;
 
 { Workaround for mantis #29906: bug in PPC jump table generation if a jump
   table is created for a case-statement that handles at least the lowest
@@ -38,16 +38,19 @@ implementation
 
   uses
     verbose,
-    systems;
+    systems,
+    compiler;
 
   function objc_section_name(sec: TObjCAsmSectionType): string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       result:='';
-      if target_info.system in systems_darwin then
+      if compiler.target.info.system in systems_darwin then
         case sec of
           sec_objc_protocol:
             begin
-              if not(target_info.system in systems_objc_nfabi) then
+              if not(compiler.target.info.system in systems_objc_nfabi) then
                 result:='__OBJC, __protocol, regular, no_dead_strip'
               else
                 internalerror(2015010605);
@@ -58,7 +61,7 @@ implementation
             end;
           sec_objc_category:
             begin
-              if not(target_info.system in systems_objc_nfabi) then
+              if not(compiler.target.info.system in systems_objc_nfabi) then
                 result:='__OBJC, __category, regular, no_dead_strip'
               else
                 internalerror(2015010606);
@@ -73,7 +76,7 @@ implementation
             end;
           sec_objc_image_info:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_imageinfo, regular, no_dead_strip'
               else
                 result:='__OBJC, __image_info, regular, no_dead_strip';
@@ -89,91 +92,91 @@ implementation
             end;
           sec_objc_message_refs:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_selrefs, literal_pointers, no_dead_strip'
               else
                 result:='__OBJC, __message_refs, literal_pointers, no_dead_strip';
             end;
           sec_objc_symbols:
             begin
-              if not(target_info.system in systems_objc_nfabi) then
+              if not(compiler.target.info.system in systems_objc_nfabi) then
                 result:='__OBJC, __symbols, regular, no_dead_strip'
               else
                 internalerror(2016010603);
             end;
           sec_objc_instance_vars:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_const'
               else
                 result:=' __OBJC, __instance_vars, regular, no_dead_strip';
             end;
           sec_objc_cls_refs:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_clsrefs, regular, no_dead_strip'
               else
                 result:='__OBJC, __cls_refs, literal_pointers, no_dead_strip';
             end;
           sec_objc_meth_var_types:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__TEXT, __objc_methtype, cstring_literals'
              else
                result:='__TEXT, __cstring, cstring_literals';
             end;
           sec_objc_meth_var_names:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__TEXT, __objc_methname, cstring_literals'
               else
                 result:='__TEXT, __cstring, cstring_literals';
             end;
           sec_objc_class_names:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__TEXT, __objc_classname, cstring_literals'
               else
                 result:='__TEXT, __cstring, cstring_literals';
             end;
           sec_objc_inst_meth:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_const'
               else
                 result:='__OBJC, __inst_meth, regular, no_dead_strip';
             end;
           sec_objc_cls_meth:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_const'
               else
                 result:='__OBJC, __cls_meth, regular, no_dead_strip';
             end;
           sec_objc_cat_inst_meth:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_const'
               else
                 result:='__OBJC, __cat_inst_meth, regular, no_dead_strip';
             end;
           sec_objc_cat_cls_meth:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_const'
               else
                 result:='__OBJC, __cat_cls_meth, regular, no_dead_strip';
             end;
           sec_objc_meta_class:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_const'
               else
                 result:='__OBJC, __meta_class, regular, no_dead_strip';
             end;
           sec_objc_class:
             begin
-              if target_info.system in systems_objc_nfabi then
+              if compiler.target.info.system in systems_objc_nfabi then
                 result:='__DATA, __objc_const'
               else
                 result:='__OBJC, __class, regular, no_dead_strip';
@@ -204,7 +207,7 @@ implementation
             end;
           sec_objc_module_info:
             begin
-              if not(target_info.system in systems_objc_nfabi) then
+              if not(compiler.target.info.system in systems_objc_nfabi) then
                 result:=' __OBJC, __module_info, regular, no_dead_strip'
               else
                 internalerror(2016010601);

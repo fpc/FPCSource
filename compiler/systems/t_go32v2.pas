@@ -76,7 +76,7 @@ implementation
         var
           s2: TCmdStr;
         begin
-          if FindLibraryFile(name,target_info.staticClibprefix,target_info.staticClibext,s2) then
+          if FindLibraryFile(name,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
             LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
           else
             Comment(V_Error,'Import library not found for '+name);
@@ -104,7 +104,7 @@ implementation
                 S:=SharedLibFiles.GetFirst;
                 if S<>'c' then
                   begin
-                    i:=Pos(target_info.sharedlibext,S);
+                    i:=Pos(compiler.target.info.sharedlibext,S);
                     if i>0 then
                       Delete(S,i,255);
                     AddLib(s);
@@ -243,7 +243,7 @@ begin
      S:=SharedLibFiles.GetFirst;
      if s<>'c' then
       begin
-        i:=Pos(target_info.sharedlibext,S);
+        i:=Pos(compiler.target.info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);

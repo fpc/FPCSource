@@ -67,9 +67,9 @@ unit agcpugas;
       begin
         result:=inherited MakeCmdLine;
 	{ Released FreeRTOS binutils do not support -EB/-EL options }
-        if target_info.system=system_xtensa_freertos then
+        if compiler.target.info.system=system_xtensa_freertos then
           Replace(result,'$SHORTENDIAN','')
-        else if target_info.endian=endian_little then
+        else if compiler.target.info.endian=endian_little then
           Replace(result,'$SHORTENDIAN','-EL')
         else
           Replace(result,'$SHORTENDIAN','-EB');

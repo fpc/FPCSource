@@ -67,7 +67,7 @@ unit cpupara;
       begin
         { we have actually to check what calling instruction is used, but we do not handle this,
           instead CALL(X)8 is used always }
-        if target_info.abi=abi_xtensa_windowed then
+        if compiler.target.info.abi=abi_xtensa_windowed then
           result:=[RS_A8..RS_A15]
         else
           result:=[RS_A0..RS_A11];
@@ -148,7 +148,7 @@ unit cpupara;
     procedure tcpuparamanager.init_values(p : tabstractprocdef; side : tcallercallee; var curintreg: tsuperregister; var cur_stack_offset: aword);
       begin
         cur_stack_offset:=0;
-        case target_info.abi of
+        case compiler.target.info.abi of
           abi_xtensa_windowed:
             begin
               if side=calleeside then
@@ -196,7 +196,7 @@ unit cpupara;
             paraloc^.size:=OS_32;
             paraloc^.def:=u32inttype;
             if side=callerside then
-              case target_info.abi of
+              case compiler.target.info.abi of
                 abi_xtensa_call0:
               paraloc^.register:=NR_A2;
                 abi_xtensa_windowed:
@@ -214,7 +214,7 @@ unit cpupara;
             paraloc^.size:=OS_32;
             paraloc^.def:=u32inttype;
             if side=callerside then
-              case target_info.abi of
+              case compiler.target.info.abi of
                 abi_xtensa_call0:
                   paraloc^.register:=NR_A3;
                 abi_xtensa_windowed:
@@ -239,7 +239,7 @@ unit cpupara;
           begin
             paraloc^.loc:=LOC_REGISTER;
             if side=callerside then
-              case target_info.abi of
+              case compiler.target.info.abi of
                 abi_xtensa_call0:
                   paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
                 abi_xtensa_windowed:

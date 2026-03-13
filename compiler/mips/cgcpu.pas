@@ -1732,7 +1732,7 @@ begin
   tcgmips(cg).make_simple_ref(list,tmpref);
   if (ref.alignment <4) then
     begin
-      if target_info.endian = endian_big then
+      if compiler.target.info.endian = endian_big then
         begin
           inc(tmpref.offset,7);
           incr:=-1;
@@ -1763,7 +1763,7 @@ begin
     end
   else
     begin
-      if target_info.endian = endian_big then
+      if compiler.target.info.endian = endian_big then
         begin
           tmpreg := reg.reglo;
           reg.reglo := reg.reghi;
@@ -1787,7 +1787,7 @@ begin
   if (ref.alignment <4) then
     begin
       tmpreg:=cg.getintregister(list,OS_INT);
-      if target_info.endian = endian_little then
+      if compiler.target.info.endian = endian_little then
         begin
           inc(tmpref.offset,7);
 	  incr:=-1;
@@ -1825,7 +1825,7 @@ begin
     end
   else
     begin
-      if target_info.endian = endian_big then
+      if compiler.target.info.endian = endian_big then
         begin
           tmpreg := reg.reglo;
           reg.reglo := reg.reghi;

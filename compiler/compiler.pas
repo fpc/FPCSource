@@ -506,7 +506,7 @@ begin
        { show some info }
        Message1(general_t_compilername,FixFileName(system.paramstr(0)));
        Message1(general_d_sourceos,source_info.name);
-       Message1(general_i_targetos,target_info.name);
+       Message1(general_i_targetos,target.info.name);
        Message1(general_t_exepath,exepath);
        WriteCmdStrList(general_t_unitpath,unitsearchpath);
        WriteCmdStrList(general_t_includepath,includesearchpath);

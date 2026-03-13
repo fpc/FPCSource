@@ -33,7 +33,7 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,globals,systems
+       globtype,globals,systems,compilerbase
        ;
 
     type
@@ -270,33 +270,39 @@ interface
 implementation
 
     uses
-      verbose,fpchash;
+      verbose,fpchash,compiler;
 
 
     function create_smartlink_sections:boolean;inline;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=(af_smartlink_sections in target_asm.flags) and
-                (tf_smartlink_sections in target_info.flags);
+                (tf_smartlink_sections in compiler.target.info.flags);
       end;
 
 
     function create_smartlink_library:boolean;inline;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=(cs_Create_smart in current_settings.moduleswitches) and
-                (tf_smartlink_library in target_info.flags) and
+                (tf_smartlink_library in compiler.target.info.flags) and
                 not create_smartlink_sections;
       end;
 
 
     function create_smartlink:boolean;inline;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=(
                  (af_smartlink_sections in target_asm.flags) and
-                 (tf_smartlink_sections in target_info.flags)
+                 (tf_smartlink_sections in compiler.target.info.flags)
                 ) or
                 (
                  (cs_Create_smart in current_settings.moduleswitches) and
-                 (tf_smartlink_library in target_info.flags)
+                 (tf_smartlink_library in compiler.target.info.flags)
                 );
       end;
 

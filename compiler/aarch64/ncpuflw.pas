@@ -74,7 +74,7 @@ function taarch64raisenode.pass_1 : tnode;
     raisenode : tcallnode;
   begin
     { difference from generic code is that address stack is not popped on reraise }
-    if (target_info.system<>system_aarch64_win64) or assigned(left) then
+    if (compiler.target.info.system<>system_aarch64_win64) or assigned(left) then
       result:=inherited pass_1
     else
       begin
@@ -91,7 +91,7 @@ procedure taarch64onnode.pass_generate_code;
   var
     exceptvarsym : tlocalvarsym;
   begin
-    if (target_info.system<>system_aarch64_win64) then
+    if (compiler.target.info.system<>system_aarch64_win64) then
       begin
         inherited pass_generate_code;
         exit;
@@ -159,7 +159,7 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
 constructor taarch64tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
-    if (target_info.system=system_aarch64_win64) and
+    if (compiler.target.info.system=system_aarch64_win64) and
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
@@ -178,7 +178,7 @@ constructor taarch64tryfinallynode.create(l, r: TNode);
 constructor taarch64tryfinallynode.create_implicit(l, r: TNode);
   begin
     inherited create_implicit(l, r);
-    if (target_info.system=system_aarch64_win64) then
+    if (compiler.target.info.system=system_aarch64_win64) then
       begin
         if df_generic in current_procinfo.procdef.defoptions then
           InternalError(2020033101);
@@ -193,7 +193,7 @@ constructor taarch64tryfinallynode.create_implicit(l, r: TNode);
 function taarch64tryfinallynode.simplify(forinline: boolean): tnode;
   begin
     result:=inherited simplify(forinline);
-    if (target_info.system<>system_aarch64_win64) then
+    if (compiler.target.info.system<>system_aarch64_win64) then
       exit;
     if (result=nil) then
       begin
@@ -237,7 +237,7 @@ procedure taarch64tryfinallynode.pass_generate_code;
     oldflowcontrol: tflowcontrol;
     catch_frame: boolean;
   begin
-    if (target_info.system<>system_aarch64_win64) then
+    if (compiler.target.info.system<>system_aarch64_win64) then
       begin
         inherited pass_generate_code;
         exit;
@@ -363,7 +363,7 @@ function taarch64tryfinallynode.dogetcopy: tnode;
     n : taarch64tryfinallynode;
   begin
     n:=taarch64tryfinallynode(inherited dogetcopy);
-    if (target_info.system=system_aarch64_win64) then
+    if (compiler.target.info.system=system_aarch64_win64) then
       begin
         n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
         n.finalizepi.force_nested;
@@ -409,7 +409,7 @@ procedure taarch64tryexceptnode.pass_generate_code;
   label
     errorexit;
   begin
-    if (target_info.system<>system_aarch64_win64) then
+    if (compiler.target.info.system<>system_aarch64_win64) then
       begin
         inherited pass_generate_code;
         exit;

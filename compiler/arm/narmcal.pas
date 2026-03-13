@@ -55,7 +55,7 @@ implementation
     var
       tmpref: treference;
     begin
-      case target_info.system of
+      case compiler.target.info.system of
         system_arm_aros:
             begin
               if (po_syscall_baselast in tprocdef(procdefinition).procoptions) then
@@ -80,7 +80,7 @@ implementation
   procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
     begin
       if (realresdef.typ=floatdef) and
-         (target_info.abi<>abi_eabihf) and
+         (compiler.target.info.abi<>abi_eabihf) and
          (procdefinition.proccalloption<>pocall_hardfloat) and
          ((cs_fp_emulation in current_settings.moduleswitches) or
           (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype])) then

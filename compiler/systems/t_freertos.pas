@@ -77,7 +77,7 @@ var
   platformopt : string;
 begin
   {$ifdef xtensa}
-  if target_info.endian=endian_little then
+  if compiler.target.info.endian=endian_little then
     platformopt:=' -b elf32-xtensa-le -m elf32xtensa'
   else
     platformopt:=' -b elf32-xtensa-be -m elf32xtensa';
@@ -144,7 +144,7 @@ begin
     end;
 
   { xtensa FreeRTOS links always against libc, the runtime needs it }
-  if not(target_info.system in [system_xtensa_freertos]) then
+  if not(compiler.target.info.system in [system_xtensa_freertos]) then
     begin
       { try to add crti and crtbegin if linking to C }
       if linklibc then
@@ -187,7 +187,7 @@ begin
     end;
 
   { xtensa FreeRTOS links always against libc, the runtime needs it }
-  if not(target_info.system in [system_xtensa_freertos]) then
+  if not(compiler.target.info.system in [system_xtensa_freertos]) then
     begin
      { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
        here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
@@ -197,7 +197,7 @@ begin
        S:=SharedLibFiles.GetFirst;
        if s<>'c' then
         begin
-         i:=Pos(target_info.sharedlibext,S);
+         i:=Pos(compiler.target.info.sharedlibext,S);
          if i>0 then
           Delete(S,i,255);
          LinkRes.Add('-l'+s);
@@ -219,7 +219,7 @@ begin
   LinkRes.Add(')');
 
   { xtensa FreeRTOS links always against libc }
-  if not(target_info.system in [system_xtensa_freertos]) then
+  if not(compiler.target.info.system in [system_xtensa_freertos]) then
     begin
       { objects which must be at the end }
       if linklibc then
@@ -1122,7 +1122,7 @@ begin
   hp:=TCmdStrListItem(StaticLibFiles.First);
   while assigned(hp) do
     begin
-      FindLibraryFile(hp.Str,target_info.staticClibprefix,target_info.staticClibext,filepath);
+      FindLibraryFile(hp.Str,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,filepath);
       writeln(t,filepath);
       hp:=TCmdStrListItem(hp.Next);
     end;
@@ -1428,7 +1428,7 @@ begin
   hp:=TCmdStrListItem(StaticLibFiles.First);
   while assigned(hp) do
     begin
-      FindLibraryFile(hp.Str,target_info.staticClibprefix,target_info.staticClibext,filepath);
+      FindLibraryFile(hp.Str,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,filepath);
       writeln(t,filepath);
       hp:=TCmdStrListItem(hp.Next);
     end;
@@ -1688,14 +1688,14 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   {$ifdef xtensa}
-  if target_info.abi=abi_xtensa_call0 then
+  if compiler.target.info.abi=abi_xtensa_call0 then
    begin
     if current_settings.controllertype=ct_esp8266 then
      Replace(cmdstr,'$PLATFORMABI','')
     else
      Replace(cmdstr,'$PLATFORMABI','--abi-call0');
    end
-  else if target_info.abi=abi_xtensa_windowed then
+  else if compiler.target.info.abi=abi_xtensa_windowed then
    Replace(cmdstr,'$PLATFORMABI','--abi-windowed');
   {$endif}
   if not(cs_link_on_target in current_settings.globalswitches) then
@@ -1816,7 +1816,7 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
   function MayBeSwapHeader(h : telf32header) : telf32header;
     begin
       result:=h;
-      if source_info.endian<>target_info.endian then
+      if source_info.endian<>compiler.target.info.endian then
         with h do
           begin
             result.e_type:=swapendian(e_type);
@@ -1838,7 +1838,7 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
   function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
     begin
       result:=h;
-      if source_info.endian<>target_info.endian then
+      if source_info.endian<>compiler.target.info.endian then
         with h do
           begin
             result.sh_name:=swapendian(sh_name);

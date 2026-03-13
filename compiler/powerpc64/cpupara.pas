@@ -70,7 +70,7 @@ function tcpuparamanager.get_volatile_registers_int(calloption:
   tproccalloption): tcpuregisterset;
 begin
   result := [RS_R0,RS_R3..RS_R12];
-  if (target_info.system = system_powerpc64_darwin) then
+  if (compiler.target.info.system = system_powerpc64_darwin) then
     include(result,RS_R2);
 end;
 
@@ -229,7 +229,7 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
     { general rule: passed in registers -> returned in registers }
     result:=push_addr_param(vs_value,def,pd.proccalloption);
 
-    case target_info.abi of
+    case compiler.target.info.abi of
       { elfv2: non-homogeneous aggregate larger than 2 doublewords or a
         homogeneous aggregate with more than eight registers are returned by
         reference }
@@ -298,7 +298,7 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
 procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
-  case target_info.abi of
+  case compiler.target.info.abi of
     abi_powerpc_elfv2:
       cur_stack_offset := 32;
     else
@@ -322,7 +322,7 @@ begin
 
   { on Darwin and with ELFv2, results are returned the same way as they are
     passed }
-  if target_info.abi in [abi_powerpc_elfv2,abi_powerpc_darwin] then
+  if compiler.target.info.abi in [abi_powerpc_elfv2,abi_powerpc_darwin] then
     begin
       init_values(nextintreg,nextfloatreg,nextmmreg,stack_offset);
       create_paraloc_for_def(result,vs_value,result.def,nextfloatreg,nextintreg,stack_offset,false,false,side,p);
@@ -516,7 +516,7 @@ implemented
            size<>16, ...) is passed "normally" in integer registers
     }
     { ELFv2 a) }
-    if (target_info.abi=abi_powerpc_elfv2) and
+    if (compiler.target.info.abi=abi_powerpc_elfv2) and
        (((paradef.typ=recorddef) and
          tcpurecorddef(paradef).has_single_type_elfv2(tmpdef)) or
         ((paradef.typ=arraydef) and
@@ -529,7 +529,7 @@ implemented
         paracgsize:=def_cgsize(paradef);
       end
     { AIX/ELFv1 b) }
-    else if (target_info.abi in [abi_powerpc_aix,abi_powerpc_sysv]) and
+    else if (compiler.target.info.abi in [abi_powerpc_aix,abi_powerpc_sysv]) and
        (paradef.typ=recorddef) and
        tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(tmpdef) and
        (tmpdef.typ=floatdef) then
@@ -546,17 +546,17 @@ implemented
 
         { general rule: aggregate data is aligned in the most significant bits
           except for ELFv1 c) and Darwin a) }
-        if (target_info.endian=endian_big) and
-           (((target_info.abi in [abi_powerpc_aix,abi_powerpc_elfv2])
-              and (target_info.system <> system_powerpc64_freebsd)) or
-            (((target_info.abi=abi_powerpc_sysv) or (target_info.system=system_powerpc64_freebsd))
+        if (compiler.target.info.endian=endian_big) and
+           (((compiler.target.info.abi in [abi_powerpc_aix,abi_powerpc_elfv2])
+              and (compiler.target.info.system <> system_powerpc64_freebsd)) or
+            (((compiler.target.info.abi=abi_powerpc_sysv) or (compiler.target.info.system=system_powerpc64_freebsd))
               and (paralen>8)) or
-            ((target_info.abi=abi_powerpc_darwin) and
+            ((compiler.target.info.abi=abi_powerpc_darwin) and
              not(paralen in [1,2,4]))) then
           tailpadding:=true
         { if we don't add tailpadding on the caller side, the callee will have
           to shift the value in the register before it can store it to memory }
-        else if (target_info.endian=endian_big) and
+        else if (compiler.target.info.endian=endian_big) and
            (paralen in [3,5,6,7]) then
           parashift:=(8-paralen)*8;
         { general fallback rule: pass aggregate types in integer registers
@@ -587,7 +587,7 @@ implemented
   end;
 
   { AIX/SysV a), Darwin c) -> skip 4 bytes in the stack frame }
- if (target_info.endian=endian_big) and
+ if (compiler.target.info.endian=endian_big) and
     (paradef.typ=floatdef) and
     (tfloatdef(paradef).floattype=s32real) and
     (nextfloatreg>RS_F13) then
@@ -597,7 +597,7 @@ implemented
    end;
 
  { Darwin d) }
-  if (target_info.abi=abi_powerpc_darwin) and
+  if (compiler.target.info.abi=abi_powerpc_darwin) and
      (paradef.typ in [orddef,enumdef]) and
      (paralen<8) and
      { we don't have to sign/zero extend the lower 8/16/32 bit on the callee

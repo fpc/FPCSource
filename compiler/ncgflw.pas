@@ -113,7 +113,7 @@ implementation
 
     uses
       cutils,
-      verbose,globals,systems,
+      verbose,globals,systems,compiler,
       symconst,symsym,symtable,aasmtai,aasmcpu,defutil,
       procinfo,parabase,
       fmodule,
@@ -1101,7 +1101,7 @@ implementation
 
     function tcgraisenode.pass_1: tnode;
       begin
-        if not(tf_use_psabieh in target_info.flags) or assigned(left) then
+        if not(tf_use_psabieh in compiler.target.info.flags) or assigned(left) then
           result:=inherited
         else
           begin
@@ -1117,7 +1117,7 @@ implementation
         CurrentLandingPad, CurrentAction, ReRaiseLandingPad: TPSABIEHAction;
         psabiehprocinfo: tpsabiehprocinfo;
       begin
-        if not(tf_use_psabieh in target_info.flags) then
+        if not(tf_use_psabieh in compiler.target.info.flags) then
           Internalerror(2019021701);
 
         location_reset(location,LOC_VOID,OS_NO);

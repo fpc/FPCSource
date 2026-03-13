@@ -27,7 +27,7 @@ unit agx86nsm;
 interface
 
     uses
-      cclasses,cpubase,globtype,
+      cclasses,cpubase,globtype,compilerbase,
       aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
@@ -86,7 +86,7 @@ interface
   implementation
 
     uses
-      cutils,globals,systems,fpchash,
+      cutils,globals,systems,fpchash,compiler,
       fmodule,finput,verbose,cpuinfo,cgbase,omfbase
       ;
 
@@ -536,6 +536,8 @@ interface
 
     procedure TX86NasmAssembler.WriteSection(atype : TAsmSectiontype;
       const aname : string; alignment : longint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -604,12 +606,12 @@ interface
           Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
         if (atype in [sec_rodata,sec_rodata_norel]) and
-          (target_info.system=system_i386_go32v2) then
+          (compiler.target.info.system=system_i386_go32v2) then
           writer.AsmWrite('.data')
         else if (atype=sec_threadvar) and
-          (target_info.system in (systems_windows+systems_wince)) then
+          (compiler.target.info.system in (systems_windows+systems_wince)) then
           writer.AsmWrite('.tls'#9'bss')
-        else if target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
+        else if compiler.target.info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
           begin
             if (atype=sec_user) then
               secname:=aname
@@ -662,10 +664,12 @@ interface
       end;
 
     procedure TX86NasmAssembler.WriteHiddenSymbolAttribute(sym: TAsmSymbol);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if target_info.system in systems_windows then
+        if compiler.target.info.system in systems_windows then
           exit;
-        if target_info.system in systems_darwin then
+        if compiler.target.info.system in systems_darwin then
           writer.AsmWrite(':private_extern')
         else
           case sym.typ of
@@ -717,7 +721,7 @@ interface
     procedure TX86NasmAssembler.WriteGroups;
       begin
 {$ifdef i8086}
-        if target_info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
+        if compiler.target.info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
           begin
             if current_settings.x86memorymodel=mm_huge then
               WriteSection(sec_data,'',2);
@@ -728,6 +732,8 @@ interface
       end;
 
     procedure TX86NasmAssembler.WriteTree(p:TAsmList);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {$ifdef cpuextended}
     type
       t80bitarray = array[0..9] of byte;
@@ -802,7 +808,7 @@ interface
                  begin
                    if (LastSecType=sec_bss) or (
                       (LastSecType=sec_threadvar) and
-                      (target_info.system in (systems_windows+systems_wince))
+                      (compiler.target.info.system in (systems_windows+systems_wince))
                      ) then
                       writer.AsmWriteLn(#9'ALIGNB '+tostr(tai_align(hp).aligntype))
                     else if tai_align_abstract(hp).use_op then
@@ -977,7 +983,7 @@ interface
                               end;
                        end; { end for i:=0 to... }
                      if quoted then writer.AsmWrite('"');
-                       writer.AsmWrite(target_info.newline);
+                       writer.AsmWrite(compiler.target.info.newline);
                      inc(counter,line_length);
                   end; { end for j:=0 ... }
                 { do last line of lines }
@@ -1427,11 +1433,13 @@ interface
 
     function TX86NasmAssembler.MakeCmdLine: TCmdStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         FormatName : string;
       begin
         result:=Inherited MakeCmdLine;
 {$ifdef i8086}
-        case target_info.system of
+        case compiler.target.info.system of
           system_i8086_msdos,
           system_i8086_win16,
           system_i8086_embedded:
@@ -1448,7 +1456,7 @@ interface
         end;
 {$endif i8086}
 {$ifdef i386}
-        case target_info.system of
+        case compiler.target.info.system of
           system_i386_go32v2:
             FormatName:='coff';
           system_i386_wdosx,
@@ -1466,7 +1474,7 @@ interface
         end;
 {$endif i386}
 {$ifdef x86_64}
-        case target_info.system of
+        case compiler.target.info.system of
           system_x86_64_win64:
             FormatName:='win64';
           system_x86_64_darwin:

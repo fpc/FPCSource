@@ -641,6 +641,8 @@ type
 
     function collectconsts(var n:tnode; arg: pointer) : foreachnoderesult;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         consts: pconstentries;
         found: Boolean;
         i: Integer;
@@ -670,7 +672,7 @@ type
                 inc(consts^[i].weight);
 
                 { non-sectioned threadvars really hurt so do more aggressive cse on them }
-                if not(tf_section_threadvars in target_info.flags) and (n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym) and (vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions) then
+                if not(tf_section_threadvars in compiler.target.info.flags) and (n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym) and (vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions) then
                   inc(consts^[i].weight);
               end
             else

@@ -2217,7 +2217,7 @@ implementation
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      if target_info.system in systems_all_windows+systems_nativent then
+      if compiler.target.info.system in systems_all_windows+systems_nativent then
         begin
           compiler.parser.pparautl.insert_funcret_local(pd);
           result:=compiler.cassignmentnode(

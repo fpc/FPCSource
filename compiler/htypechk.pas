@@ -1195,6 +1195,8 @@ implementation
 
 
     procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         vstrans: array[tvarstate,tvarstate] of tvarstate = (
           { vs_none -> ... }
@@ -1336,7 +1338,7 @@ implementation
                                      UninitializedVariableMessage(p.fileinfo,
                                        { on the JVM, an uninitialized var-parameter
                                          is just as fatal as a nil pointer dereference }
-                                       not((vsf_use_hints in varstateflags) and not(target_info.system in systems_jvm)),
+                                       not((vsf_use_hints in varstateflags) and not(compiler.target.info.system in systems_jvm)),
                                        tloadnode(p).symtable.symtabletype=localsymtable,
                                        is_managed_type(tloadnode(p).resultdef),
                                        hsym.realname);
@@ -1392,6 +1394,8 @@ implementation
 
 
     function  valid_for_assign(p:tnode;opts:TValidAssigns; report_errors: boolean):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         typeconvs: tfpobjectlist;
         hp2,
@@ -1557,7 +1561,7 @@ implementation
                  todef:=hp.resultdef;
                  { typeconversions on the assignment side must keep
                    left.location the same }
-                 if not((target_info.system in systems_jvm) and
+                 if not((compiler.target.info.system in systems_jvm) and
                         (gotsubscript or gotvec)) then
                    begin
                      ttypeconvnode(hp).assignment_side:=true;
@@ -1567,7 +1571,7 @@ implementation
                    end;
                  { in managed VMs, you cannot typecast formaldef when assigning
                    to it, see http://hallvards.blogspot.com/2007/10/dn4dp24-net-vs-win32-untyped-parameters.html }
-                 if (target_info.system in systems_managed_vm) and
+                 if (compiler.target.info.system in systems_managed_vm) and
                     (fromdef.typ=formaldef) then
                    begin
                      if report_errors then

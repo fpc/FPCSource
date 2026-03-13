@@ -1207,7 +1207,7 @@ implementation
 
         if (cs_fp_emulation in current_settings.moduleswitches) and (left.resultdef.typ=floatdef) then
           begin
-            if not(target_info.system in systems_wince) then
+            if not(compiler.target.info.system in systems_wince) then
               begin
                 expectloc:=LOC_REGISTER;
                 exit;

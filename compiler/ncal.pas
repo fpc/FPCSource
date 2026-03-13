@@ -689,7 +689,7 @@ implementation
            is_managed_type(orgparadef) and
            (not is_open_array(resultdef) or
             is_managed_type(tarraydef(resultdef).elementdef)) and
-           not(target_info.system in systems_garbage_collected_managed_types) then
+           not(compiler.target.info.system in systems_garbage_collected_managed_types) then
           begin
             { after converting a parameter to an open array, its resultdef is
               set back to its original resultdef so we can get the value of the
@@ -1100,7 +1100,7 @@ implementation
           call and hence no "caller side" either)
           }
         if assigned(callnode) and
-           (target_info.system in systems_caller_copy_addr_value_para) and
+           (compiler.target.info.system in systems_caller_copy_addr_value_para) and
            ((assigned(parasym) and
              (parasym.varspez=vs_value)) or
             (cpf_varargs_para in callparaflags)) and
@@ -1370,7 +1370,7 @@ implementation
                          begin
                            if not valid_for_formal_const(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
-                           else if (target_info.system in systems_managed_vm) and
+                           else if (compiler.target.info.system in systems_managed_vm) and
                               (left.resultdef.typ in [orddef,floatdef]) then
                              begin
                                left:=compiler.cinlinenode(in_box_x,false,compiler.ccallparanode(left,nil));
@@ -2608,7 +2608,7 @@ implementation
                   if methodpointer.nodetype=typen then
                     if (methodpointer.resultdef.typ<>objectdef) then
                       begin
-                        if not(target_info.system in systems_jvm) then
+                        if not(compiler.target.info.system in systems_jvm) then
                           begin
                             { TSomeRecord.Constructor call. We need to allocate }
                             { self node as a temp node of the result type       }
@@ -2646,7 +2646,7 @@ implementation
               if ((selfdef.typ in [recorddef,objectdef]) and
                   (oo_has_vmt in tabstractrecorddef(selfdef).objectoptions)) or
                  { all Java classes have a "VMT" }
-                 (target_info.system in systems_jvm) then
+                 (compiler.target.info.system in systems_jvm) then
                 begin
                   { we only need the vmt, loading self is not required and there is no
                     need to check for typen, because that will always get the
@@ -3160,7 +3160,7 @@ implementation
           begin
             if not(cnf_inherited in callnodeflags) then
               msgsendname:='OBJC_MSGSEND_STRET'
-            else if (target_info.system in systems_objc_nfabi) and
+            else if (compiler.target.info.system in systems_objc_nfabi) and
                     (not MacOSXVersionMin.isvalid or
                      (MacOSXVersionMin.relationto(10,6,0)>=0)) then
               msgsendname:='OBJC_MSGSENDSUPER2_STRET'
@@ -3179,7 +3179,7 @@ implementation
 {$endif aarch64}
           if not(cnf_inherited in callnodeflags) then
             msgsendname:='OBJC_MSGSEND'
-        else if (target_info.system in systems_objc_nfabi) and
+        else if (compiler.target.info.system in systems_objc_nfabi) and
                 (not MacOSXVersionMin.isvalid or
                  (MacOSXVersionMin.relationto(10,6,0)>=0)) then
           msgsendname:='OBJC_MSGSENDSUPER2'
@@ -3553,7 +3553,7 @@ implementation
             result:=not foreachnodestatic(left,@check_funcret_used_as_para,tloadnode(realassignmenttarget).symtableentry);
             { ensure that it is aligned using the default alignment }
             alignment:=tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).vardef.alignment;
-            if (used_align(alignment,target_info.alignment.localalignmin,target_info.alignment.localalignmax)<>
+            if (used_align(alignment,compiler.target.info.alignment.localalignmin,compiler.target.info.alignment.localalignmax)<>
                 used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax)) then
               result:=false;
             exit;
@@ -4856,7 +4856,7 @@ implementation
             st:=procdefinition.owner;
             while (st.symtabletype in [ObjectSymtable,recordsymtable]) do
               st:=st.defowner.owner;
-            if not(tf_supports_hidden_symbols in target_info.flags) and
+            if not(tf_supports_hidden_symbols in compiler.target.info.flags) and
                (pi_uses_static_symtable in tprocdef(procdefinition).inlininginfo^.flags) and
                (st.symtabletype=globalsymtable) and
                (not st.iscurrentunit) then

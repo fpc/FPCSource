@@ -146,7 +146,7 @@ implementation
     procedure tcgcpu.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if target_info.abi = abi_xtensa_call0 then
+        if compiler.target.info.abi = abi_xtensa_call0 then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_A2,RS_A3,RS_A4,RS_A5,RS_A6,RS_A7,{RS_A8,}RS_A9,
                RS_A10,RS_A11,RS_A12,RS_A13,RS_A14{,RS_A15}],first_int_imreg,[])
@@ -678,7 +678,7 @@ implementation
           begin
             regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
             a_reg_alloc(list,NR_STACK_POINTER_REG);
-            case target_info.abi of
+            case compiler.target.info.abi of
               abi_xtensa_call0:
                 begin
                   list.concat(tai_comment.Create(strpnew('  Start of abi_call0 entry localsize='+tostr(localsize))));
@@ -838,7 +838,7 @@ implementation
          l : TAsmLabel;
          LocalSize: longint;
       begin
-        case target_info.abi of
+        case compiler.target.info.abi of
           abi_xtensa_windowed:
             list.Concat(taicpu.op_none(A_RETW));
           abi_xtensa_call0:

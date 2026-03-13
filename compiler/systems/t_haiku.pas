@@ -28,7 +28,7 @@ unit t_haiku;
 interface
 
   uses
-    symsym,symdef,
+    symsym,symdef,compilerbase,
     import,export,link;
 
   type
@@ -59,7 +59,7 @@ implementation
 
   uses
     SysUtils,
-    cutils,cfileutl,cclasses,
+    cutils,cfileutl,cclasses,compiler,
     verbose,systems,globtype,globals,
     symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_haiku,ogbase;
@@ -234,6 +234,8 @@ end;
 
 
 function TLinkerHaiku.WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres  : TLinkRes;
   i        : integer;
@@ -256,7 +258,7 @@ begin
 
   prtobj:='';
   cprtobj:='';
-  if not (target_info.system in systems_internal_sysinit) then
+  if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       prtobj:='prt0';
       cprtobj:='cprt0';
@@ -362,7 +364,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-           i:=Pos(target_info.sharedlibext,S);
+           i:=Pos(compiler.target.info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);
@@ -400,6 +402,8 @@ end;
 
 function TLinkerHaiku.MakeExecutable:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   binstr,
   cmdstr : TCmdStr;
   success,
@@ -423,7 +427,7 @@ begin
    StripStr:='-s';
 
   if (cs_link_smart in current_settings.globalswitches) and
-     (tf_smartlink_sections in target_info.flags) then
+     (tf_smartlink_sections in compiler.target.info.flags) then
       GCSectionsStr:='--gc-sections';
 
   If (cs_profile in current_settings.moduleswitches) or

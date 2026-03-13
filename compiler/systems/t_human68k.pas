@@ -82,7 +82,7 @@ end;
 
 procedure TLinkerHuman68k.SetDefaultInfo;
 begin
-  if target_info.system = system_m68k_human68k then
+  if compiler.target.info.system = system_m68k_human68k then
     SetHuman68kInfo;
 end;
 
@@ -127,7 +127,7 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  if not (target_info.system in systems_internal_sysinit) then
+  if not (compiler.target.info.system in systems_internal_sysinit) then
     begin
       s:=FindObjectFile('prt0','',false);
       LinkRes.AddFileName(maybequoted(s));

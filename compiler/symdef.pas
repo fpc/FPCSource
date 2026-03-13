@@ -1605,7 +1605,7 @@ implementation
         for i:=low(fields) to high(fields) do
           fieldlist.add(fields[i]);
         result:=crecorddef.create_global_internal(internaltypeprefixName[prefix],packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin,compiler);
+          targetinfos[compiler.target.info.system]^.alignment.recordalignmin,compiler);
         result.add_fields_from_deflist(fieldlist);
         fieldlist.free;
         fieldlist := nil;
@@ -1648,7 +1648,7 @@ implementation
             exit;
           end;
         recdef:=crecorddef.create_global_internal(name,packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin,compiler);
+          targetinfos[compiler.target.info.system]^.alignment.recordalignmin,compiler);
         fields:=tfplist.create;
         fields.add(countdef);
         if count>0 then
@@ -1665,6 +1665,8 @@ implementation
       end;
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s,
         prefix : TSymStr;
@@ -1759,18 +1761,20 @@ implementation
         { start with '_' as regular symbols (it does not generate N_GSYM entries    }
         { those in the debug map, leading to troubles with dsymutil). So always     }
         { add an underscore on darwin.                                              }
-        if (target_info.system in systems_darwin) then
+        if (compiler.target.info.system in systems_darwin) then
           result := '_' + result;
       end;
 
     function make_dllmangledname(const dllname,importname:TSymStr;import_nr : word; pco : tproccalloption):TSymStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
        var
          crc : cardinal;
          i : longint;
          use_crc : boolean;
          dllprefix : TSymStr;
       begin
-        if (target_info.system in (systems_all_windows + systems_nativent +
+        if (compiler.target.info.system in (systems_all_windows + systems_nativent +
                            [system_i386_emx, system_i386_os2]))
             and (dllname <> '') then
           begin
@@ -1817,7 +1821,7 @@ implementation
                if not(pco in [pocall_cdecl,pocall_cppdecl]) then
                  result:=importname
                else
-                 result:=target_info.Cprefix+importname;
+                 result:=compiler.target.info.Cprefix+importname;
              end
             else
               result:='_index_'+tostr(import_nr);
@@ -2842,7 +2846,7 @@ implementation
       begin
          inherited create(stringdef,doregister,acompiler);
          stringtype:=st_widestring;
-         if target_info.endian=endian_little then
+         if compiler.target.info.endian=endian_little then
            encoding:=CP_UTF16LE
          else
            encoding:=CP_UTF16BE;
@@ -2854,7 +2858,7 @@ implementation
       begin
          inherited ppuload(stringdef,ppufile,acompiler);
          stringtype:=st_widestring;
-         if target_info.endian=endian_little then
+         if compiler.target.info.endian=endian_little then
            encoding:=CP_UTF16LE
          else
            encoding:=CP_UTF16BE;
@@ -2867,7 +2871,7 @@ implementation
       begin
          inherited create(stringdef,doregister,acompiler);
          stringtype:=st_unicodestring;
-         if target_info.endian=endian_little then
+         if compiler.target.info.endian=endian_little then
            encoding:=CP_UTF16LE
          else
            encoding:=CP_UTF16BE;
@@ -3004,7 +3008,7 @@ implementation
           st_longstring,
           st_shortstring:
               { char to string accesses byte 0 and 1 with one word access }
-            if (tf_requires_proper_alignment in target_info.flags) or
+            if (tf_requires_proper_alignment in compiler.target.info.flags) or
               { macpas needs an alignment of 2 (MetroWerks compatible) }
                (m_mac in current_settings.modeswitches) then
               alignment:=size_2_align(2)
@@ -3560,7 +3564,7 @@ implementation
 
     function torddef.alignment:shortint;
       begin
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_ios]) and
+        if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_ios]) and
            (ordtype in [s64bit,u64bit]) then
           result := 4
         else
@@ -3707,7 +3711,7 @@ implementation
 
     function tfloatdef.alignment:shortint;
       begin
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_ios]) then
+        if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim,system_arm_ios]) then
           case floattype of
             sc80real,
             s80real: result:=16;
@@ -3727,7 +3731,7 @@ implementation
         { aix is really annoying: the recommended scalar alignment for both
           int64 and double is 64 bits, but in structs int64 has to be aligned
           to 8 bytes and double to 4 bytes }
-        if (target_info.system in systems_aix) and
+        if (compiler.target.info.system in systems_aix) and
            (floattype=s64real) then
           result:=4
         else
@@ -3741,7 +3745,7 @@ implementation
            s32real : savesize:=4;
            s80real : savesize:=10;
            sc80real:
-             if target_info.system in [system_i386_darwin,
+             if compiler.target.info.system in [system_i386_darwin,
                   system_i386_iphonesim,system_x86_64_darwin,
                   system_x86_64_iphonesim,
                   system_x86_64_linux,system_x86_64_freebsd,
@@ -6359,7 +6363,7 @@ implementation
         result:=
           (proccalloption=pocall_safecall) and
           not(po_assembler in procoptions) and
-          (tf_safecall_exceptions in target_info.flags);
+          (tf_safecall_exceptions in compiler.target.info.flags);
 {$else SUPPORT_SAFECALL}
         result:=false;
 {$endif}
@@ -6804,7 +6808,7 @@ implementation
            inlininginfo^.code:=ppuloadnodetree(ppufile);
          { default values for no persistent data }
          if (cs_link_deffile in current_settings.globalswitches) and
-            (tf_need_export in target_info.flags) and
+            (tf_need_export in compiler.target.info.flags) and
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
          { Disable po_has_inlining until the derefimpl is done }
@@ -7180,7 +7184,7 @@ implementation
               resdef:=cpointerdef.getreusable(resdef,compiler);
           end
         else if (proccalloption=pocall_safecall) and
-           (tf_safecall_exceptions in target_info.flags) then
+           (tf_safecall_exceptions in compiler.target.info.flags) then
           begin
             result:=true;
             ressym:=tsym(localst.Find('safecallresult'));
@@ -7200,7 +7204,7 @@ implementation
         result:=false;
         if (proctypeoption<>potype_constructor) and
            (proccalloption=pocall_safecall) and
-           (tf_safecall_exceptions in target_info.flags) then
+           (tf_safecall_exceptions in compiler.target.info.flags) then
           begin
             result:=true;
             ressym:=tsym(localst.Find('safecallresult'));
@@ -8458,7 +8462,7 @@ implementation
              tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,
                  tObjectSymtable(symtable).fieldalignment);
 
-             if (tf_requires_proper_alignment in target_info.flags) then
+             if (tf_requires_proper_alignment in compiler.target.info.flags) then
                begin
                  { Align VMT pointer and whole object instance if target CPU requires alignment. }
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
@@ -8683,7 +8687,7 @@ implementation
                 exit;
               end;
 
-            if not(target_info.system in systems_objc_nfabi) then
+            if not(compiler.target.info.system in systems_objc_nfabi) then
               begin
                 result:=target_asm.labelprefix;
                 case objecttype of
@@ -8985,12 +8989,14 @@ implementation
 
     procedure do_cpp_import_info(data: tobject; arg: pointer);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         def: tdef absolute data;
         pd: tprocdef absolute data;
       begin
         if (def.typ=procdef) then
           begin
-            pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
+            pd.setmangledname(compiler.target.info.Cprefix+pd.cplusplusmangledname);
             if (oo_is_external in pd.struct.objectoptions) then
               begin
                 { copied from psub.read_proc }
@@ -8999,7 +9005,7 @@ implementation
                  else
                    begin
                      { add import name to external list for DLL scanning }
-                     if tf_has_dllscanner in target_info.flags then
+                     if tf_has_dllscanner in compiler.target.info.flags then
                        current_module.dllscannerinputlist.Add(pd.mangledname,pd);
                    end;
 
@@ -9551,12 +9557,14 @@ implementation
 
 
     function is_implicit_pointer_object_type(def: tdef): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=
           assigned(def) and
           (((def.typ=objectdef) and
             (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_helper,odt_javaclass,odt_interfacejava])) or
-           ((target_info.system in systems_jvm) and
+           ((compiler.target.info.system in systems_jvm) and
             (def.typ=recorddef)));
       end;
 
@@ -9624,12 +9632,14 @@ implementation
 
     procedure maybeloadcocoatypes;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         tsym: ttypesym;
         cocoaunit: string[15];
       begin
         if assigned(objc_fastenumeration) then
           exit;
-        if not(target_info.system in [system_arm_ios,system_i386_iphonesim,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) then
+        if not(compiler.target.info.system in [system_arm_ios,system_i386_iphonesim,system_aarch64_ios,system_x86_64_iphonesim,system_aarch64_iphonesim]) then
           cocoaunit:='COCOAALL'
         else
           cocoaunit:='IPHONEALL';

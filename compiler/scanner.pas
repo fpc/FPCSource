@@ -763,6 +763,8 @@ implementation
 
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : tmodeswitch;
         doinclude : boolean;
       begin
@@ -787,7 +789,7 @@ implementation
               { Objective-C is currently only supported for Darwin targets }
               if doinclude and
                  (i in [m_objectivec1,m_objectivec2]) and
-                 not(target_info.system in systems_objc_supported) then
+                 not(compiler.target.info.system in systems_objc_supported) then
                 begin
                   Message1(option_unsupported_target_for_feature,'Objective-C');
                   break;
@@ -796,7 +798,7 @@ implementation
               { Blocks supported? }
               if doinclude and
                  (i = m_blocks) and
-                 not(target_info.system in systems_blocks_supported) then
+                 not(compiler.target.info.system in systems_blocks_supported) then
                 begin
                   Message1(option_unsupported_target_for_feature,'Blocks');
                   break;
@@ -840,32 +842,32 @@ implementation
 {$ifdef i8086}
         { Set application extension regardless if it might or might not have been correct.
           Important for secondary compilations from Textmode IDE. }
-        if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
+        if (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             if NewAppType=app_com then
               begin
-                targetinfos[target_info.system]^.exeext:='.com';
-                target_info.exeext:='.com';
+                targetinfos[compiler.target.info.system]^.exeext:='.com';
+                compiler.target.info.exeext:='.com';
               end
             else
               begin
-                targetinfos[target_info.system]^.exeext:='.exe';
-                target_info.exeext:='.exe';
+                targetinfos[compiler.target.info.system]^.exeext:='.exe';
+                compiler.target.info.exeext:='.exe';
               end;
           end;
 {$endif i8086}
 {$ifdef m68k}
-        if target_info.system in [system_m68k_atari] then
+        if compiler.target.info.system in [system_m68k_atari] then
           case NewAppType of
             app_cui:
               begin
-                targetinfos[target_info.system]^.exeext:='.ttp';
-                target_info.exeext:='.ttp';
+                targetinfos[compiler.target.info.system]^.exeext:='.ttp';
+                compiler.target.info.exeext:='.ttp';
               end;
             app_gui:
               begin
-                targetinfos[target_info.system]^.exeext:='.prg';
-                target_info.exeext:='.prg';
+                targetinfos[compiler.target.info.system]^.exeext:='.prg';
+                compiler.target.info.exeext:='.prg';
               end;
             else
               ;
@@ -2779,6 +2781,8 @@ type
 
     procedure dir_include;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         foundfile : TCmdStr;
         path,
         name,
@@ -2865,7 +2869,7 @@ type
              'FPCTARGETCPU':
                hs:=target_cpu_string;
              'FPCTARGETOS':
-               hs:=target_info.shortname;
+               hs:=compiler.target.info.shortname;
              'CURRENTROUTINE':
                hs:=current_procinfo.procdef.procsym.RealName;
              else
@@ -5452,6 +5456,8 @@ type
 
     procedure tscannerfile.postprocessutf8multiline(len,quote_pos,quote_count : integer);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       malformed : boolean;
       start, i,stripcol,col,newlen : integer;
       crlf : boolean;
@@ -5474,7 +5480,7 @@ type
           if (getcharwidestring(patternw,1)=13) and (getcharwidestring(patternw,start)=10) then
             inc(start);
           end;
-        le_platform : inc(start,length(target_info.newline));
+        le_platform : inc(start,length(compiler.target.info.newline));
       end;
       { we don't need the last added quotes }
       dec(len,quote_count-1);
@@ -5512,7 +5518,7 @@ type
         Case current_settings.lineendingtype of
           le_cr,le_lf : dec(newlen);
           le_crlf : dec(newlen,2);
-          le_platform : dec(newlen,length(target_info.newline));
+          le_platform : dec(newlen,length(compiler.target.info.newline));
           le_source :
             begin
             crlf:=getcharwidestring(tmp,newlen)=10;
@@ -5528,6 +5534,8 @@ type
     end;
 
     procedure tscannerfile.postprocessmultiline(len,quote_pos,quote_count : integer);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     var
       malformed : boolean;
@@ -5546,7 +5554,7 @@ type
       Case current_settings.lineendingtype of
         le_cr,le_lf : inc(start);
         le_crlf : inc(start,2);
-        le_platform : inc(start,length(target_info.newline));
+        le_platform : inc(start,length(compiler.target.info.newline));
         le_source :
           begin
           inc(start);
@@ -5589,7 +5597,7 @@ type
         Case current_settings.lineendingtype of
           le_cr,le_lf : dec(newlen);
           le_crlf : dec(newlen,2);
-          le_platform : dec(newlen,length(target_info.newline));
+          le_platform : dec(newlen,length(compiler.target.info.newline));
           le_source :
               begin
               crlf:=tmp[newlen]=#10;
@@ -5606,6 +5614,8 @@ type
 
 
     function tscannerfile.readstringconstant : boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     type
        tQuoteStyle = (qsNone,qsBacktick,qsMultiQuote);
@@ -5958,14 +5968,14 @@ type
                                 concatwidestringchar(patternw,ord(#10));
                               le_platform :
                                 begin
-                                  if target_info.newline=#13 then
+                                  if compiler.target.info.newline=#13 then
                                     concatwidestringchar(patternw,ord(#13))
-                                  else if target_info.newline=#13#10 then
+                                  else if compiler.target.info.newline=#13#10 then
                                     begin
                                       concatwidestringchar(patternw,ord(#13));
                                       concatwidestringchar(patternw,ord(#10));
                                     end
-                                  else if target_info.newline=#10 then
+                                  else if compiler.target.info.newline=#10 then
                                     concatwidestringchar(patternw,ord(#10));
                                 end;
                               le_source :
@@ -5985,14 +5995,14 @@ type
                               concatwidestringchar(patternw,asciichar2unicode(#10));
                             le_platform :
                               begin
-                                if target_info.newline=#13 then
+                                if compiler.target.info.newline=#13 then
                                   concatwidestringchar(patternw,asciichar2unicode(#13))
-                                else if target_info.newline=#13#10 then
+                                else if compiler.target.info.newline=#13#10 then
                                   begin
                                     concatwidestringchar(patternw,asciichar2unicode(#13));
                                     concatwidestringchar(patternw,asciichar2unicode(#10));
                                   end
-                                else if target_info.newline=#10 then
+                                else if compiler.target.info.newline=#10 then
                                   concatwidestringchar(patternw,asciichar2unicode(#10));
                               end;
                             le_source :
@@ -6029,15 +6039,15 @@ type
                              cstringpattern[len]:=#10;
                            le_platform :
                              begin
-                               if target_info.newline=#13 then
+                               if compiler.target.info.newline=#13 then
                                  cstringpattern[len]:=#13
-                               else if target_info.newline=#13#10 then
+                               else if compiler.target.info.newline=#13#10 then
                                  begin
                                    cstringpattern[len]:=#13;
                                    inc(len);
                                    cstringpattern[len]:=#10;
                                  end
-                               else if target_info.newline=#10 then
+                               else if compiler.target.info.newline=#10 then
                                  cstringpattern[len]:=#10;
                              end;
                            le_source :

@@ -712,7 +712,7 @@ implementation
 
           in_ofs_x :
             begin
-              if target_info.system in systems_managed_vm then
+              if compiler.target.info.system in systems_managed_vm then
                 message(parser_e_feature_unsupported_for_vm);
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
@@ -2429,7 +2429,7 @@ implementation
                          begin
                            p2:=comp_expr([ef_accept_equal]);
                            { support SEG:OFS for go32v2/msdos Mem[] }
-                           if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
+                           if (compiler.target.info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
                               (p1.nodetype=loadn) and
                               assigned(tloadnode(p1).symtableentry) and
                               assigned(tloadnode(p1).symtableentry.owner.name) and
@@ -3927,7 +3927,7 @@ implementation
                  if assigned(current_procinfo) and
                     assigned(current_structdef) and
                     ((current_structdef.typ=objectdef) or
-                     ((target_info.system in systems_jvm) and
+                     ((compiler.target.info.system in systems_jvm) and
                       (current_structdef.typ=recorddef)))then
                   begin
                     { for record helpers in mode Delphi "inherited" is not
@@ -3946,7 +3946,7 @@ implementation
                         if is_objccategory(current_structdef) then
                           hclassdef:=hclassdef.childof;
                       end
-                    else if target_info.system in systems_jvm then
+                    else if compiler.target.info.system in systems_jvm then
                       hclassdef:=java_fpcbaserecordtype
                     else
                       internalerror(2012012401);

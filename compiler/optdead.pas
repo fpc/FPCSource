@@ -29,6 +29,7 @@ unit optdead;
     uses
       globtype,
       cclasses,
+      compilerbase,
       wpobase;
 
     type
@@ -88,7 +89,7 @@ unit optdead;
   uses
     cutils,cfileutl,
     sysutils,
-    globals,systems,fmodule,
+    globals,systems,fmodule,compiler,
     verbose;
 
 
@@ -272,6 +273,8 @@ const
 
 
   procedure twpodeadcodeinfofromexternallinker.constructfromcompilerstate;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     type
       tparselineproc = function(const line: ansistring): boolean of object;
@@ -320,7 +323,7 @@ const
         }
         result:=false;
         if (source_info.system in systems_aix) and
-           (target_info.system in systems_aix) then
+           (compiler.target.info.system in systems_aix) then
           begin
             { check for native aix nm:
               .__start             t   268435792         213
@@ -388,7 +391,7 @@ const
       if not symbolprogfound then
         symbolprogfound:=findutil('nm',nmfullname,symbolprogfullpath);
       if not symbolprogfound and
-         (target_info.system in systems_linux) then
+         (compiler.target.info.system in systems_linux) then
         begin
           { try objdump }
           symbolprogfound:=findutil('objdump',objdumpfullname,symbolprogfullpath);
@@ -401,7 +404,7 @@ const
           { GNU nm shows 64 bit addresses when processing 32 bit binaries on
             a 64 bit platform, but only skips 8 spaces for the address in case
             of undefined symbols -> skip undefined symbols }
-          if target_info.system in (systems_linux+systems_windows) then
+          if compiler.target.info.system in (systems_linux+systems_windows) then
             symbolprogfullpath:=symbolprogfullpath+'--defined-only ';
           symbolprogisnm:=true;
         end;

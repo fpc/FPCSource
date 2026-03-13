@@ -1353,7 +1353,7 @@ implementation
            { shortstrings are handled 'inline' (except for widechars) }
            if (tstringdef(resultdef).stringtype<>st_shortstring) or
               (torddef(left.resultdef).ordtype=uwidechar) or
-              (target_info.system in systems_managed_vm) then
+              (compiler.target.info.system in systems_managed_vm) then
              begin
                { parameter }
                para:=compiler.ccallparanode(left,nil);
@@ -1397,7 +1397,7 @@ implementation
                { create word(byte(char) shl 8 or 1) for little endian machines}
                { and word(byte(char) or 256) for big endian machines          }
                left := compiler.ctypeconvnode_internal(left,exprtype);
-               if (target_info.endian = endian_little) then
+               if (compiler.target.info.endian = endian_little) then
                  left := compiler.caddnode(orn,
                    compiler.cshlshrnode(shln,left,compiler.cordconstnode(8,exprtype,false)),
                    compiler.cordconstnode(1,exprtype,false))
@@ -3693,7 +3693,7 @@ implementation
               if (resultdef.typ=pointerdef) and
                  (convtype<>tc_cchar_2_pchar) then
                 begin
-                   if (target_info.system in systems_managed_vm) and
+                   if (compiler.target.info.system in systems_managed_vm) and
                       (tordconstnode(left).value<>0) then
                      message(parser_e_feature_unsupported_for_vm);
                    hp:=compiler.cpointerconstnode(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
@@ -3727,7 +3727,7 @@ implementation
                    else
                      begin
                        { for constant values on absolute variables, swapping is required }
-                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
+                       if (compiler.target.info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
                        if not(nf_generic_para in flags) then
                           adaptrange(
@@ -3738,7 +3738,7 @@ implementation
                             nf_explicit in flags,
                             cs_check_range in localswitches);
                        { swap value back, but according to new type }
-                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
+                       if (compiler.target.info.endian = endian_big) and (nf_absolute in flags) then
                          swap_const_value(tordconstnode(left).value,resultdef.size);
 
                        { cut off the new value? }
@@ -3970,7 +3970,7 @@ implementation
       var
         fname: string[32];
       begin
-        if target_info.system in systems_wince then
+        if compiler.target.info.system in systems_wince then
           begin
             { converting a 64bit integer to a float requires a helper }
             if is_64bitint(left.resultdef) or
@@ -4047,7 +4047,7 @@ implementation
 {$ifdef cpufpemu}
         if cs_fp_emulation in current_settings.moduleswitches then
           begin
-            if target_info.system in systems_wince then
+            if compiler.target.info.system in systems_wince then
               begin
                 case tfloatdef(left.resultdef).floattype of
                   s32real:
@@ -4681,7 +4681,7 @@ implementation
                 { on managed platforms, converting an element to an open array
                   involves creating an actual array -> value location changes }
                 ((convtype=tc_elem_2_openarray) and
-                 not(target_info.system in systems_managed_vm))
+                 not(compiler.target.info.system in systems_managed_vm))
                 );
       end;
 

@@ -55,14 +55,14 @@ implementation
      attr_arch: String;
     begin
       inherited InsertObjectInfo;
-      if (target_info.system in systems_linux) then
+      if (compiler.target.info.system in systems_linux) then
         begin
           if (cs_create_pic in current_settings.moduleswitches) then
             current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'pic'))
           else
             current_asmdata.asmlists[al_start].Concat(tai_directive.create(asd_option,'nopic'));
 
-          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_stack_align,target_info.stackalign));
+          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_stack_align,compiler.target.info.stackalign));
           current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_unaligned_access,0));
 {$if defined(RISCV32)}
           if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then

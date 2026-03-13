@@ -1030,7 +1030,7 @@ implementation
         begin
           is_external_var:=true;
           { near/far? }
-          if target_info.system in systems_allow_external_far_var then
+          if compiler.target.info.system in systems_allow_external_far_var then
             begin
               if parser.pbase.try_to_consume(_FAR) then
                 is_far:=true
@@ -1042,7 +1042,7 @@ implementation
               is_dll:=true;
               dll_name:=parser.pexpr.get_stringconst;
               if ExtractFileExt(dll_name)='' then
-                dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
+                dll_name:=ChangeFileExt(dll_name,compiler.target.info.sharedlibext);
             end;
           if not(is_cdecl) and parser.pbase.try_to_consume(_NAME) then
             C_name:=parser.pexpr.get_stringconst;
@@ -1059,7 +1059,7 @@ implementation
             is_public_var:=true;
           if parser.pbase.try_to_consume(_NAME) then
             C_name:=parser.pexpr.get_stringconst;
-          if (target_info.system in systems_allow_section_no_semicolon) and
+          if (compiler.target.info.system in systems_allow_section_no_semicolon) and
              (vs.typ=staticvarsym) and
              parser.pbase.try_to_consume (_SECTION) then
             section_name:=parser.pexpr.get_stringconst;
@@ -1068,7 +1068,7 @@ implementation
 
       { Windows uses an indirect reference using import tables }
       if is_dll and
-         (target_info.system in systems_all_windows) then
+         (compiler.target.info.system in systems_all_windows) then
         include(vs.varoptions,vo_is_dll_var);
 
       { This can only happen if vs.typ=staticvarsym }
@@ -1083,9 +1083,9 @@ implementation
       if is_cdecl or
          (
           is_dll and
-          (target_info.system in systems_darwin)
+          (compiler.target.info.system in systems_darwin)
          ) then
-        C_Name := target_info.Cprefix+C_Name;
+        C_Name := compiler.target.info.Cprefix+C_Name;
 
       if is_public_var then
         begin
@@ -1107,21 +1107,21 @@ implementation
             include(vs.varoptions,vo_is_far);
           if (is_weak_external) then
             begin
-              if not(target_info.system in systems_weak_linking) then
+              if not(compiler.target.info.system in systems_weak_linking) then
                 message(parser_e_weak_external_not_supported);
               include(vs.varoptions,vo_is_weak_external);
             end;
           vs.varregable := vr_none;
           if is_dll then
             begin
-              if target_info.system in (systems_all_windows + systems_nativent +
+              if compiler.target.info.system in (systems_all_windows + systems_nativent +
                                        [system_i386_emx, system_i386_os2]) then
                 mangledname:=make_dllmangledname(dll_name,C_name,0,pocall_none);
 
               current_module.AddExternalImport(dll_name,C_Name,mangledname,0,true,false);
             end
           else
-            if tf_has_dllscanner in target_info.flags then
+            if tf_has_dllscanner in compiler.target.info.flags then
               current_module.dllscannerinputlist.Add(vs.mangledname,vs);
         end;
 
@@ -1284,7 +1284,7 @@ implementation
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$if defined(i386) or defined(i8086)}
               tcpuabsolutevarsym(abssym).absseg:=false;
-              if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
+              if (compiler.target.info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
                   parser.pbase.try_to_consume(_COLON) then
                 begin
                   pt.free;
@@ -1649,7 +1649,7 @@ implementation
                read_public_and_external_sc(sc);
 
              { try to parse a section directive }
-             if (target_info.system in systems_allow_section) and
+             if (compiler.target.info.system in systems_allow_section) and
                 (compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) and
                 (current_scanner.idtoken=_SECTION) then
                begin
@@ -1885,7 +1885,7 @@ implementation
                  the alignment of the first field.  */
              }
              { TODO: check whether this is also for AIX }
-             if (target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) and
+             if (compiler.target.info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) and
                 is_first_type and
                 (symtablestack.top.symtabletype=recordsymtable) and
                 (trecordsymtable(symtablestack.top).usefieldalignment=C_alignment) then
@@ -2154,7 +2154,7 @@ implementation
               unionsymtable.addalignmentpadding;
 {$if defined(powerpc) or defined(powerpc64)}
               { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
-              if (target_info.system in [system_powerpc_darwin, system_powerpc_macosclassic, system_powerpc64_darwin]) and
+              if (compiler.target.info.system in [system_powerpc_darwin, system_powerpc_macosclassic, system_powerpc64_darwin]) and
                  is_first_type and
                  (recst.usefieldalignment=C_alignment) and
                  (maxpadalign>recst.padalignment) then

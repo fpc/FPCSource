@@ -205,7 +205,7 @@ implementation
           i:=last.svalue+1;
           while i<=t^._low.svalue-1 do
             begin
-              if target_info.system=system_aarch64_win64 then
+              if compiler.target.info.system=system_aarch64_win64 then
                 list.concat(Tai_const.Create_sym(elselabel))
               else
                 list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,elselabel));
@@ -214,7 +214,7 @@ implementation
           i:=t^._low.svalue;
           while i<=t^._high.svalue do
             begin
-              if target_info.system=system_aarch64_win64 then
+              if compiler.target.info.system=system_aarch64_win64 then
                 list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)))
               else
                 list.concat(Tai_const.Create_rel_sym(jtitemconsttype,tablelabel,blocklabel(t^.blockid)));
@@ -226,7 +226,7 @@ implementation
         end;
 
       begin
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           jtitemconsttype:=aitconst_32bit
         else
           { see https://gmplib.org/list-archives/gmp-bugs/2012-December/002836.html }
@@ -242,7 +242,7 @@ implementation
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
           end;
-        if target_info.system=system_aarch64_win64 then
+        if compiler.target.info.system=system_aarch64_win64 then
           current_asmdata.getstaticdatalabel(tablelabel)
         else
           { local label in order to avoid using GOT }
@@ -255,13 +255,13 @@ implementation
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
         { load the slot }
         jumpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-        if target_info.system=system_aarch64_win64 then
+        if compiler.target.info.system=system_aarch64_win64 then
           reference_reset_base(href,basereg,0,href.temppos,sizeof(aint),[])
         else
           reference_reset_base(href,basereg,0,href.temppos,4,[]);
         href.index:=indexreg;
         href.shiftmode:=SM_LSL;
-        if target_info.system=system_aarch64_win64 then
+        if compiler.target.info.system=system_aarch64_win64 then
           begin
             { Use a 64-bit absolute table under aarch64-win64 }
             href.shiftimm:=3;
@@ -278,7 +278,7 @@ implementation
         { and finally jump }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_BR,jumpreg));
         { generate jump table }
-        if target_info.system=system_aarch64_win64 then
+        if compiler.target.info.system=system_aarch64_win64 then
           begin
             { For windows, it has to be in a data section otherwise an access violation
               will occur, but also full 64-bit references to avoid problems with
@@ -288,7 +288,7 @@ implementation
           end
         else
           begin
-            if not(target_info.system in systems_darwin) then
+            if not(compiler.target.info.system in systems_darwin) then
               sectype:=sec_rodata
             else
               begin
@@ -307,7 +307,7 @@ implementation
               end;
             new_section(current_procinfo.aktlocaldata,sectype,current_procinfo.procdef.mangledname,4);
           end;
-        if target_info.system in systems_darwin then
+        if compiler.target.info.system in systems_darwin then
           begin
             { additionally, these tables are now marked via ".data_region jt32"
               and ".end_data_region" }
@@ -315,7 +315,7 @@ implementation
           end;
         current_procinfo.aktlocaldata.concat(Tai_label.Create(tablelabel));
         genitem(current_procinfo.aktlocaldata,hp);
-        if target_info.system in systems_darwin then
+        if compiler.target.info.system in systems_darwin then
           current_procinfo.aktlocaldata.concat(tai_directive.Create(asd_end_data_region,''));
       end;
 

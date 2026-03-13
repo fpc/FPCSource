@@ -43,7 +43,7 @@ implementation
 
   uses
     globtype,globals,verbose,
-    fmodule,systems,
+    fmodule,systems,compiler,
     aasmbase,aasmtai,aasmcpu,
     symconst,
     hlcgobj,
@@ -100,7 +100,7 @@ implementation
           reference_reset_symbol(r,sym,0,sizeof(pint),[]);
           if (cs_create_pic in current_settings.moduleswitches) and
              { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-             not(target_info.system in systems_darwin) then
+             not(compiler.target.info.system in systems_darwin) then
             r.refaddr:=addr_pic
           else
             r.refaddr:=addr_full;

@@ -74,13 +74,13 @@ var
   lasize,
   minstacksize: aword;
 begin
-  if target_info.abi<>abi_powerpc_elfv2 then
+  if compiler.target.info.abi<>abi_powerpc_elfv2 then
     lasize:=LinkageAreaSizeELF
   else
     lasize:=LinkageAreaSizeELFv2;
   if not (po_assembler in procdef.procoptions) then begin
     { align the stack properly }
-    if target_info.abi<>abi_powerpc_elfv2 then
+    if compiler.target.info.abi<>abi_powerpc_elfv2 then
       begin
         { same for AIX/Darwin }
         minstacksize:=MINIMUM_STACKFRAME_SIZE;
@@ -135,7 +135,7 @@ end;
 
 procedure tcpuprocinfo.allocate_got_register(list: TAsmList);
   begin
-    if (target_info.system = system_powerpc64_darwin) and
+    if (compiler.target.info.system = system_powerpc64_darwin) and
        (cs_create_pic in current_settings.moduleswitches) then
       begin
         got := cg.getaddressregister(list);

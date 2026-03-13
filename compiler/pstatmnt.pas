@@ -725,7 +725,7 @@ implementation
                 hasimplicitderef:=
                   (is_implicit_pointer_object_type(p.resultdef) or
                    (p.resultdef.typ=classrefdef)) and
-                  not((target_info.system in systems_jvm) and
+                  not((compiler.target.info.system in systems_jvm) and
                       ((p.resultdef.typ=recorddef) or
                        is_object(p.resultdef)));
                 if hasimplicitderef then

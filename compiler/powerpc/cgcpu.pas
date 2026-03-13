@@ -122,7 +122,7 @@ const
     procedure tcgppc.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if target_info.system=system_powerpc_darwin then
+        if compiler.target.info.system=system_powerpc_darwin then
           begin
 {
             if pi_needs_got in current_procinfo.flags then
@@ -175,9 +175,9 @@ const
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
            with some restore code.}
-         if (target_info.system<>system_powerpc_darwin) then
+         if (compiler.target.info.system<>system_powerpc_darwin) then
            begin
-             if target_info.system<>system_powerpc_aix then
+             if compiler.target.info.system<>system_powerpc_aix then
                begin
                  if not(weak) then
                    list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
@@ -192,7 +192,7 @@ const
                    list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s,AT_FUNCTION)));
                end;
 
-             if target_info.system in [system_powerpc_macosclassic,system_powerpc_aix] then
+             if compiler.target.info.system in [system_powerpc_macosclassic,system_powerpc_aix] then
                list.concat(taicpu.op_none(A_NOP));
            end
          else
@@ -216,7 +216,7 @@ const
         tmpref : treference;
 
       begin
-        if target_info.system=system_powerpc_macosclassic then
+        if compiler.target.info.system=system_powerpc_macosclassic then
           begin
             {Generate instruction to load the procedure address from
             the transition vector.}
@@ -278,7 +278,7 @@ const
          ref2: treference;
 
        begin
-          if target_info.system=system_powerpc_aix then
+          if compiler.target.info.system=system_powerpc_aix then
             g_load_check_simple(list,ref,65536);
           { TODO: optimize/take into consideration fromsize/tosize. Will }
           { probably only matter for OS_S8 loads though                  }
@@ -669,7 +669,7 @@ const
       var
         p : taicpu;
       begin
-         if (target_info.system = system_powerpc_darwin) then
+         if (compiler.target.info.system = system_powerpc_darwin) then
            p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false))
         else
           p := taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
@@ -807,7 +807,7 @@ const
                 { added to the usable registers, adapt tcgppcgen.g_profilecode }
                 list.concat(taicpu.op_reg(A_MFLR,NR_R0));
                 { ... in caller's frame }
-                case target_info.abi of
+                case compiler.target.info.abi of
                   abi_powerpc_aix,
                   abi_powerpc_darwin:
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,ctempposinvalid,4,[]);
@@ -824,7 +824,7 @@ const
 
 (*
             { save the CR if necessary in callers frame. }
-            if target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]  then
+            if compiler.target.info.abi in [abi_powerpc_aix,abi_powerpc_darwin]  then
               if false then { Not needed at the moment. }
                 begin
                   a_reg_alloc(list,NR_R0);
@@ -930,9 +930,9 @@ const
 
         { save current RTOC for restoration after calls if necessary }
         if (pi_do_call in current_procinfo.flags) and
-           (target_info.abi in abis_ppc_toc) then
+           (compiler.target.info.abi in abis_ppc_toc) then
           begin
-            reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
+            reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,compiler.target.info.stackalign,[]);
             a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
             current_asmdata.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
           end;
@@ -1046,7 +1046,7 @@ const
               begin
                 if (pi_do_call in current_procinfo.flags) then
                   begin
-                    case target_info.abi of
+                    case compiler.target.info.abi of
                       abi_powerpc_aix,
                       abi_powerpc_darwin:
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,ctempposinvalid,4,[]);
@@ -1063,7 +1063,7 @@ const
 
 (*
                   { restore the CR if necessary from callers frame}
-                  if target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin] then
+                  if compiler.target.info.abi in [abi_powerpc_aix,abi_powerpc_darwin] then
                     if false then { Not needed at the moment. }
                       begin
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX,ctempposinvalid,4,[]);
@@ -1096,7 +1096,7 @@ const
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         begin
             { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
-            case target_info.abi of
+            case compiler.target.info.abi of
               abi_powerpc_aix,
               abi_powerpc_darwin:
                 firstfpureg := RS_F14;
@@ -1180,7 +1180,7 @@ const
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         begin
           { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
-          case target_info.abi of
+          case compiler.target.info.abi of
             abi_powerpc_aix,
             abi_powerpc_darwin:
               firstfpureg := RS_F14;
@@ -1336,7 +1336,7 @@ const
         { save current RTOC for restoration after calls if necessary }
         if pi_do_call in current_procinfo.flags then
           begin
-            reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
+            reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,compiler.target.info.stackalign,[]);
             a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
           end;
 

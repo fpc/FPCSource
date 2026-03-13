@@ -753,7 +753,7 @@ implementation
             exit;
           end
         else if (left.resultdef.typ=formaldef) then
-          if not(target_info.system in systems_managed_vm) then
+          if not(compiler.target.info.system in systems_managed_vm) then
             CGMessage(type_e_assignment_not_allowed)
           else
             begin
@@ -1014,7 +1014,7 @@ implementation
             not is_interfacecom_or_dispinterface(left.resultdef) and
             not is_dynamic_array(left.resultdef) and
             not is_const(left) and
-            not(target_info.system in systems_garbage_collected_managed_types) then
+            not(compiler.target.info.system in systems_garbage_collected_managed_types) then
          begin
            hp:=compiler.ccallparanode(compiler.caddrnode_internal(
                   compiler.crttinode(tstoreddef(left.resultdef),initrtti,rdt_normal)),
@@ -1036,7 +1036,7 @@ implementation
           vararrays which must be really copied }
         else if (left.resultdef.typ=variantdef) and
             not(is_const(left)) and
-            not(target_info.system in systems_garbage_collected_managed_types)  then
+            not(compiler.target.info.system in systems_garbage_collected_managed_types)  then
          begin
            { remove property flag to avoid errors, see comments for }
            { tf_winlikewidestring assignments below                 }
@@ -1053,7 +1053,7 @@ implementation
            right:=nil;
            exit;
          end
-        else if not(target_info.system in systems_garbage_collected_managed_types) and
+        else if not(compiler.target.info.system in systems_garbage_collected_managed_types) and
           not(is_const(left)) then
           begin
             { call helpers for pointer-sized managed types }
@@ -1408,7 +1408,7 @@ implementation
         do_variant:=(acnf_forcevaria in arrayconstructornodeflags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
         do_managed_variant:=
           do_variant and
-          (target_info.system in systems_managed_vm);
+          (compiler.target.info.system in systems_managed_vm);
         result:=nil;
         { Insert required type convs, this must be
           done in pass 1, because the call must be

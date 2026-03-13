@@ -28,7 +28,8 @@ interface
 uses
   sysutils,
   globtype,
-  cclasses;
+  cclasses,
+  compilerbase;
 
 type
   TScript=class
@@ -114,7 +115,7 @@ uses
   BaseUnix,
 {$endif}
   cutils,cfileutl,
-  globals,systems,verbose;
+  globals,systems,verbose,compiler;
 
 
 {****************************************************************************
@@ -142,10 +143,12 @@ end;
 
 
 constructor TScript.CreateExec(const s:TCmdStr);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   fn:=FixFileName(s);
   if cs_link_on_target in current_settings.globalswitches then
-    fn:=ChangeFileExt(fn,target_info.scriptext)
+    fn:=ChangeFileExt(fn,compiler.target.info.scriptext)
   else
     fn:=ChangeFileExt(fn,source_info.scriptext);
   executable:=true;
@@ -179,6 +182,8 @@ end;
 
 procedure TScript.WriteToDisk;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   t : file;
   i : longint;
   s : TCmdStr;
@@ -187,7 +192,7 @@ var
 begin
   Assign(t,fn);
   if cs_link_on_target in current_settings.globalswitches then
-    le:= target_info.newline
+    le:= compiler.target.info.newline
   else
     le:= source_info.newline;
 
@@ -470,10 +475,12 @@ end;
 
 function GenerateScript(const st: TCmdStr): TAsmScript;
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  var
     scripttyp : tscripttype;
   begin
     if cs_link_on_target in current_settings.globalswitches then
-      scripttyp := target_info.script
+      scripttyp := compiler.target.info.script
     else
       scripttyp := source_info.script;
     case scripttyp of
@@ -510,6 +517,8 @@ end;
 
 procedure TLinkRes.AddFileName(const s:TCmdStr);
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   ls: TCmdStr;
   i: longint;
 begin
@@ -530,7 +539,7 @@ begin
      if fRealResponseFile and
         (ls[1]='''') and
         (((cs_link_on_target in current_settings.globalswitches) and
-          (target_info.script=script_unix)) or
+          (compiler.target.info.script=script_unix)) or
          (not(cs_link_on_target in current_settings.globalswitches) and
           (source_info.script=script_unix))) then
        inherited add(UnixRequoteWithDoubleQuotes(s))
@@ -539,7 +548,7 @@ begin
         if fForceUseForwardSlash then
           inherited Add('./'+ls)
         else if (cs_link_on_target in current_settings.globalswitches) then
-          inherited Add('.'+target_info.DirSep+ls)
+          inherited Add('.'+compiler.target.info.DirSep+ls)
         else
           inherited Add('.'+source_info.DirSep+ls);
       end

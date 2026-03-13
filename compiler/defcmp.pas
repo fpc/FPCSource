@@ -224,6 +224,8 @@ implementation
                               var doconv : tconverttype;
                               var operatorpd : tprocdef;
                               cdoptions:tcompare_defs_options):tequaltype;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       { tordtype:
            uvoid,
@@ -1042,7 +1044,7 @@ implementation
                      { ugly, but delphi allows it }
                      if cdo_explicit in cdoptions then
                        begin
-                         if target_info.system in systems_jvm then
+                         if compiler.target.info.system in systems_jvm then
                            begin
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
@@ -1064,7 +1066,7 @@ implementation
                            typecasts must not be treated as integer-like
                            conversions
                          }
-                         if target_info.system in systems_jvm then
+                         if compiler.target.info.system in systems_jvm then
                            begin
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
@@ -1522,7 +1524,7 @@ implementation
                      }
                      if (((cdo_explicit in cdoptions) and
                           ((m_delphi in current_settings.modeswitches) or
-                           (target_info.system in systems_jvm)
+                           (compiler.target.info.system in systems_jvm)
                           )
                          ) or
                          (cdo_internal in cdoptions)
@@ -1532,7 +1534,7 @@ implementation
                            typecasts must not be treated as integer-like
                            conversions
                          }
-                         if target_info.system in systems_jvm then
+                         if compiler.target.info.system in systems_jvm then
                            begin
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
@@ -1997,7 +1999,7 @@ implementation
                      false and let it be handled by the regular explicit type
                      casting code
                    }
-                   else if (not(target_info.system in systems_jvm) and
+                   else if (not(compiler.target.info.system in systems_jvm) and
                        ((def_from.typ=enumdef) or
                         (
                           (def_from.typ=orddef) and
@@ -2826,9 +2828,11 @@ implementation
 
 
     function stringdef_is_related(curdef:tstringdef;otherdef:tdef):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=
-          (target_info.system in systems_jvm) and
+          (compiler.target.info.system in systems_jvm) and
           (((curdef.stringtype in [st_unicodestring,st_widestring]) and
             ((otherdef=java_jlobject) or
              (otherdef=java_jlstring))) or
@@ -2845,7 +2849,7 @@ implementation
         { records are implemented via classes in the JVM target, and are
           all descendents of the java_fpcbaserecordtype class }
         result:=false;
-        if (target_info.system in systems_jvm) then
+        if (compiler.target.info.system in systems_jvm) then
           begin
             if otherdef.typ=objectdef then
               begin

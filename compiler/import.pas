@@ -25,7 +25,7 @@ unit import;
 interface
 
 uses
-  systems;
+  systems,compilerbase;
 
 type
    timportlib=class
@@ -59,7 +59,7 @@ procedure DoneImport;
 implementation
 
 uses
-  verbose,globals;
+  verbose,globals,compiler;
 
 {****************************************************************************
                               TImportLib
@@ -110,9 +110,11 @@ end;
 
 
 procedure InitImport;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  if assigned(CImportLib[target_info.system]) then
-   importlib:=CImportLib[target_info.system].Create
+  if assigned(CImportLib[compiler.target.info.system]) then
+   importlib:=CImportLib[compiler.target.info.system].Create
   else
    importlib:=TImportLib.Create;
 end;

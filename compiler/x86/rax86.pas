@@ -99,7 +99,7 @@ const
 implementation
 
 uses
-  globtype,globals,systems,verbose,
+  globtype,globals,systems,verbose,compiler,
   procinfo,
   cgbase,cgutils,
   itcpugas,cgx86, cutils;
@@ -186,8 +186,10 @@ end;
 
 
 Procedure FWaitWarning;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  if (target_info.system=system_i386_GO32V2) and (cs_fp_emulation in current_settings.moduleswitches) then
+  if (compiler.target.info.system=system_i386_GO32V2) and (cs_fp_emulation in current_settings.moduleswitches) then
    Message(asmr_w_fwait_emu_prob);
 end;
 
@@ -2047,7 +2049,7 @@ begin
      if someone uses this in assembler code
      FPC itself does not use it at all PM }
    if (opcode=A_ENTER) and
-      (target_info.system in [system_i386_linux,system_i386_FreeBSD,system_i386_android]) then
+      (compiler.target.info.system in [system_i386_linux,system_i386_FreeBSD,system_i386_android]) then
      Message(asmr_w_enter_not_supported_by_linux);
 
   ai:=taicpu.op_none(opcode,siz);

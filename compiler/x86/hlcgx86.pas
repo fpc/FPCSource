@@ -50,7 +50,7 @@ implementation
 
   uses
     globals,systems,
-    aasmbase,
+    aasmbase,compiler,
     cgutils,
 {$ifdef I8086}
     cpuinfo,
@@ -73,7 +73,7 @@ implementation
       ref : treference;
       sym : tasmsymbol;
     begin
-     if (target_info.system = system_i386_darwin) then
+     if (compiler.target.info.system = system_i386_darwin) then
        begin
          { a_jmp_name jumps to a stub which is always pic-safe on darwin }
          inherited;
@@ -86,7 +86,7 @@ implementation
       { create pic'ed? }
       if (cs_create_pic in current_settings.moduleswitches) and
          { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-         not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
+         not(compiler.target.info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
         ref.refaddr:=addr_pic
       else
         ref.refaddr:=addr_full;

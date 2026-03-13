@@ -649,7 +649,7 @@ unit optdfa;
             if current_procinfo.procdef.proctypeoption=potype_constructor then
               resultnode:=load_self_node
             else if (current_procinfo.procdef.proccalloption=pocall_safecall) and
-              (tf_safecall_exceptions in target_info.flags) then
+              (tf_safecall_exceptions in compiler.target.info.flags) then
               resultnode:=load_safecallresult_node
             else
               resultnode:=load_result_node;

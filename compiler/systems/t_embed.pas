@@ -26,12 +26,14 @@ unit t_embed;
 
 interface
 
+    uses
+       compilerbase;
 
 implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutl,cclasses,compiler,
        globtype,globals,systems,verbose,comphook,cscript,fmodule,i_embed,link,
 {$ifdef wasm32}
        t_wasi,import,export,
@@ -102,7 +104,7 @@ var
   platformopt : string;
 begin
   {$ifdef xtensa}
-  if target_info.endian=endian_little then
+  if compiler.target.info.endian=endian_little then
     platformopt:=' -b elf32-xtensa-le -m elf32xtensa'
   else
     platformopt:=' -b elf32-xtensa-be -m elf32xtensa';
@@ -118,6 +120,8 @@ end;
 
 
 Function TlinkerEmbedded.WriteResponseFile: Boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres  : TLinkRes;
   i        : longint;
@@ -223,7 +227,7 @@ begin
       S:=SharedLibFiles.GetFirst;
       if s<>'c' then
        begin
-        i:=Pos(target_info.sharedlibext,S);
+        i:=Pos(compiler.target.info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);
@@ -246,7 +250,7 @@ begin
     while not SharedLibFiles.Empty do
      begin
       S:=SharedLibFiles.GetFirst;
-      LinkRes.Add('lib'+s+target_info.staticlibext);
+      LinkRes.Add('lib'+s+compiler.target.info.staticlibext);
      end;
     LinkRes.Add(')');
    end;
@@ -1778,6 +1782,8 @@ end;
 
 function TlinkerEmbedded.MakeExecutable:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   binstr,
   cmdstr,
   mapstr: TCmdStr;
@@ -1810,14 +1816,14 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   {$ifdef xtensa}
-  if target_info.abi=abi_xtensa_call0 then
+  if compiler.target.info.abi=abi_xtensa_call0 then
    begin
      if current_settings.controllertype=ct_esp8266 then
       Replace(cmdstr,'$PLATFORMABI','')
      else
       Replace(cmdstr,'$PLATFORMABI','--abi-call0');
    end
-  else if target_info.abi=abi_xtensa_windowed then
+  else if compiler.target.info.abi=abi_xtensa_windowed then
    Replace(cmdstr,'$PLATFORMABI','--abi-windowed');
   {$endif}
   if not(cs_link_on_target in current_settings.globalswitches) then
@@ -1850,7 +1856,7 @@ begin
   if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
-  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
+  if success and (compiler.target.info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         FixedExeFileName+' '+
@@ -1859,7 +1865,7 @@ begin
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
           FixedExeFileName+' '+
           maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
-        if success and (target_info.system in systems_support_uf2) and (cs_generate_uf2 in current_settings.globalswitches) then
+        if success and (compiler.target.info.system in systems_support_uf2) and (cs_generate_uf2 in current_settings.globalswitches) then
           success := GenerateUF2(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),
                                  maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.uf2'))),
                                  embedded_controllers[current_settings.controllertype].flashbase);
@@ -2080,7 +2086,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-          i:=Pos(target_info.sharedlibext,S);
+          i:=Pos(compiler.target.info.sharedlibext,S);
           if i>0 then
            Delete(S,i,255);
           LinkRes.Add('-l'+s);
@@ -2103,7 +2109,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
       while not SharedLibFiles.Empty do
        begin
         S:=SharedLibFiles.GetFirst;
-        LinkRes.Add('lib'+s+target_info.staticlibext);
+        LinkRes.Add('lib'+s+compiler.target.info.staticlibext);
        end;
       LinkRes.Add(')');
      end;*)
@@ -2209,7 +2215,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     if success and not(cs_link_nolink in current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
 
-    if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
+    if success and (compiler.target.info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
       begin
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
           FixedExeFileName+' '+

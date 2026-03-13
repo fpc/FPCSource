@@ -335,7 +335,7 @@ begin
     else
 (*        tmp3:=Name+'='+module+'.'+name;
 *)
-        tmp3 := MangledName + '=' + module + '.' + target_info.Cprefix + name;
+        tmp3 := MangledName + '=' + module + '.' + compiler.target.info.Cprefix + name;
 
     aout_sym(tmp2,n_imp1+n_ext,0,0,0);
     aout_sym(tmp3,n_imp2+n_ext,0,0,0);
@@ -447,7 +447,7 @@ begin
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.GetFirst;
-     i:=Pos(target_info.sharedlibext,S);
+     i:=Pos(compiler.target.info.sharedlibext,S);
      if i>0 then
       Delete(S,i,255);
      LinkRes.Add('-l'+s);

@@ -26,7 +26,7 @@ unit symutil;
 interface
 
     uses
-       symconst,symbase,symtype,symsym;
+       symconst,symbase,symtype,symsym,compilerbase;
 
     function is_funcret_sym(p:TSymEntry):boolean;
 
@@ -43,7 +43,7 @@ implementation
 
     uses
        systems,
-       globtype,cpuinfo,constexp,verbose,
+       globtype,cpuinfo,constexp,verbose,compiler,
        widestr,
        symdef;
 
@@ -126,11 +126,13 @@ implementation
 
     procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         ts: ttypesym;
       begin
         { create a dummy typesym for the JVM target, because the record
           has to be wrapped by a class }
-        if (target_info.system in systems_jvm) and
+        if (compiler.target.info.system in systems_jvm) and
            (def.typ=recorddef) and
            not assigned(def.typesym) then
           begin

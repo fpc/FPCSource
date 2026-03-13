@@ -532,7 +532,7 @@ implementation
          packrecords: longint;
       begin
         // TODO(ryan): is extended method table packed?
-        if (tf_requires_proper_alignment in target_info.flags) then
+        if (tf_requires_proper_alignment in compiler.target.info.flags) then
           packrecords:=0
         else
           packrecords:=1;
@@ -558,7 +558,7 @@ implementation
               get_tabledef(itp_vmt_intern_tmethodnametable,u32inttype,lists.methodnamerec,count,packrecords,pubmethodsdef,pubmethodsarraydef);
               { begin record encompassing the tmethodnametable and the extended method table }
               lists.pubmethodstcb.begin_anonymous_record('',packrecords,
-                  pubmethodsdef.alignment, targetinfos[target_info.system]^.alignment.recordalignmin);
+                  pubmethodsdef.alignment, targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
               { begin tmethodnametable }
               lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
               { emit count field }
@@ -624,7 +624,7 @@ implementation
 
         if (fieldcount>0) or (_class.rtti.options[ro_fields]<>[]) then
           begin
-            if (tf_requires_proper_alignment in target_info.flags) then
+            if (tf_requires_proper_alignment in compiler.target.info.flags) then
               packrecords:=0
             else
               packrecords:=1;
@@ -635,7 +635,7 @@ implementation
                 tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,classtable);
                 datatcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
                   packrecords,1,
-                  targetinfos[target_info.system]^.alignment.recordalignmin);
+                  targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
                 datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
                 for i:=0 to classtablelist.Count-1 do
                   begin
@@ -670,7 +670,7 @@ implementation
               plus there would be very little chance that it could actually be
               reused }
             datatcb.begin_anonymous_record('',packrecords,1,
-              targetinfos[target_info.system]^.alignment.recordalignmin);
+              targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
             datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
             if classtable<>nil then
               datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef,compiler))
@@ -700,7 +700,7 @@ implementation
                           end;
                         }
                         datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
-                          targetinfos[target_info.system]^.alignment.recordalignmin);
+                          targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
                         datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
                         classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                         if classindex=-1 then
@@ -764,7 +764,7 @@ implementation
       begin
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,fintfvtablelabels[intfindex]);
         datatcb.begin_anonymous_record('',0,1,
-          targetinfos[target_info.system]^.alignment.recordalignmin);
+          targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         if assigned(AImplIntf.procdefs) then
           begin
             for i:=0 to AImplIntf.procdefs.count-1 do
@@ -886,7 +886,7 @@ implementation
 
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
         datatcb.begin_anonymous_record('',default_settings.packrecords,1,
-          targetinfos[target_info.system]^.alignment.recordalignmin);
+          targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
         datatcb.emit_tai(Tai_const.Create_sizeint(_class.ImplementedInterfaces.count),sizeuinttype);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
@@ -1256,6 +1256,8 @@ implementation
 
     procedure gen_intf_wrapper(list:TAsmList;_class:tobjectdef);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i,j  : longint;
         tmps : string;
         pd   : TProcdef;
@@ -1274,7 +1276,7 @@ implementation
           between code fragments that use a different TOC (which has to be
           executed when that "branch" returns). So we can't use tail call
           branches to routines potentially using a different TOC there }
-        if target_info.abi in abis_ppc_toc then
+        if compiler.target.info.abi in abis_ppc_toc then
           usehighlevelwrapper:=true
         else
           usehighlevelwrapper:=false;
@@ -1323,7 +1325,7 @@ implementation
                         end;
                       { create wrapper code }
                       tmplist:=tasmlist.create;
-                      new_section(tmplist,sec_code,tmps,target_info.alignment.procalign);
+                      new_section(tmplist,sec_code,tmps,compiler.target.info.alignment.procalign);
                       tmplist.Concat(tai_function_name.create(tmps));
                       hlcg.init_register_allocators;
                       hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);

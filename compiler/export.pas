@@ -27,7 +27,7 @@ interface
 
 uses
   cutils,cclasses,
-  systems,
+  systems,compilerbase,
   symtype,symdef,symsym,
   aasmdata;
 
@@ -101,7 +101,7 @@ procedure DoneExport;
 implementation
 
 uses
-  verbose,globals;
+  verbose,globals,compiler;
 
 {****************************************************************************
                            TExported_procedure
@@ -270,9 +270,11 @@ end;
 
 
 procedure InitExport;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  if assigned(CExportLib[target_info.system]) then
-   exportlib:=CExportLib[target_info.system].Create
+  if assigned(CExportLib[compiler.target.info.system]) then
+   exportlib:=CExportLib[compiler.target.info.system].Create
   else
    exportlib:=TExportLib.Create;
 end;

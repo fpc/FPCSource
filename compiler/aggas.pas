@@ -31,7 +31,7 @@ unit aggas;
 interface
 
     uses
-      globtype,globals,
+      globtype,globals,compilerbase,
       cpubase,aasmbase,aasmtai,aasmdata,aasmcfi,
 {$ifdef wasm}
       aasmcpu,
@@ -115,7 +115,7 @@ implementation
 
     uses
       SysUtils,
-      cutils,cfileutl,systems,
+      cutils,cfileutl,systems,compiler,
       fmodule,verbose,
 {$ifndef DISABLE_WIN64_SEH}
       itcpugas,
@@ -199,20 +199,24 @@ implementation
       end;
 
     function is_smart_section(atype:TAsmSectiontype):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
-        result:=not(target_info.system in systems_darwin) and
+        result:=not(compiler.target.info.system in systems_darwin) and
            create_smartlink_sections and
            (atype<>sec_toc) and
            (atype<>sec_user) and
            (atype<>sec_note) and
            { on embedded systems every byte counts, so smartlink bss too }
-           ((atype<>sec_bss) or (target_info.system in (systems_embedded+systems_freertos)));
+           ((atype<>sec_bss) or (compiler.target.info.system in (systems_embedded+systems_freertos)));
       end;
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -354,7 +358,7 @@ implementation
         secname : string;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
-           not(target_info.system in systems_darwin) then
+           not(compiler.target.info.system in systems_darwin) then
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];
@@ -367,9 +371,9 @@ implementation
 
         if atype=sec_threadvar then
           begin
-            if (target_info.system in (systems_windows+systems_wince)) then
+            if (compiler.target.info.system in (systems_windows+systems_wince)) then
               secname:='.tls'
-            else if (target_info.system in (systems_linux+systems_wasm)) then
+            else if (compiler.target.info.system in (systems_linux+systems_wasm)) then
               secname:='.tbss';
           end;
 
@@ -377,16 +381,16 @@ implementation
           Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
         if (atype in [sec_rodata,sec_rodata_norel]) and
-          (target_info.system in [system_i386_go32v2,system_m68k_palmos]) then
+          (compiler.target.info.system in [system_i386_go32v2,system_m68k_palmos]) then
           secname:='.data';
 
         { Windows correctly handles reallocations in readonly sections }
         if (atype=sec_rodata) and
-          (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
+          (compiler.target.info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
           secname:='.rodata';
 
         { Use .rodata and .data.rel.ro for Android with PIC }
-        if (target_info.system in systems_android) and (cs_create_pic in current_settings.moduleswitches) then
+        if (compiler.target.info.system in systems_android) and (cs_create_pic in current_settings.moduleswitches) then
           begin
             case atype of
               sec_rodata:
@@ -422,15 +426,19 @@ implementation
       end;
 
     function TGNUAssembler.sectionattrs(atype:TAsmSectiontype):string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:='';
-        if (target_info.system in [system_i386_win32,system_x86_64_win64,system_aarch64_win64]) then
+        if (compiler.target.info.system in [system_i386_win32,system_x86_64_win64,system_aarch64_win64]) then
           begin
             result:=sectionattrs_coff(atype);
           end;
       end;
 
     function TGNUAssembler.sectionattrs_coff(atype:TAsmSectiontype):string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case atype of
           sec_code, sec_init, sec_fini, sec_stub:
@@ -446,7 +454,7 @@ implementation
 
           { TODO: these need a fix to become read-only }
           sec_rodata, sec_rodata_norel:
-            if target_info.system=system_aarch64_win64 then
+            if compiler.target.info.system=system_aarch64_win64 then
               result:='r'
             else
               result:='d';
@@ -508,6 +516,8 @@ implementation
 
     procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
         usesectionprogbits,
         usesectionflags: boolean;
@@ -515,7 +525,7 @@ implementation
         writer.AsmLn;
         usesectionflags:=false;
         usesectionprogbits:=false;
-        case target_info.system of
+        case compiler.target.info.system of
          system_i386_OS2,
          system_i386_EMX: ;
          system_m68k_atari, { atari tos/mint GNU AS also doesn't seem to like .section (KB) }
@@ -588,7 +598,7 @@ implementation
                 not(asminfo^.id=as_solaris_as) and
                 not(atype=sec_fpc) and
                 not(atype=sec_note) and
-                not(target_info.system in (systems_embedded+systems_freertos)) then
+                not(compiler.target.info.system in (systems_embedded+systems_freertos)) then
                begin
                  usesectionflags:=true;
                  usesectionprogbits:=true;
@@ -630,7 +640,7 @@ implementation
                 writer.AsmWrite(', "a", @progbits');
             sec_stub :
               begin
-                case target_info.system of
+                case compiler.target.info.system of
                   { there are processor-independent shortcuts available    }
                   { for this, namely .symbol_stub and .picsymbol_stub, but }
                   { they don't work and gcc doesn't use them either...     }
@@ -670,7 +680,7 @@ implementation
                   if (s<>'') then
                     writer.AsmWrite(',"'+s+'"');
                 end;
-              if target_info.system in systems_aix then
+              if compiler.target.info.system in systems_aix then
                 begin
                   s:=sectionalignment_aix(atype,secalign);
                   if s<>'' then
@@ -748,6 +758,8 @@ implementation
 
 
     procedure TGNUAssembler.WriteTree(p:TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function needsObject(hp : tai_symbol) : boolean;
         begin
@@ -763,6 +775,8 @@ implementation
 
       procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
         var
+          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        var
           i: longint;
           alignment64 : int64;
 {$ifdef m68k}
@@ -772,7 +786,7 @@ implementation
           last_align:=alignment;
           if alignment>1 then
             begin
-              if not(target_info.system in (systems_darwin+systems_aix)) then
+              if not(compiler.target.info.system in (systems_darwin+systems_aix)) then
                 begin
 {$ifdef m68k}
                   if not use_op and (lastsectype=sec_code) then
@@ -941,7 +955,7 @@ implementation
 
            ait_datablock :
              begin
-               if (target_info.system in systems_darwin) then
+               if (compiler.target.info.system in systems_darwin) then
                  begin
                    { On Mac OS X you can't have common symbols in a shared library
                      since those are in the TEXT section and the text section is
@@ -972,7 +986,7 @@ implementation
                        writer.AsmLn;
                      end;
                  end
-               else if target_info.system in systems_aix then
+               else if compiler.target.info.system in systems_aix then
                  begin
                    if tai_datablock(hp).is_global then
                      begin
@@ -1040,23 +1054,23 @@ implementation
                            else
                              writer.AsmWriteln(Tai_datablock(hp).sym.name);
                          end;
-                       if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
+                       if ((compiler.target.info.system <> system_arm_linux) and (compiler.target.info.system <> system_arm_android)) then
                          sepChar := '@'
                        else
                          sepChar := '%';
                        if replaceforbidden then
                          begin
-                           if (tf_needs_symbol_type in target_info.flags) then
+                           if (tf_needs_symbol_type in compiler.target.info.flags) then
                              writer.AsmWriteln(#9'.type '+ApplyAsmSymbolRestrictions(Tai_datablock(hp).sym.name)+','+sepChar+'object');
-                           if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
+                           if (tf_needs_symbol_size in compiler.target.info.flags) and (tai_datablock(hp).size > 0) then
                               writer.AsmWriteln(#9'.size '+ApplyAsmSymbolRestrictions(Tai_datablock(hp).sym.name)+','+tostr(Tai_datablock(hp).size));
                            writer.AsmWrite(ApplyAsmSymbolRestrictions(Tai_datablock(hp).sym.name))
                          end
                        else
                          begin
-                           if (tf_needs_symbol_type in target_info.flags) then
+                           if (tf_needs_symbol_type in compiler.target.info.flags) then
                              writer.AsmWriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
-                           if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
+                           if (tf_needs_symbol_size in compiler.target.info.flags) and (tai_datablock(hp).size > 0) then
                              writer.AsmWriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
                            writer.AsmWrite(Tai_datablock(hp).sym.name);
                          end;
@@ -1080,13 +1094,13 @@ implementation
                     begin
                       if assigned(tai_const(hp).sym) then
                         internalerror(200404292);
-                      if not(target_info.system in systems_aix) then
+                      if not(compiler.target.info.system in systems_aix) then
                         begin
-                          if (target_info.system in use_ua_elf_systems) then
+                          if (compiler.target.info.system in use_ua_elf_systems) then
                             writer.AsmWrite(ait_ua_elf_const2str[aitconst_32bit])
                           else
                             writer.AsmWrite(ait_const2str[aitconst_32bit]);
-                          if target_info.endian = endian_little then
+                          if compiler.target.info.endian = endian_little then
                             begin
                               writer.AsmWrite(tostr(longint(lo(tai_const(hp).value))));
                               writer.AsmWrite(',');
@@ -1153,7 +1167,7 @@ implementation
                    begin
                      if (tai_const(hp).sym=nil) then
                        InternalError(2014022601);
-                     case target_info.cpu of
+                     case compiler.target.info.cpu of
 
                        cpu_mipseb,cpu_mipsel:
                          begin
@@ -1199,13 +1213,13 @@ implementation
                        don't want that, since this may be data inside a packed
                        record -> use .vbyte instead (byte stream of fixed
                        length) }
-                     if (target_info.system in systems_aix) and
+                     if (compiler.target.info.system in systems_aix) and
                         (constdef in [aitconst_128bit,aitconst_64bit,aitconst_32bit,aitconst_16bit]) and
                         not assigned(tai_const(hp).sym) then
                        begin
                          WriteAixIntConst(tai_const(hp));
                        end
-                     else if (target_info.system in systems_darwin) and
+                     else if (compiler.target.info.system in systems_darwin) and
                         (constdef in [aitconst_uleb128bit,aitconst_sleb128bit]) then
                        begin
                          writer.AsmWrite(ait_const2str[aitconst_8bit]);
@@ -1221,14 +1235,14 @@ implementation
                      else
                        begin
                          if (constdef in ait_unaligned_consts) and
-                            (target_info.system in use_ua_sparc_systems) then
+                            (compiler.target.info.system in use_ua_sparc_systems) then
                            writer.AsmWrite(ait_ua_sparc_const2str[constdef])
-                         else if (target_info.system in use_ua_elf_systems) then
+                         else if (compiler.target.info.system in use_ua_elf_systems) then
                            writer.AsmWrite(ait_ua_elf_const2str[constdef])
                          { we can also have unaligned pointers in packed record
                            constants, which don't get translated into
                            unaligned tai -> always use vbyte }
-                         else if target_info.system in systems_aix then
+                         else if compiler.target.info.system in systems_aix then
                             writer.AsmWrite(#9'.vbyte'#9+tostr(tai_const(hp).size)+',')
                          else if (asminfo^.id=as_solaris_as) then
                            writer.AsmWrite(ait_solaris_const2str[constdef])
@@ -1304,7 +1318,7 @@ implementation
            ait_string :
              begin
                pos:=0;
-               if not(target_info.system in systems_aix) then
+               if not(compiler.target.info.system in systems_aix) then
                  begin
                    for i:=1 to tai_string(hp).len do
                     begin
@@ -1375,7 +1389,7 @@ implementation
 
            ait_symbol :
              begin
-               if (target_info.system=system_powerpc64_linux) and
+               if (compiler.target.info.system=system_powerpc64_linux) and
                   (tai_symbol(hp).sym.typ=AT_FUNCTION) and
                   (cs_profile in current_settings.moduleswitches) then
                  writer.AsmWriteLn('.globl _mcount');
@@ -1390,7 +1404,7 @@ implementation
                   if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
                     WriteHiddenSymbol(tai_symbol(hp).sym);
                 end;
-               if (target_info.system=system_powerpc64_linux) and
+               if (compiler.target.info.system=system_powerpc64_linux) and
                   use_dotted_functions and
                  (tai_symbol(hp).sym.typ=AT_FUNCTION) then
                  begin
@@ -1406,10 +1420,10 @@ implementation
                    { the dotted name is the name of the actual function entry }
                    writer.AsmWrite('.');
                  end
-               else if (target_info.system in systems_aix) and
+               else if (compiler.target.info.system in systems_aix) and
                   (tai_symbol(hp).sym.typ = AT_FUNCTION) then
                  begin
-                   if target_info.system=system_powerpc_aix then
+                   if compiler.target.info.system=system_powerpc_aix then
                      begin
                        s:=#9'.long .';
                        ch:='2';
@@ -1436,12 +1450,12 @@ implementation
                  end
                else
                  begin
-                   if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) or
+                   if ((compiler.target.info.system <> system_arm_linux) and (compiler.target.info.system <> system_arm_android)) or
                      (target_asm.id=as_arm_vasm) then
                      sepChar := '@'
                    else
                      sepChar := '#';
-                   if (tf_needs_symbol_type in target_info.flags) then
+                   if (tf_needs_symbol_type in compiler.target.info.flags) then
                      begin
                        writer.AsmWrite(#9'.type'#9 + tai_symbol(hp).sym.name);
                        if (needsObject(tai_symbol(hp))) then
@@ -1471,7 +1485,7 @@ implementation
                  { the .localentry directive has to specify the size from the
                    start till here of the non-local entry code as second argument }
                  s:=', .-';
-               if ((target_info.system <> system_arm_linux) and (target_info.system <> system_arm_android)) then
+               if ((compiler.target.info.system <> system_arm_linux) and (compiler.target.info.system <> system_arm_android)) then
                  sepChar := '@'
                else
                  sepChar := '#';
@@ -1486,7 +1500,7 @@ implementation
                        writer.AsmWrite(#9'.globl ');
                        writer.AsmWriteLn(ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
                      end;
-                   if (tf_needs_symbol_type in target_info.flags) then
+                   if (tf_needs_symbol_type in compiler.target.info.flags) then
                      begin
                        writer.AsmWrite(#9'.type'#9 + ApplyAsmSymbolRestrictions(tai_symbolpair(hp).sym^));
                        writer.AsmWriteLn(',' + sepChar + 'function');
@@ -1503,7 +1517,7 @@ implementation
                        writer.AsmWrite(#9'.globl ');
                        writer.AsmWriteLn(tai_symbolpair(hp).sym^);
                      end;
-                   if (tf_needs_symbol_type in target_info.flags) then
+                   if (tf_needs_symbol_type in compiler.target.info.flags) then
                      begin
                        writer.AsmWrite(#9'.type'#9 + tai_symbolpair(hp).sym^);
                        writer.AsmWriteLn(',' + sepChar + 'function');
@@ -1512,19 +1526,19 @@ implementation
              end;
            ait_symbol_end :
              begin
-               if (tf_needs_symbol_size in target_info.flags) and
+               if (tf_needs_symbol_size in compiler.target.info.flags) and
                   (tai_symbol_end(hp).sym.is_used) and
                  { On WebAssembly, the .size directive shouldn't be generated for
                    function symbols, otherwise LLVM-MC v16 and above produce the
                    'warning: .size directive ignored for function symbols' message. }
-                  (not (target_info.system in systems_wasm) or
+                  (not (compiler.target.info.system in systems_wasm) or
                    (tai_symbol_end(hp).sym.typ<>AT_FUNCTION)) then
                 begin
                   s:=asminfo^.labelprefix+'e'+tostr(symendcount);
                   inc(symendcount);
                   writer.AsmWriteLn(s+':');
                   writer.AsmWrite(#9'.size'#9);
-                  if (target_info.system=system_powerpc64_linux) and
+                  if (compiler.target.info.system=system_powerpc64_linux) and
                      use_dotted_functions and
                      (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
                     writer.AsmWrite('.');
@@ -1533,7 +1547,7 @@ implementation
                   else
                     writer.AsmWrite(tai_symbol_end(hp).sym.name);
                   writer.AsmWrite(', '+s+' - ');
-                  if (target_info.system=system_powerpc64_linux) and
+                  if (compiler.target.info.system=system_powerpc64_linux) and
                      use_dotted_functions and
                      (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
                     writer.AsmWrite('.');
@@ -1828,13 +1842,15 @@ implementation
 
 
     procedure TGNUAssembler.WriteHiddenSymbol(sym: TAsmSymbol);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { on Windows/(PE)COFF, global symbols are hidden by default: global
           symbols that are not explicitly exported from an executable/library,
           become hidden }
-        if (target_info.system in (systems_windows+systems_wince+systems_nativent+[system_i386_go32v2])) then
+        if (compiler.target.info.system in (systems_windows+systems_wince+systems_nativent+[system_i386_go32v2])) then
           exit;
-        if target_info.system in systems_darwin then
+        if compiler.target.info.system in systems_darwin then
           writer.AsmWrite(#9'.private_extern ')
         else
           writer.AsmWrite(#9'.hidden ');
@@ -1926,10 +1942,12 @@ implementation
 
     procedure TGNUAssembler.WriteAixIntConst(hp: tai_const);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         pos, size: longint;
       begin
         { only big endian AIX supported for now }
-        if target_info.endian<>endian_big then
+        if compiler.target.info.endian<>endian_big then
           internalerror(2012010401);
         { limitation: can only write 4 bytes at a time }
         pos:=0;
@@ -1954,11 +1972,13 @@ implementation
 
     procedure TGNUAssembler.WriteUnalignedIntConst(hp: tai_const);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         pos, size: longint;
       begin
         size:=tai_const(hp).size;
         writer.AsmWrite(#9'.byte'#9);
-        if target_info.endian=endian_big then
+        if compiler.target.info.endian=endian_big then
           begin
             pos:=size-1;
             while pos>=0 do
@@ -2004,6 +2024,8 @@ implementation
 
     procedure TGNUAssembler.WriteAsmList;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       n : string;
       hal : tasmlisttype;
       i: longint;
@@ -2021,7 +2043,7 @@ implementation
       { gcc does not add it either for Darwin. Grep for
         TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
       }
-      if not(target_info.system in systems_darwin) then
+      if not(compiler.target.info.system in systems_darwin) then
         writer.AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
 
       WriteExtraHeader;
@@ -2044,12 +2066,12 @@ implementation
           WriteWeakSymbolRef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
       if create_smartlink_sections and
-         (target_info.system in systems_darwin) then
+         (compiler.target.info.system in systems_darwin) then
         writer.AsmWriteLn(#9'.subsections_via_symbols');
 
       { "no executable stack" marker }
       { TODO: used by OpenBSD/NetBSD as well? }
-      if (target_info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
+      if (compiler.target.info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
          not(cs_executable_stack in current_settings.moduleswitches) then
         begin
           writer.AsmWriteLn('.section .note.GNU-stack,"",%progbits');
@@ -2069,8 +2091,10 @@ implementation
 {****************************************************************************}
 
     function TAppleGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if (target_info.system in systems_darwin) then
+        if (compiler.target.info.system in systems_darwin) then
           case atype of
             sec_user:
               begin

@@ -29,7 +29,7 @@ interface
 
     uses
       cclasses,
-      globtype,
+      globtype,compilerbase,
       cgbase,cpubase,
       aasmbase,aasmcfi,aasmtai,aasmdata;
 
@@ -126,7 +126,7 @@ implementation
     uses
       systems,globals,
       cutils,
-      verbose,
+      verbose,compiler,
       dwarfbase;
 
 {****************************************************************************
@@ -236,9 +236,11 @@ implementation
 ****************************************************************************}
 
     constructor TDwarfAsmCFI.create;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited;
-        if tf_use_psabieh in target_info.flags then
+        if tf_use_psabieh in compiler.target.info.flags then
           datatype:=dt_eh_frame
         else
           { The CFI-information is always generated, regardless of the debug
@@ -337,6 +339,8 @@ implementation
 {$endif i386}
 
     procedure TDwarfAsmCFILowLevel.generate_code(list:TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : tdwarfitem;
         CurrentLSDALabel,
@@ -474,7 +478,7 @@ implementation
                       { according to the dwarf (2 to 4) standard, this is an uword being always 32 bit unsigned }
                       tc:=tai_const.create_type_sym(aitconst_32bit,cielabel);
                       { force label offset to secrel32 for windows systems }
-                      if (target_info.system in systems_windows+systems_wince) then
+                      if (compiler.target.info.system in systems_windows+systems_wince) then
                         tc.consttype:=aitconst_secrel32_symbol;
                       list.concat(tc);
                     end;
@@ -684,8 +688,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.generate_code(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -694,8 +700,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.start_frame(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -707,8 +715,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.end_frame(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -720,8 +730,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.outmost_frame(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -733,8 +745,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_offset(list: TAsmList; reg: tregister; ofs: longint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -746,8 +760,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_restore(list: TAsmList; reg: tregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -759,8 +775,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_def_cfa(list: TAsmList; reg: tregister; ofs: longint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -772,8 +790,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_def_cfa_register(list: TAsmList; reg: tregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;
@@ -785,8 +805,10 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_def_cfa_offset(list: TAsmList; ofs: longint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(tf_use_hlcfi in target_info.flags) then
+        if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
             inherited;
             exit;

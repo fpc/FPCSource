@@ -103,7 +103,7 @@ implementation
 
   uses
     cutils,cclasses,
-    globals,systems,verbose,
+    globals,systems,verbose,compiler,
     defutil,
     procinfo,paramgr,
     dbgbase,
@@ -228,6 +228,8 @@ implementation
 
 
     procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     {
       produces jumps to true respectively false labels using boolean expressions
     }
@@ -275,7 +277,7 @@ implementation
                              tmpreg:=cg.getintregister(list,OS_INT);
                              hlcg.a_load_ref_reg(list,u8inttype,osuinttype,p.location.sref.ref,tmpreg);
 
-                             if target_info.endian=endian_big then
+                             if compiler.target.info.endian=endian_big then
                                hlcg.a_op_const_reg_reg(list,OP_AND,osuinttype,1 shl (8-(p.location.sref.startbit+1)),tmpreg,tmpreg)
                              else
                                hlcg.a_op_const_reg_reg(list,OP_AND,osuinttype,1 shl p.location.sref.startbit,tmpreg,tmpreg);
@@ -485,6 +487,8 @@ implementation
       initialize out parameters }
     procedure init_paras(p:TObject;arg:pointer);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         href : treference;
         hsym : tparavarsym;
         eldef : tdef;
@@ -507,7 +511,7 @@ implementation
                    begin
                      hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
                        is_open_array(tparavarsym(p).vardef) or
-                       ((target_info.system in systems_caller_copy_addr_value_para) and
+                       ((compiler.target.info.system in systems_caller_copy_addr_value_para) and
                         paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
                         sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
@@ -588,6 +592,8 @@ implementation
 
 
     procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym; allocreg: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure set_para_regvar_initial_location;
         var
@@ -606,7 +612,7 @@ implementation
           if sym.initialloc.size in [OS_64,OS_S64] then
 {$endif defined(cpu64bitalu)}
             begin
-              if target_info.endian=endian_little then
+              if compiler.target.info.endian=endian_little then
                 begin
                   reg:=sym.initialloc.register;
                   reg2:=sym.initialloc.registerhi;
@@ -830,6 +836,8 @@ implementation
 
     procedure gen_proc_exit_code(list:TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         parasize : longint;
       begin
         { c style clearstack does not need to remove parameters from the stack, only the
@@ -848,7 +856,7 @@ implementation
             parasize:=current_procinfo.para_stack_size;
             { the parent frame pointer para has to be removed always by the caller in
               case of Delphi-style parent frame pointer passing }
-            if (not(paramanager.use_fixed_stack) or (target_info.abi=abi_i386_dynalignedstack)) and
+            if (not(paramanager.use_fixed_stack) or (compiler.target.info.abi=abi_i386_dynalignedstack)) and
                (po_delphi_nested_cc in current_procinfo.procdef.procoptions) then
               dec(parasize,sizeof(pint));
           end;

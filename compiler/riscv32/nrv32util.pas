@@ -93,7 +93,7 @@ implementation
       i : longint;
       ref:treference;
     begin
-      if not(tf_init_final_units_by_calls in target_info.flags) then
+      if not(tf_init_final_units_by_calls in compiler.target.info.flags) then
         begin
           inherited insert_init_final_table(main,entries);
           exit;

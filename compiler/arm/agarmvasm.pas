@@ -111,7 +111,7 @@ unit agarmvasm;
       begin
         result:=asminfo^.asmcmd;
 
-        case target_info.system of
+        case compiler.target.info.system of
           { a.out doesn't support named sections, lets use ELF for interoperability }
           system_arm_linux: objtype:='-Felf';
         else

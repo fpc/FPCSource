@@ -271,6 +271,7 @@ implementation
     uses
       verbose,
       globals,
+      compiler,
       symconst,
       aasmtai;
 
@@ -616,7 +617,7 @@ implementation
         if global or
            (cs_profile in current_settings.moduleswitches) then
           result:=DefineAsmSymbol(s,AB_GLOBAL,AT_FUNCTION,pd)
-        else if tf_supports_hidden_symbols in target_info.flags then
+        else if tf_supports_hidden_symbols in compiler.target.info.flags then
           result:=DefineAsmSymbol(s,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
         else
           result:=DefineAsmSymbol(s,AB_LOCAL,AT_FUNCTION,pd);
@@ -695,7 +696,7 @@ implementation
 
     procedure TAsmData.getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
       begin
-        if (target_info.system in (systems_linux + systems_bsd + systems_android)) and
+        if (compiler.target.info.system in (systems_linux + systems_bsd + systems_android)) and
            { the next condition was
              (cs_create_smart in current_settings.moduleswitches) and
              but if we create_smartlink_sections, this is useless }

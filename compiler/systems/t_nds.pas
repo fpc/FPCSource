@@ -188,7 +188,7 @@ begin
       S:=SharedLibFiles.GetFirst;
       if s<>'c' then
        begin
-        i:=Pos(target_info.sharedlibext,S);
+        i:=Pos(compiler.target.info.sharedlibext,S);
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);
@@ -215,7 +215,7 @@ begin
     while not SharedLibFiles.Empty do
      begin
       S:=SharedLibFiles.GetFirst;
-      LinkRes.Add('lib'+s+target_info.staticlibext);
+      LinkRes.Add('lib'+s+compiler.target.info.staticlibext);
      end;
     LinkRes.Add(')');
    end;
@@ -848,7 +848,7 @@ begin
     begin
       success:=DoExec(FindUtil(utilsprefix + 'objcopy'), '-O binary '+
         ChangeFileExt(current_module.exefilename, preName) + ' ' +
-        ChangeFileExt(current_module.exefilename, preName+target_info.exeext),
+        ChangeFileExt(current_module.exefilename, preName+compiler.target.info.exeext),
         true,false);
     end;
 
@@ -856,7 +856,7 @@ begin
     begin
       success:=DoExec(FindUtil('ndstool'), '-c ' +
         ChangeFileExt(current_module.exefilename, '.nds') + ' -9 ' +
-        ChangeFileExt(current_module.exefilename, preName+target_info.exeext),
+        ChangeFileExt(current_module.exefilename, preName+compiler.target.info.exeext),
         true,false);
     end;
   MakeExecutable:=success;   { otherwise a recursive call to link method }

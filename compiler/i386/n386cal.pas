@@ -65,7 +65,7 @@ implementation
       var
         tmpref: treference;
       begin
-        case target_info.system of
+        case compiler.target.info.system of
           system_i386_aros:
             begin
               if ([po_syscall_baselast, po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
@@ -134,8 +134,8 @@ implementation
           it is always the first parameter (apart from hidden parentfp,
           but this one is never put into a register (vs_nonregable set)
           so funcret is always in EAX for register calling }
-        if ((target_info.system = system_i386_win32) and
-            not (target_info.abi=abi_old_win32_gnu)) and
+        if ((compiler.target.info.system = system_i386_win32) and
+            not (compiler.target.info.abi=abi_old_win32_gnu)) and
             paramanager.ret_in_param(procdefinition.returndef,procdefinition) and
             not ((procdefinition.proccalloption=pocall_register) or
                  ((procdefinition.proccalloption=pocall_internproc) and

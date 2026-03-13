@@ -143,7 +143,7 @@ unit cg64f32;
               { Order for multiple locations is always
                   paraloc^ -> high
                   paraloc^.next -> low }
-              if (target_info.endian=ENDIAN_BIG) then
+              if (compiler.target.info.endian=ENDIAN_BIG) then
                 begin
                   { is there any big endian 8 bit ALU/16 bit Addr CPU? }
                   internalerror(2015041001);
@@ -199,7 +199,7 @@ unit cg64f32;
               paralochi4^.size:=OS_8;
               paralochi4^.next:=nil;
               if cgpara.size=OS_S64 then
-                if target_info.endian=ENDIAN_BIG then
+                if compiler.target.info.endian=ENDIAN_BIG then
                   paralochi^.size:=OS_S8
                 else
                   paraloclo4^.size:=OS_S8;
@@ -210,7 +210,7 @@ unit cg64f32;
               { Order for multiple locations is always
                   paraloc^ -> high
                   paraloc^.next -> low }
-              if (target_info.endian=ENDIAN_BIG) then
+              if (compiler.target.info.endian=ENDIAN_BIG) then
                 begin
                   { paraloc^ -> high }
                   move(cgpara.location^,paralochi^,sizeof(paralochi^));
@@ -247,7 +247,7 @@ unit cg64f32;
               paralochi2^.size:=OS_16;
               paralochi2^.next:=nil;
               if cgpara.size=OS_S64 then
-                if target_info.endian=ENDIAN_BIG then
+                if compiler.target.info.endian=ENDIAN_BIG then
                   paralochi^.size:=OS_S16
                 else
                   paraloclo2^.size:=OS_S16;
@@ -258,7 +258,7 @@ unit cg64f32;
               { Order for multiple locations is always
                   paraloc^ -> high
                   paraloc^.next -> low }
-              if (target_info.endian=ENDIAN_BIG) then
+              if (compiler.target.info.endian=ENDIAN_BIG) then
                 begin
                   { paraloc^ -> high
                     paraloc^.next -> low }
@@ -287,7 +287,7 @@ unit cg64f32;
               move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
               move(cgpara.location^,paralochi^,sizeof(paralochi^));
               { for big endian low is at +4, for little endian high }
-              if target_info.endian = endian_big then
+              if compiler.target.info.endian = endian_big then
                 begin
                   inc(cgparalo.location^.reference.offset,4);
                   cgparalo.alignment:=newalignment(cgparalo.alignment,4);
@@ -319,7 +319,7 @@ unit cg64f32;
         tmpreg: tregister;
         tmpref: treference;
       begin
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           begin
             tmpreg:=reg.reglo;
             reg.reglo:=reg.reghi;
@@ -351,7 +351,7 @@ unit cg64f32;
       var
         tmpref: treference;
       begin
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           swap64(value);
         cg.a_load_const_ref(list,OS_32,longint(lo(value)),ref);
         tmpref := ref;
@@ -365,7 +365,7 @@ unit cg64f32;
         tmpreg: tregister;
         tmpref: treference;
       begin
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           begin
             tmpreg := reg.reglo;
             reg.reglo := reg.reghi;
@@ -440,7 +440,7 @@ unit cg64f32;
             exit;
           end;
 
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           begin
             tmpreg := destreg.reglo;
             destreg.reglo := destreg.reghi;
@@ -482,7 +482,7 @@ unit cg64f32;
             exit;
           end;
 
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           begin
             tmpreg:=fromreg.reglo;
             fromreg.reglo:=fromreg.reghi;
@@ -504,7 +504,7 @@ unit cg64f32;
         if (sref.bitindexreg <> NR_NO) or
            (sref.bitlen <> 64) then
           internalerror(2006082312);
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           swap64(a);
         tmpsref := sref;
         tmpsref.bitlen := 32;
@@ -621,7 +621,7 @@ unit cg64f32;
       var
         tmpref: treference;
       begin
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           cg.a_load_reg_ref(list,OS_32,OS_32,reg,ref)
         else
           begin
@@ -635,7 +635,7 @@ unit cg64f32;
       var
         tmpref: treference;
       begin
-        if target_info.endian = endian_little then
+        if compiler.target.info.endian = endian_little then
           cg.a_load_reg_ref(list,OS_32,OS_32,reg,ref)
         else
           begin
@@ -650,7 +650,7 @@ unit cg64f32;
       var
         tmpref: treference;
       begin
-        if target_info.endian = endian_big then
+        if compiler.target.info.endian = endian_big then
           cg.a_load_ref_reg(list,OS_32,OS_32,ref,reg)
         else
           begin
@@ -665,7 +665,7 @@ unit cg64f32;
       var
         tmpref: treference;
       begin
-        if target_info.endian = endian_little then
+        if compiler.target.info.endian = endian_little then
           cg.a_load_ref_reg(list,OS_32,OS_32,ref,reg)
         else
           begin
@@ -821,7 +821,7 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
-        if target_info.endian=endian_big then
+        if compiler.target.info.endian=endian_big then
           begin
             { Keep this order of first lo before hi to have
               the correct push order for m68k }
@@ -847,7 +847,7 @@ unit cg64f32;
         tmploclo.init;
         tmplochi.init;
         splitparaloc64(paraloc,tmploclo,tmplochi);
-        if target_info.endian=endian_big then
+        if compiler.target.info.endian=endian_big then
           begin
             { Keep this order of first lo before hi to have
               the correct push order for m68k }
@@ -876,7 +876,7 @@ unit cg64f32;
         splitparaloc64(paraloc,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;
-        if target_info.endian=endian_big then
+        if compiler.target.info.endian=endian_big then
           begin
             { Keep this order of first lo before hi to have
               the correct push order for m68k }
@@ -1000,7 +1000,7 @@ unit cg64f32;
              temploc.size:=OS_32;
 
              if (temploc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-                (target_info.endian = endian_big) then
+                (compiler.target.info.endian = endian_big) then
                begin
                  inc(temploc.reference.offset,4);
                  temploc.reference.alignment:=newalignment(temploc.reference.alignment,4);

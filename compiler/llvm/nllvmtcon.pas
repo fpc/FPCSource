@@ -214,7 +214,7 @@ implementation
           optimisations) and not to llvm.used (also affects linker -- which in
           this case is already taken care of by the section attribute; not sure
           why it's done like this, but this is how Clang does it) }
-        if (target_info.system in systems_darwin) and
+        if (compiler.target.info.system in systems_darwin) and
            (section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
           cnodeutils.RegisterUsedAsmSym(asmsym,def,false)
         else
@@ -594,7 +594,7 @@ implementation
       if (p.typ<>ait_realconst) then
         internalerror(2015062401);
       realval:=p80realval(@tai_realconst(p).value.s80val);
-      if target_info.endian=source_info.endian then
+      if compiler.target.info.endian=source_info.endian then
         for i:=0 to 9 do
           emit_tai(tai_const.Create_8bit(realval^.a[i]),u8inttype)
       else
@@ -883,7 +883,7 @@ implementation
         sections }
       secname:=basename;
       { Darwin requires specifying a segment name too }
-      if target_info.system in systems_darwin then
+      if compiler.target.info.system in systems_darwin then
         secname:='__DATA,'+secname;
       result:=true;
     end;

@@ -37,7 +37,7 @@ uses
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
-    if target_info.endian=endian_big then
+    if compiler.target.info.endian=endian_big then
       result:='mips'
     else
       result:='mipsel'

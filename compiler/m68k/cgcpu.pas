@@ -266,7 +266,7 @@ unit cgcpu;
             { don't hardwire the frame pointer register, because it can vary between target OS }
             if (assigned(current_procinfo) and (current_procinfo.framepointer = NR_FRAME_POINTER_REG)
                and (reg = RS_FRAME_POINTER_REG))
-               or ((reg = RS_PIC_OFFSET_REG) and (tf_static_reg_based in target_info.flags)) then
+               or ((reg = RS_PIC_OFFSET_REG) and (tf_static_reg_based in compiler.target.info.flags)) then
               continue;
             setlength(address_regs,length(address_regs)+1);
             address_regs[length(address_regs)-1]:=reg;
@@ -439,7 +439,7 @@ unit cgcpu;
          { NOTE: we don't have to fixup scaling in this function, because the memnode
            won't generate scaling on CPUs which don't support it }
 
-         if (tf_static_reg_based in target_info.flags) and assigned(ref.symbol) and (ref.base=NR_NO) then
+         if (tf_static_reg_based in compiler.target.info.flags) and assigned(ref.symbol) and (ref.base=NR_NO) then
            fullyresolve:=true;
 
          { first, deal with the symbol, if we have an index or base register.
@@ -451,7 +451,7 @@ unit cgcpu;
 
              hreg:=getaddressregister(list);
              reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
-             if (tf_static_reg_based in target_info.flags) and (ref.base=NR_NO) then
+             if (tf_static_reg_based in compiler.target.info.flags) and (ref.base=NR_NO) then
                begin
                  if ref.symbol.typ in [AT_DATA,AT_DATA_FORCEINDIRECT,AT_DATA_NOINDIRECT] then
                    href.base:=NR_PIC_OFFSET_REG
@@ -550,7 +550,7 @@ unit cgcpu;
              //list.concat(tai_comment.create(strpnew('fixref: fully resolve to register')));
              if hreg=NR_NO then
                hreg:=getaddressregister(list);
-             if (tf_static_reg_based in target_info.flags) and (ref.base=NR_NO) then
+             if (tf_static_reg_based in compiler.target.info.flags) and (ref.base=NR_NO) then
                begin
                  if ref.symbol.typ in [AT_DATA,AT_DATA_FORCEINDIRECT,AT_DATA_NOINDIRECT] then
                    ref.base:=NR_PIC_OFFSET_REG
@@ -627,7 +627,7 @@ unit cgcpu;
         else
           sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION);
 
-        list.concat(taicpu.op_sym(jmp_inst[tf_code_small in target_info.flags],S_NO,sym));
+        list.concat(taicpu.op_sym(jmp_inst[tf_code_small in compiler.target.info.flags],S_NO,sym));
       end;
 
 

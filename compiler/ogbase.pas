@@ -29,6 +29,7 @@ interface
       { common }
       cutils,
       cclasses,
+      compilerbase,
       { targets }
       systems,globtype,
       { outputwriters }
@@ -796,7 +797,7 @@ implementation
 
     uses
       SysUtils,
-      globals,verbose,
+      globals,verbose,compiler,
 {$ifdef OMFOBJSUPPORT}
       omfbase,
 {$endif OMFOBJSUPPORT}
@@ -837,8 +838,10 @@ implementation
 
 
     procedure MaybeSwapStab(var v:TObjStabEntry);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             v.strpos:=SwapEndian(v.strpos);
             v.nvalue:=SwapEndian(v.nvalue);
@@ -1460,6 +1463,8 @@ implementation
 
 
     class function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {user} [oso_Data,oso_load,oso_write],
@@ -1548,14 +1553,14 @@ implementation
           begin
             if (aType in [sec_rodata,sec_rodata_norel]) then
               begin
-                if (target_info.system in systems_all_windows) then
+                if (compiler.target.info.system in systems_all_windows) then
                   aType:=sec_rodata_norel
                 else
                   aType:=sec_data;
               end;
           end;
         result:=secoptions[atype];
-        if (target_info.system in systems_wasm) and (atype=sec_bss) then
+        if (compiler.target.info.system in systems_wasm) and (atype=sec_bss) then
           Result:=Result+[oso_data,oso_sparse_data];
 {$ifdef OMFOBJSUPPORT}
         { in the huge memory model, BSS data is actually written in the regular
@@ -2352,6 +2357,8 @@ implementation
 
     constructor TImportSymbol.create(AList:TFPHashObjectList;
             const AName,AMangledName:string;AOrdNr:longint;AIsVar:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create(AList, AName);
         FOrdNr:=AOrdNr;
@@ -2359,7 +2366,7 @@ implementation
         FMangledName:=AMangledName;
         { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
         { This allows to import VC++ mangled names from DLLs. }
-        if target_info.system in systems_all_windows then
+        if compiler.target.info.system in systems_all_windows then
           begin
             Replace(FMangledName,'?','__q$$');
 {$ifdef arm}
@@ -2694,6 +2701,8 @@ implementation
       end;
 
     procedure TExeOutput.Order_Values(bytesize : aword; const avalue:string);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         MAXVAL = 128;
       var
@@ -2742,7 +2751,7 @@ implementation
                 begin
                   if (indexpos<MAXVAL) then
                     begin
-                      if source_info.endian<>target_info.endian then
+                      if source_info.endian<>compiler.target.info.endian then
                         swapendian(anumval);
                       { No range checking here }
 
@@ -3350,6 +3359,8 @@ implementation
 
     procedure TExeOutput.GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         debuglink : array[0..1023] of byte;
         len   : longint;
         objsec : TObjSection;
@@ -3367,7 +3378,7 @@ implementation
         move(dbgname[1],debuglink[len],length(dbgname));
         inc(len,length(dbgname)+1);
         len:=align(len,4);
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           SwapEndian(dbgcrc);
         move(dbgcrc,debuglink[len],sizeof(cardinal));
         inc(len,4);

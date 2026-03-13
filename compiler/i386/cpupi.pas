@@ -76,7 +76,7 @@ unit cpupi;
       begin
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
-        if target_info.stackalign<=4 then
+        if compiler.target.info.stackalign<=4 then
           result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmax,4))
         else
           { aligned during stack frame allocation, because also depends number
@@ -92,14 +92,14 @@ unit cpupi;
           from the stack at the end of the procedure (in the "ret $xx").
           If the stack is fixed, nothing has to be removed by the callee, except
           if a 16 byte aligned stack on i386-linux is used     }
-        if paramanager.use_fixed_stack and not(target_info.abi=abi_i386_dynalignedstack) then
+        if paramanager.use_fixed_stack and not(compiler.target.info.abi=abi_i386_dynalignedstack) then
           para_stack_size := 0;
       end;
 
 
     procedure tcpuprocinfo.allocate_got_register(list: tasmlist);
       begin
-        if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) and (current_settings.tlsmodel in [tlsm_global_dynamic]) then
+        if (pi_uses_threadvar in flags) and (tf_section_threadvars in compiler.target.info.flags) and (current_settings.tlsmodel in [tlsm_global_dynamic]) then
           begin
             { FIXME: It is better to use an imaginary register for GOT and
               if EBX is needed for some reason just allocate EBX and

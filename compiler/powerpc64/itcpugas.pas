@@ -149,7 +149,7 @@ begin
   p := findreg_by_number(r);
   if p <> 0 then
     if create_smartlink_library and
-       not(target_info.system = system_powerpc64_darwin) then
+       not(compiler.target.info.system = system_powerpc64_darwin) then
       result := gas_regname_short_table[p]
     else
       result := gas_regname_table[p]

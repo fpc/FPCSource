@@ -164,7 +164,7 @@ Implementation
   function AlignedToQWord(const ref : treference) : boolean;
     begin
       { (safe) heuristics to ensure alignment }
-      result:=(target_info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
+      result:=(compiler.target.info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
       (((ref.offset>=0) and
         ((ref.offset mod 8)=0) and
         ((ref.base=NR_R13) or

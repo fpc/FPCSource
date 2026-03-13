@@ -507,7 +507,7 @@ implementation
                         ;
                     end;
                   end;
-                if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
+                if (compiler.target.info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
                     if (current_scanner.idtoken=_LOCATION) then
                       begin
@@ -560,7 +560,7 @@ implementation
               vs.vardef:=hdef;
               vs.defaultconstsym:=defaultvalue;
 
-              if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
+              if (compiler.target.info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                 begin
                   if locationstr<>'' then
                     begin
@@ -1545,7 +1545,7 @@ implementation
               if parser.pbase.try_to_consume(_COLON) then
                begin
                  read_returndef(pd);
-                 if (target_info.system in [system_m68k_amiga]) then
+                 if (compiler.target.info.system in [system_m68k_amiga]) then
                   begin
                    if (current_scanner.idtoken=_LOCATION) then
                     begin
@@ -1981,12 +1981,12 @@ begin
     internalerror(200304267);
   if current_scanner.token=_CCHAR then
     begin
-      tprocdef(pd).aliasnames.insert(target_info.Cprefix+current_scanner.pattern);
+      tprocdef(pd).aliasnames.insert(compiler.target.info.Cprefix+current_scanner.pattern);
       parser.pbase.consume(_CCHAR)
     end
   else
     begin
-      tprocdef(pd).aliasnames.insert(target_info.Cprefix+current_scanner.cstringpattern);
+      tprocdef(pd).aliasnames.insert(compiler.target.info.Cprefix+current_scanner.cstringpattern);
       parser.pbase.consume(_CSTRING);
     end;
   { we don't need anything else }
@@ -2292,7 +2292,7 @@ procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
       var
         syscall: psyscallinfo;
       begin
-        case target_info.system of
+        case compiler.target.info.system of
           system_arm_palmos,
           system_m68k_palmos,
           system_m68k_human68k,
@@ -2308,7 +2308,7 @@ procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
                 syscall:=get_syscall_by_token(current_scanner.idtoken);
                 if assigned(syscall) then
                   begin
-                    if target_info.system in syscall^.validon then
+                    if compiler.target.info.system in syscall^.validon then
                       begin
                         parser.pbase.consume(current_scanner.idtoken);
                         include(pd.procoptions,syscall^.procoption);
@@ -2336,11 +2336,11 @@ procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
           { let nobase on MorphOS store the libbase in r12 as well, because
             we will need the libbase anyway during the call generation }
           else if (po_syscall_basenone in tprocdef(pd).procoptions) and
-                  (target_info.system = system_powerpc_morphos) then
+                  (compiler.target.info.system = system_powerpc_morphos) then
                  result:='r12'
           else if po_syscall_basereg in tprocdef(pd).procoptions then
             begin
-              case target_info.system of
+              case compiler.target.info.system of
                 system_i386_aros:
                     result:='eax';
                 system_x86_64_aros:
@@ -2368,13 +2368,13 @@ var
   paranr: aint;
 {$endif defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
 begin
-  if (pd.typ<>procdef) and (target_info.system <> system_powerpc_amiga) then
+  if (pd.typ<>procdef) and (compiler.target.info.system <> system_powerpc_amiga) then
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
 {$if defined(powerpc) or defined(m68k) or defined(i386) or defined(x86_64) or defined(arm)}
   include_po_syscall;
 
-  if target_info.system in [system_arm_palmos, system_m68k_palmos] then
+  if compiler.target.info.system in [system_arm_palmos, system_m68k_palmos] then
     begin
       v:=parser.pexpr.get_intconst;
       tprocdef(pd).extnumber:=longint(v.svalue);
@@ -2392,7 +2392,7 @@ begin
       exit;
     end;
 
-  if target_info.system = system_m68k_atari then
+  if compiler.target.info.system = system_m68k_atari then
     begin
       v:=parser.pexpr.get_intconst;
       if ((v<0) or (v>15)) then
@@ -2409,7 +2409,7 @@ begin
       exit;
     end;
 
-  if target_info.system = system_m68k_human68k then
+  if compiler.target.info.system = system_m68k_human68k then
     begin
       v:=parser.pexpr.get_intconst;
       if ((v<$ff00) or (v>high(word))) then
@@ -2447,7 +2447,7 @@ begin
   if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
     message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
   else
-    if target_info.system in [system_arm_aros,system_i386_aros,system_x86_64_aros] then
+    if compiler.target.info.system in [system_arm_aros,system_i386_aros,system_x86_64_aros] then
       Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint)
     else
       Tprocdef(pd).extnumber:=v.uvalue;
@@ -2497,11 +2497,11 @@ begin
           { Always add library prefix and suffix to create an uniform name }
           hs:=parser.pexpr.get_stringconst;
           if ExtractFileExt(hs)='' then
-            hs:=ChangeFileExt(hs,target_info.sharedlibext);
-          if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
-            hs:=target_info.sharedlibprefix+hs;
+            hs:=ChangeFileExt(hs,compiler.target.info.sharedlibext);
+          if Copy(hs,1,length(compiler.target.info.sharedlibprefix))<>compiler.target.info.sharedlibprefix then
+            hs:=compiler.target.info.sharedlibprefix+hs;
           { the JVM expects java/lang/Object rather than java.lang.Object }
-          if target_info.system in systems_jvm then
+          if compiler.target.info.system in systems_jvm then
             Replace(hs,'.','/');
           import_dll:=stringdup(hs);
           include(procoptions,po_has_importdll);
@@ -2525,7 +2525,7 @@ begin
            end;
           if (current_scanner.idtoken=_SUSPENDING) then
            begin
-             if (target_info.system in systems_wasm) then
+             if (compiler.target.info.system in systems_wasm) then
               begin
                 parser.pbase.consume(_SUSPENDING);
                 include(procoptions,po_wasm_suspending);
@@ -2573,7 +2573,7 @@ end;
 
 procedure TSubroutineDeclarationParser.pd_weakexternal(pd:tabstractprocdef);
 begin
-  if not(target_info.system in systems_weak_linking) then
+  if not(compiler.target.info.system in systems_weak_linking) then
     message(parser_e_weak_external_not_supported)
   else
     pd_external(pd);
@@ -2582,7 +2582,7 @@ end;
 
 procedure TSubroutineDeclarationParser.pd_winapi(pd:tabstractprocdef);
 begin
-  if not(target_info.system in systems_all_windows+[system_i386_nativent]) then
+  if not(compiler.target.info.system in systems_all_windows+[system_i386_nativent]) then
     pd.proccalloption:=pocall_cdecl
   else
     pd.proccalloption:=pocall_stdcall;
@@ -2604,7 +2604,7 @@ procedure TSubroutineDeclarationParser.pd_section(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2021032801);
-  if not (target_info.system in systems_allow_section) then
+  if not (compiler.target.info.system in systems_allow_section) then
     Message(parser_e_section_directive_not_allowed_for_target);
 {$ifdef symansistr}
   tprocdef(pd).section:=parser.pexpr.get_stringconst;
@@ -3420,13 +3420,13 @@ const
               pocall_ms_abi_cdecl:
                 begin
                   if assigned(pd.struct) then
-                    result:=target_info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname
+                    result:=compiler.target.info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname
                   else
-                    result:=target_info.Cprefix+pd.procsym.realname;
+                    result:=compiler.target.info.Cprefix+pd.procsym.realname;
                 end;
               pocall_cppdecl :
                 begin
-                  result:=target_info.Cprefix+pd.cplusplusmangledname;
+                  result:=compiler.target.info.Cprefix+pd.cplusplusmangledname;
                 end;
               else
                 begin
@@ -3434,13 +3434,13 @@ const
                   { but according to MacPas mode description
                     Cprefix should still be used PM }
                   if (m_mac in current_settings.modeswitches) then
-                    result:=target_info.Cprefix+tprocdef(pd).procsym.realname
+                    result:=compiler.target.info.Cprefix+tprocdef(pd).procsym.realname
                   else
                     result:=pd.procsym.realname;
 {$ifdef i8086}
                   { Turbo Pascal expects names of external routines
                     to be all uppercase }
-                  if (target_info.system=system_i8086_msdos) and
+                  if (compiler.target.info.system=system_i8086_msdos) and
                     (m_tp7 in current_settings.modeswitches) and
                     (pd.proccalloption=pocall_pascal) then
                     result:=UpCase(result);
@@ -3497,20 +3497,20 @@ const
               pocall_ms_abi_cdecl:
                 begin
                   if assigned(pd.struct) then
-                   pd.aliasnames.insert(target_info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname)
+                   pd.aliasnames.insert(compiler.target.info.Cprefix+pd.struct.objrealname^+'_'+pd.procsym.realname)
                   else
                     begin
                       { Export names are not mangled on Windows and OS/2, see also pexports.pas }
-                      if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) and
+                      if (compiler.target.info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) and
                         (po_exports in pd.procoptions) then
                         pd.aliasnames.insert(pd.procsym.realname)
                       else
-                        pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                        pd.aliasnames.insert(compiler.target.info.Cprefix+pd.procsym.realname);
                     end;
                 end;
               pocall_cppdecl :
                 begin
-                  pd.aliasnames.insert(target_info.Cprefix+pd.cplusplusmangledname);
+                  pd.aliasnames.insert(compiler.target.info.Cprefix+pd.cplusplusmangledname);
                 end;
               else
                 ;
@@ -3532,7 +3532,7 @@ const
       begin
         if (m_mac in current_settings.modeswitches) and (cs_externally_visible in current_settings.localswitches) then
           begin
-            tprocdef(pd).aliasnames.insert(target_info.Cprefix+tprocdef(pd).procsym.realname);
+            tprocdef(pd).aliasnames.insert(compiler.target.info.Cprefix+tprocdef(pd).procsym.realname);
             include(pd.procoptions,po_public);
             include(pd.procoptions,po_has_public_name);
             include(pd.procoptions,po_global);

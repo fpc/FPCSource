@@ -168,7 +168,7 @@ implementation
         end;
 
       begin
-        if target_info.system in systems_managed_vm then
+        if compiler.target.info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         parser.pbase.consume(_LKLAMMER);
         p:=parser.pexpr.comp_expr([ef_accept_equal]);
@@ -488,7 +488,7 @@ implementation
         srsymtable : TSymtable;
         again  : boolean; { dummy for do_proc_call }
       begin
-        if target_info.system in systems_managed_vm then
+        if compiler.target.info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         parser.pbase.consume(_LKLAMMER);
         p1:=parser.pexpr.factor(false,[]);

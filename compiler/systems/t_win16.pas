@@ -474,12 +474,12 @@ var
 begin
   result:=false;
   { is there already an import library the we will use that one }
-  if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
+  if FindLibraryFile(binname,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,hs) then
     exit;
   { check if we can find the dll }
   hs:=binname;
   if ExtractFileExt(hs)='' then
-    hs:=ChangeFileExt(hs,target_info.sharedlibext);
+    hs:=ChangeFileExt(hs,compiler.target.info.sharedlibext);
   if not FindDll(hs,dllname) then
     exit;
   importfound:=false;

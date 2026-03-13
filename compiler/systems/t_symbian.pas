@@ -84,7 +84,7 @@ implementation
             While not SharedLibFiles.Empty do
             begin
                 S:=SharedLibFiles.GetFirst;
-                if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+                if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
                   Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
                 else
                   Comment(V_Error,'Import library not found for '+S);

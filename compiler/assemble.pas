@@ -33,7 +33,8 @@ interface
 
     uses
       SysUtils,
-      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,owbase,finput;
+      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,owbase,finput,
+      compilerbase;
 
     const
        { maximum of aasmoutput lists there will be }
@@ -274,7 +275,7 @@ Implementation
 {$ifdef WASM}
       ogwasm,
 {$endif WASM}
-      cscript,fmodule,verbose,
+      cscript,fmodule,verbose,compiler,
       cpubase,cpuinfo,triplet,
       aasmcpu;
 
@@ -331,6 +332,8 @@ Implementation
 
     procedure TAssembler.NextSmartName(place:tcutplace);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         inc(SmartFilesCount);
@@ -347,8 +350,8 @@ Implementation
           cut_end :
             s:=asmprefix+tostr(SmartHeaderCount)+'t';
         end;
-        AsmFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.asmext);
-        ObjFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+target_info.objext);
+        AsmFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.asmext);
+        ObjFileName:=Path+FixFileName(s+tostr(SmartFilesCount)+compiler.target.info.objext);
         { insert in container so it can be cleared after the linking }
         SmartLinkOFiles.Insert(ObjFileName);
       end;
@@ -592,13 +595,15 @@ Implementation
 
     Procedure TExternalAssemblerOutputFile.AsmLn;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         newline: pshortstring;
         newlineres: shortstring;
         index: longint;
       begin
         MaybeAddLinePostfix;
         if (cs_assemble_on_target in current_settings.globalswitches) then
-          newline:=@target_info.newline
+          newline:=@compiler.target.info.newline
         else
           newline:=@source_info.newline;
         if assigned(decorator) then
@@ -806,19 +811,23 @@ Implementation
 
 
     constructor TExternalAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter,smart: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create(info,smart);
         fwriter:=wr;
         ffreewriter:=freewriter;
         if SmartAsm then
           begin
-            path:=FixPath(ChangeFileExt(AsmFileName,target_info.smartext),false);
+            path:=FixPath(ChangeFileExt(AsmFileName,compiler.target.info.smartext),false);
             CreateSmartLinkPath(path);
           end;
       end;
 
 
     procedure TExternalAssembler.CreateSmartLinkPath(const s:TPathStr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
         procedure DeleteFilesWithExt(const AExt:string);
         var
@@ -839,8 +848,8 @@ Implementation
         if PathExists(s,false) then
          begin
            { the path exists, now we clean only all the .o and .s files }
-           DeleteFilesWithExt(target_info.objext);
-           DeleteFilesWithExt(target_info.asmext);
+           DeleteFilesWithExt(compiler.target.info.objext);
+           DeleteFilesWithExt(compiler.target.info.asmext);
          end
         else
          begin
@@ -861,6 +870,8 @@ Implementation
       LastASBin : TCmdStr;
     Function TExternalAssembler.FindAssembler:string;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         asfound : boolean;
         UtilExe  : string;
         asmbin : TCmdStr;
@@ -872,7 +883,7 @@ Implementation
         if cs_assemble_on_target in current_settings.globalswitches then
          begin
            { If assembling on target, don't add any path PM }
-           FindAssembler:=utilsprefix+ChangeFileExt(asmbin,target_info.exeext);
+           FindAssembler:=utilsprefix+ChangeFileExt(asmbin,compiler.target.info.exeext);
            exit;
          end
         else
@@ -955,6 +966,8 @@ Implementation
 
 
     function TExternalAssembler.MakeCmdLine: TCmdStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function section_high_bound:longint;
         var
@@ -973,7 +986,7 @@ Implementation
         if af_llvm in target_asm.flags then
           Replace(result,'$TRIPLET',targettriplet(triplet_llvm))
 {$ifdef arm}
-        else if (target_info.system=system_arm_ios) then
+        else if (compiler.target.info.system=system_arm_ios) then
           Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]))
 {$endif arm}
         ;
@@ -1006,7 +1019,7 @@ Implementation
          else
            Replace(result,'$NOWARN','-W');
 
-         if target_info.endian=endian_little then
+         if compiler.target.info.endian=endian_little then
            Replace(result,'$ENDIAN','-mlittle')
          else
            Replace(result,'$ENDIAN','-mbig');
@@ -1014,7 +1027,7 @@ Implementation
          { as we don't keep track of the amount of sections we created we simply
            enable Big Obj COFF files always for targets that need them }
          if (cs_asm_pre_binutils_2_25 in current_settings.globalswitches) or
-            not (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) or
+            not (compiler.target.info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) or
             (section_high_bound<min_big_obj_section_count) then
            Replace(result,'$BIGOBJ','')
          else
@@ -1121,6 +1134,8 @@ Implementation
 
 
     procedure TExternalAssembler.WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         pdata: pbyte;
         index, step, swapmask, real_byte_count: longint;
@@ -1251,7 +1266,7 @@ Implementation
                       gap_index:=gap_ofs_high+sizeof(eextended.high);
                       gap_size:=gap_ofs_low-gap_index;
                     end;
-                  if source_info.endian<>target_info.endian then
+                  if source_info.endian<>compiler.target.info.endian then
                       gap_index:=gap_index+gap_size-1;
                   has_gap:=gap_size <> 0;
                 end
@@ -1276,7 +1291,7 @@ Implementation
         real_byte_count:=tai_realconst(hp).datasize;
         { write bytes in inverse order if source and target endianess don't
           match }
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           begin
             { go from back to front }
 {$ifdef USE_SOFT_FLOATX80}
@@ -2164,6 +2179,8 @@ Implementation
 
     function TInternalAssembler.TreePass2(hp:Tai):Tai;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         fillbuffer : tfillbuffer;
         leblen : byte;
         lebbuf : array[0..63] of byte;
@@ -2321,7 +2338,7 @@ Implementation
                                gap_index:=gap_ofs_high+sizeof(eextended.high);
                                gap_size:=gap_ofs_low-gap_index;
                              end;
-                           if source_info.endian<>target_info.endian then
+                           if source_info.endian<>compiler.target.info.endian then
                              gap_index:=gap_index+gap_size-1;
                            has_gap:=gap_size <> 0;
                          end
@@ -2343,7 +2360,7 @@ Implementation
                    else
                      internalerror(2015030501);
                  end;
-                 if source_info.endian<>target_info.endian then
+                 if source_info.endian<>compiler.target.info.endian then
                    { write bytes in inverse order if source and target endianess don't match }
                    begin
                      { go from back to front }
@@ -2360,7 +2377,7 @@ Implementation
                      index:=0;
                      step:=1;
                    end;
-                 if (source_info.endian<>target_info.endian)
+                 if (source_info.endian<>compiler.target.info.endian)
                    {$ifdef USE_SOFT_FLOATX80} or has_gap{$endif} then
                    begin
                      d:=0;
@@ -2436,7 +2453,7 @@ Implementation
                        else if relative_reloc then
                          ObjData.writereloc(ObjData.CurrObjSec.size+tai_const(hp).size-objsym.address+tai_const(hp).symofs,tai_const(hp).size,objsymend,RELOC_RELATIVE)
                        else
-                         if source_info.endian<>target_info.endian then
+                         if source_info.endian<>compiler.target.info.endian then
                            begin
                              case tai_const(hp).size of
                                 1 : begin
@@ -2468,7 +2485,7 @@ Implementation
                    aitconst_rva_symbol :
                      begin
                        { PE32+? }
-                       if target_info.system in systems_peoptplus then
+                       if compiler.target.info.system in systems_peoptplus then
                          ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
                        else
                          ObjData.writereloc(Tai_const(hp).symofs,sizeof(pint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
@@ -2626,7 +2643,7 @@ Implementation
                      s:='A';
                      eabi_section.write(s[1],1);
                      ddword:=eabi_section.Size-1;
-                     if source_info.endian<>target_info.endian then
+                     if source_info.endian<>compiler.target.info.endian then
                        ddword:=SwapEndian(ddword);
                      eabi_section.write(ddword,4);
                      s:='aeabi'#0;
@@ -2634,7 +2651,7 @@ Implementation
                      s:=#1;
                      eabi_section.write(s[1],1);
                      ddword:=eabi_section.Size-1-4-6-1;
-                     if source_info.endian<>target_info.endian then
+                     if source_info.endian<>compiler.target.info.endian then
                        ddword:=SwapEndian(ddword);
                      eabi_section.write(ddword,4);
                    end;
@@ -2663,12 +2680,12 @@ Implementation
                  TmpDataPos:=eabi_section.Data.Pos;
                  eabi_section.Data.seek(1);
                  ddword:=eabi_section.Size-1;
-                 if source_info.endian<>target_info.endian then
+                 if source_info.endian<>compiler.target.info.endian then
                    ddword:=SwapEndian(ddword);
                  eabi_section.Data.write(ddword,4);
                  eabi_section.Data.seek(12);
                  ddword:=eabi_section.Size-1-4-6;
-                 if source_info.endian<>target_info.endian then
+                 if source_info.endian<>compiler.target.info.endian then
                    ddword:=SwapEndian(ddword);
                  eabi_section.Data.write(ddword,4);
                  eabi_section.Data.Seek(TmpDataPos);
@@ -2889,6 +2906,8 @@ Implementation
 
 
     procedure TInternalAssembler.MakeObject;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     var to_do:set of TasmlistType;
         i:TasmlistType;
@@ -2903,7 +2922,7 @@ Implementation
         to_do:=[low(Tasmlisttype)..high(Tasmlisttype)];
         if usedeffileforexports then
           exclude(to_do,al_exports);
-        if not(tf_section_threadvars in target_info.flags) then
+        if not(tf_section_threadvars in compiler.target.info.flags) then
           exclude(to_do,al_threadvars);
         for i:=low(TasmlistType) to high(TasmlistType) do
           if (i in to_do) and (current_asmdata.asmlists[i]<>nil) and
@@ -2936,11 +2955,13 @@ Implementation
 
     function GetExternalGnuAssemblerWithAsmInfoWriter(info: pasminfo; wr: TExternalAssemblerOutputFile): TExternalAssembler;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         asmkind: tasm;
       begin
         for asmkind in [as_gas,as_ggas,as_darwin,as_clang_gas,as_clang_asdarwin] do
           if assigned(asminfos[asmkind]) and
-             (target_info.system in asminfos[asmkind]^.supported_targets) then
+             (compiler.target.info.system in asminfos[asmkind]^.supported_targets) then
             begin
               result:=TExternalAssemblerClass(CAssembler[asmkind]).CreateWithWriter(asminfos[asmkind],wr,false,false);
               exit;

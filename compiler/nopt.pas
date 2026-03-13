@@ -387,7 +387,7 @@ begin
         var-parameter (and finalization, which is performed by the
         ttempcreate node and which takes care of the initialization
         on native targets, is a noop on managed VM targets) }
-      if (target_info.system in systems_managed_vm) and
+      if (compiler.target.info.system in systems_managed_vm) and
          is_managed_type(p.resultdef) then
         addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
           false,
@@ -488,7 +488,7 @@ begin
         var-parameter (and finalization, which is performed by the
         ttempcreate node and which takes care of the initialization
         on native targets, is a noop on managed VM targets) }
-      if (target_info.system in systems_managed_vm) and
+      if (compiler.target.info.system in systems_managed_vm) and
          is_managed_type(p.resultdef) then
         addstatement(newstatement,compiler.cinlinenode(in_setlength_x,
           false,

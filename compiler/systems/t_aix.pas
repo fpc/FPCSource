@@ -214,7 +214,7 @@ begin
       While not SharedLibFiles.Empty do
         begin
           S:=SharedLibFiles.GetFirst;
-          i:=Pos(target_info.sharedlibext,S);
+          i:=Pos(compiler.target.info.sharedlibext,S);
           if i>0 then
             Delete(S,i,255);
           Add('-l'+s);
@@ -301,7 +301,7 @@ begin
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
         if cs_link_on_target in current_settings.globalswitches then
-          BinStr:='.'+target_info.dirsep+BinStr
+          BinStr:='.'+compiler.target.info.dirsep+BinStr
         else
           BinStr:='.'+source_info.dirsep+BinStr;
       CmdStr:='';
@@ -399,7 +399,7 @@ begin
   BinStr:=linkscript.fn;
   if not path_absolute(BinStr) then
     if cs_link_on_target in current_settings.globalswitches then
-      BinStr:='.'+target_info.dirsep+BinStr
+      BinStr:='.'+compiler.target.info.dirsep+BinStr
     else
       BinStr:='.'+source_info.dirsep+BinStr;
   CmdStr:='';

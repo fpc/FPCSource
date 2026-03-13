@@ -241,7 +241,7 @@ implementation
         parent:=aparent;
         procdef:=nil;
         para_stack_size:=0;
-        fstackalignment:=target_info.stackalign;
+        fstackalignment:=compiler.target.info.stackalign;
         flags:=[];
         init_framepointer;
         framepointer:=NR_FRAME_POINTER_REG;

@@ -43,7 +43,7 @@ interface
 {$ENDIF}
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
-      cpuinfo,
+      cpuinfo,compilerbase,
 {$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
 {$endif LLVM or GENERIC_CPU}
@@ -487,7 +487,7 @@ Const
 {$endif defined(m68k)}
 
        { default name of the C-style "main" procedure of the library/program }
-       { (this will be prefixed with the target_info.cprefix)                }
+       { (this will be prefixed with the compiler.target.info.cprefix)                }
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
@@ -768,13 +768,14 @@ Const
 
 implementation
 
+    uses
+      compiler
 {$if defined(macos)}
-    uses
-      macutils;
+      ,macutils
 {$elseif defined(mswindows)}
-    uses
-      windirs;
+      ,windirs
 {$endif}
+      ;
 
 {****************************************************************************
                                  TLinkStrMap
@@ -1037,6 +1038,8 @@ implementation
 
 
      procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
+       var
+         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {$ifdef mswindows}
        procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
          begin
@@ -1084,14 +1087,14 @@ implementation
          Replace(s,'$FPCOS',target_os_string);
          Replace(s,'$FPCBINDIR',exepath);
          if (tf_use_8_3 in Source_Info.Flags) or
-            (tf_use_8_3 in Target_Info.Flags) then
+            (tf_use_8_3 in compiler.target.info.Flags) then
            Replace(s,'$FPCTARGET',target_os_string)
          else if subtarget<>'' then
            Replace(s,'$FPCTARGET',target_full_string+'-'+lower(subtarget))
          else
            Replace(s,'$FPCTARGET',target_full_string);
          Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
-         Replace(s,'$FPCABI',lower(abiinfo[target_info.abi].name));
+         Replace(s,'$FPCABI',lower(abiinfo[compiler.target.info.abi].name));
 {$ifdef i8086}
          Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[init_settings.x86memorymodel]));
 {$else i8086}
@@ -1384,6 +1387,8 @@ implementation
 
     function Setabitype(const s:string;var a:tabi):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         t  : tabi;
         hs : string;
       begin
@@ -1395,7 +1400,7 @@ implementation
             begin
               a:=t;
               { abi_old_win32_gnu is a win32 i386 specific "feature" }
-              if (t<>abi_old_win32_gnu) or (target_info.system=system_i386_win32) then
+              if (t<>abi_old_win32_gnu) or (compiler.target.info.system=system_i386_win32) then
                 result:=true;
               break;
             end;
@@ -1603,10 +1608,12 @@ implementation
 
 
     function use_dotted_functions: boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=
-          (target_info.system in systems_dotted_function_names) and
-          (target_info.abi<>abi_powerpc_elfv2);
+          (compiler.target.info.system in systems_dotted_function_names) and
+          (compiler.target.info.abi<>abi_powerpc_elfv2);
       end;
 
 {****************************************************************************

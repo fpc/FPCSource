@@ -39,7 +39,7 @@ implementation
 
     uses
       globals,
-      cutils,verbose,systems,
+      cutils,verbose,systems,compiler,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgutils,cgobj,
       symconst,symdef,symtable,
@@ -59,9 +59,9 @@ implementation
         handled: boolean;
       begin
         handled:=false;
-        if (tf_section_threadvars in target_info.flags) then
+        if (tf_section_threadvars in compiler.target.info.flags) then
           begin
-            if target_info.system in [system_i386_win32,system_x86_64_win64] then
+            if compiler.target.info.system in [system_i386_win32,system_x86_64_win64] then
               begin
                 paraloc1.init;
                 pd:=search_system_proc('fpc_tls_add');
@@ -86,10 +86,10 @@ implementation
         if not handled then
           inherited;
 
-        if (tf_section_threadvars in target_info.flags) then
+        if (tf_section_threadvars in compiler.target.info.flags) then
           begin
 {$ifdef i386}
-            case target_info.system of
+            case compiler.target.info.system of
               system_i386_linux,system_i386_android:
                 begin
                   case current_settings.tlsmodel of
@@ -123,7 +123,7 @@ implementation
             end;
 {$endif i386}
 {$ifdef x86_64}
-            case target_info.system of
+            case compiler.target.info.system of
               system_x86_64_linux:
                 begin
                   case current_settings.tlsmodel of

@@ -132,7 +132,7 @@ implementation
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
+      cutils,verbose,globals,compiler,
       symtable,symconst,symdef,aasmbase,aasmdata,aasmcpu,defutil,
       parabase,
       pass_2,
@@ -170,7 +170,7 @@ implementation
           s64real,
           s64comp,
           s64currency:
-            if target_info.endian = endian_little then
+            if compiler.target.info.endian = endian_little then
               inc(href2.offset,4);
           s32real :
             ;

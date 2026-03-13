@@ -365,7 +365,7 @@ implementation
     sfpux80,math,
 {$endif FPC_SOFT_FPUX80}
 {$endif ndef FPC_HAS_TYPE_EXTENDED}
-    cutils;
+    cutils,compiler;
 
 
 function swapendian_entryreal(d:entryreal):entryreal;
@@ -1453,7 +1453,7 @@ var
   d : entryreal;
   hd : double;
 begin
-  if target_info.system=system_x86_64_win64 then
+  if compiler.target.info.system=system_x86_64_win64 then
     begin
       hd:=getrealsize(sizeof(hd));
       getreal:=hd;
@@ -1461,7 +1461,7 @@ begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
   else
-    if target_info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
+    if compiler.target.info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
       begin
         d:=getrealsize(sizeof(floatx80_byte_array));
 	getreal:=d;
@@ -1961,7 +1961,7 @@ var
 {$endif FPC_SOFT_FFPUX80}
 {$endif ndef FPC_HAS_TYPE_EXTENDED}
 begin
-  if target_info.system=system_x86_64_win64 then
+  if compiler.target.info.system=system_x86_64_win64 then
     begin
 {$ifdef DEBUG_PPU}
       ppu_log('putreal,size='+tostr(sizeof(hd)));
@@ -1973,7 +1973,7 @@ begin
     end
 {$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
-  else if target_info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
+  else if compiler.target.info.cpu in [cpu_i8086, cpu_i386, cpu_x86_64] then
     begin
 {$ifdef DEBUG_PPU}
       ppu_log('putreal,size='+tostr(sizeof(floatx80_e)));

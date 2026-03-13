@@ -280,7 +280,7 @@ implementation
         indirect : boolean;
         size_opt : boolean;
       begin
-         if (tf_section_threadvars in target_info.flags) then
+         if (tf_section_threadvars in compiler.target.info.flags) then
            begin
              if gvs.localloc.loc=LOC_INVALID then
                if not(vo_is_weak_external in gvs.varoptions) then
@@ -317,8 +317,8 @@ implementation
                              not assigned(current_module.globalsymtable) and
                              (current_module.localsymtable=systemunit)
                            );
-             indirect:=(tf_supports_packages in target_info.flags) and
-                         (target_info.system in systems_indirect_var_imports) and
+             indirect:=(tf_supports_packages in compiler.target.info.flags) and
+                         (compiler.target.info.system in systems_indirect_var_imports) and
                          (cs_imported_data in localswitches) and
                          not issystemunit;
              if not(vo_is_weak_external in gvs.varoptions) then
@@ -330,7 +330,7 @@ implementation
                          true
                        {$else defined(RISCV)}
                          (cs_opt_size in current_settings.optimizerswitches)
-                         or ((cs_create_pic in current_settings.moduleswitches) and (tf_pic_uses_got in target_info.flags))
+                         or ((cs_create_pic in current_settings.moduleswitches) and (tf_pic_uses_got in compiler.target.info.flags))
                        {$endif defined(RISCV)};
              hreg_tv_rec:=NR_INVALID;
              if size_opt then
@@ -399,8 +399,8 @@ implementation
           - the variable is declared as (weak) external
           - G- is set
           - the variable is located inside the same unit }
-        result:=(tf_supports_packages in target_info.flags) and
-                (target_info.system in systems_indirect_var_imports) and
+        result:=(tf_supports_packages in compiler.target.info.flags) and
+                (compiler.target.info.system in systems_indirect_var_imports) and
                 (gvs.varoptions*[vo_is_external,vo_is_weak_external]=[]) and
                 (gvs.owner.symtabletype in [globalsymtable,staticsymtable]) and
                 (cs_imported_data in localswitches) and
@@ -448,8 +448,8 @@ implementation
                 if tconstsym(symtableentry).consttyp in [constresourcestring,constwresourcestring] then
                   begin
                      location_reset_ref(location,LOC_CREFERENCE,def_cgsize(cansistringtype),cansistringtype.size,[]);
-                     indirect:=(tf_supports_packages in target_info.flags) and
-                                 (target_info.system in systems_indirect_var_imports) and
+                     indirect:=(tf_supports_packages in compiler.target.info.flags) and
+                                 (compiler.target.info.system in systems_indirect_var_imports) and
                                  (cs_imported_data in localswitches) and
                                  (symtableentry.owner.moduleid<>current_module.moduleid);
                      name:=make_mangledname('RESSTR',symtableentry.owner,symtableentry.name);
@@ -686,7 +686,7 @@ implementation
 
                      { to get methodpointers stored correctly, code and self register must be swapped on
                        big endian targets }
-                     if target_info.endian=endian_big then
+                     if compiler.target.info.endian=endian_big then
                        begin
                          { cpus with 16 bit address registers don't use registerhi here }
 {$if defined(CPU8BITALU) and defined(CPU16BITADDR)}
@@ -827,7 +827,7 @@ implementation
                 if right.nodetype=ordconstn then
                   begin
                     hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(u16inttype,compiler),left.location.reference);
-                    if (target_info.endian = endian_little) then
+                    if (compiler.target.info.endian = endian_little) then
                       hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
                           setalignment(left.location.reference,1))
                     else
@@ -1297,7 +1297,7 @@ implementation
           internalerror(200608042);
         dovariant:=
           ((acnf_forcevaria in arrayconstructornodeflags) or is_variant_array(resultdef)) and
-          not(target_info.system in systems_managed_vm);
+          not(compiler.target.info.system in systems_managed_vm);
         eledef:=tarraydef(resultdef).elementdef;
         elesize:=eledef.size;
         if dovariant then
@@ -1572,8 +1572,8 @@ implementation
       var
         indirect : boolean;
       begin
-        indirect := (tf_supports_packages in target_info.flags) and
-                      (target_info.system in systems_indirect_var_imports) and
+        indirect := (tf_supports_packages in compiler.target.info.flags) and
+                      (compiler.target.info.system in systems_indirect_var_imports) and
                       (cs_imported_data in localswitches) and
                       (rttidef.owner.moduleid<>current_module.moduleid);
 

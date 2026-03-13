@@ -32,6 +32,7 @@ interface
       sysutils,
       cclasses,
       systems,
+      compilerbase,
       fmodule,
       globtype,
       ldscript,
@@ -175,7 +176,7 @@ Implementation
 {$ifdef hasUnix}
       baseunix,
 {$endif hasUnix}
-      cscript,globals,verbose,comphook,ppu,fpchash,triplet,tripletcpu,
+      cscript,globals,verbose,comphook,ppu,fpchash,triplet,tripletcpu,compiler,
       aasmbase,aasmcpu,
       ogmap;
 
@@ -217,6 +218,8 @@ Implementation
     { searches an object file }
     function FindObjectFile(s:TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         found : boolean;
         foundfile : TCmdStr;
       begin
@@ -230,7 +233,7 @@ Implementation
          the host. Look for the corresponding assembler file instead,
          because it will be assembled to object file on the target.}
         if isunit and (cs_assemble_on_target in current_settings.globalswitches) then
-          s:=ChangeFileExt(s,target_info.asmext);
+          s:=ChangeFileExt(s,compiler.target.info.asmext);
 
         { when it does not belong to the unit then check if
           the specified file exists without searching any paths }
@@ -243,7 +246,7 @@ Implementation
             end;
          end;
         if pos('.',s)=0 then
-         s:=s+target_info.objext;
+         s:=s+compiler.target.info.objext;
         { find object file
            1. output unit path
            2. output exe path
@@ -277,7 +280,7 @@ Implementation
 
         {Restore file extension}
         if isunit and (cs_assemble_on_target in current_settings.globalswitches) then
-          foundfile:= ChangeFileExt(foundfile,target_info.objext);
+          foundfile:= ChangeFileExt(foundfile,compiler.target.info.objext);
 
         findobjectfile:=ScriptFixFileName(foundfile);
       end;
@@ -285,6 +288,8 @@ Implementation
 
     { searches a (windows) DLL file }
     function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         sysdir : TCmdStr;
         Found : boolean;
@@ -299,7 +304,7 @@ Implementation
          Found:=librarysearchpath.FindFile(s,false,founddll);
 
         { when cross compiling, it is pretty useless to search windir etc. for dlls }
-        if (not found) and (source_info.system=target_info.system) then
+        if (not found) and (source_info.system=compiler.target.info.system) then
          begin
            sysdir:=FixPath(GetEnvironmentVariable('windir'),false);
            Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
@@ -522,15 +527,17 @@ Implementation
 
 
     Procedure TLinker.AddSharedLibrary(S:TCmdStr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if s='' then
           exit;
         { remove prefix 'lib' }
-        if Copy(s,1,length(target_info.sharedlibprefix))=target_info.sharedlibprefix then
-          Delete(s,1,length(target_info.sharedlibprefix));
+        if Copy(s,1,length(compiler.target.info.sharedlibprefix))=compiler.target.info.sharedlibprefix then
+          Delete(s,1,length(compiler.target.info.sharedlibprefix));
         { remove extension if any }
-        if Copy(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext))=target_info.sharedlibext then
-          Delete(s,length(s)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext)+1);
+        if Copy(s,length(s)-length(compiler.target.info.sharedlibext)+1,length(compiler.target.info.sharedlibext))=compiler.target.info.sharedlibext then
+          Delete(s,length(s)-length(compiler.target.info.sharedlibext)+1,length(compiler.target.info.sharedlibext)+1);
         { ready to be added }
         SharedLibFiles.Concat(S);
       end;
@@ -538,12 +545,14 @@ Implementation
 
     Procedure TLinker.AddStaticLibrary(const S:TCmdStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         ns : TCmdStr;
         found : boolean;
       begin
         if s='' then
           exit;
-        found:=FindLibraryFile(s,target_info.staticlibprefix,target_info.staticlibext,ns);
+        found:=FindLibraryFile(s,compiler.target.info.staticlibprefix,compiler.target.info.staticlibext,ns);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
           Message1(exec_w_libfile_not_found,s);
         StaticLibFiles.Concat(ns);
@@ -551,15 +560,17 @@ Implementation
 
 
     Procedure TLinker.AddSharedCLibrary(S:TCmdStr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if s='' then
           exit;
         { remove prefix 'lib' }
-        if Copy(s,1,length(target_info.sharedclibprefix))=target_info.sharedclibprefix then
-          Delete(s,1,length(target_info.sharedclibprefix));
+        if Copy(s,1,length(compiler.target.info.sharedclibprefix))=compiler.target.info.sharedclibprefix then
+          Delete(s,1,length(compiler.target.info.sharedclibprefix));
         { remove extension if any }
-        if Copy(s,length(s)-length(target_info.sharedclibext)+1,length(target_info.sharedclibext))=target_info.sharedclibext then
-          Delete(s,length(s)-length(target_info.sharedclibext)+1,length(target_info.sharedclibext)+1);
+        if Copy(s,length(s)-length(compiler.target.info.sharedclibext)+1,length(compiler.target.info.sharedclibext))=compiler.target.info.sharedclibext then
+          Delete(s,length(s)-length(compiler.target.info.sharedclibext)+1,length(compiler.target.info.sharedclibext)+1);
         { ready to be added }
         SharedLibFiles.Concat(S);
       end;
@@ -582,12 +593,14 @@ Implementation
 
     Procedure TLinker.AddStaticCLibrary(const S:TCmdStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         ns : TCmdStr;
         found : boolean;
       begin
         if s='' then
          exit;
-        found:=FindLibraryFile(s,target_info.staticclibprefix,target_info.staticclibext,ns);
+        found:=FindLibraryFile(s,compiler.target.info.staticclibprefix,compiler.target.info.staticclibext,ns);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
          Message1(exec_w_libfile_not_found,s);
         StaticLibFiles.Concat(ns);
@@ -666,6 +679,8 @@ Implementation
 
     Function TExternalLinker.WriteSymbolOrderFile: TCmdStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         item: TCmdStrListItem;
         symfile: TScript;
       begin
@@ -673,7 +688,7 @@ Implementation
         { only for darwin for now; can also enable for other platforms when using
           the LLVM linker }
         if (OrderedSymbols.Empty) or
-           not(tf_supports_symbolorderfile in target_info.flags) then
+           not(tf_supports_symbolorderfile in compiler.target.info.flags) then
           exit;
         symfile:=TScript.Create(outputexedir+UniqueName('symbol_order')+'.fpc');
         item:=TCmdStrListItem(OrderedSymbols.First);
@@ -690,18 +705,20 @@ Implementation
 
 
     Function TExternalLinker.GetSanitizerLibName(const basename: TCmdStr; withArch: boolean): TCmdStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=target_info.sharedClibprefix+'clang_rt.'+basename;
-        if target_info.system in systems_darwin then
+        result:=compiler.target.info.sharedClibprefix+'clang_rt.'+basename;
+        if compiler.target.info.system in systems_darwin then
           begin
             { Darwin never adds the arch, it uses fat binaries. But it has the
               extra '_dynamic' for some reason, and also adds the platform type
             }
-            if target_info.system in systems_macosx then
+            if compiler.target.info.system in systems_macosx then
               result:=result+'_osx_dynamic'
-            else if target_info.system in systems_ios then
+            else if compiler.target.info.system in systems_ios then
               result:='_ios_dynamic'
-            else if target_info.system in systems_iphonesim then
+            else if compiler.target.info.system in systems_iphonesim then
               result:='_iossim_dynamic'
             else
               internalerror(2022071010);
@@ -711,11 +728,11 @@ Implementation
             if withArch then
               begin
                 result:=result+'-'+tripletcpustr(triplet_llvmrt);
-                if target_info.system in systems_android then
+                if compiler.target.info.system in systems_android then
                   result:=result+'-android';
               end;
           end;
-        result:=result+target_info.sharedClibext;
+        result:=result+compiler.target.info.sharedClibext;
       end;
 
 
@@ -824,6 +841,8 @@ Implementation
 
     Function TExternalLinker.FindUtil(const s:TCmdStr;throwerror: boolean=true):TCmdStr;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         Found    : boolean;
         FoundBin : TCmdStr;
         UtilExe  : TCmdStr;
@@ -833,8 +852,8 @@ Implementation
             { If linking on target, don't add any path PM }
             { change extension only on platforms that use an exe extension, otherwise on OpenBSD 'ld.bfd' gets
               converted to 'ld' }
-            if target_info.exeext<>'' then
-              FindUtil:=ChangeFileExt(s,target_info.exeext)
+            if compiler.target.info.exeext<>'' then
+              FindUtil:=ChangeFileExt(s,compiler.target.info.exeext)
             else
               FindUtil:=s;
             exit;
@@ -940,6 +959,8 @@ Implementation
 
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       var
         total_size, power : longint;
@@ -1002,7 +1023,7 @@ Implementation
       { remove the library, to be sure that it is rewritten }
         DeleteFile(current_module.staticlibfilename);
       { Call AR }
-        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,target_info.smartext),false);
+        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,compiler.target.info.smartext),false);
         SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(utilsprefix + binstr);
         if target_ar.arfirstcmd<>'' then
@@ -1206,9 +1227,11 @@ Implementation
 
 
       function MayBeSwapHeader(h : telf32header) : telf32header;
+        var
+          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
-          if source_info.endian<>target_info.endian then
+          if source_info.endian<>compiler.target.info.endian then
             with h do
               begin
                 result.e_type:=swapendian(e_type);
@@ -1229,9 +1252,11 @@ Implementation
 
 
       function MayBeSwapHeader(h : telf64header) : telf64header;
+        var
+          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
-          if source_info.endian<>target_info.endian then
+          if source_info.endian<>compiler.target.info.endian then
             with h do
               begin
                 result.e_type:=swapendian(e_type);
@@ -1252,9 +1277,11 @@ Implementation
 
 
       function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
+        var
+          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
-          if source_info.endian<>target_info.endian then
+          if source_info.endian<>compiler.target.info.endian then
             with h do
               begin
                 result.sh_name:=swapendian(sh_name);
@@ -1272,9 +1299,11 @@ Implementation
 
 
       function MaybeSwapSecHeader(h : telf64sechdr) : telf64sechdr;
+        var
+          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
-          if source_info.endian<>target_info.endian then
+          if source_info.endian<>compiler.target.info.endian then
             with h do
               begin
                 result.sh_name:=swapendian(sh_name);
@@ -1595,6 +1624,8 @@ Implementation
 
     procedure TInternalLinker.ScriptAddSourceStatements(AddSharedAsStatic:boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s,s2: TCmdStr;
       begin
         while not ObjectFiles.Empty do
@@ -1614,7 +1645,7 @@ Implementation
         while not SharedLibFiles.Empty do
           begin
             S:=SharedLibFiles.GetFirst;
-            if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+            if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
               LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
             else
               Comment(V_Error,'Import library not found for '+S);
@@ -2244,16 +2275,18 @@ Implementation
 
 
     procedure InitLinker;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (cs_link_extern in current_settings.globalswitches) and
-           assigned(CLinker[target_info.linkextern]) then
+           assigned(CLinker[compiler.target.info.linkextern]) then
           begin
-            linker:=CLinker[target_info.linkextern].Create;
+            linker:=CLinker[compiler.target.info.linkextern].Create;
           end
         else
-          if assigned(CLinker[target_info.link]) then
+          if assigned(CLinker[compiler.target.info.link]) then
             begin
-              linker:=CLinker[target_info.link].Create;
+              linker:=CLinker[compiler.target.info.link].Create;
             end
         else
           linker:=Tlinker.Create;

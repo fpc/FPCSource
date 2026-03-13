@@ -29,7 +29,7 @@ interface
   uses
     aasmdata,
     symsym,
-    import,export,expunix,link;
+    import,export,expunix,link,compilerbase;
 
   type
     timportliblinux=class(timportlib)
@@ -76,7 +76,7 @@ implementation
 
   uses
     SysUtils,
-    cutils,cfileutl,cclasses,
+    cutils,cfileutl,cclasses,compiler,
     verbose,systems,globtype,globals,
     cscript,
     fmodule,
@@ -139,7 +139,7 @@ begin
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64',true);
 {$else}
 {$ifdef powerpc64}
-      if target_info.abi<>abi_powerpc_elfv2 then
+      if compiler.target.info.abi<>abi_powerpc_elfv2 then
         LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/X11R6/lib64',true)
       else
         LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/powerpc64le-linux-gnu;=/usr/X11R6/powerpc64le-linux-gnu',true);
@@ -156,12 +156,12 @@ begin
 {$ifdef arm}
   { some newer Debian have the crt*.o files at uncommon locations,
     for other arm flavours, this cannot hurt }
-    if target_info.abi=abi_eabihf then
+    if compiler.target.info.abi=abi_eabihf then
       begin
         LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/arm-linux-gnueabihf',true);
         LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/arm-linux-gnueabihf',true);
       end;
-    if target_info.abi=abi_eabi then
+    if compiler.target.info.abi=abi_eabi then
       begin
         LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/arm-linux-gnueabi',true);
         LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/arm-linux-gnueabi',true);
@@ -295,7 +295,7 @@ procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
 begin
 {$ifdef powerpc64}
   if defdynlinker='' then
-    if target_info.abi=abi_powerpc_sysv then
+    if compiler.target.info.abi=abi_powerpc_sysv then
       defdynlinker:=defdynlinkerv1
     else
       defdynlinker:=defdynlinkerv2;
@@ -303,7 +303,7 @@ begin
 {$ifdef riscv32}
   if defdynlinker='' then
     begin
-      case target_info.abi of
+      case compiler.target.info.abi of
         abi_riscv_ilp32:
           defdynlinker:=defdynlinker_soft_float;
         abi_riscv_ilp32f:
@@ -318,7 +318,7 @@ begin
 {$ifdef riscv64}
   if defdynlinker='' then
     begin
-      case target_info.abi of
+      case compiler.target.info.abi of
         abi_riscv_lp64:
           defdynlinker:=defdynlinker_soft_float;
         abi_riscv_lp64f:
@@ -377,6 +377,8 @@ end;
 
 function ModulesLinkToLibc:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   hp: tmodule;
 begin
   result:=false;
@@ -387,9 +389,9 @@ begin
   hp:=tmodule(loaded_units.first);
   while assigned(hp) do
     begin
-      result:=Assigned(hp.ImportLibraryList.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext));
+      result:=Assigned(hp.ImportLibraryList.find(compiler.target.info.sharedClibprefix+'c'+compiler.target.info.sharedClibext));
       if result then break;
-      result:=hp.linkothersharedlibs.find(target_info.sharedClibprefix+'c'+target_info.sharedClibext);
+      result:=hp.linkothersharedlibs.find(compiler.target.info.sharedClibprefix+'c'+compiler.target.info.sharedClibext);
       if result then break;
       result:=hp.linkothersharedlibs.find('c');
       if result then break;
@@ -469,8 +471,8 @@ begin
 {$endif}
 
 {$ifdef powerpc64}
-  if (target_info.abi=abi_powerpc_elfv2) and
-     (target_info.endian=endian_little) then
+  if (compiler.target.info.abi=abi_powerpc_elfv2) and
+     (compiler.target.info.endian=endian_little) then
     begin
       target_opt:=' -b elf64-powerpcle';
       emulation_opt:=' -m elf64lppc';
@@ -482,7 +484,7 @@ begin
     end;
 {$endif powerpc64}
 {$ifdef xtensa}
-  if target_info.endian=endian_little then
+  if compiler.target.info.endian=endian_little then
     begin
       target_opt:=' -b elf32-xtensa-le';
       emulation_opt:=' -m elf32xtensa';
@@ -492,9 +494,9 @@ begin
       target_opt:=' -b elf32-xtensa-be';
       emulation_opt:=' -m elf32xtensa';
     end;
-  if target_info.abi=abi_xtensa_call0 then
+  if compiler.target.info.abi=abi_xtensa_call0 then
     platformopt:=platformopt+' --abi-call0'
-  else if target_info.abi=abi_xtensa_windowed then
+  else if compiler.target.info.abi=abi_xtensa_windowed then
     platformopt:=platformopt+' --abi-windowed';
   {$endif}
 {$ifdef arm}
@@ -584,6 +586,8 @@ begin
 end;
 
 Function TLinkerLinux.WriteResponseFile(isdll:boolean) : Boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -645,7 +649,7 @@ begin
 
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
-      if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
+      if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj<>'') then
        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
       { try to add crti and crtbegin if linking to C }
       if linklibc and (libctype<>uclibc) then
@@ -733,7 +737,7 @@ begin
                  S:=SharedLibFiles.GetFirst;
                  if (s<>'c') or reorder then
                   begin
-                    i:=Pos(target_info.sharedlibext,S);
+                    i:=Pos(compiler.target.info.sharedlibext,S);
                     if i>0 then
                      Delete(S,i,255);
                     Add('-l'+s);
@@ -747,7 +751,7 @@ begin
                This does not hurt as in case we use a dyn. library we depend on the dyn. linker anyways.
 
                All this does not apply if we link anyways against libc }
-             if libraryadded and not(linklibc) and not(isdll) and (tf_section_threadvars in target_info.flags) then
+             if libraryadded and not(linklibc) and not(isdll) and (tf_section_threadvars in compiler.target.info.flags) then
                Add('-l:'+ExtractFileName(defdynlinker));
              Add(')');
            end
@@ -830,7 +834,7 @@ begin
       add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       add('  }');
       if not(cs_debuginfo in current_settings.moduleswitches) and
-         not(tf_use_psabieh in target_info.flags) then
+         not(tf_use_psabieh in compiler.target.info.flags) then
         add('  /DISCARD/ : {*(.debug_frame)}');
       add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
       add('}');
@@ -848,6 +852,8 @@ end;
 
 
 function TLinkerLinux.MakeExecutable:boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   i : longint;
   binstr,
@@ -928,7 +934,7 @@ begin
     cmdstr:=cmdstr+' -E';
 
   { create eh_frame_hdr section? }
-  if tf_use_psabieh in target_info.flags then
+  if tf_use_psabieh in compiler.target.info.flags then
     cmdstr:=cmdstr+ ' --eh-frame-hdr';
 
   if cs_large in current_settings.globalswitches then
@@ -1103,6 +1109,8 @@ const
 
 procedure TInternalLinkerLinux.DefaultLinkScript;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   s,s1,s2,relprefix:TCmdStr;
   found1,found2:boolean;
   linkToSharedLibs:boolean;
@@ -1112,11 +1120,11 @@ var
       i:longint;
       s1,s2:TCmdStr;
     begin
-      i:=pos(target_info.sharedClibext+'.',s);
+      i:=pos(compiler.target.info.sharedClibext+'.',s);
       if (i>0) then
-        s1:=target_info.sharedClibprefix+S
+        s1:=compiler.target.info.sharedClibprefix+S
       else
-        s1:=target_info.sharedClibprefix+S+target_info.sharedClibext;
+        s1:=compiler.target.info.sharedClibprefix+S+compiler.target.info.sharedClibext;
       { TODO: to be compatible with ld search algorithm, each found file
         must be tested for target compatibility, incompatible ones should be skipped. }
       { TODO: shall we search library without suffix if one with suffix is not found? }
@@ -1124,7 +1132,7 @@ var
          FindLibraryFile(s1,'','',s2) then
         LinkScript.Concat('READSTATICLIBRARY '+maybequoted(s2))
       { TODO: static libraries never have numeric suffix in their names }
-      else if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+      else if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
         LinkScript.Concat('READSTATICLIBRARY '+maybequoted(s2))
       else
         Comment(V_Error,'Import library not found for '+S);
@@ -1141,7 +1149,7 @@ begin
   TElfExeOutput(exeoutput).interpreter:=stringdup(dynlinker);
 
   { add objectfiles, start with prt0 always }
-  if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
+  if not (compiler.target.info.system in systems_internal_sysinit) and (prtobj<>'') then
     LinkScript.Concat('READOBJECT '+ maybequoted(FindObjectFile(prtobj,'',false)));
 
   { try to add crti and crtbegin if linking to C }

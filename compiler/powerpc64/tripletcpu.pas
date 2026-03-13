@@ -37,7 +37,7 @@ uses
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
-    if target_info.endian=endian_little then
+    if compiler.target.info.endian=endian_little then
       result:='powerpc64le'
     else
       result:='powerpc64'

@@ -103,16 +103,20 @@ end;
 
 
 function tresourcefile.IsCompiled(const fn: ansistring): boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  Result:=CompareText(ExtractFileExt(fn), target_info.resobjext) = 0;
+  Result:=CompareText(ExtractFileExt(fn), compiler.target.info.resobjext) = 0;
 end;
 
 procedure tresourcefile.Collect(const fn: ansistring);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if fn='' then
     exit;
   fname:=fn;
-  Compile(roOBJ, ChangeFileExt(fn, target_info.resobjext));
+  Compile(roOBJ, ChangeFileExt(fn, compiler.target.info.resobjext));
 end;
 
 procedure tresourcefile.EndCollect;
@@ -230,11 +234,13 @@ begin
 end;
 
 constructor TWinLikeResourceFile.Create(const fn : ansistring);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   inherited Create(fn);
   fResScript:=nil;
   fCollectCount:=0;
-  if (tf_use_8_3 in target_info.flags) then
+  if (tf_use_8_3 in compiler.target.info.flags) then
     fScriptName:=ChangeFileExt(fn,'.rls')
   else
     fScriptName:=ChangeFileExt(fn,'.reslst');
@@ -297,23 +303,23 @@ begin
       Replace(s,'$OBJ',maybequoted(OutName));
       subarch:='all';
       arch:=cpu2str[compiler.target.cpu];
-      if (target_info.cpu=systems.cpu_arm) then
+      if (compiler.target.info.cpu=systems.cpu_arm) then
         begin
           //Differentiate between arm and armeb
-          if (target_info.endian=endian_big) then
+          if (compiler.target.info.endian=endian_big) then
             arch:=arch+'eb';
         end;
-      if target_info.cpu=cpu_powerpc64 then
+      if compiler.target.info.cpu=cpu_powerpc64 then
         begin
           { differentiate between ppc64 and ppc64le }
-          if target_info.endian=endian_little then
+          if compiler.target.info.endian=endian_little then
             arch:=arch+'le';
         end;
       Replace(s,'$ARCH',arch);
-      if target_info.system=system_arm_ios then
+      if compiler.target.info.system=system_arm_ios then
         subarch:=lower(cputypestr[current_settings.cputype]);
       Replace(s,'$SUBARCH',subarch);
-      case target_info.endian of
+      case compiler.target.info.endian of
         endian_little : Replace(s,'$ENDIAN','littleendian');
         endian_big : Replace(s,'$ENDIAN','bigendian');
       end;
@@ -353,6 +359,8 @@ begin
 end;
 
 function TWinLikeResourceFile.IsCompiled(const fn: ansistring): boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 const
   ResSignature : array [1..32] of byte =
   ($00,$00,$00,$00,$20,$00,$00,$00,$FF,$FF,$00,$00,$FF,$FF,$00,$00,
@@ -366,7 +374,7 @@ var
   ext : shortstring;
 begin
   ext:=lower(ExtractFileExt(fn));
-  Result:=CompareText(ext, target_info.resext) = 0;
+  Result:=CompareText(ext, compiler.target.info.resext) = 0;
   if not Result then
     for i:=1 to high(knownexts) do
     begin
@@ -402,12 +410,14 @@ begin
 end;
 
 procedure TWinLikeResourceFile.EndCollect;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if fResScript<>nil then
   begin
     fResScript.WriteToDisk;
     FreeAndNil(fResScript);
-    Compile(roOBJ,ChangeFileExt(fname,target_info.resobjext));
+    Compile(roOBJ,ChangeFileExt(fname,compiler.target.info.resobjext));
   end;
 end;
 
@@ -461,6 +471,8 @@ end;
 
 procedure CompileResourceFiles;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   resourcefile : tresourcefile;
   res: TCmdStrListItem;
   p,s : TCmdStr;
@@ -468,7 +480,7 @@ var
 begin
   { Don't do anything for systems supporting resources without using resource
     file classes (e.g. Mac OS). They process resources elsewhere. }
-  if ((target_info.res<>res_none) and (target_res.resourcefileclass=nil)) or
+  if ((compiler.target.info.res<>res_none) and (target_res.resourcefileclass=nil)) or
      (res_no_compile in target_res.resflags) then
     exit;
 
@@ -476,7 +488,7 @@ begin
   res:=TCmdStrListItem(current_module.ResourceFiles.First);
   while res<>nil do
     begin
-      if target_info.res=res_none then
+      if compiler.target.info.res=res_none then
         Message(scan_e_resourcefiles_not_supported);
       s:=res.FPStr;
       if not path_absolute(s) then
@@ -487,7 +499,7 @@ begin
           Include(current_settings.globalswitches, cs_link_nolink);
           exit;
         end;
-      resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass.create(s));
+      resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s));
       if resourcefile.IsCompiled(s) then
         begin
           resourcefile.free;
@@ -507,12 +519,12 @@ begin
             begin
               { if target does not have .rc to .res compiler, create obj }
               outfmt:=roOBJ;
-              res.FPStr:=ChangeFileExt(res.FPStr,target_info.resobjext);
+              res.FPStr:=ChangeFileExt(res.FPStr,compiler.target.info.resobjext);
             end
           else
             begin
               outfmt:=roRES;
-              res.FPStr:=ChangeFileExt(res.FPStr,target_info.resext);
+              res.FPStr:=ChangeFileExt(res.FPStr,compiler.target.info.resext);
             end;
           resourcefile.compile(outfmt, current_module.outputpath+res.FPStr);
           resourcefile.free;
@@ -554,15 +566,15 @@ var
   hp : tused_unit;
   s : TCmdStr;
 begin
-  if (target_info.res=res_none) or ((target_res.resbin='')
+  if (compiler.target.info.res=res_none) or ((target_res.resbin='')
     and (ResCompiler='')) then
       exit;
 //  if cs_link_nolink in current_settings.globalswitches then
 //    exit;
-  s:=ChangeFileExt(current_module.ppufilename,target_info.resobjext);
+  s:=ChangeFileExt(current_module.ppufilename,compiler.target.info.resobjext);
   if (res_arch_in_file_name in target_res.resflags) then
-    s:=ChangeFileExt(s,'.'+cpu2str[compiler.target.cpu]+target_info.resobjext);
-  resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass.create(s));
+    s:=ChangeFileExt(s,'.'+cpu2str[compiler.target.cpu]+compiler.target.info.resobjext);
+  resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s));
   hp:=tused_unit(usedunits.first);
   while assigned(hp) do
     begin

@@ -70,7 +70,7 @@ interface
   implementation
 
     uses
-      cutils,verbose,globtype,globals,
+      cutils,verbose,globtype,globals,compiler,
       aasmbase,aasmdata,symconst,symdef,symtable,
       nutils,ncon,
       cpubase,systems,
@@ -84,8 +84,8 @@ interface
 
     function tcgtypeconvnode.needs_indirect:boolean;
       begin
-        result:=(tf_supports_packages in target_info.flags) and
-                  (target_info.system in systems_indirect_var_imports) and
+        result:=(tf_supports_packages in compiler.target.info.flags) and
+                  (compiler.target.info.system in systems_indirect_var_imports) and
                   (
                     not assigned(current_module) or
                     (current_module.globalsymtable<>systemunit)
@@ -123,7 +123,7 @@ interface
               begin
                 hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(left.resultdef,compiler),cpointerdef.getreusable(resultdef,compiler),location.reference);
                 location.size:=newsize;
-                if (target_info.endian = ENDIAN_BIG) then
+                if (compiler.target.info.endian = ENDIAN_BIG) then
                   begin
                     inc(location.reference.offset,leftsize-ressize);
                     location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
@@ -585,7 +585,7 @@ interface
                     end;
                   LOC_REGISTER,LOC_CREGISTER:
                     begin
-                      if target_info.endian=endian_little then
+                      if compiler.target.info.endian=endian_little then
                         location.register:=left.location.register
                       else
                         location.register:=left.location.registerhi;

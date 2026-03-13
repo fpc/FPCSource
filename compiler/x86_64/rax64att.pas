@@ -40,7 +40,8 @@ Unit rax64att;
   implementation
 
     uses
-      cutils,globtype,rabase,systems,rax86,aasmcpu,cgbase,procinfo,symconst,verbose;
+      cutils,globtype,rabase,systems,rax86,aasmcpu,cgbase,procinfo,symconst,verbose,
+      compiler;
 
     procedure tx8664attreader.handleopcode;
       var
@@ -74,7 +75,7 @@ Unit rax64att;
         i: TAsmSehDirective;
       begin
         result:=false;
-        if target_info.system<>system_x86_64_win64 then
+        if compiler.target.info.system<>system_x86_64_win64 then
           exit;
 
         for i:=low(TAsmSehDirective) to high(TAsmSehDirective) do

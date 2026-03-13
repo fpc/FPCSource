@@ -28,7 +28,7 @@ unit cpupi;
 interface
 
     uses
-       globtype,
+       globtype,compilerbase,
        psub,
        procinfo,psabiehpi,
        aasmbase,aasmdata;
@@ -56,6 +56,7 @@ implementation
     uses
       systems,
       globals,
+      compiler,
       cutils,
       symconst,
       symtable,
@@ -70,7 +71,7 @@ implementation
 
     procedure tcpuprocinfo.set_first_temp_offset;
       begin
-        if target_info.system=system_x86_64_win64 then
+        if compiler.target.info.system=system_x86_64_win64 then
           begin
             { Fixes the case when there are calls done by low-level means
               (cg.a_call_name) but no child callnode }
@@ -91,7 +92,7 @@ implementation
     procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
-        if target_info.system=system_x86_64_win64 then
+        if compiler.target.info.system=system_x86_64_win64 then
           para_stack_size:=0;
       end;
 
@@ -172,9 +173,11 @@ implementation
 
 
     function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=
-          ((target_info.system=system_x86_64_win64) and
+          ((compiler.target.info.system=system_x86_64_win64) and
             not(proccall in [pocall_sysv_abi_default,pocall_sysv_abi_cdecl])) or
           (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl]);
       end;

@@ -69,7 +69,7 @@ implementation
       var
         tmpref: treference;
       begin
-        case target_info.system of
+        case compiler.target.info.system of
           system_m68k_atari:
             begin
               if po_syscall in tprocdef(procdefinition).procoptions then

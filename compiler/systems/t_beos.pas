@@ -322,7 +322,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if s<>'c' then
          begin
-           i:=Pos(target_info.sharedlibext,S);
+           i:=Pos(compiler.target.info.sharedlibext,S);
            if i>0 then
             Delete(S,i,255);
            LinkRes.Add('-l'+s);
@@ -383,7 +383,7 @@ begin
    StripStr:='-s';
 
   if (cs_link_smart in current_settings.globalswitches) and
-     (tf_smartlink_sections in target_info.flags) then
+     (tf_smartlink_sections in compiler.target.info.flags) then
       GCSectionsStr:='--gc-sections';
 
   If (cs_profile in current_settings.moduleswitches) or

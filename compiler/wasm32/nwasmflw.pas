@@ -267,7 +267,7 @@ implementation
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
-                if tf_use_psabieh in target_info.flags then
+                if tf_use_psabieh in compiler.target.info.flags then
                   right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
               end;
 
@@ -324,7 +324,7 @@ implementation
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
-                if tf_use_psabieh in target_info.flags then
+                if tf_use_psabieh in compiler.target.info.flags then
                   right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
               end;
 
@@ -381,7 +381,7 @@ implementation
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
-                if tf_use_psabieh in target_info.flags then
+                if tf_use_psabieh in compiler.target.info.flags then
                   right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
               end;
 
@@ -438,7 +438,7 @@ implementation
                 right:=compiler.cnilnode;
 
                 { raise address off by one so we are for sure inside the action area for the raise }
-                if tf_use_psabieh in target_info.flags then
+                if tf_use_psabieh in compiler.target.info.flags then
                   right:=compiler.caddnode_internal(addn,right,compiler.cordconstnode(1,sizesinttype,false));
               end;
 

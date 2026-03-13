@@ -240,7 +240,7 @@ end;
 procedure tcgppc.init_register_allocators;
 begin
   inherited init_register_allocators;
-  if (target_info.system <> system_powerpc64_darwin) then
+  if (compiler.target.info.system <> system_powerpc64_darwin) then
     // r13 is tls, do not use, r2 is not available
     rg[R_INTREGISTER] := trgintcpu.create(R_INTREGISTER, R_SUBWHOLE,
       [{$ifdef user0} RS_R0, {$endif} RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
@@ -278,8 +278,8 @@ end;
 
 procedure tcgppc.a_call_name(list: TAsmList; const s: string; weak: boolean);
 begin
-    if (target_info.system <> system_powerpc64_darwin) then
-      a_call_name_direct(list, A_BL, s, weak, target_info.system=system_powerpc64_aix, true)
+    if (compiler.target.info.system <> system_powerpc64_darwin) then
+      a_call_name_direct(list, A_BL, s, weak, compiler.target.info.system=system_powerpc64_aix, true)
     else
       begin
         list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
@@ -312,7 +312,7 @@ var
   tmpref: treference;
   tempreg : TRegister;
 begin
-  if (target_info.abi<>abi_powerpc_sysv) then
+  if (compiler.target.info.abi<>abi_powerpc_sysv) then
     inherited a_call_reg(list,reg)
   else
     begin
@@ -486,7 +486,7 @@ var
   ref2: treference;
   tmpreg: tregister;
 begin
-  if target_info.system=system_powerpc64_aix then
+  if compiler.target.info.system=system_powerpc64_aix then
     g_load_check_simple(list,ref,65536);
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('a_load_ref_reg ' + ref2string(ref))));
@@ -958,7 +958,7 @@ procedure tcgppc.a_jmp_name(list: TAsmList; const s: string);
 var
   p: taicpu;
 begin
-  if (target_info.system = system_powerpc64_darwin) then
+  if (compiler.target.info.system = system_powerpc64_darwin) then
     begin
       p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false));
       p.is_jmp := true;
@@ -1126,9 +1126,9 @@ var
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
     if (cs_opt_size in current_settings.optimizerswitches) and
-       (target_info.system <> system_powerpc64_darwin) then begin
+       (compiler.target.info.system <> system_powerpc64_darwin) then begin
       mayNeedLRStore := false;
-      if target_info.system=system_powerpc64_aix then
+      if compiler.target.info.system=system_powerpc64_aix then
         opc:=A_BLA
       else
         opc:=A_BL;
@@ -1185,7 +1185,7 @@ begin
     for the caller and callee). It must load the TOC in a PIC-way, which it
     can do easily because R12 is guaranteed to hold the address of this function
     on entry. }
-  if (target_info.abi=abi_powerpc_elfv2) and
+  if (compiler.target.info.abi=abi_powerpc_elfv2) and
      (pi_needs_got in current_procinfo.flags) and
      not nostackframe then
     begin
@@ -1266,10 +1266,10 @@ begin
 
   { save current RTOC for restoration after calls if necessary }
   if (pi_do_call in current_procinfo.flags) and
-     (target_info.abi in abis_ppc_toc) and
+     (compiler.target.info.abi in abis_ppc_toc) and
      not nostackframe then
     begin
-      reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
+      reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,compiler.target.info.stackalign,[]);
       a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
       current_asmdata.asmcfi.cfa_offset(list, NR_RTOC, href.offset);
     end;
@@ -1310,7 +1310,7 @@ var
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
     if (cs_opt_size in current_settings.optimizerswitches) then begin
-      if target_info.system=system_powerpc64_aix then begin
+      if compiler.target.info.system=system_powerpc64_aix then begin
         callopc:=A_BLA;
         jmpopc:=A_BA;
       end
@@ -1427,7 +1427,7 @@ var
   tempreg : TRegister;
 
 begin
-  if (target_info.system in [system_powerpc64_darwin,system_powerpc64_freebsd,system_powerpc64_aix]) then
+  if (compiler.target.info.system in [system_powerpc64_darwin,system_powerpc64_freebsd,system_powerpc64_aix]) then
     begin
       inherited a_loadaddr_ref_reg(list,ref,r);
       exit;
@@ -1723,7 +1723,7 @@ var
   tmpref: treference;
   largeOffset: Boolean;
 begin
-  if (target_info.system = system_powerpc64_darwin) then
+  if (compiler.target.info.system = system_powerpc64_darwin) then
     begin
       { darwin/ppc64 works with 32 bit relocatable symbol addresses }
       maybefixup64bitoffset;

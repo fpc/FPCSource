@@ -356,7 +356,7 @@ implementation
         fdef : tdef;
       begin
         if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) or
-           (target_info.system = system_arm_wince) or
+           (compiler.target.info.system = system_arm_wince) or
            is_single(resultdef) then
           exit(inherited pass_1);
 

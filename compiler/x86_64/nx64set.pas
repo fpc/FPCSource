@@ -40,7 +40,7 @@ interface
 implementation
 
     uses
-      systems,cpuinfo,
+      systems,cpuinfo,compiler,
       verbose,globals,
       defutil,cutils,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -105,7 +105,7 @@ implementation
       begin
         lv:=0;
         hv:=0;
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           jtitemconsttype:=aitconst_32bit
         else
           { see https://gmplib.org/list-archives/gmp-bugs/2012-December/002836.html }
@@ -175,7 +175,7 @@ implementation
         { and finally jump }
         emit_reg(A_JMP,S_NO,jumpreg);
         { generate jump table }
-        if not(target_info.system in systems_darwin) then
+        if not(compiler.target.info.system in systems_darwin) then
           sectype:=sec_rodata
         else
           { on Mac OS X, dead code stripping ("smart linking") happens based on

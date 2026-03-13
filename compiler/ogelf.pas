@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,
+       cclasses,globtype,compilerbase,
        { target }
        systems,
        { assembler }
@@ -342,7 +342,7 @@ implementation
 
       uses
         SysUtils,
-        verbose,
+        verbose,compiler,
         export,expunix,
         cutils,globals,fmodule,owar;
 
@@ -513,6 +513,8 @@ implementation
 
 
     function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text','.data',
@@ -594,9 +596,9 @@ implementation
 
             if atype=sec_threadvar then
               begin
-                if (target_info.system in (systems_windows+systems_wince)) then
+                if (compiler.target.info.system in (systems_windows+systems_wince)) then
                   secname:='.tls'
-                else if (target_info.system in systems_linux) then
+                else if (compiler.target.info.system in systems_linux) then
                   secname:='.tbss';
               end;
 
@@ -629,6 +631,8 @@ implementation
 
 
     procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         multi = record
           case integer of
@@ -701,7 +705,7 @@ implementation
                 data:=0;
               end;
           end;
-        if target_info.endian<>source_info.endian then
+        if compiler.target.info.endian<>source_info.endian then
           begin
             ba.q:=0;
             if (len<=sizeof(data)) then
@@ -1056,6 +1060,8 @@ implementation
 
     function TElfObjectOutput.writedata(data:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         header : telfheader;
         shoffset,
         datapos   : aword;
@@ -1069,7 +1075,7 @@ implementation
            shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0);
            { "no executable stack" marker }
            { TODO: used by OpenBSD/NetBSD as well? }
-           if (target_info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
+           if (compiler.target.info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
               not(cs_executable_stack in current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
            { symbol for filename }
@@ -1104,17 +1110,17 @@ implementation
            header.e_ident[EI_MAG2]:=ELFMAG2;
            header.e_ident[EI_MAG3]:=ELFMAG3;
            header.e_ident[EI_CLASS]:=ELFCLASS;
-           if target_info.endian=endian_big then
+           if compiler.target.info.endian=endian_big then
              header.e_ident[EI_DATA]:=ELFDATA2MSB
            else
              header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
            header.e_ident[EI_VERSION]:=1;
-           if target_info.system in systems_openbsd then
+           if compiler.target.info.system in systems_openbsd then
              header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
-           else if target_info.system in systems_freebsd then
+           else if compiler.target.info.system in systems_freebsd then
              header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD
-           else if target_info.system in systems_dragonfly then
+           else if compiler.target.info.system in systems_dragonfly then
              header.e_ident[EI_OSABI]:=ELFOSABI_NONE;
            header.e_type:=ET_REL;
            header.e_machine:=ElfTarget.machine_code;
@@ -1464,6 +1470,8 @@ implementation
 
     function TElfObjInput.LoadHeader(out objdata:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         header:TElfHeader;
       begin
         result:=false;
@@ -1488,7 +1496,7 @@ implementation
             InputError('Wrong ELF file class (32/64 bit mismatch)');
             exit;
           end;
-        if (header.e_ident[EI_DATA]<>1+ord(target_info.endian=endian_big)) then
+        if (header.e_ident[EI_DATA]<>1+ord(compiler.target.info.endian=endian_big)) then
           begin
             InputError('ELF endianness does not match target');
             exit;
@@ -1559,6 +1567,8 @@ implementation
 
     function TElfObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i,j,strndx,dynndx,
         versymndx,verdefndx,verneedndx: longint;
         objsec: TObjSection;
@@ -1587,7 +1597,7 @@ implementation
             InputError('Can''t read ELF section headers');
             exit;
           end;
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           for i:=0 to nsects-1 do
             MaybeSwapSecHeader(shdrs[i]);
 
@@ -1669,7 +1679,7 @@ implementation
                       SetLength(symversions,shdrs[i].sh_size);
                       FReader.seek(shdrs[i].sh_offset);
                       FReader.read(symversions[0],shdrs[i].sh_size);
-                      if source_info.endian<>target_info.endian then
+                      if source_info.endian<>compiler.target.info.endian then
                         for j:=0 to syms-1 do
                           symversions[j]:=SwapEndian(symversions[j]);
                     end;
@@ -1769,7 +1779,7 @@ implementation
                 FReader.Seek(shdrs[i+1].sh_offset);
                 { first dword is flags }
                 FReader.Read(tmp,sizeof(longword));
-                if source_info.endian<>target_info.endian then
+                if source_info.endian<>compiler.target.info.endian then
                   tmp:=SwapEndian(tmp);
                 if (tmp and GRP_COMDAT)<>0 then
                   grp.IsComdat:=true;
@@ -1779,7 +1789,7 @@ implementation
                 for j:=0 to count-1 do
                   begin
                     FReader.Read(tmp,sizeof(longword));
-                    if source_info.endian<>target_info.endian then
+                    if source_info.endian<>compiler.target.info.endian then
                       tmp:=SwapEndian(tmp);
                     if (tmp>=nsects) then
                       InternalError(2012110805);
@@ -1873,6 +1883,8 @@ implementation
 
     procedure TElfExeOutput.WriteHeader;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         header: TElfHeader;
       begin
         FillChar(header,sizeof(header),0);
@@ -1881,17 +1893,17 @@ implementation
         header.e_ident[EI_MAG2]:=ELFMAG2;
         header.e_ident[EI_MAG3]:=ELFMAG3;
         header.e_ident[EI_CLASS]:=ELFCLASS;
-        if target_info.endian=endian_big then
+        if compiler.target.info.endian=endian_big then
           header.e_ident[EI_DATA]:=ELFDATA2MSB
         else
           header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
         header.e_ident[EI_VERSION]:=1;
-        if target_info.system in systems_openbsd then
+        if compiler.target.info.system in systems_openbsd then
           header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
-        else if target_info.system in systems_freebsd then
+        else if compiler.target.info.system in systems_freebsd then
           header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD
-        else if target_info.system in systems_dragonfly then
+        else if compiler.target.info.system in systems_dragonfly then
           header.e_ident[EI_OSABI]:=ELFOSABI_NONE;
         if IsSharedLibrary then
           header.e_type:=ET_DYN
@@ -2871,6 +2883,8 @@ implementation
 
     procedure TElfExeOutput.WriteDynamicSymbolsHash;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         nchains,nbuckets: longint;
         i,j: longint;
         hashdata: plongint;
@@ -2902,7 +2916,7 @@ implementation
               j:=2+nbuckets+hashdata[j];
             hashdata[j]:=i+1;
           end;
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           for i:=0 to nchains+nbuckets+1 do
             hashdata[i]:=swapendian(hashdata[i]);
         hashobjsec.write(hashdata^,(2+nchains+nbuckets)*sizeof(longint));
@@ -2911,6 +2925,8 @@ implementation
 
 
     procedure TElfExeOutput.WriteVersionSections;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,j: longint;
         idx,auxidx: longword;
@@ -2999,7 +3015,7 @@ implementation
         { If there are no needed versions, .gnu.version section is not needed }
         if verneedcount>0 then
           begin
-            if source_info.endian<>target_info.endian then
+            if source_info.endian<>compiler.target.info.endian then
               for i:=0 to dynsymlist.count+1 do
                 symversions[i]:=swapendian(symversions[i]);
             symversec.write(symversions[0],(dynsymlist.count+1)*sizeof(word));
@@ -3035,10 +3051,12 @@ implementation
 
     procedure TElfExeOutput.WriteDynTag(aTag:longword;aSection:TObjSection;aOffs:aword);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         d: TElfDyn;
       begin
         d.d_tag:=aTag;
-        if source_info.endian<>target_info.endian then
+        if source_info.endian<>compiler.target.info.endian then
           d.d_tag:=swapendian(d.d_tag);
         dynamicsec.write(d.d_tag,sizeof(d.d_tag));
         { TODO: ignores endianness! }

@@ -256,7 +256,7 @@ unit agrvgas;
         result := inherited MakeCmdLine;
         Replace(result,'$ARCH',arch_str[current_settings.fputype=fpu_fd,current_settings.cputype]);
 {$ifdef RISCV32}
-      case target_info.abi of
+      case compiler.target.info.abi of
         abi_riscv_ilp32:
           Replace(result,'$ABI','ilp32');
         abi_riscv_ilp32d:
@@ -267,13 +267,13 @@ unit agrvgas;
           Replace(result,'$ABI','ilp32f');
 	else
           begin
-            Do_Comment(V_Warning,'Unrecognized riscv32 abi: '+tostr(ord(target_info.abi)));
+            Do_Comment(V_Warning,'Unrecognized riscv32 abi: '+tostr(ord(compiler.target.info.abi)));
             Replace(result,'$ABI','ilp32d');
 	  end;
       end;
 {$endif RISCV32}
 {$ifdef RISCV64}
-      case target_info.abi of
+      case compiler.target.info.abi of
         abi_riscv_lp64:
           Replace(result,'$ABI','lp64');
         abi_riscv_lp64d:
@@ -284,7 +284,7 @@ unit agrvgas;
           Replace(result,'$ABI','lp64q');
 	else
           begin
-            Do_Comment(V_Warning,'Unrecognized riscv64 abi: '+tostr(ord(target_info.abi)));
+            Do_Comment(V_Warning,'Unrecognized riscv64 abi: '+tostr(ord(compiler.target.info.abi)));
             Replace(result,'$ABI','lp64d');
 	  end;
       end;

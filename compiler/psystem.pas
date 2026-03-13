@@ -326,21 +326,21 @@ implementation
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=cstringdef.createlong(-1,true,compiler);
         cansistringtype:=cstringdef.createansi(0,true,compiler);
-        if target_info.system in systems_windows then
+        if compiler.target.info.system in systems_windows then
           cwidestringtype:=cstringdef.createwide(true,compiler)
         else
           cwidestringtype:=cstringdef.createunicode(true,compiler);
         cunicodestringtype:=cstringdef.createunicode(true,compiler);
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=cstringdef.createshort(0,true,compiler);
-        if target_info.system=system_i386_watcom then
+        if compiler.target.info.system=system_i386_watcom then
           pvmt_name:='lower__pvmt'
         else
           pvmt_name:='pvmt';
  {$ifdef x86}
         create_fpu_types;
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
-        if target_info.system=system_x86_64_win64 then
+        if compiler.target.info.system=system_x86_64_win64 then
           begin
             s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
             pbestrealtype:=@s64floattype;
@@ -499,7 +499,7 @@ implementation
             addtype('Extended',pbestrealtype^);
             { CExtended corresponds to the C version of the Extended type
               (either "long double" or "double") }
-            if target_info.system in systems_android then
+            if compiler.target.info.system in systems_android then
               { Android has "long double"="double" even for x86 }
               addtype('CExtended',s64floattype)
             else
@@ -510,7 +510,7 @@ implementation
           end;
 {$ifdef x86}
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
-        if target_info.system<>system_x86_64_win64 then
+        if compiler.target.info.system<>system_x86_64_win64 then
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
           addtype('Comp',cfloatdef.create(s64comp,true,compiler));
 {$endif x86}
@@ -670,7 +670,7 @@ implementation
             addtype('$sc80real',sc80floattype);
           end;
         addtype('$s64currency',s64currencytype);
-        if not(target_info.system in systems_managed_vm) then
+        if not(compiler.target.info.system in systems_managed_vm) then
           begin
             { Add a type for virtual method tables }
             hrecst:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
@@ -731,7 +731,7 @@ implementation
         pvmt_name : shortstring;
       begin
 {$ifndef FPC_SUPPORT_X87_TYPES_ON_WIN64}
-        if target_info.system=system_x86_64_win64 then
+        if compiler.target.info.system=system_x86_64_win64 then
           pbestrealtype:=@s64floattype;
 {$endif FPC_SUPPORT_X87_TYPES_ON_WIN64}
 
@@ -823,11 +823,11 @@ implementation
         loadtype('wasm_void_externref',wasmvoidexternreftype);
 {$endif wasm}
         loadtype('file',cfiletype);
-        if target_info.system=system_i386_watcom then
+        if compiler.target.info.system=system_i386_watcom then
           pvmt_name:='lower__pvmt'
         else
           pvmt_name:='pvmt';
-        if not(target_info.system in systems_managed_vm) then
+        if not(compiler.target.info.system in systems_managed_vm) then
           begin
             loadtype(pvmt_name,pvmttype);
             loadtype('vtblarray',vmtarraytype);

@@ -135,12 +135,12 @@ implementation
         KeepShared      : TCmdStrList;
       begin
         { try to create import entries from system dlls }
-        if (tf_has_dllscanner in target_info.flags) and
+        if (tf_has_dllscanner in compiler.target.info.flags) and
            (not curr.linkOtherSharedLibs.Empty) then
          begin
            { Init DLLScanner }
-           if assigned(CDLLScanner[target_info.system]) then
-            DLLScanner:=CDLLScanner[target_info.system].Create
+           if assigned(CDLLScanner[compiler.target.info.system]) then
+            DLLScanner:=CDLLScanner[compiler.target.info.system].Create
            else
             internalerror(200104121);
            KeepShared:=TCmdStrList.Create;
@@ -154,7 +154,7 @@ implementation
            DLLscanner.Free;
            DLLscanner := nil;
            { Recreate import section }
-           if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
+           if (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) then
             begin
               if assigned(current_asmdata.asmlists[al_imports]) then
                current_asmdata.asmlists[al_imports].clear
@@ -183,7 +183,7 @@ implementation
           current_debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
-        if not(create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in target_info.flags) then
+        if not(create_smartlink_library) or not(tf_no_objectfiles_when_smartlinking in compiler.target.info.flags) then
           GenerateAsm(false);
 
         { Also create a smartlinked version ? }
@@ -227,9 +227,9 @@ implementation
         { MWE: we write our own info, so dwarf asm support is not really needed }
         { if (af_supports_dwarf in target_asm.flags) and }
         { CFI is currently broken for Darwin }
-        if not(target_info.system in systems_darwin) and
+        if not(compiler.target.info.system in systems_darwin) and
            (
-            (tf_needs_dwarf_cfi in target_info.flags) or
+            (tf_needs_dwarf_cfi in compiler.target.info.flags) or
             (target_dbg.id in [dbg_dwarf2, dbg_dwarf3])
            ) then
           begin
@@ -244,7 +244,7 @@ implementation
         hp           : tused_unit;
         found        : Boolean;
       begin
-        CheckResourcesUsed:=tf_has_winlike_resources in target_info.flags;
+        CheckResourcesUsed:=tf_has_winlike_resources in compiler.target.info.flags;
         if not CheckResourcesUsed then exit;
 
         hp:=tused_unit(usedunits.first);
@@ -336,9 +336,9 @@ implementation
            - loaded_units list, so that the unit object file doesn't get linked
              with the executable. }
         { Note: on windows we always need resources! }
-        resources_used:=(target_info.system in systems_all_windows)
+        resources_used:=(compiler.target.info.system in systems_all_windows)
                          or CheckResourcesUsed(curr);
-        if (not resources_used) and (tf_has_winlike_resources in target_info.flags) then
+        if (not resources_used) and (tf_has_winlike_resources in compiler.target.info.flags) then
           begin
             { resources aren't used, so we don't need this unit }
             if target_res.id=res_ext then
@@ -490,14 +490,14 @@ implementation
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)
-           if (cs_fp_emulation in current_settings.moduleswitches) and not(target_info.system in system_wince) then
+           if (cs_fp_emulation in current_settings.moduleswitches) and not(compiler.target.info.system in system_wince) then
              CheckAddUnit('softfpu');
            }
 {$endif cpufpemu}
            { Which kind of resource support?
              Note: if resources aren't used this unit will be removed later,
              otherwise we need it here since it must be loaded quite early }
-           if (tf_has_winlike_resources in target_info.flags) then
+           if (tf_has_winlike_resources in compiler.target.info.flags) then
              if target_res.id=res_ext then
                CheckAddUnit('fpextres')
              else
@@ -556,7 +556,7 @@ implementation
           end;
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in current_settings.moduleswitches) and
-           (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
+           (compiler.target.info.system in [system_i386_go32v2,system_i386_watcom]) then
           CheckAddUnit('profile');
         if (cs_load_fpcylix_unit in current_settings.globalswitches) then
           begin
@@ -566,14 +566,14 @@ implementation
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
         { CPU targets with microcontroller support can add a controller specific unit }
-        if ControllerSupport and (target_info.system in (systems_embedded+systems_freertos)) and
+        if ControllerSupport and (compiler.target.info.system in (systems_embedded+systems_freertos)) and
           (current_settings.controllertype<>ct_none) and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>curr.modulename^) then
           CheckAddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
 {$pop}
 {$ifdef XTENSA}
-        if not(curr.is_unit) and (target_info.system=system_xtensa_freertos) then
+        if not(curr.is_unit) and (compiler.target.info.system=system_xtensa_freertos) then
           if (current_settings.controllertype=ct_esp32) then
             begin
               if (idf_version>=40100) and (idf_version<40200) then
@@ -611,7 +611,7 @@ implementation
             end;
 {$endif XTENSA}
 {$ifdef RISCV32}
-        if not(curr.is_unit) and (target_info.system=system_riscv32_freertos) then
+        if not(curr.is_unit) and (compiler.target.info.system=system_riscv32_freertos) then
           if (current_settings.controllertype=ct_esp32c2) then
             begin
               if idf_version>=50200 then
@@ -1041,7 +1041,7 @@ implementation
         { main are always used }
         inc(ps.refs);
         st.insertsym(ps);
-        pd:=tprocdef(compiler.nodeutils.create_main_procdef(target_info.cprefix+name,potype,ps));
+        pd:=tprocdef(compiler.nodeutils.create_main_procdef(compiler.target.info.cprefix+name,potype,ps));
         { We don't need a local symtable, change it into the static symtable }
         if not (potype in [potype_mainstub,potype_pkgstub,potype_libmainstub]) then
           begin
@@ -1049,7 +1049,7 @@ implementation
             pd.localst:=st;
           end
         else if (potype=potype_pkgstub) and
-            (target_info.system in systems_all_windows+systems_nativent) then
+            (compiler.target.info.system in systems_all_windows+systems_nativent) then
           pd.proccalloption:=pocall_stdcall
         else
           pd.proccalloption:=pocall_cdecl;
@@ -1085,7 +1085,7 @@ implementation
       begin
 {$if defined(i386) or defined(sparcgen)}
          if (cs_create_pic in current_settings.moduleswitches) and
-            (tf_pic_uses_got in target_info.flags) then
+            (tf_pic_uses_got in compiler.target.info.flags) then
            begin
              { insert symbol for got access in assembler code}
              gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
@@ -1485,7 +1485,7 @@ type
          dispose(s2);
          dispose(s1);
 
-         if (target_info.system in systems_unit_program_exports) then
+         if (compiler.target.info.system in systems_unit_program_exports) then
            exportlib.preparelib(curr.realmodulename^);
 
          { parse hint directives }
@@ -1993,8 +1993,8 @@ type
          {init_procinfo:=nil;
          finalize_procinfo:=nil;}
 
-         if not (tf_supports_packages in target_info.flags) then
-           message1(parser_e_packages_not_supported,target_info.name);
+         if not (tf_supports_packages in compiler.target.info.flags) then
+           message1(parser_e_packages_not_supported,compiler.target.info.name);
 
          if not RelocSectionSetExplicitly then
            RelocSection:=true;
@@ -2005,7 +2005,7 @@ type
          { AV error when DLL is loaded and relocation is needed.  }
          { Internal linker does not have this problem.            }
          if RelocSection and
-            (target_info.system in systems_all_windows+[system_i386_wdosx]) and
+            (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in current_settings.globalswitches) then
            begin
               include(current_settings.globalswitches,cs_link_strip);
@@ -2042,7 +2042,7 @@ type
          exportlib.preparelib(module_name);
          pkg:=tpcppackage.create(module_name,compiler);
 
-         if tf_library_needs_pic in target_info.flags then
+         if tf_library_needs_pic in compiler.target.info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
 
          { setup things using the switches, do this before the semicolon, because after the semicolon has been
@@ -2211,7 +2211,7 @@ type
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
          if assigned(exportlib) and
-            (target_info.system in [system_i386_win32,system_i386_wdosx]) and
+            (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
             (mf_has_exports in curr.moduleflags) then
            current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
 
@@ -2235,7 +2235,7 @@ type
              { Note: all contained units are considered as used }
            end;
 
-         if target_info.system in systems_all_windows+systems_nativent then
+         if compiler.target.info.system in systems_all_windows+systems_nativent then
            begin
              main_procinfo:=create_main_proc('_PkgEntryPoint',potype_pkgstub,curr.localsymtable);
              main_procinfo.procdef.aliasnames.concat('_DLLMainCRTStartup');
@@ -2292,7 +2292,7 @@ type
 {$ifdef arm}
          { Insert .pdata section for arm-wince.
            It is needed for exception handling. }
-         if target_info.system in [system_arm_wince] then
+         if compiler.target.info.system in [system_arm_wince] then
            InsertPData;
 {$endif arm}
 
@@ -2550,7 +2550,7 @@ type
         resources_used:=MaybeRemoveResUnit(curr);
 
         linker.initsysinitunitname;
-        if target_info.system in systems_internal_sysinit then
+        if compiler.target.info.system in systems_internal_sysinit then
         begin
           { add start/halt unit }
           sysinitmod:=AddUnit(curr,linker.sysinitunit);
@@ -2561,7 +2561,7 @@ type
   {$ifdef arm}
         { Insert .pdata section for arm-wince.
           It is needed for exception handling. }
-        if target_info.system in [system_arm_wince] then
+        if compiler.target.info.system in [system_arm_wince] then
           InsertPData;
   {$endif arm}
 
@@ -2577,7 +2577,7 @@ type
         if (cs_debuginfo in current_settings.moduleswitches) then
           current_debuginfo.inserttypeinfo;
 
-        if islibrary or (target_info.system in systems_unit_program_exports) then
+        if islibrary or (compiler.target.info.system in systems_unit_program_exports) then
           exportlib.generatelib;
 
         { Reference all DEBUGINFO sections from the main .fpc section }
@@ -2712,10 +2712,10 @@ type
            initpd:=nil;
            { ToDo: other systems that use indirect entry info, but check back with Windows! }
            { we need to call FPC_LIBMAIN in sysinit which in turn will call PascalMain -> create dummy stub }
-           if target_info.system in systems_darwin then
+           if compiler.target.info.system in systems_darwin then
              begin
                main_procinfo:=create_main_proc(make_mangledname('sysinitcallthrough',curr.localsymtable,'stub'),potype_libmainstub,curr.localsymtable);
-               call_through_new_name(main_procinfo.procdef,target_info.cprefix+'FPC_LIBMAIN');
+               call_through_new_name(main_procinfo.procdef,compiler.target.info.cprefix+'FPC_LIBMAIN');
                initpd:=main_procinfo.procdef;
                main_procinfo.free;
                main_procinfo := nil;
@@ -2723,17 +2723,17 @@ type
 
            main_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,mainaliasname),potype_proginit,curr.localsymtable);
            { Win32 startup code needs a single name }
-           if not(target_info.system in (systems_darwin+systems_aix)) then
+           if not(compiler.target.info.system in (systems_darwin+systems_aix)) then
              main_procinfo.procdef.aliasnames.concat('PASCALMAIN')
            else
-             main_procinfo.procdef.aliasnames.concat(target_info.Cprefix+'PASCALMAIN');
+             main_procinfo.procdef.aliasnames.concat(compiler.target.info.Cprefix+'PASCALMAIN');
 
-           if not(target_info.system in systems_darwin) then
+           if not(compiler.target.info.system in systems_darwin) then
              initpd:=main_procinfo.procdef;
 
            compiler.nodeutils.RegisterModuleInitFunction(initpd);
          end
-        else if (target_info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macosclassic]+systems_darwin+systems_aix)) then
+        else if (compiler.target.info.system in ([system_i386_netware,system_i386_netwlibc,system_powerpc_macosclassic]+systems_darwin+systems_aix)) then
           begin
             { create a stub with the name of the desired main routine, with
               the same signature as the C "main" function, and call through to
@@ -2742,7 +2742,7 @@ type
               its name can be configured on the command line (for use with e.g.
               SDL, where the main function should be called SDL_main) }
             main_procinfo:=create_main_proc(mainaliasname,potype_mainstub,curr.localsymtable);
-            call_through_new_name(main_procinfo.procdef,target_info.cprefix+'FPC_SYSTEMMAIN');
+            call_through_new_name(main_procinfo.procdef,compiler.target.info.cprefix+'FPC_SYSTEMMAIN');
             main_procinfo.free;
             { now create the PASCALMAIN routine (which will be called from
               FPC_SYSTEMMAIN) }
@@ -2795,7 +2795,7 @@ type
         { Add symbol to the exports section for win32 so smartlinking a
           DLL will include the edata section }
         if assigned(exportlib) and
-           (target_info.system in [system_i386_win32,system_i386_wdosx]) and
+           (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
            (mf_has_exports in curr.moduleflags) then
           current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
 
@@ -2881,7 +2881,7 @@ type
         curr.islibrary:=true;
         exportlib.preparelib(program_name);
 
-        if tf_library_needs_pic in target_info.flags then
+        if tf_library_needs_pic in compiler.target.info.flags then
          begin
            include(current_settings.moduleswitches,cs_create_pic);
            { also set create_pic for all unit compilation }
@@ -2915,7 +2915,7 @@ type
               parser.pbase.consume(_ID);
             end;
           curr.setmodulename(program_name);
-          if (target_info.system in systems_unit_program_exports) then
+          if (compiler.target.info.system in systems_unit_program_exports) then
             exportlib.preparelib(program_name);
           if current_scanner.token=_LKLAMMER then
             begin
@@ -2981,7 +2981,7 @@ type
          sc:=nil;
 
          { DLL defaults to create reloc info }
-         if islibrary or (target_info.system in [system_aarch64_win64]) then
+         if islibrary or (compiler.target.info.system in [system_aarch64_win64]) then
            begin
              if not RelocSectionSetExplicitly then
                RelocSection:=true;
@@ -2993,7 +2993,7 @@ type
          { AV error when DLL is loaded and relocation is needed.  }
          { Internal linker does not have this problem.            }
          if RelocSection and
-            (target_info.system in systems_all_windows+[system_i386_wdosx]) and
+            (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in current_settings.globalswitches) then
            begin
               include(current_settings.globalswitches,cs_link_strip);
@@ -3026,7 +3026,7 @@ type
            end
          else
            begin
-             if (target_info.system in systems_unit_program_exports) then
+             if (compiler.target.info.system in systems_unit_program_exports) then
                exportlib.preparelib(curr.realmodulename^);
 
              { setup things using the switches }

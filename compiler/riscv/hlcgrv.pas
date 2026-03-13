@@ -64,7 +64,7 @@ implementation
       restbits: byte;
     begin
       { the code below is only valid for big endian }
-      if target_info.endian=endian_little then
+      if compiler.target.info.endian=endian_little then
         begin
          inherited;
          exit
@@ -226,7 +226,7 @@ implementation
       l: TAsmLabel;
     begin
       maybe_new_object_file(list);
-      new_section(list,sec_code,wrappername,target_info.alignment.procalign);
+      new_section(list,sec_code,wrappername,compiler.target.info.alignment.procalign);
       if global then
         begin
           sym:=current_asmdata.DefineAsmSymbol(wrappername,AB_GLOBAL,AT_FUNCTION,procdef);

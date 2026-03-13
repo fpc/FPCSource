@@ -103,7 +103,7 @@ implementation
               begin
                 inserttypeconv(left,u32inttype);
                 if (cs_create_pic in current_settings.moduleswitches) and
-                  (tf_pic_uses_got in target_info.flags) then
+                  (tf_pic_uses_got in compiler.target.info.flags) then
                   include(current_procinfo.flags,pi_needs_got);
               end;
             firstpass(left);

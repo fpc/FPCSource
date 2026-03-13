@@ -1877,7 +1877,7 @@ Unit Rax86int;
                                       (oper.opr.ref.index<>NR_NO) or
                                       (oper.opr.ref.offset<>0) then
                                      Message(asmr_e_wrong_gotpcrel_intel_syntax);
-                                   if tf_no_pic_supported in target_info.flags then
+                                   if tf_no_pic_supported in compiler.target.info.flags then
                                      Message(asmr_e_no_gotpcrel_support);
                                    oper.opr.ref.refaddr:=addr_pic;
                                    oper.opr.ref.base:=NR_RIP;

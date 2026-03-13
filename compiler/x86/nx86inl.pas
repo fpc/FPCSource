@@ -90,7 +90,7 @@ implementation
 
     uses
       systems,
-      globtype,globals,
+      globtype,globals,compiler,
       verbose,compinnr,fmodule,
       defutil,
       aasmbase,aasmdata,aasmcpu,
@@ -779,8 +779,8 @@ implementation
 
        function needs_indirect:boolean; inline;
          begin
-           result:=(tf_supports_packages in target_info.flags) and
-                     (target_info.system in systems_indirect_var_imports);
+           result:=(tf_supports_packages in compiler.target.info.flags) and
+                     (compiler.target.info.system in systems_indirect_var_imports);
          end;
 
        var
@@ -802,7 +802,7 @@ implementation
              case tfloatdef(resultdef).floattype of
                s32real:
                  begin
-                   sym:=current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA,needs_indirect);
+                   sym:=current_asmdata.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_SINGLE',AT_DATA,needs_indirect);
                    reference_reset_symbol(href,sym,0,4,[]);
                    current_module.add_extern_asmsym(sym);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
@@ -814,7 +814,7 @@ implementation
                  end;
                s64real:
                  begin
-                   sym:=current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA,needs_indirect);
+                   sym:=current_asmdata.RefAsmSymbol(compiler.target.info.cprefix+'FPC_ABSMASK_DOUBLE',AT_DATA,needs_indirect);
                    reference_reset_symbol(href,sym,0,4,[]);
                    current_module.add_extern_asmsym(sym);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);

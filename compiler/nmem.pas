@@ -224,7 +224,7 @@ implementation
           objectdef:
             begin
               if (left.resultdef.typ=objectdef) or
-                 ((target_info.system in systems_jvm) and
+                 ((compiler.target.info.system in systems_jvm) and
                   (left.resultdef.typ=recorddef)) then
                 begin
                   { access to the classtype while specializing? }
@@ -288,7 +288,7 @@ implementation
                  { on non-fragile ABI platforms, the ISA pointer may be opaque
                    and we must call Object_getClass to obtain the real ISA
                    pointer }
-                 if target_info.system in systems_objc_nfabi then
+                 if compiler.target.info.system in systems_objc_nfabi then
                    begin
                      result:=compiler.ccallnode_internfromunit('OBJC','OBJECT_GETCLASS',compiler.ccallparanode(left,nil));
                      inserttypeconv_explicit(result,resultdef,compiler);
@@ -1404,7 +1404,7 @@ implementation
          if (vnf_callunique in vecnodeflags) and
             (is_ansistring(left.resultdef) or
              is_unicodestring(left.resultdef) or
-            (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
+            (is_widestring(left.resultdef) and not(tf_winlikewidestring in compiler.target.info.flags))) then
            begin
              left := compiler.ctypeconvnode_internal(compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                compiler.ccallparanode(
@@ -1415,7 +1415,7 @@ implementation
              { reset though :/                                             }
              exclude(vecnodeflags,vnf_callunique);
            end
-         else if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
+         else if is_widestring(left.resultdef) and (tf_winlikewidestring in compiler.target.info.flags) then
            exclude(vecnodeflags,vnf_callunique);
 
          { a range node as array index can only appear in function calls, and

@@ -205,7 +205,7 @@ implementation
 
     uses
        systems,
-       globals,
+       globals,compiler,
        cgobj,tgobj,
        defutil,verbose,
        hlcgobj;
@@ -653,7 +653,7 @@ implementation
     function tparamanager.use_fixed_stack: boolean;
       begin
 {$ifdef i386}
-        result := target_info.stackalign > 4;
+        result := compiler.target.info.stackalign > 4;
 {$else i386}
 {$ifdef cputargethasfixedstack}
         result := true;
@@ -736,7 +736,7 @@ implementation
           is always returned in param.
           Furthermore, any managed type is returned in param, in order to avoid
           its finalization on exception at callee side. }
-        if ((tf_safecall_exceptions in target_info.flags) and
+        if ((tf_safecall_exceptions in compiler.target.info.flags) and
             (pd.proccalloption=pocall_safecall)) or
            (
              (pd.proctypeoption=potype_constructor) and

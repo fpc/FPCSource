@@ -493,14 +493,14 @@ implementation
                 { Always add library prefix and suffix to create an uniform name }
                 hs:=parser.pexpr.get_stringconst;
                 if ExtractFileExt(hs)='' then
-                  hs:=ChangeFileExt(hs,target_info.sharedlibext);
-                if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
-                  hs:=target_info.sharedlibprefix+hs;
+                  hs:=ChangeFileExt(hs,compiler.target.info.sharedlibext);
+                if Copy(hs,1,length(compiler.target.info.sharedlibprefix))<>compiler.target.info.sharedlibprefix then
+                  hs:=compiler.target.info.sharedlibprefix+hs;
               end;
             if hs<>'' then
               begin
                 { the JVM expects java/lang/Object rather than java.lang.Object }
-                if target_info.system in systems_jvm then
+                if compiler.target.info.system in systems_jvm then
                   Replace(hs,'.','/');
                 stringdispose(od.import_lib);
                 od.import_lib:=stringdup(hs);
@@ -1807,7 +1807,7 @@ implementation
 {$endif}
                 end;
               { need method to hold the initialization code for typed constants? }
-              if (target_info.system in systems_typed_constants_node_init) and
+              if (compiler.target.info.system in systems_typed_constants_node_init) and
                  not is_any_interface_kind(current_structdef) then
                 parser.ptype.add_typedconst_init_routine(current_structdef);
             end;

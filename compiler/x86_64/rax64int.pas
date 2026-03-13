@@ -43,6 +43,7 @@ Unit rax64int;
       globtype,
       cutils,
       systems,
+      compiler,
       verbose,
       cgbase,
       symconst,
@@ -68,7 +69,7 @@ Unit rax64int;
         i: TAsmSehDirective;
       begin
         result:=false;
-        if target_info.system<>system_x86_64_win64 then exit;
+        if compiler.target.info.system<>system_x86_64_win64 then exit;
 
         for i:=low(TAsmSehDirective) to high(TAsmSehDirective) do
           begin
