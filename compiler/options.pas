@@ -5289,13 +5289,13 @@ begin
           else
             option.paratargetasm:=target_info.assem;
         end;
-      if not set_target_asm(option.paratargetasm) then
+      if not compiler.target.set_target_asm(option.paratargetasm) then
         begin
           if assigned(asminfos[option.paratargetasm]) then
             Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,target_info.name)
           else
             Message2(option_incompatible_asm,'<invalid assembler>',target_info.name);
-          set_target_asm(target_info.assemextern);
+          compiler.target.set_target_asm(target_info.assemextern);
           Message1(option_asm_forced,target_asm.idtxt);
         end;
       if (af_no_debug in asminfos[option.paratargetasm]^.flags) and
@@ -5339,11 +5339,11 @@ begin
        Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
      if not(target_info.system in systems_darwin) then
-       set_target_asm(as_clang_llvm)
+       compiler.target.set_target_asm(as_clang_llvm)
      else
-       set_target_asm(as_clang_llvm_darwin);
+       compiler.target.set_target_asm(as_clang_llvm_darwin);
 {$else}
-     set_target_asm(target_info.assemextern);
+     compiler.target.set_target_asm(target_info.assemextern);
 {$endif}
      { At least i8086 needs that for nasm and -CX
        which is incompatible with internal linker }
