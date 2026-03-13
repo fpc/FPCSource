@@ -3985,7 +3985,7 @@ begin
          begin
            if (target_info.system in systems_darwin) then
              begin
-               set_target_res(res_ext);
+               compiler.target.set_target_res(res_ext);
                target_info.resobjext:='.fpcres';
              end
            else
@@ -4052,7 +4052,7 @@ begin
          begin
            if (target_info.system in systems_darwin) then
              begin
-               set_target_res(res_macho);
+               compiler.target.set_target_res(res_macho);
                target_info.resobjext:=
                  targetinfos[target_info.system]^.resobjext;
              end
