@@ -4553,11 +4553,7 @@ end;
 
 procedure TOptions.StopOptions(err: longint);
 begin
-  if assigned(Option) then
-   begin
-     Option.free;
-     Option:=nil;
-   end;
+  FreeAndNil(Option);
   raise ECompilerAbortSilent.Create;
 end;
 
@@ -4569,9 +4565,7 @@ end;
 
 destructor TOptions.Destroy;
 begin
-  if assigned(option) then
-   option.free;
-   option := nil;
+  FreeAndNil(option);
   inherited Destroy;
 end;
 
@@ -6063,8 +6057,7 @@ begin
   { as stackalign is not part of the alignment record, we do not need to define the others alignments for symmetry yet }
   set_system_macro('FPC_STACKALIGNMENT',tostr(target_info.stackalign));
 
-  option.free;
-  Option:=nil;
+  FreeAndNil(Option);
 
   clearstack_pocalls := [pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl{$ifdef z80},pocall_stdcall{$endif}];
   cdecl_pocalls := [pocall_cdecl, pocall_cppdecl, pocall_mwpascal, pocall_sysv_abi_cdecl, pocall_ms_abi_cdecl];
