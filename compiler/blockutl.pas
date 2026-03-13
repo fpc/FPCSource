@@ -36,6 +36,7 @@ type
   TBlockUtils = class
   private
     FCompiler: TCompilerBase;
+    function get_block_literal_flags(orgpd, invokepd: tprocdef): longint;
     function get_block_literal_descriptor(invokepd: tprocdef; block_literal_size: tcgint): tstaticvarsym;
     function get_invoke_wrapper(orgpd: tprocdef; orgpv: tprocvardef): tprocdef;
     function get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
@@ -110,7 +111,7 @@ implementation
     end;
 
 
-  function get_block_literal_flags(orgpd, invokepd: tprocdef): longint;
+  function TBlockUtils.get_block_literal_flags(orgpd, invokepd: tprocdef): longint;
     { BlockLiteralFlags }
     const
       BLOCK_HAS_COPY_DISPOSE    = 1 shl 25;
