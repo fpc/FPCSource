@@ -2262,7 +2262,7 @@ begin
   { check whether the selector name is valid in case of Objective-C }
   if (po_msgstr in pd.procoptions) and
      is_objc_class_or_protocol(tprocdef(pd).struct) and
-     not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
+     not compiler.objcutil.objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
     Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
   pt.free;
   pt := nil;

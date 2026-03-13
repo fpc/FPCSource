@@ -155,7 +155,7 @@ uses
 {$endif aix}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
-  ,ngenutil,pgentype,objcgutl,ncgrtti
+  ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti
   ,opt,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
@@ -175,6 +175,7 @@ type
     FBlockUtl: TBlockUtils;
     FPkgUtil: TPackageUtils;
     FProcDefUtil: TProcDefUtils;
+    FObjCUtil: TObjectiveCUtils;
     FOptions: TOptions;
     FRTTIWriter : TRTTIWriter;
 
@@ -202,6 +203,7 @@ type
     property BlockUtl: TBlockUtils read FBlockUtl;
     property PkgUtil: TPackageUtils read FPkgUtil;
     property ProcDefUtil: TProcDefUtils read FProcDefUtil;
+    property ObjCUtil: TObjectiveCUtils read FObjCUtil;
     property Options: TOptions read FOptions;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
@@ -219,6 +221,7 @@ type
     function Getinitialmacrosymtable: TSymtable; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
+    function GetObjCUtil: TObjectiveCUtils; inline;
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
     function GetOpt: TOptimizers; inline;
@@ -341,6 +344,7 @@ type
     property BlockUtl: TBlockUtils read GetBlockUtl;
     property PkgUtil: TPackageUtils read GetPkgUtil;
     property ProcDefUtil: TProcDefUtils read GetProcDefUtil;
+    property ObjCUtil: TObjectiveCUtils read GetObjCUtil;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -392,6 +396,7 @@ begin
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(FOpt);
   FreeAndNil(FOptions);
+  FreeAndNil(FObjCUtil);
   FreeAndNil(FProcDefUtil);
   FreeAndNil(FPkgUtil);
   FreeAndNil(FBlockUtl);
@@ -413,6 +418,7 @@ begin
   FBlockUtl:=TBlockUtils.Create(Self);
   FPkgUtil:=TPackageUtils.Create(Self);
   FProcDefUtil:=TProcDefUtils.Create(Self);
+  FObjCUtil:=TObjectiveCUtils.Create(Self);
   FOptions:=TOptions.Create(Self);
   FOpt:=TOptimizers.Create(Self);
   paramanager:=tcpuparamanager.Create(Self);
@@ -678,6 +684,11 @@ end;
 function TCompilerHelper.GetObjCGUtl: TObjCCodeGenUtils; inline;
 begin
   Result := TCompiler(Self).ObjCGUtl;
+end;
+
+function TCompilerHelper.GetObjCUtil: TObjectiveCUtils; inline;
+begin
+  Result := TCompiler(Self).ObjCUtil;
 end;
 
 function TCompilerHelper.GetParser: TParser; inline;

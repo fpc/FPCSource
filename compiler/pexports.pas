@@ -294,7 +294,7 @@ implementation
                           objectdef:
                             case tobjectdef(ttypesym(srsym).typedef).objecttype of
                               odt_objcclass:
-                                exportobjcclass(tobjectdef(ttypesym(srsym).typedef));
+                                compiler.objcutil.exportobjcclass(tobjectdef(ttypesym(srsym).typedef));
                               else
                                 internalerror(2009092601);
                             end;

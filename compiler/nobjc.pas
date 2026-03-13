@@ -103,8 +103,8 @@ function tobjcselectornode.pass_typecheck: tnode;
         end;
       stringconstn:
         begin
-          if not objcvalidselectorname(tstringconstnode(left).asconstpchar,
-                                       tstringconstnode(left).len) then
+          if not compiler.objcutil.objcvalidselectorname(tstringconstnode(left).asconstpchar,
+                                                         tstringconstnode(left).len) then
             begin
               len:=tstringconstnode(left).len;
               if (len>255) then

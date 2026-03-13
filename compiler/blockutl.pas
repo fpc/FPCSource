@@ -202,7 +202,7 @@ implementation
       { create typed constant for the descriptor }
       str_parse_typedconst(current_asmdata.AsmLists[al_const],
         '(reserved: 0; Block_size: '+tostr(block_literal_size)+
-        '; signature: '''+objcencodemethod(invokepd)+''');',descriptor);
+        '; signature: '''+compiler.objcutil.objcencodemethod(invokepd)+''');',descriptor);
       result:=descriptor;
     end;
 

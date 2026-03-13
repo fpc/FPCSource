@@ -294,7 +294,7 @@ implementation
                      inserttypeconv_explicit(result,resultdef,compiler);
                    end
                  else
-                   result:=objcloadbasefield(left,'ISA');
+                   result:=compiler.objcutil.objcloadbasefield(left,'ISA');
                end
              else
                result:=compiler.ctypeconvnode_internal(load_vmt_for_self_node(left),resultdef);

@@ -3243,7 +3243,7 @@ implementation
              addstatement(statements,
                compiler.cassignmentnode(
                  compiler.csubscriptnode(field,compiler.ctemprefnode(temp)),
-                 objcsuperclassnode(selftree.resultdef)
+                 compiler.objcutil.objcsuperclassnode(selftree.resultdef)
                )
              );
              { result of this block is the address of this temp }

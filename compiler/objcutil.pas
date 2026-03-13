@@ -32,6 +32,14 @@ interface
       node,
       symtype,symdef;
 
+type
+  TObjectiveCUtils = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+
     { Check whether a string contains a syntactically valid selector name.  }
     function objcvalidselectorname(value_str: pchar; len: longint): boolean;
 
@@ -48,6 +56,7 @@ interface
 
     { loads a field of an Objective-C root class (such as ISA) }
     function objcloadbasefield(n: tnode; const fieldname: string): tnode;
+  end;
 
 
 implementation
@@ -63,12 +72,16 @@ implementation
       nmem,ncal,nld,ncon,ncnv,
       export,compiler;
 
+constructor TObjectiveCUtils.Create(ACompiler: TCompilerBase);
+begin
+  FCompiler:=ACompiler;
+end;
 
 {******************************************************************
                        validselectorname
 *******************************************************************}
 
-function objcvalidselectorname(value_str: pchar; len: longint): boolean;
+function TObjectiveCUtils.objcvalidselectorname(value_str: pchar; len: longint): boolean;
   var
     i         : longint;
     gotcolon  : boolean;
@@ -113,9 +126,7 @@ end;
                        objcsuperclassnode
 *******************************************************************}
 
-    function objcloadbasefield(n: tnode; const fieldname: string): tnode;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TObjectiveCUtils.objcloadbasefield(n: tnode; const fieldname: string): tnode;
       var
         vs         : tsym;
       begin
@@ -139,9 +150,7 @@ end;
       end;
 
 
-    function objcsuperclassnode(def: tdef): tnode;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TObjectiveCUtils.objcsuperclassnode(def: tdef): tnode;
       var
         para       : tcallparanode;
       begin
@@ -216,7 +225,7 @@ end;
       end;
 
 
-    function objcencodemethod(pd: tabstractprocdef): ansistring;
+    function TObjectiveCUtils.objcencodemethod(pd: tabstractprocdef): ansistring;
       var
         parasize,
         totalsize: aint;
@@ -297,7 +306,7 @@ end;
     end;
 
 
-    procedure exportobjcclass(def: tobjectdef);
+    procedure TObjectiveCUtils.exportobjcclass(def: tobjectdef);
       begin
         if (target_info.system in systems_objc_nfabi) then
           begin

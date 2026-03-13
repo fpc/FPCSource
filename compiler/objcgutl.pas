@@ -346,7 +346,7 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
           begin
             defs[mcnt].def:=def;
             objcreatestringpoolentry(def.messageinf.str^,sp_objcvarnames,sec_objc_meth_var_names,defs[mcnt].selsym,defs[mcnt].seldef);
-            objcreatestringpoolentry(objcencodemethod(def),sp_objcvartypes,sec_objc_meth_var_types,defs[mcnt].encsym,defs[mcnt].encdef);
+            objcreatestringpoolentry(compiler.objcutil.objcencodemethod(def),sp_objcvartypes,sec_objc_meth_var_types,defs[mcnt].encsym,defs[mcnt].encdef);
             inc(mcnt);
           end;
       end;
@@ -570,7 +570,7 @@ begin
       m:=tprocdef(items[i]);
       objcreatestringpoolentry(m.messageinf.str^,sp_objcvarnames,sec_objc_meth_var_names,lab,ldef);
       tcb.emit_tai(Tai_const.Create_sym(lab),ldef);
-      objcreatestringpoolentry(objcencodemethod(m),sp_objcvartypes,sec_objc_meth_var_types,lab,ldef);
+      objcreatestringpoolentry(compiler.objcutil.objcencodemethod(m),sp_objcvartypes,sec_objc_meth_var_types,lab,ldef);
       tcb.emit_tai(Tai_const.Create_sym(lab),ldef);
       { placeholder for address of implementation? }
       if (abi=oa_nonfragile) then
