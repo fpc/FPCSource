@@ -80,6 +80,8 @@ type
        property current: tai_abstracttypedconst read getcurrent;
      end;
 
+    private
+     fcompiler: TCompilerBase;
     protected
      fvalues: tfpobjectlist;
      fisstring: boolean;
@@ -87,8 +89,9 @@ type
      { converts the existing data to a single tai_string }
      procedure convert_to_string;
      procedure add_to_string(strtai: tai_string; othertai: tai);
+     property Compiler: TCompilerBase read fcompiler;
     public
-     constructor create(_adetyp: ttypedconstkind; _fdef: tdef);
+     constructor create(_adetyp: ttypedconstkind; _fdef: tdef; acompiler: TCompilerBase);
      function getenumerator: tadeenumerator;
      procedure addvalue(val: tai_abstracttypedconst); virtual;
      function valuecount: longint;
@@ -759,9 +762,10 @@ implementation
      end;
 
 
-   constructor tai_aggregatetypedconst.create(_adetyp: ttypedconstkind; _fdef: tdef);
+   constructor tai_aggregatetypedconst.create(_adetyp: ttypedconstkind; _fdef: tdef; acompiler: TCompilerBase);
      begin
-       inherited;
+       inherited create(_adetyp,_fdef);
+       fcompiler:=acompiler;
        fisstring:=false;
        fvalues:=tfpobjectlist.create(true);
      end;
@@ -833,8 +837,6 @@ implementation
 
 
    procedure tai_aggregatetypedconst.finish;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      var
        lString : tai_string;
        len : integer;
