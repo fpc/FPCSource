@@ -567,6 +567,7 @@ interface
         constructor Create;
         function set_target(t:tsystem):boolean;
         function set_target_asm(t:tasm):boolean;
+        function set_target_ar(t:tar):boolean;
       end;
 
     var
@@ -587,7 +588,6 @@ interface
        target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
        target_full_string : string[28];
 
-    function set_target_ar(t:tar):boolean;
     function set_target_res(t:tres):boolean;
     function set_target_dbg(t:tdbg):boolean;
 
@@ -685,7 +685,7 @@ begin
 end;
 
 
-function set_target_ar(t:tar):boolean;
+function TCompilerTarget.set_target_ar(t:tar):boolean;
 begin
   result:=false;
   if assigned(arinfos[t]) then
