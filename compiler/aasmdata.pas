@@ -33,7 +33,7 @@ interface
 
     uses
        sysutils,cutils,cclasses,
-       globtype,systems,
+       globtype,systems,compilerbase,
        cgbase,
        symtype,
        aasmbase;
@@ -189,6 +189,7 @@ interface
 
       TAsmData = class
       private
+        FCompiler      : TCompilerBase;
         { Symbols }
         FAsmSymbolDict : TFPHashObjectList;
         FAltSymbolList : TFPObjectList;
@@ -200,6 +201,7 @@ interface
         function GetConstPools(APoolType: TConstPoolType): THashSet;
       protected
         function  DefineAsmSymbolByClassBase(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef; out wasdefined: boolean) : TAsmSymbol;
+        property Compiler: TCompilerBase read FCompiler;
       public
         name          : pshortstring;       { owned by tmodule }
         NextVTEntryNr : longint;
@@ -208,7 +210,7 @@ interface
         CurrAsmList   : TAsmList;
         WideInits     : TLinkedList;
         ResStrInits   : TLinkedList;
-        constructor create(n: pshortstring);
+        constructor create(n: pshortstring;acompiler:TCompilerBase);
         destructor  destroy;override;
         { asmsymbol }
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol; virtual;
@@ -521,12 +523,13 @@ implementation
       end;
 
 
-    constructor TAsmData.create(n:pshortstring);
+    constructor TAsmData.create(n:pshortstring;acompiler:TCompilerBase);
       var
         alt : TAsmLabelType;
         hal : TAsmListType;
       begin
         inherited create;
+        FCompiler:=acompiler;
         name:=n;
         { symbols }
         FAsmSymbolDict:=TFPHashObjectList.create(true);

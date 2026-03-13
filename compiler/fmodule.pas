@@ -723,7 +723,7 @@ implementation
         tcinitcode:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
-        asmdata:=casmdata.create(modulename);
+        asmdata:=casmdata.create(modulename,compiler);
         unitimportsyms:=TFPObjectList.Create(true);
         publicasmsyms:=TFPHashObjectList.Create(true);
         externasmsyms:=TFPHashObjectList.Create(true);
@@ -994,7 +994,7 @@ implementation
         derefdataintflen:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
-        asmdata:=casmdata.create(modulename);
+        asmdata:=casmdata.create(modulename,compiler);
         if current_module=self then
           current_asmdata:=TAsmData(asmdata);
         InitDebugInfo(self,current_debuginfo_reset);
