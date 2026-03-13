@@ -1779,8 +1779,8 @@ type
          maybeloadvariantsunit(module);
 
          { generate rtti/init tables }
-         write_persistent_type_info(module.globalsymtable,true);
-         write_persistent_type_info(module.localsymtable,false);
+         write_persistent_type_info(compiler,module.globalsymtable,true);
+         write_persistent_type_info(compiler,module.localsymtable,false);
 
          { Tables }
          compiler.nodeutils.InsertThreadvars;
@@ -2568,7 +2568,7 @@ type
         compiler.nodeutils.InsertThreadvars;
 
         { generate rtti/init tables }
-        write_persistent_type_info(curr.localsymtable,false);
+        write_persistent_type_info(compiler,curr.localsymtable,false);
 
         { if an Objective-C module, generate rtti and module info }
         compiler.objcgutl.MaybeGenerateObjectiveCImageInfo(nil,curr.localsymtable);

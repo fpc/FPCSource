@@ -85,7 +85,7 @@ interface
       end;
 
     { generate RTTI and init tables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    procedure write_persistent_type_info(compiler:TCompilerBase;st:tsymtable;is_global:boolean);
 
 
 implementation
@@ -149,9 +149,7 @@ implementation
       end;
 
 
-    procedure write_persistent_type_info(st: tsymtable; is_global: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure write_persistent_type_info(compiler:TCompilerBase;st: tsymtable; is_global: boolean);
       var
         i : longint;
         def : tdef;
@@ -167,7 +165,7 @@ implementation
               continue;
             case def.typ of
               recorddef:
-                write_persistent_type_info(trecorddef(def).symtable,is_global);
+                write_persistent_type_info(compiler,trecorddef(def).symtable,is_global);
               objectdef :
                 begin
                   { Skip forward defs }
@@ -176,15 +174,15 @@ implementation
                   { skip unique type aliases, they use the RTTI from the parent class }
                   if tobjectdef(def).is_unique_objpasdef then
                     continue;
-                  write_persistent_type_info(tobjectdef(def).symtable,is_global);
+                  write_persistent_type_info(compiler,tobjectdef(def).symtable,is_global);
                 end;
               procdef :
                 begin
                   if assigned(tprocdef(def).localst) and
                      (tprocdef(def).localst.symtabletype=localsymtable) then
-                    write_persistent_type_info(tprocdef(def).localst,false);
+                    write_persistent_type_info(compiler,tprocdef(def).localst,false);
                   if assigned(tprocdef(def).parast) then
-                    write_persistent_type_info(tprocdef(def).parast,false);
+                    write_persistent_type_info(compiler,tprocdef(def).parast,false);
                 end;
               errordef:
                 { we shouldn't have come this far if we have an errordef somewhere }
