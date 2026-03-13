@@ -345,7 +345,8 @@ implementation
 uses
   finput,
   fppu,
-  aasmcpu;
+  aasmcpu,
+  paramgr;
 
 {$if defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}
@@ -398,6 +399,7 @@ begin
   FObjCGUtl:=TObjCCodeGenUtils.Create(Self);
   FBlockUtl:=TBlockUtils.Create(Self);
   FOpt:=TOptimizers.Create(Self);
+  paramanager:=tcpuparamanager.Create(Self);
 { inits which need to be done before the arguments are parsed }
   InitSystems;
   { fileutils depends on source_info so it must be after systems }

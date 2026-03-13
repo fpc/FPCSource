@@ -43,6 +43,13 @@ unit paramgr;
        { tparamanager }
 
        tparamanager = class
+         strict private
+          FCompiler: TCompilerBase;
+         strict protected
+          property Compiler: TCompilerBase read FCompiler;
+         public
+          constructor Create(ACompiler: TCompilerBase);
+
           { true if the location in paraloc can be reused as localloc }
           function param_use_paraloc(const cgpara:tcgpara):boolean;virtual;
           { Returns true if the return value is actually a parameter pointer }
@@ -202,6 +209,12 @@ implementation
        cgobj,tgobj,
        defutil,verbose,
        hlcgobj;
+
+    constructor tparamanager.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
 
     { true if the location in paraloc can be reused as localloc }
     function tparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
@@ -667,8 +680,6 @@ implementation
 
     function tparamanager.set_common_funcretloc_info(p : tabstractprocdef; forcetempdef: tdef; out retcgsize: tcgsize; out retloc: tcgpara): boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         paraloc : pcgparalocation;
       begin
         result:=true;
@@ -752,8 +763,6 @@ implementation
 
 
     function tparamanager.get_paraloc_def(paradef: tdef; restlen: aint; fullsize: boolean): tdef;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if fullsize then
           result:=paradef

@@ -1413,8 +1413,6 @@ unit cpupara;
 
 
     function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         intretregs: array[0..1] of tregister = (NR_FUNCTION_RETURN_REG,NR_FUNCTION_RETURN_REG_HIGH);
         mmretregs: array[0..1] of tregister = (NR_MM_RESULT_REG,NR_MM_RESULT_REG_HIGH);
@@ -1637,8 +1635,6 @@ unit cpupara;
 
     procedure tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp         : tparavarsym;
         fdef,
@@ -2095,6 +2091,4 @@ unit cpupara;
       end;
 
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.
