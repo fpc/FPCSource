@@ -28,7 +28,7 @@ unit blockutl;
 interface
 
   uses
-    compilerbase,
+    compilerbase,globtype,
     node,nld,ncnv,
     symtype,symdef,symsym;
 
@@ -36,6 +36,7 @@ type
   TBlockUtils = class
   private
     FCompiler: TCompilerBase;
+    function get_block_literal_descriptor(invokepd: tprocdef; block_literal_size: tcgint): tstaticvarsym;
     function get_invoke_wrapper(orgpd: tprocdef; orgpv: tprocvardef): tprocdef;
     function get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
     function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
@@ -61,7 +62,7 @@ type
 implementation
 
   uses
-    verbose,globtype,cutils,constexp,
+    verbose,cutils,constexp,
     pass_1,pparautl,fmodule,
     aasmdata,
     nbas,ncon,nmem,nutils,
@@ -159,9 +160,7 @@ implementation
     end;
 
 
-  function get_block_literal_descriptor(invokepd: tprocdef; block_literal_size: tcgint): tstaticvarsym;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TBlockUtils.get_block_literal_descriptor(invokepd: tprocdef; block_literal_size: tcgint): tstaticvarsym;
     var
       descriptordef: tdef;
       descriptor: tstaticvarsym;
