@@ -30,9 +30,12 @@ uses
   globtype,globals,verbose,systems,cpuinfo,comprsrc,compilerbase;
 
 Type
+  TOptions=class;
   TOption=class
   private
     FCompiler: TCompilerBase;
+    FOptions: TOptions;
+    procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
     FirstPass,
@@ -65,7 +68,7 @@ Type
     LinkTypeSetExplicitly : boolean;
     LinkerSetExplicitly : boolean;
     MemoryModelSetExplicitly : boolean;
-    Constructor Create(ACompiler: TCompilerBase);
+    Constructor Create(AOptions: TOptions; ACompiler: TCompilerBase);
     Destructor Destroy;override;
     procedure WriteLogo;
     procedure WriteInfo (More: string);
@@ -151,9 +154,12 @@ Type
   private
     FCompiler: TCompilerBase;
     coption : TOptionClass;
+    option     : toption;
+    procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
+    destructor Destroy; override;
     procedure read_arguments(cmd:TCmdStr);
   end;
 
@@ -181,7 +187,6 @@ const
   page_width = 80;
 
 var
-  option     : toption;
   read_subfile,         { read subtarget config file, set when a cfgfile is found }
   read_configfile,        { read config file, set when a cfgfile is found }
   disable_configfile : boolean;
@@ -256,14 +261,9 @@ procedure set_endianess_macros;
                                  Toption
 ****************************************************************************}
 
-procedure StopOptions(err:longint);
+procedure TOption.StopOptions(err:longint);
 begin
-  if assigned(Option) then
-   begin
-     Option.free;
-     Option:=nil;
-   end;
-  raise ECompilerAbortSilent.Create;
+  FOptions.StopOptions(err);
 end;
 
 
@@ -2339,8 +2339,9 @@ begin
 end;
 
 
-constructor TOption.Create(ACompiler: TCompilerBase);
+constructor TOption.Create(AOptions: TOptions; ACompiler: TCompilerBase);
 begin
+  FOptions:=AOptions;
   FCompiler:=ACompiler;
   LogoWritten:=false;
   NoPressEnter:=false;
@@ -4550,10 +4551,28 @@ end;
 
 { TOptions }
 
+procedure TOptions.StopOptions(err: longint);
+begin
+  if assigned(Option) then
+   begin
+     Option.free;
+     Option:=nil;
+   end;
+  raise ECompilerAbortSilent.Create;
+end;
+
 constructor TOptions.Create(ACompiler: TCompilerBase);
 begin
   FCompiler:=ACompiler;
   coption:=toption;
+end;
+
+destructor TOptions.Destroy;
+begin
+  if assigned(option) then
+   option.free;
+   option := nil;
+  inherited Destroy;
 end;
 
 
@@ -4939,7 +4958,7 @@ var
   hs : string;
 {$endif defined(cpucapabilities) or defined(fpucapabilities)}
 begin
-  option:=coption.create(compiler);
+  option:=coption.create(self,compiler);
   disable_configfile:=false;
 
   { Non-core target defines }
@@ -6057,8 +6076,4 @@ begin
 end;
 
 
-finalization
-  if assigned(option) then
-   option.free;
-   option := nil;
 end.
