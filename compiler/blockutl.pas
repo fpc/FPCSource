@@ -30,12 +30,13 @@ interface
   uses
     compilerbase,
     node,nld,ncnv,
-    symtype,symdef;
+    symtype,symdef,symsym;
 
 type
   TBlockUtils = class
   private
     FCompiler: TCompilerBase;
+    function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -62,7 +63,7 @@ implementation
     pass_1,pparautl,fmodule,
     aasmdata,
     nbas,ncon,nmem,nutils,
-    symbase,symconst,symtable,symsym,symcreat,objcutil,defutil,
+    symbase,symconst,symtable,symcreat,objcutil,defutil,
     paramgr,compiler;
 
 
@@ -293,9 +294,7 @@ implementation
 
 
   { compose an on-stack block literal for a "procedure of object" }
-  function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TBlockUtils.get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
     var
       statement: tstatementnode;
       literaltemp: ttempcreatenode;
