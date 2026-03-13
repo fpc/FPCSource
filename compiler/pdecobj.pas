@@ -136,10 +136,10 @@ implementation
         // look at record_dec to see where calling conventions are applied (issue #0021044).
         // The same goes for objects/classes due to the calling convention that may only be set
         // later (mantis #35233).
-        handle_calling_convention(pd,hcc_default_actions_intf_struct);
+        parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf_struct);
 
         { add definition to procsym }
-        proc_add_definition(pd);
+        parser.pparautl.proc_add_definition(pd);
 
         { add procdef options to objectdef options }
         if (po_virtualmethod in pd.procoptions) then
@@ -1008,10 +1008,10 @@ implementation
                      is_classdef and not (po_staticmethod in result.procoptions) then
                     MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
 
-                  handle_calling_convention(result,hcc_default_actions_intf_struct);
+                  parser.pparautl.handle_calling_convention(result,hcc_default_actions_intf_struct);
 
                   { add definition to procsym }
-                  proc_add_definition(result);
+                  parser.pparautl.proc_add_definition(result);
 
                   { add procdef options to objectdef options }
                   if (po_msgint in result.procoptions) then

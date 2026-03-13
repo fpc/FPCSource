@@ -417,7 +417,7 @@ implementation
              if check_proc_directive(true) then
                parse_proctype_directives(pv);
              { Add implicit hidden parameters and function result }
-             handle_calling_convention(pv,hcc_default_actions_intf);
+             parser.pparautl.handle_calling_convention(pv,hcc_default_actions_intf);
 {$ifdef jvm}
              { anonymous -> no name }
              jvm_create_procvar_class('',pv);
@@ -1889,10 +1889,10 @@ implementation
             // we can't add hidden params here because record is not yet defined
             // and therefore record size which has influence on parameter passing rules may change too
             // look at record_dec to see where calling conventions are applied (issue #0021044)
-            handle_calling_convention(result,hcc_default_actions_intf_struct);
+            parser.pparautl.handle_calling_convention(result,hcc_default_actions_intf_struct);
 
             { add definition to procsym }
-            proc_add_definition(result);
+            parser.pparautl.proc_add_definition(result);
 
             if result.is_generic then
               astruct.symtable.includeoption(sto_has_generic);

@@ -2162,7 +2162,7 @@ uses
                         build_vmt(tobjectdef(result))
                       else
                         { update the procdevs to add hidden self param }
-                        insert_struct_hidden_paras(tobjectdef(result));
+                        parser.pparautl.insert_struct_hidden_paras(tobjectdef(result));
                     end;
                   { handle params, calling convention, etc }
                   procvardef:
@@ -2187,7 +2187,7 @@ uses
                         flags:=hcc_default_actions_intf
                       else
                         flags:=hcc_default_actions_intf_struct;
-                      handle_calling_convention(result,flags);
+                      parser.pparautl.handle_calling_convention(result,flags);
                       if not hintsprocessed and (replaydepth<current_scanner.replay_stack_depth) then
                         begin
                           parser.pbase.try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
@@ -2206,10 +2206,10 @@ uses
                       while parser.pbase.try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
                         parser.pbase.consume(_SEMICOLON);
                       if parser.pbase.parse_generic then
-                        handle_calling_convention(tprocdef(result),hcc_default_actions_intf)
+                        parser.pparautl.handle_calling_convention(tprocdef(result),hcc_default_actions_intf)
                       else
-                        handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
-                      proc_add_definition(tprocdef(result));
+                        parser.pparautl.handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
+                      parser.pparautl.proc_add_definition(tprocdef(result));
                       { for partial specializations we implicitly declare the routine as
                         having its implementation although we'll not specialize it in reality }
                       if parser.pbase.parse_generic then

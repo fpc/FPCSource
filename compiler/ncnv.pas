@@ -2576,7 +2576,7 @@ implementation
                             if not assigned(tprocdef(pd).struct) then
                               internalerror(2021062204);
 
-                            insert_self_and_vmt_para(pd);
+                            compiler.parser.pparautl.insert_self_and_vmt_para(pd);
 
                             mapping.oldsym:=tsym(pcapturedsyminfo(tprocdef(pd).capturedsyms[0])^.sym);
                             mapping.newsym:=nil;
@@ -2621,7 +2621,7 @@ implementation
                               { simply add a TObject as Self parameter }
                               tprocdef(pd).struct:=class_tobject;
 
-                            insert_self_and_vmt_para(pd);
+                            compiler.parser.pparautl.insert_self_and_vmt_para(pd);
 
                             { there is no self, so load a nil value }
                             tloadnode(left).set_mp(compiler.cnilnode);

@@ -28,14 +28,6 @@ interface
     uses
       compilerbase,symtype,symconst,symdef;
 
-    procedure insert_funcret_para(pd:tabstractprocdef);
-    procedure insert_parentfp_para(pd:tabstractprocdef);
-    procedure insert_self_and_vmt_para(pd:tabstractprocdef);
-    procedure insert_funcret_local(pd:tprocdef);
-    procedure insert_hidden_para(p:TObject;arg:pointer);
-    procedure check_c_para(pd:Tabstractprocdef);
-    procedure insert_struct_hidden_paras(astruct: tabstractrecorddef);
-
     type
       // flags of the *handle_calling_convention routines
       thccflag=(
@@ -52,6 +44,21 @@ interface
       hcc_default_actions_parse=[hcc_check,hcc_insert_hidden_paras];
       PD_VIRTUAL_MUTEXCLPO = [po_interrupt,po_exports,po_overridingmethod,po_inline,po_staticmethod];
 
+type
+  TParaUtils = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+    procedure insert_funcret_para(pd:tabstractprocdef);
+    procedure insert_parentfp_para(pd:tabstractprocdef);
+    procedure insert_self_and_vmt_para(pd:tabstractprocdef);
+    procedure insert_funcret_local(pd:tprocdef);
+    procedure insert_hidden_para(p:TObject;arg:pointer);
+    procedure check_c_para(pd:Tabstractprocdef);
+    procedure insert_struct_hidden_paras(astruct: tabstractrecorddef);
+
     { may take procdef, procvardef or defs for which is_funcref is true }
     procedure handle_calling_convention(pd_or_invkdef:tdef;flags:thccflags);
     function proc_add_definition(var currpd:tprocdef):boolean;
@@ -60,6 +67,7 @@ interface
       variables and parameters from pd accessed from nested routines can be
       stored }
     procedure build_parentfpstruct(pd: tprocdef);
+  end;
 
 implementation
 
@@ -75,7 +83,13 @@ implementation
       paramgr,compiler;
 
 
-    procedure insert_funcret_para(pd:tabstractprocdef);
+    constructor TParaUtils.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    procedure TParaUtils.insert_funcret_para(pd:tabstractprocdef);
       const
         name_result='result';
       var
@@ -127,7 +141,7 @@ implementation
       end;
 
 
-    procedure insert_parentfp_para(pd:tabstractprocdef);
+    procedure TParaUtils.insert_parentfp_para(pd:tabstractprocdef);
       const
         name_parentfp='parentfp';
       var
@@ -180,9 +194,7 @@ implementation
       end;
 
 
-    procedure insert_self_and_vmt_para(pd:tabstractprocdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TParaUtils.insert_self_and_vmt_para(pd:tabstractprocdef);
       const
         name_cmd='_cmd';
         name_self='self';
@@ -328,7 +340,7 @@ implementation
       end;
 
 
-    procedure insert_funcret_local(pd:tprocdef);
+    procedure TParaUtils.insert_funcret_local(pd:tprocdef);
       var
         storepos : tfileposinfo;
         vs       : tlocalvarsym;
@@ -414,7 +426,7 @@ implementation
       end;
 
 
-    procedure insert_hidden_para(p:TObject;arg:pointer);
+    procedure TParaUtils.insert_hidden_para(p:TObject;arg:pointer);
       const
         name_high = 'high';
         name_typinfo = 'typinfo';
@@ -500,7 +512,7 @@ implementation
       end;
 
 
-    procedure check_c_para(pd:Tabstractprocdef);
+    procedure TParaUtils.check_c_para(pd:Tabstractprocdef);
       var
         i,
         lastparaidx : longint;
@@ -527,7 +539,7 @@ implementation
       end;
 
 
-    procedure insert_struct_hidden_paras(astruct: tabstractrecorddef);
+    procedure TParaUtils.insert_struct_hidden_paras(astruct: tabstractrecorddef);
       var
         pd: tdef;
         i: longint;
@@ -563,7 +575,7 @@ implementation
       end;
 
 
-    procedure handle_calling_convention(pd_or_invkdef:tdef;flags:thccflags);
+    procedure TParaUtils.handle_calling_convention(pd_or_invkdef:tdef;flags:thccflags);
       var
         pd : tabstractprocdef;
       begin
@@ -691,7 +703,7 @@ implementation
       end;
 
 
-    function proc_add_definition(var currpd:tprocdef):boolean;
+    function TParaUtils.proc_add_definition(var currpd:tprocdef):boolean;
 
       function check_generic_parameters(fwpd,currpd:tprocdef):boolean;
         var
@@ -1259,9 +1271,7 @@ implementation
       end;
 
 
-    procedure build_parentfpstruct(pd: tprocdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TParaUtils.build_parentfpstruct(pd: tprocdef);
       var
         nestedvars: tsym;
         nestedvarsst: tsymtable;

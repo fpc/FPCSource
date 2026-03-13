@@ -388,7 +388,7 @@ implementation
                         flags:=hcc_default_actions_intf
                       else
                         flags:=hcc_default_actions_intf_struct;
-                      handle_calling_convention(hdef,flags);
+                      compiler.parser.pparautl.handle_calling_convention(hdef,flags);
                     end;
                    { Parse the initialiser }
                    if not skip_initialiser then
@@ -1146,7 +1146,7 @@ implementation
                          flags:=hcc_default_actions_intf
                        else
                          flags:=hcc_default_actions_intf_struct;
-                       handle_calling_convention(hdef,flags);
+                       parser.pparautl.handle_calling_convention(hdef,flags);
                        if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                          begin
                            if (po_is_block in tprocvardef(hdef).procoptions) and
@@ -1190,7 +1190,7 @@ implementation
                         build_vmt(tobjectdef(hdef))
                       else
                       { update the procdevs to add hidden self param }
-                      insert_struct_hidden_paras(tobjectdef(hdef));
+                      parser.pparautl.insert_struct_hidden_paras(tobjectdef(hdef));
 
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set

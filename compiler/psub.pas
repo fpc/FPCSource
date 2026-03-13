@@ -2704,7 +2704,7 @@ implementation
           end;
 
         { Insert result variables in the localst }
-        insert_funcret_local(pd);
+        parser.pparautl.insert_funcret_local(pd);
 
         { check if there are para's which require initing -> set }
         { pi_do_call (if not yet set)                            }
@@ -2865,13 +2865,13 @@ implementation
 
              { Set calling convention }
              if parser.pbase.parse_only then
-               handle_calling_convention(result,hcc_default_actions_intf)
+               parser.pparautl.handle_calling_convention(result,hcc_default_actions_intf)
              else
-               handle_calling_convention(result,hcc_default_actions_impl)
+               parser.pparautl.handle_calling_convention(result,hcc_default_actions_impl)
            end;
 
          { search for forward declarations }
-         if not proc_add_definition(result) then
+         if not parser.pparautl.proc_add_definition(result) then
            begin
              { One may not implement a method of a type declared in a different unit }
              if assigned(result.struct) and

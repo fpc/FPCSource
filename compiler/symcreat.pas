@@ -1900,6 +1900,8 @@ implementation
 
   function create_procdef_alias(pd: tprocdef; const newrealname: string; const newmangledname: TSymStr; newparentst: tsymtable; newstruct: tabstractrecorddef;
       sk: tsynthetickind; skpara: pointer): tprocdef;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { bare copy so we don't copy the aliasnames (specify prefix for
         parameter names so we don't get issues in the body in case
@@ -1911,11 +1913,11 @@ implementation
       { finish creating the copy }
       finish_copied_procdef(result,newrealname,newparentst,newstruct);
       { insert hidden high parameters }
-      result.parast.SymList.ForEachCall(@insert_hidden_para,result);
+      result.parast.SymList.ForEachCall(@compiler.parser.pparautl.insert_hidden_para,result);
       { now insert self/vmt }
-      insert_self_and_vmt_para(result);
+      compiler.parser.pparautl.insert_self_and_vmt_para(result);
       { and the function result }
-      insert_funcret_para(result);
+      compiler.parser.pparautl.insert_funcret_para(result);
       { recalculate the parameters now that we've added the missing ones }
       result.calcparas;
       { set the info required to generate the implementation }
@@ -1982,7 +1984,7 @@ implementation
           compiler.symtablestack.pop(pd.parast);
         end;
       pd.calcparas;
-      proc_add_definition(pd);
+      compiler.parser.pparautl.proc_add_definition(pd);
     end;
 
 
@@ -2174,6 +2176,8 @@ implementation
 
   procedure call_through_new_name(orgpd: tprocdef; const newname: TSymStr);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       newpd: tprocdef;
     begin
       { we have a forward declaration like
@@ -2191,7 +2195,7 @@ implementation
       { prefixing the parameters here is useless, because the new procdef will
         just be an external declaration without a body }
       newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc,'',true));
-      insert_funcret_para(newpd);
+      compiler.parser.pparautl.insert_funcret_para(newpd);
       newpd.procoptions:=newpd.procoptions+orgpd.procoptions*[po_external,po_has_importname,po_has_importdll];
       stringdispose(orgpd.import_name);
       stringdispose(orgpd.import_dll);
@@ -2215,7 +2219,7 @@ implementation
     begin
       if target_info.system in systems_all_windows+systems_nativent then
         begin
-          insert_funcret_local(pd);
+          compiler.parser.pparautl.insert_funcret_local(pd);
           result:=compiler.cassignmentnode(
                       compiler.cloadnode(pd.funcretsym,pd.localst),
                       compiler.cordconstnode(1,bool32type,false)
@@ -2260,17 +2264,17 @@ implementation
           pd.proccalloption:=pocall_default;
           include(pd.procoptions,po_hascallingconvention);
           pd.returndef:=class_tcustomattribute;
-          insert_funcret_para(pd);
+          compiler.parser.pparautl.insert_funcret_para(pd);
           pd.calcparas;
           pd.forwarddef:=false;
           pd.aliasnames.insert(pd.mangledname);
-          handle_calling_convention(pd,hcc_default_actions_impl);
+          compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_impl);
           { set procinfo and current_procinfo.procdef }
           pi:=tcgprocinfo(cprocinfo.create(nil,compiler));
           pi.procdef:=pd;
           { we always do a call, namely to the constructor }
           include(pi.flags,pi_do_call);
-          insert_funcret_local(pd);
+          compiler.parser.pparautl.insert_funcret_local(pd);
           pi.code:=compiler.cassignmentnode(
                       compiler.cloadnode(pd.funcretsym,pd.localst),
                       attr.constructorcall.getcopy

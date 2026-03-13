@@ -237,8 +237,8 @@ implementation
       include(result.procoptions,po_is_block);
       { now insert self/vmt/funcret according to the newly set calling
         convention }
-      insert_self_and_vmt_para(result);
-      insert_funcret_para(result);
+      compiler.parser.pparautl.insert_self_and_vmt_para(result);
+      compiler.parser.pparautl.insert_funcret_para(result);
       finish_copied_procdef(result,wrappername,current_module.localsymtable,nil);
       if orgpd.is_addressonly then
         begin

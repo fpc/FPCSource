@@ -29,7 +29,7 @@ uses
   compilerbase,
   fmodule,
   pmodules,pgenutil,pstatmnt,pexpr,pexports,ptconst,pdecvar,pdecsub,pdecobj,
-  pdecl,psub,pinline,ptype,psystem,pbase;
+  pdecl,psub,pinline,ptype,psystem,pbase,pparautl;
 
 type
 
@@ -53,6 +53,7 @@ type
     FPInline: TInlineParser;
     FPType: TTypesParser;
     FPSystem: TSystemUnitParser;
+    FPParaUtl: TParaUtils;
 
     procedure initparser;
     procedure doneparser;
@@ -82,6 +83,7 @@ type
     property pinline: TInlineParser read FPInline;
     property ptype: TTypesParser read FPType;
     property psystem: TSystemUnitParser read FPSystem;
+    property pparautl: TParaUtils read FPParaUtl;
   end;
 
 implementation
@@ -377,11 +379,13 @@ implementation
         FPInline:=TInlineParser.Create(Self,acompiler);
         FPType:=TTypesParser.Create(Self,acompiler);
         FPSystem:=TSystemUnitParser.Create(acompiler);
+        FPParaUtl:=TParaUtils.Create(acompiler);
       end;
 
 
     destructor TParser.Destroy;
       begin
+        FreeAndNil(FPParaUtl);
         FreeAndNil(FPSystem);
         FreeAndNil(FPType);
         FreeAndNil(FPInline);

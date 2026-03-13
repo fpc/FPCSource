@@ -298,16 +298,16 @@ implementation
               sym: tprocsym;
             begin
               if not assigned(astruct) then
-                handle_calling_convention(pd,hcc_default_actions_intf)
+                parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf)
               else
-                handle_calling_convention(pd,hcc_default_actions_intf_struct);
+                parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf_struct);
               sym:=cprocsym.create(prefix+lower(p.realname));
               compiler.symtablestack.top.insertsym(sym);
               pd.procsym:=sym;
               include(pd.procoptions,po_dispid);
               include(pd.procoptions,po_global);
               pd.visibility:=vis_private;
-              proc_add_definition(pd);
+              parser.pparautl.proc_add_definition(pd);
               p.propaccesslist[accesstype].addsym(sl_call,sym);
               p.propaccesslist[accesstype].procdef:=pd;
             end;
@@ -592,9 +592,9 @@ implementation
                         readprocdef.returndef:=p.propdef;
                         { Insert hidden parameters }
                         if assigned(astruct) then
-                          handle_calling_convention(readprocdef,hcc_default_actions_intf_struct)
+                          parser.pparautl.handle_calling_convention(readprocdef,hcc_default_actions_intf_struct)
                         else
-                          handle_calling_convention(readprocdef,hcc_default_actions_intf);
+                          parser.pparautl.handle_calling_convention(readprocdef,hcc_default_actions_intf);
                       end;
                     p.add_getter_or_setter_for_sym(palt_read,sym,def,readprocdef);
                   end;
@@ -618,9 +618,9 @@ implementation
                         writeprocdef.parast.insertsym(hparavs);
                         { Insert hidden parameters }
                         if not assigned(astruct) then
-                          handle_calling_convention(writeprocdef,hcc_default_actions_intf)
+                          parser.pparautl.handle_calling_convention(writeprocdef,hcc_default_actions_intf)
                         else
-                          handle_calling_convention(writeprocdef,hcc_default_actions_intf_struct);
+                          parser.pparautl.handle_calling_convention(writeprocdef,hcc_default_actions_intf_struct);
                       end;
                     p.add_getter_or_setter_for_sym(palt_write,sym,def,writeprocdef);
                   end;
@@ -709,9 +709,9 @@ implementation
 
                                  { Insert hidden parameters }
                                  if not assigned(astruct) then
-                                   handle_calling_convention(storedprocdef,hcc_default_actions_intf)
+                                   parser.pparautl.handle_calling_convention(storedprocdef,hcc_default_actions_intf)
                                  else
-                                   handle_calling_convention(storedprocdef,hcc_default_actions_intf_struct);
+                                   parser.pparautl.handle_calling_convention(storedprocdef,hcc_default_actions_intf_struct);
                                  p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
                                  if not assigned(p.propaccesslist[palt_stored].procdef) then
                                    message(parser_e_ill_property_storage_sym);
@@ -1577,7 +1577,7 @@ implementation
                                hdef.register_def;
                            end;
                        end;
-                     handle_calling_convention(hdef,hcc_default_actions_intf);
+                     parser.pparautl.handle_calling_convention(hdef,hcc_default_actions_intf);
                    end;
                  read_default_value(sc);
                  hasdefaultvalue:=true;
@@ -1621,7 +1621,7 @@ implementation
                    flags:=hcc_default_actions_intf
                  else
                    flags:=hcc_default_actions_intf_struct;
-                 handle_calling_convention(hdef,flags);
+                 parser.pparautl.handle_calling_convention(hdef,flags);
                  { Handling of Delphi typed const = initialized vars }
                  if (current_scanner.token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and
@@ -1961,7 +1961,7 @@ implementation
                            hdef.register_def;
                        end;
                    end;
-                 handle_calling_convention(hdef,hcc_default_actions_intf);
+                 parser.pparautl.handle_calling_convention(hdef,hcc_default_actions_intf);
                end;
 
              if (vd_object in options) then

@@ -1213,7 +1213,7 @@ implementation
          { don't keep track of procdefs in a separate list, because the
            compiler may add additional procdefs (e.g. property wrappers for
            the jvm backend) }
-         insert_struct_hidden_paras(trecorddef(current_structdef));
+         compiler.parser.pparautl.insert_struct_hidden_paras(trecorddef(current_structdef));
          { restore symtable stack }
          compiler.symtablestack.pop(recst);
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
@@ -1828,7 +1828,7 @@ implementation
                 if parser.pdecsub.check_proc_directive(true) then
                   parser.pdecsub.parse_proctype_directives(pd);
                 { Add implicit hidden parameters and function result }
-                handle_calling_convention(pd,hcc_default_actions_intf);
+                compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf);
               end;
             { restore old state }
             parser.pbase.parse_generic:=old_parse_generic;

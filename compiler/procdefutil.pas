@@ -104,12 +104,12 @@ implementation
       { always use the default calling convention }
       result.proccalloption:=pocall_default;
       include(result.procoptions,po_hascallingconvention);
-      handle_calling_convention(result,hcc_default_actions_impl);
+      compiler.parser.pparautl.handle_calling_convention(result,hcc_default_actions_impl);
       sym:=cprocsym.create(basesymname+result.unique_id_str);
       st.insertsym(sym);
 
       result.procsym:=sym;
-      proc_add_definition(result);
+      compiler.parser.pparautl.proc_add_definition(result);
       { the code will be assigned directly to the "code" field later }
       result.forwarddef:=false;
       result.aliasnames.insert(result.mangledname);
@@ -237,8 +237,8 @@ implementation
       if invokedef.returndef=pvdef then
         invokedef.returndef:=intfdef;
 
-      handle_calling_convention(invokedef,hcc_default_actions_intf_struct);
-      proc_add_definition(invokedef);
+      compiler.parser.pparautl.handle_calling_convention(invokedef,hcc_default_actions_intf_struct);
+      compiler.parser.pparautl.proc_add_definition(invokedef);
       invokedef.calcparas;
       { def is not owned, so it can be simply freed }
       def.free;
@@ -350,7 +350,7 @@ implementation
       result.symtable.insertsym(invokedef.procsym);
       result.symtable.insertdef(invokedef);
 
-      proc_add_definition(invokedef);
+      compiler.parser.pparautl.proc_add_definition(invokedef);
       invokedef.calcparas;
       include(result.objectoptions,oo_has_virtual);
 
@@ -1008,8 +1008,8 @@ implementation
       pi.procdef:=pd;
       if not assigned(pinested) then
         begin
-          insert_funcret_para(pd);
-          insert_funcret_local(pd);
+          compiler.parser.pparautl.insert_funcret_para(pd);
+          compiler.parser.pparautl.insert_funcret_local(pd);
           { we always do a call, namely to the provided function }
           include(pi.flags,pi_do_call);
         end
@@ -1024,11 +1024,11 @@ implementation
           pd.funcretsym:=pinested.procdef.funcretsym;
           pinested.procdef.funcretsym:=nil;
           pinested.procdef.reset_after_conv;
-          insert_funcret_para(pinested.procdef);
-          insert_funcret_local(pinested.procdef);
+          compiler.parser.pparautl.insert_funcret_para(pinested.procdef);
+          compiler.parser.pparautl.insert_funcret_local(pinested.procdef);
           { the nested function needs access to the parent's framepointer to
             access the capturer }
-          insert_parentfp_para(pinested.procdef);
+          compiler.parser.pparautl.insert_parentfp_para(pinested.procdef);
           pd.copied_from:=pinested.procdef;
         end;
       { to simplify some checks, but only after insert_funcret_para }
@@ -1060,7 +1060,7 @@ implementation
       if assigned(pinested) then
         pinested.procdef.calcparas;
 
-      insert_self_and_vmt_para(pd);
+      compiler.parser.pparautl.insert_self_and_vmt_para(pd);
 
       if assigned(pinested) then
         begin
