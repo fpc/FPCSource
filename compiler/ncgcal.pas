@@ -131,7 +131,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,cutils,
+      verbose,globals,cutils,compiler,
       symconst,symtable,symtype,symsym,defutil,paramgr,
       pass_2,
       nld,ncnv,
@@ -548,7 +548,7 @@ implementation
         href: treference;
         literaldef: trecorddef;
       begin
-        literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
+        literaldef:=compiler.blockutl.get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef,compiler),true);
         { load the invoke pointer }
         hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,ctempposinvalid,right.resultdef.alignment,[]);

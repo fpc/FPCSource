@@ -154,7 +154,7 @@ uses
   ,i_aix
 {$endif aix}
   ,ctask
-  ,globtype,compinnr,cpuinfo,constexp,widestr
+  ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl
   ,ngenutil,pgentype,objcgutl,ncgrtti
   ,opt,optloop
   ,aasmdata
@@ -172,6 +172,7 @@ type
     FNodeUtils: TNodeUtils;
     FOpt: TOptimizers;
     FObjCGUtl: TObjCCodeGenUtils;
+    FBlockUtl: TBlockUtils;
     FRTTIWriter : TRTTIWriter;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -195,6 +196,7 @@ type
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
+    property BlockUtl: TBlockUtils read FBlockUtl;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
@@ -207,6 +209,7 @@ type
   TCompilerHelper = class helper for TCompilerBase
   private
     function Getaktassignmentnode: tassignmentnode; inline;
+    function GetBlockUtl: TBlockUtils; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
@@ -327,6 +330,7 @@ type
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
     property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
+    property BlockUtl: TBlockUtils read GetBlockUtl;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -376,6 +380,7 @@ begin
   donetokens;
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(FOpt);
+  FreeAndNil(FBlockUtl);
   FreeAndNil(FObjCGUtl);
   FreeAndNil(FNodeUtils);
 end;
@@ -391,6 +396,7 @@ begin
 {$endif}
   FNodeUtils:=tnodeutils.Create(Self);
   FObjCGUtl:=TObjCCodeGenUtils.Create(Self);
+  FBlockUtl:=TBlockUtils.Create(Self);
   FOpt:=TOptimizers.Create(Self);
 { inits which need to be done before the arguments are parsed }
   InitSystems;
@@ -634,6 +640,11 @@ end;
 function TCompilerHelper.Getaktassignmentnode: tassignmentnode; inline;
 begin
   Result := TCompiler(Self).aktassignmentnode;
+end;
+
+function TCompilerHelper.GetBlockUtl: TBlockUtils; inline;
+begin
+  Result := TCompiler(Self).BlockUtl;
 end;
 
 function TCompilerHelper.Getinitialmacrosymtable: TSymtable; inline;

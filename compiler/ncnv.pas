@@ -2497,7 +2497,7 @@ implementation
                    not is_nested_pd(tprocdef(source^.resultdef)) and
                    not is_objcclass(tdef(source^.resultdef.owner.defowner)) then
                   begin
-                    result:=generate_block_for_procaddr(tloadnode(source^));
+                    result:=compiler.blockutl.generate_block_for_procaddr(tloadnode(source^));
                     exit;
                   end
                 else

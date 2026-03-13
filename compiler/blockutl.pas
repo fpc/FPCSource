@@ -32,19 +32,28 @@ interface
     node,nld,ncnv,
     symtype,symdef;
 
-  { accepts a loadnode for a procdef
+type
+  TBlockUtils = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
-    returns a node representing the converted code to implement this
-    conversion (this node is valid both for typed constant declarations and
-    in function bodies). The node is not reused }
-  function generate_block_for_procaddr(procloadnode: tloadnode): tnode;
+    { accepts a loadnode for a procdef
 
-  { for a procdef, return a recorddef representing a block literal for this
-    procdef
+      returns a node representing the converted code to implement this
+      conversion (this node is valid both for typed constant declarations and
+      in function bodies). The node is not reused }
+    function generate_block_for_procaddr(procloadnode: tloadnode): tnode;
 
-    for a procvardef, return a basic recorddef representing a block literal
-    with enough info to call this procvardef }
-  function get_block_literal_type_for_proc(pd: tabstractprocdef): trecorddef;
+    { for a procdef, return a recorddef representing a block literal for this
+      procdef
+
+      for a procvardef, return a basic recorddef representing a block literal
+      with enough info to call this procvardef }
+    function get_block_literal_type_for_proc(pd: tabstractprocdef): trecorddef;
+  end;
 
 implementation
 
@@ -57,7 +66,13 @@ implementation
     paramgr,compiler;
 
 
-  function get_block_literal_type_for_proc(pd: tabstractprocdef): trecorddef;
+  constructor TBlockUtils.Create(ACompiler: TCompilerBase);
+    begin
+      FCompiler:=ACompiler;
+    end;
+
+
+  function TBlockUtils.get_block_literal_type_for_proc(pd: tabstractprocdef): trecorddef;
     begin
       if pd.typ=procvardef then
         result:=trecorddef(search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_LITERAL_BASE',true).typedef)
@@ -324,9 +339,7 @@ implementation
     end;
 
 
-  function generate_block_for_procaddr(procloadnode: tloadnode): tnode;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TBlockUtils.generate_block_for_procaddr(procloadnode: tloadnode): tnode;
     var
       procvarnode: tnode;
       { procvardef representing the original function we want to invoke }
