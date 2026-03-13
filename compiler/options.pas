@@ -3808,7 +3808,7 @@ begin
      { load new target }
      paratarget:=find_system_by_string(More);
      if paratarget<>system_none then
-       set_target(paratarget)
+       compiler.target.set_target(paratarget)
      else
        IllegalPara(opt);
      { set new define }

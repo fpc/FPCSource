@@ -565,6 +565,7 @@ interface
         procedure InitSystems;
       public
         constructor Create;
+        function set_target(t:tsystem):boolean;
       end;
 
     var
@@ -585,7 +586,6 @@ interface
        target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
        target_full_string : string[28];
 
-    function set_target(t:tsystem):boolean;
     function set_target_asm(t:tasm):boolean;
     function set_target_ar(t:tar):boolean;
     function set_target_res(t:tres):boolean;
@@ -651,7 +651,7 @@ End;
                               Target setting
 ****************************************************************************}
 
-function set_target(t:tsystem):boolean;
+function TCompilerTarget.set_target(t:tsystem):boolean;
 begin
   set_target:=false;
   if assigned(targetinfos[t]) then
