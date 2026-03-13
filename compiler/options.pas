@@ -141,10 +141,17 @@ Type
 
   TOptionClass=class of toption;
 
-var
-  coption : TOptionClass;
+  { TOptions }
 
-procedure read_arguments(cmd:TCmdStr);
+  TOptions = class
+  private
+    FCompiler: TCompilerBase;
+    coption : TOptionClass;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+    procedure read_arguments(cmd:TCmdStr);
+  end;
 
 implementation
 
@@ -4538,10 +4545,16 @@ begin
 end;
 
 
+{ TOptions }
 
-procedure read_arguments(cmd:TCmdStr);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+constructor TOptions.Create(ACompiler: TCompilerBase);
+begin
+  FCompiler:=ACompiler;
+  coption:=toption;
+end;
+
+
+procedure TOptions.read_arguments(cmd:TCmdStr);
 
   procedure def_cpu_macros;
     var
@@ -6041,8 +6054,6 @@ begin
 end;
 
 
-initialization
-  coption:=toption;
 finalization
   if assigned(option) then
    option.free;

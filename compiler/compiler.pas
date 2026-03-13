@@ -174,6 +174,7 @@ type
     FObjCGUtl: TObjCCodeGenUtils;
     FBlockUtl: TBlockUtils;
     FPkgUtil: TPackageUtils;
+    FOptions: TOptions;
     FRTTIWriter : TRTTIWriter;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -199,6 +200,7 @@ type
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
     property BlockUtl: TBlockUtils read FBlockUtl;
     property PkgUtil: TPackageUtils read FPkgUtil;
+    property Options: TOptions read FOptions;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
@@ -385,6 +387,7 @@ begin
   donetokens;
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(FOpt);
+  FreeAndNil(FOptions);
   FreeAndNil(FPkgUtil);
   FreeAndNil(FBlockUtl);
   FreeAndNil(FObjCGUtl);
@@ -404,6 +407,7 @@ begin
   FObjCGUtl:=TObjCCodeGenUtils.Create(Self);
   FBlockUtl:=TBlockUtils.Create(Self);
   FPkgUtil:=TPackageUtils.Create(Self);
+  FOptions:=TOptions.Create(Self);
   FOpt:=TOptimizers.Create(Self);
   paramanager:=tcpuparamanager.Create(Self);
 { inits which need to be done before the arguments are parsed }
@@ -423,7 +427,7 @@ begin
   at the previous compile }
   set_current_module(nil);
 { read the arguments }
-  read_arguments(cmd);
+  options.read_arguments(cmd);
 { inits which depend on arguments }
   FParser:=TParser.Create(self);
   InitImport;
