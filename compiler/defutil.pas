@@ -353,7 +353,7 @@ interface
     function is_vector(p : tdef) : boolean;
 
     { return a real/hardware vectordef representing this def }
-    function to_hwvectordef(p: tdef; nil_on_error: boolean): tdef;
+    function to_hwvectordef(p: tdef; nil_on_error: boolean;compiler:TCompilerBase): tdef;
 
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : tdef) : boolean;
@@ -1634,9 +1634,7 @@ implementation
       end;
 
 
-    function to_hwvectordef(p: tdef; nil_on_error: boolean): tdef;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function to_hwvectordef(p: tdef; nil_on_error: boolean;compiler:TCompilerBase): tdef;
       begin
         result:=nil;
         if p.typ=arraydef then
