@@ -27,6 +27,7 @@ unit rasm;
 
     uses
       cclasses,
+      compilerbase,
       symsym,
       rabase,
       aasmbase,
@@ -46,7 +47,7 @@ unit rasm;
          actcondition   : tasmcond;
          iasmops        : TFPHashList;
          locallabels    : TFPHashObjectList;
-         constructor create;override;
+         constructor create(ACompiler: TCompilerBase);override;
          destructor destroy;override;
          function createlocallabel(const s: string; var hl: tasmlabel; emit: boolean): boolean;
          procedure checklocallabels;
@@ -86,9 +87,9 @@ unit rasm;
       end;
 
 
-    constructor tasmreader.create;
+    constructor tasmreader.create(ACompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited create(ACompiler);
         firsttoken:=true;
         locallabels:=TFPHashObjectList.create;
       end;

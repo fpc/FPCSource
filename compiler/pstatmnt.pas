@@ -1124,7 +1124,7 @@ implementation
 
          if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
-             asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;
+             asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create(compiler);
              entrypos:=current_filepos;
              hl:=asmreader.assemble as TAsmList;
              if (not hl.empty) then

@@ -199,8 +199,6 @@ unit raatt;
 
     procedure tattreader.GetToken;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         len : longint;
         srsym : tsym;
         srsymtable : TSymtable;
@@ -1113,8 +1111,6 @@ unit raatt;
 
 
    Function tattreader.Assemble: tlinkedlist;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      Var
        hl         : tasmlabel;
        commname,
@@ -1536,8 +1532,6 @@ unit raatt;
 
 
     procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:tcgint;var asmsym:string;var asmsymtyp:TAsmsymtype);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hssymtyp : TAsmSymType;
         hs,tempstr,expr,mangledname : string;

@@ -82,7 +82,7 @@ Unit Rax86int;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
          inexpression : boolean;
-         constructor create;override;
+         constructor create(ACompiler: TCompilerBase);override;
          function is_asmopcode(const s: string):boolean;
          function is_asmoperator(const s: string):boolean;
          function is_asmdirective(const s: string):boolean;
@@ -177,11 +177,11 @@ Unit Rax86int;
         'and','or','xor','wrt','..gotpcrel','','{RN-SAE}'
       );
 
-    constructor tx86intreader.create;
+    constructor tx86intreader.create(ACompiler: TCompilerBase);
       var
         i : tasmop;
       Begin
-        inherited create;
+        inherited create(ACompiler);
         iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
           iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
@@ -3200,8 +3200,6 @@ Unit Rax86int;
 
 
   function tx86intreader.Assemble: tlinkedlist;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     Var
       hl : tasmlabel;
       instr : Tx86Instruction;
