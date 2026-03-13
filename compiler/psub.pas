@@ -632,7 +632,7 @@ implementation
         if m_non_local_goto in current_settings.modeswitches then
           tsymtable(current_procinfo.procdef.localst).SymList.ForEachCall(@add_label_init,@newstatement);
 
-        initialize_capturer(current_procinfo,newstatement);
+        compiler.procdefutil.initialize_capturer(current_procinfo,newstatement);
       end;
 
 
@@ -1785,7 +1785,7 @@ implementation
           end;
         { convert the captured symbols for this routine }
         if assigned(code) then
-          procdefutil.convert_captured_syms(procdef,code);
+          compiler.procdefutil.convert_captured_syms(procdef,code);
         current_procinfo:=old_current_procinfo;
       end;
 
@@ -2551,7 +2551,7 @@ implementation
          { parse the code ... }
          code:=block(current_module.islibrary);
 
-         postprocess_capturer(self);
+         compiler.procdefutil.postprocess_capturer(self);
 
          if recordtokens then
            begin

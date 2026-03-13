@@ -2734,7 +2734,7 @@ implementation
             hp := nil;
           end;
 
-        intfdef:=capturer_add_procvar_or_proc(current_procinfo,left,capturer,hp);
+        intfdef:=compiler.procdefutil.capturer_add_procvar_or_proc(current_procinfo,left,capturer,hp);
         if assigned(intfdef) then
           begin
             if assigned(capturer) then
@@ -2766,7 +2766,7 @@ implementation
         intfdef : tdef;
         ldnode : tnode;
       begin
-        intfdef:=capturer_add_anonymous_proc(current_procinfo,tprocdef(left.resultdef),capturer);
+        intfdef:=compiler.procdefutil.capturer_add_anonymous_proc(current_procinfo,tprocdef(left.resultdef),capturer);
         if assigned(intfdef) then
           begin
             if assigned(capturer) then

@@ -1137,7 +1137,7 @@ implementation
                                  dummysym:=sym
                                else
                                  dummysym:=nil;
-                               adjust_funcref(hdef,newtype,dummysym);
+                               compiler.procdefutil.adjust_funcref(hdef,newtype,dummysym);
                              end;
                            if current_scanner.replay_stack_depth=0 then
                              hdef.register_def;

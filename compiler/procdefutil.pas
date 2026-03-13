@@ -28,25 +28,46 @@ interface
 uses
   compilerbase,
   globtype,procinfo,
-  symconst,symtype,symdef,
-  node,nbas;
+  symconst,symtype,symdef,symsym,
+  node,nbas,nutils;
 
-{ create a nested procdef that will be used to outline code from a procedure;
-  astruct should usually be nil, except in special cases like the Windows SEH
-  exception handling funclets }
-function create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
+type
+  TProcDefUtils = class
+  private
+    FCompiler: TCompilerBase;
+    function funcref_intf_for_proc(pd:tabstractprocdef;const suffix:string):tobjectdef;
+    procedure capture_captured_syms(pd:tprocdef;owner:tprocinfo;capturedef:tobjectdef;oldpd:tprocdef);
+    function retrieve_sym_for_filepos(var n:tnode;arg:pointer):foreachnoderesult;
+    function collect_syms_to_capture(var n:tnode;arg:pointer):foreachnoderesult;
+    function find_self_sym(var n:tnode;arg:pointer):foreachnoderesult;
+    function find_outermost_loaded_sym(var n:tnode;arg:pointer):foreachnoderesult;
+    function find_procdef(var n:tnode;arg:pointer):foreachnoderesult;
+    function load_capturer(capturer:tabstractvarsym):tnode;inline;
+    function instantiate_capturer(capturer_sym:tabstractvarsym):tnode;
+    procedure initialize_captured_paras(pd:tprocdef;capturer:tabstractvarsym;var stmt:tstatementnode);
+    procedure attach_outer_capturer(ctx:tprocinfo;capturer:tabstractvarsym;var stmt:tstatementnode);
+    function convert_captured_sym(var n:tnode;arg:pointer):foreachnoderesult;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
 
-procedure convert_to_funcref_intf(const n:tidstring;var def:tdef);
-function adjust_funcref(var def:tdef;sym,dummysym:tsym):boolean;
+    { create a nested procdef that will be used to outline code from a procedure;
+      astruct should usually be nil, except in special cases like the Windows SEH
+      exception handling funclets }
+    function create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
 
-{ functionality related to capturing local variables for anonymous functions }
+    procedure convert_to_funcref_intf(const n:tidstring;var def:tdef);
+    function adjust_funcref(var def:tdef;sym,dummysym:tsym):boolean;
 
-function get_or_create_capturer(pd:tprocdef):tsym;
-function capturer_add_anonymous_proc(owner:tprocinfo;pd:tprocdef;out capturer:tsym):tobjectdef;
-function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
-procedure initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
-procedure postprocess_capturer(ctx:tprocinfo);
-procedure convert_captured_syms(pd:tprocdef;tree:tnode);
+    { functionality related to capturing local variables for anonymous functions }
+
+    function get_or_create_capturer(pd:tprocdef):tsym;
+    function capturer_add_anonymous_proc(owner:tprocinfo;pd:tprocdef;out capturer:tsym):tobjectdef;
+    function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
+    procedure initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
+    procedure postprocess_capturer(ctx:tprocinfo);
+    procedure convert_captured_syms(pd:tprocdef;tree:tnode);
+  end;
 
 implementation
 
@@ -54,17 +75,21 @@ implementation
     cutils,cclasses,verbose,globals,
     fmodule,
     pass_1,
-    nobj,ncal,nmem,nld,nutils,
+    nobj,ncal,nmem,nld,
     ngenutil,
-    symbase,symsym,symtable,defutil,defcmp,
+    symbase,symtable,defutil,defcmp,
     htypechk,
     pparautl,psub,
     compiler;
 
 
-  function create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  constructor TProcDefUtils.Create(ACompiler: TCompilerBase);
+    begin
+      FCompiler:=ACompiler;
+    end;
+
+
+  function TProcDefUtils.create_outline_procdef(const basesymname: string; astruct: tabstractrecorddef; potype: tproctypeoption; resultdef: tdef): tprocdef;
     var
       st:TSymTable;
       checkstack: psymtablestackitem;
@@ -134,9 +159,8 @@ implementation
     outer_self_field_name='OuterSelf';
 
 
-  procedure convert_to_funcref_intf(const n:tidstring;var def:tdef);
+  procedure TProcDefUtils.convert_to_funcref_intf(const n:tidstring;var def:tdef);
     var
-      compiler: TCompilerBase;
       oldsymtablestack : tsymtablestack;
       pvdef : tprocvardef absolute def;
       intfdef : tobjectdef;
@@ -145,7 +169,6 @@ implementation
       i : longint;
       name : tidstring;
     begin
-      compiler:=def.compiler;
       if def.typ<>procvardef then
         internalerror(2021040201);
       if not (po_is_function_ref in tprocvardef(pvdef).procoptions) then
@@ -246,7 +269,7 @@ implementation
     end;
 
 
-  function adjust_funcref(var def:tdef;sym,dummysym:tsym):boolean;
+  function TProcDefUtils.adjust_funcref(var def:tdef;sym,dummysym:tsym):boolean;
     var
       sympos : tfileposinfo;
       name : string;
@@ -294,16 +317,14 @@ implementation
     end;
 
 
-  function funcref_intf_for_proc(pd:tabstractprocdef;const suffix:string):tobjectdef;
+  function TProcDefUtils.funcref_intf_for_proc(pd:tabstractprocdef;const suffix:string):tobjectdef;
     var
-      compiler: TCompilerBase;
       name : tsymstr;
       sym : tsym;
       symowner : tsymtable;
       oldsymtablestack: TSymtablestack;
       invokedef: tprocdef;
     begin
-      compiler:=pd.compiler;
       if pd.is_generic then
         internalerror(2022010710);
 
@@ -443,9 +464,8 @@ implementation
     end;
 
 
-  function get_or_create_capturer(pd:tprocdef):tsym;
+  function TProcDefUtils.get_or_create_capturer(pd:tprocdef):tsym;
     var
-      compiler: TCompilerBase;
       name : tsymstr;
       parent,
       def : tobjectdef;
@@ -453,7 +473,6 @@ implementation
       keepalive : tabstractvarsym;
       st : tsymtable;
     begin
-      compiler:=pd.compiler;
       if pd.has_capturer then
         begin
           result:=get_capturer(pd);
@@ -582,9 +601,8 @@ implementation
     end;
 
 
-  procedure capture_captured_syms(pd:tprocdef;owner:tprocinfo;capturedef:tobjectdef;oldpd:tprocdef);
+  procedure TProcDefUtils.capture_captured_syms(pd:tprocdef;owner:tprocinfo;capturedef:tobjectdef;oldpd:tprocdef);
     var
-      compiler: TCompilerBase;
       curpd : tprocdef;
       subcapturer : tobjectdef;
       symstodo : TFPList;
@@ -594,7 +612,6 @@ implementation
       fieldname : tsymstr;
       fielddef : tdef;
     begin
-      compiler:=pd.compiler;
       if not pd.was_anonymous or not assigned(pd.capturedsyms) or (pd.capturedsyms.count=0) then
         exit;
       { capture all variables that the original procdef captured }
@@ -713,7 +730,7 @@ implementation
     end;
 
 
-  function retrieve_sym_for_filepos(var n:tnode;arg:pointer):foreachnoderesult;
+  function TProcDefUtils.retrieve_sym_for_filepos(var n:tnode;arg:pointer):foreachnoderesult;
     var
       sym : ^tsym absolute arg;
     begin
@@ -735,7 +752,7 @@ implementation
     end;
 
 
-  function collect_syms_to_capture(var n:tnode;arg:pointer):foreachnoderesult;
+  function TProcDefUtils.collect_syms_to_capture(var n:tnode;arg:pointer):foreachnoderesult;
     var
       pd : tprocdef absolute arg;
       sym : tsym;
@@ -761,7 +778,7 @@ implementation
     pselfinfo=^tselfinfo;
 
 
-  function find_self_sym(var n:tnode;arg:pointer):foreachnoderesult;
+  function TProcDefUtils.find_self_sym(var n:tnode;arg:pointer):foreachnoderesult;
     var
       info : pselfinfo absolute arg;
     begin
@@ -782,7 +799,7 @@ implementation
     end;
 
 
-  function find_outermost_loaded_sym(var n:tnode;arg:pointer):foreachnoderesult;
+  function TProcDefUtils.find_outermost_loaded_sym(var n:tnode;arg:pointer):foreachnoderesult;
     var
       sym : ^tsym absolute arg;
     begin
@@ -798,7 +815,7 @@ implementation
     end;
 
 
-  function find_procdef(var n:tnode;arg:pointer):foreachnoderesult;
+  function TProcDefUtils.find_procdef(var n:tnode;arg:pointer):foreachnoderesult;
     var
       pd : ^tprocdef absolute arg;
     begin
@@ -812,9 +829,7 @@ implementation
     end;
 
 
-  function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
-    var
-      compiler: TCompilerBase;
+  function TProcDefUtils.capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
 
     function create_paras(pd:tprocdef):tcallparanode;
       var
@@ -901,7 +916,6 @@ implementation
       fieldsym : tfieldvarsym;
       selfinfo : tselfinfo;
     begin
-      compiler:=n.compiler;
       if not (n.resultdef.typ in [procdef,procvardef]) then
         internalerror(2022022101);
 
@@ -914,7 +928,7 @@ implementation
         node we're trying to load }
 
       sym:=nil;
-      if not foreachnodestatic(pm_preprocess,n,@find_outermost_loaded_sym,@sym) then
+      if not foreachnode(pm_preprocess,n,@find_outermost_loaded_sym,@sym) then
         internalerror(2022022102);
 
       result:=funcref_intf_for_proc(tabstractprocdef(n.resultdef),fileinfo_to_suffix(sym.fileinfo));
@@ -928,7 +942,7 @@ implementation
           else
             begin
               pd:=nil;
-              if not foreachnodestatic(pm_preprocess,n,@find_procdef,@pd) then
+              if not foreachnode(pm_preprocess,n,@find_procdef,@pd) then
                 internalerror(2022041801);
               if not assigned(pd) then
                 internalerror(2022041802);
@@ -1144,7 +1158,7 @@ implementation
           pinested.procdef.add_captured_sym(capturer,capturedef,n.fileinfo);
         end
       { does this need to capture Self? }
-      else if not foreachnodestatic(pm_postprocess,n,@find_self_sym,@selfinfo) then
+      else if not foreachnode(pm_postprocess,n,@find_self_sym,@selfinfo) then
         begin
           { is this a method of the current class? }
           if (n.resultdef.typ=procdef) and
@@ -1159,7 +1173,7 @@ implementation
             end
           else
             { does this need some other local variable or parameter? }
-            foreachnodestatic(pm_postprocess,n,@collect_syms_to_capture,@pd)
+            foreachnode(pm_postprocess,n,@collect_syms_to_capture,@pd)
         end;
 
       if assigned(selfinfo.selfsym) and not assigned(fieldsym) then
@@ -1177,7 +1191,7 @@ implementation
     end;
 
 
-  function capturer_add_anonymous_proc(owner:tprocinfo;pd:tprocdef;out capturer:tsym):tobjectdef;
+  function TProcDefUtils.capturer_add_anonymous_proc(owner:tprocinfo;pd:tprocdef;out capturer:tsym):tobjectdef;
     var
       capturedef : tobjectdef;
       implintf : TImplementedInterface;
@@ -1326,17 +1340,13 @@ implementation
     end;
 
 
-  function load_capturer(capturer:tabstractvarsym):tnode;inline;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TProcDefUtils.load_capturer(capturer:tabstractvarsym):tnode;inline;
     begin
       result:=compiler.cloadnode(capturer,capturer.owner);
     end;
 
 
-  function instantiate_capturer(capturer_sym:tabstractvarsym):tnode;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TProcDefUtils.instantiate_capturer(capturer_sym:tabstractvarsym):tnode;
     var
       capturer_def : tobjectdef;
       ctor : tprocsym;
@@ -1355,14 +1365,12 @@ implementation
     end;
 
 
-  procedure initialize_captured_paras(pd:tprocdef;capturer:tabstractvarsym;var stmt:tstatementnode);
+  procedure TProcDefUtils.initialize_captured_paras(pd:tprocdef;capturer:tabstractvarsym;var stmt:tstatementnode);
     var
-      compiler: TCompilerBase;
       i : longint;
       psym: tparavarsym;
       n : tnode;
     begin
-      compiler:=pd.compiler;
       for i:=0 to pd.paras.count-1 do
         begin
           psym:=tparavarsym(pd.paras[i]);
@@ -1383,9 +1391,8 @@ implementation
     end;
 
 
-  procedure attach_outer_capturer(ctx:tprocinfo;capturer:tabstractvarsym;var stmt:tstatementnode);
+  procedure TProcDefUtils.attach_outer_capturer(ctx:tprocinfo;capturer:tabstractvarsym;var stmt:tstatementnode);
     var
-      compiler: TCompilerBase;
       alivefield,
       selffield : tfieldvarsym;
       outeralive,
@@ -1393,7 +1400,6 @@ implementation
       alivenode,
       selfnode : tnode;
     begin
-      compiler:=ctx.compiler;
       if not ctx.procdef.was_anonymous and
           not (ctx.procdef.owner.symtabletype=localsymtable) then
         exit;
@@ -1443,13 +1449,11 @@ implementation
     end;
 
 
-  procedure initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
+  procedure TProcDefUtils.initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
     var
-      compiler: TCompilerBase;
       capturer_sym,
       keepalive_sym : tabstractvarsym;
     begin
-      compiler:=ctx.compiler;
       if ctx.procdef.has_capturer then
         begin
           capturer_sym:=get_capturer(ctx.procdef);
@@ -1467,7 +1471,7 @@ implementation
     end;
 
 
-  procedure postprocess_capturer(ctx: tprocinfo);
+  procedure TProcDefUtils.postprocess_capturer(ctx: tprocinfo);
     var
       def: tobjectdef;
     begin
@@ -1499,9 +1503,8 @@ implementation
     pconvert_mapping=^tconvert_mapping;
 
 
-  function convert_captured_sym(var n:tnode;arg:pointer):foreachnoderesult;
+  function TProcDefUtils.convert_captured_sym(var n:tnode;arg:pointer):foreachnoderesult;
     var
-      compiler: TCompilerBase;
       convertarg : pconvert_arg absolute arg;
       mapping : pconvert_mapping;
       i : longint;
@@ -1512,7 +1515,6 @@ implementation
       paraold,
       paranew : tcallparanode;
     begin
-      compiler:=n.compiler;
       result:=fen_true;
       if not (n.nodetype in [loadn,calln]) then
         exit;
@@ -1581,9 +1583,7 @@ implementation
     end;
 
 
-  procedure convert_captured_syms(pd:tprocdef;tree:tnode);
-    var
-      compiler: TCompilerBase;
+  procedure TProcDefUtils.convert_captured_syms(pd:tprocdef;tree:tnode);
 
     function self_tree_for_sym(selfsym:tsym;fieldsym:tsym):tnode;
       var
@@ -1613,8 +1613,6 @@ implementation
       sym : tsym;
     begin
       {$ifdef DEBUG_CAPTURER}writeln('Converting captured symbols of ',pd.procsym.name);{$endif}
-
-      compiler:=pd.compiler;
 
       convertarg.mappings:=tfplist.create;
 
@@ -1759,7 +1757,7 @@ implementation
       capturedsyms := nil;
 
       if convertarg.mappings.count>0 then
-        foreachnodestatic(pm_postprocess,tree,@convert_captured_sym,@convertarg);
+        foreachnode(pm_postprocess,tree,@convert_captured_sym,@convertarg);
 
       for i:=0 to convertarg.mappings.count-1 do
         begin

@@ -1566,7 +1566,7 @@ implementation
                            messagepos(typepos,sym_e_error_in_type_def)
                          else
                            begin
-                             if adjust_funcref(hdef,nil,nil) then
+                             if compiler.procdefutil.adjust_funcref(hdef,nil,nil) then
                                { the def was changed, so update it }
                                for i:=0 to sc.count-1 do
                                  begin
@@ -1605,7 +1605,7 @@ implementation
                        messagepos(typepos,sym_e_error_in_type_def)
                      else
                        begin
-                         if adjust_funcref(hdef,nil,nil) then
+                         if compiler.procdefutil.adjust_funcref(hdef,nil,nil) then
                            { the def was changed, so update it }
                            for i:=0 to sc.count-1 do
                              begin
@@ -1950,7 +1950,7 @@ implementation
                        messagepos(typepos,sym_e_error_in_type_def)
                      else
                        begin
-                         if adjust_funcref(hdef,nil,nil) then
+                         if compiler.procdefutil.adjust_funcref(hdef,nil,nil) then
                            { the def was changed, so update it }
                            for i:=0 to sc.count-1 do
                              begin

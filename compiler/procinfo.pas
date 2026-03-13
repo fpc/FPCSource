@@ -228,7 +228,7 @@ unit procinfo;
 implementation
 
     uses
-      globals,cutils,systems,verbose,
+      globals,cutils,systems,verbose,compiler,
       procdefutil;
 
 {****************************************************************************
@@ -395,7 +395,7 @@ implementation
       begin
         result:=cprocinfo.create(self,compiler);
         result.force_nested;
-        result.procdef:=create_outline_procdef(basesymname,astruct,potype,resultdef);
+        result.procdef:=compiler.procdefutil.create_outline_procdef(basesymname,astruct,potype,resultdef);
         result.entrypos:=entrynodeinfo.fileinfo;
         result.entryswitches:=entrynodeinfo.localswitches;
         result.exitpos:=current_filepos; // filepos of last node?

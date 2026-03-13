@@ -2182,7 +2182,7 @@ uses
                       if replaydepth<current_scanner.replay_stack_depth then
                         parser.pdecsub.parse_proctype_directives(tprocvardef(result));
                       if po_is_function_ref in tprocvardef(result).procoptions then
-                        adjust_funcref(result,srsym,nil);
+                        compiler.procdefutil.adjust_funcref(result,srsym,nil);
                       if result.typ=procvardef then
                         flags:=hcc_default_actions_intf
                       else
