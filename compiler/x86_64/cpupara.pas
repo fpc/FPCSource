@@ -33,7 +33,42 @@ unit cpupara;
 
     type
        tcpuparamanager = class(tparamanager)
+       private const
+         { This many classes are required in order to support 4 YMMs (_m256) in a
+           homogeneous vector aggregate under vectorcall. [Kit] }
+         MAX_PARA_CLASSES = 16;
+
+       private type
+         tx64paraclasstype = (
+           X86_64_NO_CLASS,
+           X86_64_INTEGER_CLASS,X86_64_INTEGERSI_CLASS,
+           X86_64_SSE_CLASS,X86_64_SSESF_CLASS,X86_64_SSEDF_CLASS,X86_64_SSEUP_CLASS,
+           X86_64_X87_CLASS,X86_64_X87UP_CLASS,
+           X86_64_COMPLEX_X87_CLASS,
+           X86_64_MEMORY_CLASS
+         );
+
+         tx64paraclass = record
+           def: tdef;
+           typ: tx64paraclasstype;
+         end;
+
+         tx64paraclasses = array[0..MAX_PARA_CLASSES-1] of tx64paraclass;
        private
+          function aggregate_in_registers_win64(varspez:tvarspez;size:longint):boolean;
+          function classify_representative_def(def1, def2: tdef): tdef;
+          procedure classify_single_integer_class(def: tdef; size,real_size: aint; var cl: tx64paraclass; byte_offset: aint);
+          function classify_as_integer_argument(def: tdef; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
+          function merge_classes(class1, class2: tx64paraclass): tx64paraclass;
+          function init_aggregate_classification(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
+          function classify_aggregate_element(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; new_byte_offset: aint): longint;
+          function finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
+          function try_build_homogeneous_aggregate(def: tdef; words: longint; var classes: tx64paraclasses): longint;
+          function classify_record(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+          function classify_normal_array(calloption: tproccalloption; def: tarraydef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+          function classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint;
+          function is_simd_vector_type_or_homogeneous_aggregate(calloption: tproccalloption; def: tdef; varspez: tvarspez): aint;
+          procedure getvalueparaloc(calloption: tproccalloption;varspez:tvarspez;def:tdef;var classes: tx64paraclasses);
           procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
        public
@@ -97,30 +132,8 @@ unit cpupara;
    ----------------------------------------------------------------------- *)
 }
 
-    const
-      { This many classes are required in order to support 4 YMMs (_m256) in a
-        homogeneous vector aggregate under vectorcall. [Kit] }
-      MAX_PARA_CLASSES = 16;
-
-    type
-      tx64paraclasstype = (
-        X86_64_NO_CLASS,
-        X86_64_INTEGER_CLASS,X86_64_INTEGERSI_CLASS,
-        X86_64_SSE_CLASS,X86_64_SSESF_CLASS,X86_64_SSEDF_CLASS,X86_64_SSEUP_CLASS,
-        X86_64_X87_CLASS,X86_64_X87UP_CLASS,
-        X86_64_COMPLEX_X87_CLASS,
-        X86_64_MEMORY_CLASS
-      );
-
-      tx64paraclass = record
-        def: tdef;
-        typ: tx64paraclasstype;
-      end;
-
-      tx64paraclasses = array[0..MAX_PARA_CLASSES-1] of tx64paraclass;
-
     { Win64-specific helper }
-    function aggregate_in_registers_win64(varspez:tvarspez;size:longint):boolean;
+    function tcpuparamanager.aggregate_in_registers_win64(varspez:tvarspez;size:longint):boolean;
       begin
     { TODO: Temporary hack: vs_const parameters are always passed by reference for win64}
         result:=(varspez=vs_value) and (size in [1,2,4,8])
@@ -131,7 +144,7 @@ unit cpupara;
        class and assign registers accordingly.  *)
 
 
-       function classify_representative_def(def1, def2: tdef): tdef;
+       function tcpuparamanager.classify_representative_def(def1, def2: tdef): tdef;
          var
            def1size, def2size: asizeint;
          begin
@@ -166,7 +179,7 @@ unit cpupara;
 
           See the x86-64 PS ABI for details.
        *)
-       procedure classify_single_integer_class(def: tdef; size,real_size: aint; var cl: tx64paraclass; byte_offset: aint);
+       procedure tcpuparamanager.classify_single_integer_class(def: tdef; size,real_size: aint; var cl: tx64paraclass; byte_offset: aint);
          begin
            if (byte_offset=0) and
               (real_size in [1,2,4,8]) and
@@ -199,7 +212,7 @@ unit cpupara;
          end;
 
 
-       function classify_as_integer_argument(def: tdef; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
+       function tcpuparamanager.classify_as_integer_argument(def: tdef; real_size: aint; var classes: tx64paraclasses; byte_offset: aint): longint;
          var
            size: aint;
          begin
@@ -220,7 +233,7 @@ unit cpupara;
     (* Return the union class of CLASS1 and CLASS2.
        See the x86-64 PS ABI for details.  *)
 
-    function merge_classes(class1, class2: tx64paraclass): tx64paraclass;
+    function tcpuparamanager.merge_classes(class1, class2: tx64paraclass): tx64paraclass;
       begin
         (* Rule #1: If both classes are equal, this is the resulting class.  *)
         if (class1.typ=class2.typ) then
@@ -298,9 +311,7 @@ unit cpupara;
       end;
 
 
-    function classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint; forward;
-
-    function init_aggregate_classification(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
+    function tcpuparamanager.init_aggregate_classification(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; byte_offset: aint; out words: longint; out classes: tx64paraclasses): longint;
       var
         i: longint;
       begin
@@ -378,7 +389,7 @@ unit cpupara;
       end;
 
 
-    function classify_aggregate_element(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; new_byte_offset: aint): longint;
+    function tcpuparamanager.classify_aggregate_element(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; new_byte_offset: aint): longint;
       var
         subclasses: tx64paraclasses;
         i,
@@ -401,9 +412,7 @@ unit cpupara;
       end;
 
 
-    function finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function tcpuparamanager.finalize_aggregate_classification(calloption: tproccalloption; def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
         i, vecsize, maxvecsize: longint;
       begin
@@ -571,7 +580,7 @@ unit cpupara;
       end;
 
 
-    function try_build_homogeneous_aggregate(def: tdef; words: longint; var classes: tx64paraclasses): longint;
+    function tcpuparamanager.try_build_homogeneous_aggregate(def: tdef; words: longint; var classes: tx64paraclasses): longint;
       var
         i, vecsize, maxvecsize, veccount: longint;
         {size, }byte_offset: aint;
@@ -755,7 +764,7 @@ unit cpupara;
       end;
 
 
-    function classify_record(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function tcpuparamanager.classify_record(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
       var
         vs: tfieldvarsym;
         size,
@@ -837,7 +846,7 @@ unit cpupara;
       end;
 
 
-    function classify_normal_array(calloption: tproccalloption; def: tarraydef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
+    function tcpuparamanager.classify_normal_array(calloption: tproccalloption; def: tarraydef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
       var
         i, elecount: aword;
         size,
@@ -902,9 +911,7 @@ unit cpupara;
       end;
 
 
-    function classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function tcpuparamanager.classify_argument(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; real_size: aint; var classes: tx64paraclasses; byte_offset: aint; round_to_8: Boolean): longint;
       var
         rounded_offset: aint;
       begin
@@ -1057,7 +1064,7 @@ unit cpupara;
 
 
     { Returns the size of a single element in the aggregate, or the entire vector, if it is one of these types, 0 otherwise }
-    function is_simd_vector_type_or_homogeneous_aggregate(calloption: tproccalloption; def: tdef; varspez: tvarspez): aint;
+    function tcpuparamanager.is_simd_vector_type_or_homogeneous_aggregate(calloption: tproccalloption; def: tdef; varspez: tvarspez): aint;
       var
         numclasses,i,vecsize,veccount,maxvecsize:longint;
         classes: tx64paraclasses;
@@ -1175,7 +1182,7 @@ unit cpupara;
       end;
 
 
-    procedure getvalueparaloc(calloption: tproccalloption;varspez:tvarspez;def:tdef;var classes: tx64paraclasses);
+    procedure tcpuparamanager.getvalueparaloc(calloption: tproccalloption;varspez:tvarspez;def:tdef;var classes: tx64paraclasses);
       var
         size: aint;
         i: longint;
