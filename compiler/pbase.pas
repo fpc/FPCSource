@@ -47,6 +47,7 @@ interface
       TParserBaseHelpers = class
       private
         FCompiler: TCompilerBase;
+        property Compiler: TCompilerBase read FCompiler;
       public
         { for operators }
         optoken : ttoken;
@@ -226,8 +227,6 @@ implementation
     }
     function TParserBaseHelpers.consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         t : ttoken;
       begin
         { first check for identifier }
@@ -260,8 +259,6 @@ implementation
       if required and returns the id with it's original casing
     }
     function TParserBaseHelpers.consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         t : ttoken;
       begin
