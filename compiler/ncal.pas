@@ -4354,7 +4354,7 @@ implementation
                if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                 internalerror(200212142);
                left:=compiler.ccallparanode(genconstsymtree(
-                   tconstsym(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)),left);
+                   tconstsym(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym),compiler),left);
                { set correct callnode }
                tcallparanode(left).callnode:=self;
                { Ignore vs_hidden parameters }

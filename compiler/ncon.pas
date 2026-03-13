@@ -222,7 +222,7 @@ interface
     function get_string_value(p : tnode; def: tstringdef) : tstringconstnode;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_emptyset(p : tnode):boolean;
-    function genconstsymtree(p : tconstsym) : tnode;
+    function genconstsymtree(p : tconstsym; compiler: TCompilerBase) : tnode;
 
     function getbooleanvalue(p : tnode) : boolean;
 
@@ -326,9 +326,7 @@ implementation
       end;
 
 
-    function genconstsymtree(p : tconstsym) : tnode;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function genconstsymtree(p : tconstsym; compiler: TCompilerBase) : tnode;
       var
         p1  : tnode;
         len : longint;

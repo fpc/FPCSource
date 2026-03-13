@@ -1706,7 +1706,7 @@ implementation
                  constsym:
                    begin
                      p1.free;
-                     p1:=genconstsymtree(tconstsym(sym));
+                     p1:=genconstsymtree(tconstsym(sym),compiler);
                    end;
                  staticvarsym:
                    begin
@@ -3254,7 +3254,7 @@ implementation
                     result.resultdef:=getansistringdef;
                 end
               else
-                result:=genconstsymtree(tconstsym(srsym));
+                result:=genconstsymtree(tconstsym(srsym),compiler);
             end;
 
           procsym :
