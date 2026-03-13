@@ -36,6 +36,7 @@ type
   TBlockUtils = class
   private
     FCompiler: TCompilerBase;
+    function get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
     function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -257,9 +258,7 @@ implementation
 
 
   { compose a block literal for a static block (one without context) }
-  function get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TBlockUtils.get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
     var
       literalname: TIDString;
       srsym: tsym;
