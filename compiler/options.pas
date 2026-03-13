@@ -156,7 +156,8 @@ Type
     coption : TOptionClass;
     option     : toption;
     read_subfile,         { read subtarget config file, set when a cfgfile is found }
-    read_configfile:boolean;{ read config file, set when a cfgfile is found }
+    read_configfile,        { read config file, set when a cfgfile is found }
+    disable_configfile : boolean;
     procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -189,7 +190,6 @@ const
   page_width = 80;
 
 var
-  disable_configfile : boolean;
   subcfg,
   fpcdir,
   ppccfg,
@@ -3449,7 +3449,7 @@ procedure TOption.Interpret_N_l(opt, more: TCmdStr);
 
 begin
   if More='' then
-    disable_configfile:=true
+    FOptions.disable_configfile:=true
   else
     IllegalPara(opt);
 end;
