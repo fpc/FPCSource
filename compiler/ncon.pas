@@ -219,7 +219,7 @@ interface
 
     { some helper routines }
     function get_ordinal_value(p : tnode) : TConstExprInt;
-    function get_string_value(p : tnode; def: tstringdef) : tstringconstnode;
+    function get_string_value(p : tnode; def: tstringdef; compiler: TCompilerBase) : tstringconstnode;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym; compiler: TCompilerBase) : tnode;
@@ -279,9 +279,7 @@ implementation
           Message(type_e_constant_expr_expected);
       end;
 
-    function get_string_value(p: tnode; def: tstringdef): tstringconstnode;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function get_string_value(p: tnode; def: tstringdef; compiler: TCompilerBase): tstringconstnode;
       var
         stringVal: string;
         pWideStringVal: tcompilerwidestring;

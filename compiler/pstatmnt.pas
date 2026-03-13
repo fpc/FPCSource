@@ -249,8 +249,8 @@ implementation
                    is_conststring_or_constcharnode(trangenode(p).right) then
                  begin
                    { we need stringconstnodes, even if expression contains single chars }
-                   sl1 := get_string_value(trangenode(p).left, tstringdef(casedef));
-                   sl2 := get_string_value(trangenode(p).right, tstringdef(casedef));
+                   sl1 := get_string_value(trangenode(p).left, tstringdef(casedef), compiler);
+                   sl2 := get_string_value(trangenode(p).right, tstringdef(casedef), compiler);
                    if sl1.fullcompare(sl2) > 0 then
                      CGMessage(parser_e_case_lower_less_than_upper_bound);
                  end
@@ -287,7 +287,7 @@ implementation
 
                  if caseofstring then
                    begin
-                     sl1:=get_string_value(p, tstringdef(casedef));
+                     sl1:=get_string_value(p, tstringdef(casedef), compiler);
                      casenode.addlabel(blockid,sl1,sl1);
                    end
                  else
