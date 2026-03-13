@@ -4175,7 +4175,7 @@ implementation
                 if cnf_anon_inherited in callnodeflags then
                   ccflags:=ccflags+[cc_anoninherited];
 
-                candidates.init(symtableprocentry,symtableproc,left,ccflags,spezcontext);
+                candidates.init(symtableprocentry,symtableproc,left,ccflags,spezcontext,compiler);
 
                 { no procedures found? then there is something wrong
                   with the parameter size or the procedures are

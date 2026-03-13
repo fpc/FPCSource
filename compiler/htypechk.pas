@@ -70,6 +70,7 @@ interface
 
       tcallcandidates = object
       private
+        FCompiler    : TCompilerBase;
         FProcsym     : tprocsym;
         FProcsymtable : tsymtable;
         FOperator    : ttoken;
@@ -85,9 +86,10 @@ interface
         procedure create_candidate_list(flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
         procedure calc_distance(st_root:tsymtable;flags:tcallcandidatesflags);
         function  proc_add(st:tsymtable;pd:tprocdef):pcandidate;
+        property Compiler: TCompilerBase read FCompiler;
       public
-        constructor init(sym:tprocsym;st:TSymtable;ppn:tnode;flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
-        constructor init_operator(op:ttoken;ppn:tnode);
+        constructor init(sym:tprocsym;st:TSymtable;ppn:tnode;flags:tcallcandidatesflags;spezcontext:tspecializationcontext;acompiler: TCompilerBase);
+        constructor init_operator(op:ttoken;ppn:tnode;acompiler: TCompilerBase);
         destructor done;
         procedure list(all:boolean);
 {$ifdef EXTDEBUG}
@@ -802,7 +804,7 @@ implementation
             ppn:=compiler.ccallparanode(tunarynode(t).left.getcopy,nil);
             ppn.get_paratype;
           end;
-        candidates.init_operator(optoken,ppn);
+        candidates.init_operator(optoken,ppn,compiler);
 
         { stop when there are no operators found }
         if candidates.count=0 then
@@ -891,7 +893,7 @@ implementation
             { generate parameter nodes }
             ppn:=compiler.ccallparanode(tbinarynode(t).right.getcopy,compiler.ccallparanode(tbinarynode(t).left.getcopy,nil));
             ppn.get_paratype;
-            candidates.init_operator(optoken,ppn);
+            candidates.init_operator(optoken,ppn,compiler);
 
             { for commutative operators we can swap arguments and try again }
             if (candidates.count=0) and
@@ -912,7 +914,7 @@ implementation
                   else
                     ;
                 end;
-                candidates.init_operator(optoken,ppn);
+                candidates.init_operator(optoken,ppn,compiler);
               end;
 
             { stop when there are no operators found }
@@ -2188,8 +2190,9 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.init(sym:tprocsym;st:TSymtable;ppn:tnode;flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
+    constructor tcallcandidates.init(sym:tprocsym;st:TSymtable;ppn:tnode;flags:tcallcandidatesflags;spezcontext:tspecializationcontext;acompiler: TCompilerBase);
       begin
+        FCompiler:=acompiler;
         if not assigned(sym) then
           internalerror(200411015);
         FOperator:=NOTOKEN;
@@ -2200,8 +2203,9 @@ implementation
       end;
 
 
-    constructor tcallcandidates.init_operator(op:ttoken;ppn:tnode);
+    constructor tcallcandidates.init_operator(op:ttoken;ppn:tnode;acompiler: TCompilerBase);
       begin
+        FCompiler:=acompiler;
         FOperator:=op;
         FProcsym:=nil;
         FProcsymtable:=nil;
@@ -2249,8 +2253,6 @@ implementation
 
 
     procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       var
         changedhierarchy : boolean;
@@ -2439,8 +2441,6 @@ implementation
 
 
     procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; flags:tcallcandidatesflags;spezcontext:tspecializationcontext);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         j          : integer;
         pd         : tprocdef;
@@ -2892,8 +2892,6 @@ implementation
 
 
     procedure tcallcandidates.get_information;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp       : pcandidate;
         currpara : tparavarsym;
