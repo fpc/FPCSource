@@ -80,7 +80,7 @@ type
     procedure save_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
     procedure restore;
     procedure reload_symtable_stack(stack: TSymtablestack; kind: TSymTableStackKind);
-    class procedure clear_state;
+    class procedure clear_state(_compiler: TCompilerBase);
   end;
 
 procedure save_global_state(state:tglobalstate);
@@ -325,9 +325,7 @@ var
         end;
     end;
 
-  class procedure tglobalstate.clear_state;
-    var
-      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  class procedure tglobalstate.clear_state(_compiler: TCompilerBase);
     begin
       tcompiler(_compiler).symtablestack:=nil;
       tcompiler(_compiler).macrosymtablestack:=nil;

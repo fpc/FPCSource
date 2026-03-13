@@ -407,7 +407,7 @@ begin
   begin
     tppumodule(m).reload;
     t.SaveState;
-    tglobalstate.clear_state;
+    tglobalstate.clear_state(compiler);
     exit(false);
   end;
   case m.state of
@@ -471,7 +471,7 @@ begin
   else
     { Not done, save state }
     t.SaveState;
-  tglobalstate.clear_state;
+  tglobalstate.clear_state(compiler);
 end;
 
 procedure ttask_handler.search_finished_scc(m: tmodule{$IFDEF DEBUG_PPU_CYCLES}; const Indent: string{$ENDIF});
@@ -854,7 +854,7 @@ begin
   Result:=restore_state(m);
   tppumodule(m).reload;
   Result.SaveState;
-  tglobalstate.clear_state;
+  tglobalstate.clear_state(compiler);
 end;
 
 function ttask_handler.recompile_module(m: tmodule): ttask;
@@ -870,7 +870,7 @@ begin
     m.recompile_reason:=rr_buildcycle;
   tppumodule(m).recompile_from_sources;
   addmodule(m);
-  tglobalstate.clear_state;
+  tglobalstate.clear_state(compiler);
 end;
 
 procedure ttask_handler.update_circular_unit_groups;
