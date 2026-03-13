@@ -36,6 +36,7 @@ type
   TBlockUtils = class
   private
     FCompiler: TCompilerBase;
+    function get_invoke_wrapper(orgpd: tprocdef; orgpv: tprocvardef): tprocdef;
     function get_global_proc_literal_sym(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; invokepd: tprocdef; descriptor: tstaticvarsym): tstaticvarsym;
     function get_pascal_method_literal(blockliteraldef: tdef; blockisasym: tstaticvarsym; blockflags: longint; procvarnode: tnode; invokepd: tprocdef; orgpv: tprocvardef; descriptor: tstaticvarsym): tnode;
     property Compiler: TCompilerBase read FCompiler;
@@ -210,9 +211,7 @@ implementation
   { creates a wrapper function for pd with the C calling convention and an
     extra first parameter pointing to the block "self" pointer. This wrapper is
     what will be assigned to the "invoke" field of the block }
-  function get_invoke_wrapper(orgpd: tprocdef; orgpv: tprocvardef): tprocdef;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TBlockUtils.get_invoke_wrapper(orgpd: tprocdef; orgpv: tprocvardef): tprocdef;
     var
       wrappername: TIDString;
       srsym: tsym;
