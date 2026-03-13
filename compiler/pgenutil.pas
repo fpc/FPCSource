@@ -2621,13 +2621,13 @@ uses
                       fwdok:=false
                     else if (generictype.typ=typesym) then
                       begin
-                        if compare_defs_ext(ttypesym(generictype).typedef,ttypesym(fwdparam).typedef,nothingn,conv,op,[cdo_strict_genconstraint_check])<te_exact then
+                        if compare_defs_ext(compiler.symtablestack,ttypesym(generictype).typedef,ttypesym(fwdparam).typedef,nothingn,conv,op,[cdo_strict_genconstraint_check])<te_exact then
                           fwdok:=false;
                       end
                     else if (generictype.typ=constsym) then
                       begin
                         if (tconstsym(generictype).consttyp<>tconstsym(fwdparam).consttyp) or
-                            (compare_defs_ext(tconstsym(generictype).constdef,tconstsym(fwdparam).constdef,nothingn,conv,op,[cdo_strict_genconstraint_check])<te_exact) then
+                            (compare_defs_ext(compiler.symtablestack,tconstsym(generictype).constdef,tconstsym(fwdparam).constdef,nothingn,conv,op,[cdo_strict_genconstraint_check])<te_exact) then
                           fwdok:=false;
                       end
                     else

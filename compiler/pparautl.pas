@@ -820,7 +820,7 @@ implementation
                 non exactly equal undefineddefs }
               convdummy:=tc_none;
               pddummy:=nil;
-              result:=(compare_defs_ext(fwpd.returndef,currpd.returndef,nothingn,convdummy,pddummy,[cdo_allow_variant,cdo_strict_undefined_check])=te_exact) or
+              result:=(compare_defs_ext(compiler.symtablestack,fwpd.returndef,currpd.returndef,nothingn,convdummy,pddummy,[cdo_allow_variant,cdo_strict_undefined_check])=te_exact) or
                         equal_genfunc_paradefs(fwpd.returndef,currpd.returndef,fwpd.parast,currpd.parast);
             end;
           { the result variable is only set depending on the return type, so we

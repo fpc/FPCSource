@@ -113,7 +113,8 @@ interface
           tc_procvar_2_funcref
        );
 
-    function compare_defs_ext(def_from,def_to : tdef;
+    function compare_defs_ext(symtablestack: TSymtablestack;
+                              def_from,def_to : tdef;
                               fromtreetype : tnodetype;
                               var doconv : tconverttype;
                               var operatorpd : tprocdef;
@@ -213,13 +214,12 @@ implementation
       end;
 
 
-    function compare_defs_ext(def_from,def_to : tdef;
+    function compare_defs_ext(symtablestack: TSymtablestack;
+                              def_from,def_to : tdef;
                               fromtreetype : tnodetype;
                               var doconv : tconverttype;
                               var operatorpd : tprocdef;
                               cdoptions:tcompare_defs_options):tequaltype;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       { tordtype:
            uvoid,
@@ -297,9 +297,9 @@ implementation
 
          { resolve anonymous external definitions }
          if def_from.typ=objectdef then
-           def_from:=compiler.symtablestack.find_real_class_definition(tobjectdef(def_from),false);
+           def_from:=symtablestack.find_real_class_definition(tobjectdef(def_from),false);
          if def_to.typ=objectdef then
-           def_to:=compiler.symtablestack.find_real_class_definition(tobjectdef(def_to),false);
+           def_to:=symtablestack.find_real_class_definition(tobjectdef(def_to),false);
 
          { same def? then we've an exact match }
          if def_from=def_to then
@@ -1130,7 +1130,8 @@ implementation
                                  begin
                                    { this should loose to the array constructor -> open array conversions,
                                      but it might happen that the end of the convert levels is reached :/ }
-                                   subeq:=compare_defs_ext(tarraydef(def_from).elementdef,
+                                   subeq:=compare_defs_ext(symtablestack,
+                                                        tarraydef(def_from).elementdef,
                                                         tarraydef(def_to).elementdef,
                                                         { reason for cdo_allow_variant: see webtbs/tw7070a and webtbs/tw7070b }
                                                         arrayconstructorn,hct,hpd,[cdo_check_operator,cdo_allow_variant]);
@@ -1187,7 +1188,8 @@ implementation
                                 end
                                else
                                 begin
-                                  subeq:=compare_defs_ext(tarraydef(def_from).elementdef,
+                                  subeq:=compare_defs_ext(symtablestack,
+                                                       tarraydef(def_from).elementdef,
                                                        tarraydef(def_to).elementdef,
                                                        { reason for cdo_allow_variant: see webtbs/tw7070a and webtbs/tw7070b }
                                                        arrayconstructorn,hct,hpd,[cdo_check_operator,cdo_allow_variant]);
@@ -1297,7 +1299,7 @@ implementation
                                 (tarraydef(def_from).lowrange=tarraydef(def_to).lowrange) and
                                 (tarraydef(def_from).highrange=tarraydef(def_to).highrange) and
                                 equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) and
-                                (compare_defs_ext(tarraydef(def_from).rangedef,tarraydef(def_to).rangedef,nothingn,hct,hpd,[])>te_incompatible) then
+                                (compare_defs_ext(symtablestack,tarraydef(def_from).rangedef,tarraydef(def_to).rangedef,nothingn,hct,hpd,[])>te_incompatible) then
                               begin
                                 eq:=te_equal
                               end;
@@ -2175,21 +2177,25 @@ implementation
 
     function equal_defs(def_from,def_to:tdef):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         convtyp : tconverttype;
         pd : tprocdef;
       begin
         { Compare defs with nothingn and no explicit typecasts and
           searching for overloaded operators is not needed }
-        equal_defs:=(compare_defs_ext(def_from,def_to,nothingn,convtyp,pd,[cdo_equal_check])>=te_equal);
+        equal_defs:=(compare_defs_ext(compiler.symtablestack,def_from,def_to,nothingn,convtyp,pd,[cdo_equal_check])>=te_equal);
       end;
 
 
     function compare_defs(def_from,def_to:tdef;fromtreetype:tnodetype):tequaltype;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         doconv : tconverttype;
         pd : tprocdef;
       begin
-        compare_defs:=compare_defs_ext(def_from,def_to,fromtreetype,doconv,pd,[cdo_check_operator,cdo_allow_variant]);
+        compare_defs:=compare_defs_ext(compiler.symtablestack,def_from,def_to,fromtreetype,doconv,pd,[cdo_check_operator,cdo_allow_variant]);
       end;
 
 
@@ -2277,6 +2283,8 @@ implementation
 
 
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       var
          i1,i2     : byte;
@@ -2378,7 +2386,7 @@ implementation
                    if not(cpo_ignorevarspez in cpoptions) and
                       (currpara1.varspez<>currpara2.varspez) then
                     exit;
-                   eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
+                   eq:=compare_defs_ext(compiler.symtablestack,currpara1.vardef,currpara2.vardef,nothingn,
                                         convtype,hpd,cdoptions);
                  end
                 else if ([vo_is_self,vo_is_vmt]*currpara1.varoptions)<>
@@ -2401,7 +2409,7 @@ implementation
                             (currpara2.varspez in [vs_var,vs_out,vs_constref]))
                           ) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
+                       eq:=compare_defs_ext(compiler.symtablestack,currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                     end;
                   cp_all :
@@ -2412,7 +2420,7 @@ implementation
                            (currpara1.varspez<>currpara2.varspez)) or
                           (currpara1.univpara<>currpara2.univpara) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
+                       eq:=compare_defs_ext(compiler.symtablestack,currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                     end;
                   cp_procvar :
@@ -2424,14 +2432,14 @@ implementation
                           matches if the types are compatible (i.e., as usual),
                           from from non-univ to univ also matches if the types
                           have the same size (checked below) }
-                       eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
+                       eq:=compare_defs_ext(compiler.symtablestack,currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                        { Parameters must be at least equal otherwise the are incompatible }
                        if (eq<te_equal) then
                          eq:=te_incompatible;
                     end;
                   else
-                    eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
+                    eq:=compare_defs_ext(compiler.symtablestack,currpara1.vardef,currpara2.vardef,nothingn,
                                          convtype,hpd,cdoptions);
                  end;
                end;
@@ -2543,10 +2551,12 @@ implementation
 
     function compare_rettype(def1,def2:tdef):tequaltype;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         doconv : tconverttype;
         pd : tprocdef;
       begin
-        result:=compare_defs_ext(def1,def2,nothingn,doconv,pd,[cdo_check_operator,cdo_allow_variant,cdo_strict_undefined_check]);
+        result:=compare_defs_ext(compiler.symtablestack,def1,def2,nothingn,doconv,pd,[cdo_check_operator,cdo_allow_variant,cdo_strict_undefined_check]);
       end;
 
 

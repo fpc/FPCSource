@@ -624,6 +624,8 @@ implementation
 
     function isoperatoracceptable(pf : tprocdef; optoken : ttoken) : boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         ld,rd : tdef;
         i : longint;
         eq : tequaltype;
@@ -678,7 +680,7 @@ implementation
                     cdo:=[];
                     if optoken=_OP_EXPLICIT then
                       include(cdo,cdo_explicit);
-                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,cdo);
+                    eq:=compare_defs_ext(compiler.symtablestack,ld,pf.returndef,nothingn,conv,pd,cdo);
                     result:=
                       (eq=te_exact) or
                       (eq=te_incompatible);
@@ -2976,7 +2978,7 @@ implementation
                   is compatible with the expected type. }
                 (
                  (count=1) or
-                 (compare_defs_ext(tprocvardef(currpt.left.resultdef).returndef,def_to,nothingn,convtype,pdoper,[])>te_incompatible)
+                 (compare_defs_ext(compiler.symtablestack,tprocvardef(currpt.left.resultdef).returndef,def_to,nothingn,convtype,pdoper,[])>te_incompatible)
                 ) then
                begin
                  releasecurrpt:=true;
@@ -3114,7 +3116,7 @@ implementation
                  begin
                    n:=currpt.left.getcopy;
                    arrayconstructor_to_set(n);
-                   eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
+                   eq:=compare_defs_ext(compiler.symtablestack,n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
                    check_valid_var:=false;
                    n.free;
                    n := nil;
@@ -3134,7 +3136,7 @@ implementation
                     if tarrayconstructornode(n).left.nodetype=arrayconstructorrangen then
                       eq:=te_incompatible
                     else
-                      eq:=compare_defs_ext(tarrayconstructornode(n).left.resultdef,tarraydef(def_to).elementdef,tarrayconstructornode(n).left.nodetype,convtype,pdoper,cdoptions);
+                      eq:=compare_defs_ext(compiler.symtablestack,tarrayconstructornode(n).left.resultdef,tarraydef(def_to).elementdef,tarrayconstructornode(n).left.nodetype,convtype,pdoper,cdoptions);
                     if eq<mineq then
                       mineq:=eq;
                     if eq=te_incompatible then
@@ -3157,7 +3159,7 @@ implementation
                       check_valid_var:=false;
                     end
                  else
-                   eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
+                   eq:=compare_defs_ext(compiler.symtablestack,def_from,def_to,currpt.left.nodetype,convtype,pdoper,cdoptions);
 
                  { when the types are not equal we need to check
                    some special case for parameter passing }

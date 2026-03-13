@@ -2918,7 +2918,7 @@ implementation
             if nf_internal in flags then
               include(cdoptions,cdo_internal);
             aprocdef:=nil;
-            eq:=compare_defs_ext(left.resultdef,resultdef,left.nodetype,convtype,aprocdef,cdoptions);
+            eq:=compare_defs_ext(compiler.symtablestack,left.resultdef,resultdef,left.nodetype,convtype,aprocdef,cdoptions);
             case eq of
               te_exact,
               te_equal :

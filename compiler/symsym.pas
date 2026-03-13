@@ -1372,6 +1372,8 @@ implementation
 
     function Tprocsym.Find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype;isexplicit:boolean):Tprocdef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         paraidx, realparamcount,
         i, j : longint;
         bestpd,
@@ -1426,7 +1428,7 @@ implementation
                    assigned(pd.paras[paraidx]) and
                    (realparamcount = 1) then
                   begin
-                    eq:=compare_defs_ext(fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
+                    eq:=compare_defs_ext(compiler.symtablestack,fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
 
                     { alias? if yes, only l1 choice,
                       if you mess with this code, check tw4093 }
@@ -1466,6 +1468,8 @@ implementation
       end;
 
       function Tprocsym.find_procdef_enumerator_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         paraidx, realparamcount,
         i, j : longint;
@@ -1518,7 +1522,7 @@ implementation
                    assigned(pd.paras[paraidx]) and
                    (realparamcount = 1) then
                   begin
-                    eq:=compare_defs_ext(fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
+                    eq:=compare_defs_ext(compiler.symtablestack,fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
 
                     { alias? if yes, only l1 choice,
                       if you mess with this code, check tw4093 }

@@ -317,7 +317,7 @@ implementation
                    pd.parast.insertsym(defaultvalue);
                    { check whether the default value is of the correct
                      type }
-                   if compare_defs_ext(defaultvalue.constdef,hdef,nodetype,doconv,convpd,[])<=te_convert_operator then
+                   if compare_defs_ext(compiler.symtablestack,defaultvalue.constdef,hdef,nodetype,doconv,convpd,[])<=te_convert_operator then
                      MessagePos2(defaultvalue.fileinfo,type_e_incompatible_types,FullTypeName(defaultvalue.constdef,hdef),FullTypeName(hdef,defaultvalue.constdef));
                  end;
                defaultrequired:=true;
