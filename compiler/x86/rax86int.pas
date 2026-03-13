@@ -2194,7 +2194,7 @@ Unit Rax86int;
               begin
                 if (GotPlus and Negative) or GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                tmpoper:=Tx86Operand.create;
+                tmpoper:=Tx86Operand.create(compiler);
                 BuildReference(tmpoper);
                 AddReferences(oper,tmpoper);
                 tmpoper.Free;
@@ -2217,7 +2217,7 @@ Unit Rax86int;
 
                 if actasmtoken=AS_LBRACKET then
                   begin
-                    tmpoper:=Tx86Operand.create;
+                    tmpoper:=Tx86Operand.create(compiler);
                     BuildReference(tmpoper);
                     AddReferences(oper,tmpoper);
                     tmpoper.Free;

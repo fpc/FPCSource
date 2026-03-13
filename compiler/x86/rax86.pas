@@ -30,7 +30,7 @@ interface
 
 uses
   aasmbase,aasmtai,aasmdata,aasmcpu,
-  cpubase,rautils,cclasses;
+  cpubase,rautils,cclasses,compilerbase;
 
 { Parser helpers }
 function is_prefix(t:tasmop):boolean;
@@ -52,7 +52,7 @@ type
     { handles the @Data symbol }
     Procedure SetupData;
 
-    constructor create; override;
+    constructor create(ACompiler: TCompilerBase); override;
   end;
 
   { Operands are always in AT&T order.
@@ -418,7 +418,7 @@ begin
 {$endif i8086}
 end;
 
-constructor Tx86Operand.create;
+constructor Tx86Operand.create(ACompiler: TCompilerBase);
 begin
   inherited;
 

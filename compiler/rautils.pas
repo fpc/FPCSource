@@ -99,6 +99,11 @@ type
   TInstruction = class;
 
   TOperand = class
+  private
+    FCompiler: TCompilerBase;
+  protected
+    property Compiler: TCompilerBase read FCompiler;
+  public
     opr    : TOprRec;
     typesize : byte;
     haslabelref,      { if the operand has a label, used in a reference like a
@@ -108,7 +113,7 @@ type
     hastype,          { if the operand has typecasted variable }
     hasvar : boolean; { if the operand is loaded with a variable }
     size   : TCGSize;
-    constructor create;virtual;
+    constructor create(ACompiler: TCompilerBase);virtual;
     destructor  destroy;override;
     Procedure SetSize(_size:longint;force:boolean);virtual;
     Procedure SetCorrectSize(opcode:tasmop);virtual;
@@ -663,8 +668,9 @@ end;
                                    TOperand
 ****************************************************************************}
 
-constructor TOperand.Create;
+constructor TOperand.Create(ACompiler: TCompilerBase);
 begin
+  FCompiler:=ACompiler;
   size:=OS_NO;
   hasproc:=false;
   hastype:=false;
@@ -1254,6 +1260,8 @@ end;
 
 constructor TInstruction.create(optype : tcoperand);
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  var
     i : longint;
   Begin
     { these field are set to 0 anyways by the constructor helper (FK)
@@ -1263,7 +1271,7 @@ constructor TInstruction.create(optype : tcoperand);
     }
     filepos:=current_filepos;
     for i:=1 to max_operands do
-      Operands[i]:=optype.create;
+      Operands[i]:=optype.create(compiler);
     Labeled:=false;
   end;
 
