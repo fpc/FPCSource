@@ -555,6 +555,13 @@ interface
        ];
 {$pop}
 
+    type
+
+      { TCompilerTarget }
+
+      TCompilerTarget = class
+      end;
+
     var
        targetinfos   : array[tsystem] of psysteminfo;
        arinfos       : array[tar] of parinfo;

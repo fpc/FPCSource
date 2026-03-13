@@ -167,6 +167,7 @@ type
 ****************************************************************************}
   TCompiler = class(TCompilerBase)
   private
+    FTarget: TCompilerTarget;
     FTaskHandler: TTask_handler;
     FParser: TParser;
     FNodeUtils: TNodeUtils;
@@ -196,6 +197,7 @@ type
   public
     function Compile(const cmd:TCmdStr):longint;
 
+    property Target: TCompilerTarget read FTarget;
     property Parser: TParser read FParser;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
@@ -229,6 +231,7 @@ type
     function GetProcDefUtil: TProcDefUtils; inline;
     function GetRTTIWriter: TRTTIWriter; inline;
     function Getsymtablestack: TSymtablestack; inline;
+    function GetTarget: TCompilerTarget; inline;
     procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
   public
     { node constructor helpers }
@@ -337,6 +340,7 @@ type
     function crangenode(l,r : tnode):trangenode; inline;
     function ccasenode(l:tnode):tcasenode; inline;
 
+    property Target: TCompilerTarget read GetTarget;
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
@@ -394,6 +398,7 @@ begin
   DoneFileUtils;
   donetokens;
   DoneTaskHandler(FTaskHandler);
+  FreeAndNil(FTarget);
   FreeAndNil(FOpt);
   FreeAndNil(FOptions);
   FreeAndNil(FObjCUtil);
@@ -423,6 +428,7 @@ begin
   FOpt:=TOptimizers.Create(Self);
   paramanager:=tcpuparamanager.Create(Self);
 { inits which need to be done before the arguments are parsed }
+  FTarget:=TCompilerTarget.Create;
   InitSystems;
   { fileutils depends on source_info so it must be after systems }
   InitFileUtils;
@@ -724,6 +730,11 @@ end;
 function TCompilerHelper.Getsymtablestack: TSymtablestack;
 begin
   Result := TCompiler(Self).symtablestack;
+end;
+
+function TCompilerHelper.GetTarget: TCompilerTarget; inline;
+begin
+  Result := TCompiler(Self).Target;
 end;
 
 procedure TCompilerHelper.Setaktassignmentnode(AValue: tassignmentnode); inline;
