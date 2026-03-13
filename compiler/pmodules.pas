@@ -2093,7 +2093,7 @@ type
                          module_name:=module_name+'.'+current_scanner.orgpattern;
                          parser.pbase.consume(_ID);
                        end;
-                     add_package(module_name,false,true);
+                     compiler.pkgutil.add_package(module_name,false,true);
                    end
                  else
                    parser.pbase.consume(_ID);
@@ -2107,7 +2107,7 @@ type
 
          { now load all packages, so that we can determine whether a unit is
            already provided by one of the loaded packages }
-         load_packages;
+         compiler.pkgutil.load_packages;
 
          if packagelist.Count>0 then
            begin
@@ -2266,7 +2266,7 @@ type
             hp2:=hp;
             hp:=tmodule(hp.next);
             if assigned(hp2.package) then
-              add_package_unit_ref(hp2.package);
+              compiler.pkgutil.add_package_unit_ref(hp2.package);
             if hp2.is_unit and
                not assigned(hp2.globalsymtable) then
               loaded_units.remove(hp2);
@@ -2284,7 +2284,7 @@ type
                  parser.psystem.load_intern_types;
                end;
              if not assigned(uu.u.package) then
-               export_unit(uu.u);
+               compiler.pkgutil.export_unit(uu.u);
 
              uu:=tused_unit(uu.next);
            end;
@@ -2306,7 +2306,7 @@ type
 
          { create import libraries for all packages }
          if packagelist.count>0 then
-           createimportlibfromexternals;
+           compiler.pkgutil.createimportlibfromexternals;
 
          { generate imports }
          if curr.ImportLibraryList.Count>0 then
@@ -2354,7 +2354,7 @@ type
                     if not assigned(hp.package) then
                       begin
                         pkg.addunit(hp);
-                        check_for_indirect_package_usages(hp.used_units);
+                        compiler.pkgutil.check_for_indirect_package_usages(hp.used_units);
                       end
                     else
                       begin
@@ -2402,7 +2402,7 @@ type
                     hp:=hp2;
                   end;
                  { add the library of directly used packages }
-                 add_package_libs(linker);
+                 compiler.pkgutil.add_package_libs(linker);
                  { and now link the package library }
                  linker.MakeSharedLibrary
                end;
@@ -2456,7 +2456,7 @@ type
                  end;
                hp2:=tmodule(hp.next);
                if assigned(hp.package) then
-                 add_package_unit_ref(hp.package);
+                 compiler.pkgutil.add_package_unit_ref(hp.package);
                if (hp<>curr) and
                   (not needsymbolinfo) then
                  begin
@@ -2474,7 +2474,7 @@ type
               Message1(link_w_program_uses_checkpointer,curr.modulename^);
 
             { add all directly used packages as libraries }
-            add_package_libs(linker);
+            compiler.pkgutil.add_package_libs(linker);
             { finally we can create an executable }
             if curr.islibrary then
               linker.MakeSharedLibrary
@@ -2609,7 +2609,7 @@ type
 
         { create import library for all packages }
         if packagelist.count>0 then
-          createimportlibfromexternals;
+          compiler.pkgutil.createimportlibfromexternals;
 
         { generate imports }
         if curr.ImportLibraryList.Count>0 then
@@ -3039,7 +3039,7 @@ type
 
          { load all packages, so we know whether a unit is contained inside a
            package or not }
-         load_packages;
+         compiler.pkgutil.load_packages;
 
          { set implementation flag }
          curr.in_interface:=false;

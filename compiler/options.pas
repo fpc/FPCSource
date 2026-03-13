@@ -27,7 +27,7 @@ interface
 
 uses
   cfileutl,cclasses,versioncmp,
-  globtype,globals,verbose,systems,cpuinfo,comprsrc;
+  globtype,globals,verbose,systems,cpuinfo,comprsrc,compilerbase;
 
 Type
   TOption=class
@@ -162,7 +162,8 @@ uses
   llvminfo,
 {$endif llvm}
   dirparse,
-  pkgutil;
+  pkgutil,
+  compiler;
 
 const
   page_size = 24;
@@ -3057,6 +3058,8 @@ end;
 
 
 procedure TOption.Interpret_F_U(opt, more: TCmdStr; ispara: boolean);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
 var
   c : char;
@@ -3171,7 +3174,7 @@ begin
         if ispara then
           parapackages.add(more,nil)
         else
-          add_package(more,true,true);
+          compiler.pkgutil.add_package(more,true,true);
       end;
     'p' :
       begin
@@ -4537,6 +4540,8 @@ end;
 
 
 procedure read_arguments(cmd:TCmdStr);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   procedure def_cpu_macros;
     var
@@ -5149,7 +5154,7 @@ begin
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
   packagesearchpath.addlist(option.parapackagepath,true);
   for j:=0 to option.parapackages.count-1 do
-    add_package(option.parapackages.NameOfIndex(j),true,true);
+    compiler.pkgutil.add_package(option.parapackages.NameOfIndex(j),true,true);
 
   { add default namespaces }
   tmplist:=TCmdStrList.Create;

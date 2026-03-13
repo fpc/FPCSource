@@ -68,7 +68,7 @@ implementation
   uses
     sysutils,
     cfileutl,cutils,
-    systems,globals,version,
+    systems,globals,version,compiler,
     verbose,
     entfile,pkgutil;
 
@@ -288,6 +288,8 @@ implementation
     end;
 
   procedure tpcppackage.writeppudata;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
       align: array[0..15] of byte = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
     var
@@ -313,7 +315,7 @@ implementation
 
           { retrieve substream for the current position }
           stream:=pcpfile.substream(module^.offset,-1);
-          rewriteppu(module^.module.ppufilename,stream);
+          compiler.pkgutil.rewriteppu(module^.module.ppufilename,stream);
           module^.size:=stream.position;
           stream.free;
           stream := nil;

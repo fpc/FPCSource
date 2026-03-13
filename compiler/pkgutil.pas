@@ -29,14 +29,22 @@ interface
   uses
     fmodule,fpkg,link,cstreams,cclasses,compilerbase;
 
-  procedure createimportlibfromexternals;
-  Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
-  procedure export_unit(u:tmodule);
-  procedure load_packages;
-  procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
-  procedure add_package_unit_ref(package:tpackage);
-  procedure add_package_libs(l:tlinker);
-  procedure check_for_indirect_package_usages(modules:tlinkedlist);
+type
+  TPackageUtils = class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
+    constructor Create(ACompiler: TCompilerBase);
+    procedure createimportlibfromexternals;
+    Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
+    procedure export_unit(u:tmodule);
+    procedure load_packages;
+    procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
+    procedure add_package_unit_ref(package:tpackage);
+    procedure add_package_libs(l:tlinker);
+    procedure check_for_indirect_package_usages(modules:tlinkedlist);
+  end;
 
 implementation
 
@@ -50,6 +58,12 @@ implementation
     psub,pdecsub,
     ppu,entfile,fpcp,
     export;
+
+  constructor TPackageUtils.Create(ACompiler: TCompilerBase);
+    begin
+      FCompiler:=ACompiler;
+    end;
+
 
   procedure procexport(const s : string);
     var
@@ -235,7 +249,7 @@ implementation
     end;
 
 
-  procedure export_unit(u: tmodule);
+  procedure TPackageUtils.export_unit(u: tmodule);
     var
       i : longint;
       sym : tasmsymbol;
@@ -266,9 +280,7 @@ implementation
           end;
     end;
 
-  Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  Function TPackageUtils.RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
     Var
       MakeStatic : Boolean;
     Var
@@ -454,7 +466,7 @@ implementation
     end;
 
 
-  procedure load_packages;
+  procedure TPackageUtils.load_packages;
     var
       i,j : longint;
       pcp: tpcppackage;
@@ -514,7 +526,7 @@ implementation
     end;
 
 
-  procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
+  procedure TPackageUtils.add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
     var
       entry : ppackageentry;
       i : longint;
@@ -537,7 +549,7 @@ implementation
     end;
 
 
-  procedure add_package_unit_ref(package: tpackage);
+  procedure TPackageUtils.add_package_unit_ref(package: tpackage);
     var
       pkgentry : ppackageentry;
     begin
@@ -548,7 +560,7 @@ implementation
     end;
 
 
-  procedure add_package_libs(l:tlinker);
+  procedure TPackageUtils.add_package_libs(l:tlinker);
     var
       pkgentry : ppackageentry;
       i : longint;
@@ -577,7 +589,7 @@ implementation
     end;
 
 
-  procedure check_for_indirect_package_usages(modules:tlinkedlist);
+  procedure TPackageUtils.check_for_indirect_package_usages(modules:tlinkedlist);
     var
       uu : tused_unit;
       pentry : ppackageentry;
@@ -599,9 +611,7 @@ implementation
     end;
 
 
-  procedure createimportlibfromexternals;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  procedure TPackageUtils.createimportlibfromexternals;
     type
       tcacheentry=record
         pkg:tpackage;

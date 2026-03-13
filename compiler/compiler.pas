@@ -154,7 +154,7 @@ uses
   ,i_aix
 {$endif aix}
   ,ctask
-  ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl
+  ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil
   ,ngenutil,pgentype,objcgutl,ncgrtti
   ,opt,optloop
   ,aasmdata
@@ -173,6 +173,7 @@ type
     FOpt: TOptimizers;
     FObjCGUtl: TObjCCodeGenUtils;
     FBlockUtl: TBlockUtils;
+    FPkgUtil: TPackageUtils;
     FRTTIWriter : TRTTIWriter;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -197,6 +198,7 @@ type
     property Opt: TOptimizers read FOpt;
     property ObjCGUtl: TObjCCodeGenUtils read FObjCGUtl;
     property BlockUtl: TBlockUtils read FBlockUtl;
+    property PkgUtil: TPackageUtils read FPkgUtil;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
@@ -216,6 +218,7 @@ type
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
     function GetOpt: TOptimizers; inline;
+    function GetPkgUtil: TPackageUtils; inline;
     function GetRTTIWriter: TRTTIWriter; inline;
     function Getsymtablestack: TSymtablestack; inline;
     procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
@@ -331,6 +334,7 @@ type
     property Opt: TOptimizers read GetOpt;
     property ObjCGUtl: TObjCCodeGenUtils read GetObjCGUtl;
     property BlockUtl: TBlockUtils read GetBlockUtl;
+    property PkgUtil: TPackageUtils read GetPkgUtil;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -381,6 +385,7 @@ begin
   donetokens;
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(FOpt);
+  FreeAndNil(FPkgUtil);
   FreeAndNil(FBlockUtl);
   FreeAndNil(FObjCGUtl);
   FreeAndNil(FNodeUtils);
@@ -398,6 +403,7 @@ begin
   FNodeUtils:=tnodeutils.Create(Self);
   FObjCGUtl:=TObjCCodeGenUtils.Create(Self);
   FBlockUtl:=TBlockUtils.Create(Self);
+  FPkgUtil:=TPackageUtils.Create(Self);
   FOpt:=TOptimizers.Create(Self);
   paramanager:=tcpuparamanager.Create(Self);
 { inits which need to be done before the arguments are parsed }
@@ -677,6 +683,11 @@ end;
 function TCompilerHelper.GetOpt: TOptimizers;
 begin
   Result := TCompiler(Self).Opt;
+end;
+
+function TCompilerHelper.GetPkgUtil: TPackageUtils; inline;
+begin
+  Result := TCompiler(Self).PkgUtil;
 end;
 
 function TCompilerHelper.GetRTTIWriter: TRTTIWriter; inline;
