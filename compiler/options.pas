@@ -4952,6 +4952,7 @@ var
   hs : string;
 {$endif defined(cpucapabilities) or defined(fpucapabilities)}
 begin
+  FreeAndNil(option);
   option:=coption.create(self,compiler);
   disable_configfile:=false;
 
