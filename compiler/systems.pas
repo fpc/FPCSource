@@ -569,6 +569,7 @@ interface
         function set_target_asm(t:tasm):boolean;
         function set_target_ar(t:tar):boolean;
         function set_target_res(t:tres):boolean;
+        function set_target_dbg(t:tdbg):boolean;
       end;
 
     var
@@ -588,8 +589,6 @@ interface
        target_cpu_string,
        target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
        target_full_string : string[28];
-
-    function set_target_dbg(t:tdbg):boolean;
 
     function find_system_by_string(const s : string) : tsystem;
     function find_asm_by_string(const s : string) : tasm;
@@ -711,7 +710,7 @@ begin
 end;
 
 
-function set_target_dbg(t:tdbg):boolean;
+function TCompilerTarget.set_target_dbg(t:tdbg):boolean;
 begin
   result:=false;
 { no debugging support for llvm yet }

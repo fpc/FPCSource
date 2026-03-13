@@ -5320,7 +5320,7 @@ begin
 
   { maybe override debug info format }
   if (option.paratargetdbg<>dbg_none) then
-    if not set_target_dbg(option.paratargetdbg) then
+    if not compiler.target.set_target_dbg(option.paratargetdbg) then
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
