@@ -36,6 +36,7 @@ type
   TBlockUtils = class
   private
     FCompiler: TCompilerBase;
+    function get_block_literal_isa(orgpd: tprocdef): tstaticvarsym;
     function get_block_literal_flags(orgpd, invokepd: tprocdef): longint;
     function get_block_literal_descriptor(invokepd: tprocdef; block_literal_size: tcgint): tstaticvarsym;
     function get_invoke_wrapper(orgpd: tprocdef; orgpv: tprocvardef): tprocdef;
@@ -92,9 +93,7 @@ implementation
     end;
 
 
-  function get_block_literal_isa(orgpd: tprocdef): tstaticvarsym;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function TBlockUtils.get_block_literal_isa(orgpd: tprocdef): tstaticvarsym;
     var
       srsym: tsym;
       srsymtable: tsymtable;
