@@ -17,7 +17,7 @@ var
 
 begin
   Result:='';
-  Addr:=IN4Address(IN4Val);
+  Addr:=NetAddr(IN4Val);
   if (Addr.AddressType<>atIN4) or (Addr.Address<>IN4Val) then
     Exit('Error with IN4Address Constructor function');
 end;
@@ -29,7 +29,7 @@ var
 
 begin
   Result:='';
-  Addr:=IN6Address(IN6Val);
+  Addr:=NetAddr(IN6Val);
   if (Addr.AddressType<>atIN6) or (Addr.Address<>IN6Val) then
     Exit('Error with IN6Address Constructor function');
 end;
@@ -41,10 +41,10 @@ var
 
 begin
   Result:='';
-  Addr:=INAddr(IN4Val);
+  Addr:=NetAddr(IN4Val);
   if (Addr.AddressType<>atIN4) or (Addr.Address<>IN4Val) then
     Exit('Error with INAddr Constructor function');
-  Addr:=INAddr(IN6Val);
+  Addr:=NetAddr(IN6Val);
   if (Addr.AddressType<>atIN6) or (Addr.Address<>IN6Val) then
     Exit('Error with INAddr Constructor function');
   Addr:=IN4Val;
