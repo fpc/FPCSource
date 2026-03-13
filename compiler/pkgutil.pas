@@ -484,7 +484,7 @@ implementation
           if assigned(entry^.package) then
             internalerror(2013053104);
           Comment(V_Info,'Loading package: '+entry^.realpkgname);
-          pcp:=tpcppackage.create(entry^.realpkgname);
+          pcp:=tpcppackage.create(entry^.realpkgname,compiler);
           pcp.loadpcp;
           entry^.package:=pcp;
 

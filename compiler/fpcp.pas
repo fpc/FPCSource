@@ -53,7 +53,7 @@ interface
       procedure readrequiredpackages;
       procedure readpputable;
     public
-      constructor create(const pn:string);
+      constructor create(const pn:string;acompiler: TCompilerBase);
       destructor destroy; override;
       procedure loadpcp;
       procedure savepcp;
@@ -75,8 +75,6 @@ implementation
 { tpcppackage }
 
   function tpcppackage.openpcp: boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       pcpfiletime : longint;
     begin
@@ -288,8 +286,6 @@ implementation
     end;
 
   procedure tpcppackage.writeppudata;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
       align: array[0..15] of byte = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
     var
@@ -413,9 +409,9 @@ implementation
         end;
     end;
 
-    constructor tpcppackage.create(const pn: string);
+    constructor tpcppackage.create(const pn: string;acompiler: TCompilerBase);
     begin
-      inherited create(pn);
+      inherited create(pn,acompiler);
 
       setfilename(pn+'.ppk',true);
     end;
@@ -461,8 +457,6 @@ implementation
     end;
 
   procedure tpcppackage.savepcp;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       tablepos,
       oldpos : longint;

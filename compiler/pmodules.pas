@@ -2040,7 +2040,7 @@ type
          curr.setmodulename(module_name);
          curr.ispackage:=true;
          exportlib.preparelib(module_name);
-         pkg:=tpcppackage.create(module_name);
+         pkg:=tpcppackage.create(module_name,compiler);
 
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);

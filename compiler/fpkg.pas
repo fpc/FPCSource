@@ -29,6 +29,7 @@ interface
     sysutils,
     cclasses,
     globtype,
+    compilerbase,
     finput;
 
   type
@@ -41,6 +42,10 @@ interface
     pcontainedunit=^tcontainedunit;
 
     tpackage=class
+    private
+      FCompiler: TCompilerBase;
+    protected
+      property Compiler: TCompilerBase read FCompiler;
     public
       realpackagename,
       packagename : pshortstring;
@@ -49,7 +54,7 @@ interface
       pcpfilename,
       ppafilename,
       pplfilename : tpathstr;
-      constructor create(const pn:string);
+      constructor create(const pn:string;acompiler: TCompilerBase);
       destructor destroy;override;
     end;
 
@@ -68,8 +73,9 @@ implementation
 
   { tpackage }
 
-  constructor tpackage.create(const pn: string);
+  constructor tpackage.create(const pn: string;acompiler: TCompilerBase);
     begin
+      FCompiler:=acompiler;
       realpackagename:=stringdup(pn);
       packagename:=stringdup(upper(pn));
       containedmodules:=TFPHashList.Create;
