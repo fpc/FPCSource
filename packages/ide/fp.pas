@@ -457,9 +457,6 @@ BEGIN
   InitCodeTemplates;
   InitCodeComplete;
 
-  { init target information etc. }
-  InitSystems;
-
   IDEApp.Init;
   CheckINIFile;
   ReadSwitches(SwitchesPath);
