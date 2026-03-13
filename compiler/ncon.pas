@@ -702,7 +702,7 @@ implementation
         docompare :=
           inherited docompare(p) and
           (value = tordconstnode(p).value) and
-          equal_defs(typedef,tordconstnode(p).typedef);
+          equal_defs(compiler.symtablestack,typedef,tordconstnode(p).typedef);
       end;
 
 

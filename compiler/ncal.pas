@@ -1316,7 +1316,7 @@ implementation
                     is_shortstring(parasym.vardef) and
                     (parasym.varspez in [vs_out,vs_var,vs_constref]) and
                     not(is_open_string(parasym.vardef)) and
-                    not(equal_defs(left.resultdef,parasym.vardef)) then
+                    not(equal_defs(compiler.symtablestack,left.resultdef,parasym.vardef)) then
                    begin
                      CGMessagePos(left.fileinfo,type_e_strict_var_string_violation);
                    end;
@@ -1964,7 +1964,7 @@ implementation
             deterministically based on the methodpointer }
           (methodpointer.isequal(tcallnode(p).methodpointer)) and
           (((cnf_typedefset in callnodeflags) and (cnf_typedefset in tcallnode(p).callnodeflags) and
-            (equal_defs(typedef,tcallnode(p).typedef))) or
+            (equal_defs(compiler.symtablestack,typedef,tcallnode(p).typedef))) or
            (not(cnf_typedefset in callnodeflags) and not(cnf_typedefset in tcallnode(p).callnodeflags)));
       end;
 

@@ -1942,7 +1942,7 @@ implementation
                             same type }
                           if is_integer(p.resultdef) or
                              is_char(p.resultdef) or
-                             equal_defs(p.resultdef,aktenumdef) then
+                             equal_defs(compiler.symtablestack,p.resultdef,aktenumdef) then
                            v:=tordconstnode(p).value
                           else
                            IncompatibleTypes(p.resultdef,s32inttype);

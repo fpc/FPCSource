@@ -76,7 +76,7 @@ implementation
 
     uses
       globtype,constexp,
-      verbose,globals,compinnr,
+      verbose,globals,compinnr,compiler,
       symconst,symdef,defutil,
       aasmbase,aasmdata,
       cgbase,pass_2,
@@ -451,7 +451,7 @@ implementation
               else
                 begin
                   if not(tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) or (addvalue>1) or
-                    not(equal_defs(left.resultdef,tcallparanode(tcallparanode(left).right).left.resultdef)) then
+                    not(equal_defs(compiler.symtablestack,left.resultdef,tcallparanode(tcallparanode(left).right).left.resultdef)) then
                     begin
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,tcallparanode(tcallparanode(left).right).left.resultdef,second_incdec_tempregdef,addvalue<=1);
                       hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
@@ -960,7 +960,7 @@ implementation
                  if def_cgsize(resultdef) in [OS_64,OS_S64] then
                    begin
                      if not(op2.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
-                       not(equal_defs(op2.resultdef,alusinttype)) then
+                       not(equal_defs(compiler.symtablestack,op2.resultdef,alusinttype)) then
                        hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
                                                op2.resultdef,alusinttype,true);
                      cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,op,def_cgsize(resultdef),
@@ -971,7 +971,7 @@ implementation
 {$endif not cpu64bitalu and not cpuhighleveltarget}
                    begin
                      if not(op2.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
-                       not(equal_defs(op2.resultdef,resultdef)) then
+                       not(equal_defs(compiler.symtablestack,op2.resultdef,resultdef)) then
                        hlcg.location_force_reg(current_asmdata.CurrAsmList,op2.location,
                                                op2.resultdef,resultdef,true);
                      hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,resultdef,

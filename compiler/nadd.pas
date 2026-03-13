@@ -2042,7 +2042,7 @@ const
       begin
         result:=
           inherited docompare(p) and
-          equal_defs(taddnode(p).resultrealdef,resultrealdef);
+          equal_defs(compiler.symtablestack,taddnode(p).resultrealdef,resultrealdef);
       end;
 
 
@@ -2767,7 +2767,7 @@ const
              { entirely inside the other's, pick the one with the largest }
              { range.  Otherwise create a new setdef with a range which   }
              { can contain both.                                          }
-             else if not(equal_defs(ld,rd)) then
+             else if not(equal_defs(compiler.symtablestack,ld,rd)) then
               begin
                 { note: ld cannot be an empty set with elementdef=nil in }
                 { case right is not a set, arrayconstructor_to_set takes }
@@ -2865,7 +2865,7 @@ const
                       inserttypeconv(right,left.resultdef,compiler)
                     else if is_voidpointer(left.resultdef) then
                       inserttypeconv(left,right.resultdef,compiler)
-                    else if not(equal_defs(ld,rd)) then
+                    else if not(equal_defs(compiler.symtablestack,ld,rd)) then
                       IncompatibleTypes(ld,rd);
 {$if defined(jvm)}
                     inserttypeconv_internal(left,java_jlobject);
@@ -2896,7 +2896,7 @@ const
                                tpointerdef(rd).has_pointer_math
                              )
                            )
-                         ) and not(equal_defs(ld,rd)) then
+                         ) and not(equal_defs(compiler.symtablestack,ld,rd)) then
                         IncompatibleTypes(ld,rd);
                      end
                     else
@@ -2915,7 +2915,7 @@ const
                         end
                         else if is_voidpointer(left.resultdef) then
                           inserttypeconv(left,right.resultdef,compiler)
-                        else if not(equal_defs(ld,rd)) then
+                        else if not(equal_defs(compiler.symtablestack,ld,rd)) then
                           IncompatibleTypes(ld,rd);
                       end
                     else
@@ -3191,7 +3191,7 @@ const
          else if (cs_mmx in current_settings.localswitches) and
                  is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) and
-                 equal_defs(ld,rd) then
+                 equal_defs(compiler.symtablestack,ld,rd) then
             begin
               case nodetype of
                 addn,subn,xorn,orn,andn:
@@ -3210,7 +3210,7 @@ const
          else if (cs_support_vectors in current_settings.globalswitches) and
                  fits_in_mm_register(ld) and
                  fits_in_mm_register(rd) and
-                 equal_defs(ld,rd) then
+                 equal_defs(compiler.symtablestack,ld,rd) then
             begin
               if not(nodetype in [addn,subn,xorn,orn,andn,muln,slashn]) then
                 CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -3298,7 +3298,7 @@ const
 
          else if (rd.typ=procvardef) and
                  (ld.typ=procvardef) and
-                 equal_defs(rd,ld) then
+                 equal_defs(compiler.symtablestack,rd,ld) then
           begin
             if (nodetype in [equaln,unequaln]) then
               begin
@@ -4126,7 +4126,7 @@ const
           (nodetype in [addn,subn]) and
           (rd.typ=floatdef) and (ld.typ=floatdef) and
           (is_single(rd) or is_double(rd)) and
-          equal_defs(rd,ld) and
+          equal_defs(compiler.symtablestack,rd,ld) and
           { transforming a*b+c into fma(a,b,c) makes only sense if c can be
             calculated easily. Consider a*b+c*d which results in
 
@@ -4925,7 +4925,7 @@ const
 
          else  if (rd.typ=procvardef) and
                   (ld.typ=procvardef) and
-                  equal_defs(rd,ld) then
+                  equal_defs(compiler.symtablestack,rd,ld) then
            begin
              if tprocvardef(ld).size>sizeof(aint) then
                expectloc:=LOC_JUMP

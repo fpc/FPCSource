@@ -1697,7 +1697,7 @@ implementation
                    if not assigned(pd.struct) or assigned(astruct) then
                      begin
                        if (parser.pbase.optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
-                          equal_defs(pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
+                          equal_defs(compiler.symtablestack,pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
                           (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
                          message(parser_e_no_such_assignment)
                        else if not isoperatoracceptable(pd,parser.pbase.optoken) then

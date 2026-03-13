@@ -2721,13 +2721,13 @@ implementation
                               vl:=1
                             else
                               vl:=-1;
-                            if (taddnode(left).left.nodetype=ordconstn) and equal_defs(resultdef,taddnode(left).left.resultdef) then
+                            if (taddnode(left).left.nodetype=ordconstn) and equal_defs(compiler.symtablestack,resultdef,taddnode(left).left.resultdef) then
                               begin
                                 tordconstnode(taddnode(left).left).value:=tordconstnode(taddnode(left).left).value+vl;
                                 result:=left;
                                 left:=nil;
                               end
-                            else if (taddnode(left).right.nodetype=ordconstn) and equal_defs(resultdef,taddnode(left).right.resultdef) then
+                            else if (taddnode(left).right.nodetype=ordconstn) and equal_defs(compiler.symtablestack,resultdef,taddnode(left).right.resultdef) then
                               begin
                                 if left.nodetype=subn then
                                   tordconstnode(taddnode(left).right).value:=tordconstnode(taddnode(left).right).value-vl
@@ -5661,7 +5661,7 @@ implementation
                c) a static array of the same type (not Delphi compatible)
              }
              isconstr:=is_array_constructor(first);
-             iscomparray:=(first.typ=arraydef) and equal_defs(tarraydef(first).elementdef,tarraydef(second).elementdef);
+             iscomparray:=(first.typ=arraydef) and equal_defs(compiler.symtablestack,tarraydef(first).elementdef,tarraydef(second).elementdef);
              iscompelem:=compare_defs(first,tarraydef(second).elementdef,niln)<>te_incompatible;
              if not iscomparray
                  and not iscompelem

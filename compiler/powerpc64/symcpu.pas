@@ -216,7 +216,7 @@ implementation
               until checkdef.typ=floatdef;
               if not assigned(def) then
                 def:=checkdef
-              else if not equal_defs(def,checkdef) then
+              else if not equal_defs(compiler.symtablestack,def,checkdef) then
                 exit;
             end;
         end;

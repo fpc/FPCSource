@@ -124,7 +124,7 @@ interface
     function compare_defs(def_from,def_to:tdef;fromtreetype:tnodetype):tequaltype;
 
     { Returns true, if def1 and def2 are semantically the same }
-    function equal_defs(def_from,def_to:tdef):boolean;
+    function equal_defs(symtablestack:TSymtablestack;def_from,def_to:tdef):boolean;
 
     { Checks for type compatibility (subgroups of type)
       used for case statements... probably missing stuff
@@ -203,14 +203,18 @@ implementation
 
 
     function same_genconstraint_interfaces(intffrom,intfto:tobject):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=equal_defs(tdef(intffrom),tdef(intfto));
+        result:=equal_defs(compiler.symtablestack,tdef(intffrom),tdef(intfto));
       end;
 
 
     function same_objectdef_implementedinterfaces(intffrom,intfto:tobject):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=equal_defs(TImplementedInterface(intffrom).IntfDef,TImplementedInterface(intfto).IntfDef);
+        result:=equal_defs(compiler.symtablestack,TImplementedInterface(intffrom).IntfDef,TImplementedInterface(intfto).IntfDef);
       end;
 
 
@@ -396,7 +400,7 @@ implementation
                          (def_from.typ=objectdef) and
                          (
                            (tobjectdef(def_from).objecttype<>tobjectdef(def_to).objecttype) or
-                           not equal_defs(tobjectdef(def_from).childof,tobjectdef(def_to).childof)
+                           not equal_defs(symtablestack,tobjectdef(def_from).childof,tobjectdef(def_to).childof)
                          )
                        ) or (
                          { the flags need to match }
@@ -462,7 +466,7 @@ implementation
                        diff:=true
                      else if (symfrom.typ=constsym) and (symto.typ=constsym) and not equal_constsym(tconstsym(symfrom),tconstsym(symto),true) then
                        diff:=true
-                     else if not equal_defs(ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
+                     else if not equal_defs(symtablestack,ttypesym(symfrom).typedef,ttypesym(symto).typedef) then
                        diff:=true;
                      if diff then
                        break;
@@ -1084,7 +1088,7 @@ implementation
                  true if the def types are not the same, for example with dynarray to pointer. }
                if is_open_array(def_to) and
                   (def_from.typ=tarraydef(def_to).elementdef.typ) and
-                  equal_defs(def_from,tarraydef(def_to).elementdef) then
+                  equal_defs(symtablestack,def_from,tarraydef(def_to).elementdef) then
                 begin
                   doconv:=tc_elem_2_openarray;
                   { also update in htypechk.pas/var_para_allowed if changed
@@ -1159,7 +1163,7 @@ implementation
                                    doconv:=tc_arrayconstructor_2_dynarray;
                                  end;
                              end
-                           else if equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
+                           else if equal_defs(symtablestack,tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                              begin
                                { dynamic array -> dynamic array }
                                if is_dynamic_array(def_from) then
@@ -1214,7 +1218,7 @@ implementation
                             else
                              { dynamic array -> open array }
                              if is_dynamic_array(def_from) and
-                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
+                                equal_defs(symtablestack,tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                                begin
                                  doconv:=tc_dynarray_2_openarray;
                                  eq:=te_convert_l2;
@@ -1222,7 +1226,7 @@ implementation
                             else
                              { open array -> open array }
                              if is_open_array(def_from) and
-                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
+                                equal_defs(symtablestack,tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                                if tarraydef(def_from).elementdef=tarraydef(def_to).elementdef then
                                  eq:=te_exact
                                else
@@ -1230,7 +1234,7 @@ implementation
                             else
                              { array -> open array }
                              if not(cdo_parameter in cdoptions) and
-                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
+                                equal_defs(symtablestack,tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                                begin
                                  if fromtreetype=stringconstn then
                                    eq:=te_convert_l1
@@ -1249,7 +1253,7 @@ implementation
                              end
                             else
                              { array of tvarrec -> array of const }
-                             if equal_defs(tarraydef(def_to).elementdef,tarraydef(def_from).elementdef) then
+                             if equal_defs(symtablestack,tarraydef(def_to).elementdef,tarraydef(def_from).elementdef) then
                               begin
                                 doconv:=tc_equal;
                                 eq:=te_convert_l1;
@@ -1285,7 +1289,7 @@ implementation
                             { open array -> array }
                             if not(cdo_parameter in cdoptions) and
                                is_open_array(def_from) and
-                               equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
+                               equal_defs(symtablestack,tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                               begin
                                 eq:=te_equal
                               end
@@ -1298,7 +1302,7 @@ implementation
                                  tarraydef(def_from).is_hwvector) and
                                 (tarraydef(def_from).lowrange=tarraydef(def_to).lowrange) and
                                 (tarraydef(def_from).highrange=tarraydef(def_to).highrange) and
-                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) and
+                                equal_defs(symtablestack,tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) and
                                 (compare_defs_ext(symtablestack,tarraydef(def_from).rangedef,tarraydef(def_to).rangedef,nothingn,hct,hpd,[])>te_incompatible) then
                               begin
                                 eq:=te_equal
@@ -1318,7 +1322,7 @@ implementation
                         else
                          if is_zero_based_array(def_to) and
                             not is_cyclic(def_from) and
-                            equal_defs(tpointerdef(def_from).pointeddef,tarraydef(def_to).elementdef) then
+                            equal_defs(symtablestack,tpointerdef(def_from).pointeddef,tarraydef(def_to).elementdef) then
                           begin
                             doconv:=tc_pointer_2_array;
                             eq:=te_convert_l1;
@@ -1352,7 +1356,7 @@ implementation
                       begin
                         { tvarrec -> array of const }
                          if is_array_of_const(def_to) and
-                            equal_defs(def_from,tarraydef(def_to).elementdef) then
+                            equal_defs(symtablestack,def_from,tarraydef(def_to).elementdef) then
                           begin
                             doconv:=tc_equal;
                             eq:=te_convert_l1;
@@ -1562,7 +1566,7 @@ implementation
                       { chararray to pointer }
                       if (is_zero_based_array(def_from) or
                           is_open_array(def_from)) and
-                          equal_defs(tarraydef(def_from).elementdef,tpointerdef(def_to).pointeddef) then
+                          equal_defs(symtablestack,tarraydef(def_from).elementdef,tpointerdef(def_to).pointeddef) then
                         begin
                           doconv:=tc_array_2_pointer;
                           { don't prefer the pchar overload when a constant
@@ -1621,7 +1625,7 @@ implementation
                            end;
 
                          { same types }
-                         if not((hd1=def_from) and (hd2=def_to)) and equal_defs(tpointerdef(def_from).pointeddef,tpointerdef(def_to).pointeddef) then
+                         if not((hd1=def_from) and (hd2=def_to)) and equal_defs(symtablestack,tpointerdef(def_from).pointeddef,tpointerdef(def_to).pointeddef) then
                            begin
                              eq:=te_equal
                            end
@@ -1744,7 +1748,7 @@ implementation
                       begin
                         { sets with the same size (packset setting), element
                           base type and the same range are equal }
-                        if equal_defs(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) and
+                        if equal_defs(symtablestack,tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) and
                            (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
                            (tsetdef(def_from).setmax=tsetdef(def_to).setmax) and
                            (def_from.size=def_to.size) then
@@ -2024,7 +2028,7 @@ implementation
                 { class reference types }
                 if (def_from.typ=classrefdef) then
                  begin
-                   if equal_defs(tclassrefdef(def_from).pointeddef,tclassrefdef(def_to).pointeddef) then
+                   if equal_defs(symtablestack,tclassrefdef(def_from).pointeddef,tclassrefdef(def_to).pointeddef) then
                     begin
                       eq:=te_equal;
                     end
@@ -2082,7 +2086,7 @@ implementation
                         (
                          (tfiledef(def_from).typedfiledef<>nil) and
                          (tfiledef(def_to).typedfiledef<>nil) and
-                         equal_defs(tfiledef(def_from).typedfiledef,tfiledef(def_to).typedfiledef)
+                         equal_defs(symtablestack,tfiledef(def_from).typedfiledef,tfiledef(def_to).typedfiledef)
                         ) or
                         (
                          (tfiledef(def_from).filetyp = ft_typed) and
@@ -2175,16 +2179,14 @@ implementation
       end;
 
 
-    function equal_defs(def_from,def_to:tdef):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function equal_defs(symtablestack:TSymtablestack;def_from,def_to:tdef):boolean;
       var
         convtyp : tconverttype;
         pd : tprocdef;
       begin
         { Compare defs with nothingn and no explicit typecasts and
           searching for overloaded operators is not needed }
-        equal_defs:=(compare_defs_ext(compiler.symtablestack,def_from,def_to,nothingn,convtyp,pd,[cdo_equal_check])>=te_equal);
+        equal_defs:=(compare_defs_ext(symtablestack,def_from,def_to,nothingn,convtyp,pd,[cdo_equal_check])>=te_equal);
       end;
 
 
@@ -2562,6 +2564,8 @@ implementation
 
     function proc_to_procvar_equal_internal(def1:tabstractprocdef;def2:tabstractprocdef;checkincompatibleuniv,ignoreself: boolean):tequaltype;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         eq: tequaltype;
         po_comp: tprocoptions;
         pa_comp: tcompare_paras_options;
@@ -2635,7 +2639,7 @@ implementation
          if ((po_is_block in def2.procoptions) or
              (def1.proccalloption=def2.proccalloption)) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
-            equal_defs(def1.returndef,def2.returndef) then
+            equal_defs(compiler.symtablestack,def1.returndef,def2.returndef) then
           begin
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to
@@ -2782,9 +2786,11 @@ implementation
 
 
     function compatible_childmethod_resultdef(parentretdef, childretdef: tdef): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compatible_childmethod_resultdef :=
-          (equal_defs(parentretdef,childretdef)) or
+          (equal_defs(compiler.symtablestack,parentretdef,childretdef)) or
           ((parentretdef.typ=objectdef) and
            (childretdef.typ=objectdef) and
            is_class_or_interface_or_objc_or_java(parentretdef) and
@@ -2794,6 +2800,8 @@ implementation
 
 
     function find_implemented_interface(impldef,intfdef:tobjectdef):timplementedinterface;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         implintf : timplementedinterface;
         i : longint;
@@ -2808,7 +2816,7 @@ implementation
         for i:=0 to impldef.implementedinterfaces.count-1 do
           begin
             implintf:=timplementedinterface(impldef.implementedinterfaces[i]);
-            if equal_defs(implintf.intfdef,intfdef) then
+            if equal_defs(compiler.symtablestack,implintf.intfdef,intfdef) then
               begin
                 result:=implintf;
                 exit;
@@ -2942,7 +2950,7 @@ implementation
         hp:=realself.childof;
         while assigned(hp) do
           begin
-             if equal_defs(hp,otherdef) then
+             if equal_defs(compiler.symtablestack,hp,otherdef) then
                begin
                   result:=true;
                   exit;

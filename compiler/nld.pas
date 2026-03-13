@@ -691,7 +691,7 @@ implementation
         if is_real(left.resultdef) and
            is_real(right.resultdef) and
            is_constrealnode(right) and
-           not equal_defs(right.resultdef,left.resultdef) then
+           not equal_defs(compiler.symtablestack,right.resultdef,left.resultdef) then
           inserttypeconv(right,left.resultdef,compiler);
 {$if (cs_opt_use_load_modify_store in supported_optimizerswitches)}
         { Perform simple optimizations when -O2 and the dedicated

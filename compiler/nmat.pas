@@ -911,7 +911,7 @@ implementation
          if (cs_mmx in current_settings.localswitches) and
            is_mmx_able_array(left.resultdef) and
            ((is_mmx_able_array(right.resultdef) and
-             equal_defs(left.resultdef,right.resultdef)
+             equal_defs(compiler.symtablestack,left.resultdef,right.resultdef)
             ) or is_constintnode(right)) then
            begin
              if not(mmx_type(left.resultdef) in [mmxu16bit,mmxs16bit,mmxfixed16,mmxu32bit,mmxs32bit,mmxu64bit,mmxs64bit]) then

@@ -137,7 +137,7 @@ uses
         { remove equal typecasts for pointer/nil addresses }
         if (node.nodetype=typeconvn) then
           with Ttypeconvnode(node) do
-            if (left.nodetype in [addrn,niln]) and equal_defs(def,node.resultdef) then
+            if (left.nodetype in [addrn,niln]) and equal_defs(compiler.symtablestack,def,node.resultdef) then
               begin
                 hp:=left;
                 left:=nil;

@@ -326,7 +326,7 @@ implementation
              not info.doesnotmatchllvmdef then
             begin
               if (info.llvmnextfieldindex>=tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.symdeflist.count) or
-                 not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
+                 not equal_defs(compiler.symtablestack,def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
                 info.doesnotmatchllvmdef:=true
               else
                 info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
@@ -552,7 +552,7 @@ implementation
           if not info.anonrecord and
              (aggregate_kind(info.def)=tck_record) and
              ((info.llvmnextfieldindex>=tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.symdeflist.count) or
-              not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def)) then
+              not equal_defs(compiler.symtablestack,def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def)) then
             info.doesnotmatchllvmdef:=true
           else
             info.llvmnextfieldindex:=info.llvmnextfieldindex+1;

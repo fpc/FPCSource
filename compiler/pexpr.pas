@@ -3022,11 +3022,11 @@ implementation
                   if (p1.nodetype=typen) or
                      (
                       assigned(getprocvardef) and
-                      equal_defs(p1.resultdef,getprocvardef)
+                      equal_defs(compiler.symtablestack,p1.resultdef,getprocvardef)
                      ) or
                      (
                       assigned(getfuncrefdef) and
-                      equal_defs(p1.resultdef,getfuncrefdef)
+                      equal_defs(compiler.symtablestack,p1.resultdef,getfuncrefdef)
                      ) then
                     begin
                       if parser.pbase.try_to_consume(_LKLAMMER) then

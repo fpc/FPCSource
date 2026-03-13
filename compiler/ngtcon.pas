@@ -806,7 +806,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { remove equal typecasts for pointer/nil addresses }
         if (node.nodetype=typeconvn) then
           with Ttypeconvnode(node) do
-            if (left.nodetype in [addrn,niln]) and equal_defs(def,node.resultdef) then
+            if (left.nodetype in [addrn,niln]) and equal_defs(compiler.symtablestack,def,node.resultdef) then
               begin
                 hp:=left;
                 left:=nil;
@@ -816,7 +816,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { allows horrible ofs(typeof(TButton)^) code !! }
         if (node.nodetype=typeconvn) then
           with Ttypeconvnode(node) do
-            if (left.nodetype=addrn) and equal_defs(uinttype,node.resultdef) then
+            if (left.nodetype=addrn) and equal_defs(compiler.symtablestack,uinttype,node.resultdef) then
               begin
                 hp:=left;
                 left:=nil;
@@ -1154,7 +1154,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         if node.nodetype=ordconstn then
           begin
-            equal:=equal_defs(node.resultdef,def);
+            equal:=equal_defs(compiler.symtablestack,node.resultdef,def);
             if equal or
                is_subequal(node.resultdef,def) then
               begin
@@ -1189,7 +1189,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         result:=true;
         node:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
         if (node.nodetype <> ordconstn) or
-           (not equal_defs(node.resultdef,def) and
+           (not equal_defs(compiler.symtablestack,node.resultdef,def) and
             not is_subequal(node.resultdef,def)) then
           begin
             incompatibletypes(node.resultdef,def);

@@ -744,7 +744,7 @@ implementation
                 begin
                   { without modeswitch RepeatForward we need to check here
                     if the type of the constants match }
-                  if (currsym.typ<>constsym) or not equal_defs(tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
+                  if (currsym.typ<>constsym) or not equal_defs(compiler.symtablestack,tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
                     begin
                       messagepos1(currpd.fileinfo,parser_e_header_dont_match_forward,currpd.fullprocname(false));
                       result:=false;
@@ -799,7 +799,7 @@ implementation
                   if (fwsym.typ=constsym) and (currsym.typ=constsym) then
                     begin
                       { check whether the constant type for forward functions match }
-                      if not equal_defs(tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
+                      if not equal_defs(compiler.symtablestack,tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
                         exit;
                     end
                   else if (fwsym.typ=constsym) then
@@ -813,7 +813,7 @@ implementation
           sameparas:=true;
           if (df_specialization in tstoreddef(fwpd.returndef).defoptions) and (df_specialization in tstoreddef(currpd.returndef).defoptions) then
             { for specializations we're happy with equal defs instead of exactly the same defs }
-            result:=equal_defs(fwpd.returndef,currpd.returndef)
+            result:=equal_defs(compiler.symtablestack,fwpd.returndef,currpd.returndef)
           else
             begin
               { strictly compare defs using compare_defs_ext, but allow

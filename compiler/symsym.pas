@@ -1402,7 +1402,7 @@ implementation
             pd:=tprocdef(ProcdefList[i]);
             if (pd.owner.symtabletype=staticsymtable) and not pd.owner.iscurrentunit then
               continue;
-            if (equal_defs(todef,pd.returndef) or
+            if (equal_defs(compiler.symtablestack,todef,pd.returndef) or
                 { shortstrings of different lengths are ok as result }
                 (not isexplicit and is_shortstring(todef) and is_shortstring(pd.returndef))) and
                { the result type must be always really equal and not an alias,
@@ -1496,7 +1496,7 @@ implementation
             if (current = nil) then
               continue;
             // compare current result def with the todef
-            if (equal_defs(todef, current.propdef) or
+            if (equal_defs(compiler.symtablestack,todef, current.propdef) or
                 { shortstrings of different lengths are ok as result }
                 (is_shortstring(todef) and is_shortstring(current.propdef))) and
                { the result type must be always really equal and not an alias,

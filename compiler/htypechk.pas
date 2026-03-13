@@ -2005,6 +2005,8 @@ implementation
 
 
     procedure var_para_allowed(var eq:tequaltype;def_from,def_to:Tdef; fromnode: tnode);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { Note: eq must be already valid, it will only be updated! }
         case def_to.typ of
@@ -2031,10 +2033,10 @@ implementation
               if is_open_array(def_to) then
                 begin
                   if is_dynamic_array(def_from) and
-                     equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
+                     equal_defs(compiler.symtablestack,tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                     eq:=te_convert_l2
                   else
-                    if equal_defs(def_from,tarraydef(def_to).elementdef) then
+                    if equal_defs(compiler.symtablestack,def_from,tarraydef(def_to).elementdef) then
                       eq:=te_convert_l3;
                 end;
             end;

@@ -3308,6 +3308,8 @@ implementation
     }
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         curstruct : tabstractrecorddef;
 
       function is_current_unit(st:tsymtable):boolean;
@@ -3357,7 +3359,7 @@ implementation
                      end
                    else
                      child:=tobjectdef(child).childof;
-                   if (child<>nil) and equal_defs(child, potentialparent) then
+                   if (child<>nil) and equal_defs(compiler.symtablestack,child, potentialparent) then
                      exit;
                  until child=nil;
               end;

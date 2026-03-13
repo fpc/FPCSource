@@ -1544,7 +1544,7 @@ implementation
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
           (ttempcreatenode(p).tempflags*tempinfostoreflags=tempflags*tempinfostoreflags) and
-          equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef) and
+          equal_defs(compiler.symtablestack,ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef) and
           (ttempcreatenode(p).tempinfo^.withnode.isequal(tempinfo^.withnode)) and
           (ttempcreatenode(p).tempinfo^.tempinitcode.isequal(tempinfo^.tempinitcode));
       end;

@@ -104,7 +104,7 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
         (tfiledef(fromdef).filetyp=ft_typed) and
         (todef.typ=filedef) and
         (tfiledef(todef).filetyp=ft_typed) and
-        (not equal_defs(tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef) or
+        (not equal_defs(compiler.symtablestack,tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef) or
          target_specific_need_equal_typeconv(tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef))
        )
       );

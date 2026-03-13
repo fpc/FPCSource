@@ -179,6 +179,8 @@ uses
       end;
 
     function compare_generic_params(param1,param2:tdef;constparamsym:tconstsym):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (param1.typ=orddef) and (param2.typ=orddef) then
           begin
@@ -205,7 +207,7 @@ uses
           result:=true
         { sets require stricter checks }
         else if is_set(param2) then
-          result:=equal_defs(param1,param2) or
+          result:=equal_defs(compiler.symtablestack,param1,param2) or
             { constant could be empty set }
             not(assigned(tsetdef(param1).elementdef))
         else
@@ -1730,7 +1732,7 @@ uses
                               paramdef2:=tconstsym(tstoreddef(def).genericparas[i]).constdef
                             else
                               paramdef2:=ttypesym(tstoreddef(def).genericparas[i]).typedef;
-                            if not equal_defs(paramdef1,paramdef2) then
+                            if not equal_defs(compiler.symtablestack,paramdef1,paramdef2) then
                               begin
                                 allequal:=false;
                                 break;

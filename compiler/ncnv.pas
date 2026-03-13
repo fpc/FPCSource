@@ -342,6 +342,8 @@ implementation
       ttypeconvnodetype = (tct_implicit,tct_explicit,tct_internal);
 
     procedure do_inserttypeconv(var p: tnode;def: tdef; convtype: ttypeconvnodetype;acompiler:TCompilerBase);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       begin
         if not assigned(p.resultdef) then
@@ -360,7 +362,7 @@ implementation
           that way (e.g., in case of Java where java_jlstring equals
           unicodestring according to equal_defs, but an add node for strings
           still expects the resultdef of the node to be a stringdef) }
-        if equal_defs(p.resultdef,def) and
+        if equal_defs(compiler.symtablestack,p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
            not is_bitpacked_access(p) and
            { result of a hardware vector node must remain a hardware
@@ -593,7 +595,7 @@ implementation
                           inserttypeconv(p3,u8bitdef);
                         end;
                        }
-                       if assigned(hdef) and not(equal_defs(hdef,p3.resultdef)) then
+                       if assigned(hdef) and not(equal_defs(compiler.symtablestack,hdef,p3.resultdef)) then
                          begin
                             CGMessagePos(p3.fileinfo,type_e_typeconflict_in_set);
                          end
@@ -3843,7 +3845,7 @@ implementation
 {$endif defined(cpu8bitalu)}
                   { the above simplification may have left a redundant equal
                     typeconv (e.g. int32 to int32). If that's the case, we remove it }
-                  if equal_defs(left.resultdef,resultdef) then
+                  if equal_defs(compiler.symtablestack,left.resultdef,resultdef) then
                     begin
                       result:=left;
                       left:=nil;
@@ -4712,7 +4714,7 @@ implementation
           inherited docompare(p) and
           (convtype = ttypeconvnode(p).convtype) and
           (convnodeflags = ttypeconvnode(p).convnodeflags) and
-          equal_defs(totypedef,ttypeconvnode(p).totypedef);
+          equal_defs(compiler.symtablestack,totypedef,ttypeconvnode(p).totypedef);
       end;
 
 
@@ -5073,7 +5075,7 @@ implementation
             if (right.nodetype=loadvmtaddrn) and
               (tloadvmtaddrnode(right).left.nodetype=typen) and
               (oo_is_sealed in tobjectdef(tloadvmtaddrnode(right).left.resultdef).objectoptions) and
-              equal_defs(left.resultdef,tclassrefdef(right.resultdef).pointeddef) then
+              equal_defs(compiler.symtablestack,left.resultdef,tclassrefdef(right.resultdef).pointeddef) then
               begin
                 if might_have_sideeffects(left) or
                   (node_complexity(left)>2) then
