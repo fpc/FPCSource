@@ -561,6 +561,7 @@ interface
 
       TCompilerTarget = class
       private
+        Fcpu  : tsystemcpu;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -570,6 +571,7 @@ interface
         function set_target_ar(t:tar):boolean;
         function set_target_res(t:tres):boolean;
         function set_target_dbg(t:tdbg):boolean;
+        property cpu: tsystemcpu read Fcpu;
       end;
 
     var
@@ -580,7 +582,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_cpu  : tsystemcpu;
        target_info : tsysteminfo;
        target_asm  : tasminfo;
        target_ar   : tarinfo;
@@ -660,9 +661,9 @@ begin
      set_target_ar(target_info.ar);
      set_target_res(target_info.res);
      set_target_dbg(target_info.dbg);
-     target_cpu:=target_info.cpu;
+     Fcpu:=target_info.cpu;
      target_os_string:=lower(target_info.shortname);
-     target_cpu_string:=cpu2str[target_cpu];
+     target_cpu_string:=cpu2str[Fcpu];
      target_full_string:=target_cpu_string+'-'+target_os_string;
      set_target:=true;
      exit;

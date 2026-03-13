@@ -111,7 +111,7 @@ implementation
          exit;
        end;
     { check the target processor }
-      if tsystemcpu(pcpfile.header.common.cpu)<>target_cpu then
+      if tsystemcpu(pcpfile.header.common.cpu)<>compiler.target.cpu then
        begin
          pcpfile.free;
          pcpfile:=nil;
@@ -494,7 +494,7 @@ implementation
       pcpfile.header.common.size:=pcpfile.size;
       pcpfile.header.checksum:=pcpfile.crc;
       pcpfile.header.common.compiler:=wordversion;
-      pcpfile.header.common.cpu:=word(target_cpu);
+      pcpfile.header.common.cpu:=word(compiler.target.cpu);
       pcpfile.header.common.target:=word(target_info.system);
       //pcpfile.header.flags:=flags;
       pcpfile.header.ppulistsize:=containedmodules.count;

@@ -153,7 +153,7 @@ implementation
 uses
   SysUtils,
   cfileutl,
-  systems,version,options,
+  systems,version,options,compiler,
   symtable, symsym,
   wpoinfo,
   scanner,
@@ -334,7 +334,7 @@ var
                exit;
              end;
           { check the target processor }
-            if tsystemcpu(ppufile.header.common.cpu)<>target_cpu then
+            if tsystemcpu(ppufile.header.common.cpu)<>compiler.target.cpu then
              begin
                Message1(unit_u_ppu_invalid_processor,cpu2str[tsystemcpu(ppufile.header.common.cpu)],@queuecomment);
                exit;
@@ -1882,7 +1882,7 @@ var
          ppufile.header.interface_checksum:=interface_crc;
          ppufile.header.indirect_checksum:=indirect_crc;
          ppufile.header.common.compiler:=wordversion;
-         ppufile.header.common.cpu:=word(target_cpu);
+         ppufile.header.common.cpu:=word(compiler.target.cpu);
          ppufile.header.common.target:=word(target_info.system);
          ppufile.header.common.flags:=headerflags;
          ppufile.header.deflistsize:=current_module.deflist.count;
@@ -2016,7 +2016,7 @@ var
          ppufile.header.interface_checksum:=interface_crc;
          ppufile.header.indirect_checksum:=indirect_crc;
          ppufile.header.common.compiler:=wordversion;
-         ppufile.header.common.cpu:=word(target_cpu);
+         ppufile.header.common.cpu:=word(compiler.target.cpu);
          ppufile.header.common.target:=word(target_info.system);
          ppufile.header.common.flags:=headerflags;
          ppufile.writeheader;

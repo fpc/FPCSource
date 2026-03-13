@@ -8019,7 +8019,7 @@ implementation
          else
            ImplementedInterfaces:=nil;
 
-         if (target_cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
+         if (compiler.target.cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
            ppufile.getderef(hiddenclassdefref);
          if df_copied_def in defoptions then
            begin
@@ -8214,7 +8214,7 @@ implementation
                end;
            end;
 
-         if (target_cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
+         if (compiler.target.cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
            ppufile.putderef(hiddenclassdefref);
 
          if df_copied_def in defoptions then
@@ -8254,7 +8254,7 @@ implementation
          vmt_fieldderef.build(vmt_field);
          childofderef.build(childof);
 
-        if (target_cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
+        if (compiler.target.cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
            hiddenclassdefref.build(hiddenclassdef);
          if df_copied_def in defoptions then
            cloneddefderef.build(symtable.defowner)
@@ -8286,7 +8286,7 @@ implementation
          inherited deref;
          vmt_field:=tsym(vmt_fieldderef.resolve);
          childof:=tobjectdef(childofderef.resolve);
-         if (target_cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
+         if (compiler.target.cpu=tsystemcpu.cpu_wasm32) and (objecttype in objecttypes_with_thunk) then
            hiddenclassdef:=tobjectdef(hiddenclassdefref.resolve);
          if df_copied_def in defoptions then
            begin

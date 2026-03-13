@@ -1361,7 +1361,7 @@ type
 
         { we need to be able to reference these in descendants,
           so they must be generated and included in the interface }
-        if (target_cpu=tsystemcpu.cpu_wasm32) then
+        if (compiler.target.cpu=tsystemcpu.cpu_wasm32) then
           add_synthetic_interface_classes_for_st(curr.globalsymtable,true,false);
 
         { Our interface is compiled, generate interface CRC and switch to implementation }
@@ -1633,7 +1633,7 @@ type
          parser.pgenutil.generate_specialization_procs;
 
          // This needs to be done before we generate the VMTs
-         if (target_cpu=tsystemcpu.cpu_wasm32) then
+         if (compiler.target.cpu=tsystemcpu.cpu_wasm32) then
            begin
              add_synthetic_interface_classes_for_st(module.globalsymtable,false,true);
              add_synthetic_interface_classes_for_st(module.localsymtable,true,true);
@@ -2772,7 +2772,7 @@ type
           parser.pgenutil.generate_specialization_procs;
 
         { This needs to be done before we generate the VMTs }
-        if (target_cpu=tsystemcpu.cpu_wasm32) then
+        if (compiler.target.cpu=tsystemcpu.cpu_wasm32) then
           add_synthetic_interface_classes_for_st(curr.localsymtable,true,true);
 
         { generate construction functions for all attributes in the program }

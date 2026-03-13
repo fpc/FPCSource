@@ -2985,7 +2985,7 @@ implementation
             begin
                { MWE: replaced ifdef i368 }
                (*
-               if target_cpu = cpu_i386 then
+               if compiler.target.cpu = cpu_i386 then
                  begin
                   { in theory, we could write a DW_AT_segment entry here for sym.absseg,
                     however I doubt that gdb supports this (FK) }

@@ -26,7 +26,7 @@ unit comprsrc;
 interface
 
   uses
-    Systems, cstreams, cscript;
+    Systems, cstreams, cscript, compilerbase;
 
 type
    tresoutput = (roRES, roOBJ);
@@ -85,7 +85,7 @@ implementation
 uses
   SysUtils,
   cutils,cfileutl,cclasses,
-  Globtype,Globals,Verbose,Fmodule, comphook,cpuinfo,rescmn;
+  Globtype,Globals,Verbose,Fmodule, comphook,cpuinfo,rescmn,compiler;
 
 {****************************************************************************
                               TRESOURCEFILE
@@ -251,6 +251,8 @@ end;
 function TWinLikeResourceFile.SetupCompilerArguments(output: tresoutput; const
   OutName : ansistring; respath : ansistring; out ObjUsed : boolean) : ansistring;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   srcfilepath,
   preprocessorbin,
   s : TCmdStr;
@@ -294,7 +296,7 @@ begin
         ObjUsed:=(pos('$OBJ',s)>0);
       Replace(s,'$OBJ',maybequoted(OutName));
       subarch:='all';
-      arch:=cpu2str[target_cpu];
+      arch:=cpu2str[compiler.target.cpu];
       if (target_info.cpu=systems.cpu_arm) then
         begin
           //Differentiate between arm and armeb
@@ -523,6 +525,8 @@ end;
 
 procedure CollectResourceFiles;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   resourcefile : tresourcefile;
 
   procedure ProcessModule(u : tmodule);
@@ -557,7 +561,7 @@ begin
 //    exit;
   s:=ChangeFileExt(current_module.ppufilename,target_info.resobjext);
   if (res_arch_in_file_name in target_res.resflags) then
-    s:=ChangeFileExt(s,'.'+cpu2str[target_cpu]+target_info.resobjext);
+    s:=ChangeFileExt(s,'.'+cpu2str[compiler.target.cpu]+target_info.resobjext);
   resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass.create(s));
   hp:=tused_unit(usedunits.first);
   while assigned(hp) do
