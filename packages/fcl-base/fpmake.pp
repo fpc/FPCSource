@@ -156,6 +156,9 @@ begin
 
     T:=P.Targets.addUnit('dirwatch.pp');
 
+    T:=P.Targets.addUnit('fppromise.pp');
+    T.Dependencies.AddUnit('syncobjs');
+
     // Examples
     P.ExamplePath.Add('examples');
       T:=P.Targets.AddExampleProgram('asiotest.pp');
