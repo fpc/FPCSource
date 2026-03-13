@@ -155,7 +155,8 @@ Type
     FCompiler: TCompilerBase;
     coption : TOptionClass;
     option     : toption;
-    read_subfile:boolean; { read subtarget config file, set when a cfgfile is found }
+    read_subfile,         { read subtarget config file, set when a cfgfile is found }
+    read_configfile:boolean;{ read config file, set when a cfgfile is found }
     procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -188,7 +189,6 @@ const
   page_width = 80;
 
 var
-  read_configfile,        { read config file, set when a cfgfile is found }
   disable_configfile : boolean;
   subcfg,
   fpcdir,
