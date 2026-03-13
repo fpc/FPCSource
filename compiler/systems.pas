@@ -560,6 +560,10 @@ interface
       { TCompilerTarget }
 
       TCompilerTarget = class
+      private
+        procedure InitSystems;
+      public
+        constructor Create;
       end;
 
     var
@@ -597,8 +601,6 @@ interface
     procedure RegisterTarget(const r:tsysteminfo);
     procedure RegisterRes(const r:tresinfo; rcf : TAbstractResourceFileClass);
     procedure RegisterAr(const r:tarinfo);
-
-    procedure InitSystems;
 
     {$ifdef FreeBSD}
         function GetOSRelDate:Longint;
@@ -932,7 +934,13 @@ begin
 end;
 
 
-procedure InitSystems;
+constructor TCompilerTarget.Create;
+begin
+  InitSystems;
+end;
+
+
+procedure TCompilerTarget.InitSystems;
 begin
 { Now default target, this is dependent on the target cpu define,
   when the define is the same as the source cpu then we use the source

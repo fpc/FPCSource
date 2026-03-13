@@ -429,7 +429,6 @@ begin
   paramanager:=tcpuparamanager.Create(Self);
 { inits which need to be done before the arguments are parsed }
   FTarget:=TCompilerTarget.Create;
-  InitSystems;
   { fileutils depends on source_info so it must be after systems }
   InitFileUtils;
   { globals depends on source_info so it must be after systems }
