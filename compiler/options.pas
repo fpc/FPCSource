@@ -160,7 +160,8 @@ Type
     disable_configfile : boolean;
     subcfg,
     fpcdir,
-    ppccfg:string;
+    ppccfg,
+    param_file    : string;   { file to compile specified on the commandline }
     procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -191,9 +192,6 @@ uses
 const
   page_size = 24;
   page_width = 80;
-
-var
-  param_file    : string;   { file to compile specified on the commandline }
 
 
 {****************************************************************************
@@ -1671,9 +1669,9 @@ begin
 
     else
       begin
-        if (length(param_file)<>0) then
-          Message2(option_only_one_source_support,param_file,opt);
-        param_file:=opt;
+        if (length(FOptions.param_file)<>0) then
+          Message2(option_only_one_source_support,FOptions.param_file,opt);
+        FOptions.param_file:=opt;
         Message1(option_found_file,opt);
       end;
   end;
