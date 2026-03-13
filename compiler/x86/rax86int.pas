@@ -3321,7 +3321,7 @@ Unit Rax86int;
 
           AS_OPCODE :
             Begin
-              instr:=Tx86Instruction.Create(Tx86Operand);
+              instr:=Tx86Instruction.Create(Tx86Operand,compiler);
               BuildOpcode(instr);
               with instr do
                 begin

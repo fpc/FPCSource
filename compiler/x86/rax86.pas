@@ -62,7 +62,7 @@ type
 
   Tx86Instruction=class(TInstruction)
     opsize  : topsize;
-    constructor Create(optype : tcoperand);override;
+    constructor Create(optype : tcoperand;ACompiler: TCompilerBase);override;
     { Operand sizes }
     procedure AddReferenceSizes; virtual;
     procedure SetInstructionOpsize;
@@ -430,9 +430,9 @@ end;
                               T386Instruction
 *****************************************************************************}
 
-constructor Tx86Instruction.Create(optype : tcoperand);
+constructor Tx86Instruction.Create(optype : tcoperand;ACompiler: TCompilerBase);
 begin
-  inherited Create(optype);
+  inherited Create(optype,ACompiler);
   Opsize:=S_NO;
 end;
 

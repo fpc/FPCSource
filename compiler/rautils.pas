@@ -130,13 +130,18 @@ type
   TCOperand = class of TOperand;
 
   TInstruction = class
+  private
+    FCompiler: TCompilerBase;
+  protected
+    property Compiler: TCompilerBase read FCompiler;
+  public
     operands  : array[1..max_operands] of toperand;
     opcode    : tasmop;
     condition : tasmcond;
     ops       : byte;
     labeled   : boolean;
     filepos  : tfileposinfo;
-    constructor create(optype : tcoperand);virtual;
+    constructor create(optype : tcoperand;ACompiler: TCompilerBase);virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
       and concatenate it to the passed list. The newly created item is returned if the
@@ -1258,12 +1263,11 @@ end;
                                  TInstruction
 ****************************************************************************}
 
-constructor TInstruction.create(optype : tcoperand);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+constructor TInstruction.create(optype : tcoperand;ACompiler: TCompilerBase);
   var
     i : longint;
   Begin
+    FCompiler:=ACompiler;
     { these field are set to 0 anyways by the constructor helper (FK)
     Opcode:=A_NONE;
     Condition:=C_NONE;
