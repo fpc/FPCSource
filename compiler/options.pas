@@ -31,6 +31,10 @@ uses
 
 Type
   TOption=class
+  private
+    FCompiler: TCompilerBase;
+    property Compiler: TCompilerBase read FCompiler;
+  public
     FirstPass,
     ParaLogo,
     NoPressEnter,
@@ -61,7 +65,7 @@ Type
     LinkTypeSetExplicitly : boolean;
     LinkerSetExplicitly : boolean;
     MemoryModelSetExplicitly : boolean;
-    Constructor Create;
+    Constructor Create(ACompiler: TCompilerBase);
     Destructor Destroy;override;
     procedure WriteLogo;
     procedure WriteInfo (More: string);
@@ -2335,8 +2339,9 @@ begin
 end;
 
 
-constructor TOption.Create;
+constructor TOption.Create(ACompiler: TCompilerBase);
 begin
+  FCompiler:=ACompiler;
   LogoWritten:=false;
   NoPressEnter:=false;
   FirstPass:=false;
@@ -3065,8 +3070,6 @@ end;
 
 
 procedure TOption.Interpret_F_U(opt, more: TCmdStr; ispara: boolean);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
 var
   c : char;
@@ -4936,7 +4939,7 @@ var
   hs : string;
 {$endif defined(cpucapabilities) or defined(fpucapabilities)}
 begin
-  option:=coption.create;
+  option:=coption.create(compiler);
   disable_configfile:=false;
 
   { Non-core target defines }
