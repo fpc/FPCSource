@@ -561,6 +561,7 @@ interface
 
       TCompilerTarget = class
       private
+        procedure default_target(t:tsystem);
         procedure InitSystems;
       public
         constructor Create;
@@ -917,7 +918,7 @@ end;
                       Initialization of default target
 ****************************************************************************}
 
-procedure default_target(t:tsystem);
+procedure TCompilerTarget.default_target(t:tsystem);
 begin
   set_target(t);
   if source_info.name='' then
