@@ -145,7 +145,7 @@ interface
 {$ENDIF}
        end;
 
-    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
+    function registerunit(compiler:TCompilerBase;callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
 
 
 implementation
@@ -1394,7 +1394,7 @@ var
            indchecksum:=cardinal(ppufile.getlongint);
            { set the state of this unit before registering, this is
              needed for a correct circular dependency check }
-           hp:=registerunit(self,hs,'',isnew);
+           hp:=registerunit(compiler,self,hs,'',isnew);
            if isnew then
              usedunits.Concat(tused_unit.create(hp,in_interface,true,nil));
            pu:=findusedunit(hp);
@@ -2637,9 +2637,7 @@ var
 *****************************************************************************}
 
 
-    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function registerunit(compiler:TCompilerBase;callermodule:tmodule;const s : TIDString;const fn:string; out is_new:boolean) : tppumodule;
 
           function FindCycle(aFile, SearchFor: tppumodule; var Cycle: TFPList): boolean;
           var

@@ -266,7 +266,7 @@ implementation
 
       begin
         { load unit }
-        hp:=registerunit(curr,s,'',isnew);
+        hp:=registerunit(compiler,curr,s,'',isnew);
         if isnew then
           usedunits.concat(tused_unit.create(hp,true,addasused,nil));
         hp.adddependency(curr,curr.in_interface); { adddependency before loadppu for invalid cycle test }
@@ -734,7 +734,7 @@ implementation
               end;
              if not assigned(hp2) then
                begin
-               hp2:=registerunit(curr,sorg,fn,isnew);
+               hp2:=registerunit(compiler,curr,sorg,fn,isnew);
                if isnew then
                  usedunits.concat(tused_unit.create(hp2,curr.in_interface,true,nil));
                end
