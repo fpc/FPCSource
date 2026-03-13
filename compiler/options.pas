@@ -159,7 +159,8 @@ Type
     read_configfile,        { read config file, set when a cfgfile is found }
     disable_configfile : boolean;
     subcfg,
-    fpcdir:string;
+    fpcdir,
+    ppccfg:string;
     procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -192,7 +193,6 @@ const
   page_width = 80;
 
 var
-  ppccfg,
   param_file    : string;   { file to compile specified on the commandline }
 
 
