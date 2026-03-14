@@ -225,7 +225,7 @@ begin
       { we use debugger if and only if there are active breakpoints
         AND the target is correct for debugging !! PM }
       if (ActiveBreakpoints or RestartingDebugger) and
-         (target_info.shortname=source_info.shortname)
+         (current_compiler.target.info.shortname=source_info.shortname)
         then
         begin
           if not assigned(Debugger) or Not Debugger^.HasExe then

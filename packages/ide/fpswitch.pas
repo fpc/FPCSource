@@ -24,6 +24,8 @@ interface
 uses
   Objects,
   Systems,
+  CompilerBase,
+  Compiler,
   WUtils,
   FPConst;
 
@@ -1143,7 +1145,7 @@ begin
   t:='';
   if assigned(TargetSwitches) then
     t:=TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel);
-  sy:=target_info.system;
+  sy:=current_compiler.target.info.system;
   for zt:=low(tsystem) to high(tsystem) do
     if assigned(targetinfos[zt]) then
     begin
@@ -1530,7 +1532,7 @@ begin
             end;
        end;
        { set appropriate default target }
-       TargetSwitches^.SetCurrSelParam(target_info.shortname);
+       TargetSwitches^.SetCurrSelParam(current_compiler.target.info.shortname);
     end;
   SwitchesMode:=OldSwitchesMode;
 end;

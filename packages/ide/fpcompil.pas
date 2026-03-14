@@ -138,7 +138,7 @@ uses
   globals,
   StdDlg,App,tokens,
   FVConsts,
-  CompHook, Compiler, systems, browcol,
+  CompHook, CompilerBase, Compiler, systems, browcol,
   WEditor,
   FPRedir,FPDesk,
   FPUsrScr,FPHelp,
@@ -900,7 +900,7 @@ procedure DoCompile(Mode: TCompileMode);
   end;
   function GetTargetExeExt : string;
     begin
-        GetTargetExeExt:=target_info.exeext;
+        GetTargetExeExt:=current_compiler.target.info.exeext;
      end;
 var
   s,FileName: string;

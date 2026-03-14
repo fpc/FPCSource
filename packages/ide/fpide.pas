@@ -185,7 +185,7 @@ uses
 {$endif Unix}
   FpDpAnsi,WConsts,
   Video,Mouse,Keyboard,
-  Compiler,Version,
+  CompilerBase,Compiler,Version,
   FVConsts,
   Dos{,Memory},Menus,Dialogs,StdDlg,timeddlg,
 {$Ifdef COLORSEL}
