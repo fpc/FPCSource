@@ -1206,6 +1206,8 @@ implementation
 
   procedure implement_call_no_parameters(pd: tprocdef);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       callpd: tprocdef;
       str: ansistring;
       warningson,
@@ -1213,7 +1215,7 @@ implementation
     begin
       { avoid warnings about unset function results in these abstract wrappers }
       warningson:=(status.verbosity and V_Warning)<>0;
-      setverbosity('W-');
+      compiler.verbose.setverbosity('W-');
       str:='begin ';
       callpd:=tprocdef(pd.skpara);
       str:=str+def_unit_name_prefix_if_toplevel(callpd)+callpd.procsym.realname+'; end;';
@@ -1222,7 +1224,7 @@ implementation
         not(pd.proctypeoption in [potype_constructor,potype_destructor]);
       str_parse_method_impl(str,pd,isclassmethod);
       if warningson then
-        setverbosity('W+');
+        compiler.verbose.setverbosity('W+');
     end;
 
   function get_method_paramtype(vardef  : Tdef; asPointer : Boolean; out isAnonymousArrayDef : Boolean) : ansistring; forward;

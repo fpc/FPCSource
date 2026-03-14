@@ -26,7 +26,7 @@ unit switches;
 interface
 
 uses
-  systems,globtype;
+  systems,globtype,compilerbase;
 
 procedure HandleSwitch(switch,state:char);
 function CheckSwitch(switch,state:char):boolean;
@@ -52,7 +52,7 @@ uses
   { override optimizer switches }
   llvminfo,
 {$endif llvm}
-  globals,verbose,comphook,dirparse,cclasses,
+  globals,verbose,comphook,dirparse,cclasses,compiler,
   fmodule;
 
 {****************************************************************************
@@ -401,6 +401,8 @@ procedure recordpendingoptimizerswitches(optimizerswitches:toptimizerswitches);
 
 procedure flushpendingswitchesstate;
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  var
     tmpproccal: tproccalloption;
     fstate, pstate : pmessagestaterecord;
     msgset : thashset;
@@ -451,7 +453,7 @@ procedure flushpendingswitchesstate;
     { process pending verbosity changes (warnings on, etc) }
     if pendingstate.nextverbositystr<>'' then
       begin
-        setverbosity(pendingstate.nextverbositystr);
+        compiler.verbose.setverbosity(pendingstate.nextverbositystr);
         pendingstate.nextverbositystr:='';
       end;
     msgset:=thashset.create(10,false,false);

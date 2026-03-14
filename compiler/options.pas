@@ -3892,7 +3892,7 @@ end;
 procedure TOption.Interpret_V_l(opt, more: TCmdStr);
 
 begin
-  if not setverbosity(More) then
+  if not compiler.verbose.setverbosity(More) then
     IllegalPara(opt);
 end;
 
