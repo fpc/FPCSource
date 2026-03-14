@@ -19,6 +19,12 @@ Unit cgcpu;
 
 Interface
 
+procedure create_codegen;
+
 Implementation
+
+procedure create_codegen;
+begin
+end;
 
 end.

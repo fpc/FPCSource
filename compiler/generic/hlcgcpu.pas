@@ -41,7 +41,8 @@ interface
 implementation
 
   uses
-    hlcgobj;
+    hlcgobj,
+    cgcpu;
 
 
   procedure create_hlcodegen;
