@@ -32,7 +32,7 @@ interface
       fksysutl,
 {$ENDIF}
       cutils,
-      globtype,finput,
+      globtype,finput,compilerbase,
       cmsgs;
 
 {$ifndef EXTERN_MSG}
@@ -58,9 +58,10 @@ interface
         procedure SetRedirectFile(const fn:string);
         function  SetVerbosity(const s:TCmdStr):boolean;
         procedure PrepareReport;
+
+        function  CheckVerbosity(v:longint):boolean;
       end;
 
-    function  CheckVerbosity(v:longint):boolean;
     function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
     procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
@@ -121,7 +122,7 @@ interface
 implementation
 
     uses
-      comphook,fmodule,constexp,globals,cfileutl,switches,cclasses;
+      comphook,fmodule,constexp,globals,cfileutl,switches,cclasses,compiler;
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -250,7 +251,7 @@ implementation
         result:=msg^.setverbosity(v,state);
       end;
 
-    function CheckVerbosity(v:longint):boolean;
+    function TVerbose.CheckVerbosity(v:longint):boolean;
       begin
         result:=do_checkverbosity(v);
       end;
@@ -607,6 +608,8 @@ implementation
 
     procedure Comment(l:longint;s:ansistring);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         dostop : boolean;
       begin
         dostop:=((l and V_Fatal)<>0);
@@ -626,7 +629,7 @@ implementation
            if l and V_Hint <> 0 then
             inc(status.countHints);
       { check verbosity level }
-        if not CheckVerbosity(l) then
+        if not compiler.verbose.CheckVerbosity(l) then
           exit;
         if (l and V_LineInfoMask)<>0 then
           l:=l or V_LineInfo;
@@ -658,6 +661,8 @@ implementation
       end;
 
     Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         idx,i,v : longint;
         dostop  : boolean;
@@ -704,7 +709,7 @@ implementation
                        'W':
                          begin
                            v:=v or V_Warning;
-                           if CheckVerbosity(V_Warning) then
+                           if compiler.verbose.CheckVerbosity(V_Warning) then
                              if status.errorwarning then
                               GenerateError
                              else
@@ -713,7 +718,7 @@ implementation
                        'N' :
                          begin
                            v:=v or V_Note;
-                           if CheckVerbosity(V_Note) then
+                           if compiler.verbose.CheckVerbosity(V_Note) then
                              if status.errornote then
                               GenerateError
                              else
@@ -722,7 +727,7 @@ implementation
                        'H' :
                          begin
                            v:=v or V_Hint;
-                           if CheckVerbosity(V_Hint) then
+                           if compiler.verbose.CheckVerbosity(V_Hint) then
                              if status.errorhint then
                               GenerateError
                              else
@@ -754,7 +759,7 @@ implementation
           end;
         Delete(s,1,idx);
       { check verbosity level }
-        if not CheckVerbosity(v) then
+        if not compiler.verbose.CheckVerbosity(v) then
           begin
             doqueue := onqueue <> nil;
             if not doqueue then

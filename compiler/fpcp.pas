@@ -158,7 +158,7 @@ implementation
 
     function package_exists(const ext:string;var foundfile:TCmdStr):boolean;
       begin
-        if CheckVerbosity(V_Tried) then
+        if compiler.verbose.CheckVerbosity(V_Tried) then
           Message1(package_t_packagesearch,Singlepathstring+filename+ext);
         result:=FindFile(filename+ext,singlepathstring,true,foundfile);
       end;

@@ -308,7 +308,7 @@ implementation
                             { there may be a lot of these in auto-translated
                               headers, so only calculate the fulltypename if
                               the hint will be shown  }
-                            else if CheckVerbosity(V_Hint) then
+                            else if compiler.verbose.CheckVerbosity(V_Hint) then
                               if not is_objccategory(_class) then
                                 MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                               else

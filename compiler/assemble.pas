@@ -624,6 +624,8 @@ Implementation
 
 
     procedure TExternalAssemblerOutputFile.AsmCreate(Aplace:tcutplace);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {$ifdef hasamiga}
       var
         tempFileName: TPathStr;
@@ -659,7 +661,7 @@ Implementation
             end
            else
              Message1(exec_i_assembling_pipe,owner.AsmFileName);
-           if checkverbosity(V_Executable) then
+           if compiler.verbose.checkverbosity(V_Executable) then
              comment(V_Executable,'Executing "'+maybequoted(owner.FindAssembler)+'" with command line "'+
                owner.MakeCmdLine+'"');
            POpen(outfile,maybequoted(owner.FindAssembler)+' '+owner.MakeCmdLine,'W');

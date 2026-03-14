@@ -497,7 +497,7 @@ var
          var
            s : tcmdstr;
          begin
-           if CheckVerbosity(V_Tried) then
+           if compiler.verbose.CheckVerbosity(V_Tried) then
              Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
            s:=FileName+ext;
            if prefix<>'' then
@@ -686,13 +686,13 @@ var
           begin
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
-            if CheckVerbosity(V_Tried) then
+            if compiler.verbose.CheckVerbosity(V_Tried) then
               Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,sourceext));
             if FindFile(ChangeFileExt(sourcefn,sourceext),'',true,hs) then
               include(fnd,auSrc);
             if (fnd=[]) then
              begin
-               if CheckVerbosity(V_Tried) then
+               if compiler.verbose.CheckVerbosity(V_Tried) then
                  Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pasext));
                if FindFile(ChangeFileExt(sourcefn,pasext),'',true,hs) then
                  include(fnd,auSrc);
@@ -701,7 +701,7 @@ var
                ((m_mac in current_settings.modeswitches) or
                 (tf_p_ext_support in compiler.target.info.flags)) then
              begin
-               if CheckVerbosity(V_Tried) then
+               if compiler.verbose.CheckVerbosity(V_Tried) then
                  Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pext));
                if FindFile(ChangeFileExt(sourcefn,pext),'',true,hs) then
                 include(fnd,auSrc)
