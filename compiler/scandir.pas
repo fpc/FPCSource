@@ -1953,6 +1953,8 @@ unit scandir;
     }
     procedure dir_warn;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         ident : string;
         state : string;
         msgstate : tmsgstate;
@@ -2056,7 +2058,7 @@ unit scandir;
         else
           begin
             i:=0;
-            if not ChangeMessageVerbosity(ident,i,msgstate) then
+            if not compiler.verbose.ChangeMessageVerbosity(ident,i,msgstate) then
               Message1(scanner_w_illegal_warn_identifier,ident);
           end;
       end;

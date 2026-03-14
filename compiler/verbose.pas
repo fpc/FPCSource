@@ -63,9 +63,10 @@ interface
         function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
         procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
         procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
+
+        function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
       end;
 
-    function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
     procedure ShowStatus;
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
@@ -222,7 +223,7 @@ implementation
           end;
       end;
 
-    function ChangeMessageVerbosity(s: ansistring; var i : integer;state:tmsgstate): boolean;
+    function TVerbose.ChangeMessageVerbosity(s: ansistring; var i : integer;state:tmsgstate): boolean;
       var
         tok  : ansistring;
         msgnr, code : longint;
