@@ -104,8 +104,6 @@ Const
    ControllerSupport = false;
    { Size of native extended type }
    extended_size = 10;
-   { target cpu string (used by compiler options) }
-   target_cpu_string = 'x86_64';
 
    { We know that there are fields after sramsize
      but we don't care about this warning }

@@ -58,8 +58,6 @@ Type
 Const
    {# Size of native extended floating point type }
    extended_size = 12;
-   { target cpu string (used by compiler options) }
-   target_cpu_string = 'z80';
 
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }

@@ -75,8 +75,6 @@ Const
    ControllerSupport = true;
    {# Size of native extended floating point type }
    extended_size = 12;
-   { target cpu string (used by compiler options) }
-   target_cpu_string = 'xtensa';
 
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [

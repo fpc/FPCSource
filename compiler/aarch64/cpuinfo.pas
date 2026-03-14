@@ -79,8 +79,6 @@ Const
    ControllerSupport = true; (* Not yet at least ;-) *)
    {# Size of native extended floating point type }
    extended_size = 8;
-   { target cpu string (used by compiler options) }
-   target_cpu_string = 'aarch64';
 
    { We know that there are fields after sramsize
      but we don't care about this warning }
