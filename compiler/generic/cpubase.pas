@@ -38,6 +38,10 @@ const
   NR_NO = tregister($00000000);
   NR_DEFAULTFLAGS = NR_NO;
   NR_STACK_POINTER_REG = NR_NO;
+  NR_FUNCTION_RETURN_REG = NR_NO;
+  NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
+
+  std_param_align = 4;
 
 type
   TAsmOp = (A_NOP);
@@ -51,6 +55,7 @@ const
   );
 
 function std_regname(r:Tregister):string;
+function std_regnum_search(const s:string):Tregister;
 function condition_in(const Subset, c: TAsmCond): Boolean;
 function inverse_cond(const c: TAsmCond): TAsmCond;
 function reg_cgsize(const reg: tregister): tcgsize;
@@ -61,6 +66,11 @@ Implementation
 function std_regname(r:Tregister):string;
 begin
   result:='';
+end;
+
+function std_regnum_search(const s:string):Tregister;
+begin
+  result:=NR_NO;
 end;
 
 function condition_in(const Subset, c: TAsmCond): Boolean;
