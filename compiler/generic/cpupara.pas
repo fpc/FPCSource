@@ -19,6 +19,13 @@ Unit CpuPara;
 
 Interface
 
+uses
+  paramgr;
+
+type
+  tcpuparamanager = class(tparamanager)
+  end;
+
 Implementation
 
 end.
