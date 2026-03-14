@@ -87,7 +87,6 @@ interface
           procedure add_init_statement(n:tnode);
           procedure add_done_statement(n:tnode);
           procedure convert_carg_array_of_const;
-          procedure order_parameters;
           function heuristics_favors_inlining:boolean;
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
@@ -122,6 +121,7 @@ interface
           function  optimize_funcret_assignment(inlineblock: tblocknode): tnode;
           procedure check_inlining;
           function doinlining: boolean;
+          procedure order_parameters;
        protected
           pushedparasize : longint;
           { Objective-C support: force the call node to call the routine with

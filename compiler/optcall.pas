@@ -96,6 +96,14 @@ unit optcall;
       end;
 
 
+    function redoalinaparams(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=fen_false;
+        if n.nodetype=calln then
+          tcallnode(n).order_parameters;
+      end;
+
+
     function doinline(var _n: tnode; arg: pointer): foreachnoderesult;
       var
         n,
@@ -229,6 +237,13 @@ unit optcall;
         if changed then
           begin
             doinlinesimplify(rootnode);
+            { after inlining, call nodes in the tree may have parameters
+              whose subtrees now contain additional calls (e.g. fpc_shortstr_sint
+              from an inlined str() call). The parent call nodes need their
+              parameter analysis redone to recalculate parameter ordering and
+              stack tainting info, otherwise parameters may be evaluated in the
+              wrong order corrupting already pushed stack parameters }
+            foreachnodestatic(pm_postprocess,rootnode,@redoalinaparams,nil);
 {$ifdef EXTDEBUG_INLINE}
             writeln('************************ Tree after inlining ******************************');
             printnode(rootnode);
