@@ -62,6 +62,7 @@ function condition_in(const Subset, c: TAsmCond): Boolean;
 function inverse_cond(const c: TAsmCond): TAsmCond;
 function reg_cgsize(const reg: tregister): tcgsize;
 function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
+function eh_return_data_regno(nr: longint): longint;
 
 Implementation
 
@@ -93,6 +94,11 @@ end;
 function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
 begin
   result:=R_SUBNONE;
+end;
+
+function eh_return_data_regno(nr: longint): longint;
+begin
+  result:=-1;
 end;
 
 end.
