@@ -60,9 +60,9 @@ interface
         procedure PrepareReport;
 
         function  CheckVerbosity(v:longint):boolean;
+        function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
       end;
 
-    function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
     procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
 
@@ -181,6 +181,8 @@ implementation
       end;
 
     procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       { apply the whole stack of message/verbosity changes }
       var
         msgset : thashset;
@@ -198,7 +200,7 @@ implementation
             { only apply the newest message state }
             if not assigned(msgset.findoradd(@pstate^.value,sizeof(pstate^.value),msgfound)) or
                 not msgfound then
-              SetMessageVerbosity(pstate^.value,pstate^.state);
+              compiler.verbose.SetMessageVerbosity(pstate^.value,pstate^.state);
             pstate:=pstate^.next;
           end;
         msgset.free;
@@ -246,7 +248,7 @@ implementation
         result:=true;
       end;
 
-    function SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
+    function TVerbose.SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
       begin
         result:=msg^.setverbosity(v,state);
       end;

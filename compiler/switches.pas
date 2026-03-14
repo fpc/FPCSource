@@ -477,7 +477,7 @@ procedure flushpendingswitchesstate;
         msgfound:=false;
         if not assigned(msgset.findoradd(@pstate^.value,sizeof(pstate^.value),msgfound)) or
             not msgfound then
-          SetMessageVerbosity(pstate^.value,pstate^.state);
+          compiler.verbose.SetMessageVerbosity(pstate^.value,pstate^.state);
         if not assigned(pstate^.next) then
           begin
             pstate^.next:=current_settings.pmessage;
