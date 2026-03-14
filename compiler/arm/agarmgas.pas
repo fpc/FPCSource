@@ -441,7 +441,7 @@ unit agarmgas;
                    end;
                  end
                { syscall number for vasm does not need a # }
-               else if (target_asm.id=as_arm_vasm) and (i=0) and ((op=A_SWI) or (op=A_SVC)) then
+               else if (compiler.target._asm.id=as_arm_vasm) and (i=0) and ((op=A_SWI) or (op=A_SVC)) then
                  begin
                    case taicpu(hp).oper[0]^.typ of
                      top_const:

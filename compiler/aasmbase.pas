@@ -277,7 +277,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=(af_smartlink_sections in target_asm.flags) and
+        result:=(af_smartlink_sections in compiler.target._asm.flags) and
                 (tf_smartlink_sections in compiler.target.info.flags);
       end;
 
@@ -297,7 +297,7 @@ implementation
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=(
-                 (af_smartlink_sections in target_asm.flags) and
+                 (af_smartlink_sections in compiler.target._asm.flags) and
                  (tf_smartlink_sections in compiler.target.info.flags)
                 ) or
                 (
@@ -309,14 +309,16 @@ implementation
 
     function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
         rchar, ochar: char;
         crc: Cardinal;
         charstoremove: integer;
       begin
         Result:=s;
-        rchar:=target_asm.dollarsign;
-        if target_asm.id=as_i386_wasm then
+        rchar:=compiler.target._asm.dollarsign;
+        if compiler.target._asm.id=as_i386_wasm then
           ochar:='.'
         else
           ochar:='$';
@@ -324,14 +326,14 @@ implementation
           for  i:=1 to Length(Result) do
             if Result[i]=ochar then
               Result[i]:=rchar;
-        if (target_asm.labelmaxlen<>-1) and (Length(Result)>target_asm.labelmaxlen) then
+        if (compiler.target._asm.labelmaxlen<>-1) and (Length(Result)>compiler.target._asm.labelmaxlen) then
           begin
             crc:=0;
             crc:=UpdateCrc32(crc,Result[1],Length(Result));
-            charstoremove:=Length(Result)-target_asm.labelmaxlen+13;
+            charstoremove:=Length(Result)-compiler.target._asm.labelmaxlen+13;
             Delete(Result,(Length(Result)-charstoremove) div 2,charstoremove);
-            Result:='_'+target_asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
-            if Length(Result)>target_asm.labelmaxlen then
+            Result:='_'+compiler.target._asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
+            if Length(Result)>compiler.target._asm.labelmaxlen then
               Internalerror(2020042502);
           end;
       end;
@@ -391,8 +393,10 @@ implementation
 *****************************************************************************}
 
     constructor TAsmLabel.Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        create_non_global(AList,nr,ltyp,target_asm.labelprefix);
+        create_non_global(AList,nr,ltyp,compiler.target._asm.labelprefix);
       end;
 
 

@@ -2300,7 +2300,7 @@ begin
       { smartlink creation does not yet work with DWARF
         debug info on most targets, but it works in internal assembler }
       if (cs_create_smart in init_settings.moduleswitches) and
-         not (af_outputbinary in target_asm.flags) then
+         not (af_outputbinary in compiler.target._asm.flags) then
         begin
           Message(option_dwarf_smartlink_creation);
           exclude(init_settings.moduleswitches,cs_create_smart);
@@ -2327,8 +2327,8 @@ begin
     This is not compatible with using internal linker. }
   if ((cs_link_smart in init_settings.globalswitches) or
       (cs_create_smart in init_settings.moduleswitches)) and
-     (af_needar in target_asm.flags) and
-     not (af_smartlink_sections in target_asm.flags) and
+     (af_needar in compiler.target._asm.flags) and
+     not (af_smartlink_sections in compiler.target._asm.flags) and
      not (cs_link_extern in init_settings.globalswitches) and
      (compiler.target.info.link<>ld_none) and
       not (cs_link_nolink in init_settings.globalswitches) then
@@ -5301,7 +5301,7 @@ begin
           else
             Message2(option_incompatible_asm,'<invalid assembler>',compiler.target.info.name);
           compiler.target.set_target_asm(compiler.target.info.assemextern);
-          Message1(option_asm_forced,target_asm.idtxt);
+          Message1(option_asm_forced,compiler.target._asm.idtxt);
         end;
       if (af_no_debug in asminfos[option.paratargetasm]^.flags) and
          (option.paratargetdbg<>dbg_none) then
@@ -5329,7 +5329,7 @@ begin
       Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
-  if (af_outputbinary in target_asm.flags) and
+  if (af_outputbinary in compiler.target._asm.flags) and
      ((cs_asm_leave in init_settings.globalswitches) or
       { if -s is passed, we shouldn't call the internal assembler }
       (cs_asm_extern in init_settings.globalswitches)) or

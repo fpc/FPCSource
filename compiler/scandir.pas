@@ -1731,7 +1731,7 @@ unit scandir;
             not(compiler.target.info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and
-            not (af_outputbinary in target_asm.flags) then
+            not (af_outputbinary in compiler.target._asm.flags) then
         begin
           Message(option_dwarf_smart_linking);
           Exclude(current_settings.moduleswitches,cs_create_smart);
@@ -1741,8 +1741,8 @@ unit scandir;
           This is not compatible with using internal linker. }
        if ((cs_link_smart in current_settings.globalswitches) or
            (cs_create_smart in current_settings.moduleswitches)) and
-          (af_needar in target_asm.flags) and
-          not (af_smartlink_sections in target_asm.flags) and
+          (af_needar in compiler.target._asm.flags) and
+          not (af_smartlink_sections in compiler.target._asm.flags) and
           not (cs_link_extern in current_settings.globalswitches) then
          begin
            DoneLinker;

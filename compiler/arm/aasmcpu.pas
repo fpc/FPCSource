@@ -1835,7 +1835,7 @@ implementation
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
         { Don't expand pseudo instructions when using GAS, it breaks on some thumb instructions }
-        if target_asm.id<>as_gas then
+        if compiler.target._asm.id<>as_gas then
           expand_instructions(list);
 
         { Do Thumb-2 16bit -> 32bit transformations }

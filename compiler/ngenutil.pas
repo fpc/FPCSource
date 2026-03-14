@@ -1751,7 +1751,7 @@ implementation
           tcb.emit_ord_const(0,u64inttype);
           current_asmdata.asmlists[al_objc_data].concatList(
             tcb.get_final_asmlist(
-              current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,u64inttype),
+              current_asmdata.DefineAsmSymbol(compiler.target._asm.labelprefix+'_OBJC_IMAGE_INFO',AB_LOCAL,AT_DATA,u64inttype),
               u64inttype,sec_objc_image_info,'_OBJC_IMAGE_INFO',const_align(sizeof(pint))
             )
           );

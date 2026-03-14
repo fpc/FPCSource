@@ -448,7 +448,7 @@ implementation
         if current_asmdata.asmlists[al_imports]=nil then
           current_asmdata.asmlists[al_imports]:=TAsmList.create;
 
-        if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
+        if (compiler.target._asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
             for i:=0 to current_module.ImportLibraryList.Count-1 do
@@ -772,7 +772,7 @@ implementation
            exportfromlist(texported_item(EList_indexed.Items[i]));
          FreeAndNil(EList_indexed);
 
-         if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
+         if (compiler.target._asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             generatenasmlib;
             exit;

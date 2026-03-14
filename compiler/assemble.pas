@@ -983,7 +983,7 @@ Implementation
 
       begin
         result:=asminfo^.asmcmd;
-        if af_llvm in target_asm.flags then
+        if af_llvm in compiler.target._asm.flags then
           Replace(result,'$TRIPLET',targettriplet(triplet_llvm))
 {$ifdef arm}
         else if (compiler.target.info.system=system_arm_ios) then
@@ -2942,11 +2942,13 @@ Implementation
 
     Procedure GenerateAsm(smart:boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         a : TAssembler;
       begin
-        if not assigned(CAssembler[target_asm.id]) then
+        if not assigned(CAssembler[compiler.target._asm.id]) then
           Message(asmw_f_assembler_output_not_supported);
-        a:=CAssembler[target_asm.id].Create(@target_asm,smart);
+        a:=CAssembler[compiler.target._asm.id].Create(@compiler.target._asm,smart);
         a.MakeObject;
         a.Free;
         a := nil;

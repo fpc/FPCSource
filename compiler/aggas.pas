@@ -1451,7 +1451,7 @@ implementation
                else
                  begin
                    if ((compiler.target.info.system <> system_arm_linux) and (compiler.target.info.system <> system_arm_android)) or
-                     (target_asm.id=as_arm_vasm) then
+                     (compiler.target._asm.id=as_arm_vasm) then
                      sepChar := '@'
                    else
                      sepChar := '#';
@@ -1667,7 +1667,7 @@ implementation
            ait_eabi_attribute:
              begin
                { as of today, vasm does not support the eabi directives }
-               if target_asm.id<>as_arm_vasm then
+               if compiler.target._asm.id<>as_arm_vasm then
                  begin
                    case tai_attribute(hp).eattr_typ of
                      eattrtype_dword:

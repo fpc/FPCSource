@@ -708,7 +708,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_none.create(cfi_startproc));
       end;
@@ -723,7 +723,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_none.create(cfi_endproc));
       end;
@@ -738,7 +738,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_reg.create(cfi_undefined,NR_RETURN_ADDRESS_REG));
       end;
@@ -753,7 +753,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_reg_val.create(cfi_offset,reg,ofs));
       end;
@@ -768,7 +768,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_reg.create(cfi_restore,reg));
       end;
@@ -783,7 +783,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_reg_val.create(cfi_def_cfa,reg,ofs));
       end;
@@ -798,7 +798,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_reg.create(cfi_def_cfa_register,reg));
       end;
@@ -813,7 +813,7 @@ implementation
             inherited;
             exit;
           end;
-        if not(af_supports_hlcfi in target_asm.flags) then
+        if not(af_supports_hlcfi in compiler.target._asm.flags) then
           exit;
         list.concat(tai_cfi_op_val.create(cfi_def_cfa_offset,ofs));
       end;

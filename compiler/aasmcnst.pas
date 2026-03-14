@@ -1498,7 +1498,7 @@ implementation
            emit_tai(tai_label.create(result.lab),charptrdef);
            result.ofs:=0;
            { create new label of the same kind (including whether or not the
-             name starts with target_asm.labelprefix in case it's AB_LOCAL,
+             name starts with compiler.target._asm.labelprefix in case it's AB_LOCAL,
              so we keep the difference depending on whether the original was
              allocated via getstatic/getlocal/getglobal datalabel) }
            startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
@@ -1831,7 +1831,7 @@ implementation
            emit_tai(tai_label.create(result.lab),arrdef);
            result.ofs:=0;
            { create new label of the same kind (including whether or not the
-             name starts with target_asm.labelprefix in case it's AB_LOCAL,
+             name starts with compiler.target._asm.labelprefix in case it's AB_LOCAL,
              so we keep the difference depending on whether the original was
              allocated via getstatic/getlocal/getglobal datalabel) }
            startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$dynarrlab',startlab.bind,startlab.typ);

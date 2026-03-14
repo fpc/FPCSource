@@ -1549,7 +1549,7 @@ implementation
           {note} [oso_Data,oso_note]
         );
       begin
-        if target_asm.id in asms_int_coff then
+        if compiler.target._asm.id in asms_int_coff then
           begin
             if (aType in [sec_rodata,sec_rodata_norel]) then
               begin

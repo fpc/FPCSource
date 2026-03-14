@@ -8689,7 +8689,7 @@ implementation
 
             if not(compiler.target.info.system in systems_objc_nfabi) then
               begin
-                result:=target_asm.labelprefix;
+                result:=compiler.target._asm.labelprefix;
                 case objecttype of
                   odt_objcclass:
                     begin
@@ -8731,16 +8731,16 @@ implementation
                         objcmetartti:
                           result:='_OBJC_METACLASS_$_';
                         objcclassrortti:
-                          result:=lower(target_asm.labelprefix)+'_OBJC_CLASS_RO_$_';
+                          result:=lower(compiler.target._asm.labelprefix)+'_OBJC_CLASS_RO_$_';
                         objcmetarortti:
-                          result:=lower(target_asm.labelprefix)+'_OBJC_METACLASS_RO_$_';
+                          result:=lower(compiler.target._asm.labelprefix)+'_OBJC_METACLASS_RO_$_';
                         else
                          internalerror(2009092303);
                       end;
                     end;
                   odt_objcprotocol:
                     begin
-                      result:=lower(target_asm.labelprefix);
+                      result:=lower(compiler.target._asm.labelprefix);
                       case rt of
                         objcclassrtti:
                           result:=result+'_OBJC_PROTOCOL_$_';

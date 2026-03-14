@@ -1123,7 +1123,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_info_sections(list: tasmlist);
         for i:=0 to catsyms.count-1 do
           tcb.emit_tai(Tai_const.Create_sym(tasmsymbol(catsyms[i])),tdef(catrttidefs[i]));
         symsdef:=tcb.end_anonymous_record;
-        sym := current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'_OBJC_SYMBOLS_$',AB_LOCAL,AT_DATA,symsdef);
+        sym := current_asmdata.DefineAsmSymbol(compiler.target._asm.labelprefix+'_OBJC_SYMBOLS_$',AB_LOCAL,AT_DATA,symsdef);
         list.concatList(tcb.get_final_asmlist(sym,
           symsdef,
           sec_objc_symbols,'_OBJC_SYMBOLS',
@@ -1935,11 +1935,11 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_info_sections(list: tasmlist);
     nonlazycategories:=collectnonlazyclasses(catdefs);
 
     { this list has to include all classes, also the non-lazy ones }
-    addclasslist(list,sec_objc_classlist,target_asm.labelprefix+'_OBJC_LABEL_CLASS_$',classdefs);
-    addclasslist(list,sec_objc_nlclasslist,target_asm.labelprefix+'_OBJC_LABEL_NONLAZY_CLASS_$',nonlazyclasses);
+    addclasslist(list,sec_objc_classlist,compiler.target._asm.labelprefix+'_OBJC_LABEL_CLASS_$',classdefs);
+    addclasslist(list,sec_objc_nlclasslist,compiler.target._asm.labelprefix+'_OBJC_LABEL_NONLAZY_CLASS_$',nonlazyclasses);
     { category and non-lazy category lists }
-    addclasslist(list,sec_objc_catlist,target_asm.labelprefix+'_OBJC_LABEL_CATEGORY_$',catdefs);
-    addclasslist(list,sec_objc_nlcatlist,target_asm.labelprefix+'_OBJC_LABEL_NONLAZY_CATEGORY_$',nonlazycategories);
+    addclasslist(list,sec_objc_catlist,compiler.target._asm.labelprefix+'_OBJC_LABEL_CATEGORY_$',catdefs);
+    addclasslist(list,sec_objc_nlcatlist,compiler.target._asm.labelprefix+'_OBJC_LABEL_NONLAZY_CATEGORY_$',nonlazycategories);
 
     nonlazyclasses.free;
     nonlazyclasses := nil;

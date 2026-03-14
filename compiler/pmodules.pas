@@ -190,7 +190,7 @@ implementation
         if create_smartlink_library then
          begin
            GenerateAsm(true);
-           if (af_needar in target_asm.flags) then
+           if (af_needar in compiler.target._asm.flags) then
              Linker.MakeStaticLibrary;
          end;
 
@@ -225,7 +225,7 @@ implementation
           exit;
         { Call frame information }
         { MWE: we write our own info, so dwarf asm support is not really needed }
-        { if (af_supports_dwarf in target_asm.flags) and }
+        { if (af_supports_dwarf in compiler.target._asm.flags) and }
         { CFI is currently broken for Darwin }
         if not(compiler.target.info.system in systems_darwin) and
            (

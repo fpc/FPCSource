@@ -229,11 +229,11 @@ interface
         { visible from outside current object }
         procedure getglobaldatalabel(out l : TAsmLabel);
         { visible only inside current object, but doesn't start with
-          target_asm.label_prefix (treated the Darwin linker as the start of a
+          compiler.target._asm.label_prefix (treated the Darwin linker as the start of a
           dead-strippable data block) }
         procedure getstaticdatalabel(out l : TAsmLabel);
         { visible only inside the current object and does start with
-          target_asm.label_prefix (not treated by the Darwin linker as the start
+          compiler.target._asm.label_prefix (not treated by the Darwin linker as the start
           of a dead-strippable data block, and references to such labels are
           also ignored to determine whether a data block should be live) }
         procedure getlocaldatalabel(out l : TAsmLabel);

@@ -4981,7 +4981,7 @@ implementation
                 list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0,current_procinfo.procdef))
               else
                 list.concat(Tai_symbol.Createname_hidden(item.str,AT_FUNCTION,0,current_procinfo.procdef));
-              if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
+              if not(af_stabs_use_function_absolute_addresses in compiler.target._asm.flags) then
                 list.concat(Tai_function_name.create(item.str));
             end;
           item:=TCmdStrListItem(item.next);

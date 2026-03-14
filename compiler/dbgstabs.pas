@@ -196,7 +196,7 @@ implementation
         result := Sym.RealName;
       if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
         result:=ttypesym(Sym).FPrettyName;
-      if target_asm.dollarsign<>'$' then
+      if compiler.target._asm.dollarsign<>'$' then
         result:=ApplyAsmSymbolRestrictions(result);
     end;
 
@@ -206,7 +206,7 @@ implementation
         result := SymTable.Name^
       else
         result := SymTable.RealName^;
-      if target_asm.dollarsign<>'$' then
+      if compiler.target._asm.dollarsign<>'$' then
         result:=ApplyAsmSymbolRestrictions(result);
     end;
 
@@ -1429,7 +1429,7 @@ implementation
             if compiler.target.info.system in systems_dotted_function_names then
               mangledname:='.'+mangledname;
             // LBRAC
-            if af_stabs_use_function_absolute_addresses in target_asm.flags then
+            if af_stabs_use_function_absolute_addresses in compiler.target._asm.flags then
               ss:=tostr(STABS_N_LBRAC)+',0,0,'+mangledname
             else
               ss:=tostr(STABS_N_LBRAC)+',0,0,0';
@@ -1438,7 +1438,7 @@ implementation
             // RBRAC
             ss:=tostr(STABS_N_RBRAC)+',0,0,'+stabsendlabel.name;
             stabsendlabel.increfs;
-            if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
+            if not(af_stabs_use_function_absolute_addresses in compiler.target._asm.flags) then
               ss:=ss+'-'+mangledname;
             result.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
 
@@ -1817,7 +1817,7 @@ implementation
                 if (currfileinfo.line>lastfileinfo.line) and (currfileinfo.line<>0) then
                   begin
                      if assigned(currfuncname) and
-                        not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
+                        not(af_stabs_use_function_absolute_addresses in compiler.target._asm.flags) then
                       begin
                         current_asmdata.getlabel(hlabel,alt_dbgline);
                         list.insertbefore(Tai_stab.Create_str(stab_stabn,tostr(stabs_n_textline)+',0,'+tostr(currfileinfo.line)+','+

@@ -564,6 +564,7 @@ interface
       private
         Fcpu  : tsystemcpu;
         Finfo : tsysteminfo;
+        Fasm  : tasminfo;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -579,6 +580,7 @@ interface
         procedure set_target_flags(const t:tsystemflagset);
         property cpu: tsystemcpu read Fcpu;
         property info : tsysteminfo read Finfo;
+        property _asm : tasminfo read Fasm;
       end;
 
     var
@@ -589,7 +591,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_asm  : tasminfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
        target_dbg  : tdbginfo;
@@ -684,7 +685,7 @@ begin
     ((Finfo.system in asminfos[t]^.supported_targets) or
      (system_any in asminfos[t]^.supported_targets)) then
    begin
-     target_asm:=asminfos[t]^;
+     Fasm:=asminfos[t]^;
      set_target_asm:=true;
      exit;
    end;
