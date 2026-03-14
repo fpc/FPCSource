@@ -1083,7 +1083,7 @@ implementation
          Replace(s,'$FPCVERSION',version_string);
          Replace(s,'$FPCFULLVERSION',full_version_string);
          Replace(s,'$FPCDATE',date_string);
-         Replace(s,'$FPCCPU',target_cpu_string);
+         Replace(s,'$FPCCPU',compiler.target.cpu_string);
          Replace(s,'$FPCOS',target_os_string);
          Replace(s,'$FPCBINDIR',exepath);
          if (tf_use_8_3 in Source_Info.Flags) or
@@ -1739,6 +1739,8 @@ implementation
      end;
 
    procedure InitGlobals;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
         get_exepath;
 
@@ -1781,7 +1783,7 @@ implementation
         current_namespacelist:=Nil;
         { Def file }
         usewindowapi:=false;
-        description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
+        description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
         SetPEOptFlagsSetExplicity:=false;

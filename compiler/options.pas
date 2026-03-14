@@ -1566,7 +1566,7 @@ procedure TOption.VerifyTargetProcessor;
     if processorstr='' then
       exit;
     { custom target processor specified -> verify it's the one we support }
-    if upcase(processorstr)<>upcase(target_cpu_string) then
+    if upcase(processorstr)<>upcase(compiler.target.cpu_string) then
       Message1(option_invalid_target_architecture,processorstr);
   end;
 
@@ -2073,7 +2073,7 @@ begin
            'O' :
              addinfo(lower(compiler.target.info.shortname));
            'P' :
-             AddInfo(target_cpu_string);
+             AddInfo(compiler.target.cpu_string);
            'T' :
              begin
              addinfo(lower(self.parasubtarget));
@@ -5050,7 +5050,7 @@ begin
       system_i386_android:
         utilsprefix:='i686-linux-android-';
       else
-        utilsprefix:=target_cpu_string + '-linux-android-';
+        utilsprefix:=compiler.target.cpu_string + '-linux-android-';
     end;
 
   { Set up default value for the heap on Amiga-likes (values only apply if the OSHeap allocator is used) }

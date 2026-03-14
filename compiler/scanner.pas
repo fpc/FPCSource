@@ -2865,9 +2865,9 @@ type
              'FPCDATE':
                hs:=date_string;
              'FPCTARGET':
-               hs:=target_cpu_string;
+               hs:=compiler.target.cpu_string;
              'FPCTARGETCPU':
-               hs:=target_cpu_string;
+               hs:=compiler.target.cpu_string;
              'FPCTARGETOS':
                hs:=compiler.target.info.shortname;
              'CURRENTROUTINE':

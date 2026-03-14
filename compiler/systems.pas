@@ -568,6 +568,7 @@ interface
         Far   : tarinfo;
         Fres  : tresinfo;
         Fdbg  : tdbginfo;
+        Fcpu_string: string;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -587,6 +588,7 @@ interface
         property ar: tarinfo read Far;
         property res: tresinfo read Fres;
         property dbg: tdbginfo read Fdbg;
+        property cpu_string: string read Fcpu_string;
       end;
 
     var
@@ -597,7 +599,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_cpu_string,
        target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
        target_full_string : string[28];
 
@@ -673,8 +674,8 @@ begin
      set_target_dbg(Finfo.dbg);
      Fcpu:=Finfo.cpu;
      target_os_string:=lower(Finfo.shortname);
-     target_cpu_string:=cpu2str[Fcpu];
-     target_full_string:=target_cpu_string+'-'+target_os_string;
+     Fcpu_string:=cpu2str[Fcpu];
+     target_full_string:=Fcpu_string+'-'+target_os_string;
      set_target:=true;
      exit;
    end;

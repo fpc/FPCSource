@@ -1639,7 +1639,7 @@ implementation
       { Insert Ident of the compiler in the .fpc.version section }
       tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip],compiler);
       s:='FPC '+full_version_string+
-        ' ['+date_string+'] for '+target_cpu_string+' - '+compiler.target.info.shortname;
+        ' ['+date_string+'] for '+compiler.target.cpu_string+' - '+compiler.target.info.shortname;
 {$ifdef m68k}
       { Ensure that the size of s is multiple of 2 to avoid problems
         like on m68k-amiga which has a .balignw just after,

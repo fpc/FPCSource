@@ -1613,7 +1613,7 @@ implementation
         Translator_COMENT:=TOmfRecord_COMENT.Create;
         Translator_COMENT.CommentClass:=CC_Translator;
         Translator_COMENT.CommentString:='FPC '+full_version_string+
-        ' ['+date_string+'] for '+target_cpu_string+' - '+compiler.target.info.shortname;
+        ' ['+date_string+'] for '+compiler.target.cpu_string+' - '+compiler.target.info.shortname;
         Translator_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;
