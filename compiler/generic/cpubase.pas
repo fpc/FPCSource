@@ -27,6 +27,7 @@ const
 
   OS_ADDR = OS_32;
   OS_INT = OS_32;
+  OS_SINT = OS_S32;
   OS_VECTOR = OS_M128;
 
   first_int_imreg = 1;
