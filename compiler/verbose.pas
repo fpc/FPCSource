@@ -65,9 +65,9 @@ interface
         procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
 
         function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
+        procedure ShowStatus;
       end;
 
-    procedure ShowStatus;
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
     procedure GenerateError;
@@ -496,7 +496,7 @@ implementation
       end;
 
 
-    procedure ShowStatus;
+    procedure TVerbose.ShowStatus;
       begin
         UpdateStatus;
         if do_status() then

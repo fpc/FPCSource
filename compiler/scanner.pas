@@ -4264,6 +4264,8 @@ type
 
     procedure tscannerfile.linebreak;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          cur : char;
       begin
         with inputfile do
@@ -4311,7 +4313,7 @@ type
            savetokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
-           ShowStatus;
+           compiler.verbose.ShowStatus;
            restoretokenpos;
          end;
       end;
