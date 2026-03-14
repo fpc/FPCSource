@@ -1024,11 +1024,11 @@ Implementation
         DeleteFile(current_module.staticlibfilename);
       { Call AR }
         smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,compiler.target.info.smartext),false);
-        SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
+        SplitBinCmd(compiler.target.ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(utilsprefix + binstr);
-        if target_ar.arfirstcmd<>'' then
+        if compiler.target.ar.arfirstcmd<>'' then
           begin
-            SplitBinCmd(target_ar.arfirstcmd,firstbinstr,firstcmd);
+            SplitBinCmd(compiler.target.ar.arfirstcmd,firstbinstr,firstcmd);
             firstbinstr := FindUtil(utilsprefix + firstbinstr);
           end
         else
@@ -1038,9 +1038,9 @@ Implementation
           end;
 
 
-        scripted_ar:=(target_ar.id=ar_gnu_ar_scripted) or
-                     (target_ar.id=ar_watcom_wlib_omf_scripted) or
-                     (target_ar.id=ar_sdcc_sdar_scripted);
+        scripted_ar:=(compiler.target.ar.id=ar_gnu_ar_scripted) or
+                     (compiler.target.ar.id=ar_watcom_wlib_omf_scripted) or
+                     (compiler.target.ar.id=ar_sdcc_sdar_scripted);
 
         if scripted_ar then
           begin
@@ -1049,7 +1049,7 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
+              if (compiler.target.ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 writeln(script, 'CREATE ' + current_module.staticlibfilename)
               else { wlib case }
                 writeln(script,'-q -p=',get_wlib_record_size,' -fo -c -b '+
@@ -1057,13 +1057,13 @@ Implementation
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
-                  if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
+                  if (compiler.target.ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                   writeln(script, 'ADDMOD ' + current.str)
                   else
                     writeln(script,'+' + current.str);
                   current := TCmdStrListItem(current.next);
                 end;
-              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
+              if (compiler.target.ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 begin
                   writeln(script, 'SAVE');
                   writeln(script, 'END');
@@ -1080,7 +1080,7 @@ Implementation
             Replace(firstcmd,'$LIB',maybequoted(current_module.staticlibfilename));
             Replace(cmdstr,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
             Replace(firstcmd,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
-            if target_ar.id=ar_watcom_wlib_omf then
+            if compiler.target.ar.id=ar_watcom_wlib_omf then
               begin
                 Replace(cmdstr,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
                 Replace(firstcmd,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
@@ -1094,7 +1094,7 @@ Implementation
                 nextcmd := firstcmd
               else
                 nextcmd := cmdstr;
-              Replace(nextcmd,'$FILES',GetNextFiles(2047, current, target_ar.addfilecmd));
+              Replace(nextcmd,'$FILES',GetNextFiles(2047, current, compiler.target.ar.addfilecmd));
               if first then
                 success:=DoExec(firstbinstr,nextcmd,false,true)
               else
@@ -1110,9 +1110,9 @@ Implementation
             until (not assigned(current)) or (not success);
           end;
 
-        if (target_ar.arfinishcmd <> '') then
+        if (compiler.target.ar.arfinishcmd <> '') then
           begin
-            SplitBinCmd(target_ar.arfinishcmd,binstr,cmdstr);
+            SplitBinCmd(compiler.target.ar.arfinishcmd,binstr,cmdstr);
             binstr := FindUtil(utilsprefix + binstr);
             Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
             success:=DoExec(binstr,cmdstr,false,true);

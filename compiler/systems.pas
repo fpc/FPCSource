@@ -565,6 +565,7 @@ interface
         Fcpu  : tsystemcpu;
         Finfo : tsysteminfo;
         Fasm  : tasminfo;
+        Far   : tarinfo;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -581,6 +582,7 @@ interface
         property cpu: tsystemcpu read Fcpu;
         property info : tsysteminfo read Finfo;
         property _asm : tasminfo read Fasm;
+        property ar: tarinfo read Far;
       end;
 
     var
@@ -591,7 +593,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_ar   : tarinfo;
        target_res  : tresinfo;
        target_dbg  : tdbginfo;
        target_cpu_string,
@@ -697,7 +698,7 @@ begin
   result:=false;
   if assigned(arinfos[t]) then
    begin
-     target_ar:=arinfos[t]^;
+     Far:=arinfos[t]^;
      result:=true;
      exit;
    end;
