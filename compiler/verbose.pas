@@ -57,9 +57,8 @@ interface
       TVerbose = class
         procedure SetRedirectFile(const fn:string);
         function  SetVerbosity(const s:TCmdStr):boolean;
+        procedure PrepareReport;
       end;
-
-    procedure PrepareReport;
 
     function  CheckVerbosity(v:longint):boolean;
     function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
@@ -162,7 +161,7 @@ implementation
       end;
 
 
-    procedure PrepareReport;
+    procedure TVerbose.PrepareReport;
       var
         fn : string;
       begin
