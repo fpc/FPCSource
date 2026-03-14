@@ -55,9 +55,9 @@ interface
       { TVerbose }
 
       TVerbose = class
+        procedure SetRedirectFile(const fn:string);
       end;
 
-    procedure SetRedirectFile(const fn:string);
     function  SetVerbosity(const s:TCmdStr):boolean;
     procedure PrepareReport;
 
@@ -143,7 +143,7 @@ implementation
       end;
 
 
-    procedure SetRedirectFile(const fn:string);
+    procedure TVerbose.SetRedirectFile(const fn:string);
       begin
         { close old redirection file because FileRedirection is handled in both passes }
         if status.use_redir then

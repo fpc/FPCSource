@@ -3114,7 +3114,7 @@ begin
     'D' :
       utilsdirectory:=FixPath(More,true);
     'e' :
-      SetRedirectFile(More);
+      compiler.verbose.SetRedirectFile(More);
     'E' :
       OutputExeDir:=FixPath(More,true);
     'f' :
