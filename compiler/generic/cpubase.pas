@@ -50,6 +50,7 @@ const
 function std_regname(r:Tregister):string;
 function condition_in(const Subset, c: TAsmCond): Boolean;
 function inverse_cond(const c: TAsmCond): TAsmCond;
+function reg_cgsize(const reg: tregister): tcgsize;
 
 Implementation
 
@@ -66,6 +67,11 @@ end;
 function inverse_cond(const c: TAsmCond): TAsmCond;
 begin
   result:=c;
+end;
+
+function reg_cgsize(const reg: tregister): tcgsize;
+begin
+  result:=OS_NO;
 end;
 
 end.

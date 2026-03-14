@@ -20,12 +20,31 @@ Unit AAsmCpu;
 Interface
 
 uses
-  aasmsym;
+  aasmsym,cgbase,cgutils;
+
+const
+  { "mov reg,reg" source operand number }
+  O_MOV_SOURCE = 1;
+  { "mov reg,reg" source operand number }
+  O_MOV_DEST   = 0;
 
 type
   taicpu = class(tai_cpu_abstract_sym)
   end;
 
+function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+function spilling_create_store(r:tregister; const ref:treference):Taicpu;
+
 Implementation
+
+function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+begin
+  result:=nil;
+end;
+
+function spilling_create_store(r:tregister; const ref:treference):Taicpu;
+begin
+  result:=nil;
+end;
 
 end.
