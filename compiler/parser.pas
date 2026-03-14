@@ -119,7 +119,7 @@ implementation
        module.end_of_parsing;
 
        { Restore all locally modified warning messages }
-       RestoreLocalVerbosity(current_settings.pmessage);
+       compiler.verbose.RestoreLocalVerbosity(current_settings.pmessage);
        current_exceptblock:=0;
        exceptblockcounter:=0;
 

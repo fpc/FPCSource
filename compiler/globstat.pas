@@ -283,7 +283,7 @@ var
       status.verbosity:=old_verbosity;
 
       { restore message settings which were recorded prior to unit switch }
-      RestoreLocalVerbosity(current_settings.pmessage);
+      compiler.verbose.RestoreLocalVerbosity(current_settings.pmessage);
 
       // These can be different
       current_asmdata:=old_asmdata;

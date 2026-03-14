@@ -786,7 +786,7 @@ implementation
 
         { reset verbosity (otherwise the used units would use curr's pmessage) }
         current_settings.pmessage:=nil;
-        RestoreLocalVerbosity(nil);
+        compiler.verbose.RestoreLocalVerbosity(nil);
 
         { Load the units }
         pu:=tused_unit(curr.used_units.first);

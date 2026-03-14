@@ -61,9 +61,9 @@ interface
 
         function  CheckVerbosity(v:longint):boolean;
         function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
+        procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
       end;
 
-    procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
 
     function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
@@ -180,7 +180,7 @@ implementation
          writeln(status.reportbugfile,'FPC bug report file');
       end;
 
-    procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
+    procedure TVerbose.RestoreLocalVerbosity(pstate : pmessagestaterecord);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       { apply the whole stack of message/verbosity changes }
