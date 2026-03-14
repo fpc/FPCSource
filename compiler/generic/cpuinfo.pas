@@ -39,7 +39,8 @@ Type
 
    { possible supported processors for this target }
    tcputype =
-      (cpu_none
+      (cpu_none,
+       cpu_generic
       );
 
    { copied from arm/cpuinfo unit for arm specific
@@ -77,7 +78,7 @@ Const
       (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
 
-   cputypestr : array[tcputype] of string[8] = ('none');
+   cputypestr : array[tcputype] of string[8] = ('none','generic');
    fputypestr : array[tfputype] of string[6] = ('none','soft');
 
    supported_calling_conventions : tproccalloptions = [
