@@ -80,6 +80,30 @@ Const
    cputypestr : array[tcputype] of string[8] = ('none');
    fputypestr : array[tfputype] of string[6] = ('none','soft');
 
+   supported_calling_conventions : tproccalloptions = [
+     pocall_internproc,
+     pocall_safecall,
+     pocall_stdcall,
+     { same as stdcall only different name mangling }
+     pocall_cdecl,
+     { same as stdcall only different name mangling }
+     pocall_cppdecl,
+     { same as stdcall but floating point numbers are handled like equal sized integers }
+     pocall_softfloat
+   ];
+
+   { Supported optimizations, only used for information }
+   supported_optimizerswitches = genericlevel1optimizerswitches+
+                                 genericlevel2optimizerswitches+
+                                 genericlevel3optimizerswitches-
+                                 { no need to write info about those }
+                                 [cs_opt_level1,cs_opt_level2,cs_opt_level3];
+
+   level1optimizerswitches = genericlevel1optimizerswitches;
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches;
+   level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches;
+   level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches;
+
 Implementation
 
 end.

@@ -25,7 +25,7 @@ unit parabase;
   interface
 
     uses
-       cclasses,globtype,
+       cclasses,globtype,compilerbase,
 {$ifdef llvm}
        aasmbase,
 {$endif}
@@ -163,7 +163,7 @@ unit parabase;
 implementation
 
     uses
-      systems,verbose,
+      systems,verbose,compiler,
       symsym,defutil;
 
 
@@ -263,6 +263,8 @@ implementation
 
 
     procedure tcgpara.get_location(var newloc:tlocation);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not assigned(location) then
           internalerror(200408205);

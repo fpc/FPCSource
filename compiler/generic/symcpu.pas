@@ -169,7 +169,7 @@ type
 
 
 const
-  pbestrealtype : ^tdef = @<somestandardfloattype>;
+  pbestrealtype : ^tdef = {@<somestandardfloattype>}nil;
 
 
 implementation

@@ -67,6 +67,7 @@ uses
   { system information for source system }
   { the information about the target os  }
   { are pulled in by the t_* units       }
+{$ifndef GENERIC_CPU}
 {$ifdef amiga}
   ,i_amiga
 {$endif amiga}
@@ -153,6 +154,7 @@ uses
 {$ifdef aix}
   ,i_aix
 {$endif aix}
+{$endif GENERIC_CPU}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
   ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti
