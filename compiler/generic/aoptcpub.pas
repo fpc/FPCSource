@@ -91,7 +91,7 @@ Const
   StoreDst = 1;
 
   aopt_uncondjmp = a_nop;
-  //aopt_condjmp = a_br_if;
+  aopt_condjmp = a_nop;
 
 Implementation
 
