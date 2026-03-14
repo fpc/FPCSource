@@ -23,6 +23,8 @@ uses
   cgbase;
 
 const
+  R_SUBWHOLE = R_SUBD;
+
   OS_ADDR = OS_32;
 
   first_int_imreg = 1;
@@ -32,19 +34,38 @@ const
 
   NR_NO = tregister($00000000);
   NR_DEFAULTFLAGS = NR_NO;
+  NR_STACK_POINTER_REG = NR_NO;
 
 type
   TAsmOp = (A_NOP);
   TAsmCond=(C_None);
   TResFlags = (F_NotPossible);
+  tregisterindex=0..0;
+
+const
+  regnumber_table : array[tregisterindex] of tregister = (
+    tregister($00000000)
+  );
 
 function std_regname(r:Tregister):string;
+function condition_in(const Subset, c: TAsmCond): Boolean;
+function inverse_cond(const c: TAsmCond): TAsmCond;
 
 Implementation
 
 function std_regname(r:Tregister):string;
 begin
   result:='';
+end;
+
+function condition_in(const Subset, c: TAsmCond): Boolean;
+begin
+  result:=false;
+end;
+
+function inverse_cond(const c: TAsmCond): TAsmCond;
+begin
+  result:=c;
 end;
 
 end.
