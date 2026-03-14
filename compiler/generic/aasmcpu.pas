@@ -20,7 +20,7 @@ Unit AAsmCpu;
 Interface
 
 uses
-  aasmsym,cgbase,cgutils;
+  aasmtai,aasmsym,cgbase,cgutils;
 
 const
   { "mov reg,reg" source operand number }
@@ -29,6 +29,9 @@ const
   O_MOV_DEST   = 0;
 
 type
+  tai_align = class(tai_align_abstract)
+  end;
+
   taicpu = class(tai_cpu_abstract_sym)
   end;
 
