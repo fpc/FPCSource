@@ -1619,9 +1619,9 @@ implementation
         Translator_COMENT.Free;
         Translator_COMENT := nil;
 
-        if (target_dbg.id=dbg_codeview) or
+        if (compiler.target.dbg.id=dbg_codeview) or
            ((ds_dwarf_omf_linnum in current_settings.debugswitches) and
-            (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) then
+            (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) then
           begin
             DebugFormat_COMENT:=TOmfRecord_COMENT.Create;
             DebugFormat_COMENT.CommentClass:=CC_NewOmfExtension;
@@ -3816,7 +3816,7 @@ cleanup:
               exit;
           end;
         if ((cs_debuginfo in current_settings.moduleswitches) and
-            (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) and
+            (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) and
            ((ExeWriteMode=ewm_dbgonly) or
             ((ExeWriteMode=ewm_exefull) and
               not(cs_link_strip in current_settings.globalswitches))) then

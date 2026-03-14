@@ -249,9 +249,9 @@ begin
 
   LinkRes.Add('option description '+maybequoted_for_script(description,script_unix));
 
-  if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
+  if compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf')
-  else if target_dbg.id=dbg_codeview then
+  else if compiler.target.dbg.id=dbg_codeview then
     LinkRes.Add('debug codeview');
   if cs_link_separate_dbg_file in current_settings.globalswitches then
     LinkRes.Add('option symfile');
@@ -436,7 +436,7 @@ begin
   LinkScript.Concat('ENDEXESECTION');
 
   if (cs_debuginfo in current_settings.moduleswitches) and
-     (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+     (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       LinkScript.Concat('EXESECTION .debug_info');
       LinkScript.Concat('  OBJSECTION .DEBUG_INFO||DWARF');

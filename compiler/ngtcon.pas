@@ -1221,7 +1221,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         addstabx:=false;
         if fsym.globalasmsym then
           begin
-            if (target_dbg.id=dbg_stabx) and
+            if (compiler.target.dbg.id=dbg_stabx) and
                (cs_debuginfo in current_settings.moduleswitches) and
                not assigned(current_asmdata.GetAsmSymbol(fsym.name)) then
               addstabx:=true;

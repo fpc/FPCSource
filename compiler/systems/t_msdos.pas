@@ -316,9 +316,9 @@ begin
 
   if cs_debuginfo in current_settings.moduleswitches then
   begin
-    if target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
+    if compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
       LinkRes.Add('debug dwarf')
-    else if target_dbg.id=dbg_codeview then
+    else if compiler.target.dbg.id=dbg_codeview then
       LinkRes.Add('debug codeview')
     else
       LinkRes.Add('debug watcom all');
@@ -545,7 +545,7 @@ begin
   LinkScript.Concat('ENDEXESECTION');
 
   if (cs_debuginfo in current_settings.moduleswitches) and
-     (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+     (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       LinkScript.Concat('EXESECTION .debug_info');
       LinkScript.Concat('  OBJSECTION .DEBUG_INFO||DWARF');

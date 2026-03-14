@@ -1727,7 +1727,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         do_moduleswitch(cs_create_smart);
-        if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
+        if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
             not(compiler.target.info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and

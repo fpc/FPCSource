@@ -502,6 +502,8 @@ implementation
 
     function tlinkerdarwin.MakeExecutable:boolean;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       binstr,
       cmdstr,
       mapstr,
@@ -594,7 +596,7 @@ implementation
       { create dsym file? }
       extdbgbinstr:='';
       extdbgcmdstr:='';
-      if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
+      if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
          (cs_link_separate_dbg_file in current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
@@ -624,6 +626,8 @@ implementation
 
 
   function tlinkerdarwin.MakeSharedLibrary: boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       InitStr,
       FiniStr,
@@ -713,7 +717,7 @@ implementation
       { create dsym file? }
       extdbgbinstr:='';
       extdbgcmdstr:='';
-      if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
+      if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
          (cs_link_separate_dbg_file in current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');

@@ -337,7 +337,7 @@ implementation
 
       { debug information }
       if (([cs_debuginfo,cs_lineinfo]*current_settings.moduleswitches)<>[]) and
-         (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+         (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
         begin
           { the debug info version is the version of the debug info metadata
             format }
@@ -352,7 +352,7 @@ implementation
           dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
           dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
           dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Dwarf Version')));
-          case target_dbg.id of
+          case compiler.target.dbg.id of
             dbg_dwarf2:
               dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
             dbg_dwarf3:

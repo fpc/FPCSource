@@ -230,7 +230,7 @@ implementation
         if not(compiler.target.info.system in systems_darwin) and
            (
             (tf_needs_dwarf_cfi in compiler.target.info.flags) or
-            (target_dbg.id in [dbg_dwarf2, dbg_dwarf3])
+            (compiler.target.dbg.id in [dbg_dwarf2, dbg_dwarf3])
            ) then
           begin
             current_asmdata.asmlists[al_dwarf_frame].Free;
@@ -478,7 +478,7 @@ implementation
              CheckAddUnit('cmem');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
-             case target_dbg.id of
+             case compiler.target.dbg.id of
                dbg_stabs:
                  CheckAddUnit('lineinfo');
                dbg_stabx:
@@ -710,7 +710,7 @@ implementation
           if s='LINEINFO' then
             begin
               Message(parser_w_no_lineinfo_use_switch);
-              if (target_dbg.id in [dbg_dwarf2, dbg_dwarf3]) then
+              if (compiler.target.dbg.id in [dbg_dwarf2, dbg_dwarf3]) then
                s := 'LNFODWRF';
              sorg := s;
             end;
@@ -2011,7 +2011,7 @@ type
               include(current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
               if (cs_debuginfo in current_settings.moduleswitches) and
-                 (target_dbg.id=dbg_stabs) then
+                 (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   Message(parser_w_parser_win32_debug_needs_WN);
@@ -2999,7 +2999,7 @@ type
               include(current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
               if (cs_debuginfo in current_settings.moduleswitches) and
-                 (target_dbg.id=dbg_stabs) then
+                 (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   Message(parser_w_parser_win32_debug_needs_WN);

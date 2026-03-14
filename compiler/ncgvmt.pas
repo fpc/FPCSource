@@ -1332,7 +1332,7 @@ implementation
                       hlcg.done_register_allocators;
                       if ((cs_debuginfo in current_settings.moduleswitches) or
                          (cs_use_lineinfo in current_settings.globalswitches)) and
-                         (target_dbg.id<>dbg_stabx) then
+                         (compiler.target.dbg.id<>dbg_stabx) then
                            current_debuginfo.insertlineinfo(tmplist);
                       list.concatlist(tmplist);
                       tmplist.Free;

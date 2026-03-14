@@ -1542,7 +1542,7 @@ implementation
                     Not doing this breaks debugging under e.g. SPARC. Doc:
                     http://sourceware.org/gdb/current/onlinedocs/stabs_4.html#SEC26
                   }
-                  if (target_dbg.id<>dbg_stabx) and
+                  if (compiler.target.dbg.id<>dbg_stabx) and
                      (c='p') and
                      not is_open_string(sym.vardef) and
                      ((sym.paraloc[calleeside].location^.loc<>sym.localloc.loc) or
@@ -1616,7 +1616,7 @@ implementation
                   setlength(ss,sym.value.len);
                   for i:=0 to sym.value.len-1 do
                     ss[i+1]:=pchar(sym.value.valueptr)[i];
-                  if target_dbg.id=dbg_stabs then
+                  if compiler.target.dbg.id=dbg_stabs then
                     st:='s'''+backspace_quote(octal_quote(ss,[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
                   else
                     st:='s'''+stabx_quote_const(octal_quote(ss,[#0..#9,#11,#12,#14..#31,'''']))+'''';

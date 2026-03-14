@@ -27,7 +27,7 @@ interface
 
     uses
       cclasses,
-      systems,
+      systems,compilerbase,
       parabase,
       symconst,symbase,symdef,symtype,symsym,
       fmodule,
@@ -105,6 +105,7 @@ implementation
       cutils,
       globals,
       verbose,
+      compiler,
       cgbase;
 
 
@@ -626,16 +627,18 @@ implementation
 ****************************************************************************}
 
     procedure InitDebugInfo(hp:tmodule; restore_current_debuginfo : boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not assigned(CDebugInfo[target_dbg.id]) then
+        if not assigned(CDebugInfo[compiler.target.dbg.id]) then
           begin
             Comment(V_Fatal,'cg_f_debuginfo_output_not_supported');
             exit;
           end;
 {$ifndef llvm}
-        hp.DebugInfo:=CDebugInfo[target_dbg.id].Create;
+        hp.DebugInfo:=CDebugInfo[compiler.target.dbg.id].Create;
 {$else}
-        { we can't override the assignment of target_dbg with the LLVM class,
+        { we can't override the assignment of compiler.target.dbg with the LLVM class,
           because we still need to know whether to tell LLVM to generate
           DWARFv2/3/4/5/... }
         hp.DebugInfo:=CDebugInfo[dbg_llvm].Create;

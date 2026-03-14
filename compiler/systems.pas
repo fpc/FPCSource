@@ -567,6 +567,7 @@ interface
         Fasm  : tasminfo;
         Far   : tarinfo;
         Fres  : tresinfo;
+        Fdbg  : tdbginfo;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -585,6 +586,7 @@ interface
         property _asm : tasminfo read Fasm;
         property ar: tarinfo read Far;
         property res: tresinfo read Fres;
+        property dbg: tdbginfo read Fdbg;
       end;
 
     var
@@ -595,7 +597,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_dbg  : tdbginfo;
        target_cpu_string,
        target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
        target_full_string : string[28];
@@ -732,7 +733,7 @@ begin
 { no debugging support for llvm yet }
   if assigned(dbginfos[t]) then
    begin
-     target_dbg:=dbginfos[t]^;
+     Fdbg:=dbginfos[t]^;
      result:=true;
      exit;
    end;

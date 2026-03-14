@@ -955,7 +955,7 @@ implementation
             name as the identifier -> create an extra *local* symbol.
             Moreover, such a local symbol will be removed if it's not
             referenced anywhere, so also create a reference }
-          if (target_dbg.id=dbg_stabx) and
+          if (compiler.target.dbg.id=dbg_stabx) and
              (cs_debuginfo in current_settings.moduleswitches) and
              not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
             begin
