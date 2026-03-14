@@ -1945,7 +1945,7 @@ implementation
                   LOC_REFERENCE:
                     begin
                       gen_alloc_regloc(list,destloc,vardef);
-                      reference_reset_base(href,cpointerdef.getreusable(vardef),paraloc^.reference.index,paraloc^.reference.offset,ctempposinvalid,para.alignment,[]);
+                      reference_reset_base(href,cpointerdef.getreusable(vardef,compiler),paraloc^.reference.index,paraloc^.reference.offset,ctempposinvalid,para.alignment,[]);
                       cg64.a_load64_ref_reg(list,href,destloc.register64);
                       unget_para(paraloc^);
                     end;
