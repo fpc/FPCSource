@@ -50,6 +50,13 @@ interface
     const
       msgfilename : string = '';
 
+    type
+
+      { TVerbose }
+
+      TVerbose = class
+      end;
+
     procedure SetRedirectFile(const fn:string);
     function  SetVerbosity(const s:TCmdStr):boolean;
     procedure PrepareReport;

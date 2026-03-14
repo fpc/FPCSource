@@ -170,6 +170,7 @@ type
   TCompiler = class(TCompilerBase)
   private
     FTarget: TCompilerTarget;
+    FVerbose: TVerbose;
     FTaskHandler: TTask_handler;
     FParser: TParser;
     FNodeUtils: TNodeUtils;
@@ -200,6 +201,7 @@ type
     function Compile(const cmd:TCmdStr):longint;
 
     property Target: TCompilerTarget read FTarget;
+    property Verbose: TVerbose read FVerbose;
     property Parser: TParser read FParser;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
@@ -234,6 +236,7 @@ type
     function GetRTTIWriter: TRTTIWriter; inline;
     function Getsymtablestack: TSymtablestack; inline;
     function GetTarget: TCompilerTarget; inline;
+    function GetVerbose: TVerbose; inline;
     procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
   public
     { node constructor helpers }
@@ -343,6 +346,7 @@ type
     function ccasenode(l:tnode):tcasenode; inline;
 
     property Target: TCompilerTarget read GetTarget;
+    property Verbose: TVerbose read GetVerbose;
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
@@ -436,6 +440,7 @@ begin
   { globals depends on source_info so it must be after systems }
   InitGlobals;
   { verbose depends on exe_path and must be after globals }
+  FVerbose:=TVerbose.Create;
   InitVerbose;
   inittokens;
   InitSymtable(Self); {Must come before read_arguments, to enable macrosymstack}
@@ -565,6 +570,7 @@ begin
        SetExceptionMask(ExceptionMask);
      end;
      DoneVerbose;
+     FreeAndNil(FVerbose);
   except
     on EControlCAbort do
       begin
@@ -736,6 +742,11 @@ end;
 function TCompilerHelper.GetTarget: TCompilerTarget; inline;
 begin
   Result := TCompiler(Self).Target;
+end;
+
+function TCompilerHelper.GetVerbose: TVerbose; inline;
+begin
+  Result := TCompiler(Self).Verbose;
 end;
 
 procedure TCompilerHelper.Setaktassignmentnode(AValue: tassignmentnode); inline;
