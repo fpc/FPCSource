@@ -5256,13 +5256,13 @@ begin
            (tf_use_8_3 in compiler.target.info.Flags) then
           UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.os_string,false)
         else
-          UnitSearchPath.AddPath(FpcDir+'rtl/'+target_full_string,false)
+          UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.full_string,false)
       else
         if (tf_use_8_3 in Source_Info.Flags) or
            (tf_use_8_3 in compiler.target.info.Flags) then
           UnitSearchPath.AddPath(FpcDir+'units/'+compiler.target.os_string+'/rtl',false)
         else
-          UnitSearchPath.AddPath(FpcDir+'units/'+target_full_string+'/rtl',false);
+          UnitSearchPath.AddPath(FpcDir+'units/'+compiler.target.full_string+'/rtl',false);
     end;
   { Add exepath if the exe is not in the current dir, because that is always searched already.
     Do not add it when linking on the target because then we can maybe already find

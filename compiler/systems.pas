@@ -570,6 +570,7 @@ interface
         Fdbg  : tdbginfo;
         Fcpu_string: string;
         Fos_string: string; { for rtl/<X>/,fcl/<X>/, etc. }
+        Ffull_string: string;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -591,6 +592,7 @@ interface
         property dbg: tdbginfo read Fdbg;
         property cpu_string: string read Fcpu_string;
         property os_string: string read Fos_string;
+        property full_string: string read Ffull_string;
       end;
 
     var
@@ -601,7 +603,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_full_string : string[28];
 
     function find_system_by_string(const s : string) : tsystem;
     function find_asm_by_string(const s : string) : tasm;
@@ -676,7 +677,7 @@ begin
      Fcpu:=Finfo.cpu;
      Fos_string:=lower(Finfo.shortname);
      Fcpu_string:=cpu2str[Fcpu];
-     target_full_string:=Fcpu_string+'-'+Fos_string;
+     Ffull_string:=Fcpu_string+'-'+Fos_string;
      set_target:=true;
      exit;
    end;

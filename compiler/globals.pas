@@ -1090,9 +1090,9 @@ implementation
             (tf_use_8_3 in compiler.target.info.Flags) then
            Replace(s,'$FPCTARGET',compiler.target.os_string)
          else if subtarget<>'' then
-           Replace(s,'$FPCTARGET',target_full_string+'-'+lower(subtarget))
+           Replace(s,'$FPCTARGET',compiler.target.full_string+'-'+lower(subtarget))
          else
-           Replace(s,'$FPCTARGET',target_full_string);
+           Replace(s,'$FPCTARGET',compiler.target.full_string);
          Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
          Replace(s,'$FPCABI',lower(abiinfo[compiler.target.info.abi].name));
 {$ifdef i8086}
