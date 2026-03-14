@@ -341,7 +341,7 @@ implementation
         if (not resources_used) and (tf_has_winlike_resources in compiler.target.info.flags) then
           begin
             { resources aren't used, so we don't need this unit }
-            if target_res.id=res_ext then
+            if compiler.target.res.id=res_ext then
               _unitname:='FPEXTRES'
             else
               _unitname:='FPINTRES';
@@ -498,7 +498,7 @@ implementation
              Note: if resources aren't used this unit will be removed later,
              otherwise we need it here since it must be loaded quite early }
            if (tf_has_winlike_resources in compiler.target.info.flags) then
-             if target_res.id=res_ext then
+             if compiler.target.res.id=res_ext then
                CheckAddUnit('fpextres')
              else
                CheckAddUnit('fpintres');

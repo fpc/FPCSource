@@ -566,6 +566,7 @@ interface
         Finfo : tsysteminfo;
         Fasm  : tasminfo;
         Far   : tarinfo;
+        Fres  : tresinfo;
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -583,6 +584,7 @@ interface
         property info : tsysteminfo read Finfo;
         property _asm : tasminfo read Fasm;
         property ar: tarinfo read Far;
+        property res: tresinfo read Fres;
       end;
 
     var
@@ -593,7 +595,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_res  : tresinfo;
        target_dbg  : tdbginfo;
        target_cpu_string,
        target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
@@ -710,12 +711,12 @@ begin
   result:=false;
   if assigned(resinfos[t]) then
    begin
-     target_res:=resinfos[t]^;
+     Fres:=resinfos[t]^;
      result:=true;
      exit;
    end
   else
-   FillByte(target_res,sizeof(target_res),0);
+   FillByte(Fres,sizeof(Fres),0);
 end;
 
 

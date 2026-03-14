@@ -127,6 +127,8 @@ end;
 function tresourcefile.SetupCompilerArguments(output: tresoutput; const OutName
   : ansistring; respath: ansistring; out ObjUsed : boolean) : ansistring;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   s : TCmdStr;
 begin
   if output=roRES then
@@ -134,14 +136,14 @@ begin
       if RCForceFPCRes then
         s:=FPCResRCArgs
       else
-        s:=target_res.rccmd;
+        s:=compiler.target.res.rccmd;
       Replace(s,'$RES',maybequoted(OutName));
       Replace(s,'$RC',maybequoted(fname));
       ObjUsed:=False;
     end
   else
     begin
-      s:=target_res.rescmd;
+      s:=compiler.target.res.rescmd;
       ObjUsed:=(pos('$OBJ',s)>0);
       Replace(s,'$OBJ',maybequoted(OutName));
       Replace(s,'$RES',maybequoted(fname));
@@ -151,6 +153,8 @@ end;
 
 function tresourcefile.compile(output: tresoutput; const OutName: ansistring)
   : boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   Function SelectBin(Const Bin1,Bin2 : String) : String;
   begin
@@ -173,9 +177,9 @@ begin
     if RCForceFPCRes then
       Bin:=SelectBin(RCCompiler,FPCResUtil)
     else
-      Bin:=SelectBin(RCCompiler,target_res.rcbin)
+      Bin:=SelectBin(RCCompiler,compiler.target.res.rcbin)
   else
-    Bin:=SelectBin(ResCompiler,target_res.resbin);
+    Bin:=SelectBin(ResCompiler,compiler.target.res.resbin);
   if bin='' then
   begin
     Result:=false;
@@ -187,7 +191,7 @@ begin
   if not resfound then
     begin
       resfound:=FindExe(utilsprefix+bin,false,resbin);
-      if not resfound and (utilsprefix<>'') and ( (output=roRES) or (Pos('$ARCH', target_res.rescmd)<>0) ) then
+      if not resfound and (utilsprefix<>'') and ( (output=roRES) or (Pos('$ARCH', compiler.target.res.rescmd)<>0) ) then
         { Search for resource compiler without utilsprefix, if RC->RES compiler is called }
         { or RES->OBJ compiler supports different architectures. }
         resfound:=FindExe(bin,false,resbin);
@@ -285,8 +289,8 @@ begin
       if RCForceFPCRes then
         s:=FPCResRCArgs
       else
-        s:=target_res.rccmd;
-      if (target_res.rcbin = 'windres') and not RCForceFPCRes then
+        s:=compiler.target.res.rccmd;
+      if (compiler.target.res.rcbin = 'windres') and not RCForceFPCRes then
         Replace(s,'$RC',WindresFileName(fname))
       else
         Replace(s,'$RC',maybequoted(fname));
@@ -295,8 +299,8 @@ begin
     end
   else
     begin
-      s:=target_res.rescmd;
-      if (res_external_file in target_res.resflags) then
+      s:=compiler.target.res.rescmd;
+      if (res_external_file in compiler.target.res.resflags) then
         ObjUsed:=false
       else
         ObjUsed:=(pos('$OBJ',s)>0);
@@ -337,7 +341,7 @@ begin
   if respath='' then
     respath:='.';
   Replace(s,'$INC',maybequoted(respath));
-  if (output=roRes) and (target_res.rcbin='windres') and not RCForceFPCRes then
+  if (output=roRes) and (compiler.target.res.rcbin='windres') and not RCForceFPCRes then
   begin
     { try to find a preprocessor }
     preprocessorbin := respath+'cpp'+source_info.exeext;
@@ -480,8 +484,8 @@ var
 begin
   { Don't do anything for systems supporting resources without using resource
     file classes (e.g. Mac OS). They process resources elsewhere. }
-  if ((compiler.target.info.res<>res_none) and (target_res.resourcefileclass=nil)) or
-     (res_no_compile in target_res.resflags) then
+  if ((compiler.target.info.res<>res_none) and (compiler.target.res.resourcefileclass=nil)) or
+     (res_no_compile in compiler.target.res.resflags) then
     exit;
 
   p:=ExtractFilePath(ExpandFileName(current_module.mainsource));
@@ -515,7 +519,7 @@ begin
       else
         begin
           res.FPStr:=ExtractFileName(res.FPStr);
-          if (target_res.rcbin='') and (RCCompiler='') then
+          if (compiler.target.res.rcbin='') and (RCCompiler='') then
             begin
               { if target does not have .rc to .res compiler, create obj }
               outfmt:=roOBJ;
@@ -566,13 +570,13 @@ var
   hp : tused_unit;
   s : TCmdStr;
 begin
-  if (compiler.target.info.res=res_none) or ((target_res.resbin='')
+  if (compiler.target.info.res=res_none) or ((compiler.target.res.resbin='')
     and (ResCompiler='')) then
       exit;
 //  if cs_link_nolink in current_settings.globalswitches then
 //    exit;
   s:=ChangeFileExt(current_module.ppufilename,compiler.target.info.resobjext);
-  if (res_arch_in_file_name in target_res.resflags) then
+  if (res_arch_in_file_name in compiler.target.res.resflags) then
     s:=ChangeFileExt(s,'.'+cpu2str[compiler.target.cpu]+compiler.target.info.resobjext);
   resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s));
   hp:=tused_unit(usedunits.first);

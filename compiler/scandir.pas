@@ -1508,7 +1508,7 @@ unit scandir;
         if compiler.target.info.res<>res_none then
           begin
             include(current_module.moduleflags,mf_has_resourcefiles);
-            if (res_single_file in target_res.resflags) and
+            if (res_single_file in compiler.target.res.resflags) and
                                    not (Current_module.ResourceFiles.Empty) then
               Message(scan_w_only_one_resourcefile_supported)
             else
