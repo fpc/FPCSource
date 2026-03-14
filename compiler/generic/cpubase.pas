@@ -26,6 +26,8 @@ const
   R_SUBWHOLE = R_SUBD;
 
   OS_ADDR = OS_32;
+  OS_INT = OS_32;
+  OS_VECTOR = OS_M128;
 
   first_int_imreg = 1;
   first_fpu_imreg = 0;
