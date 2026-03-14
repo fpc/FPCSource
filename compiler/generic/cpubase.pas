@@ -63,6 +63,7 @@ function inverse_cond(const c: TAsmCond): TAsmCond;
 function reg_cgsize(const reg: tregister): tcgsize;
 function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
 function eh_return_data_regno(nr: longint): longint;
+function dwarf_reg(r:tregister):shortint;
 
 Implementation
 
@@ -97,6 +98,11 @@ begin
 end;
 
 function eh_return_data_regno(nr: longint): longint;
+begin
+  result:=-1;
+end;
+
+function dwarf_reg(r:tregister):shortint;
 begin
   result:=-1;
 end;
