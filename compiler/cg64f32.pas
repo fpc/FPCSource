@@ -42,6 +42,9 @@ unit cg64f32;
          to handle 64-bit integers.
       }
       tcg64f32 = class(tcg64)
+      private
+        procedure splitparaloc64(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
+      public
         procedure a_load64_const_ref(list : TAsmList;value : int64;const ref : treference);override;
         procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);override;
         procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);override;
@@ -112,7 +115,7 @@ unit cg64f32;
       end;
 
 
-    procedure splitparaloc64(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
+    procedure tcg64f32.splitparaloc64(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
       var
         paraloclo,paraloclo2,paraloclo3,paraloclo4,
         paralochi,paralochi2,paralochi3,paralochi4 : pcgparalocation;
