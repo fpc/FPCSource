@@ -508,7 +508,7 @@ begin
 
        { apply global messages/verbosity }
        flushpendingswitchesstate;
-       FreeLocalVerbosity(current_settings.pmessage);
+       verbose.FreeLocalVerbosity(current_settings.pmessage);
 
        { show some info }
        Message1(general_t_compilername,FixFileName(system.paramstr(0)));

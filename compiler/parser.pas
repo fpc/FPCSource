@@ -165,7 +165,7 @@ implementation
 {           if olddata.old_current_module<>current_module then
         set_current_module(olddata.old_current_module);}
 
-      FreeLocalVerbosity(current_settings.pmessage);
+      compiler.verbose.FreeLocalVerbosity(current_settings.pmessage);
 
     end;
 

@@ -62,9 +62,8 @@ interface
         function  CheckVerbosity(v:longint):boolean;
         function  SetMessageVerbosity(v:longint;state:tmsgstate):boolean;
         procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
+        procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
       end;
-
-    procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
 
     function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
     procedure ShowStatus;
@@ -207,7 +206,7 @@ implementation
         msgset := nil;
       end;
 
-    procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
+    procedure TVerbose.FreeLocalVerbosity(var fstate : pmessagestaterecord);
     var pstate : pmessagestaterecord;
       begin
         pstate:=unaligned(fstate);

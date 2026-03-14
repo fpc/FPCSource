@@ -3812,6 +3812,8 @@ type
 
     procedure tscannerfile.replaytoken;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         wlen,mesgnb,copy_size : asizeint;
         specialtoken : tspecialgenerictoken;
         i : byte;
@@ -3836,7 +3838,7 @@ type
             current_settings:=replaystack.settings;
             pendingstate:=replaystack.pending;
             if assigned(pendingstate.nextmessagerecord) then
-              FreeLocalVerbosity(pendingstate.nextmessagerecord);
+              compiler.verbose.FreeLocalVerbosity(pendingstate.nextmessagerecord);
             recordpendingverbosityfullswitch(replaystack.verbosity);
             pendingstate.nextmessagerecord:=current_settings.pmessage;
             current_settings.pmessage:=nil;
@@ -3927,8 +3929,8 @@ type
                     ST_LOADMESSAGES:
                       begin
                         { free current and pending messages }
-                        FreeLocalVerbosity(current_settings.pmessage);
-                        FreeLocalVerbosity(pendingstate.nextmessagerecord);
+                        compiler.verbose.FreeLocalVerbosity(current_settings.pmessage);
+                        compiler.verbose.FreeLocalVerbosity(pendingstate.nextmessagerecord);
                         { the message settings are stored from newest to oldest
                           change for the whole stack, so we only want to apply
                           the newest changes for each message type }
