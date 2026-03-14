@@ -547,7 +547,7 @@ implementation
 uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
-  systems,cpubase,
+  systems,cpubase,compilerbase,compiler,
   {$ifdef jvm}
   //itcpujas,
   {$else}
@@ -4344,7 +4344,7 @@ begin
   R2.Copy(R); R2.B.Y:=R2.A.Y+1;
   Insert(New(PStaticText, Init(R2, ^C'Free Pascal IDE for '+source_info.name)));
   R2.Move(0,1);
-  Insert(New(PStaticText, Init(R2, ^C'Target CPU: '+target_cpu_string)));
+  Insert(New(PStaticText, Init(R2, ^C'Target CPU: '+current_compiler.target.cpu_string)));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr+' '+{$i %date%})));
   R2.Move(0,1);
