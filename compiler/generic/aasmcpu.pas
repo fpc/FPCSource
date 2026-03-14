@@ -35,6 +35,9 @@ type
 function spilling_create_load(const ref:treference;r:tregister):Taicpu;
 function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
+procedure InitAsm;
+procedure DoneAsm;
+
 Implementation
 
 function spilling_create_load(const ref:treference;r:tregister):Taicpu;
@@ -45,6 +48,14 @@ end;
 function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 begin
   result:=nil;
+end;
+
+procedure InitAsm;
+begin
+end;
+
+procedure DoneAsm;
+begin
 end;
 
 end.
