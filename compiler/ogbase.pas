@@ -4070,9 +4070,11 @@ implementation
 
 
     procedure TExeOutput.SetCurrMemPos(const AValue: qword);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if AValue>MaxMemPos then
-          Message1(link_f_executable_too_big, target_os_string);
+          Message1(link_f_executable_too_big, compiler.target.os_string);
         FCurrMemPos:=AValue;
       end;
 

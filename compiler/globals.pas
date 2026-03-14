@@ -1084,11 +1084,11 @@ implementation
          Replace(s,'$FPCFULLVERSION',full_version_string);
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCCPU',compiler.target.cpu_string);
-         Replace(s,'$FPCOS',target_os_string);
+         Replace(s,'$FPCOS',compiler.target.os_string);
          Replace(s,'$FPCBINDIR',exepath);
          if (tf_use_8_3 in Source_Info.Flags) or
             (tf_use_8_3 in compiler.target.info.Flags) then
-           Replace(s,'$FPCTARGET',target_os_string)
+           Replace(s,'$FPCTARGET',compiler.target.os_string)
          else if subtarget<>'' then
            Replace(s,'$FPCTARGET',target_full_string+'-'+lower(subtarget))
          else

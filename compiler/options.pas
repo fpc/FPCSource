@@ -5254,13 +5254,13 @@ begin
       if PathExists(FpcDir+'rtl',true) then
         if (tf_use_8_3 in Source_Info.Flags) or
            (tf_use_8_3 in compiler.target.info.Flags) then
-          UnitSearchPath.AddPath(FpcDir+'rtl/'+target_os_string,false)
+          UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.os_string,false)
         else
           UnitSearchPath.AddPath(FpcDir+'rtl/'+target_full_string,false)
       else
         if (tf_use_8_3 in Source_Info.Flags) or
            (tf_use_8_3 in compiler.target.info.Flags) then
-          UnitSearchPath.AddPath(FpcDir+'units/'+target_os_string+'/rtl',false)
+          UnitSearchPath.AddPath(FpcDir+'units/'+compiler.target.os_string+'/rtl',false)
         else
           UnitSearchPath.AddPath(FpcDir+'units/'+target_full_string+'/rtl',false);
     end;

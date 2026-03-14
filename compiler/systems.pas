@@ -569,6 +569,7 @@ interface
         Fres  : tresinfo;
         Fdbg  : tdbginfo;
         Fcpu_string: string;
+        Fos_string: string; { for rtl/<X>/,fcl/<X>/, etc. }
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
@@ -589,6 +590,7 @@ interface
         property res: tresinfo read Fres;
         property dbg: tdbginfo read Fdbg;
         property cpu_string: string read Fcpu_string;
+        property os_string: string read Fos_string;
       end;
 
     var
@@ -599,7 +601,6 @@ interface
        dbginfos      : array[tdbg] of pdbginfo;
 
        source_info : tsysteminfo;
-       target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
        target_full_string : string[28];
 
     function find_system_by_string(const s : string) : tsystem;
@@ -673,9 +674,9 @@ begin
      set_target_res(Finfo.res);
      set_target_dbg(Finfo.dbg);
      Fcpu:=Finfo.cpu;
-     target_os_string:=lower(Finfo.shortname);
+     Fos_string:=lower(Finfo.shortname);
      Fcpu_string:=cpu2str[Fcpu];
-     target_full_string:=Fcpu_string+'-'+target_os_string;
+     target_full_string:=Fcpu_string+'-'+Fos_string;
      set_target:=true;
      exit;
    end;
