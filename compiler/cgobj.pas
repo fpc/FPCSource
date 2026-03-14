@@ -503,6 +503,13 @@ unit cgobj;
        for 64 Bit operations.
     }
     tcg64 = class
+       private
+        FCompiler: TCompilerBase;
+       protected
+        property Compiler: TCompilerBase read FCompiler;
+       public
+        constructor create(ACompiler: TCompilerBase);
+
         procedure a_load64_const_ref(list : TAsmList;value : int64;const ref : treference);virtual;abstract;
         procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);virtual;abstract;
         procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);virtual;abstract;
@@ -3123,6 +3130,12 @@ implementation
 *****************************************************************************}
 
 {$ifndef cpu64bitalu}
+    constructor tcg64.create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
     function joinreg64(reglo,reghi : tregister) : tregister64;
       begin
          result.reglo:=reglo;
