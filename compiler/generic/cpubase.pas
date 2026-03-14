@@ -34,6 +34,7 @@ const
   first_fpu_imreg = 0;
   first_mm_imreg = 0;
   max_operands = 2;
+  maxfpuregs = 0;
 
   NR_NO = tregister($00000000);
   NR_DEFAULTFLAGS = NR_NO;
