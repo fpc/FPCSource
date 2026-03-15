@@ -811,7 +811,7 @@ implementation
                   if is_widechararray(p.resultdef) then
                     p:=compiler.ctypeconvnode_internal(p,widecharpointertype)
                 else
-                  CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+                  compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
               end;
             orddef :
               begin
@@ -828,7 +828,7 @@ implementation
                       checking should be disabled, but not in Delphi mode }
                     p:=compiler.ctypeconvnode_internal(p,s32inttype)
                 else if is_void(p.resultdef) then
-                  CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
+                  compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
                     and (current_settings.fputype<>fpu_none) then
                   p:=compiler.ctypeconvnode(p,s64floattype);
@@ -856,11 +856,11 @@ implementation
                 p:=compiler.ctypeconvnode(p,charpointertype);
             variantdef:
               if iscvarargs then
-                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+                compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
             { maybe warn in case it's not using "packrecords c"? }
             recorddef:
               if not iscvarargs then
-                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+                compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
             pointerdef:
               ;
             classrefdef:
@@ -871,10 +871,10 @@ implementation
                 p:=compiler.ctypeconvnode(p,voidpointertype)
               else if iscvarargs or
                  is_object(p.resultdef) then
-                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
+                compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
               else
             else
-              CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+              compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
           end;
         typecheckpass(p);
       end;

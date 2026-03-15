@@ -88,13 +88,13 @@ interface
         procedure CGMessage2(t : longint;const s1,s2 : TMsgStr);
         procedure CGMessage3(t : longint;const s1,s2,s3 : TMsgStr);
         procedure CGMessagePos(const pos:tfileposinfo;t:longint);
+        procedure CGMessagePos1(const pos:tfileposinfo;t:longint;const s1:TMsgStr);
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
 
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
-    procedure CGMessagePos1(const pos:tfileposinfo;t:longint;const s1:TMsgStr);
     procedure CGMessagePos2(const pos:tfileposinfo;t:longint;const s1,s2:TMsgStr);
     procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:TMsgStr);
 
@@ -974,7 +974,7 @@ implementation
            end;
       end;
 
-    procedure cgmessagepos1(const pos:tfileposinfo;t : longint;const s1 : TMsgStr);
+    procedure TVerbose.CGMessagePos1(const pos:tfileposinfo;t : longint;const s1 : TMsgStr);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var

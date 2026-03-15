@@ -1180,6 +1180,8 @@ implementation
 
 
     procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         msg : array[false..true,false..true,false..true] of dword = (
             (
@@ -1192,7 +1194,7 @@ implementation
             )
           );
       begin
-        CGMessagePos1(pos,msg[warning,local,managed],name);
+        compiler.verbose.CGMessagePos1(pos,msg[warning,local,managed],name);
       end;
 
 
@@ -1290,7 +1292,7 @@ implementation
 (*                     if (hsym.varspez=vs_final) and
                         (hsym.varstate in [vs_written,vs_readwritten]) and
                         (newstate in [vs_written,vs_readwritten]) then
-                       CGMessagePos1(p.fileinfo,sym_e_final_write_once); *)
+                       compiler.verbose.CGMessagePos1(p.fileinfo,sym_e_final_write_once); *)
                      if (vsf_must_be_valid in varstateflags) and
                         (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
                        begin

@@ -494,7 +494,7 @@ implementation
 
             { skip this check if we've already typecasted to automatable type }
             else if (para.left.nodetype<>nothingn) and (not is_automatable(para.left.resultdef)) then
-              CGMessagePos1(para.left.fileinfo,type_e_not_automatable,para.left.resultdef.typename);
+              compiler.verbose.CGMessagePos1(para.left.fileinfo,type_e_not_automatable,para.left.resultdef.typename);
 
             para:=tcallparanode(para.nextpara);
           end;
@@ -4214,7 +4214,7 @@ implementation
                          end
                        else
                          begin
-                           CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,symtableprocentry.realname);
+                           compiler.verbose.CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,symtableprocentry.realname);
                            symtableprocentry.write_parameter_lists(nil);
                          end;
                      end;

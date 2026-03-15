@@ -331,7 +331,7 @@ implementation
            not(is_real or is_enum or
                (source.left.resultdef.typ=orddef)) then
           begin
-            CGMessagePos1(source.fileinfo,
+            compiler.verbose.CGMessagePos1(source.fileinfo,
               type_e_integer_expr_expected,source.resultdef.typename);
             exit;
           end;
@@ -347,7 +347,7 @@ implementation
             { but then the error messages aren't as nice                            }
             if not is_integer(lenpara.resultdef) then
               begin
-                CGMessagePos1(lenpara.fileinfo,
+                compiler.verbose.CGMessagePos1(lenpara.fileinfo,
                   type_e_integer_expr_expected,lenpara.resultdef.typename);
                 exit;
               end;
@@ -363,7 +363,7 @@ implementation
                   end;
                 if not is_integer(lenpara.resultdef) then
                   begin
-                    CGMessagePos1(lenpara.fileinfo,
+                    compiler.verbose.CGMessagePos1(lenpara.fileinfo,
                       type_e_integer_expr_expected,lenpara.resultdef.typename);
                     exit;
                   end;
@@ -464,7 +464,7 @@ implementation
 
             else
               begin
-                CGMessagePos1(source.fileinfo,
+                compiler.verbose.CGMessagePos1(source.fileinfo,
                   type_e_integer_expr_expected,torddef(source.resultdef).typename);
                 exit;
               end;
@@ -1393,7 +1393,7 @@ implementation
             if not(assigned(filepara)) or
                not(assigned(filepara.right)) then
               begin
-                CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'ReadStr/WriteStr');
+                compiler.verbose.CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'ReadStr/WriteStr');
                 exit;
               end
             else if (filepara.resultdef.typ <> stringdef) then
@@ -1700,7 +1700,7 @@ implementation
 {$endif not cpu64bitaddr}
             ) then
           begin
-            CGMessagePos1(codepara.fileinfo,type_e_integer_expr_expected,codepara.resultdef.typename);
+            compiler.verbose.CGMessagePos1(codepara.fileinfo,type_e_integer_expr_expected,codepara.resultdef.typename);
             exit;
           end;
 
@@ -1953,7 +1953,7 @@ implementation
           if typemismatch then
             compiler.verbose.CGMessagePos(fi,type_e_mismatch)
           else
-            CGMessagePos1(fi,parser_e_wrong_parameter_size,'Copy');
+            compiler.verbose.CGMessagePos1(fi,parser_e_wrong_parameter_size,'Copy');
           if func='' then
             begin
               write_system_parameter_lists('fpc_shortstr_copy');
@@ -2450,7 +2450,7 @@ implementation
                        { Not as informative, but less confusing }
                        compiler.verbose.CGMessagePos(left.fileinfo,parser_e_illegal_expression)
                      else
-                       CGMessagePos1(left.fileinfo,type_e_integer_expr_expected,left.resultdef.typename);
+                       compiler.verbose.CGMessagePos1(left.fileinfo,type_e_integer_expr_expected,left.resultdef.typename);
                      result:=compiler.cerrornode;
                      exit;
                    end;
@@ -3935,7 +3935,7 @@ implementation
                   else if is_packed_array(resultdef) then
                     CGMessagePos2(left.fileinfo,type_e_got_expected_unpacked_array,'1',resultdef.typename);
                   if not(is_integer(tcallparanode(tcallparanode(left).right).left.resultdef)) then
-                    CGMessagePos1(tcallparanode(left).right.fileinfo,
+                    compiler.verbose.CGMessagePos1(tcallparanode(left).right.fileinfo,
                       type_e_integer_expr_expected,
                       tcallparanode(tcallparanode(left).right).left.resultdef.typename);
                 end;
@@ -5600,7 +5600,7 @@ implementation
 
        procedure do_error;
          begin
-           CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Insert');
+           compiler.verbose.CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Insert');
            write_system_parameter_lists('fpc_shortstr_insert');
            write_system_parameter_lists('fpc_shortstr_insert_char');
            write_system_parameter_lists('fpc_unicodestr_insert');
@@ -5740,7 +5740,7 @@ implementation
 
        procedure do_error;
          begin
-           CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Delete');
+           compiler.verbose.CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Delete');
            write_system_parameter_lists('fpc_shortstr_delete');
            write_system_parameter_lists('fpc_unicodestr_delete');
            if tf_winlikewidestring in compiler.target.info.flags then
@@ -5806,7 +5806,7 @@ implementation
 
        procedure do_error;
          begin
-           CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Concat');
+           compiler.verbose.CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Concat');
            compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Concat(String[;String;...])');
            compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Concat(Dynamic Array[;Dynamic Array;...])');
          end;
