@@ -816,7 +816,7 @@ implementation
             ppn := nil;
             if not (ocf_check_only in ocf) then
               begin
-                CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
+                compiler.verbose.CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
                 t:=compiler.cnothingnode;
               end;
             exit;
@@ -838,7 +838,7 @@ implementation
             ppn := nil;
             if not (ocf_check_only in ocf) then
               begin
-                CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
+                compiler.verbose.CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
                 t:=compiler.cnothingnode;
               end;
             exit;

@@ -1737,7 +1737,7 @@ implementation
              result:=compiler.cordconstnode(fcc,u32inttype,false);
            end
          else
-           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+           compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
 
 
@@ -2503,7 +2503,7 @@ implementation
                     exit;
                   end
                 else
-                  CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+                  compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
               end
             else if (pd.typ=procdef) and
                (po_anonymous in pd.procoptions) then
@@ -3113,7 +3113,7 @@ implementation
                          if assigned(hdef) then
                            inserttypeconv_internal(left,hdef,compiler)
                          else
-                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+                           compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
                        end;
 
                      { class/interface to class/interface, with checkobject support }
@@ -3129,11 +3129,11 @@ implementation
                                with delphi }
                              if is_interface(resultdef) and
                                 not is_interface(left.resultdef) then
-                               CGMessage2(type_e_classes_not_related,
+                               compiler.verbose.CGMessage2(type_e_classes_not_related,
                                  FullTypeName(left.resultdef,resultdef),
                                  FullTypeName(resultdef,left.resultdef))
                              else
-                               CGMessage2(type_w_classes_not_related,
+                               compiler.verbose.CGMessage2(type_w_classes_not_related,
                                  FullTypeName(left.resultdef,resultdef),
                                  FullTypeName(resultdef,left.resultdef))
                            end;
@@ -3219,7 +3219,7 @@ implementation
                                  ))
                                 )
                                ) then
-                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
+                           compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
                          else
                            begin
                              { perform target-specific explicit typecast
@@ -4962,7 +4962,7 @@ implementation
                    tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
                    (not(def_is_related(tobjectdef(tclassrefdef(right.resultdef).pointeddef),
                    tobjectdef(left.resultdef)))) then
-                  CGMessage2(type_e_classes_not_related,
+                  compiler.verbose.CGMessage2(type_e_classes_not_related,
                      FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),
                      FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
               end

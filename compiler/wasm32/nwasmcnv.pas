@@ -262,7 +262,7 @@ implementation
         if is_pointer(left.resultdef) and
            is_pointer(resultdef) and
            not tpointerdef(left.resultdef).compatible_with_pointerdef_size(tpointerdef(resultdef)) then
-          CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+          compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
 
 begin

@@ -517,7 +517,7 @@ implementation
           { format: "% sectionname" }
           if (s[1]<>'%') then
             begin
-              cgmessage2(wpo_expected_section,tostr(flinenr),s);
+              compiler.verbose.CGMessage2(wpo_expected_section,tostr(flinenr),s);
               break;
             end;
           i:=2;
@@ -531,14 +531,14 @@ implementation
           if assigned(sectionhandler) then
             begin
               wpotype:=sectionhandler.getwpotype;
-              cgmessage2(wpo_found_section,sectionname,wpo2str[wpotype]);
+              compiler.verbose.CGMessage2(wpo_found_section,sectionname,wpo2str[wpotype]);
               { do we need this information? }
               if ((sectionhandler.performswpoforswitches * init_settings.dowpoptimizerswitches) <> []) then
                 begin
                   { did some other section already generate this type of information? }
                   if assigned(fdest.wpoinfouse[wpotype]) then
                     begin
-                      cgmessage2(wpo_duplicate_wpotype,wpo2str[wpotype],sectionname);
+                      compiler.verbose.CGMessage2(wpo_duplicate_wpotype,wpo2str[wpotype],sectionname);
                       FreeAndNil(fdest.wpoinfouse[wpotype]);
                     end;
                   { process the section }

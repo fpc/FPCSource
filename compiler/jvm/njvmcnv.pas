@@ -527,7 +527,7 @@ implementation
         if not is_ansistring(left.resultdef) or
            not is_pchar(resultdef) then
           begin
-            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+            compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
             result:=nil;
             exit;
           end;
@@ -1423,7 +1423,7 @@ implementation
 
         { anything not explicitly handled is a problem }
         result:=true;
-        CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+        compiler.verbose.CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
 
 

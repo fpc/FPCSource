@@ -418,7 +418,7 @@ const
         end;
       if not symbolprogfound then
         begin
-          cgmessage2(wpo_cannot_find_symbol_progs,nmfullname,objdumpfullname);
+          compiler.verbose.CGMessage2(wpo_cannot_find_symbol_progs,nmfullname,objdumpfullname);
           exit;
         end;
 
@@ -432,7 +432,7 @@ const
       exitcode:=shell(symbolprogfullpath+maybequoted(current_module.exefilename)+' > '+fsymfilename);
       if (exitcode<>0) then
         begin
-          cgmessage2(wpo_error_executing_symbol_prog,symbolprogfullpath,tostr(exitcode));
+          compiler.verbose.CGMessage2(wpo_error_executing_symbol_prog,symbolprogfullpath,tostr(exitcode));
           if fileexists(fsymfilename) then
             deletefile(fsymfilename);
           exit;

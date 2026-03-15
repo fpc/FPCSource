@@ -3059,12 +3059,14 @@ implementation
 
 
     procedure incompatibletypes(def1,def2:tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { When there is an errordef there is already an error message show }
         if (def2.typ=errordef) or
            (def1.typ=errordef) then
           exit;
-        CGMessage2(type_e_incompatible_types,FullTypeName(def1,def2),FullTypeName(def2,def1));
+        compiler.verbose.CGMessage2(type_e_incompatible_types,FullTypeName(def1,def2),FullTypeName(def2,def1));
       end;
 
 
