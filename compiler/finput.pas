@@ -608,8 +608,8 @@ uses
          { obj,asm,ppu names }
          if AllowOutput then
            begin
-             if (OutputUnitDir<>'') then
-               p:=OutputUnitDir
+             if (compiler.globals.outputunitdir<>'') then
+               p:=compiler.globals.outputunitdir
              else
                if (compiler.globals.outputexedir<>'') then
                  p:=compiler.globals.outputexedir;

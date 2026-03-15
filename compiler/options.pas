@@ -3214,7 +3214,7 @@ begin
           unitsearchpath.AddPath(More,true);
       end;
     'U' :
-      OutputUnitDir:=FixPath(More,true);
+      compiler.globals.outputunitdir:=FixPath(More,true);
     'W',
     'w':
       begin

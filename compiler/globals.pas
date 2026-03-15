@@ -301,7 +301,6 @@ Const
 
 
     var
-       outputunitdir     : TPathStr;
        { specified with -FW and -Fw }
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
@@ -725,6 +724,7 @@ Const
 
         { specified with -FE or -FU }
         outputexedir      : TPathStr;
+        outputunitdir     : TPathStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1766,7 +1766,7 @@ implementation
         compiler.globals.OutputSuffix:=Nil;
 
         compiler.globals.outputexedir:='';
-        OutputUnitDir:='';
+        compiler.globals.outputunitdir:='';
 
         { Utils directory }
         utilsdirectory:='';

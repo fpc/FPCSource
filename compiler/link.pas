@@ -260,8 +260,8 @@ Implementation
            8. exepath (not when linking on target)
           for all finds don't use the directory caching }
         found:=false;
-        if isunit and (OutputUnitDir<>'') then
-          found:=FindFile(s,OutPutUnitDir,false,foundfile)
+        if isunit and (compiler.globals.outputunitdir<>'') then
+          found:=FindFile(s,compiler.globals.outputunitdir,false,foundfile)
         else
           if compiler.globals.outputexedir<>'' then
             found:=FindFile(s,compiler.globals.outputexedir,false,foundfile);

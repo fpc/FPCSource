@@ -225,8 +225,8 @@ implementation
       n:=FixFileName(ChangeFileExt(ExtractFileName(fn),''));
       { pcp name }
       if allowoutput then
-        if (OutputUnitDir<>'') then
-          p:=OutputUnitDir
+        if (compiler.globals.outputunitdir<>'') then
+          p:=compiler.globals.outputunitdir
         else
           if (compiler.globals.outputexedir<>'') then
             p:=compiler.globals.outputexedir;
