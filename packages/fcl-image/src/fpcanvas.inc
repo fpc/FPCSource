@@ -18,6 +18,7 @@
 constructor TFPCustomCanvas.Create;
 begin
   inherited create;
+  FMatrix := TFPCanvasMatrix.Identity;
   FClipping := false;
   FRemovingHelpers := false;
   FHelpers := TList.Create;
@@ -312,8 +313,78 @@ begin
   Result:=FLocks>0;
 end;
 
-procedure TFPCustomCanvas.TextOut (x,y:integer;text:ansistring);
+{ Coordinate transformation support }
+
+function TFPCustomCanvas.HasTransform: Boolean;
 begin
+  Result := (FMatrix._00 <> 1.0) or (FMatrix._01 <> 0.0) or
+            (FMatrix._10 <> 0.0) or (FMatrix._11 <> 1.0) or
+            (FMatrix._20 <> 0.0) or (FMatrix._21 <> 0.0);
+end;
+
+function TFPCustomCanvas.HasRotation: Boolean;
+begin
+  Result := (FMatrix._01 <> 0.0) or (FMatrix._10 <> 0.0);
+end;
+
+function TFPCustomCanvas.TransformPoint(X, Y: Integer): TPoint;
+begin
+  Result := FMatrix.Transform(X, Y);
+end;
+
+function TFPCustomCanvas.TransformRect(const R: TRect): TRect;
+var
+  P1, P2, P3, P4: TPoint;
+begin
+  P1 := FMatrix.Transform(R.Left, R.Top);
+  P2 := FMatrix.Transform(R.Right, R.Top);
+  P3 := FMatrix.Transform(R.Right, R.Bottom);
+  P4 := FMatrix.Transform(R.Left, R.Bottom);
+  Result.Left := Min(Min(P1.X, P2.X), Min(P3.X, P4.X));
+  Result.Top := Min(Min(P1.Y, P2.Y), Min(P3.Y, P4.Y));
+  Result.Right := Max(Max(P1.X, P2.X), Max(P3.X, P4.X));
+  Result.Bottom := Max(Max(P1.Y, P2.Y), Max(P3.Y, P4.Y));
+end;
+
+function TFPCustomCanvas.TransformPoints(const Points: array of TPoint): TFPCanvasPointArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(Points));
+  for I := 0 to High(Points) do
+    Result[I] := FMatrix.Transform(Points[I]);
+end;
+
+procedure TFPCustomCanvas.Translate(DX, DY: Double);
+begin
+  FMatrix := FMatrix.Multiply(TFPCanvasMatrix.CreateTranslation(DX, DY));
+end;
+
+procedure TFPCustomCanvas.Scale(SX, SY: Double);
+begin
+  FMatrix := FMatrix.Multiply(TFPCanvasMatrix.CreateScale(SX, SY));
+end;
+
+procedure TFPCustomCanvas.Rotate(ARadians: Double);
+begin
+  FMatrix := FMatrix.Multiply(TFPCanvasMatrix.CreateRotation(ARadians));
+end;
+
+procedure TFPCustomCanvas.ResetTransform;
+begin
+  FMatrix := TFPCanvasMatrix.Identity;
+end;
+
+procedure TFPCustomCanvas.TextOut (x,y:integer;text:ansistring);
+var
+  P: TPoint;
+begin
+  if HasTransform then
+    begin
+    P := TransformPoint(x, y);
+    x := P.X;
+    y := P.Y;
+    end;
   if Font is TFPCustomDrawFont then
     TFPCustomDrawFont(Font).DrawText(x,y, text)
   else
@@ -361,7 +432,15 @@ begin
 end;
 
 procedure TFPCustomCanvas.TextOut (x,y:integer;text:unicodestring);
+var
+  P: TPoint;
 begin
+  if HasTransform then
+    begin
+    P := TransformPoint(x, y);
+    x := P.X;
+    y := P.Y;
+    end;
   if Font is TFPCustomDrawFont then
     TFPCustomDrawFont(Font).DrawText(x,y, text)
   else
@@ -454,7 +533,15 @@ begin
 end;
 
 procedure TFPCustomCanvas.MoveTo (x,y:integer);
+var
+  P: TPoint;
 begin
+  if HasTransform then
+    begin
+    P := TransformPoint(x, y);
+    x := P.X;
+    y := P.Y;
+    end;
   FPenPos.x := x;
   FPenPos.y := y;
   DoMoveTo (x,y);
@@ -462,12 +549,22 @@ end;
 
 procedure TFPCustomCanvas.MoveTo (p:TPoint);
 begin
+  if HasTransform then
+    p := FMatrix.Transform(p);
   FPenPos := p;
   DoMoveTo (p.x,p.y);
 end;
 
 procedure TFPCustomCanvas.LineTo (x,y:integer);
+var
+  P: TPoint;
 begin
+  if HasTransform then
+    begin
+    P := TransformPoint(x, y);
+    x := P.X;
+    y := P.Y;
+    end;
   if Pen.Style <> psClear then
     if Pen is TFPCustomDrawPen then
       TFPCustomDrawPen(Pen).DrawLine (FPenPos.x, FPenPos.y, x, y)
@@ -483,7 +580,16 @@ begin
 end;
 
 procedure TFPCustomCanvas.Line (x1,y1,x2,y2:integer);
+var
+  P1, P2: TPoint;
 begin
+  if HasTransform then
+    begin
+    P1 := TransformPoint(x1, y1);
+    P2 := TransformPoint(x2, y2);
+    x1 := P1.X; y1 := P1.Y;
+    x2 := P2.X; y2 := P2.Y;
+    end;
   if Pen.Style <> psClear then
     if Pen is TFPCustomDrawPen then
       TFPCustomDrawPen(Pen).DrawLine (x1,y1, x2,y2)
@@ -505,19 +611,41 @@ begin
 end;
 
 procedure TFPCustomCanvas.Polyline (Const points:array of TPoint);
+var
+  TransPts: TFPCanvasPointArray;
 begin
-  if Pen.Style <> psClear then
-   if Pen is TFPCustomDrawPen then
-     TFPCustomDrawPen(Pen).Polyline (points,false)
-   else
-     DoPolyline (points);
-  FPenPos := points[high(points)];
+  if HasTransform then
+    begin
+    TransPts := TransformPoints(points);
+    if Pen.Style <> psClear then
+      if Pen is TFPCustomDrawPen then
+        TFPCustomDrawPen(Pen).Polyline (TransPts, false)
+      else
+        DoPolyline (TransPts);
+    FPenPos := TransPts[High(TransPts)];
+    end
+  else
+    begin
+    if Pen.Style <> psClear then
+      if Pen is TFPCustomDrawPen then
+        TFPCustomDrawPen(Pen).Polyline (points, false)
+      else
+        DoPolyline (points);
+    FPenPos := points[high(points)];
+    end;
 end;
 
 procedure TFPCustomCanvas.RadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer);
-
+var
+  R: TRect;
 begin
-  DoRadialPie(X1, y1, x2, y2, StartAngle16Deg, Angle16DegLength);
+  if HasTransform then
+    begin
+    R := TransformRect(Rect(x1, y1, x2, y2));
+    DoRadialPie(R.Left, R.Top, R.Right, R.Bottom, StartAngle16Deg, Angle16DegLength);
+    end
+  else
+    DoRadialPie(X1, y1, x2, y2, StartAngle16Deg, Angle16DegLength);
 end;
 
 procedure TFPCustomCanvas.DoRadialPie(x1, y1, x2, y2, StartAngle16Deg, Angle16DegLength: Integer);
@@ -529,39 +657,160 @@ end;
 procedure TFPCustomCanvas.DoPolyBezier(Points: PPoint; NumPts: Integer;
                            Filled: boolean = False;
                            Continuous: boolean = False);
+{ Default implementation: flatten cubic Bezier curves into line segments
+  using recursive De Casteljau subdivision.
 
+  Point layout (following Windows GDI PolyBezier convention):
+  - Non-continuous: groups of 4 points each (start, cp1, cp2, end).
+    Total points must be 1 + 3*N for N segments.
+  - Continuous: first segment uses points[0..3], subsequent segments
+    use 3 points each (cp1, cp2, end) with start = previous end.
+    Total points must be 4 + 3*(N-1) = 1 + 3*N for N segments.
+
+  When Filled=false, draws the outline using DoLine.
+  When Filled=true, collects all points and calls DoPolygonFill. }
+const
+  FlatnessTolerance = 0.5; { max pixel deviation before subdividing }
+
+var
+  PolyPts: array of TPoint;
+  PolyCount: Integer;
+
+  function PointAt(Index: Integer): TPoint; inline;
+  begin
+    Result := PPoint(Points + Index)^;
+  end;
+
+  procedure AddPolyPoint(const P: TPoint);
+  begin
+    if PolyCount >= Length(PolyPts) then
+      SetLength(PolyPts, PolyCount * 2 + 16);
+    PolyPts[PolyCount] := P;
+    Inc(PolyCount);
+  end;
+
+  function IsFlat(const P0, P1, P2, P3: TPoint): Boolean;
+  { Check if the control points are close enough to the line P0-P3 }
+  var
+    ux, uy, vx, vy: Double;
+  begin
+    ux := 3.0 * P1.X - 2.0 * P0.X - P3.X;
+    uy := 3.0 * P1.Y - 2.0 * P0.Y - P3.Y;
+    vx := 3.0 * P2.X - 2.0 * P3.X - P0.X;
+    vy := 3.0 * P2.Y - 2.0 * P3.Y - P0.Y;
+    if ux * ux < vx * vx then ux := vx;
+    if uy * uy < vy * vy then uy := vy;
+    Result := (ux * ux + uy * uy) <= 16.0 * FlatnessTolerance * FlatnessTolerance;
+  end;
+
+  procedure SubdivideCubic(const P0, P1, P2, P3: TPoint; Depth: Integer);
+  { Recursively subdivide a cubic Bezier using De Casteljau at t=0.5 }
+  var
+    M01, M12, M23, M012, M123, Mid: TPoint;
+  begin
+    if (Depth > 12) or IsFlat(P0, P1, P2, P3) then
+      begin
+      if Filled then
+        AddPolyPoint(P3)
+      else
+        DoLine(P0.X, P0.Y, P3.X, P3.Y);
+      exit;
+      end;
+    { Split at t=0.5 }
+    M01.X := (P0.X + P1.X) div 2;  M01.Y := (P0.Y + P1.Y) div 2;
+    M12.X := (P1.X + P2.X) div 2;  M12.Y := (P1.Y + P2.Y) div 2;
+    M23.X := (P2.X + P3.X) div 2;  M23.Y := (P2.Y + P3.Y) div 2;
+    M012.X := (M01.X + M12.X) div 2;  M012.Y := (M01.Y + M12.Y) div 2;
+    M123.X := (M12.X + M23.X) div 2;  M123.Y := (M12.Y + M23.Y) div 2;
+    Mid.X := (M012.X + M123.X) div 2;  Mid.Y := (M012.Y + M123.Y) div 2;
+    SubdivideCubic(P0, M01, M012, Mid, Depth + 1);
+    SubdivideCubic(Mid, M123, M23, P3, Depth + 1);
+  end;
+
+var
+  I, NumSegs, Idx: Integer;
+  P0, P1, P2, P3: TPoint;
 begin
- // To be implemented
+  if NumPts < 4 then
+    exit;
+  { Calculate number of cubic segments }
+  NumSegs := (NumPts - 1) div 3;
+  if NumSegs < 1 then
+    exit;
+  { Initialize polygon point collection for filled mode }
+  PolyCount := 0;
+  PolyPts := nil;
+  if Filled then
+    AddPolyPoint(PointAt(0));
+  { Process each cubic Bezier segment }
+  Idx := 0;
+  for I := 0 to NumSegs - 1 do
+    begin
+    if (I = 0) or (not Continuous) then
+      begin
+      P0 := PointAt(Idx);
+      P1 := PointAt(Idx + 1);
+      P2 := PointAt(Idx + 2);
+      P3 := PointAt(Idx + 3);
+      Inc(Idx, 4);
+      if Filled and (I > 0) then
+        AddPolyPoint(P0);
+      end
+    else
+      begin
+      { Continuous: start from previous endpoint }
+      P0 := P3;
+      P1 := PointAt(Idx);
+      P2 := PointAt(Idx + 1);
+      P3 := PointAt(Idx + 2);
+      Inc(Idx, 3);
+      end;
+    SubdivideCubic(P0, P1, P2, P3, 0);
+    end;
+  if Filled and (PolyCount > 2) then
+    begin
+    SetLength(PolyPts, PolyCount);
+    DoPolygonFill(PolyPts);
+    DoPolygon(PolyPts);
+    end;
 end;
 
 procedure TFPCustomCanvas.PolyBezier(Points: PPoint; NumPts: Integer;
                      Filled: boolean = False;
                      Continuous: boolean = False);
+var
+  TransPts: TFPCanvasPointArray;
+  I: Integer;
 begin
-  DoPolyBezier(Points,NumPts,Filled,Continuous);
+  if HasTransform then
+    begin
+    SetLength(TransPts, NumPts);
+    for I := 0 to NumPts - 1 do
+      TransPts[I] := FMatrix.Transform(PPoint(Points + I)^);
+    DoPolyBezier(@TransPts[0], NumPts, Filled, Continuous);
+    end
+  else
+    DoPolyBezier(Points, NumPts, Filled, Continuous);
 end;
 
 procedure TFPCustomCanvas.PolyBezier(const Points: array of TPoint;
                      Filled: boolean = False;
                      Continuous: boolean = False);
 var
-  NPoints{, i}: integer;
-//  PointArray: ^TPoint;
+  NPoints: integer;
+  TransPts: TFPCanvasPointArray;
 begin
   NPoints:=High(Points)-Low(Points)+1;
   if NPoints>0 then
-    DoPolyBezier(@Points[Low(Points)],NPoints,Filled,Continuous);
-{
-  NPoints:=High(Points)-Low(Points)+1;
-  if NPoints<=0 then exit;
-    GetMem(PointArray,SizeOf(TPoint)*NPoints);
-  try
-    for i:=0 to NPoints-1 do
-      PointArray[i]:=Points[i+Low(Points)];
-    DoPolyBezier(PointArray, NPoints, Filled, Continuous);
-  finally
-    FreeMem(PointArray);
-  end;}
+    begin
+    if HasTransform then
+      begin
+      TransPts := TransformPoints(Points);
+      DoPolyBezier(@TransPts[0], NPoints, Filled, Continuous);
+      end
+    else
+      DoPolyBezier(@Points[Low(Points)], NPoints, Filled, Continuous);
+    end;
 end;
 
 procedure TFPCustomCanvas.Clear;
@@ -674,8 +923,14 @@ begin
 end;
 
 procedure TFPCustomCanvas.Ellipse (const Bounds:TRect);
-var p,b,dp,db,pb : boolean;
+var
+  p,b,dp,db,pb : boolean;
+  TB: TRect;
 begin
+  if HasTransform then
+    TB := TransformRect(Bounds)
+  else
+    TB := Bounds;
   p := Pen.style <> psClear;
   b := Brush.style <> bsClear;
   pb := false;
@@ -698,18 +953,18 @@ begin
     pb := true;
     end;
   if pb then
-    DoEllipseAndFill (bounds)
+    DoEllipseAndFill (TB)
   else
     begin
     if p then
-      DoEllipse (bounds)
+      DoEllipse (TB)
     else if dp then
-      with bounds do
+      with TB do
         TFPCustomDrawPen(Pen).Ellipse (left,top,right,bottom);
     if b then
-      DoEllipseFill (bounds)
+      DoEllipseFill (TB)
     else if db then
-      with bounds do
+      with TB do
         TFPCustomDrawBrush(Brush).Ellipse (left,top,right,bottom);
     end;
 end;
@@ -730,14 +985,19 @@ begin
 end;
 
 procedure TFPCustomCanvas.FillRect(const ARect: TRect);
-
+var
+  TR: TRect;
 begin
   if (Brush.style <> bsClear) then
     begin
-    if not (brush is TFPCustomDrawBrush) then
-      DoRectangleFill (ARect)
+    if HasTransform then
+      TR := TransformRect(ARect)
     else
-      with ARect do
+      TR := ARect;
+    if not (brush is TFPCustomDrawBrush) then
+      DoRectangleFill (TR)
+    else
+      with TR do
         TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
     end;
 end;
@@ -749,37 +1009,72 @@ begin
 end;
 
 procedure TFPCustomCanvas.Rectangle (const Bounds:TRect);
-var np,nb,dp,db: boolean;
+var
+  np,nb,dp,db: boolean;
+  TB: TRect;
+  Corners: array[0..3] of TPoint;
 begin
+  if HasTransform and HasRotation then
+    begin
+    // When rotation is active, convert rectangle to polygon with pre-transformed corners
+    Corners[0] := FMatrix.Transform(Bounds.Left, Bounds.Top);
+    Corners[1] := FMatrix.Transform(Bounds.Right, Bounds.Top);
+    Corners[2] := FMatrix.Transform(Bounds.Right, Bounds.Bottom);
+    Corners[3] := FMatrix.Transform(Bounds.Left, Bounds.Bottom);
+    np := Pen.style <> psClear;
+    nb := Brush.style <> bsClear;
+    if np and nb then
+      DoPolygonAndFill(Corners)
+    else
+      begin
+      if np then
+        DoPolygon(Corners);
+      if nb then
+        DoPolygonFill(Corners);
+      end;
+    exit;
+    end;
+  if HasTransform then
+    TB := TransformRect(Bounds)
+  else
+    TB := Bounds;
   np:= Pen.style <> psClear; // Need pen ?
   nb:= Brush.style <> bsClear;  // Need brush ?
   dp:=(pen is TFPCustomDrawPen); // Pen draws ?
   db:=(brush is TFPCustomDrawBrush); // Brush draws ?
   if (np and nb) and not (db or dp) then
-    DoRectangleAndFill (bounds)
+    DoRectangleAndFill (TB)
   else
     begin
     if np then
       begin
       If not dp then
-        DoRectangle (bounds)
+        DoRectangle (TB)
       else
-        with bounds do
+        with TB do
           TFPCustomDrawPen(Pen).Rectangle (left,top,right,bottom);
       end;
     if Nb then
       begin
       if not db then
-        DoRectangleFill (bounds)
+        DoRectangleFill (TB)
       else
-        with bounds do
+        with TB do
           TFPCustomDrawBrush(Brush).Rectangle (left,top,right,bottom);
       end;
     end;
 end;
 
 procedure TFPCustomCanvas.FloodFill (x,y:integer);
+var
+  P: TPoint;
 begin
+  if HasTransform then
+    begin
+    P := TransformPoint(x, y);
+    x := P.X;
+    y := P.Y;
+    end;
   if Brush.Style <> bsClear then
     begin
     if Brush is TFPCustomDrawBrush then
@@ -790,7 +1085,27 @@ begin
 end;
 
 procedure TFPCustomCanvas.Polygon (const points:array of TPoint);
-var p,b,dp,db,pb : boolean;
+var
+  p,b,dp,db,pb : boolean;
+  TransPts: TFPCanvasPointArray;
+
+  procedure DoPolygonWork(const pts: array of TPoint);
+  begin
+    if pb then
+      DoPolygonAndFill (pts)
+    else
+      begin
+      if p then
+        DoPolygon (pts)
+      else if dp then
+        TFPCustomDrawPen(Pen).Polyline (pts, true);
+      if b then
+        DoPolygonFill (pts)
+      else if db then
+        TFPCustomDrawBrush(Brush).Polygon (pts);
+      end;
+  end;
+
 begin
   p := Pen.style <> psClear;
   b := Brush.style <> bsClear;
@@ -813,25 +1128,27 @@ begin
     b := false;
     pb := true;
     end;
-  if pb then
-    DoPolygonAndFill (points)
-  else
+  if HasTransform then
     begin
-    if p then
-      DoPolygon (points)
-    else if dp then
-      TFPCustomDrawPen(Pen).Polyline (points, true);
-    if b then
-      DoPolygonFill (points)
-    else if db then
-      TFPCustomDrawBrush(Brush).Polygon (points);
-    end;
+    TransPts := TransformPoints(points);
+    DoPolygonWork(TransPts);
+    end
+  else
+    DoPolygonWork(points);
 end;
 
 procedure TFPCustomCanvas.CopyRect (x,y:integer; canvas:TFPCustomCanvas;
   SourceRect:TRect);
-var yy,r,t : integer;
+var
+  yy,r,t : integer;
+  P: TPoint;
 begin
+  if HasTransform then
+    begin
+    P := TransformPoint(x, y);
+    x := P.X;
+    y := P.Y;
+    end;
   SortRect (SourceRect);
   with SourceRect do begin
     for t := top to bottom do begin
@@ -843,8 +1160,16 @@ begin
 end;
 
 procedure TFPCustomCanvas.Draw (x,y:integer; image:TFPCustomImage);
-var xx,xi,yi,xm,ym,r,t : integer;
+var
+  xx,xi,yi,xm,ym,r,t : integer;
+  P: TPoint;
 begin
+  if HasTransform then
+    begin
+    P := TransformPoint(x, y);
+    x := P.X;
+    y := P.Y;
+    end;
   xm := x + image.width-1;
   if (xm<0) or (x>width) then exit;
   if xm >= width then
