@@ -201,12 +201,44 @@ end;
 function HtmlEscape(const S: String): String;
 
 var
-  C : char;
+  lPos,
+  lTotalLen,
+  lCharLen : Integer;
+  lChar : char;
+  lRepl : String[6];
 
 begin
   Result:='';
-  for C in S do
-    Result:=Result+HtmlEscape(C);
+  lTotalLen:=0;
+  lCharLen:=0;
+  for lChar in S do
+    begin
+    Case lChar of
+      '<',
+      '>' : lCharLen:=4;
+      '"' : lCharLen:=6;
+      '&' : lCharLen:=5;
+    else
+      lCharLen:=1;
+    end;
+    Inc(lTotalLen,lCharLen);
+    end;
+  SetLength(Result,lTotalLen);
+  lPos:=1;
+  for lChar in S do
+    begin
+    Case lChar of
+      '<' : lRepl:='&lt;';
+      '>' : lRepl:='&gt;';
+      '"' : lRepl:='&quot;';
+      '&' : lRepl:='&amp;';
+    else
+      lRepl:=lChar;
+    end;
+    lCharlen:=Length(lRepl);
+    Move(lRepl[1],Result[lPos],lCharLen);
+    Inc(lPos,lCharLen);
+    end;
 end;
 
 
