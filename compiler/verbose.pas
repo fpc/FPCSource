@@ -56,6 +56,7 @@ interface
 
       TVerbose = class
       private
+        procedure LoadMsgFile(const fn:string);
         procedure MaybeLoadMessageFile;
         Procedure UpdateStatus;
         function GetMessageState(m:longint):tmsgstate;
@@ -431,7 +432,7 @@ implementation
       end;
 
 
-    procedure LoadMsgFile(const fn:string);
+    procedure TVerbose.LoadMsgFile(const fn:string);
       begin
         { reload the internal messages if not already loaded }
 {$ifndef EXTERN_MSG}
