@@ -19,9 +19,9 @@ unit fpTLSBigInt;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils;
+uses System.SysUtils, System.Hash.Utils;
 {$ELSE FPC_DOTTEDUNITS}
-uses SysUtils;
+uses SysUtils, fphashutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {off $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
