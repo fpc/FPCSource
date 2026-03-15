@@ -56,6 +56,7 @@ interface
 
       TVerbose = class
       private
+        function GetMessageState(m:longint):tmsgstate;
         Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
       public
         procedure SetRedirectFile(const fn:string);
@@ -655,7 +656,7 @@ implementation
          end;
       end;
 
-    function GetMessageState(m:longint):tmsgstate;
+    function TVerbose.GetMessageState(m:longint):tmsgstate;
       var
         i: integer;
       begin
