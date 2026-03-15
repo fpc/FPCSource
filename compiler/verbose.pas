@@ -69,8 +69,8 @@ interface
         function  ErrorCount:longint;
         procedure SetErrorFlags(const s:string);
         procedure GenerateError;
-        //procedure Internalerror(i:longint);noreturn;
-        //procedure Internalerror(i:longint; const s : ansistring);noreturn;
+        //TODO: procedure Internalerror(i:longint);noreturn;
+        //TODO: procedure Internalerror(i:longint; const s : ansistring);noreturn;
         procedure Comment(l:longint;s:ansistring);
         function  MessageStr(w:longint):TMsgStr;
       end;
