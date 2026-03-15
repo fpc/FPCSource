@@ -103,7 +103,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
   if UseVLink and (source_info.dirsep <> '/') then
     LinkRes.fForceUseForwardSlash:=true;
 
@@ -314,7 +314,7 @@ begin
   binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ExeName)));
-  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
   Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$FLAGS',FlagsStr);
   Replace(cmdstr,'$STRIP',StripStr);
@@ -339,7 +339,7 @@ begin
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-    DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

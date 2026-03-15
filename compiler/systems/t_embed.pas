@@ -148,7 +148,7 @@ begin
     prtobj:=cprtobj;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -1829,7 +1829,7 @@ begin
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -1839,7 +1839,7 @@ begin
   else
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -1850,7 +1850,7 @@ begin
 
 { Remove ResponseFile }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+   DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 { Post process }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -1988,6 +1988,8 @@ end;
 *****************************************************************************}
 
 function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   Var
     linkres  : TLinkRes;
     //i        : longint;
@@ -2007,7 +2009,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
       prtobj:=cprtobj;
 
     { Open link.res file }
-    LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+    LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
     { Write path to search libraries }
 (*    HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -2154,6 +2156,8 @@ procedure TlinkerEmbedded_SdccSdld.SetDefaultInfo;
 
 function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  var
     binstr,
     cmdstr,
     mapstr: TCmdStr;
@@ -2188,7 +2192,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     if not(cs_link_on_target in current_settings.globalswitches) then
      begin
       Replace(cmdstr,'$EXE',FixedExeFileName);
-      Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+      Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
       Replace(cmdstr,'$STATIC',StaticStr);
       Replace(cmdstr,'$STRIP',StripStr);
       Replace(cmdstr,'$MAP',mapstr);
@@ -2198,7 +2202,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     else
      begin
       Replace(cmdstr,'$EXE',FixedExeFileName);
-      Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+      Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
       Replace(cmdstr,'$STATIC',StaticStr);
       Replace(cmdstr,'$STRIP',StripStr);
       Replace(cmdstr,'$MAP',mapstr);
@@ -2209,7 +2213,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
-     DeleteFile(outputexedir+Info.ResName);
+     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 (*  { Post process }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -2294,7 +2298,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
      end;
 
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
-    //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+    //Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
     //Replace(cmdstr,'$INIT',InitStr);
     //Replace(cmdstr,'$FINI',FiniStr);
     Replace(cmdstr,'$STACKSIZE',tostr(stacksize));

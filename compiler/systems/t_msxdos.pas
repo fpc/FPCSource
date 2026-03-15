@@ -91,7 +91,7 @@ function TLinkerMSXDOS.WriteResponseFile_Sdld: Boolean;
     prtobj:='prt0';
 
     { Open link.res file }
-    LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+    LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
     { Write the origin (i.e. the program load address) }
     LinkRes.Add('-b _CODE='+tostr(FOrigin));
@@ -140,7 +140,7 @@ function TLinkerMSXDOS.WriteResponseFile_Vlink: Boolean;
     prtobj:='prt0';
 
     { Open link.res file }
-    LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+    LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
     if (source_info.dirsep <> '/') then
       LinkRes.fForceUseForwardSlash:=true;
 
@@ -248,7 +248,7 @@ function TLinkerMSXDOS.MakeExecutable_Sdld: boolean;
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -259,7 +259,7 @@ function TLinkerMSXDOS.MakeExecutable_Sdld: boolean;
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
-     DeleteFile(outputexedir+Info.ResName);
+     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   { Post process }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -291,7 +291,7 @@ function TLinkerMSXDOS.MakeExecutable_Vlink: boolean;
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
 
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$STARTSYMBOL',StartSymbolStr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -300,7 +300,7 @@ function TLinkerMSXDOS.MakeExecutable_Vlink: boolean;
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
-     DeleteFile(outputexedir+Info.ResName);
+     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   { Post process }
     if success and not(cs_link_nolink in current_settings.globalswitches) then

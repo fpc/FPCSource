@@ -156,7 +156,7 @@ Var
 begin
   result:=False;
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,assumebinutils);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,assumebinutils);
   with linkres do
     begin
       { Write path to search libraries }
@@ -276,9 +276,9 @@ begin
   }
   if not(cs_link_on_target in current_settings.globalswitches) and
      not(source_info.system in systems_aix) then
-    Replace(cmdstr,'$CATRES',outputexedir+Info.ResName)
+    Replace(cmdstr,'$CATRES',compiler.globals.outputexedir+Info.ResName)
   else
-    Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
+    Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
 
   { create dynamic symbol table? }
@@ -293,7 +293,7 @@ begin
      not(tf_no_backquote_support in source_info.flags) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=GenerateScript(outputexedir+'ppaslink');
+      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
       linkscript.AddLinkCommand(binstr,CmdStr,'');
 //      if (extdbgbinstr<>'') then
 //        linkscript.AddLinkCommand(extdbgbinstr,extdbgcmdstr,'');
@@ -312,7 +312,7 @@ begin
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
-      DeleteFile(outputexedir+Info.ResName);
+      DeleteFile(compiler.globals.outputexedir+Info.ResName);
       if assigned(linkscript) then
         DeleteFile(linkscript.fn);
     end;
@@ -368,26 +368,26 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) and
      not(source_info.system in systems_aix) then
-    Replace(cmdstr,'$CATRES',outputexedir+Info.ResName)
+    Replace(cmdstr,'$CATRES',compiler.globals.outputexedir+Info.ResName)
   else
-    Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
+    Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   Replace(cmdstr,'$STRIP',StripStr);
   { exported symbols }
   if not texportlibunix(exportlib).exportedsymnames.empty then
     begin
-      assign(exportedsyms,outputexedir+'linksyms.fpc');
+      assign(exportedsyms,compiler.globals.outputexedir+'linksyms.fpc');
       rewrite(exportedsyms);
       repeat
         writeln(exportedsyms,texportlibunix(exportlib).exportedsymnames.getfirst);
       until texportlibunix(exportlib).exportedsymnames.empty;
       close(exportedsyms);
-      cmdstr:=cmdstr+' -bE:'+maybequoted(outputexedir)+'linksyms.fpc';
+      cmdstr:=cmdstr+' -bE:'+maybequoted(compiler.globals.outputexedir)+'linksyms.fpc';
     end;
 
   libfn:=maybequoted(current_module.sharedlibfilename);
   { we have to use a script to use the IFS hack }
-  linkscript:=GenerateScript(outputexedir+'ppaslink');
+  linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
   linkscript.AddLinkCommand(binstr,CmdStr,'');
   { delete the target static library containing the dynamic object file in
     case it already existed }
@@ -410,8 +410,8 @@ begin
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(libobj);
-      DeleteFile(outputexedir+Info.ResName);
-      DeleteFile(outputexedir+'linksyms.fpc');
+      DeleteFile(compiler.globals.outputexedir+Info.ResName);
+      DeleteFile(compiler.globals.outputexedir+'linksyms.fpc');
       DeleteFile(linkscript.fn);
     end;
   linkscript.free;

@@ -80,7 +80,7 @@ Var
 begin
 
     { Open link.res file }
-    LinkRes:= TLinkRes.Create(outputexedir + Info.ResName, true);
+    LinkRes:= TLinkRes.Create(compiler.globals.outputexedir + Info.ResName, true);
 
 
     LinkRes.Add('MEMORY');
@@ -341,7 +341,7 @@ begin
     SplitBinCmd(Info.ExeCmd[1], binstr, cmdstr);
 
     Replace(cmdstr, '$OPT', Info.ExtraOptions);
-    Replace(cmdstr, '$RES', '-T ' + (maybequoted(ScriptFixFileName(outputexedir + Info.ResName))));
+    Replace(cmdstr, '$RES', '-T ' + (maybequoted(ScriptFixFileName(compiler.globals.outputexedir + Info.ResName))));
     Replace(cmdstr, '$MAP', mapstr);
 
     if cs_link_smart in current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';
@@ -352,7 +352,7 @@ begin
       exit;
     end;
 
-    DeleteFile(outputexedir + Info.ResName);
+    DeleteFile(compiler.globals.outputexedir + Info.ResName);
 
 
     if not FileCopy(current_module.exefilename + '.elf', current_module.exefilename + '.bin', 0) then begin

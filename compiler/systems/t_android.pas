@@ -221,7 +221,7 @@ begin
   AddSharedLibrary('c');
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
   with linkres do
     begin
       { Write path to search libraries }
@@ -436,7 +436,7 @@ begin
   SplitBinCmd(s, binstr, cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(outname));
   Replace(cmdstr,'$OPT',opts);
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   if IsSharedLib then
     Replace(cmdstr,'$SONAME',ExtractFileName(outname));
 
@@ -470,7 +470,7 @@ begin
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-    DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   Result:=success;   { otherwise a recursive call to link method }
 end;

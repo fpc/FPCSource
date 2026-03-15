@@ -93,7 +93,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -202,7 +202,7 @@ begin
       begin
         Replace(cmdstr,'$EXE',MaybeQuoted(current_module.exefilename));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',MaybeQuoted(outputexedir+Info.ResName));
+        Replace(cmdstr,'$RES',MaybeQuoted(compiler.globals.outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);
 //        Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
         Replace(cmdstr,'$APPNAME',palmos_applicationname);
@@ -216,7 +216,7 @@ begin
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+   DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

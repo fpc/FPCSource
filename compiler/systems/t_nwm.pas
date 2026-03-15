@@ -264,8 +264,8 @@ begin
      ExeCmd[2]:= 'nlmconv -T$RES';
      {$else}
      {for running on netware we need absolute paths since ld has another working directory}
-     ExeCmd[1]:= 'ld -Ur -T '+FExpand(outputexedir+Info.ResName)+' $STRIP -o '+Fexpand(outputexedir+tmpLinkFileName);
-     ExeCmd[2]:= 'nlmconv -T'+FExpand(outputexedir+'n'+Info.ResName);
+     ExeCmd[1]:= 'ld -Ur -T '+FExpand(compiler.globals.outputexedir+Info.ResName)+' $STRIP -o '+Fexpand(compiler.globals.outputexedir+tmpLinkFileName);
+     ExeCmd[2]:= 'nlmconv -T'+FExpand(compiler.globals.outputexedir+'n'+Info.ResName);
      {$endif}
    end;
 end;
@@ -290,8 +290,8 @@ begin
   NlmNam := ProgNam + compiler.target.info.exeext;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);             {for ld}
-  NLMConvLinkFile:=TLinkRes.Create(outputexedir+'n'+Info.ResName,true); {for nlmconv, written in CreateExeFile}
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);             {for ld}
+  NLMConvLinkFile:=TLinkRes.Create(compiler.globals.outputexedir+'n'+Info.ResName,true); {for nlmconv, written in CreateExeFile}
 
   p := Pos ('"', Description);
   while (p > 0) do
@@ -333,9 +333,9 @@ begin
   str (stacksize, s);
   NLMConvLinkFile.Add ('STACKSIZE '+s);
   {$ifndef netware}
-  NLMConvLinkFile.Add ('INPUT '+outputexedir+tmpLinkFileName);
+  NLMConvLinkFile.Add ('INPUT '+compiler.globals.outputexedir+tmpLinkFileName);
   {$else}
-  NLMConvLinkFile.Add ('INPUT '+FExpand(outputexedir+tmpLinkFileName));
+  NLMConvLinkFile.Add ('INPUT '+FExpand(compiler.globals.outputexedir+tmpLinkFileName));
   {$endif}
 
   { add objectfiles, start with nwpre always }
@@ -556,16 +556,16 @@ begin
   to nlmconv. Otherwise we could not create nlms without debug info }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$TMPOBJ',maybequoted(outputexedir+tmpLinkFileName));
+  Replace(cmdstr,'$TMPOBJ',maybequoted(compiler.globals.outputexedir+tmpLinkFileName));
   BinStr:=FindUtil(utilsprefix+BinStr);
   compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(BinStr,CmdStr,true,false);
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-    DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 { Call nlmconv }
   if success then
@@ -574,13 +574,13 @@ begin
     NLMConvLinkFile.Free;
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
     BinStr:=FindUtil(utilsprefix+BinStr);
-    Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
+    Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
     compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);
     if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
-      DeleteFile(outputexedir+'n'+Info.ResName);
-      DeleteFile(outputexedir+tmpLinkFileName);
+      DeleteFile(compiler.globals.outputexedir+'n'+Info.ResName);
+      DeleteFile(compiler.globals.outputexedir+tmpLinkFileName);
     end;
   end;
 

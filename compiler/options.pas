@@ -3116,7 +3116,7 @@ begin
     'e' :
       compiler.verbose.SetRedirectFile(More);
     'E' :
-      OutputExeDir:=FixPath(More,true);
+      compiler.globals.outputexedir:=FixPath(More,true);
     'f' :
         if (compiler.target.info.system in systems_darwin) then
           if ispara then
@@ -3469,7 +3469,7 @@ begin
       DefaultReplacements(More);
       D:=ExtractFilePath(More);
       if (D<>'') then
-        OutputExeDir:=FixPath(D,True);
+        compiler.globals.outputexedir:=FixPath(D,True);
       compiler.globals.OutputFileName:=ExtractFileName(More);
     end
   else
@@ -5174,10 +5174,10 @@ begin
     end;
 
   { Check output dir }
-  if (OutputExeDir<>'') and
-     not PathExists(OutputExeDir,false) then
+  if (compiler.globals.outputexedir<>'') and
+     not PathExists(compiler.globals.outputexedir,false) then
     begin
-      compiler.verbose.Message1(general_e_path_does_not_exist,OutputExeDir);
+      compiler.verbose.Message1(general_e_path_does_not_exist,compiler.globals.outputexedir);
       StopOptions(1);
     end;
 

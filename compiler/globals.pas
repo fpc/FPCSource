@@ -301,9 +301,6 @@ Const
 
 
     var
-
-       { specified with -FE or -FU }
-       outputexedir      : TPathStr;
        outputunitdir     : TPathStr;
        { specified with -FW and -Fw }
        wpofeedbackinput,
@@ -725,6 +722,9 @@ Const
         outputsuffix      : pshortstring;
         { selected subtarget }
         subtarget         : string;
+
+        { specified with -FE or -FU }
+        outputexedir      : TPathStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1765,7 +1765,7 @@ implementation
         compiler.globals.OutputPrefix:=Nil;
         compiler.globals.OutputSuffix:=Nil;
 
-        OutputExeDir:='';
+        compiler.globals.outputexedir:='';
         OutputUnitDir:='';
 
         { Utils directory }

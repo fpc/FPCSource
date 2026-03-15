@@ -214,7 +214,7 @@ begin
   if use_gnu_ld then
     begin
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -341,7 +341,7 @@ begin
   else { not use_gnu_ld }
     begin
    { Open TlinkRes, will not be written to disk }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName+'2',false);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName+'2',false);
 
  { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -363,7 +363,7 @@ begin
   { to the main program                                    }
   if (isdll) then
     begin
-      LinkRes2:=TLinkRes.Create(outputexedir+Info.ResName,true);
+      LinkRes2:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
       // LinkRes2.add('VERSION'); not needed for now
       LinkRes2.add('  {');
       if not texportlibunix(exportlib).exportedsymnames.empty then
@@ -521,7 +521,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if use_gnu_ld then
     begin
-      Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$EMUL',gnu_emul);
     end
   else
@@ -549,7 +549,7 @@ begin
 {$IFNDEF LinkTest}
   if (success) and use_gnu_ld and
      not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+   DeleteFile(compiler.globals.outputexedir+Info.ResName);
 {$ENDIF}
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -632,12 +632,12 @@ begin
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   if use_gnu_ld then
     begin
-      Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$EMUL',gnu_emul);
     end
   else
     begin
-      Replace(cmdstr,'$VERSIONFILE',maybequoted(outputexedir+Info.ResName));
+      Replace(cmdstr,'$VERSIONFILE',maybequoted(compiler.globals.outputexedir+Info.ResName));
       linkstr:='';
       while not linkres.data.Empty do
         begin
@@ -665,7 +665,7 @@ begin
 { Remove ResponseFile }
 {$IFNDEF LinkTest}
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+   DeleteFile(compiler.globals.outputexedir+Info.ResName);
 {$ENDIF}
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;

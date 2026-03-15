@@ -470,6 +470,8 @@ implementation
 
 
     function tlinkerdarwin.WriteFileList: TCmdStr;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     Var
       FilesList    : TScript;
       s            : TCmdStr;
@@ -478,7 +480,7 @@ implementation
          ExpandAndApplyOrder(SharedLibFiles);
 
       { main objectfiles and static libraries: in filelist file to avoid overflowing command line limit }
-      result:=UniqueName(outputexedir+'linkfiles')+'.res';
+      result:=UniqueName(compiler.globals.outputexedir+'linkfiles')+'.res';
       FilesList:=TScript.Create(result);
       while not ObjectFiles.Empty do
         begin
@@ -560,7 +562,7 @@ implementation
       Replace(cmdstr,'$OPT',Info.ExtraOptions);
       Replace(cmdstr,'$TARGET',targetstr);
       Replace(cmdstr,'$MAP',mapstr);
-      Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$LTO',ltostr);
       if ordersymfile<>'' then
         Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
@@ -611,7 +613,7 @@ implementation
       { Remove ResponseFile }
       if (success) and not(cs_link_nolink in current_settings.globalswitches) then
        begin
-         DeleteFile(outputexedir+Info.ResName);
+         DeleteFile(compiler.globals.outputexedir+Info.ResName);
          if ordersymfile<>'' then
            DeleteFile(ordersymfile);
          DeleteFile(linkfiles);
@@ -680,7 +682,7 @@ implementation
       Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename)));
       Replace(cmdstr,'$OPT',Info.ExtraOptions);
       Replace(cmdstr,'$TARGET',targetstr);
-      Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+      Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
       Replace(cmdstr,'$INIT',InitStr);
       Replace(cmdstr,'$FINI',FiniStr);
       Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -728,13 +730,13 @@ implementation
       if not texportlibunix(exportlib).exportedsymnames.empty then
         begin
           LinkSymsFileName:=UniqueName('linksyms')+'.fpc';
-          assign(exportedsyms,outputexedir+LinkSymsFileName);
+          assign(exportedsyms,compiler.globals.outputexedir+LinkSymsFileName);
           rewrite(exportedsyms);
           repeat
             writeln(exportedsyms,texportlibunix(exportlib).exportedsymnames.getfirst);
           until texportlibunix(exportlib).exportedsymnames.empty;
           close(exportedsyms);
-          cmdstr:=cmdstr+' -exported_symbols_list '+maybequoted(outputexedir+LinkSymsFileName);
+          cmdstr:=cmdstr+' -exported_symbols_list '+maybequoted(compiler.globals.outputexedir+LinkSymsFileName);
         end;
 
       success:=DoExec(BinStr,cmdstr,true,false);
@@ -754,11 +756,11 @@ implementation
     { Remove temporary files }
       if (success) and not(cs_link_nolink in current_settings.globalswitches) then
         begin
-          DeleteFile(outputexedir+Info.ResName);
+          DeleteFile(compiler.globals.outputexedir+Info.ResName);
           if ordersymfile<>'' then
             DeleteFile(ordersymfile);
            if LinkSymsFileName<>'' then
-             DeleteFile(outputexedir+LinkSymsFileName);
+             DeleteFile(compiler.globals.outputexedir+LinkSymsFileName);
            DeleteFile(linkfiles);
         end;
 

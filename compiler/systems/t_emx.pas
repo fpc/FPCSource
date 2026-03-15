@@ -398,7 +398,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -515,9 +515,9 @@ begin
    This means that name of the output directory cannot contain spaces,
    but at least it works otherwise...
 
-        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+        Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
 *)
-        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$RES',compiler.globals.outputexedir+Info.ResName);
         Replace(cmdstr,'$OPT ',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC ',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));
@@ -531,7 +531,7 @@ begin
 
 { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+   DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

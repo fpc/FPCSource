@@ -276,7 +276,7 @@ begin
      ExpandAndApplyOrder(SharedLibFiles);
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,not LdSupportsNoResponseFile);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,not LdSupportsNoResponseFile);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -549,8 +549,8 @@ begin
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
   Replace(cmdstr,'$MAP',mapstr);
-  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$LTO',ltostr);
   if ordersymfile<>'' then
     Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
@@ -568,7 +568,7 @@ begin
      not(cs_link_nolink in current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=GenerateScript(outputexedir+'ppaslink');
+      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
@@ -586,7 +586,7 @@ begin
 { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
-     DeleteFile(outputexedir+Info.ResName);
+     DeleteFile(compiler.globals.outputexedir+Info.ResName);
      if ordersymfile<>'' then
        DeleteFile(ordersymfile);
      if LdSupportsNoResponseFile Then
@@ -665,9 +665,9 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$TARGET',targetstr);
   Replace(cmdstr,'$EMUL',EmulStr);
-  Replace(cmdstr,'$CATRES',CatFileContent(outputexedir+Info.ResName));
+  Replace(cmdstr,'$CATRES',CatFileContent(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$FILELIST','');
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -684,7 +684,7 @@ begin
      not(cs_link_nolink in current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
-      linkscript:=GenerateScript(outputexedir+'ppaslink');
+      linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
       linkscript.AddLinkCommand(BinStr,CmdStr,'');
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
@@ -709,7 +709,7 @@ begin
 { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
-      DeleteFile(outputexedir+Info.ResName);
+      DeleteFile(compiler.globals.outputexedir+Info.ResName);
       if ordersymfile<>'' then
         DeleteFile(ordersymfile);
       if LdSupportsNoResponseFile Then

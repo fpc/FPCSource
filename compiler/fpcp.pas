@@ -228,8 +228,8 @@ implementation
         if (OutputUnitDir<>'') then
           p:=OutputUnitDir
         else
-          if (OutputExeDir<>'') then
-            p:=OutputExeDir;
+          if (compiler.globals.outputexedir<>'') then
+            p:=compiler.globals.outputexedir;
       pcpfilename:=p+n+{compiler.target.info.pkginfoext}'.pcp';
     end;
 

@@ -165,7 +165,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
@@ -202,13 +202,13 @@ begin
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-    DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -227,7 +227,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
@@ -280,13 +280,13 @@ begin
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-    DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -307,7 +307,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
@@ -396,7 +396,7 @@ begin
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
@@ -406,7 +406,7 @@ begin
 
   { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-    DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

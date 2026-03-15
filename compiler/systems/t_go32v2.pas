@@ -205,13 +205,13 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
   { Newer or cross GNU ld do not like \ in path names,
     so we use bstoslash }
-  LinkRes.Add('--script='+maybequoted(bstoslash(outputexedir+Info.ScriptName)));
+  LinkRes.Add('--script='+maybequoted(bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('-Map '+maybequoted(bstoslash(ChangeFileExt(current_module.exefilename,'.map'))));
   if create_smartlink_sections then
@@ -275,7 +275,7 @@ begin
   WriteScript:=False;
 
   { Open link.res file }
-  ScriptRes:=TLinkRes.Create(outputexedir+Info.ScriptName,true);
+  ScriptRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ScriptName,true);
   ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
   ScriptRes.Add('ENTRY(start)');
 
@@ -391,15 +391,15 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
-     DeleteFile(outputexedir+Info.ResName);
-     DeleteFile(outputexedir+Info.ScriptName);
+     DeleteFile(compiler.globals.outputexedir+Info.ResName);
+     DeleteFile(compiler.globals.outputexedir+Info.ScriptName);
    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

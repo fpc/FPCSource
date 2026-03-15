@@ -425,7 +425,7 @@ const
       { upper case to have the least chance of tripping some long file name
         conversion stuff
       }
-      fsymfilename:=outputexedir+'FPCWPO.SYM';
+      fsymfilename:=compiler.globals.outputexedir+'FPCWPO.SYM';
       { -p gives the same kind of output with Solaris nm as
         with GNU nm, and for GNU nm it simply means "unsorted"
       }

@@ -611,8 +611,8 @@ uses
              if (OutputUnitDir<>'') then
                p:=OutputUnitDir
              else
-               if (OutputExeDir<>'') then
-                 p:=OutputExeDir;
+               if (compiler.globals.outputexedir<>'') then
+                 p:=compiler.globals.outputexedir;
            end;
          outputpath:=p;
          asmfilename:=p+n+compiler.target.info.asmext;
@@ -626,8 +626,8 @@ uses
          exportfilename:=p+'exp'+n+compiler.target.info.objext;
 
          { output dir of exe can be specified separately }
-         if AllowOutput and (OutputExeDir<>'') then
-           p:=OutputExeDir
+         if AllowOutput and (compiler.globals.outputexedir<>'') then
+           p:=compiler.globals.outputexedir
          else
            p:=path;
 

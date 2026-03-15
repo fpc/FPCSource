@@ -193,7 +193,7 @@ begin
    end;
 
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  //Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$STACKSIZE',tostr(stacksize));
@@ -255,7 +255,7 @@ begin
    end;
 
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  //Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$STACKSIZE',tostr(stacksize));

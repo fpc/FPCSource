@@ -113,7 +113,7 @@ begin
 {$endif}
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -941,7 +941,7 @@ begin
     only a few fields are provided to far.
     Assume that if linker scripts are not located,
     sdkconfig.h is also missing }
-  Assign(t,outputexedir+'/sdkconfig.h');
+  Assign(t,compiler.globals.outputexedir+'/sdkconfig.h');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -977,9 +977,9 @@ begin
 
   { generate an sdkconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/sdkconfig')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/sdkconfig')) then
     begin
-      Assign(t,outputexedir+'/sdkconfig');
+      Assign(t,compiler.globals.outputexedir+'/sdkconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -995,9 +995,9 @@ begin
 
   { generate an Kconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/Kconfig')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/Kconfig')) then
     begin
-      Assign(t,outputexedir+'/Kconfig');
+      Assign(t,compiler.globals.outputexedir+'/Kconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1013,9 +1013,9 @@ begin
 
   { generate an Kconfig.projbuild if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/Kconfig.projbuild')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/Kconfig.projbuild')) then
     begin
-      Assign(t,outputexedir+'/Kconfig.projbuild');
+      Assign(t,compiler.globals.outputexedir+'/Kconfig.projbuild');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1031,9 +1031,9 @@ begin
 
   { generate an kconfigs.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/kconfigs.in')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/kconfigs.in')) then
     begin
-      Assign(t,outputexedir+'/kconfigs.in');
+      Assign(t,compiler.globals.outputexedir+'/kconfigs.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1049,9 +1049,9 @@ begin
 
   { generate an kconfigs_projbuild.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/kconfigs_projbuild.in')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/kconfigs_projbuild.in')) then
     begin
-      Assign(t,outputexedir+'/kconfigs_projbuild.in');
+      Assign(t,compiler.globals.outputexedir+'/kconfigs_projbuild.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1068,7 +1068,7 @@ begin
   { generate a config.env if none is provided,
     COMPONENT_KCONFIGS and COMPONENT_KCONFIGS_PROJBUILD are dummy fields and might
     be needed to be filed properly }
-  Assign(t,outputexedir+'/config.env');
+  Assign(t,compiler.globals.outputexedir+'/config.env');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1082,8 +1082,8 @@ begin
       writeln(t,'    "IDF_CMAKE": "y",');
       writeln(t,'    "IDF_TARGET": "esp32",');
       writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
-      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+outputexedir+'/kconfigs.in",');
-      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+outputexedir+'/kconfigs_projbuild.in"');
+      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs.in",');
+      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs_projbuild.in"');
     end
   else
     begin
@@ -1099,7 +1099,7 @@ begin
   {$pop}
 
   { generate ldgen_libraries }
-  Assign(t,outputexedir+'/ldgen_libraries');
+  Assign(t,compiler.globals.outputexedir+'/ldgen_libraries');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1132,7 +1132,7 @@ begin
     exit;
   {$pop}
 
-  memory_filename:=IncludeTrailingPathDelimiter(outputexedir)+memory_filename;
+  memory_filename:=IncludeTrailingPathDelimiter(compiler.globals.outputexedir)+memory_filename;
   cmdstr:='-C -P -x c -E -o '+memory_filename+' -I $OUTPUT ';
   binstr:='gcc';
   if current_settings.controllertype = ct_none then
@@ -1147,7 +1147,7 @@ begin
   else
     cmdstr:=cmdstr+'$IDF_PATH/components/esp8266/ld/esp8266.ld';
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  Replace(cmdstr,'$OUTPUT',outputexedir);
+  Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
@@ -1159,7 +1159,7 @@ begin
   if source_info.exeext<>'' then
     binstr:=binstr+source_info.exeext;
 
-  sections_filename:=IncludeTrailingPathDelimiter(outputexedir)+sections_filename;
+  sections_filename:=IncludeTrailingPathDelimiter(compiler.globals.outputexedir)+sections_filename;
 
   cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
           '--config $OUTPUT/sdkconfig --fragments';
@@ -1202,7 +1202,7 @@ begin
           ' --objdump '+S;
 
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  Replace(cmdstr,'$OUTPUT',outputexedir);
+  Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   if success then
     success:=DoExec(binstr,cmdstr,true,false);
 end;
@@ -1269,7 +1269,7 @@ begin
     only a few fields are provided to far.
     Assume that if linker scripts are not located,
     sdkconfig.h is also missing }
-  Assign(t,outputexedir+'/sdkconfig.h');
+  Assign(t,compiler.globals.outputexedir+'/sdkconfig.h');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1288,9 +1288,9 @@ begin
 
   { generate an sdkconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/sdkconfig')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/sdkconfig')) then
     begin
-      Assign(t,outputexedir+'/sdkconfig');
+      Assign(t,compiler.globals.outputexedir+'/sdkconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1306,9 +1306,9 @@ begin
 
   { generate an Kconfig if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/Kconfig')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/Kconfig')) then
     begin
-      Assign(t,outputexedir+'/Kconfig');
+      Assign(t,compiler.globals.outputexedir+'/Kconfig');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1324,9 +1324,9 @@ begin
 
   { generate an Kconfig.projbuild if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/Kconfig.projbuild')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/Kconfig.projbuild')) then
     begin
-      Assign(t,outputexedir+'/Kconfig.projbuild');
+      Assign(t,compiler.globals.outputexedir+'/Kconfig.projbuild');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1342,9 +1342,9 @@ begin
 
   { generate an kconfigs.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/kconfigs.in')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/kconfigs.in')) then
     begin
-      Assign(t,outputexedir+'/kconfigs.in');
+      Assign(t,compiler.globals.outputexedir+'/kconfigs.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1360,9 +1360,9 @@ begin
 
   { generate an kconfigs_projbuild.in if none is provided,
     this is a dummy so far }
-  if not(Sysutils.FileExists(outputexedir+'/kconfigs_projbuild.in')) then
+  if not(Sysutils.FileExists(compiler.globals.outputexedir+'/kconfigs_projbuild.in')) then
     begin
-      Assign(t,outputexedir+'/kconfigs_projbuild.in');
+      Assign(t,compiler.globals.outputexedir+'/kconfigs_projbuild.in');
       {$push}{$I-}
       Rewrite(t);
       if ioresult<>0 then
@@ -1379,7 +1379,7 @@ begin
   { generate a config.env if none is provided,
     COMPONENT_KCONFIGS and COMPONENT_KCONFIGS_PROJBUILD are dummy fields and might
     be needed to be filed properly }
-  Assign(t,outputexedir+'/config.env');
+  Assign(t,compiler.globals.outputexedir+'/config.env');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1394,8 +1394,8 @@ begin
       writeln(t,'    "IDF_TARGET": "esp32c3",');
       writeln(t,'    "IDF_ENV_FPGA": "",');
       writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
-      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+outputexedir+'/kconfigs.in",');
-      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+outputexedir+'/kconfigs_projbuild.in"');
+      writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs.in",');
+      writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs_projbuild.in"');
     end;
   writeln(t,'}');
 
@@ -1405,7 +1405,7 @@ begin
   {$pop}
 
   { generate ldgen_libraries }
-  Assign(t,outputexedir+'/ldgen_libraries');
+  Assign(t,compiler.globals.outputexedir+'/ldgen_libraries');
   {$push}{$I-}
   Rewrite(t);
   if ioresult<>0 then
@@ -1438,7 +1438,7 @@ begin
     exit;
   {$pop}
 
-  memory_filename:=IncludeTrailingPathDelimiter(outputexedir)+memory_filename;
+  memory_filename:=IncludeTrailingPathDelimiter(compiler.globals.outputexedir)+memory_filename;
   cmdstr:='-C -P -x c -E -o '+memory_filename+' -I $OUTPUT ';
   binstr:='gcc';
   if current_settings.controllertype = ct_none then
@@ -1451,7 +1451,7 @@ begin
         cmdstr:=cmdstr+'$IDF_PATH/components/esp32c3/ld/esp32c3.ld';
     end;
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  Replace(cmdstr,'$OUTPUT',outputexedir);
+  Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
@@ -1463,7 +1463,7 @@ begin
   if source_info.exeext<>'' then
     binstr:=binstr+source_info.exeext;
 
-  sections_filename:=IncludeTrailingPathDelimiter(outputexedir)+sections_filename;
+  sections_filename:=IncludeTrailingPathDelimiter(compiler.globals.outputexedir)+sections_filename;
 
   cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
           '--config $OUTPUT/sdkconfig --fragments';
@@ -1491,7 +1491,7 @@ begin
           ' --objdump '+S;
 
   Replace(cmdstr,'$IDF_PATH',idfpath);
-  Replace(cmdstr,'$OUTPUT',outputexedir);
+  Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   if success then
     success:=DoExec(binstr,cmdstr,true,false);
 end;
@@ -1701,7 +1701,7 @@ begin
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -1711,7 +1711,7 @@ begin
   else
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
-    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
     Replace(cmdstr,'$MAP',mapstr);
@@ -1722,7 +1722,7 @@ begin
 
 { Remove ResponseFile }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+   DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 { Post process }
   if success and not(cs_link_nolink in current_settings.globalswitches) then

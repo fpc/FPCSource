@@ -263,8 +263,8 @@ Implementation
         if isunit and (OutputUnitDir<>'') then
           found:=FindFile(s,OutPutUnitDir,false,foundfile)
         else
-          if OutputExeDir<>'' then
-            found:=FindFile(s,OutPutExeDir,false,foundfile);
+          if compiler.globals.outputexedir<>'' then
+            found:=FindFile(s,compiler.globals.outputexedir,false,foundfile);
         if (not found) and (unitpath<>'') then
          found:=FindFile(s,unitpath,false,foundfile);
         if (not found) then
@@ -698,7 +698,7 @@ Implementation
         if (OrderedSymbols.Empty) or
            not(tf_supports_symbolorderfile in compiler.target.info.flags) then
           exit;
-        symfile:=TScript.Create(outputexedir+UniqueName('symbol_order')+'.fpc');
+        symfile:=TScript.Create(compiler.globals.outputexedir+UniqueName('symbol_order')+'.fpc');
         item:=TCmdStrListItem(OrderedSymbols.First);
         while assigned(item) do
           begin
@@ -746,6 +746,8 @@ Implementation
 
     function TExternalLinker.AddSanitizerLibrariesAndGetSearchDir(const platformname: TCmdStr; out sanitizerlibrarydir: TCmdStr): boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         clang,
         clangsearchdirs,
         textline,
@@ -766,7 +768,7 @@ Implementation
           clang:=FindUtil('clang'+llvmutilssuffix);
           if clang<>'' then
             begin
-              clangsearchdirspath:=outputexedir+UniqueName('clangsearchdirs');
+              clangsearchdirspath:=compiler.globals.outputexedir+UniqueName('clangsearchdirs');
               searchres:=shell(maybequoted(clang)+' -target '+targettriplet(triplet_llvm)+' -print-file-name=lib > '+maybequoted(clangsearchdirspath));
               if searchres=0 then
                 begin

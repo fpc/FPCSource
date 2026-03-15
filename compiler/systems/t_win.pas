@@ -1203,7 +1203,7 @@ implementation
           end;
 
         { Open link.res file }
-        LinkRes:=TLinkres.Create(outputexedir+Info.ResName,true);
+        LinkRes:=TLinkres.Create(compiler.globals.outputexedir+Info.ResName,true);
         with linkres do
           begin
             { Write path to search libraries }
@@ -1491,7 +1491,7 @@ implementation
             begin
               Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
-              Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+              Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
               Replace(cmdstr,'$ENTRY',EntryStr);
               Replace(cmdstr,'$ASBIN',AsbinStr);
@@ -1520,7 +1520,7 @@ implementation
       { Remove ResponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
-           DeleteFile(outputexedir+Info.ResName);
+           DeleteFile(compiler.globals.outputexedir+Info.ResName);
            DeleteFile('base.$$$');
            DeleteFile('exp.$$$');
            DeleteFile('deffile.$$$');
@@ -1599,7 +1599,7 @@ implementation
             begin
               Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
               Replace(cmdstr,'$OPT',Info.ExtraOptions);
-              Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+              Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
               Replace(cmdstr,'$APPTYPE',AppTypeStr);
               Replace(cmdstr,'$ENTRY',EntryStr);
               Replace(cmdstr,'$ASBIN',AsbinStr);
@@ -1628,7 +1628,7 @@ implementation
       { Remove ResponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
-           DeleteFile(outputexedir+Info.ResName);
+           DeleteFile(compiler.globals.outputexedir+Info.ResName);
            DeleteFile('base.$$$');
            DeleteFile('exp.$$$');
            DeleteFile('deffile.$$$');
