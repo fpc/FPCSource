@@ -227,7 +227,7 @@ var
 begin
   HexStrToBytes(PublicKeyHexa,aBytes);
   if length(aBytes)<4 then
-    raise Exception.Create('20220426235757');
+    raise EHashUtil.Create('20220426235757');
   SetLength(Exponent{%H-},3);
   Move(aBytes[0],Exponent[1],3);
   SetLength(Modulus{%H-},length(aBytes)-3);
@@ -283,24 +283,24 @@ begin
     {$ENDIF}
 
     if List.Count<6 then
-      raise Exception.Create('20220428180055');
+      raise EHashUtil.Create('20220428180055');
 
     // check sequence
     ASNParse_GetItem(List,0,ASNType,ASNSize);
     if ASNType<>ASN1_SEQ then
-      raise Exception.Create('20220428180058');
+      raise EHashUtil.Create('20220428180058');
 
     // check sequence
     ASNParse_GetItem(List,1,ASNType,ASNSize);
     if ASNType<>ASN1_SEQ then
-      raise Exception.Create('20220428183025');
+      raise EHashUtil.Create('20220428183025');
 
     // check algorithm OID
     ASNParse_GetItem(List,2,ASNType,ASNSize);
     if ASNType<>ASN1_OBJID then
-      raise Exception.Create('20220428180512');
+      raise EHashUtil.Create('20220428180512');
     if List[2]<>RSAPublicKeyOID then
-      raise Exception.Create('20220428181542');
+      raise EHashUtil.Create('20220428181542');
 
     // check optional null
     i:=3;
@@ -311,16 +311,16 @@ begin
     // check algorithm params
     ASNParse_GetItem(List,i,ASNType,ASNSize);
     if ASNType<>ASN1_BITSTR then
-      raise Exception.Create('20220428181913');
+      raise EHashUtil.Create('20220428181913');
     inc(i);
 
     if i+2>List.Count then
-      raise Exception.Create('20220428180055');
+      raise EHashUtil.Create('20220428180055');
 
     // check sequence
     ASNParse_GetItem(List,i,ASNType,ASNSize);
     if ASNType<>ASN1_SEQ then
-      raise Exception.Create('20220428181933');
+      raise EHashUtil.Create('20220428181933');
 
     // public key
     RSA.Modulus:=ASNParse_GetIntBytes(List,i+1,20220428182235);
@@ -395,24 +395,24 @@ begin
   Result:=[];
   ASNParse_GetItem(List,0,ASNType,ASNSize);
   if ASNType<>ASN1_SEQ then
-    raise Exception.Create(SInvalid+'Sequence 1');
+    raise EHashUtil.Create(SInvalid+'Sequence 1');
   ASNParse_GetItem(List,1,ASNType,ASNSize);
   if ASNType<>ASN1_INT then
-    raise Exception.Create(SInvalid+'Int 1');
+    raise EHashUtil.Create(SInvalid+'Int 1');
   if StrToIntDef(List[1],-1)<>0 then
-    raise Exception.Create(SInvalid+'Int 1.a');
+    raise EHashUtil.Create(SInvalid+'Int 1.a');
   ASNParse_GetItem(List,2,ASNType,ASNSize);
   if ASNType<>ASN1_SEQ then
-    raise Exception.Create(SInvalid+'Sequence 2');
+    raise EHashUtil.Create(SInvalid+'Sequence 2');
   ASNParse_GetItem(List,3,ASNType,ASNSize);
   if ASNType<>ASN1_OBJID  then
-    raise Exception.Create(SInvalid+'ObjID');
+    raise EHashUtil.Create(SInvalid+'ObjID');
   ASNParse_GetItem(List,4,ASNType,ASNSize);
   if ASNType<>ASN1_NULL then
-    raise Exception.Create(SInvalid+'Attribute');
+    raise EHashUtil.Create(SInvalid+'Attribute');
   ASNParse_GetItem(List,5,ASNType,ASNSize);
   if ASNType<>ASN1_OCTSTR then
-    raise Exception.Create(SInvalid+'RSA key');
+    raise EHashUtil.Create(SInvalid+'RSA key');
   Result:=HexStrToBytes(List[5]);
 end;
 
@@ -428,7 +428,7 @@ begin
   try
     ASNParse(PrivateKeyDER,List);
     if Not List.Count in [6,10] then
-      raise Exception.Create('20220428161533');
+      raise EHashUtil.Create('20220428161533');
     if List.Count = 6 then
       begin
       B:=ExtractRSAFromPKCS8(List);
@@ -439,12 +439,12 @@ begin
       // check sequence
       ASNParse_GetItem(List,0,ASNType,ASNSize);
       if ASNType<>ASN1_SEQ then
-        raise Exception.Create('20220428161631');
+        raise EHashUtil.Create('20220428161631');
 
       // version
       ASNParse_GetItem(List,1,ASNType,ASNSize);
       if ASNType<>ASN1_INT then
-        raise Exception.Create('20220428161716');
+        raise EHashUtil.Create('20220428161716');
       RSA.Version:=StrToIntDef(List[1],0);
 
       RSA.Modulus:=ASNParse_GetIntBytes(List,2,20220428173827);
@@ -527,7 +527,7 @@ begin
       {$IFDEF CRYPTO_DEBUG}
       for i:=0 to Padding-1 do
         if Imported[2+i]=0 then
-          raise Exception.Create('20220429000653');
+          raise EHashUtil.Create('20220429000653');
       {$ENDIF}
     end;
 
@@ -840,14 +840,14 @@ begin
   Result:=-1;
 
   if ((RSA.ModulusBits+7) div 8)<>RSA.ModulusLen then
-    raise Exception.Create('20220502000942 RSA n has leading zeroes');
+    raise EHashUtil.Create('20220502000942 RSA n has leading zeroes');
 
   ModBits:=RSA.ModulusBits-1;
   EncodedLen:=(ModBits+7) div 8; // can be one less than RSA.ModulusLen
   SetLength(EncodedMsg{%H-},EncodedLen);
   r:=EMSA_PSS_Encode(Input,Len, HashFunc, @EncodedMsg[0], ModBits, SaltLen);
   if r<>0 then
-    raise Exception.Create(IntToStr(r));
+    raise EHashUtil.Create(IntToStr(r));
 
   EncodedBI:=BIImport(RSA.Context,EncodedMsg);
   // Sign with Private Key
@@ -1115,7 +1115,7 @@ begin
     c:=c shr 8;
   end;
   if c>0 then
-    raise Exception.Create('20220501190124');
+    raise EHashUtil.Create('20220501190124');
 end;
 
 function MGF1(const InputStr: string; HashFunc: PRSAHashFuncInfo; Len: integer): string;
