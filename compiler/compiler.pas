@@ -513,7 +513,7 @@ begin
        FreeAndNil(FTime);
        FTime:=TCompilerTime.Create;
        GetLocalTime(startsystime);
-       starttime := getrealtime(startsystime);
+       Time.starttime := getrealtime(startsystime);
 
        { Initialize the compiler }
        InitCompiler(cmd);
@@ -554,7 +554,7 @@ begin
        { Show statistics }
        if status.errorcount=0 then
         begin
-          totaltime:=getrealtime-starttime;
+          totaltime:=getrealtime-Time.starttime;
           if totaltime<0 then
             totaltime:=totaltime+3600.0*24.0;
           if round(frac(totaltime)*10) >= 10 then

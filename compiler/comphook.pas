@@ -32,7 +32,8 @@ uses
   fksysutl,
 {$ENDIF}
   globtype,
-  finput;
+  finput,
+  compilerbase;
 
 const
   { RHIDE expect gcc like error output }
@@ -150,7 +151,7 @@ const
 implementation
 
   uses
-   cutils, systems, globals, comptty;
+   cutils, systems, globals, comptty, compiler;
 
 {****************************************************************************
                           Helper Routines
@@ -266,6 +267,8 @@ end;
 
 
 Function def_comment(Level:Longint;const s:ansistring):boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 const
   rh_errorstr   = 'error:';
   rh_warningstr = 'warning:';
@@ -382,7 +385,7 @@ begin
     MsgTypeStr:=MsgTypeStr+' ';
   if (status.verbosity and V_TimeStamps)<>0 then
     begin
-      system.str(getrealtime-starttime:0:3,hs2);
+      system.str(getrealtime-compiler.time.starttime:0:3,hs2);
       MsgTimeStr:='['+hs2+'] ';
     end;
 

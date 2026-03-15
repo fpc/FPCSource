@@ -709,7 +709,6 @@ Const
       );
 
     var
-      starttime  : real;
       startsystime : TSystemTime;
 
     type
@@ -717,6 +716,7 @@ Const
       { TCompilerTime }
 
       TCompilerTime = class
+        starttime  : real;
       end;
 
       { TCompilerGlobals }
