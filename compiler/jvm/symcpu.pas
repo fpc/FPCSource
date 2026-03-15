@@ -843,8 +843,8 @@ implementation
               if currpd.mangledname=checkpd.mangledname then
                 begin
                   compiler.verbose.MessagePos(checkpd.fileinfo,parser_e_overloaded_have_same_mangled_name);
-                  MessagePos1(currpd.fileinfo,sym_e_param_list,currpd.customprocname([pno_mangledname]));
-                  MessagePos1(checkpd.fileinfo,sym_e_param_list,checkpd.customprocname([pno_mangledname]));
+                  compiler.verbose.MessagePos1(currpd.fileinfo,sym_e_param_list,currpd.customprocname([pno_mangledname]));
+                  compiler.verbose.MessagePos1(checkpd.fileinfo,sym_e_param_list,checkpd.customprocname([pno_mangledname]));
                 end;
             end;
         end;

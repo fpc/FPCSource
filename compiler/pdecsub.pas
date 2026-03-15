@@ -889,8 +889,8 @@ implementation
                 implname:=upper(genericparams.nameofindex(i));
                 if declsym.name<>implname then
                   begin
-                    messagepos1(implsym.fileinfo,sym_e_generic_type_param_mismatch,implsym.realname);
-                    messagepos1(declsym.fileinfo,sym_e_generic_type_param_decl,declsym.realname);
+                    compiler.verbose.MessagePos1(implsym.fileinfo,sym_e_generic_type_param_mismatch,implsym.realname);
+                    compiler.verbose.MessagePos1(declsym.fileinfo,sym_e_generic_type_param_decl,declsym.realname);
                     result:=false;
                   end;
                 if ((implsym.typ=typesym) and (df_genconstraint in impltype.typedef.defoptions)) or
@@ -3302,7 +3302,7 @@ const
            { check if the target processor supports this calling convention }
            if not(proc_direcdata[p].pocall in supported_calling_conventions) then
              begin
-               MessagePos1(tokenloc, parser_e_illegal_calling_convention,proccalloptionStr[proc_direcdata[p].pocall]);
+               compiler.verbose.MessagePos1(tokenloc, parser_e_illegal_calling_convention,proccalloptionStr[proc_direcdata[p].pocall]);
                { recover }
                proc_direcdata[p].pocall:=pocall_stdcall;
              end;
@@ -3352,13 +3352,13 @@ const
         if (pd_interface in pdflags) and
            not(pd_interface in proc_direcdata[p].pd_flags) then
           begin
-            MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_interface,name);
+            compiler.verbose.MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_interface,name);
             exit;
           end;
         if (pd_implemen in pdflags) and
            not(pd_implemen in proc_direcdata[p].pd_flags) then
           begin
-            MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_implementation,name);
+            compiler.verbose.MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_implementation,name);
             exit;
           end;
         if (pd_procvar in pdflags) and
@@ -3368,7 +3368,7 @@ const
             if proc_direcdata[p].pocall<>pocall_none then
               pd.proccalloption:=pocall_default;
 
-            MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_procvar,name);
+            compiler.verbose.MessagePos1(tokenloc, parser_e_proc_dir_not_allowed_in_procvar,name);
             exit;
           end;
 

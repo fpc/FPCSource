@@ -1946,7 +1946,7 @@ implementation
 
         procedure write_dynarray_copy;
           begin
-            MessagePos1(fileinfo,sym_e_param_list,'Copy(Dynamic Array;'+sizesinttype.typename+'=`<low>`;'+sizesinttype.typename+'=`<length>`);');
+            compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Copy(Dynamic Array;'+sizesinttype.typename+'=`<low>`;'+sizesinttype.typename+'=`<length>`);');
           end;
 
         begin
@@ -5607,8 +5607,8 @@ implementation
            if tf_winlikewidestring in compiler.target.info.flags then
              write_system_parameter_lists('fpc_widestr_insert');
            write_system_parameter_lists('fpc_ansistr_insert');
-           MessagePos1(fileinfo,sym_e_param_list,'Insert(Dynamic Array;var Dynamic Array;'+sinttype.typename+');');
-           MessagePos1(fileinfo,sym_e_param_list,'Insert(Element;var Dynamic Array;'+sinttype.typename+');');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Insert(Dynamic Array;var Dynamic Array;'+sinttype.typename+');');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Insert(Element;var Dynamic Array;'+sinttype.typename+');');
          end;
 
        var
@@ -5746,7 +5746,7 @@ implementation
            if tf_winlikewidestring in compiler.target.info.flags then
              write_system_parameter_lists('fpc_widestr_delete');
            write_system_parameter_lists('fpc_ansistr_delete');
-           MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+sinttype.typename+';'+sinttype.typename+');');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Delete(var Dynamic Array;'+sinttype.typename+';'+sinttype.typename+');');
          end;
 
        var
@@ -5807,8 +5807,8 @@ implementation
        procedure do_error;
          begin
            CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'Concat');
-           MessagePos1(fileinfo,sym_e_param_list,'Concat(String[;String;...])');
-           MessagePos1(fileinfo,sym_e_param_list,'Concat(Dynamic Array[;Dynamic Array;...])');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Concat(String[;String;...])');
+           compiler.verbose.MessagePos1(fileinfo,sym_e_param_list,'Concat(Dynamic Array[;Dynamic Array;...])');
          end;
 
        var

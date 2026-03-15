@@ -938,7 +938,7 @@ implementation
         if is_block(tdef(def)) and
            not objcchecktype(tdef(def),founderrordef) then
           if assigned(tdef(def).typesym) then
-            MessagePos1(tdef(def).typesym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename)
+            compiler.verbose.MessagePos1(tdef(def).typesym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename)
           else
             compiler.verbose.Message1(type_e_objc_type_unsupported,tprocvardef(def).typename)
       end;
@@ -1004,11 +1004,11 @@ implementation
                        compiler.verbose.MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
                    end
                  else if (tsym(sym).owner.symtabletype=parasymtable) then
-                   MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)
+                   compiler.verbose.MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)
                  else if (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
                    MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname)
                  else
-                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).prettyname);
+                   compiler.verbose.MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).prettyname);
               end
             else if tabstractvarsym(sym).varstate in [vs_written,vs_initialised] then
               begin
@@ -1016,16 +1016,16 @@ implementation
                    begin
                      if not(tabstractvarsym(sym).varspez in [vs_var,vs_out,vs_constref]) and
                         not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                       MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
+                       compiler.verbose.MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
                    end
                  else if (tsym(sym).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
                    MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tabstractrecorddef(tsym(sym).owner.defowner).GetTypeName,tsym(sym).prettyname)
                  else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
-                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).prettyname);
+                   compiler.verbose.MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).prettyname);
               end
             else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
                     ([vo_is_public,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
-              MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).prettyname)
+              compiler.verbose.MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).prettyname)
           end
         else if ((tsym(sym).owner.symtabletype in
               [ObjectSymtable,parasymtable,localsymtable,staticsymtable,recordsymtable])) then
@@ -3976,7 +3976,7 @@ implementation
                         if foundnameptr^<>formalnameptr^ then
                           begin
                             MessagePos2(pd.typesym.fileinfo,sym_e_external_class_name_mismatch1,formalnameptr^,pd.typename);
-                            MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,foundnameptr^);
+                            compiler.verbose.MessagePos1(srsym.fileinfo,sym_e_external_class_name_mismatch2,foundnameptr^);
                           end;
                       end;
                     result:=tobjectdef(ttypesym(srsym).typedef);

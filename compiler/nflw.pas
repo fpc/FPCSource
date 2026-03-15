@@ -962,7 +962,7 @@ implementation
                 hloopvar := nil;
                 hloopbody.free;
                 hloopbody := nil;
-                MessagePos1(expr.fileinfo,parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
+                compiler.verbose.MessagePos1(expr.fileinfo,parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
               end
             else
               result:=create_type_for_in_loop(hloopvar, hloopbody, expr);
@@ -1022,7 +1022,7 @@ implementation
                         hloopvar := nil;
                         hloopbody.free;
                         hloopbody := nil;
-                        MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.typename);
+                        compiler.verbose.MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.typename);
                       end
                     else
                       begin
@@ -1034,7 +1034,7 @@ implementation
                             hloopvar := nil;
                             hloopbody.free;
                             hloopbody := nil;
-                            MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.typename);
+                            compiler.verbose.MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.typename);
                           end
                         else
                           result:=create_enumerator_for_in_loop(hloopvar, hloopbody, expr, pd, movenext, current);
@@ -1067,7 +1067,7 @@ implementation
                         hloopvar := nil;
                         hloopbody.free;
                         hloopbody := nil;
-                        MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.typename);
+                        compiler.verbose.MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.typename);
                       end;
                     end;
                   end;

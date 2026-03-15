@@ -597,6 +597,8 @@ implementation
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring;filepos:tfileposinfo);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         def : tdef;
         name : tmsgstr;
       begin
@@ -615,15 +617,15 @@ implementation
           if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
             MessagePos2(filepos,sym_w_deprecated_symbol_with_msg,name,deprecatedmsg^)
           else
-            MessagePos1(filepos,sym_w_deprecated_symbol,name);
+            compiler.verbose.MessagePos1(filepos,sym_w_deprecated_symbol,name);
         if sp_hint_experimental in symoptions then
-          MessagePos1(filepos,sym_w_experimental_symbol,name);
+          compiler.verbose.MessagePos1(filepos,sym_w_experimental_symbol,name);
         if sp_hint_platform in symoptions then
-          MessagePos1(filepos,sym_w_non_portable_symbol,name);
+          compiler.verbose.MessagePos1(filepos,sym_w_non_portable_symbol,name);
         if sp_hint_library in symoptions then
-          MessagePos1(filepos,sym_w_library_symbol,name);
+          compiler.verbose.MessagePos1(filepos,sym_w_library_symbol,name);
         if sp_hint_unimplemented in symoptions then
-          MessagePos1(filepos,sym_w_non_implemented_symbol,name);
+          compiler.verbose.MessagePos1(filepos,sym_w_non_implemented_symbol,name);
       end;
 
 {****************************************************************************
@@ -1031,6 +1033,8 @@ implementation
 
     procedure tprocsym.write_parameter_lists(skipdef:tprocdef);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i  : longint;
         pd : tprocdef;
       begin
@@ -1038,7 +1042,7 @@ implementation
           begin
             pd:=tprocdef(ProcdefList[i]);
             if pd<>skipdef then
-              MessagePos1(pd.fileinfo,sym_e_param_list,pd.fullprocname(false));
+              compiler.verbose.MessagePos1(pd.fileinfo,sym_e_param_list,pd.fullprocname(false));
            end;
       end;
 
@@ -1065,11 +1069,11 @@ implementation
                   begin
                     pd.setmangledname(compiler.target.info.CPrefix+tprocdef(pd).procsym.realname);
                     if (not current_module.interface_only) then
-                      MessagePos1(pd.fileinfo,sym_w_forward_not_resolved,pd.fullprocname(false));
+                      compiler.verbose.MessagePos1(pd.fileinfo,sym_w_forward_not_resolved,pd.fullprocname(false));
                   end
                 else
                   begin
-                    MessagePos1(pd.fileinfo,sym_e_forward_not_resolved,pd.fullprocname(false));
+                    compiler.verbose.MessagePos1(pd.fileinfo,sym_e_forward_not_resolved,pd.fullprocname(false));
                   end;
                 { Turn further error messages off }
                 pd.forwarddef:=false;

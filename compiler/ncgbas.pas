@@ -241,7 +241,7 @@ interface
                     compiler.verbose.MessagePos(filepos,asmr_e_invalid_reference_syntax);
                   { Using an MM/FPU register in a reference is not possible }
                   if forceref or (sofs<>0) then
-                    MessagePos1(filepos,asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
+                    compiler.verbose.MessagePos1(filepos,asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
                   else
                     op.reg:=sym.localloc.register;
                 end;

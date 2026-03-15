@@ -131,7 +131,7 @@ implementation
 
      procedure TParserBaseHelpers.identifier_not_found(const s:string;const filepos:tfileposinfo);
        begin
-         MessagePos1(filepos,sym_e_id_not_found,s);
+         compiler.verbose.MessagePos1(filepos,sym_e_id_not_found,s);
          { show a fatal that you need -S2 or -Sd, but only
            if we just parsed the a token that has m_class }
          if not(m_class in current_settings.modeswitches) and

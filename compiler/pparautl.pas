@@ -722,8 +722,8 @@ implementation
               currsym:=tsym(currpd.genericparas[i]);
               if fwsym.name<>currsym.name then
                 begin
-                  messagepos1(currsym.fileinfo,sym_e_generic_type_param_mismatch,currsym.realname);
-                  messagepos1(fwsym.fileinfo,sym_e_generic_type_param_decl,fwsym.realname);
+                  compiler.verbose.MessagePos1(currsym.fileinfo,sym_e_generic_type_param_mismatch,currsym.realname);
+                  compiler.verbose.MessagePos1(fwsym.fileinfo,sym_e_generic_type_param_decl,fwsym.realname);
                   result:=false;
                 end;
               if (fwpd.interfacedef or assigned(fwpd.struct)) and
@@ -746,7 +746,7 @@ implementation
                     if the type of the constants match }
                   if (currsym.typ<>constsym) or not equal_defs(compiler.symtablestack,tconstsym(fwsym).constdef,tconstsym(currsym).constdef) then
                     begin
-                      messagepos1(currpd.fileinfo,parser_e_header_dont_match_forward,currpd.fullprocname(false));
+                      compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,currpd.fullprocname(false));
                       result:=false;
                     end;
                 end;
@@ -1008,7 +1008,7 @@ implementation
                          )
                        ) then
                      begin
-                       MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
+                       compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
                        tprocsym(currpd.procsym).write_parameter_lists(currpd);
                        break;
@@ -1017,7 +1017,7 @@ implementation
                    { Check if both are declared forward }
                    if fwpd.forwarddef and currpd.forwarddef then
                     begin
-                      MessagePos1(currpd.fileinfo,parser_e_function_already_declared_public_forward,
+                      compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_function_already_declared_public_forward,
                                   currpd.fullprocname(false));
                     end;
 
@@ -1046,7 +1046,7 @@ implementation
                       (not(po_noreturn in fwpd.procoptions) and
                        (po_noreturn in currpd.procoptions)) then
                      begin
-                       MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
+                       compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
                        tprocsym(fwpd.procsym).write_parameter_lists(fwpd);
                        { This error is non-fatal, we can recover }
@@ -1205,7 +1205,7 @@ implementation
                         ((po_overload in currpd.procoptions) and
                          (po_overload in fwpd.procoptions))) then
                   begin
-                    MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
+                    compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
                   end
                end
@@ -1216,7 +1216,7 @@ implementation
                     if (m_tp7 in current_settings.modeswitches) then
                       compiler.verbose.MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off)
                     else
-                      MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
+                      compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
                   end;
                end;
@@ -1254,7 +1254,7 @@ implementation
             { can happen in Delphi mode }
             if (currpd.proctypeoption = potype_function) and
                is_void(currpd.returndef) then
-              MessagePos1(currpd.fileinfo,parser_e_no_funcret_specified,currpd.procsym.realname);
+              compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_no_funcret_specified,currpd.procsym.realname);
             tprocsym(currpd.procsym).ProcdefList.Add(currpd);
             if not currpd.forwarddef and (po_public in currpd.procoptions) then
               begin

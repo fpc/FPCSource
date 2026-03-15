@@ -311,7 +311,7 @@ implementation
                 a "symbol not completely defined" error }
               if not fileinfo_of_typesym_in_def(def,sym,sympos) then
                 sympos:=sym.fileinfo;
-              messagepos1(sympos,type_e_type_is_not_completly_defined,sym.realname);
+              compiler.verbose.MessagePos1(sympos,type_e_type_is_not_completly_defined,sym.realname);
             end;
         end;
     end;
@@ -954,7 +954,7 @@ implementation
               begin
                 captured:=pcapturedsyminfo(capturesyms[i]);
                 if not can_be_captured(captured^.sym,pd) then
-                  MessagePos1(captured^.fileinfo,sym_e_symbol_no_capture,captured^.sym.realname);
+                  compiler.verbose.MessagePos1(captured^.fileinfo,sym_e_symbol_no_capture,captured^.sym.realname);
               end;
           if not (df_generic in owner.procdef.defoptions) then
             begin
@@ -1220,7 +1220,7 @@ implementation
                 begin
                   info:=pcapturedsyminfo(pd.capturedsyms[i]);
                   if not can_be_captured(info^.sym,pd) then
-                    MessagePos1(info^.fileinfo,sym_e_symbol_no_capture,info^.sym.realname)
+                    compiler.verbose.MessagePos1(info^.fileinfo,sym_e_symbol_no_capture,info^.sym.realname)
                 end;
             end;
           exit;
@@ -1287,7 +1287,7 @@ implementation
                 begin
                   info:=pcapturedsyminfo(pd.capturedsyms[i]);
                   if not can_be_captured(info^.sym,pd) then
-                    MessagePos1(info^.fileinfo,sym_e_symbol_no_capture,info^.sym.realname)
+                    compiler.verbose.MessagePos1(info^.fileinfo,sym_e_symbol_no_capture,info^.sym.realname)
                   else if info^.sym=selfsym then
                     begin
                       { we need to replace the captured "dummy" self parameter

@@ -2836,7 +2836,7 @@ implementation
          begin
            if all or
               (not hp^.invalid) then
-             MessagePos1(hp^.data.fileinfo,sym_h_param_list,hp^.data.fullprocname(false));
+             compiler.verbose.MessagePos1(hp^.data.fileinfo,sym_h_param_list,hp^.data.fullprocname(false));
            hp:=hp^.next;
          end;
       end;

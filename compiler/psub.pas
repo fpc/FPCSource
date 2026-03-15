@@ -2882,13 +2882,13 @@ implementation
                 (result.struct.symtable.moduleid<>current_module.moduleid) and
                 not result.is_specialization then
               begin
-                MessagePos1(result.fileinfo,parser_e_method_for_type_in_other_unit,result.struct.typesymbolprettyname);
+                compiler.verbose.MessagePos1(result.fileinfo,parser_e_method_for_type_in_other_unit,result.struct.typesymbolprettyname);
               end
              { A method must be forward defined (in the object declaration) }
              else if assigned(result.struct) and
                 (not assigned(old_current_structdef)) then
               begin
-                MessagePos1(result.fileinfo,parser_e_header_dont_match_any_member,result.fullprocname(false));
+                compiler.verbose.MessagePos1(result.fileinfo,parser_e_header_dont_match_any_member,result.fullprocname(false));
                 tprocsym(result.procsym).write_parameter_lists(result);
               end
              else
@@ -2907,7 +2907,7 @@ implementation
                    (not(po_overload in result.procoptions) or
                     not(po_overload in firstpd.procoptions)) then
                  begin
-                   MessagePos1(result.fileinfo,parser_e_header_dont_match_forward,result.fullprocname(false));
+                   compiler.verbose.MessagePos1(result.fileinfo,parser_e_header_dont_match_forward,result.fullprocname(false));
                    tprocsym(result.procsym).write_parameter_lists(result);
                  end
                 else
@@ -3066,11 +3066,13 @@ implementation
 
     { search in symtablestack for not complete classes }
     procedure check_forward_class(p:TObject;arg:pointer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (tsym(p).typ=typesym) and
            (ttypesym(p).typedef.typ=objectdef) and
            (oo_is_forward in tobjectdef(ttypesym(p).typedef).objectoptions) then
-          MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
+          compiler.verbose.MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
       end;
 
 {$ifdef DEBUG_NODE_XML}

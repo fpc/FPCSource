@@ -96,13 +96,13 @@ implementation
         if not allowoverridingmethod and
            (po_overridingmethod in pd.procoptions) then
           begin
-            MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(true));
+            compiler.verbose.MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(true));
             for i:=0 to _class.vmtentries.count-1 do
               begin
                 vmtentry:=pvmtentry(_class.vmtentries[i]);
                 vmtpd:=tprocdef(vmtentry^.procdef);
                 if (upper(vmtpd.procsym.realname)=upper(pd.procsym.realname)) then
-                  MessagePos1(vmtpd.fileinfo,sym_h_param_list,vmtpd.fullprocname(true));
+                  compiler.verbose.MessagePos1(vmtpd.fileinfo,sym_h_param_list,vmtpd.fullprocname(true));
 	      end;
           end;
 
@@ -117,7 +117,7 @@ implementation
                    (not(po_overload in pd.procoptions) or
                     not(po_overload in vmtpd.procoptions)) then
                   begin
-                    MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
+                    compiler.verbose.MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
                     { recover }
                     include(vmtpd.procoptions,po_overload);
                     include(pd.procoptions,po_overload);
@@ -151,7 +151,7 @@ implementation
                 have a message string or not (the value is irrelevant) }
               if ((pd.procoptions * [po_msgstr]) <> (vmtpd.procoptions * [po_msgstr])) then
                 begin
-                  MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                  compiler.verbose.MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                   tprocsym(vmtpd.procsym).write_parameter_lists(pd);
                   result:=false;
                 end
@@ -239,7 +239,7 @@ implementation
               (is_javaclass(_class) and
                (pd.mangledname=vmtpd.mangledname))) and
              (is_class(_class) or is_objectpascal_helper(_class) or is_javaclass(_class)) then
-            MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
+            compiler.verbose.MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
           else
           { old definition has virtual
             new definition has no virtual or override }
@@ -282,7 +282,7 @@ implementation
                         javanewtreeok)
 {$endif jvm}
                        then
-                      MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                      compiler.verbose.MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                     else
                       begin
                         { In Objective-C, you cannot create a new VMT entry to
@@ -302,17 +302,17 @@ implementation
                           begin
                             if not(oo_is_external in _class.objectoptions) then
                               if not is_objccategory(_class) then
-                                MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                                compiler.verbose.MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                               else
-                                MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                                compiler.verbose.MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                             { there may be a lot of these in auto-translated
                               headers, so only calculate the fulltypename if
                               the hint will be shown  }
                             else if compiler.verbose.CheckVerbosity(V_Hint) then
                               if not is_objccategory(_class) then
-                                MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                                compiler.verbose.MessagePos1(pd.fileinfo,parser_h_should_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
                               else
-                                MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
+                                compiler.verbose.MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
                           end;
                         { no new entry, but copy the message name if any from
                           the procdef in the parent class }
@@ -345,7 +345,7 @@ implementation
                        is_java_class_or_interface(_class) then
                       begin
                         { mangled names are the same -> can only override }
-                        MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                        compiler.verbose.MessagePos1(pd.fileinfo,parser_e_must_use_override,FullTypeName(tdef(vmtpd.owner.defowner),nil))
 {$endif jvm}
                       end;
                   { disable/hide old VMT entry }
@@ -377,7 +377,7 @@ implementation
                      (vmtpd.proctypeoption<>pd.proctypeoption) or
                      ((vmtpd.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
                      begin
-                       MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                       compiler.verbose.MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                        tprocsym(vmtpd.procsym).write_parameter_lists(pd);
                      end;
 
@@ -448,11 +448,11 @@ implementation
                          if not is_object(_class) and
                             not is_objc_class_or_protocol(_class) and
                             not is_java_class_or_interface(_class) then
-                           MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                           compiler.verbose.MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                          else
                            { objects don't allow starting a new virtual tree
                              and neither do Objective-C or Java }
-                           MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
+                           compiler.verbose.MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
                        end;
                      { disable/hide old VMT entry }
                      if updatevalues then
@@ -647,7 +647,7 @@ implementation
                 else
                   if (ImplIntf.IType=etStandard) and
                      not(po_optional in tprocdef(def).procoptions) then
-                    MessagePos1(_Class.typesym.fileinfo,sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
+                    compiler.verbose.MessagePos1(_Class.typesym.fileinfo,sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;
       end;

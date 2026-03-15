@@ -8941,6 +8941,8 @@ implementation
 
     procedure verify_objc_vardef(data: tobject; arg: pointer);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sym: tabstractvarsym absolute data;
         res: pboolean absolute arg;
         founderrordef: tdef;
@@ -8953,13 +8955,15 @@ implementation
           exit;
         if not objcchecktype(sym.vardef,founderrordef) then
           begin
-            MessagePos1(sym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename);
+            compiler.verbose.MessagePos1(sym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename);
             res^:=false;
           end;
       end;
 
 
     procedure verify_objc_procdef_paras(data: tobject; arg: pointer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         def: tdef absolute data;
         res: pboolean absolute arg;
@@ -8972,7 +8976,7 @@ implementation
         { check the result type for validity }
         if not objcchecktype(tprocdef(def).returndef,founderrordef) then
           begin
-            MessagePos1(tprocdef(def).funcretsym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename);
+            compiler.verbose.MessagePos1(tprocdef(def).funcretsym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename);
             res^:=false;
           end;
       end;

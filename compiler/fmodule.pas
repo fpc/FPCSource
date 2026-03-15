@@ -565,6 +565,8 @@ implementation
 
     procedure tused_unit.check_hints;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         uname: pshortstring;
       begin
         uname:=u.realmodulename;
@@ -572,15 +574,15 @@ implementation
           if (mo_has_deprecated_msg in u.moduleoptions) and (u.deprecatedmsg <> nil) then
             MessagePos2(unitsym.fileinfo,sym_w_deprecated_unit_with_msg,uname^,u.deprecatedmsg^)
           else
-            MessagePos1(unitsym.fileinfo,sym_w_deprecated_unit,uname^);
+            compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_deprecated_unit,uname^);
         if mo_hint_experimental in u.moduleoptions then
-          MessagePos1(unitsym.fileinfo,sym_w_experimental_unit,uname^);
+          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_experimental_unit,uname^);
         if mo_hint_platform in u.moduleoptions then
-          MessagePos1(unitsym.fileinfo,sym_w_non_portable_unit,uname^);
+          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_non_portable_unit,uname^);
         if mo_hint_library in u.moduleoptions then
-          MessagePos1(unitsym.fileinfo,sym_w_library_unit,uname^);
+          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_library_unit,uname^);
         if mo_hint_unimplemented in u.moduleoptions then
-          MessagePos1(unitsym.fileinfo,sym_w_non_implemented_unit,uname^);
+          compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_non_implemented_unit,uname^);
       end;
 
 

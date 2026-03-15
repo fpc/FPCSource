@@ -451,12 +451,12 @@ uses
                         case tobjectdef(formaldef).objecttype of
                           odt_class,
                           odt_javaclass:
-                            MessagePos1(filepos,type_e_class_type_expected,paradef.typename);
+                            compiler.verbose.MessagePos1(filepos,type_e_class_type_expected,paradef.typename);
                           odt_interfacecom,
                           odt_interfacecorba,
                           odt_dispinterface,
                           odt_interfacejava:
-                            MessagePos1(filepos,type_e_interface_type_expected,paradef.typename);
+                            compiler.verbose.MessagePos1(filepos,type_e_interface_type_expected,paradef.typename);
                           else
                             internalerror(2012101003);
                         end;
@@ -530,7 +530,7 @@ uses
                                 end;
                               else
                                 begin
-                                  MessagePos1(filepos,type_e_class_or_interface_type_expected,paraobjdef.typename);
+                                  compiler.verbose.MessagePos1(filepos,type_e_class_or_interface_type_expected,paraobjdef.typename);
                                   result:=false;
                                 end;
                             end;
@@ -541,7 +541,7 @@ uses
                               or without implemented interfaces }
                             if not (paraobjdef.objecttype in [odt_class,odt_javaclass]) then
                               begin
-                                MessagePos1(filepos,type_e_class_type_expected,paraobjdef.typename);
+                                compiler.verbose.MessagePos1(filepos,type_e_class_type_expected,paraobjdef.typename);
                                 result:=false;
                                 continue;
                               end;
@@ -2996,7 +2996,7 @@ uses
           end
         { synthetic routines will be implemented afterwards }
         else if def.synthetickind=tsk_none then
-          MessagePos1(def.fileinfo,sym_e_forward_not_resolved,def.fullprocname(false));
+          compiler.verbose.MessagePos1(def.fileinfo,sym_e_forward_not_resolved,def.fullprocname(false));
       end;
 
 

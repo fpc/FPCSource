@@ -230,7 +230,7 @@ implementation
                            not(is_class(ttypesym(srsym).typedef)) and
                            not(is_objcclass(ttypesym(srsym).typedef)) and
                            not(is_javaclass(ttypesym(srsym).typedef)) then
-                          MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
+                          compiler.verbose.MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                         { this could also be a generic dummy that was not
                           overridden with a specific type }
                         if (sp_generic_dummy in srsym.symoptions) and
@@ -267,7 +267,7 @@ implementation
                     other type block which is allowed by FPC modes }
                   if not(m_fpc in current_settings.modeswitches) and
                      (oo_is_forward in tobjectdef(def).objectoptions) then
-                    MessagePos1(def.typesym.fileinfo,type_e_type_is_not_completly_defined,def.typename);
+                    compiler.verbose.MessagePos1(def.typesym.fileinfo,type_e_type_is_not_completly_defined,def.typename);
                   { generate specializations for generic forwarddefs }
                   if not (oo_is_forward in tobjectdef(def).objectoptions) and
                       tstoreddef(def).is_generic then
