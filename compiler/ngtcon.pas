@@ -1202,7 +1202,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             exit;
           end;
         if (Tordconstnode(node).value<qword(low(Aword))) or (Tordconstnode(node).value>qword(high(Aword))) then
-          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(node).value),tostr(low(Aword)),tostr(high(Aword)))
+          compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(node).value),tostr(low(Aword)),tostr(high(Aword)))
         else
           bitpackval(Tordconstnode(node).value.uvalue,bp);
         if (bp.curbitoffset>=AIntBits) then

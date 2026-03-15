@@ -1510,7 +1510,7 @@ var
           { make sure we don't throw away a precompiled unit if the user simply
             forgot to specify the right wpo feedback file
           }
-          message3(unit_e_different_wpo_file,ppufilename,orgwpofilename,filetimestring(orgwpofiletime));
+          compiler.verbose.Message3(unit_e_different_wpo_file,ppufilename,orgwpofilename,filetimestring(orgwpofiletime));
       end;
 
 
@@ -2433,7 +2433,7 @@ var
         writeln('PPUALGO tppumodule.loadppu START ',modulename^,' (',statestr,') used by "',from_module.modulename^,'" (',from_module.statestr,')');
         {$ENDIF}
 
-        Message3(unit_u_load_unit,from_module.modulename^,
+        compiler.verbose.Message3(unit_u_load_unit,from_module.modulename^,
                  ImplIntf[from_module.in_interface],
                  modulename^);
 

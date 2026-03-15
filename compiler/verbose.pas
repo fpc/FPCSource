@@ -76,12 +76,12 @@ interface
         //TODO: procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
         procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
         procedure Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
+        procedure Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
-    procedure Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure Message4(w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure MessagePos(const pos:tfileposinfo;w:longint;onqueue:tmsgqueueevent=nil);
     procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
@@ -826,7 +826,7 @@ implementation
       end;
 
 
-    procedure Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure TVerbose.Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
@@ -955,7 +955,7 @@ implementation
          if not(codegenerror) then
            begin
               olderrorcount:=compiler.verbose.Errorcount;
-              verbose.Message3(t,s1,s2,s3);
+              compiler.verbose.Message3(t,s1,s2,s3);
               codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;

@@ -2123,11 +2123,11 @@ implementation
        { Prevent overflow }
        v:=index-vecbase;
        if (v<int64(low(fqueue_offset))) or (v>int64(high(fqueue_offset))) then
-         message3(type_e_range_check_error_bounds,tostr(v),tostr(low(fqueue_offset)),tostr(high(fqueue_offset)));
+         compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(v),tostr(low(fqueue_offset)),tostr(high(fqueue_offset)));
        if high(fqueue_offset)-fqueue_offset div elelen>v then
          inc(fqueue_offset,elelen*v.svalue)
        else
-         message3(type_e_range_check_error_bounds,tostr(index),tostr(vecbase),tostr(high(fqueue_offset)-fqueue_offset div elelen+vecbase))
+         compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(index),tostr(vecbase),tostr(high(fqueue_offset)-fqueue_offset div elelen+vecbase))
      end;
 
 

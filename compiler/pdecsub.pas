@@ -1917,7 +1917,7 @@ begin
     begin
       v:=parser.pexpr.get_intconst;
       if (v<int64(low(longint))) or (v>int64(high(longint))) then
-        message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
+        compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
       else if not assigned(tsyssym.find_by_number(longint(v.svalue))) then
         compiler.verbose.Message1(parser_e_invalid_internal_function_index,tostr(v))
       else
@@ -2004,7 +2004,7 @@ begin
   parser.pbase.consume(_COLON);
   v:=parser.pexpr.get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
-    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
+    compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
     Tprocdef(pd).extnumber:=longint(v.svalue);
 end;
@@ -2020,7 +2020,7 @@ begin
   parser.pbase.consume(_COLON);
   v:=parser.pexpr.get_intconst;
   if (v<int64(low(longint))) or (v>int64(high(longint))) then
-    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
+    compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
   else
     Tprocdef(pd).extnumber:=longint(v.svalue);
   { the proc is defined }
@@ -2148,7 +2148,7 @@ begin
   pt:=parser.pexpr.comp_expr([ef_accept_equal]);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
-      message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
+      compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
     else
       Tprocdef(pd).dispid:=Tordconstnode(pt).value.svalue
   else
@@ -2253,7 +2253,7 @@ begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
          (Tordconstnode(pt).value>int64(high(Tprocdef(pd).messageinf.i))) then
-        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(Tprocdef(pd).messageinf.i)),tostr(high(Tprocdef(pd).messageinf.i)))
+        compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(Tprocdef(pd).messageinf.i)),tostr(high(Tprocdef(pd).messageinf.i)))
       else
         Tprocdef(pd).messageinf.i:=tordconstnode(pt).value.svalue;
     end
@@ -2445,7 +2445,7 @@ begin
 
   v:=parser.pexpr.get_intconst;
   if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
-    message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
+    compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(v),tostr(low(Tprocdef(pd).extnumber)),tostr(high(Tprocdef(pd).extnumber)))
   else
     if compiler.target.info.system in [system_arm_aros,system_i386_aros,system_x86_64_aros] then
       Tprocdef(pd).extnumber:=v.uvalue * sizeof(pint)

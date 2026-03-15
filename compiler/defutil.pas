@@ -432,6 +432,7 @@ implementation
        verbose,cutils,
        symtable, // search_system_type
        symsym,
+       compiler,
        cpuinfo;
 
     { returns true, if def uses FPU }
@@ -1313,6 +1314,8 @@ implementation
       the value is placed within the range }
     procedure adaptrange(todef : tdef;var l : tconstexprint; rangecheck: tperformrangecheck);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          lv,hv,oldval,sextval,mask: TConstExprInt;
          rangedef: tdef;
          rangedefsize: longint;
@@ -1326,9 +1329,9 @@ implementation
                begin
                  if (rangecheck=rc_yes) or
                     (todef.typ=enumdef) then
-                   Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
+                   compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv))
                  else
-                   Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
+                   compiler.verbose.Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
                  warned:=true;
                end
              { give warnings about range errors with explicit typeconversions if the target
@@ -1338,7 +1341,7 @@ implementation
                      (not is_pasbool(todef) and
                       not spans_entire_range(todef)) then
                begin
-                 Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
+                 compiler.verbose.Message3(type_w_range_check_error_bounds,tostr(l),tostr(lv),tostr(hv));
                  warned:=true;
                end;
 
@@ -1371,7 +1374,7 @@ implementation
                 (oldval.uvalue<>l.uvalue) and
                 (oldval.uvalue<>sextval.uvalue) then
                begin
-                 Message3(type_w_range_check_error_bounds,tostr(oldval),tostr(lv),tostr(hv));
+                 compiler.verbose.Message3(type_w_range_check_error_bounds,tostr(oldval),tostr(lv),tostr(hv));
                end;
               if is_signed(rangedef) then
                 l:=sextval;

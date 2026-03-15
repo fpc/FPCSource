@@ -507,9 +507,9 @@ implementation
                  should be ignored; a used cannot change anything about this,
                  so printing a warning/hint is not useful }
                if (_bind=AB_LOCAL) then
-                 Message3(asmw_w_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind])
+                 compiler.verbose.Message3(asmw_w_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind])
                else
-                 Message3(asmw_h_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind]);
+                 compiler.verbose.Message3(asmw_h_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind]);
 {$endif extdebug}
              end;
            hp.bind:=_bind;

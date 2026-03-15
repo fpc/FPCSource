@@ -1526,8 +1526,10 @@ type
     end;
 
   procedure texprvalue.error(expecteddef, place: string);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      Message3(scan_e_compile_time_typeerror,
+      compiler.verbose.Message3(scan_e_compile_time_typeerror,
                expecteddef,
                def.typename,
                place
@@ -5549,7 +5551,7 @@ type
             if not malformed then
               begin
               malformed:=true;
-              message3(scan_e_improperly_indented_multiline_string,
+              compiler.verbose.Message3(scan_e_improperly_indented_multiline_string,
                       tostr(stripcol),
                       tostr(multiline_start_line),
                       tostr(multiline_start_column));
@@ -5629,7 +5631,7 @@ type
             if not malformed then
               begin
               malformed:=true;
-              message3(scan_e_improperly_indented_multiline_string,
+              compiler.verbose.Message3(scan_e_improperly_indented_multiline_string,
                       tostr(stripcol),
                       tostr(multiline_start_line),
                       tostr(multiline_start_column));

@@ -2811,7 +2811,7 @@ implementation
                       vr:=getconstrealvalue;
                       if (vr>=9223372036854775807.99) or (vr<=-9223372036854775808.0) then
                         begin
-                          message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.0','9223372036854775807.99..');
+                          compiler.verbose.Message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.0','9223372036854775807.99..');
                           result:=compiler.cordconstnode(1,s64inttype,false)
                         end
                       else
@@ -2827,7 +2827,7 @@ implementation
                       vr:=getconstrealvalue;
                       if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
                         begin
-                          message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.49..','9223372036854775807.49..');
+                          compiler.verbose.Message3(type_e_range_check_error_bounds,realtostr(vr),'-9223372036854775808.49..','9223372036854775807.49..');
                           result:=compiler.cordconstnode(1,s64inttype,false)
                         end
                       else

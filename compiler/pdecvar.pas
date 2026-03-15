@@ -337,7 +337,7 @@ implementation
                   pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                   if is_constintnode(pt) then
                     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
-                      message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
+                      compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
                     else
                       hdispid:=Tordconstnode(pt).value.svalue
                   else
@@ -769,7 +769,7 @@ implementation
                     ordconstn :
                       if (Tordconstnode(pt).value<int64(low(longint))) or
                          (Tordconstnode(pt).value>int64(high(cardinal))) then
-                        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(cardinal)))
+                        compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(cardinal)))
                       else
                         p.default:=longint(tordconstnode(pt).value.svalue);
                     niln :
@@ -1278,7 +1278,7 @@ implementation
               }
               if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
                  (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
-                message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+                compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
              else
 {$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
@@ -1296,14 +1296,14 @@ implementation
                         tmpaddr:=tordconstnode(pt).value.svalue;
                         if (tmpaddr<int64(low(abssym.addroffset))) or
                            (tmpaddr>int64(high(abssym.addroffset))) then
-                          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+                          compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
                         else
                           abssym.addroffset:=tmpaddr;
                       {$elseif defined(i386)}
                         tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
                         if (tmpaddr<int64(low(abssym.addroffset))) or
                            (tmpaddr>int64(high(abssym.addroffset))) then
-                          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+                          compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
                         else
                           abssym.addroffset:=tmpaddr;
                       {$endif}

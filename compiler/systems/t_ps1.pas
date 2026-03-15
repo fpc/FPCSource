@@ -266,7 +266,7 @@ begin
   if ioResult <> 0 then exit;
 
   if filesize(f) >= $200000 then begin
-    Message3(link_f_executable_too_big_exceeds_X_by_Y_bytes,'PS1','2097152',tostr(filesize(f)-$200000));
+    compiler.verbose.Message3(link_f_executable_too_big_exceeds_X_by_Y_bytes,'PS1','2097152',tostr(filesize(f)-$200000));
     exit;
   end;
 

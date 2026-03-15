@@ -872,7 +872,7 @@ begin
                 begin
                   if memoffset = 0 then
                   begin
-                    Message3(asmr_w_check_mem_operand_size3,
+                    compiler.verbose.Message3(asmr_w_check_mem_operand_size3,
 			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize)

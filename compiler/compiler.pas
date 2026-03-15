@@ -552,7 +552,7 @@ begin
             linkstr:=', '+tostr(status.codesize)+' ' +verbose.MessageStr(general_text_bytes_code)+', '+tostr(status.datasize)+' '+verbose.MessageStr(general_text_bytes_data)
           else
             linkstr:='';
-          Message3(general_i_abslines_compiled,tostr(status.compiledlines),timestr,linkstr);
+          verbose.Message3(general_i_abslines_compiled,tostr(status.compiledlines),timestr,linkstr);
           if (Status.Verbosity and V_Warning = V_Warning) and
                                                (Status.CountWarnings <> 0) then
            verbose.Message1 (general_i_number_of_warnings, tostr (Status.CountWarnings));
