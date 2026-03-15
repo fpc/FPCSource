@@ -56,6 +56,7 @@ interface
 
       TVerbose = class
       private
+        Procedure UpdateStatus;
         function GetMessageState(m:longint):tmsgstate;
         Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
       public
@@ -464,7 +465,7 @@ implementation
       lastmoduleidx : longint;
 
 
-    Procedure UpdateStatus;
+    Procedure TVerbose.UpdateStatus;
       var
         module : tmodule;
       begin
@@ -608,7 +609,7 @@ implementation
           raise ECompilerAbort.Create;
         end;
       begin
-        UpdateStatus;
+        compiler.verbose.UpdateStatus;
         do_internalerrorex(i,s);
         compiler.verbose.GenerateError;
         doraise;
