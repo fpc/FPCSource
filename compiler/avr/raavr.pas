@@ -316,7 +316,7 @@ unit raavr;
                       begin
                         WriteStr(s1, taicpu(Result).oper[i]^.typ);
                         WriteStr(s2, AVRInstrConstraint[opcode].Operands[i].typ);
-                        Message2(type_e_incompatible_types, s1, s2);
+                        compiler.verbose.Message2(type_e_incompatible_types, s1, s2);
                       end
                     else if (taicpu(Result).oper[i]^.typ = top_reg) or opregasref then
                       begin

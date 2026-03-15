@@ -806,7 +806,7 @@ implementation
                  { an interface type may delegate itself or one of its ancestors }
                  if not def_is_related(p.propdef,def) then
                    begin
-                     message2(parser_e_implements_must_have_correct_type,def.typename,p.propdef.typename);
+                     compiler.verbose.Message2(parser_e_implements_must_have_correct_type,def.typename,p.propdef.typename);
                      exit;
                    end;
                end
@@ -817,13 +817,13 @@ implementation
                    begin
                      if compare_defs(ImplIntf.IntfDef,def,nothingn)<te_equal then
                        begin
-                         message2(parser_e_implements_must_have_correct_type,ImplIntf.IntfDef.typename,def.typename);
+                         compiler.verbose.Message2(parser_e_implements_must_have_correct_type,ImplIntf.IntfDef.typename,def.typename);
                          exit;
                        end;
                    end
                  else
                    begin
-                     message2(parser_e_class_doesnt_implement_interface,p.propdef.typename,def.typename);
+                     compiler.verbose.Message2(parser_e_class_doesnt_implement_interface,p.propdef.typename,def.typename);
                      exit;
                    end;
                end
@@ -871,7 +871,7 @@ implementation
                  if Assigned(ImplIntf.ImplementsGetter) then
                    compiler.verbose.Message1(parser_e_duplicate_implements_clause,ImplIntf.IntfDef.typename);
                  if Assigned(ImplIntf.NameMappings) then
-                   message2(parser_e_mapping_no_implements,ImplIntf.IntfDef.typename,astruct.objrealname^);
+                   compiler.verbose.Message2(parser_e_mapping_no_implements,ImplIntf.IntfDef.typename,astruct.objrealname^);
 
                  ImplIntf.ImplementsGetter:=p;
                  ImplIntf.VtblImplIntf:=ImplIntf;

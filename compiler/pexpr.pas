@@ -2752,7 +2752,7 @@ implementation
                                        end
                                      else
                                        begin
-                                         Message2(scan_f_syn_expected,'CREATE',current_scanner.pattern);
+                                         compiler.verbose.Message2(scan_f_syn_expected,'CREATE',current_scanner.pattern);
                                          p1.free;
                                          p1:=compiler.cerrornode;
                                          parser.pbase.consume(_ID);

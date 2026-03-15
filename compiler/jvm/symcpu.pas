@@ -330,7 +330,7 @@ implementation
                           begin
                             procoptions:=procoptions+[po_virtualmethod,po_overridingmethod];
                             if not(parentpd.synthetickind in [tsk_field_getter,tsk_field_setter]) then
-                              Message2(parser_w_overriding_property_getter_setter,accessorname,FullTypeName(tdef(parentpd.owner.defowner),nil));
+                              compiler.verbose.Message2(parser_w_overriding_property_getter_setter,accessorname,FullTypeName(tdef(parentpd.owner.defowner),nil));
                           end;
                         { otherwise we can't do anything, and
                           proc_add_definition will give an error }

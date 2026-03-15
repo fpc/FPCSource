@@ -210,7 +210,7 @@ begin
   if resfound then
    begin
      compiler.verbose.Message1(exec_i_compilingresource,fname);
-     Message2(exec_d_resbin_params,resbin,s);
+     compiler.verbose.Message2(exec_d_resbin_params,resbin,s);
      FlushOutput;
      try
        if RequotedExecuteProcess(resbin,s) <> 0 then

@@ -464,7 +464,7 @@ implementation
       { create new ppufile }
       pcpfile:=tpcpfile.create(pcpfilename,compiler);
       if not pcpfile.createfile then
-        Message2(package_f_cant_create_pcp,realpackagename^,pcpfilename);
+        compiler.verbose.Message2(package_f_cant_create_pcp,realpackagename^,pcpfilename);
 
       pcpfile.putstring(realpackagename^);
       pcpfile.writeentry(ibpackagename);

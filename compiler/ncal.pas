@@ -3800,7 +3800,7 @@ implementation
             pd:=tprocdef(AbstractMethodsList[i]);
             if po_abstractmethod in pd.procoptions then
               begin
-                Message2(type_w_instance_with_abstract,objectdf.typesymbolprettyname,pd.customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
+                compiler.verbose.Message2(type_w_instance_with_abstract,objectdf.typesymbolprettyname,pd.customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
                 MessagePos1(pd.fileinfo,sym_h_abstract_method_list,pd.fullprocname(true));
               end;
           end;

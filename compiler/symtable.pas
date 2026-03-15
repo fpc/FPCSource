@@ -3093,14 +3093,14 @@ implementation
             if assigned(st) and
                (st.symtabletype=globalsymtable) and
                st.iscurrentunit then
-              Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line))
+              compiler.verbose.Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line))
             else if assigned(st.name) then
               begin
                 filename:=find_module_from_symtable(st).sourcefiles.get_file_name(fileindex);
                 if filename<>'' then
-                  Message2(sym_h_duplicate_id_where,'unit '+st.name^+': '+filename,tostr(line))
+                  compiler.verbose.Message2(sym_h_duplicate_id_where,'unit '+st.name^+': '+filename,tostr(line))
                 else
-                  Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
+                  compiler.verbose.Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
               end;
           end;
         { Rename duplicate sym to an unreachable name, but it can be
@@ -4539,7 +4539,7 @@ implementation
         else
           begin
             if throwerror then
-              message2(cg_f_unknown_type_in_unit,typename,unitname);
+              compiler.verbose.Message2(cg_f_unknown_type_in_unit,typename,unitname);
             result:=nil;
           end;
       end;
@@ -5047,7 +5047,7 @@ implementation
              mac.free_buftext;
            end;
            mac.is_c_macro:=true;
-         Message2(parser_c_macro_set_to,mac.name,value);
+         compiler.verbose.Message2(parser_c_macro_set_to,mac.name,value);
          move(value[1],mac.allocate_buftext(length(value))^,length(value));
          mac.defined:=true;
       end;
@@ -5075,7 +5075,7 @@ implementation
            end
          else
            mac.is_compiler_var:=true;
-         Message2(parser_c_macro_set_to,mac.name,value);
+         compiler.verbose.Message2(parser_c_macro_set_to,mac.name,value);
          move(value[1],mac.allocate_buftext(length(value))^,length(value));
          mac.defined:=true;
       end;

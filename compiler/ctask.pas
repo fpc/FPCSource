@@ -289,12 +289,12 @@ procedure ttask_handler.finishmodule(m: tmodule);
     while assigned(uu) and (uu.u.state in [ms_compiled,ms_processed]) do
       uu:=tused_unit(uu.Next);
     if uu<>nil then
-      Message2(unit_f_circular_unit_reference,root.realmodulename^,uu.u.realmodulename^);
+      compiler.verbose.Message2(unit_f_circular_unit_reference,root.realmodulename^,uu.u.realmodulename^);
 
     if root.waitingforunit<>nil then
       begin
         um:=tmodule(root.waitingforunit[0]);
-        Message2(unit_f_circular_unit_reference,root.realmodulename^,um.realmodulename^);
+        compiler.verbose.Message2(unit_f_circular_unit_reference,root.realmodulename^,um.realmodulename^);
       end;
 
     writeln('CTASK: cannot finish module ',root.realmodulename^);

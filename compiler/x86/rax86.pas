@@ -860,7 +860,7 @@ begin
 
               if ((operands[i].opr.ref.base=NR_ESP) or (operands[i].opr.ref.index=NR_ESP)) and (memoffset < 0) then
               begin
-                Message2(asmr_w_check_mem_operand_negative_offset,
+                compiler.verbose.Message2(asmr_w_check_mem_operand_negative_offset,
                          //std_op2str[opcode],
 			 getstring(false),
                          ToStr(memoffset));
@@ -939,7 +939,7 @@ begin
                                 tx86operand(operands[i]).opsize := S_B;
                                 tx86operand(operands[i]).size   := OS_8;
 
-                                Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"8 bit memory operand"');
+                                compiler.verbose.Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"8 bit memory operand"');
                               end;
                       msiMem16:
                               begin
@@ -951,7 +951,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_W;
                                  tx86operand(operands[i]).size   := OS_16;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"16 bit memory operand"');
+                                 compiler.verbose.Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"16 bit memory operand"');
                                end;
                       msiMem32:
                                begin
@@ -963,7 +963,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_L;
                                  tx86operand(operands[i]).size   := OS_32;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"32 bit memory operand"');
+                                 compiler.verbose.Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"32 bit memory operand"');
                                end;
                       msiMem64:
                                begin
@@ -975,7 +975,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_Q;
                                  tx86operand(operands[i]).size   := OS_M64;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"64 bit memory operand"');
+                                 compiler.verbose.Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"64 bit memory operand"');
                                end;
                       msiMem128:
                                begin
@@ -987,7 +987,7 @@ begin
                                  tx86operand(operands[i]).opsize := S_XMM;
                                  tx86operand(operands[i]).size   := OS_M128;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"128 bit memory operand"');
+                                 compiler.verbose.Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"128 bit memory operand"');
                                end;
                       msiMem256:
                                begin
@@ -1001,7 +1001,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M256;
                                  opsize := S_YMM;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"256 bit memory operand"');
+                                 compiler.verbose.Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"256 bit memory operand"');
                                end;
                       msiMem512:
                                begin
@@ -1015,7 +1015,7 @@ begin
                                  tx86operand(operands[i]).size   := OS_M512;
                                  opsize := S_ZMM;
 
-                                 Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"512 bit memory operand"');
+                                 compiler.verbose.Message2(asmr_w_check_mem_operand_automap_multiple_size, GetString(false), '"512 bit memory operand"');
                                end;
 
                     msiMemRegSize:
@@ -1484,22 +1484,22 @@ begin
 
         case vbcst of
            2: if not(bt1to2 in MemRefInfo(opcode).BCSTTypes) then
-               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+               compiler.verbose.Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
            4: if not(bt1to4 in MemRefInfo(opcode).BCSTTypes) then
-               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+               compiler.verbose.Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
            8: if not(bt1to8 in MemRefInfo(opcode).BCSTTypes) then
-               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+               compiler.verbose.Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
           16: if not(bt1to16 in MemRefInfo(opcode).BCSTTypes) then
-               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+               compiler.verbose.Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
           32: if not(bt1to32 in MemRefInfo(opcode).BCSTTypes) then
-               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+               compiler.verbose.Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
         end;
       end
       else if MemRefInfo(opcode).BCSTXMMMultiplicator * multiplicator <> vbcst then
       begin
         str(MemRefInfo(opcode).BCSTXMMMultiplicator * multiplicator, bcst1);
         str(vbcst, bcst2);
-        Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+        compiler.verbose.Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
       end;
     end;
   end;

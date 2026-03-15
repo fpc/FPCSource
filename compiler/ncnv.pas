@@ -1221,7 +1221,7 @@ implementation
            begin
              if (m_iso in current_settings.modeswitches) and (arrsize<>tstringconstnode(left).len) and
                 is_char(tarraydef(resultdef).elementdef) then
-               Message2(type_w_array_size_does_not_match_size_of_constant_string,tostr(tstringconstnode(left).len),tostr(arrsize));
+               compiler.verbose.Message2(type_w_array_size_does_not_match_size_of_constant_string,tostr(tstringconstnode(left).len),tostr(arrsize));
              { if the array of char is large enough we can use the string
                constant directly. This is handled in ncgcnv }
              if (arrsize>=tstringconstnode(left).len) and
@@ -1367,18 +1367,18 @@ implementation
                    procname:='fpc_char_to_';
                    if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
                      if nf_explicit in flags then
-                       Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+                       compiler.verbose.Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
                      else
-                       Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
+                       compiler.verbose.Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
                  end
                else
                  begin
                    procname:='fpc_uchar_to_';
                    if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
                      if nf_explicit in flags then
-                       Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                       compiler.verbose.Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
                      else
-                       Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
+                       compiler.verbose.Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
                  end;
                procname:=procname+tstringdef(resultdef).stringtypname;
 
@@ -1456,17 +1456,17 @@ implementation
                 not (tstringdef(resultdef).stringtype in [st_unicodestring,st_widestring]) then
           begin
             if nf_explicit in flags then
-              Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+              compiler.verbose.Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
             else
-              Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
+              compiler.verbose.Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
           end
         else if not (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
                 (tstringdef(resultdef).stringtype in [st_unicodestring,st_widestring]) then
           begin
             if nf_explicit in flags then
-              Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+              compiler.verbose.Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
             else
-              Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
+              compiler.verbose.Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
           end
       end;
 

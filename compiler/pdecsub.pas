@@ -991,7 +991,7 @@ implementation
                    sp:=tobjectdef(ttypesym(srsym).typedef).objname^;
                { must be a directly implemented interface }
                if Assigned(ImplIntf.ImplementsGetter) then
-                 Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
+                 compiler.verbose.Message2(parser_e_implements_no_mapping,ImplIntf.IntfDef.typename,astruct.objrealname^);
                parser.pbase.consume(_ID);
                { Create unique name <interface>.<method> }
                hs:=sp+'.'+current_scanner.pattern;
@@ -2107,7 +2107,7 @@ begin
      (not assigned(pd.owner.defowner) or
       not is_java_class_or_interface(tdef(pd.owner.defowner))) and
      (po_external in pd.procoptions) then
-    Message2(parser_e_proc_dir_conflict,'EXTERNAL','"VIRTUAL"');
+    compiler.verbose.Message2(parser_e_proc_dir_conflict,'EXTERNAL','"VIRTUAL"');
 
   if pd.typ<>procdef then
     internalerror(2003042610);
@@ -2193,7 +2193,7 @@ begin
           not is_objc_class_or_protocol(tprocdef(pd).struct) and
           not is_cppclass(tprocdef(pd).struct) and
           not is_java_class_or_interface(tprocdef(pd).struct) then
-    Message2(parser_e_proc_dir_conflict,'OVERRIDE','"EXTERNAL"');
+    compiler.verbose.Message2(parser_e_proc_dir_conflict,'OVERRIDE','"EXTERNAL"');
 end;
 
 procedure TSubroutineDeclarationParser.pd_overload(pd:tabstractprocdef);
@@ -2225,7 +2225,7 @@ begin
   if not is_objc_class_or_protocol(tprocdef(pd).struct) then
     begin
       if po_external in pd.procoptions then
-        Message2(parser_e_proc_dir_conflict,'MESSAGE','"EXTERNAL"');
+        compiler.verbose.Message2(parser_e_proc_dir_conflict,'MESSAGE','"EXTERNAL"');
       paracnt:=0;
       pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
       if paracnt<>1 then

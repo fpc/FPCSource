@@ -830,7 +830,7 @@ implementation
                     useshelper:=false;
                 end
               else if (tstringdef(right.resultdef).stringtype in [st_unicodestring,st_widestring]) then
-                Message2(type_w_implicit_string_cast_loss,right.resultdef.typename,left.resultdef.typename);
+                compiler.verbose.Message2(type_w_implicit_string_cast_loss,right.resultdef.typename,left.resultdef.typename);
              { rest is done in pass 1 (JM) }
              if useshelper then
                exit;

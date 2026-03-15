@@ -2467,7 +2467,7 @@ implementation
                              this check does not mean things will crash on all
                              platforms) }
                           if potentially_incompatible_univ_paras(currpara1.vardef,currpara2.vardef) then
-                            Message2(type_w_procvar_univ_conflicting_para,currpara1.vardef.typename,currpara2.vardef.typename)
+                            compiler.verbose.Message2(type_w_procvar_univ_conflicting_para,currpara1.vardef.typename,currpara2.vardef.typename)
                         end;
                     end
                   else if (cpo_generic in cpoptions) then

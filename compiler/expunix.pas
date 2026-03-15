@@ -171,6 +171,8 @@ end;
 
 procedure texportlibunix.generatelib;  // straight t_linux copy for now.
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   hp2 : texported_item;
   pd  : tprocdef;
   anyhasalias : boolean;
@@ -208,7 +210,7 @@ begin
        begin
          if assigned(hp2.sym) and
             (hp2.name^<>hp2.sym.mangledname) then
-           Message2(parser_e_cant_export_var_different_name,hp2.sym.realname,hp2.sym.mangledname)
+           compiler.verbose.Message2(parser_e_cant_export_var_different_name,hp2.sym.realname,hp2.sym.mangledname)
          else
            exportedsymnames.insert(hp2.name^);
        end;

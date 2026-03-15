@@ -805,7 +805,7 @@ var
                 if not openppustream(strm) then
                   exit;
                 package:=pkg^.package;
-                Message2(unit_u_loading_from_package,modulename^,pkg^.package.packagename^);
+                compiler.verbose.Message2(unit_u_loading_from_package,modulename^,pkg^.package.packagename^);
 
                 { now load the unit and all used units }
                 load_interface;
@@ -1230,12 +1230,12 @@ var
               if sources_avail then
 {$endif ndef EXTDEBUG}
                if (not was_initial) and was_used then
-                Message2(unit_h_cond_not_set_in_last_compile,hs,mainsource^);
+                compiler.verbose.Message2(unit_h_cond_not_set_in_last_compile,hs,mainsource^);
              end
            else { not assigned }
              if was_initial and
                 was_used then
-              Message2(unit_h_cond_set_in_last_compile,hs,mainsource^);
+              compiler.verbose.Message2(unit_h_cond_set_in_last_compile,hs,mainsource^);
          end;
       end;
 {$ENDIF}
@@ -1332,7 +1332,7 @@ var
                           {$ENDIF}
                           state:=ms_compile;
                           recompile_reason:=rr_sourcenewer;
-                          Message2(unit_u_source_modified,hs,ppufilename,@queuecomment);
+                          compiler.verbose.Message2(unit_u_source_modified,hs,ppufilename,@queuecomment);
                           temp:=temp+' *';
                         end;
                     end
@@ -1579,7 +1579,7 @@ var
                  newmodulename:=ppufile.getstring;
                  if (cs_check_unit_name in current_settings.globalswitches) and
                     (upper(newmodulename)<>modulename^) then
-                   Message2(unit_f_unit_name_error,realmodulename^,newmodulename);
+                   compiler.verbose.Message2(unit_f_unit_name_error,realmodulename^,newmodulename);
                  stringdispose(modulename);
                  stringdispose(realmodulename);
                  modulename:=stringdup(upper(newmodulename));
@@ -2168,7 +2168,7 @@ var
                   (pu.u.crc<>pu.checksum)
                  ) then
             begin
-              Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename,@queuecomment);
+              compiler.verbose.Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename,@queuecomment);
   {$ifdef DEBUG_UNIT_CRC_CHANGES}
               if (pu.u.interface_crc<>pu.interface_checksum) then
                 compiler.verbose.Comment(V_Normal,'  intfcrc change: '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
@@ -2386,7 +2386,7 @@ var
                   if assigned(pu) and assigned(pu.unitsym) then
                     MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^)
                   else
-                    Message2(unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^);
+                    compiler.verbose.Message2(unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^);
                 end
               else
                 compiler.verbose.Message1(unit_f_cant_compile_unit,realmodulename^);
@@ -2721,7 +2721,7 @@ var
               end;
               Writeln('Unit cycle detected: ',CyclePath);
               {$ENDIF}
-              Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
+              compiler.verbose.Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);
             end;
           finally
             Cycle.Free;

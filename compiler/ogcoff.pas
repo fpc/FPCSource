@@ -1382,6 +1382,8 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffExeOutput.DoRelocationFixup(objsec:TObjSection);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i,zero,address_size : longint;
         objreloc : TObjRelocation;
         address,
@@ -1604,7 +1606,7 @@ const pemagic : array[0..3] of byte = (
                   s:=objreloc.symbol.Name
                 else
                   s:=objreloc.objsection.Name;
-                Message2(link_w_32bit_absolute_reloc, objsec.ObjData.Name, s);
+                compiler.verbose.Message2(link_w_32bit_absolute_reloc, objsec.ObjData.Name, s);
               end;
 {$endif cpu64bitaddr}
           end;
@@ -2656,7 +2658,7 @@ const pemagic : array[0..3] of byte = (
                         including an associative section, but with a comdat selection
                         of 0; it seems that other linkers just ignore those... }
                       if secrec.select<>0 then
-                        Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
+                        compiler.verbose.Message2(link_e_comdat_select_unsupported,inttostr(secrec.select),objsym.objsection.name);
                     end;
                   end;
 
@@ -2666,7 +2668,7 @@ const pemagic : array[0..3] of byte = (
                   else if (comdatsel=oscs_associative) and (secrec.assoc=0) then
                     compiler.verbose.Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
                   else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
-                    Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
+                    compiler.verbose.Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
                   else
                     begin
                       objsym.objsection.ComdatSelection:=comdatsel;

@@ -1125,7 +1125,7 @@ implementation
       begin
         if hasdependency(callermodule) then exit;
         if is_unit then
-          Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
+          compiler.verbose.Message2(unit_u_add_depend_to,callermodule.modulename^,modulename^);
 
         { dependent_units is needed by the invalid cycle test,
           using the program is an invalid cycle as well }

@@ -1672,7 +1672,7 @@ begin
     else
       begin
         if (length(FOptions.param_file)<>0) then
-          Message2(option_only_one_source_support,FOptions.param_file,opt);
+          compiler.verbose.Message2(option_only_one_source_support,FOptions.param_file,opt);
         FOptions.param_file:=opt;
         compiler.verbose.Message1(option_found_file,opt);
       end;
@@ -1776,7 +1776,7 @@ begin
                RemoveSep(opts);
                if Level>=maxlevel then
                 begin
-                  Message2(option_too_many_ifdef,filename,tostr(line));
+                  compiler.verbose.Message2(option_too_many_ifdef,filename,tostr(line));
                   stopOptions(1);
                 end;
                inc(Level);
@@ -1792,7 +1792,7 @@ begin
                RemoveSep(opts);
                if Level>=maxlevel then
                 begin
-                  Message2(option_too_many_ifdef,filename,tostr(line));
+                  compiler.verbose.Message2(option_too_many_ifdef,filename,tostr(line));
                   stopOptions(1);
                 end;
                inc(Level);
@@ -1807,7 +1807,7 @@ begin
               begin
                 if Level=0 then
                   begin
-                    Message2(option_else_without_if,filename,tostr(line));
+                    compiler.verbose.Message2(option_else_without_if,filename,tostr(line));
                     stopOptions(1);
                   end
                 else
@@ -1819,7 +1819,7 @@ begin
                skip[level]:=false;
                if Level=0 then
                 begin
-                  Message2(option_too_many_endif,filename,tostr(line));
+                  compiler.verbose.Message2(option_too_many_endif,filename,tostr(line));
                   stopOptions(1);
                 end;
                dec(level);
@@ -3154,7 +3154,7 @@ begin
     'M' :
       unicodepath:=FixPath(More,true);
     'g' :
-      Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
+      compiler.verbose.Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
     'l' :
       begin
         if ispara then
@@ -3287,7 +3287,7 @@ begin
             else
               begin
                 if cs_gdb_valgrind in init_settings.globalswitches then
-                  Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                  compiler.verbose.Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
                 include(init_settings.globalswitches,cs_use_heaptrc);
               end;
           end;
@@ -3338,7 +3338,7 @@ begin
             else
               begin
                 if cs_use_heaptrc in init_settings.globalswitches then
-                  Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
+                  compiler.verbose.Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
                 include(init_settings.globalswitches,cs_gdb_valgrind);
               end;
           end;
@@ -3511,7 +3511,7 @@ begin
                { Give warning for old i386 switches }
                if (Length(More)-j=1) and
                   (More[j+1]>='1') and (More[j+1]<='5')then
-                 Message2(option_obsolete_switch_use_new,'-Op<nr>','-Op<name>')
+                 compiler.verbose.Message2(option_obsolete_switch_use_new,'-Op<nr>','-Op<name>')
                else
                  IllegalPara(opt);
              end;
@@ -3530,13 +3530,13 @@ begin
          end;
        { Obsolete switches }
        'g' :
-         Message2(option_obsolete_switch_use_new,'-Og','-Os');
+         compiler.verbose.Message2(option_obsolete_switch_use_new,'-Og','-Os');
        'G' :
          compiler.verbose.Message1(option_obsolete_switch,'-OG');
        'r' :
-         Message2(option_obsolete_switch_use_new,'-Or','-O2 or -Ooregvar');
+         compiler.verbose.Message2(option_obsolete_switch_use_new,'-Or','-O2 or -Ooregvar');
        'u' :
-         Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
+         compiler.verbose.Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
        'w' :
          begin
            if not UpdateWpoStr(copy(more,j+1),init_settings.dowpoptimizerswitches) then
@@ -3862,7 +3862,7 @@ begin
          exclude(init_settings.globalswitches,cs_check_unit_name);
        'p' :
           begin
-            Message2(option_obsolete_switch_use_new,'-Up','-Fu');
+            compiler.verbose.Message2(option_obsolete_switch_use_new,'-Up','-Fu');
             break;
           end;
        'r' :
@@ -5107,7 +5107,7 @@ begin
     read_subfile:=check_configfile(subcfg,subcfg);
     // Warn if we didn't find an architecture-specific file
     if not read_subfile then
-      message2(option_subtarget_config_not_found,option.parasubtarget,subcfg);
+      compiler.verbose.Message2(option_subtarget_config_not_found,option.parasubtarget,subcfg);
     end;
 
 { Read commandline and configfile }
@@ -5299,9 +5299,9 @@ begin
       if not compiler.target.set_target_asm(option.paratargetasm) then
         begin
           if assigned(asminfos[option.paratargetasm]) then
-            Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,compiler.target.info.name)
+            compiler.verbose.Message2(option_incompatible_asm,asminfos[option.paratargetasm]^.idtxt,compiler.target.info.name)
           else
-            Message2(option_incompatible_asm,'<invalid assembler>',compiler.target.info.name);
+            compiler.verbose.Message2(option_incompatible_asm,'<invalid assembler>',compiler.target.info.name);
           compiler.target.set_target_asm(compiler.target.info.assemextern);
           compiler.verbose.Message1(option_asm_forced,compiler.target._asm.idtxt);
         end;
@@ -5548,7 +5548,7 @@ begin
       if not option.FPUSetExplicitly then
         init_settings.fputype:=fpu_soft;
       if not(init_settings.fputype in [fpu_none,fpu_soft,fpu_libgcc]) then
-        Message2(option_unsupported_fpu,fputypestr[init_settings.fputype],'Thumb');
+        compiler.verbose.Message2(option_unsupported_fpu,fputypestr[init_settings.fputype],'Thumb');
 {$if defined(FPC_ARMEL) or defined(FPC_ARMHF)}
       compiler.target.info.llvmdatalayout:='e-p:32:32:32-i1:8:32-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:32-n32-S64';
 {$else FPC_ARMAL or FPC_ARMHF}
@@ -5683,7 +5683,7 @@ begin
 
   { check if the fpu type requires the F and D extension }
   if (init_settings.fputype in [fpu_fd]) and not((cpu_capabilities[init_settings.cputype]*[CPURV_HAS_F,CPURV_HAS_D])=[CPURV_HAS_F,CPURV_HAS_D]) then
-    Message2(option_unsupported_fpu,fputypestr[init_settings.fputype],cputypestr[init_settings.cputype]);
+    compiler.verbose.Message2(option_unsupported_fpu,fputypestr[init_settings.fputype],cputypestr[init_settings.cputype]);
 {$endif defined(riscv32) or defined(riscv64)}
 
 {$ifdef jvm}

@@ -492,7 +492,7 @@ Unit rawasmtext;
         Consume:=true;
         if t<>actasmtoken then
          begin
-           Message2(scan_f_syn_expected,token2str[t],token2str[actasmtoken]);
+           compiler.verbose.Message2(scan_f_syn_expected,token2str[t],token2str[actasmtoken]);
            Consume:=false;
          end;
         repeat

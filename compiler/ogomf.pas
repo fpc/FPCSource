@@ -3051,11 +3051,11 @@ implementation
                 if current_settings.x86memorymodel=mm_tiny then
                   compiler.verbose.Message1(link_e_program_segment_too_large,IntToStr(UniSeg.Size-$10000))
                 else if UniSeg.SegClass='CODE' then
-                  Message2(link_e_code_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
+                  compiler.verbose.Message2(link_e_code_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
                 else if UniSeg.SegClass='DATA' then
-                  Message2(link_e_data_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
+                  compiler.verbose.Message2(link_e_data_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
                 else
-                  Message2(link_e_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000)+' '+UniSeg.SegName);
+                  compiler.verbose.Message2(link_e_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000)+' '+UniSeg.SegName);
               end;
           end;
       end;
@@ -3103,9 +3103,9 @@ implementation
                 if current_settings.x86memorymodel=mm_tiny then
                   compiler.verbose.Message1(link_e_program_segment_too_large,IntToStr(UniGrp.Size-$10000))
                 else if UniGrp.Name='DGROUP' then
-                  Message2(link_e_data_segment_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000))
+                  compiler.verbose.Message2(link_e_data_segment_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000))
                 else
-                  Message2(link_e_group_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000));
+                  compiler.verbose.Message2(link_e_group_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000));
               end;
           end;
       end;

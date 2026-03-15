@@ -4381,7 +4381,7 @@ implementation
               begin
                 getvalsym(c-&14);
                 if (currval<-128) or (currval>127) then
-                 Message2(asmw_e_value_exceeds_bounds,'signed byte',tostr(currval));
+                 compiler.verbose.Message2(asmw_e_value_exceeds_bounds,'signed byte',tostr(currval));
                 if assigned(currsym) then
                   objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
@@ -4391,7 +4391,7 @@ implementation
               begin
                 getvalsym(c-&20);
                 if (currval<-256) or (currval>255) then
-                 Message2(asmw_e_value_exceeds_bounds,'byte',tostr(currval));
+                 compiler.verbose.Message2(asmw_e_value_exceeds_bounds,'byte',tostr(currval));
                 if assigned(currsym) then
                  objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
@@ -4409,16 +4409,16 @@ implementation
                 if IF_IMM3 in insentry^.flags then
                   begin
                     if (currval<0) or (currval>7) then
-                      Message2(asmw_e_value_exceeds_bounds,'unsigned triad',tostr(currval));
+                      compiler.verbose.Message2(asmw_e_value_exceeds_bounds,'unsigned triad',tostr(currval));
                   end
                 else if IF_IMM4 in insentry^.flags then
                   begin
                     if (currval<0) or (currval>15) then
-                      Message2(asmw_e_value_exceeds_bounds,'unsigned nibble',tostr(currval));
+                      compiler.verbose.Message2(asmw_e_value_exceeds_bounds,'unsigned nibble',tostr(currval));
                   end
                 else
                   if (currval<0) or (currval>255) then
-                    Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
+                    compiler.verbose.Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
                 if assigned(currsym) then
                  objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
@@ -4430,7 +4430,7 @@ implementation
 {$ifndef i8086}
                 { currval is an aint so this cannot happen on i8086 and causes only a warning }
                 if (currval<-65536) or (currval>65535) then
-                 Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
+                 compiler.verbose.Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
 {$endif i8086}
                 if assigned(currsym)
 {$ifdef i8086}
@@ -4570,7 +4570,7 @@ implementation
                 { for i386 as aint type is longint the
                   following test is useless }
                 if (currval<low(longint)) or (currval>high(longint)) then
-                  Message2(asmw_e_value_exceeds_bounds,'signed dword',tostr(currval));
+                  compiler.verbose.Message2(asmw_e_value_exceeds_bounds,'signed dword',tostr(currval));
 {$endif x86_64}
 
                 if assigned(currsym) then

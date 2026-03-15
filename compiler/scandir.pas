@@ -656,6 +656,8 @@ unit scandir;
 
     procedure dir_includepath;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         path : string;
       begin
         if not current_module.in_global then
@@ -665,7 +667,7 @@ unit scandir;
             current_scanner.skipspace;
             path:=current_scanner.readcomment;
             current_module.localincludesearchpath.AddPath(path,false);
-            Message2(general_t_includepath_local,current_module.realmodulename^,path);
+            compiler.verbose.Message2(general_t_includepath_local,current_module.realmodulename^,path);
           end;
       end;
 
@@ -711,6 +713,8 @@ unit scandir;
 
     procedure dir_librarypath;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         path : string;
       begin
         if not current_module.in_global then
@@ -720,7 +724,7 @@ unit scandir;
             current_scanner.skipspace;
             path:=current_scanner.readcomment;
             current_module.locallibrarysearchpath.AddPath(path,false);
-            Message2(general_t_librarypath_local,current_module.realmodulename^,path);
+            compiler.verbose.Message2(general_t_librarypath_local,current_module.realmodulename^,path);
           end;
       end;
 
@@ -1250,6 +1254,8 @@ unit scandir;
 
     procedure dir_objectpath;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         path : string;
       begin
         if not current_module.in_global then
@@ -1259,7 +1265,7 @@ unit scandir;
             current_scanner.skipspace;
             path:=current_scanner.readcomment;
             current_module.localobjectsearchpath.AddPath(path,false);
-            Message2(general_t_objectpath_local,current_module.realmodulename^,path);
+            compiler.verbose.Message2(general_t_objectpath_local,current_module.realmodulename^,path);
           end;
       end;
 
@@ -1859,6 +1865,8 @@ unit scandir;
 
     procedure dir_unitpath;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         unitpath: TPathStr;
       begin
         if not current_module.in_global then
@@ -1871,7 +1879,7 @@ unit scandir;
                not path_absolute(unitpath) then
              unitpath:=current_module.path+source_info.DirSep+unitpath;
             current_module.localunitsearchpath.AddPath(unitpath,false);
-            Message2(general_t_unitpath_local,current_module.realmodulename^,unitpath);
+            compiler.verbose.Message2(general_t_unitpath_local,current_module.realmodulename^,unitpath);
           end;
       end;
 

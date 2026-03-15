@@ -149,13 +149,13 @@ implementation
         if (current_scanner.token<>i) and (current_scanner.idtoken<>i) then
           begin
             if current_scanner.had_multiline_string then
-              Message2(scan_f_unterminated_multiline_string,
+              compiler.verbose.Message2(scan_f_unterminated_multiline_string,
                        tostr(current_scanner.multiline_start_line),
                        tostr(current_scanner.multiline_start_column))
             else if current_scanner.token=_id then
-              Message2(scan_f_syn_expected,tokeninfo^[i].str,'identifier '+current_scanner.pattern)
+              compiler.verbose.Message2(scan_f_syn_expected,tokeninfo^[i].str,'identifier '+current_scanner.pattern)
             else
-              Message2(scan_f_syn_expected,tokeninfo^[i].str,tokeninfo^[current_scanner.token].str);
+              compiler.verbose.Message2(scan_f_syn_expected,tokeninfo^[i].str,tokeninfo^[current_scanner.token].str);
           end
         else
           begin
@@ -171,9 +171,9 @@ implementation
         if (current_scanner.token<>_POINT) then
           begin
           if current_scanner.token=_id then
-            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,'identifier '+current_scanner.pattern)
+            compiler.verbose.Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,'identifier '+current_scanner.pattern)
           else
-            Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[current_scanner.token].str)
+            compiler.verbose.Message2(scan_f_syn_expected,tokeninfo^[_POINT].str,tokeninfo^[current_scanner.token].str)
           end
         else if current_scanner.c<>#0 then
           current_scanner.readtoken(true);
@@ -201,7 +201,7 @@ implementation
              begin
                consume(atoken);
                if current_scanner.had_multiline_string then
-                 Message2(scan_f_unterminated_multiline_string,
+                 compiler.verbose.Message2(scan_f_unterminated_multiline_string,
                           tostr(current_scanner.multiline_start_line),
                           tostr(current_scanner.multiline_start_column))
                else

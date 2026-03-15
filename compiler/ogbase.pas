@@ -3541,7 +3541,7 @@ implementation
               if (exesym.State=symstate_undefined) then
                 begin
                   if assigned(exesym.ObjSymbol) and assigned(exesym.ObjSymbol.ObjData) then
-                    Message2(link_e_undefined_symbol_in_obj,exesym.name,exesym.objsymbol.ObjData.Name)
+                    compiler.verbose.Message2(link_e_undefined_symbol_in_obj,exesym.name,exesym.objsymbol.ObjData.Name)
                   else
                     compiler.verbose.Message1(link_e_undefined_symbol,exesym.name);
                 end;

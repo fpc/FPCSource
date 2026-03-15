@@ -603,7 +603,7 @@ implementation
               if not assigned(pentry) then
                 internalerror(2015112304);
               if not pentry^.direct then
-                Message2(package_w_unit_from_indirect_package,uu.u.realmodulename^,uu.u.package.realpackagename^);
+                compiler.verbose.Message2(package_w_unit_from_indirect_package,uu.u.realmodulename^,uu.u.package.realpackagename^);
             end;
 
           uu:=tused_unit(uu.Next);

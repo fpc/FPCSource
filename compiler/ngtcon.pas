@@ -582,7 +582,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   defsize:=def.size;
                   if strlength>=defsize then
                    begin
-                     message2(parser_w_string_too_long,strval,tostr(defsize-1));
+                     compiler.verbose.Message2(parser_w_string_too_long,strval,tostr(defsize-1));
                      strlength:=defsize-1;
                    end;
                   paddedstrdata[0]:=chr(strlength);

@@ -403,6 +403,8 @@ implementation
 
 
     Procedure HandleModeSwitches(switch: tmodeswitch; changeInit: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { turn ansi/unicodestrings on by default ? (only change when this
           particular setting is changed, so that a random modeswitch won't
@@ -485,7 +487,7 @@ implementation
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
                 if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
                   begin
-                    Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
+                    compiler.verbose.Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
                     current_settings.sourcecodepage:=default_settings.sourcecodepage;
                   end;
                 exclude(current_settings.moduleswitches,cs_explicit_codepage);
@@ -971,11 +973,13 @@ implementation
 
     procedure dir_libprefix;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         current_scanner.skipspace;
         if current_scanner.c <> '''' then
-          Message2(scan_f_syn_expected, '''', current_scanner.c);
+          compiler.verbose.Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
         stringdispose(outputprefix);
         outputprefix := stringdup(s);
@@ -985,11 +989,13 @@ implementation
 
     procedure dir_libsuffix;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         current_scanner.skipspace;
         if current_scanner.c <> '''' then
-          Message2(scan_f_syn_expected, '''', current_scanner.c);
+          compiler.verbose.Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
         stringdispose(outputsuffix);
         outputsuffix := stringdup(s);
@@ -999,11 +1005,13 @@ implementation
 
     procedure dir_extension;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         current_scanner.skipspace;
         if current_scanner.c <> '''' then
-          Message2(scan_f_syn_expected, '''', current_scanner.c);
+          compiler.verbose.Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
         if OutputFileName='' then
           OutputFileName:=InputFileName;
@@ -1268,6 +1276,8 @@ type
     end;
 
   function texprvalue.evaluate(v:texprvalue;op:ttoken):texprvalue;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     function check_compatible: boolean;
       begin
@@ -1277,7 +1287,7 @@ type
                 ) or
                 (is_stringlike(v.def) and is_stringlike(def));
         if not result then
-          Message2(type_e_incompatible_types,def.typename,v.def.typename);
+          compiler.verbose.Message2(type_e_incompatible_types,def.typename,v.def.typename);
       end;
     var
       lv,rv: tconstexprint;
@@ -2743,7 +2753,7 @@ type
                      else
                        hs:='FALSE';
                    end;
-                 Message2(parser_c_macro_set_to,mac.name,hs);
+                 compiler.verbose.Message2(parser_c_macro_set_to,mac.name,hs);
                  { copy the text }
                  move(hs[1],mac.allocate_buftext(length(hs))^,length(hs));
                end
@@ -4337,21 +4347,25 @@ type
 
     procedure tscannerfile.illegal_char(ch:char);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         if ch in [#32..#255] then
           s:=''''+ch+''''
         else
           s:='#'+tostr(ord(ch));
-        Message2(scan_f_illegal_char,s,'$'+hexstr(ord(ch),2));
+        compiler.verbose.Message2(scan_f_illegal_char,s,'$'+hexstr(ord(ch),2));
       end;
 
 
     procedure tscannerfile.end_of_file;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         checkpreprocstack;
         if in_multiline_string then
-          Message2(scan_f_unterminated_multiline_string, tostr(multiline_start_line), tostr(multiline_start_column))
+          compiler.verbose.Message2(scan_f_unterminated_multiline_string, tostr(multiline_start_line), tostr(multiline_start_column))
         else
           Message(scan_f_end_of_file);
       end;
@@ -4393,6 +4407,8 @@ type
 
     procedure tscannerfile.ifpreprocstack(atyp:preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         condition: Boolean;
         valuedescr: String;
       begin
@@ -4408,12 +4424,14 @@ type
         preprocstack.line_nb:=line_no;
         preprocstack.fileindex:=current_filepos.fileindex;
         if preprocstack.accept then
-          Message2(messid,preprocstack.name,'accepted')
+          compiler.verbose.Message2(messid,preprocstack.name,'accepted')
         else
-          Message2(messid,preprocstack.name,'rejected');
+          compiler.verbose.Message2(messid,preprocstack.name,'rejected');
       end;
 
     procedure tscannerfile.elsepreprocstack;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if assigned(preprocstack) and
            (preprocstack.typ<>pp_else) then
@@ -4428,15 +4446,17 @@ type
            preprocstack.line_nb:=line_no;
            preprocstack.fileindex:=current_filepos.fileindex;
            if preprocstack.accept then
-            Message2(scan_c_else_found,preprocstack.name,'accepted')
+            compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
-            Message2(scan_c_else_found,preprocstack.name,'rejected');
+            compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'rejected');
          end
         else
          Message(scan_e_endif_without_if);
       end;
 
     procedure tscannerfile.elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         valuedescr: String;
       begin
@@ -4464,9 +4484,9 @@ type
            preprocstack.line_nb:=line_no;
            preprocstack.fileindex:=current_filepos.fileindex;
            if preprocstack.accept then
-             Message2(scan_c_else_found,preprocstack.name,'accepted')
+             compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
-             Message2(scan_c_else_found,preprocstack.name,'rejected');
+             compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'rejected');
          end
         else
          Message(scan_e_endif_without_if);
@@ -4896,6 +4916,8 @@ type
 
     function tscannerfile.readquotedstring:string;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
         msgwritten : boolean;
       begin
@@ -4919,7 +4941,7 @@ type
                   if not in_multiline_string then
                     begin
                       if had_multiline_string then
-                        Message2(scan_f_unterminated_multiline_string,
+                        compiler.verbose.Message2(scan_f_unterminated_multiline_string,
                                  tostr(multiline_start_line),
                                  tostr(multiline_start_column))
                       else
@@ -5844,7 +5866,7 @@ type
                       if not in_multiline_string then
                         begin
                           if had_multiline_string then
-                            Message2(scan_f_unterminated_multiline_string,
+                            compiler.verbose.Message2(scan_f_unterminated_multiline_string,
                                      tostr(multiline_start_line),
                                      tostr(multiline_start_column))
                           else if (not backtick)
@@ -6158,6 +6180,8 @@ type
 
     procedure tscannerfile.readtoken(allowrecordtoken:boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         low,high,mid : longint;
         mac     : tmacro;
         firstdigitread: boolean;
@@ -6326,7 +6350,7 @@ type
                       begin
                         { does really an identifier follow? }
                         if not (c in ['_','A'..'Z','a'..'z']) then
-                          message2(scan_f_syn_expected,tokeninfo^[_ID].str,c);
+                          compiler.verbose.Message2(scan_f_syn_expected,tokeninfo^[_ID].str,c);
                         readstring;
                         token:=_ID;
                         idtoken:=_ID;

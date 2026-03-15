@@ -460,7 +460,7 @@ implementation
           m:=AddUnit(curr,s,true);
           OK:=assigned(m) and (m.state in [ms_processed,ms_compiled]);
           if not ok then
-            Message2(unit_f_cant_find_ppu,s,curr.realmodulename^);
+            compiler.verbose.Message2(unit_f_cant_find_ppu,s,curr.realmodulename^);
           Result:=ok and Result;
         end;
 
@@ -1479,7 +1479,7 @@ type
               (s1^<>curr.modulename^)
              )
             ) then
-           Message2(unit_e_illegal_unit_name,curr.realmodulename^,s1^);
+           compiler.verbose.Message2(unit_e_illegal_unit_name,curr.realmodulename^,s1^);
          if (curr.modulename^='SYSTEM') then
            include(current_settings.moduleswitches,cs_compilesystem);
          dispose(s2);
@@ -2174,7 +2174,7 @@ type
                      uu:=tused_unit(uu.next);
                    end;
                  if not assigned(uu) then
-                   message2(package_n_implicit_unit_import,hp.realmodulename^,curr.realmodulename^);
+                   compiler.verbose.Message2(package_n_implicit_unit_import,hp.realmodulename^,curr.realmodulename^);
                end;
              { was this unit listed as a contained unit? If so => error }
              if (hp<>curr) and assigned(hp.package) then
@@ -2187,7 +2187,7 @@ type
                      uu:=tused_unit(uu.next);
                    end;
                  if assigned(uu) then
-                   message2(package_e_unit_already_contained_in_package,hp.realmodulename^,hp.package.realpackagename^);
+                   compiler.verbose.Message2(package_e_unit_already_contained_in_package,hp.realmodulename^,hp.package.realpackagename^);
                end;
              hp:=tmodule(hp.next);
            end;

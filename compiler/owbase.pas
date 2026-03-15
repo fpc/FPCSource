@@ -128,12 +128,14 @@ end;
 
 
 function tobjectwriter.createfile(const fn:string):boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   createfile:=false;
   f:=CFileStreamClass.Create(fn,fmCreate);
   if CStreamError<>0 then
     begin
-       Message2(exec_e_cant_create_objectfile,fn,IntToStr(CStreamError));
+       compiler.verbose.Message2(exec_e_cant_create_objectfile,fn,IntToStr(CStreamError));
        exit;
     end;
   bufidx:=0;
