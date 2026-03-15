@@ -30,14 +30,14 @@ uses
 
 Type
   TMarkdownElementRenderer = Class;
-  TMarkdownElementRendererClass = class of TMarkDownElementRenderer;
+  TMarkdownElementRendererClass = class of TMarkdownElementRenderer;
 
   TMarkdownBlockRenderer = class;
-  TMarkdownBlockRendererClass = class of TMarkDownBlockRenderer;
-  TMarkdownElementRendererArray = array of TMarkDownElementRenderer;
+  TMarkdownBlockRendererClass = class of TMarkdownBlockRenderer;
+  TMarkdownElementRendererArray = array of TMarkdownElementRenderer;
 
   TMarkdownTextRenderer = class;
-  TMarkdownTextRendererClass = class of TMarkDownTextRenderer;
+  TMarkdownTextRendererClass = class of TMarkdownTextRenderer;
 
 
   { TMarkdownRenderer }
@@ -49,9 +49,9 @@ Type
     FRenderStack : TFPList;
     function GetParentElementRenderer: TMarkdownElementRenderer;
   protected
-    function CreateRendererInstance(aClass : TMarkdownBlockRendererClass) : TMarkDownBlockRenderer; virtual;
+    function CreateRendererInstance(aClass : TMarkdownBlockRendererClass) : TMarkdownBlockRenderer; virtual;
     function CreateRendererForBlock(aBlock : TMarkdownBlock) : TMarkdownBlockRenderer; virtual;
-    function CreateTextRendererInstance(aClass : TMarkdownTextRendererClass): TMarkDownTextRenderer; virtual;
+    function CreateTextRendererInstance(aClass : TMarkdownTextRendererClass): TMarkdownTextRenderer; virtual;
     function GetTextRenderer : TMarkdownTextRenderer;
     Property ParentElementRenderer: TMarkdownElementRenderer Read GetParentElementRenderer;
   public
@@ -66,7 +66,7 @@ Type
   published
     Property SkipUnknownElements : Boolean read FSkipUnknownElements Write FSkipUnknownElements;
   end;
-  TMarkdownRendererClass = class of TMarkDownRenderer;
+  TMarkdownRendererClass = class of TMarkdownRenderer;
 
   { TMarkdownElementRenderer }
 
@@ -76,7 +76,7 @@ Type
     function GetParentElementRenderer: TMarkdownElementRenderer;
   protected
     function GetParentRenderers : TMarkdownElementRendererArray;
-    function GetFirstParentWithClass(aClass : TMarkdownElementRendererClass) : TMarkDownElementRenderer;
+    function GetFirstParentWithClass(aClass : TMarkdownElementRendererClass) : TMarkdownElementRenderer;
     Property Renderer : TMarkdownRenderer read FRenderer;
     Property ParentElementRenderer : TMarkdownElementRenderer read GetParentElementRenderer;
   public
@@ -87,7 +87,7 @@ Type
 
   { TMarkdownBlockRenderer }
 
-  TMarkdownBlockRenderer = Class (TMarkDownElementRenderer)
+  TMarkdownBlockRenderer = Class (TMarkdownElementRenderer)
   protected
     procedure DoRender(aBlock: TMarkdownBlock); virtual; abstract;
   Public
@@ -98,7 +98,7 @@ Type
 
   { TMarkdownTextRenderer }
 
-  TMarkdownTextRenderer = class(TMarkDownElementRenderer)
+  TMarkdownTextRenderer = class(TMarkdownElementRenderer)
   protected
     procedure DoRender(aElement: TMarkdownTextNode); virtual; abstract;
   public
@@ -134,7 +134,7 @@ Type
     TBlockRenderRegistration = class
       BlockClass : TMarkdownBlockClass;
       RendererClass : TMarkdownBlockRendererClass;
-      constructor create(aBlockClass : TMarkdownBlockClass; aRendererClass : TMarkDownBlockRendererClass);
+      constructor create(aBlockClass : TMarkdownBlockClass; aRendererClass : TMarkdownBlockRendererClass);
     end;
     TBlockRenderRegistrationList = Specialize TGFPObjectList<TBlockRenderRegistration>;
 
@@ -168,14 +168,14 @@ Type
 
 implementation
 
-class procedure TMarkdownBlockRenderer.RegisterRenderer(aRendererClass: TMarkDownRendererClass);
+class procedure TMarkdownBlockRenderer.RegisterRenderer(aRendererClass: TMarkdownRendererClass);
 
 begin
   TMarkdownRendererFactory.Instance.RegisterBlockRenderer(aRendererClass, BlockClass, Self);
 end;
 
 
-procedure TMarkdownBlockRenderer.render(aBlock: TMarkDownBlock);
+procedure TMarkdownBlockRenderer.render(aBlock: TMarkdownBlock);
 
 begin
   DoRender(aBlock);
@@ -184,14 +184,14 @@ end;
 
 { TMarkdownTextRenderer }
 
-class procedure TMarkdownTextRenderer.RegisterRenderer(aRendererClass: TMarkDownRendererClass);
+class procedure TMarkdownTextRenderer.RegisterRenderer(aRendererClass: TMarkdownRendererClass);
 
 begin
   TMarkdownRendererFactory.Instance.RegisterTextRenderer(aRendererClass,Self);
 end;
 
 
-procedure TMarkdownTextRenderer.render(aElement: TMarkDownTextNode);
+procedure TMarkdownTextRenderer.render(aElement: TMarkdownTextNode);
 
 begin
   DoRender(aElement);
@@ -229,14 +229,14 @@ begin
 end;
 
 
-function TMarkdownRenderer.CreateRendererInstance(aClass: TMarkDownBlockRendererClass): TMarkDownBlockRenderer;
+function TMarkdownRenderer.CreateRendererInstance(aClass: TMarkdownBlockRendererClass): TMarkdownBlockRenderer;
 
 begin
   Result:=aClass.Create(Self);
 end;
 
 
-function TMarkdownRenderer.CreateRendererForBlock(aBlock: TMarkdownBlock): TMarkDownBlockRenderer;
+function TMarkdownRenderer.CreateRendererForBlock(aBlock: TMarkdownBlock): TMarkdownBlockRenderer;
 
 var
   lRenderClass : TMarkdownRendererClass;
@@ -255,13 +255,13 @@ begin
 end;
 
 
-function TMarkdownRenderer.CreateTextRendererInstance(aClass : TMarkDownTextRendererClass): TMarkDownTextRenderer;
+function TMarkdownRenderer.CreateTextRendererInstance(aClass : TMarkdownTextRendererClass): TMarkdownTextRenderer;
 
 begin
   Result:=aClass.Create(Self);
 end;
 
-function TMarkdownRenderer.GetTextRenderer: TMarkDownTextRenderer;
+function TMarkdownRenderer.GetTextRenderer: TMarkdownTextRenderer;
 
 var
   lClass : TMarkdownTextRendererClass;
@@ -279,7 +279,7 @@ begin
   Result:=FTextRenderer;
 end;
 
-function TMarkdownRenderer.GetParentElementRenderer: TMarkDownElementRenderer;
+function TMarkdownRenderer.GetParentElementRenderer: TMarkdownElementRenderer;
 begin
   if FRenderStack.Count>1 then
     Result:=TMarkdownElementRenderer(FRenderStack[FRenderStack.Count-2])
@@ -301,7 +301,7 @@ begin
 end;
 
 
-procedure TMarkdownRenderer.RenderText(aText: TMarkDownTextNode);
+procedure TMarkdownRenderer.RenderText(aText: TMarkdownTextNode);
 
 var
   lRender : TMarkdownTextRenderer;
@@ -313,7 +313,7 @@ begin
   lRender.EndBlock;
 end;
 
-procedure TMarkdownRenderer.RenderTextNodes(aTextNodes: TMarkDownTextNodeList);
+procedure TMarkdownRenderer.RenderTextNodes(aTextNodes: TMarkdownTextNodeList);
 
 var
   lRender : TMarkdownTextRenderer;
@@ -357,7 +357,7 @@ begin
   RenderBlock(aBlock);
 end;
 
-procedure TMarkdownRenderer.RenderChildren(aBlock: TMarkDownContainerBlock);
+procedure TMarkdownRenderer.RenderChildren(aBlock: TMarkdownContainerBlock);
 
 var
   I : integer;
@@ -369,12 +369,12 @@ end;
 
 { TMarkdownElementRenderer }
 
-function TMarkdownElementRenderer.GetParentElementRenderer: TMarkDownElementRenderer;
+function TMarkdownElementRenderer.GetParentElementRenderer: TMarkdownElementRenderer;
 begin
   Result:=Renderer.ParentElementRenderer;
 end;
 
-function TMarkdownElementRenderer.GetParentRenderers: TMarkDownElementRendererArray;
+function TMarkdownElementRenderer.GetParentRenderers: TMarkdownElementRendererArray;
 var
   i : integer;
 begin
@@ -384,7 +384,7 @@ begin
     Result[i]:=TMarkdownElementRenderer(Renderer.FRenderStack.items[i]);
 end;
 
-function TMarkdownElementRenderer.GetFirstParentWithClass(aClass: TMarkDownElementRendererClass): TMarkDownElementRenderer;
+function TMarkdownElementRenderer.GetFirstParentWithClass(aClass: TMarkdownElementRendererClass): TMarkdownElementRenderer;
 var
   I : integer;
 begin
@@ -399,7 +399,7 @@ begin
     end;
 end;
 
-constructor TMarkdownElementRenderer.create(aRenderer: TMarkDownRenderer);
+constructor TMarkdownElementRenderer.create(aRenderer: TMarkdownRenderer);
 
 begin
   FRenderer:=aRenderer;
@@ -484,7 +484,7 @@ begin
 end;
 
 
-function TMarkdownRendererFactory.FindRenderer(aClass: TMarkDownRendererClass; allowCreate: Boolean): TRenderBlockRenderers;
+function TMarkdownRendererFactory.FindRenderer(aClass: TMarkdownRendererClass; allowCreate: Boolean): TRenderBlockRenderers;
 
 var
   I : Integer;
@@ -523,7 +523,7 @@ end;
 
 { TMarkdownRendererFactory.TBlockRenderRegistration }
 
-constructor TMarkdownRendererFactory.TBlockRenderRegistration.create(aBlockClass: TMarkDownBlockClass;
+constructor TMarkdownRendererFactory.TBlockRenderRegistration.create(aBlockClass: TMarkdownBlockClass;
   aRendererClass: TMarkdownBlockRendererClass);
 
 begin
@@ -534,7 +534,7 @@ end;
 
 { TMarkdownRendererFactory.TRenderBlockRenderers }
 
-constructor TMarkdownRendererFactory.TRenderBlockRenderers.create(aRenderer: TMarkDownRendererClass);
+constructor TMarkdownRendererFactory.TRenderBlockRenderers.create(aRenderer: TMarkdownRendererClass);
 
 begin
   Renderer:=aRenderer;

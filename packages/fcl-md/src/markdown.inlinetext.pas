@@ -36,7 +36,7 @@ uses
 
 Type
   TMarkdownDelimiterMode = (dmOpen,dmClose);
-  TMarkdownDelimiterModes = Set of TMarkDownDelimiterMode;
+  TMarkdownDelimiterModes = Set of TMarkdownDelimiterMode;
 
   { TMarkdownDelimiter }
 
@@ -47,7 +47,7 @@ Type
     FActive: boolean;
     FNode: TMarkdownTextNode;
   public
-    constructor Create(aNode: TMarkdownTextNode; const aDelimiter: String; aModes: TMarkDownDelimiterModes);
+    constructor Create(aNode: TMarkdownTextNode; const aDelimiter: String; aModes: TMarkdownDelimiterModes);
     procedure RemoveLast(aCount : integer);
     function CanClose(aDelim: TMarkdownDelimiter) : boolean;
     function Opens : Boolean;
@@ -59,7 +59,7 @@ Type
     property Modes : TMarkdownDelimiterModes read FModes write FModes;
     function IsEmph : Boolean;
   end;
-  TMarkdownDelimiterList = class (specialize TGFPObjectList<TMarkDownDelimiter>);
+  TMarkdownDelimiterList = class (specialize TGFPObjectList<TMarkdownDelimiter>);
 
   { TInlineTextProcessor }
 
@@ -94,7 +94,7 @@ Type
     procedure HandleGFMLinkEmail(aLength: integer); virtual;
     procedure HandleGFMLinkURL(aStartChars : integer; const aProtocol : string = ''); virtual;
   public
-    constructor Create(aLexer : TMarkdownTextScanner; aNodes: TMarkDownTextNodeList; aEntities : TFPStringHashTable; awsMode : TWhitespaceMode);
+    constructor Create(aLexer : TMarkdownTextScanner; aNodes: TMarkdownTextNodeList; aEntities : TFPStringHashTable; awsMode : TWhitespaceMode);
     destructor Destroy; override;
     function process(aCloseLast : boolean = false): TMarkdownTextNodeList;
     procedure DumpNodes;
@@ -118,7 +118,7 @@ const
 
 { TMarkdownDelimiter }
 
-constructor TMarkdownDelimiter.Create(aNode: TMarkDownTextNode; const aDelimiter : String; aModes: TMarkDownDelimiterModes);
+constructor TMarkdownDelimiter.Create(aNode: TMarkdownTextNode; const aDelimiter : String; aModes: TMarkdownDelimiterModes);
 begin
   inherited create;
   FNode:=aNode;
@@ -146,7 +146,7 @@ begin
   SetLength(FDelimiter,Length(FDelimiter)-aCount);
 end;
 
-function TMarkdownDelimiter.CanClose(aDelim: TMarkDownDelimiter): boolean;
+function TMarkdownDelimiter.CanClose(aDelim: TMarkdownDelimiter): boolean;
 begin
   Result:=(Delimiter[1]=aDelim.Delimiter[1]) and aDelim.Opens;
 end;
@@ -176,7 +176,7 @@ end;
 
 { TInlineTextProcessor }
 
-constructor TInlineTextProcessor.Create(aLexer: TMarkdownTextScanner; aNodes: TMarkDownTextNodeList; aEntities: TFPStringHashTable; awsMode: TWhitespaceMode);
+constructor TInlineTextProcessor.Create(aLexer: TMarkdownTextScanner; aNodes: TMarkdownTextNodeList; aEntities: TFPStringHashTable; awsMode: TWhitespaceMode);
 
 begin
   FScanner:=aLexer;

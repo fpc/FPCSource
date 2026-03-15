@@ -53,7 +53,7 @@ type
     property LineNo : integer Read FLineNo;
     Property CursorPos : Integer Read FCursor;
   end;
-  TMarkdownLineList = class (specialize TGFPObjectList<TMarkDownLine>);
+  TMarkdownLineList = class (specialize TGFPObjectList<TMarkdownLine>);
 
 implementation
 

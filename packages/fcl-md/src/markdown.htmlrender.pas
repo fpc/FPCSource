@@ -34,7 +34,7 @@ type
   THTMLOption = (hoEnvelope,hoHead);
   THTMLOptions = set of THTMLOption;
 
-  TMarkdownHTMLRenderer = class(TMarkDownRenderer)
+  TMarkdownHTMLRenderer = class(TMarkdownRenderer)
   private
     FBuilder: TStringBuilder;
     FHead: TStrings;
@@ -65,7 +65,7 @@ type
 
   { THTMLMarkdownBlockRenderer }
 
-  THTMLMarkdownBlockRenderer = Class (TMarkDownBlockRenderer)
+  THTMLMarkdownBlockRenderer = Class (TMarkdownBlockRenderer)
   Private
     function GetHTMLRenderer: TMarkdownHTMLRenderer;
   protected
@@ -75,10 +75,10 @@ type
   public
     property HTMLRenderer : TMarkdownHTMLRenderer Read GetHTMLRenderer;
   end;
-  THTMLMarkdownBlockRendererClass = class of THTMLMarkDownBlockRenderer;
+  THTMLMarkdownBlockRendererClass = class of THTMLMarkdownBlockRenderer;
   { THTMLMarkdownTextRenderer }
 
-  THTMLMarkdownTextRenderer = class(TMarkDownTextRenderer)
+  THTMLMarkdownTextRenderer = class(TMarkdownTextRenderer)
   Private
     FStyleStack: Array of TNodeStyle;
     FStyleStackLen : Integer;
@@ -102,7 +102,7 @@ type
     property HTMLRenderer : TMarkdownHTMLRenderer Read GetHTMLRenderer;
     function renderAttrs(aElement: TMarkdownTextNode): AnsiString;
   end;
-  THTMLMarkdownTextRendererClass = class of THTMLMarkDownTextRenderer;
+  THTMLMarkdownTextRendererClass = class of THTMLMarkdownTextRenderer;
 
   { THTMLParagraphBlockRenderer }
 
@@ -115,7 +115,7 @@ type
 
   { THTMLMarkdownQuoteBlockRenderer }
 
-  THTMLMarkdownQuoteBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownQuoteBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure dorender(aElement : TMarkdownBlock); override;
   public
@@ -124,7 +124,7 @@ type
 
   { THTMLMarkdownTextBlockRenderer }
 
-  THTMLMarkdownTextBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownTextBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure DoRender(aElement : TMarkdownBlock); override;
   public
@@ -133,7 +133,7 @@ type
 
   { THTMLMarkdownListBlockRenderer }
 
-  THTMLMarkdownListBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownListBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -142,7 +142,7 @@ type
 
   { THTMLMarkdownListItemBlockRenderer }
 
-  THTMLMarkdownListItemBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownListItemBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -151,7 +151,7 @@ type
 
   { THTMLMarkdownCodeBlockRenderer }
 
-  THTMLMarkdownCodeBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownCodeBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -160,7 +160,7 @@ type
 
   { THTMLMarkdownHeadingBlockRenderer }
 
-  THTMLMarkdownHeadingBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownHeadingBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -169,7 +169,7 @@ type
 
   { THTMLMarkdownThematicBreakBlockRenderer }
 
-  THTMLMarkdownThematicBreakBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownThematicBreakBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -178,7 +178,7 @@ type
 
   { THTMLMarkdownTableBlockRenderer }
 
-  THTMLMarkdownTableBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownTableBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -187,7 +187,7 @@ type
 
   { TMarkdownTableRowBlockRenderer }
 
-  THTMLMarkdownTableRowBlockRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownTableRowBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -196,7 +196,7 @@ type
 
   { THTMLMarkdownDocumentRenderer }
 
-  THTMLMarkdownDocumentRenderer = class(THTMLMarkDownBlockRenderer)
+  THTMLMarkdownDocumentRenderer = class(THTMLMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -222,7 +222,7 @@ end;
 
 { TMarkdownBlockRenderer }
 
-function THTMLMarkdownBlockRenderer.GetHTMLRenderer: TMarkDownHTMLRenderer;
+function THTMLMarkdownBlockRenderer.GetHTMLRenderer: TMarkdownHTMLRenderer;
 begin
   if Renderer is TMarkdownHTMLRenderer then
     Result:=TMarkdownHTMLRenderer(Renderer)
@@ -280,7 +280,7 @@ begin
   inherited destroy;
 end;
 
-procedure TMarkdownHTMLRenderer.RenderDocument(aDocument: TMarkDownDocument);
+procedure TMarkdownHTMLRenderer.RenderDocument(aDocument: TMarkdownDocument);
 begin
   FBuilder:=TStringBuilder.Create;
   try
@@ -291,12 +291,12 @@ begin
   end;
 end;
 
-procedure TMarkdownHTMLRenderer.RenderDocument(aDocument: TMarkDownDocument; aDest: TStrings);
+procedure TMarkdownHTMLRenderer.RenderDocument(aDocument: TMarkdownDocument; aDest: TStrings);
 begin
   aDest.Text:=RenderHTML(aDocument);
 end;
 
-procedure TMarkdownHTMLRenderer.RenderChildren(aBlock: TMarkDownContainerBlock; aAppendNewLine: Boolean);
+procedure TMarkdownHTMLRenderer.RenderChildren(aBlock: TMarkdownContainerBlock; aAppendNewLine: Boolean);
 var
   i,iMax : integer;
 begin
@@ -309,14 +309,14 @@ begin
     end;
 end;
 
-function TMarkdownHTMLRenderer.RenderHTML(aDocument: TMarkDownDocument): string;
+function TMarkdownHTMLRenderer.RenderHTML(aDocument: TMarkdownDocument): string;
 begin
   RenderDocument(aDocument);
   Result:=FHTML;
   FHTML:='';
 end;
 
-procedure TMarkdownHTMLRenderer.RenderHTMLToFile(aDocument: TMarkDownDocument; const aFileName: string);
+procedure TMarkdownHTMLRenderer.RenderHTMLToFile(aDocument: TMarkdownDocument; const aFileName: string);
 var
   lHTML : String;
   lFile : THandle;
@@ -331,7 +331,7 @@ begin
   end;
 end;
 
-class function TMarkdownHTMLRenderer.FastRender(aDocument: TMarkDownDocument; aOptions: THTMLOptions; const aTitle: String;
+class function TMarkdownHTMLRenderer.FastRender(aDocument: TMarkdownDocument; aOptions: THTMLOptions; const aTitle: String;
   aHead: TStrings): String;
 var
   lRender : TMarkdownHTMLRenderer;
@@ -348,7 +348,7 @@ begin
   end;
 end;
 
-class procedure TMarkdownHTMLRenderer.FastRenderToFile(aDocument: TMarkDownDocument; const aFileName: string;
+class procedure TMarkdownHTMLRenderer.FastRenderToFile(aDocument: TMarkdownDocument; const aFileName: string;
   aOptions: THTMLOptions; const aTitle: String; aHead: TStrings);
 var
   lRender : TMarkdownHTMLRenderer;
@@ -371,7 +371,7 @@ begin
   HTMLRenderer.Append(S);
 end;
 
-function THTMLMarkdownTextRenderer.MustCloseNode(aElement: TMarkDownTextNode) : boolean;
+function THTMLMarkdownTextRenderer.MustCloseNode(aElement: TMarkdownTextNode) : boolean;
 
 begin
   Result:=aElement.kind<>nkImg;
@@ -410,7 +410,7 @@ begin
     end;
 end;
 
-function THTMLMarkdownTextRenderer.GetNodeTag(aElement: TMarkDownTextNode) : string;
+function THTMLMarkdownTextRenderer.GetNodeTag(aElement: TMarkdownTextNode) : string;
 begin
   case aElement.Kind of
     nkCode: Result:='code';
@@ -419,7 +419,7 @@ begin
   end;
 end;
 
-function THTMLMarkdownTextRenderer.GetHTMLRenderer: TMarkDownHTMLRenderer;
+function THTMLMarkdownTextRenderer.GetHTMLRenderer: TMarkdownHTMLRenderer;
 begin
   if Renderer is TMarkdownHTMLRenderer then
     Result:=TMarkdownHTMLRenderer(Renderer)
@@ -462,7 +462,7 @@ begin
   FLastStyles:=aStyles;
 end;
 
-procedure THTMLMarkdownTextRenderer.DoRender(aElement: TMarkDownTextNode);
+procedure THTMLMarkdownTextRenderer.DoRender(aElement: TMarkdownTextNode);
 var
   lName : string;
 begin
@@ -501,7 +501,7 @@ begin
   inherited EndBlock;
 end;
 
-function THTMLMarkdownTextRenderer.renderAttrs(aElement: TMarkDownTextNode): AnsiString;
+function THTMLMarkdownTextRenderer.renderAttrs(aElement: TMarkdownTextNode): AnsiString;
 
   procedure addKey(aKey,aValue : String);
   begin
@@ -562,12 +562,12 @@ begin
   Result:=TMarkdownParagraphBlock;
 end;
 
-class function THTMLMarkdownTextBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownTextBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownTextBlock;
 end;
 
-procedure THTMLMarkdownTextBlockRenderer.DoRender(aElement: TMarkDownBlock);
+procedure THTMLMarkdownTextBlockRenderer.DoRender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownTextBlock absolute aElement;
 begin
@@ -575,7 +575,7 @@ begin
     Renderer.RenderTextNodes(lNode.Nodes);
 end;
 
-procedure THTMLMarkdownQuoteBlockRenderer.dorender(aElement: TMarkDownBlock);
+procedure THTMLMarkdownQuoteBlockRenderer.dorender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownQuoteBlock absolute aElement;
 
@@ -585,12 +585,12 @@ begin
   AppendNl('</blockquote>');
 end;
 
-class function THTMLMarkdownQuoteBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownQuoteBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownQuoteBlock;
 end;
 
-procedure THTMLMarkdownListBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure THTMLMarkdownListBlockRenderer.Dorender(aElement : TMarkdownBlock);
 
 var
   lNode : TMarkdownListBlock absolute aElement;
@@ -609,13 +609,13 @@ begin
     AppendNl('</ul>');
 end;
 
-class function THTMLMarkdownListBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownListBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownListBlock;
 end;
 
 
-procedure THTMLMarkdownListItemBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure THTMLMarkdownListItemBlockRenderer.Dorender(aElement : TMarkdownBlock);
 var
   lItemBlock : TMarkdownListItemBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -646,12 +646,12 @@ begin
   AppendNl('</li>');
 end;
 
-class function THTMLMarkdownListItemBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownListItemBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownListItemBlock;
 end;
 
-procedure THTMLMarkdownCodeBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure THTMLMarkdownCodeBlockRenderer.Dorender(aElement : TMarkdownBlock);
 var
   lNode : TMarkdownCodeBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -672,12 +672,12 @@ begin
   AppendNl;
 end;
 
-class function THTMLMarkdownCodeBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownCodeBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownCodeBlock;
 end;
 
-procedure THTMLMarkdownThematicBreakBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure THTMLMarkdownThematicBreakBlockRenderer.Dorender(aElement : TMarkdownBlock);
 
 begin
   if Not Assigned(aElement) then
@@ -686,14 +686,14 @@ begin
   AppendNl;
 end;
 
-class function THTMLMarkdownThematicBreakBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownThematicBreakBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownThematicBreakBlock;
 end;
 
 { TMarkdownTableBlock }
 
-procedure THTMLMarkdownTableBlockRenderer.Dorender(aElement: TMarkDownBlock);
+procedure THTMLMarkdownTableBlockRenderer.Dorender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownTableBlock absolute aElement;
   i : integer;
@@ -712,14 +712,14 @@ begin
   AppendNl('</table>');
 end;
 
-class function THTMLMarkdownTableBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownTableBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownTableBlock;
 end;
 
 { THTMLMarkdownDocumentRenderer }
 
-procedure THTMLMarkdownDocumentRenderer.Dorender(aElement: TMarkDownBlock);
+procedure THTMLMarkdownDocumentRenderer.Dorender(aElement: TMarkdownBlock);
 var
   H : String;
 begin
@@ -750,14 +750,14 @@ begin
     end;
 end;
 
-class function THTMLMarkdownDocumentRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownDocumentRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownDocument
 end;
 
 { TMarkdownTableRowBlock }
 
-procedure THTMLMarkdownTableRowBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure THTMLMarkdownTableRowBlockRenderer.Dorender(aElement : TMarkdownBlock);
 const
   CellTypes : Array[Boolean] of string = ('td','th'); //
 var
@@ -787,12 +787,12 @@ begin
   AppendNl('</tr>');
 end;
 
-class function THTMLMarkdownTableRowBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownTableRowBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownTableRowBlock;
 end;
 
-procedure THTMLMarkdownHeadingBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure THTMLMarkdownHeadingBlockRenderer.Dorender(aElement : TMarkdownBlock);
 
 var
   lNode : TMarkdownHeadingBlock absolute aElement;
@@ -803,13 +803,13 @@ begin
   AppendNl;
 end;
 
-class function THTMLMarkdownHeadingBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function THTMLMarkdownHeadingBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownHeadingBlock;
 end;
 
 initialization
-  THTMLMarkdownHeadingBlockRenderer.RegisterRenderer(TMarkDownHTMLRenderer);
+  THTMLMarkdownHeadingBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
   THTMLParagraphBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
   THTMLMarkdownQuoteBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
   THTMLMarkdownTextBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);

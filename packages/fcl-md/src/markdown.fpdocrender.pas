@@ -25,7 +25,7 @@ uses
 {$ELSE}
   Classes, SysUtils, strutils, contnrs, dom, XMLWrite,
 {$ENDIF}
-  Markdown.Elements, MarkDown.Render, MarkDown.Utils;
+  Markdown.Elements, Markdown.Render, Markdown.Utils;
 
 type
   TElementType = (etPackage, etModule, etTopic, etElement);
@@ -39,7 +39,7 @@ type
   EFPDocRender = Class(EMarkdown);
   { TMarkdownFPDocRenderer }
 
-  TMarkdownFPDocRenderer = class(TMarkDownRenderer)
+  TMarkdownFPDocRenderer = class(TMarkdownRenderer)
   private
     FDoc : TXMLDocument;
     FFPDoc: String;
@@ -72,7 +72,7 @@ type
 
   { TFPDocMarkdownBlockRenderer }
 
-  TFPDocMarkdownBlockRenderer = Class (TMarkDownBlockRenderer)
+  TFPDocMarkdownBlockRenderer = Class (TMarkdownBlockRenderer)
   Private
     function GetFPDocRenderer: TMarkdownFPDocRenderer;
     function GetParent: TDomElement;
@@ -87,10 +87,10 @@ type
     property FPDoc : TMarkdownFPDocRenderer Read GetFPDocRenderer;
     Property Parent : TDomElement Read GetParent;
   end;
-  TFPDocMarkdownBlockRendererClass = class of TFPDocMarkDownBlockRenderer;
+  TFPDocMarkdownBlockRendererClass = class of TFPDocMarkdownBlockRenderer;
   { TFPDocMarkdownTextRenderer }
 
-  TFPDocMarkdownTextRenderer = class(TMarkDownTextRenderer)
+  TFPDocMarkdownTextRenderer = class(TMarkdownTextRenderer)
   Private
     FStyleStack: Array of TNodeStyle;
     FStyleStackLen : Integer;
@@ -117,7 +117,7 @@ type
     property FPDoc : TMarkdownFPDocRenderer Read GetFPDocRenderer;
     function renderAttrs(aElement: TMarkdownTextNode): AnsiString;
   end;
-  TFPDocMarkdownTextRendererClass = class of TFPDocMarkDownTextRenderer;
+  TFPDocMarkdownTextRendererClass = class of TFPDocMarkdownTextRenderer;
 
   { TFPDocParagraphBlockRenderer }
 
@@ -130,7 +130,7 @@ type
 
   { TFPDocMarkdownQuoteBlockRenderer }
 
-  TFPDocMarkdownQuoteBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownQuoteBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure dorender(aElement : TMarkdownBlock); override;
   public
@@ -139,7 +139,7 @@ type
 
   { TFPDocMarkdownTextBlockRenderer }
 
-  TFPDocMarkdownTextBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownTextBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure DoRender(aElement : TMarkdownBlock); override;
   public
@@ -148,7 +148,7 @@ type
 
   { TFPDocMarkdownListBlockRenderer }
 
-  TFPDocMarkdownListBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownListBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -157,7 +157,7 @@ type
 
   { TFPDocMarkdownListItemBlockRenderer }
 
-  TFPDocMarkdownListItemBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownListItemBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -166,7 +166,7 @@ type
 
   { TFPDocMarkdownCodeBlockRenderer }
 
-  TFPDocMarkdownCodeBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownCodeBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -175,7 +175,7 @@ type
 
   { TFPDocMarkdownHeadingBlockRenderer }
 
-  TFPDocMarkdownHeadingBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownHeadingBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -184,7 +184,7 @@ type
 
   { TFPDocMarkdownThematicBreakBlockRenderer }
 
-  TFPDocMarkdownThematicBreakBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownThematicBreakBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -193,7 +193,7 @@ type
 
   { TFPDocMarkdownTableBlockRenderer }
 
-  TFPDocMarkdownTableBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownTableBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -202,7 +202,7 @@ type
 
   { TMarkdownTableRowBlockRenderer }
 
-  TFPDocMarkdownTableRowBlockRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownTableRowBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -211,7 +211,7 @@ type
 
   { TFPDocMarkdownDocumentRenderer }
 
-  TFPDocMarkdownDocumentRenderer = class(TFPDocMarkDownBlockRenderer)
+  TFPDocMarkdownDocumentRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
     procedure Dorender(aElement : TMarkdownBlock); override;
   public
@@ -237,7 +237,7 @@ end;
 
 { TMarkdownBlockRenderer }
 
-function TFPDocMarkdownBlockRenderer.GetFPDocRenderer: TMarkDownFPDocRenderer;
+function TFPDocMarkdownBlockRenderer.GetFPDocRenderer: TMarkdownFPDocRenderer;
 begin
   if Renderer is TMarkdownFPDocRenderer then
     Result:=TMarkdownFPDocRenderer(Renderer)
@@ -395,7 +395,7 @@ begin
   Result:=Parent;
 end;
 
-procedure TMarkdownFPDocRenderer.RenderToXML(aDocument: TMarkDownDocument; aXML: TXMLDocument);
+procedure TMarkdownFPDocRenderer.RenderToXML(aDocument: TMarkdownDocument; aXML: TXMLDocument);
 begin
   FDoc:=aXML;
   try
@@ -410,7 +410,7 @@ begin
 end;
 
 
-procedure TMarkdownFPDocRenderer.RenderToStream(aDocument: TMarkDownDocument; aStream: TStream);
+procedure TMarkdownFPDocRenderer.RenderToStream(aDocument: TMarkdownDocument; aStream: TStream);
 var
   lDoc : TXMLDocument;
 begin
@@ -423,7 +423,7 @@ begin
   end;
 end;
 
-procedure TMarkdownFPDocRenderer.RenderDocument(aDocument: TMarkDownDocument);
+procedure TMarkdownFPDocRenderer.RenderDocument(aDocument: TMarkdownDocument);
 var
   S : TStringStream;
 begin
@@ -436,12 +436,12 @@ begin
   end;
 end;
 
-procedure TMarkdownFPDocRenderer.RenderDocument(aDocument: TMarkDownDocument; aDest: TStrings);
+procedure TMarkdownFPDocRenderer.RenderDocument(aDocument: TMarkdownDocument; aDest: TStrings);
 begin
   aDest.Text:=RenderFPDoc(aDocument);
 end;
 
-function TMarkdownFPDocRenderer.RenderFPDoc(aDocument: TMarkDownDocument): string;
+function TMarkdownFPDocRenderer.RenderFPDoc(aDocument: TMarkdownDocument): string;
 begin
   RenderDocument(aDocument);
   Result:=FFPDoc;
@@ -454,7 +454,7 @@ begin
   FText:=FText+S;
 end;
 
-function TFPDocMarkdownTextRenderer.MustCloseNode(aElement: TMarkDownTextNode) : boolean;
+function TFPDocMarkdownTextRenderer.MustCloseNode(aElement: TMarkdownTextNode) : boolean;
 
 begin
   Result:=aElement.kind<>nkImg;
@@ -504,7 +504,7 @@ begin
     end;
 end;
 
-function TFPDocMarkdownTextRenderer.GetNodeTag(aElement: TMarkDownTextNode) : string;
+function TFPDocMarkdownTextRenderer.GetNodeTag(aElement: TMarkdownTextNode) : string;
 begin
   case aElement.Kind of
     nkCode: Result:='code';
@@ -513,7 +513,7 @@ begin
   end;
 end;
 
-function TFPDocMarkdownTextRenderer.GetFPDocRenderer: TMarkDownFPDocRenderer;
+function TFPDocMarkdownTextRenderer.GetFPDocRenderer: TMarkdownFPDocRenderer;
 begin
   if Renderer is TMarkdownFPDocRenderer then
     Result:=TMarkdownFPDocRenderer(Renderer)
@@ -556,7 +556,7 @@ begin
   FLastStyles:=aStyles;
 end;
 
-procedure TFPDocMarkdownTextRenderer.DoRender(aElement: TMarkDownTextNode);
+procedure TFPDocMarkdownTextRenderer.DoRender(aElement: TMarkdownTextNode);
 
 begin
   EmitStyleDiff(aElement.Styles);
@@ -589,7 +589,7 @@ begin
   inherited EndBlock;
 end;
 
-function TFPDocMarkdownTextRenderer.renderAttrs(aElement: TMarkDownTextNode): AnsiString;
+function TFPDocMarkdownTextRenderer.renderAttrs(aElement: TMarkdownTextNode): AnsiString;
 
   function KeyAlias(const aKey : string): string;
 
@@ -679,12 +679,12 @@ begin
   Result:=TMarkdownParagraphBlock;
 end;
 
-class function TFPDocMarkdownTextBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownTextBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownTextBlock;
 end;
 
-procedure TFPDocMarkdownTextBlockRenderer.DoRender(aElement: TMarkDownBlock);
+procedure TFPDocMarkdownTextBlockRenderer.DoRender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownTextBlock absolute aElement;
 begin
@@ -692,7 +692,7 @@ begin
     Renderer.RenderTextNodes(lNode.Nodes);
 end;
 
-procedure TFPDocMarkdownQuoteBlockRenderer.dorender(aElement: TMarkDownBlock);
+procedure TFPDocMarkdownQuoteBlockRenderer.dorender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownQuoteBlock absolute aElement;
 
@@ -703,12 +703,12 @@ begin
   fpDoc.Pop;
 end;
 
-class function TFPDocMarkdownQuoteBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownQuoteBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownQuoteBlock;
 end;
 
-procedure TFPDocMarkdownListBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure TFPDocMarkdownListBlockRenderer.Dorender(aElement : TMarkdownBlock);
 
 var
   lNode : TMarkdownListBlock absolute aElement;
@@ -723,13 +723,13 @@ begin
   FPDoc.Pop;
 end;
 
-class function TFPDocMarkdownListBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownListBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownListBlock;
 end;
 
 
-procedure TFPDocMarkdownListItemBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure TFPDocMarkdownListItemBlockRenderer.Dorender(aElement : TMarkdownBlock);
 var
   lItemBlock : TMarkdownListItemBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -753,12 +753,12 @@ begin
   fpDoc.Pop;
 end;
 
-class function TFPDocMarkdownListItemBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownListItemBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownListItemBlock;
 end;
 
-procedure TFPDocMarkdownCodeBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure TFPDocMarkdownCodeBlockRenderer.Dorender(aElement : TMarkdownBlock);
 var
   lNode : TMarkdownCodeBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -773,25 +773,25 @@ begin
   FPDoc.Pop;
 end;
 
-class function TFPDocMarkdownCodeBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownCodeBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownCodeBlock;
 end;
 
-procedure TFPDocMarkdownThematicBreakBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure TFPDocMarkdownThematicBreakBlockRenderer.Dorender(aElement : TMarkdownBlock);
 
 begin
   if Not Assigned(aElement) then;
 end;
 
-class function TFPDocMarkdownThematicBreakBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownThematicBreakBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownThematicBreakBlock;
 end;
 
 { TMarkdownTableBlock }
 
-procedure TFPDocMarkdownTableBlockRenderer.Dorender(aElement: TMarkDownBlock);
+procedure TFPDocMarkdownTableBlockRenderer.Dorender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownTableBlock absolute aElement;
   i : integer;
@@ -806,27 +806,27 @@ begin
   fpDoc.Pop;
 end;
 
-class function TFPDocMarkdownTableBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownTableBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownTableBlock;
 end;
 
 { TFPDocMarkdownDocumentRenderer }
 
-procedure TFPDocMarkdownDocumentRenderer.Dorender(aElement: TMarkDownBlock);
+procedure TFPDocMarkdownDocumentRenderer.Dorender(aElement: TMarkdownBlock);
 
 begin
   Renderer.RenderChildren(aElement as TMarkdownDocument);
 end;
 
-class function TFPDocMarkdownDocumentRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownDocumentRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownDocument
 end;
 
 { TMarkdownTableRowBlock }
 
-procedure TFPDocMarkdownTableRowBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure TFPDocMarkdownTableRowBlockRenderer.Dorender(aElement : TMarkdownBlock);
 const
   CellTypes : Array[Boolean] of string = ('td','th'); //
 var
@@ -848,12 +848,12 @@ begin
   fpDoc.Pop;
 end;
 
-class function TFPDocMarkdownTableRowBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownTableRowBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownTableRowBlock;
 end;
 
-procedure TFPDocMarkdownHeadingBlockRenderer.Dorender(aElement : TMarkDownBlock);
+procedure TFPDocMarkdownHeadingBlockRenderer.Dorender(aElement : TMarkdownBlock);
 var
   lNode : TMarkdownHeadingBlock absolute aElement;
   lText : String;
@@ -885,13 +885,13 @@ begin
   // Renderer.RenderChildren(lNode);
 end;
 
-class function TFPDocMarkdownHeadingBlockRenderer.BlockClass: TMarkDownBlockClass;
+class function TFPDocMarkdownHeadingBlockRenderer.BlockClass: TMarkdownBlockClass;
 begin
   Result:=TMarkdownHeadingBlock;
 end;
 
 initialization
-  TFPDocMarkdownHeadingBlockRenderer.RegisterRenderer(TMarkDownFPDocRenderer);
+  TFPDocMarkdownHeadingBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocParagraphBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownQuoteBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTextBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);

@@ -35,7 +35,7 @@ uses
 type
   { TMarkdownQuoteProcessor }
 
-  TMarkdownQuoteProcessor = class (TMarkDownBlockProcessor)
+  TMarkdownQuoteProcessor = class (TMarkdownBlockProcessor)
   private
     FLevel : integer;
     function SkipQuotes(aLine: TMarkdownLine; aLevel: Integer): Integer;
@@ -44,14 +44,14 @@ type
     function inListOrQuote : boolean; override;
     function IsRoot(aParent : TMarkdownContainerBlock) : Boolean;
   public
-    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkDownLine): Boolean; override;
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : Boolean; override;
+    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
   { TMarkdownListProcessor }
 
-  TMarkdownListProcessor = class (TMarkDownBlockProcessor)
+  TMarkdownListProcessor = class (TMarkdownBlockProcessor)
   private
     FHasContent : boolean;
     FEmptyLine : integer;
@@ -62,7 +62,7 @@ type
     function Root : Boolean;
     function LastList : TMarkdownListBlock;
   public
-    function prepareline(aLine : TMarkdownLine; aContext : TMarkDownBlockProcessingContext) : boolean;
+    function prepareline(aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : boolean;
   end;
 
   { TUListProcessor }
@@ -70,11 +70,11 @@ type
   TUListProcessor = class (TMarkdownListProcessor)
   private
     function HasMarker(aLine: TMarkdownLine; out aIndent: Integer; out aMarker: String): boolean;
-    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkDownLine): boolean;
+    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkdownLine): boolean;
   public
-    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkDownLine): Boolean; override;
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : boolean; override;
+    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : boolean; override;
   end;
 
   { TOListProcessor }
@@ -83,25 +83,25 @@ type
   private
     FStart : Integer;
     function HasMarker(aLine: TMarkdownLine; out aIndent: integer; out aMarker: String; out aValue: Integer): boolean;
-    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkDownLine): boolean;
+    function IsItemInList(aList: TMarkdownListBlock; aLine: TMarkdownLine): boolean;
   Public
-    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkDownLine): Boolean; override;
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : boolean; override;
+    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : boolean; override;
   end;
 
   { TSeTextHeaderProcessor }
 
   TSeTextHeaderProcessor = class(TMarkdownBlockProcessor)
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : boolean; override;
   end;
 
   { TThematicBreakProcessor }
 
   TThematicBreakProcessor = class(TMarkdownBlockProcessor)
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
 
@@ -109,10 +109,10 @@ type
 
   TCodeBlockProcessor = class (TMarkdownBlockProcessor)
   private
-    procedure ProcessCodeBlock(C: TMarkdownCodeBlock; aLine: TMarkDownLine);
+    procedure ProcessCodeBlock(C: TMarkdownCodeBlock; aLine: TMarkdownLine);
   public
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
   { TFencedCodeBlockProcessor }
@@ -123,17 +123,17 @@ type
     FLang : String;
     FTerminal: string;
   Public
-    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkDownLine): Boolean; override;
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : Boolean; override;
+    function LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
   { TMarkdownHeadingProcessor }
 
-  TMarkdownHeadingProcessor = class(TMarkDownBlockProcessor)
+  TMarkdownHeadingProcessor = class(TMarkdownBlockProcessor)
     FLen : Integer;
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
   { TTableProcessor }
@@ -142,23 +142,23 @@ type
   private
     function CountCells(aLine: TMarkdownLine): Integer;
   protected
-    procedure ParseTableLine(aTable: TMarkdownTableBlock; aLine: TMarkDownLine);
+    procedure ParseTableLine(aTable: TMarkdownTableBlock; aLine: TMarkdownLine);
     function IsEndOfTable(aLine : TMarkdownLine) : boolean;
     // Check that number of cells in second line of table is the same as in first line
     function Strict : boolean; virtual;
   public
     class var
       DefaultStrict : Boolean;
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
   { TParagraphProcessor }
 
   TParagraphProcessor = class(TMarkdownBlockProcessor)
   public
-    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkDownLine; aContext : TMarkDownBlockProcessingContext) : Boolean; override;
-    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkDownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
   end;
 
 implementation
@@ -167,7 +167,7 @@ implementation
   TMarkdownQuoteProcessor
   ---------------------------------------------------------------------}
 
-function TMarkdownQuoteProcessor.LineEndsBlock(aBlock: TMarkDownContainerBlock; aLine: TMarkDownLine): Boolean;
+function TMarkdownQuoteProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean;
 
 var
   len : integer;
@@ -204,7 +204,7 @@ begin
     end;
 end;
 
-function TMarkdownQuoteProcessor.SkipQuotes(aLine : TMarkDownLine; aLevel : Integer) : integer;
+function TMarkdownQuoteProcessor.SkipQuotes(aLine : TMarkdownLine; aLevel : Integer) : integer;
 
 var
   len,lLevel : integer;
@@ -222,7 +222,7 @@ begin
   Result:=lLevel;
 end;
 
-function TMarkdownQuoteProcessor.IsQuotedLine(aLine: TMarkDownLine; SkipLevels : Boolean): boolean;
+function TMarkdownQuoteProcessor.IsQuotedLine(aLine: TMarkdownLine; SkipLevels : Boolean): boolean;
 
 var
   len : integer;
@@ -239,7 +239,7 @@ begin
 end;
 
 
-function TMarkdownQuoteProcessor.HandlesLine(aParent: TMarkDownContainerBlock; aLine: TMarkDownLine): boolean;
+function TMarkdownQuoteProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 begin
   Result:=IsQuotedLine(aLine,False);
@@ -251,7 +251,7 @@ begin
   Result:=true;
 end;
 
-function TMarkdownQuoteProcessor.IsRoot(aParent : TMarkDownContainerBlock): Boolean;
+function TMarkdownQuoteProcessor.IsRoot(aParent : TMarkdownContainerBlock): Boolean;
 var
   lParent : TMarkdownBlock;
 begin
@@ -268,7 +268,7 @@ begin
     end;
 end;
 
-function TMarkdownQuoteProcessor.processLine(aParent: TMarkDownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): Boolean;
+function TMarkdownQuoteProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
 
 var
   oldLevel : Integer;
@@ -298,13 +298,13 @@ begin
   Result:=False;
 end;
 
-function TMarkdownListProcessor.LastList: TMarkDownListBlock;
+function TMarkdownListProcessor.LastList: TMarkdownListBlock;
 begin
   Result:=FLastList;
 end;
 
 
-function TMarkdownListProcessor.prepareLine(aLine: TMarkDownLine; aContext : TMarkDownBlockProcessingContext): boolean;
+function TMarkdownListProcessor.prepareLine(aLine: TMarkdownLine; aContext : TMarkdownBlockProcessingContext): boolean;
 
 var
   lWhiteSpace, lCurrLineNo,lLastIndent,len : integer;
@@ -354,7 +354,7 @@ end;
   TMarkdownHeadingProcessor
   ---------------------------------------------------------------------}
 
-function TMarkdownHeadingProcessor.HandlesLine(aParent: TMarkDownContainerBlock; aLine: TMarkDownLine): boolean;
+function TMarkdownHeadingProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 var
   ls : string;
   lLen,lCount : integer;
@@ -371,7 +371,7 @@ begin
 end;
 
 
-function TMarkdownHeadingProcessor.processLine(aParent: TMarkDownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): Boolean;
+function TMarkdownHeadingProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
 
 var
   lBlock : TMarkdownHeadingBlock;
@@ -401,7 +401,7 @@ end;
   TUListProcessor
   ---------------------------------------------------------------------}
 
-function TUListProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkDownLine): Boolean;
+function TUListProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean;
 var
   lBlock : TMarkdownContainerBlock;
   lList : TMarkdownListBlock absolute lBlock;
@@ -411,7 +411,7 @@ begin
   Result:=aBlock.line<>aLine.LineNo;
   if Not Result then
     Exit;
-  if (lBlock is TMarkdownListItemBlock) and (lBlock.Parent is TMarkDownListBlock) then
+  if (lBlock is TMarkdownListItemBlock) and (lBlock.Parent is TMarkdownListBlock) then
      lBlock:=lBlock.Parent as TMarkdownListBlock;
   if (lBlock is TMarkdownListBlock) then
     if aLine.LeadingWhitespace>=lList.LastIndent then
@@ -443,7 +443,7 @@ begin
   Result:=true;
 end;
 
-function TUListProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TUListProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 var
   lMarker : string;
@@ -452,7 +452,7 @@ begin
   Result:=HasMarker(aLine,lIndent,lMarker);
 end;
 
-function TUListProcessor.IsItemInList(aList : TMarkdownListBlock; aLine : TMarkDownLine) : boolean;
+function TUListProcessor.IsItemInList(aList : TMarkdownListBlock; aLine : TMarkdownLine) : boolean;
 
 var
   len : integer;
@@ -466,7 +466,7 @@ begin
     Result := (len >= aList.baseIndent);
 end;
 
-function TUListProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): boolean;
+function TUListProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): boolean;
 
 var
   lOldLastList, lList : TMarkdownListBlock;
@@ -549,7 +549,7 @@ begin
   Result:=True;
 end;
 
-function TOListProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TOListProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 var
   lIndent,lStart : integer;
@@ -558,7 +558,7 @@ begin
   Result:=HasMarker(aLine,lIndent,lMarker,lStart);
 end;
 
-function TOListProcessor.IsItemInList(aList : TMarkdownListBlock; aLine : TMarkDownLine) : boolean;
+function TOListProcessor.IsItemInList(aList : TMarkdownListBlock; aLine : TMarkdownLine) : boolean;
 
 var
   len : integer;
@@ -586,7 +586,7 @@ begin
     Result:=False;
 end;
 
-function TOListProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkDownLine): Boolean;
+function TOListProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean;
 var
   lBlock : TMarkdownContainerBlock;
   lList : TMarkdownListBlock absolute lBlock;
@@ -596,7 +596,7 @@ begin
   Result:=aBlock.line<>aLine.LineNo;
   if Not Result then
     Exit;
-  if (lBlock is TMarkdownListItemBlock) and (lBlock.Parent is TMarkDownListBlock) then
+  if (lBlock is TMarkdownListItemBlock) and (lBlock.Parent is TMarkdownListBlock) then
      lBlock:=lBlock.Parent as TMarkdownListBlock;
   if not (lBlock is TMarkdownListBlock) then
     Exit;
@@ -609,7 +609,7 @@ begin
 end;
 
 
-function TOListProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): boolean;
+function TOListProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): boolean;
 var
   lOldLastList, lList : TMarkdownListBlock;
   lOldLastItem, lItem : TMarkdownListItemBlock;
@@ -664,7 +664,7 @@ end;
   TCodeBlockProcessor
   ---------------------------------------------------------------------}
 
-function TCodeBlockProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TCodeBlockProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 var
   Indent : integer;
@@ -681,7 +681,7 @@ begin
   Result:=true;
 end;
 
-procedure TCodeBlockProcessor.ProcessCodeBlock(C: TMarkdownCodeBlock; aLine: TMarkDownLine);
+procedure TCodeBlockProcessor.ProcessCodeBlock(C: TMarkdownCodeBlock; aLine: TMarkdownLine);
 
 var
   S : String;
@@ -715,7 +715,7 @@ begin
     end;
 end;
 
-function TCodeBlockProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): Boolean;
+function TCodeBlockProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
 
 var
   lBlock : TMarkdownCodeBlock;
@@ -730,7 +730,7 @@ begin
 end;
 
 
-function TFencedCodeBlockProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TFencedCodeBlockProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 var
   s, s1 : String;
@@ -791,7 +791,7 @@ begin
   end;
 end;
 
-function TFencedCodeBlockProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkDownLine): Boolean;
+function TFencedCodeBlockProcessor.LineEndsBlock(aBlock: TMarkdownContainerBlock; aLine: TMarkdownLine): Boolean;
 
 var
   s : String;
@@ -810,7 +810,7 @@ begin
   Result:=IsStringOfChar(s) and s.StartsWith(FTerminal);
 end;
 
-function TFencedCodeBlockProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): Boolean;
+function TFencedCodeBlockProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
 
 var
   lBlock : TMarkdownCodeBlock;
@@ -866,7 +866,7 @@ begin
     end;
 end;
 
-function TTableProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TTableProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 var
   lCount,lCountNext  : integer;
@@ -894,7 +894,7 @@ begin
   Result:=(lCount=lCountNext)
 end;
 
-function TTableProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): Boolean;
+function TTableProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
 
 var
   i : integer;
@@ -929,7 +929,7 @@ begin
   Result:=True;
 end;
 
-procedure TTableProcessor.ParseTableLine(aTable: TMarkdownTableBlock; aLine: TMarkDownLine);
+procedure TTableProcessor.ParseTableLine(aTable: TMarkdownTableBlock; aLine: TMarkdownLine);
 
 var
   lRow : TMarkdownTableRowBlock;
@@ -1007,12 +1007,12 @@ end;
   TParagraphProcessor
   ---------------------------------------------------------------------}
 
-function TParagraphProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TParagraphProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 begin
   Result:=True;
 end;
 
-function TParagraphProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): boolean;
+function TParagraphProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): boolean;
 
 var
   lPar : TMarkdownParagraphBlock;
@@ -1040,7 +1040,7 @@ end;
   TSeTextHeaderProcessor
   ---------------------------------------------------------------------}
 
-function TSeTextHeaderProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TSeTextHeaderProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 var
   p : TMarkdownParagraphBlock;
@@ -1070,7 +1070,7 @@ begin
 end;
 
 
-function TSeTextHeaderProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): boolean;
+function TSeTextHeaderProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): boolean;
 
 var
   S : String;
@@ -1092,7 +1092,7 @@ end;
   TThematicBreakProcessor
   ---------------------------------------------------------------------}
 
-function TThematicBreakProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine): boolean;
+function TThematicBreakProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
 
 var
   S : String;
@@ -1110,7 +1110,7 @@ begin
 end;
 
 
-function TThematicBreakProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkDownLine; aContext: TMarkDownBlockProcessingContext): Boolean;
+function TThematicBreakProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
 
 begin
   TMarkdownThematicBreakBlock.Create(aParent,aLine.LineNo);
