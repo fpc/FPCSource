@@ -3890,12 +3890,12 @@ implementation
                not valid_for_var(pt.left,true) then
               compiler.verbose.CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
             else
-              CGMessagePos3(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,tostr(hp^.wrongparanr),
+              compiler.verbose.CGMessagePos3(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,tostr(hp^.wrongparanr),
                 FullTypeName(pt.left.resultdef,wrongpara.vardef),
                 FullTypeName(wrongpara.vardef,pt.left.resultdef))
           end
         else
-          CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
+          compiler.verbose.CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
             FullTypeName(pt.left.resultdef,wrongpara.vardef),
             FullTypeName(wrongpara.vardef,pt.left.resultdef));
       end;
