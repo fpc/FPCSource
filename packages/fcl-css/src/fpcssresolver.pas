@@ -151,7 +151,7 @@ type
 
   { ECSSResolver }
 
-  ECSSResolver = class(ECSSECSSResolver)
+  ECSSResolver = class(ECSSException)
   end;
 
   TCSSAttributeMatchKind = (

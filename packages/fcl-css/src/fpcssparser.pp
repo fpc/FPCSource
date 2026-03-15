@@ -32,8 +32,8 @@ uses
   TypInfo, Classes, SysUtils, fpcsstree, fpcssscanner;
 {$ENDIF FPC_DOTTEDUNITS}
 
-Type
-  ECSSParser = Class(ECSSECSSParser);
+Type	
+  ECSSParser = Class(ECSSException);
 
   { TCSSParser }
 
