@@ -715,6 +715,7 @@ Const
       TCompilerTime = class
         starttime  : real;
         startsystime : TSystemTime;
+        function getdatestr:string;
       end;
 
       { TCompilerGlobals }
@@ -722,7 +723,6 @@ Const
       TCompilerGlobals = class
       end;
 
-    function getdatestr:string;
     function gettimestr:string;
     function filetimestring( t : longint) : string;
     function getrealtime(const st: TSystemTime) : real;
@@ -980,7 +980,7 @@ implementation
       end;
 
 
-   function getdatestr:string;
+   function TCompilerTime.getdatestr:string;
    {
      get the current date in a string YY/MM/DD
    }

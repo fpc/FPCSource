@@ -2848,7 +2848,7 @@ type
                if datestr<>'' then
                  hs:=datestr
                else
-                 hs:=getdatestr;
+                 hs:=compiler.time.getdatestr;
              'DATEYEAR':
                begin
                  hs:=tostr(compiler.time.startsystime.Year);
