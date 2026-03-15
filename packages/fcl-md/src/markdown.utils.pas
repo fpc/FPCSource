@@ -114,13 +114,11 @@ function UrlEscape(const S : String) : String; overload;
 // Is the string S an absolute URI ?
 function isAbsoluteUri(const S : String) : boolean;
 // Is S a valid email address
-function IsValidEmail(const S : String) : boolean;
+function IsEmailLike(const S : String) : boolean;
 // Parse entity string
 function ParseEntityString(aEntities : TFPStringHashTable; const aEntity : String): String;
 // Check if S ends on an entity start character, and if so, return the length of the entity
 function CheckForTrailingEntity(Const S : String) : integer;
-// Return true if aContent is a match for regular expression aRegex
-function IsRegexMatch(const aContent, aRegex: String): boolean;
 // Is aChar a Unicode punctuation character ?
 function IsUnicodePunctuation(aChar : UnicodeChar) : boolean;
 // Count the number of characters aChar at the start of aLine
@@ -559,23 +557,6 @@ begin
    exit(Length(tmp)+2);
 end;
 
-function IsRegexMatch(const aContent, aRegex: String): boolean;
-
-var
-  lRegex : TRegExpr;
-
-begin
-  Result:=False;
-  if aContent = '' then
-    Exit;
-  lRegex:=TRegExpr.create(aRegex);
-  try
-    Result:=lRegex.exec(aContent);
-  finally
-    lRegex.Free;
-  end;
-end;
-
 function TransformTabs(const aLine: string): string;
 
 var
@@ -687,7 +668,7 @@ begin
   Result:=true;
 end;
 
-function IsValidEmail(const S : String) : boolean;
+function IsEmailLike(const S : String) : boolean;
 
 type
   TState = (sNeutral,sUser,sHost,sDomain);

@@ -237,7 +237,7 @@ begin
       end
     else
       begin
-      lAdd:=IsValidEmail(lText);
+      lAdd:=IsEmailLike(lText);
       if lAdd then
         begin
         lNodeKind:=nkEmail;
@@ -855,7 +855,7 @@ begin
     Exit;
   if cLast='.' then
     SetLength(S,lLen-1);
-  Result:=IsValidEmail(S);
+  Result:=IsEmailLike(S);
   if Result then
     Len:=Length(s);
 end;
