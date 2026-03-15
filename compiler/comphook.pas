@@ -385,7 +385,7 @@ begin
     MsgTypeStr:=MsgTypeStr+' ';
   if (status.verbosity and V_TimeStamps)<>0 then
     begin
-      system.str(getrealtime-compiler.time.starttime:0:3,hs2);
+      system.str(compiler.time.getrealtime-compiler.time.starttime:0:3,hs2);
       MsgTimeStr:='['+hs2+'] ';
     end;
 
