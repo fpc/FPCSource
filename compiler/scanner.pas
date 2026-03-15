@@ -1005,8 +1005,8 @@ implementation
         if current_scanner.c <> '''' then
           compiler.verbose.Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
-        stringdispose(outputsuffix);
-        outputsuffix := stringdup(s);
+        stringdispose(compiler.globals.outputsuffix);
+        compiler.globals.outputsuffix := stringdup(s);
         with current_module do
           setfilename(paramfn, paramallowoutput);
       end;

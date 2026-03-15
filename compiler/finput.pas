@@ -646,8 +646,8 @@ uses
                prefix := compiler.globals.OutputPrefix^
              else
                prefix := compiler.target.info.sharedlibprefix;
-             if Assigned(OutputSuffix) then
-               suffix := OutputSuffix^
+             if Assigned(compiler.globals.OutputSuffix) then
+               suffix := compiler.globals.OutputSuffix^
              else
                suffix := '';
              sharedlibfilename:=p+prefix+n+suffix+compiler.target.info.sharedlibext;
