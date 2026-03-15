@@ -56,6 +56,7 @@ interface
 
       TVerbose = class
       private
+        procedure Loadprefixes;
         procedure LoadMsgFile(const fn:string);
         procedure MaybeLoadMessageFile;
         Procedure UpdateStatus;
@@ -407,7 +408,7 @@ implementation
       end;
 
 
-    procedure Loadprefixes;
+    procedure TVerbose.Loadprefixes;
 
         function loadprefix(w:longint):string;
         var
