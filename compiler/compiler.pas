@@ -170,6 +170,7 @@ type
   TCompiler = class(TCompilerBase)
   private
     FTarget: TCompilerTarget;
+    FTime: TCompilerTime;
     FGlobals: TCompilerGlobals;
     FVerbose: TVerbose;
     FTaskHandler: TTask_handler;
@@ -202,6 +203,7 @@ type
     function Compile(const cmd:TCmdStr):longint;
 
     property Target: TCompilerTarget read FTarget;
+    property Time: TCompilerTime read FTime;
     property Verbose: TVerbose read FVerbose;
     property Globals: TCompilerGlobals read FGlobals;
     property Parser: TParser read FParser;
@@ -239,6 +241,7 @@ type
     function GetRTTIWriter: TRTTIWriter; inline;
     function Getsymtablestack: TSymtablestack; inline;
     function GetTarget: TCompilerTarget; inline;
+    function GetTime: TCompilerTime; inline;
     function GetVerbose: TVerbose; inline;
     procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
   public
@@ -350,6 +353,7 @@ type
 
     property Target: TCompilerTarget read GetTarget;
     property Verbose: TVerbose read GetVerbose;
+    property Time: TCompilerTime read GetTime;
     property Globals: TCompilerGlobals read GetGlobals;
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
@@ -418,6 +422,7 @@ begin
   FreeAndNil(FBlockUtl);
   FreeAndNil(FObjCGUtl);
   FreeAndNil(FNodeUtils);
+  FreeAndNil(FTime);
 end;
 
 
@@ -505,6 +510,8 @@ begin
        SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
                          exOverflow, exUnderflow, exPrecision]);
 
+       FreeAndNil(FTime);
+       FTime:=TCompilerTime.Create;
        GetLocalTime(startsystime);
        starttime := getrealtime(startsystime);
 
@@ -751,6 +758,11 @@ end;
 function TCompilerHelper.GetTarget: TCompilerTarget; inline;
 begin
   Result := TCompiler(Self).Target;
+end;
+
+function TCompilerHelper.GetTime: TCompilerTime;
+begin
+  Result := TCompiler(Self).Time;
 end;
 
 function TCompilerHelper.GetVerbose: TVerbose; inline;

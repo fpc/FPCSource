@@ -714,6 +714,11 @@ Const
 
     type
 
+      { TCompilerTime }
+
+      TCompilerTime = class
+      end;
+
       { TCompilerGlobals }
 
       TCompilerGlobals = class
