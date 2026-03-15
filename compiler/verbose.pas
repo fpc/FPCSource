@@ -79,13 +79,13 @@ interface
         procedure MessagePos(const pos:tfileposinfo;w:longint;onqueue:tmsgqueueevent=nil);
         procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
         procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
+        procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
 
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
-    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
 
     { message calls with codegenerror support }
@@ -875,7 +875,7 @@ implementation
       end;
 
 
-    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure TVerbose.MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
@@ -1011,7 +1011,7 @@ implementation
          if not(codegenerror) then
            begin
               olderrorcount:=compiler.verbose.Errorcount;
-              verbose.MessagePos3(pos,t,s1,s2,s3);
+              compiler.verbose.MessagePos3(pos,t,s1,s2,s3);
               codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;
