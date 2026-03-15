@@ -296,13 +296,13 @@ implementation
                    (not assigned(orgaccesspd) or
                     (sym<>orgaccesspd.procsym)) then
                   begin
-                    MessagePos2(fileinfo,parser_e_cannot_generate_property_getter_setter,accessorname,FullTypeName(tdef(sym.owner.defowner),nil)+'.'+accessorname);
+                    compiler.verbose.MessagePos2(fileinfo,parser_e_cannot_generate_property_getter_setter,accessorname,FullTypeName(tdef(sym.owner.defowner),nil)+'.'+accessorname);
                     exit;
                   end
                 else
                   begin
                     if accessorname<>sym.realname then
-                      MessagePos2(fileinfo,parser_w_case_difference_auto_property_getter_setter_prefix,sym.realname,accessorname);
+                      compiler.verbose.MessagePos2(fileinfo,parser_w_case_difference_auto_property_getter_setter_prefix,sym.realname,accessorname);
                     { is the specified getter/setter defined in the current
                       struct and was it originally specified as the getter/
                       setter for this property? If so, simply adjust its

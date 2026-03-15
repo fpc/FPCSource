@@ -615,7 +615,7 @@ implementation
           name:='';
         if sp_hint_deprecated in symoptions then
           if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
-            MessagePos2(filepos,sym_w_deprecated_symbol_with_msg,name,deprecatedmsg^)
+            compiler.verbose.MessagePos2(filepos,sym_w_deprecated_symbol_with_msg,name,deprecatedmsg^)
           else
             compiler.verbose.MessagePos1(filepos,sym_w_deprecated_symbol,name);
         if sp_hint_experimental in symoptions then

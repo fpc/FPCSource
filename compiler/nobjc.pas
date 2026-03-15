@@ -149,7 +149,7 @@ function tobjcprotocolnode.pass_typecheck: tnode;
     if (left.nodetype<>typen) then
       compiler.verbose.MessagePos(left.fileinfo,type_e_type_id_expected)
     else if not is_objcprotocol(left.resultdef) then
-      MessagePos2(left.fileinfo,type_e_incompatible_types,left.resultdef.typename,'ObjCProtocol');
+      compiler.verbose.MessagePos2(left.fileinfo,type_e_incompatible_types,left.resultdef.typename,'ObjCProtocol');
     resultdef:=objc_protocoltype;
   end;
 

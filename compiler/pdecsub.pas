@@ -318,7 +318,7 @@ implementation
                    { check whether the default value is of the correct
                      type }
                    if compare_defs_ext(compiler.symtablestack,defaultvalue.constdef,hdef,nodetype,doconv,convpd,[])<=te_convert_operator then
-                     MessagePos2(defaultvalue.fileinfo,type_e_incompatible_types,FullTypeName(defaultvalue.constdef,hdef),FullTypeName(hdef,defaultvalue.constdef));
+                     compiler.verbose.MessagePos2(defaultvalue.fileinfo,type_e_incompatible_types,FullTypeName(defaultvalue.constdef,hdef),FullTypeName(hdef,defaultvalue.constdef));
                  end;
                defaultrequired:=true;
              end
@@ -3273,20 +3273,20 @@ const
         { Conflicts between directives? }
         if (pd.proctypeoption in proc_direcdata[p].mutexclpotype) then
           begin
-            MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,ProcTypeOptionKeywords[pd.proctypeoption]);
+            compiler.verbose.MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,ProcTypeOptionKeywords[pd.proctypeoption]);
             exit;
           end;
 
         if (pd.proccalloption in proc_direcdata[p].mutexclpocall) then
           begin
-            MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,'"' + UpCase(proccalloptionStr[pd.proccalloption]) + '"');
+            compiler.verbose.MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,'"' + UpCase(proccalloptionStr[pd.proccalloption]) + '"');
             exit;
           end;
 
         po_comp := (pd.procoptions*proc_direcdata[p].mutexclpo);
         if (po_comp<>[]) then
           begin
-            MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,get_first_proc_str(po_comp));
+            compiler.verbose.MessagePos2(tokenloc, parser_e_proc_dir_conflict,name,get_first_proc_str(po_comp));
             exit;
           end;
 
@@ -3295,7 +3295,7 @@ const
          begin
            if (po_hascallingconvention in pd.procoptions) then
             begin
-              MessagePos2(tokenloc, parser_w_proc_overriding_calling,
+              compiler.verbose.MessagePos2(tokenloc, parser_w_proc_overriding_calling,
                 proccalloptionStr[pd.proccalloption],
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;

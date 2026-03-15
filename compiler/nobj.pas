@@ -174,7 +174,7 @@ implementation
                   { if both have a message name, make sure they are equal }
                   if (vmtpd.messageinf.str^<>pd.messageinf.str^) then
                     begin
-                      MessagePos2(pd.fileinfo,parser_e_objc_message_name_changed,vmtpd.messageinf.str^,pd.messageinf.str^);
+                      compiler.verbose.MessagePos2(pd.fileinfo,parser_e_objc_message_name_changed,vmtpd.messageinf.str^,pd.messageinf.str^);
                       result:=false;
                     end;
                 end;
@@ -561,9 +561,9 @@ implementation
                           implementing method? }
                         if implprocdef.visibility<proc.visibility then
 {$ifdef jvm}
-                          MessagePos2(implprocdef.fileinfo,type_e_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
+                          compiler.verbose.MessagePos2(implprocdef.fileinfo,type_e_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
 {$else}
-                          MessagePos2(implprocdef.fileinfo,type_w_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
+                          compiler.verbose.MessagePos2(implprocdef.fileinfo,type_w_interface_lower_visibility,proc.fullprocname(false),implprocdef.fullprocname(false));
 {$endif}
                         result:=implprocdef;
                         addsymref(result.procsym,result);
@@ -640,7 +640,7 @@ implementation
                               objcclass, it has to match the message name in the
                               protocol definition.  }
                             if (implprocdef.messageinf.str^<>tprocdef(def).messageinf.str^) then
-                              MessagePos2(implprocdef.fileinfo,parser_e_objc_message_name_changed,tprocdef(def).messageinf.str^,implprocdef.messageinf.str^);
+                              compiler.verbose.MessagePos2(implprocdef.fileinfo,parser_e_objc_message_name_changed,tprocdef(def).messageinf.str^,implprocdef.messageinf.str^);
                           end;
                       end;
                   end

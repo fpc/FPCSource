@@ -410,7 +410,7 @@ uses
                 { type constrained param doesn't match type }
                 if not compare_generic_params(paradef,genericdef.get_generic_param_def(i),tconstsym(paramlist[i])) then
                   begin
-                    MessagePos2(filepos,type_e_incompatible_types,FullTypeName(paradef,genparadef),FullTypeName(genparadef,paradef));
+                    compiler.verbose.MessagePos2(filepos,type_e_incompatible_types,FullTypeName(paradef,genparadef),FullTypeName(genparadef,paradef));
                     exit(false);
                   end;
               end;
@@ -503,7 +503,7 @@ uses
                                     continue;
                                   if not def_is_related(paraobjdef,formalobjdef.childof) then
                                     begin
-                                      MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
+                                      compiler.verbose.MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
                                       result:=false;
                                     end;
                                 end;
@@ -526,7 +526,7 @@ uses
                                     end;
                                   result:=intffound;
                                   if not result then
-                                    MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,formalobjdef.childof.typename);
+                                    compiler.verbose.MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,formalobjdef.childof.typename);
                                 end;
                               else
                                 begin
@@ -556,7 +556,7 @@ uses
                             if assigned(formalobjdef.childof) and
                                 not def_is_related(paradef,formalobjdef.childof) then
                               begin
-                                MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
+                                compiler.verbose.MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
                                 result:=false;
                               end;
                             intfcount:=0;
@@ -578,7 +578,7 @@ uses
                                 if intffound then
                                   inc(intfcount)
                                 else
-                                  MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef.typename);
+                                  compiler.verbose.MessagePos2(filepos,parser_e_class_doesnt_implement_interface,paraobjdef.typename,timplementedinterface(formalobjdef.implementedinterfaces[j]).intfdef.typename);
                               end;
                             if intfcount<>formalobjdef.implementedinterfaces.count then
                               result:=false;

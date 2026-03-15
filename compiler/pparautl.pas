@@ -1063,7 +1063,7 @@ implementation
                      begin
                        po_comp:=currpd.procoptions*PD_VIRTUAL_MUTEXCLPO;
                        if po_comp<>[] then
-                         MessagePos2(currpd.fileinfo,parser_e_proc_dir_conflict,tokeninfo^[_VIRTUAL].str,get_first_proc_str(po_comp));
+                         compiler.verbose.MessagePos2(currpd.fileinfo,parser_e_proc_dir_conflict,tokeninfo^[_VIRTUAL].str,get_first_proc_str(po_comp));
                      end;
                     { Check parameters }
                    if (m_repeat_forward in current_settings.modeswitches) or

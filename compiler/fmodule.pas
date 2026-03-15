@@ -572,7 +572,7 @@ implementation
         uname:=u.realmodulename;
         if mo_hint_deprecated in u.moduleoptions then
           if (mo_has_deprecated_msg in u.moduleoptions) and (u.deprecatedmsg <> nil) then
-            MessagePos2(unitsym.fileinfo,sym_w_deprecated_unit_with_msg,uname^,u.deprecatedmsg^)
+            compiler.verbose.MessagePos2(unitsym.fileinfo,sym_w_deprecated_unit_with_msg,uname^,u.deprecatedmsg^)
           else
             compiler.verbose.MessagePos1(unitsym.fileinfo,sym_w_deprecated_unit,uname^);
         if mo_hint_experimental in u.moduleoptions then

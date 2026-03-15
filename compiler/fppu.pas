@@ -2384,7 +2384,7 @@ var
                       pu:=tused_unit(pu.next);
                     end;
                   if assigned(pu) and assigned(pu.unitsym) then
-                    MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^)
+                    compiler.verbose.MessagePos2(pu.unitsym.fileinfo,unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^)
                   else
                     compiler.verbose.Message2(unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^);
                 end
