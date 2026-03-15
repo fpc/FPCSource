@@ -301,9 +301,6 @@ Const
 
 
     var
-       { specified with -FW and -Fw }
-       wpofeedbackinput,
-       wpofeedbackoutput : TPathStr;
 {$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
        { specified with -Ff }
        idfpath           : TPathStr;
@@ -725,6 +722,9 @@ Const
         { specified with -FE or -FU }
         outputexedir      : TPathStr;
         outputunitdir     : TPathStr;
+        { specified with -FW and -Fw }
+        wpofeedbackinput,
+        wpofeedbackoutput : TPathStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

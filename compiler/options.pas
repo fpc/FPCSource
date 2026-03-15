@@ -3226,9 +3226,9 @@ begin
               D:=FixPath(D,True);
             D:=D+ExtractFileName(More);
             if (c='W') then
-              WpoFeedbackOutput:=D
+              compiler.globals.wpofeedbackoutput:=D
             else
-              WpoFeedbackInput:=D;
+              compiler.globals.wpofeedbackinput:=D;
           end
         else
           IllegalPara(opt);

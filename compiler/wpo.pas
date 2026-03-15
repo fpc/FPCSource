@@ -28,7 +28,7 @@ interface
 
 uses
   { all units with whole program optimisation components }
-  optvirt,optdead;
+  optvirt,optdead,compilerbase;
 
 
   procedure InitWpo;
@@ -38,11 +38,13 @@ implementation
 
   uses
     globals,
-    comphook,
+    comphook,compiler,
     wpobase, wpoinfo;
 
   { called after command line parameters have been parsed }
   procedure InitWpo;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { always create so we don't have to litter the source with if-tests }
       wpoinfomanager:=twpoinfomanager.create;
@@ -52,10 +54,10 @@ implementation
       wpoinfomanager.registerwpocomponentclass(twpodeadcodeinfofromexternallinker);
 
       { assign input/output feedback files }
-      if (wpofeedbackinput<>'') then
-        wpoinfomanager.setwpoinputfile(wpofeedbackinput);
-      if (wpofeedbackoutput<>'') then
-        wpoinfomanager.setwpooutputfile(wpofeedbackoutput);
+      if (compiler.globals.wpofeedbackinput<>'') then
+        wpoinfomanager.setwpoinputfile(compiler.globals.wpofeedbackinput);
+      if (compiler.globals.wpofeedbackoutput<>'') then
+        wpoinfomanager.setwpooutputfile(compiler.globals.wpofeedbackoutput);
 
       { parse input }
       wpoinfomanager.parseandcheckwpoinfo;
@@ -67,11 +69,13 @@ implementation
 
 
   procedure DoneWpo;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       wpoinfomanager.free;
       wpoinfomanager:=nil;
-      wpofeedbackinput:='';
-      wpofeedbackoutput:='';
+      compiler.globals.wpofeedbackinput:='';
+      compiler.globals.wpofeedbackoutput:='';
     end;
 
 

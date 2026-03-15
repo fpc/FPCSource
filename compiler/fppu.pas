@@ -1505,7 +1505,7 @@ var
         }
         orgwpofilename:=ppufile.getstring;
         orgwpofiletime:=ppufile.getlongint;
-        if (extractfilename(orgwpofilename)<>extractfilename(wpofeedbackinput)) or
+        if (extractfilename(orgwpofilename)<>extractfilename(compiler.globals.wpofeedbackinput)) or
            (orgwpofiletime<>GetNamedFileTime(orgwpofilename)) then
           { make sure we don't throw away a precompiled unit if the user simply
             forgot to specify the right wpo feedback file
@@ -1771,10 +1771,10 @@ var
            will recompile the unit when checking whether the correct wpo file is
            used (if it will recompile the unit anyway, it doesn't matter)
          }
-         if (wpofeedbackinput<>'') then
+         if (compiler.globals.wpofeedbackinput<>'') then
            begin
-             ppufile.putstring(wpofeedbackinput);
-             ppufile.putlongint(getnamedfiletime(wpofeedbackinput));
+             ppufile.putstring(compiler.globals.wpofeedbackinput);
+             ppufile.putlongint(getnamedfiletime(compiler.globals.wpofeedbackinput));
              ppufile.writeentry(ibwpofile);
            end;
          writelinkcontainer(linkunitofiles,iblinkunitofiles,true);
