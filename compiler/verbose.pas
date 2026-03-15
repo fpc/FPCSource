@@ -59,7 +59,11 @@ interface
         Procedure UpdateStatus;
         function GetMessageState(m:longint):tmsgstate;
         Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
+
+        procedure InitVerbose;
       public
+        constructor Create;
+
         procedure SetRedirectFile(const fn:string);
         function  SetVerbosity(const s:TCmdStr):boolean;
         procedure PrepareReport;
@@ -103,7 +107,6 @@ interface
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
 
-    procedure InitVerbose;
     procedure DoneVerbose;
 
 
@@ -1036,7 +1039,13 @@ implementation
                                 Initialization
 *****************************************************************************}
 
-    procedure InitVerbose;
+    constructor TVerbose.Create;
+      begin
+        InitVerbose;
+      end;
+
+
+    procedure TVerbose.InitVerbose;
       begin
       { Init }
         msg:=new(pmessage,Init(20,msgidxmax));

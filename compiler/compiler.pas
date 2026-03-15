@@ -441,7 +441,6 @@ begin
   InitGlobals;
   { verbose depends on exe_path and must be after globals }
   FVerbose:=TVerbose.Create;
-  InitVerbose;
   inittokens;
   InitSymtable(Self); {Must come before read_arguments, to enable macrosymstack}
   do_initSymbolInfo;
