@@ -712,6 +712,13 @@ Const
       starttime  : real;
       startsystime : TSystemTime;
 
+    type
+
+      { TCompilerGlobals }
+
+      TCompilerGlobals = class
+      end;
+
     function getdatestr:string;
     function gettimestr:string;
     function filetimestring( t : longint) : string;

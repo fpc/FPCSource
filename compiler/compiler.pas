@@ -170,6 +170,7 @@ type
   TCompiler = class(TCompilerBase)
   private
     FTarget: TCompilerTarget;
+    FGlobals: TCompilerGlobals;
     FVerbose: TVerbose;
     FTaskHandler: TTask_handler;
     FParser: TParser;
@@ -202,6 +203,7 @@ type
 
     property Target: TCompilerTarget read FTarget;
     property Verbose: TVerbose read FVerbose;
+    property Globals: TCompilerGlobals read FGlobals;
     property Parser: TParser read FParser;
     property NodeUtils: TNodeUtils read FNodeUtils;
     property Opt: TOptimizers read FOpt;
@@ -224,6 +226,7 @@ type
   private
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
+    function GetGlobals: TCompilerGlobals; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
@@ -347,6 +350,7 @@ type
 
     property Target: TCompilerTarget read GetTarget;
     property Verbose: TVerbose read GetVerbose;
+    property Globals: TCompilerGlobals read GetGlobals;
     property Parser: TParser read GetParser;
     property NodeUtils: TNodeUtils read GetNodeUtils;
     property Opt: TOptimizers read GetOpt;
@@ -401,6 +405,7 @@ begin
   do_doneSymbolInfo;
   DoneSymtable(Self);
   DoneGlobals;
+  FreeAndNil(FGlobals);
   DoneFileUtils;
   donetokens;
   DoneTaskHandler(FTaskHandler);
@@ -438,6 +443,7 @@ begin
   { fileutils depends on source_info so it must be after systems }
   InitFileUtils;
   { globals depends on source_info so it must be after systems }
+  FGlobals:=TCompilerGlobals.Create;
   InitGlobals;
   { verbose depends on exe_path and must be after globals }
   FVerbose:=TVerbose.Create;
@@ -680,6 +686,11 @@ end;
 function TCompilerHelper.GetBlockUtl: TBlockUtils; inline;
 begin
   Result := TCompiler(Self).BlockUtl;
+end;
+
+function TCompilerHelper.GetGlobals: TCompilerGlobals; inline;
+begin
+  Result := TCompiler(Self).Globals;
 end;
 
 function TCompilerHelper.Getinitialmacrosymtable: TSymtable; inline;
