@@ -642,8 +642,8 @@ uses
          else
            begin
              exefilename:=p+n+compiler.target.info.exeext;
-             if Assigned(OutputPrefix) then
-               prefix := OutputPrefix^
+             if Assigned(compiler.globals.OutputPrefix) then
+               prefix := compiler.globals.OutputPrefix^
              else
                prefix := compiler.target.info.sharedlibprefix;
              if Assigned(OutputSuffix) then
