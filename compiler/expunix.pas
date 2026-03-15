@@ -101,7 +101,7 @@ begin
   { first test the index value }
   if eo_index in hp.options then
    begin
-     Message1(parser_e_no_export_with_index_for_target,compiler.target.info.shortname);
+     compiler.verbose.Message1(parser_e_no_export_with_index_for_target,compiler.target.info.shortname);
      exit;
    end;
   { now place in correct order }

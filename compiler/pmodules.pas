@@ -345,7 +345,7 @@ implementation
               _unitname:='FPEXTRES'
             else
               _unitname:='FPINTRES';
-            Message1(unit_u_unload_resunit,_unitname);
+            compiler.verbose.Message1(unit_u_unload_resunit,_unitname);
             { find the module }
             hp:=tmodule(loaded_units.first);
             while assigned(hp) do
@@ -739,7 +739,7 @@ implementation
                  usedunits.concat(tused_unit.create(hp2,curr.in_interface,true,nil));
                end
              else
-               Message1(sym_e_duplicate_id,s);
+               compiler.verbose.Message1(sym_e_duplicate_id,s);
              { Create unitsym, we need to use the name as specified, we
                can not use the modulename because that can be different
                when -Un is used }
@@ -749,7 +749,7 @@ implementation
              curr.addusedunit(hp2,true,unitsym);
            end
           else
-           Message1(sym_e_duplicate_id,s);
+           compiler.verbose.Message1(sym_e_duplicate_id,s);
           if current_scanner.token=_COMMA then
            begin
              current_scanner.pattern:='';
@@ -1255,7 +1255,7 @@ type
 
         if not curr.interface_only then
           begin
-            Message1(parser_u_parsing_implementation,curr.modulename^);
+            compiler.verbose.Message1(parser_u_parsing_implementation,curr.modulename^);
             if curr.in_interface then
               internalerror(200212285);
 
@@ -1327,7 +1327,7 @@ type
           }
 
         { ... parse the declarations }
-        Message1(parser_u_parsing_interface,curr.realmodulename^);
+        compiler.verbose.Message1(parser_u_parsing_interface,curr.realmodulename^);
 
 {$ifdef jvm}
          { fake classdef to represent the class corresponding to the unit }
@@ -1349,7 +1349,7 @@ type
         { leave when we got an error }
         if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             compiler.symtablestack.pop(curr.globalsymtable);
             curr.state:=ms_moduleerror;
@@ -1390,7 +1390,7 @@ type
         if not curr.interface_only then
           begin
             parser.pbase.consume(_IMPLEMENTATION);
-            Message1(unit_u_loading_implementation_units,curr.modulename^);
+            compiler.verbose.Message1(unit_u_loading_implementation_units,curr.modulename^);
             { Read the implementation units }
             if current_scanner.token=_USES then
               begin
@@ -1519,7 +1519,7 @@ type
          { global switches are read, so further changes aren't allowed  }
          curr.in_global:=false;
 
-         message1(unit_u_loading_interface_units,curr.modulename^);
+         compiler.verbose.Message1(unit_u_loading_interface_units,curr.modulename^);
 
          { update status }
          status.currentmodule:=curr.realmodulename^;
@@ -1552,7 +1552,7 @@ type
              { has it been compiled at a higher level ?}
              if curr.state in [ms_compiled,ms_processed] then
                begin
-                 Message1(parser_u_already_compiled,curr.realmodulename^);
+                 compiler.verbose.Message1(parser_u_already_compiled,curr.realmodulename^);
                  exit;
                end;
 
@@ -1761,7 +1761,7 @@ type
          { leave when we got an error }
          if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             module_is_done(module);
             module.state:=ms_moduleerror;
@@ -1883,14 +1883,14 @@ type
         if not(cs_compilesystem in current_settings.moduleswitches) then
           begin
             if store_interface_crc<>module.interface_crc then
-              Message1(unit_u_interface_crc_changed,module.ppufilename);
+              compiler.verbose.Message1(unit_u_interface_crc_changed,module.ppufilename);
             if store_indirect_crc<>module.indirect_crc then
-              Message1(unit_u_indirect_crc_changed,module.ppufilename);
+              compiler.verbose.Message1(unit_u_indirect_crc_changed,module.ppufilename);
           end;
 {$ifdef EXTDEBUG}
         if not(cs_compilesystem in current_settings.moduleswitches) then
           if (store_crc<>module.crc) then
-            Message1(unit_u_implementation_crc_changed,module.ppufilename);
+            compiler.verbose.Message1(unit_u_implementation_crc_changed,module.ppufilename);
 {$endif EXTDEBUG}
 
         { release unregistered defs/syms from the localsymtable }
@@ -1902,7 +1902,7 @@ type
         { leave when we got an error }
         if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             module_is_done(module);
             module.state := ms_moduleerror;
@@ -1951,7 +1951,7 @@ type
           end;
 {$endif debug_devirt}
 
-        Message1(unit_u_finished_compiling,module.modulename^);
+        compiler.verbose.Message1(unit_u_finished_compiling,module.modulename^);
 
         module_is_done(module);
         module.end_of_parsing;
@@ -1994,7 +1994,7 @@ type
          finalize_procinfo:=nil;}
 
          if not (tf_supports_packages in compiler.target.info.flags) then
-           message1(parser_e_packages_not_supported,compiler.target.info.name);
+           compiler.verbose.Message1(parser_e_packages_not_supported,compiler.target.info.name);
 
          if not RelocSectionSetExplicitly then
            RelocSection:=true;
@@ -2013,7 +2013,7 @@ type
               if (cs_debuginfo in current_settings.moduleswitches) and
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
-                  Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
+                  compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   Message(parser_w_parser_win32_debug_needs_WN);
                   exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;
@@ -2164,7 +2164,7 @@ type
              if (hp<>curr) and not assigned(hp.package) then
                begin
                  if mf_package_deny in hp.moduleflags then
-                   message1(package_e_unit_deny_package,hp.realmodulename^);
+                   compiler.verbose.Message1(package_e_unit_deny_package,hp.realmodulename^);
                  { part of the package's used, aka contained units? }
                  uu:=tused_unit(curr.used_units.first);
                  while assigned(uu) do
@@ -2196,7 +2196,7 @@ type
          if curr.realmodulename^<>'' then
            tabstractunitsymtable(curr.localsymtable).insertunit(cunitsym.create(curr.realmodulename^,curr));
 
-         Message1(parser_u_parsing_implementation,curr.mainsource);
+         compiler.verbose.Message1(parser_u_parsing_implementation,curr.mainsource);
 
          compiler.symtablestack.push(curr.localsymtable);
 
@@ -2250,7 +2250,7 @@ type
          { leave when we got an error }
          if (compiler.verbose.Errorcount>0) and not status.skip_error then
            begin
-             Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+             compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
              status.skip_error:=true;
              curr.state:=ms_moduleerror;
              pkg.free;
@@ -2333,7 +2333,7 @@ type
          { leave when we got an error }
          if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             curr.state:=ms_moduleerror;
             pkg.free;
@@ -2410,7 +2410,7 @@ type
              { Give Fatal with error count for linker errors }
              if (compiler.verbose.Errorcount>0) and not status.skip_error then
               begin
-                Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+                compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
                 status.skip_error:=true;
                 curr.state:=ms_moduleerror;
                 result:=false;
@@ -2471,7 +2471,7 @@ type
               unloaded_units.Clear;
             { Does any unit use checkpointer function }
             if program_uses_checkpointer then
-              Message1(link_w_program_uses_checkpointer,curr.modulename^);
+              compiler.verbose.Message1(link_w_program_uses_checkpointer,curr.modulename^);
 
             { add all directly used packages as libraries }
             compiler.pkgutil.add_package_libs(linker);
@@ -2521,7 +2521,7 @@ type
         { leave when we got an error }
         if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             curr.state:=ms_moduleerror;
             exit;
@@ -2635,7 +2635,7 @@ type
         { leave when we got an error }
         if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             curr.state:=ms_moduleerror;
             exit;
@@ -2648,7 +2648,7 @@ type
         { Give Fatal with error count for linker errors }
         if (compiler.verbose.Errorcount>0) and not status.skip_error then
          begin
-           Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
+           compiler.verbose.Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
            status.skip_error:=true;
          end;
 
@@ -2690,7 +2690,7 @@ type
         if curr.realmodulename^<>'' then
           tabstractunitsymtable(curr.localsymtable).insertunit(cunitsym.create(curr.realmodulename^,curr));
 
-        Message1(parser_u_parsing_implementation,curr.mainsource);
+        compiler.verbose.Message1(parser_u_parsing_implementation,curr.mainsource);
 
         compiler.symtablestack.push(curr.localsymtable);
 
@@ -3001,7 +3001,7 @@ type
               if (cs_debuginfo in current_settings.moduleswitches) and
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
-                  Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
+                  compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   Message(parser_w_parser_win32_debug_needs_WN);
                   exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;

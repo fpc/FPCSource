@@ -885,7 +885,7 @@ type
         i:=InsTabCache^[opcode];
         if i=-1 then
           begin
-            Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
+            compiler.verbose.Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
             exit;
           end;
         InsEntry:=@instab[i];
@@ -898,7 +898,7 @@ type
               end;
             inc(insentry);
           end;
-        Message1(asmw_e_invalid_opcode_and_operands,gas_op2str[opcode]{,GetString});
+        compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,gas_op2str[opcode]{,GetString});
         { No instruction found, set insentry to nil and inssize to -1 }
         InsEntry:=nil;
         InsSize:=-1;

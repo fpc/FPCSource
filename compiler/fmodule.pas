@@ -1190,7 +1190,7 @@ implementation
             writeln('PPUALGO tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
             {$ENDIF}
             m.do_reload:=true;
-            Message1(unit_u_flag_for_reload,m.modulename^);
+            compiler.verbose.Message1(unit_u_flag_for_reload,m.modulename^);
             { We have to flag the units that depend on this unit even
               though it didn't change, because they might also
               indirectly depend on the unit that did change (e.g.,

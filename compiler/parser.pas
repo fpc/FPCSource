@@ -131,7 +131,7 @@ implementation
            { Close script }
            if (not AsmRes.Empty) then
            begin
-             Message1(exec_i_closing_script,AsmRes.Fn);
+             compiler.verbose.Message1(exec_i_closing_script,AsmRes.Fn);
              AsmRes.WriteToDisk;
            end;
          end;
@@ -519,7 +519,7 @@ implementation
          Reset;
 
        { show info }
-         Message1(parser_i_compiling,module.mainsource);
+         compiler.verbose.Message1(parser_i_compiling,module.mainsource);
 
        { reset symtable }
          tcompiler(compiler).symtablestack:=tdefawaresymtablestack.create(compiler);

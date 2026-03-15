@@ -247,7 +247,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   linkscript:=nil;
 { Create some replacements }
@@ -341,7 +341,7 @@ var
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);

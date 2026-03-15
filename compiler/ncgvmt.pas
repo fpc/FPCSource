@@ -157,7 +157,7 @@ implementation
               else if p^.data.messageinf.i>at^.data.messageinf.i then
                 insertint(p,at^.r,count)
               else
-                Message1(parser_e_duplicate_message_label,tostr(p^.data.messageinf.i));
+                compiler.verbose.Message1(parser_e_duplicate_message_label,tostr(p^.data.messageinf.i));
            end;
       end;
 
@@ -179,7 +179,7 @@ implementation
               else if i>0 then
                 insertstr(p,at^.r,count)
               else
-                Message1(parser_e_duplicate_message_label,p^.data.messageinf.str^);
+                compiler.verbose.Message1(parser_e_duplicate_message_label,p^.data.messageinf.str^);
            end;
       end;
 

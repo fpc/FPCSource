@@ -80,7 +80,7 @@ begin
       oper.SetSize(typesize, true);
   end
   else if not oper.SetupVar(tempstr, false) then
-    Message1(sym_e_unknown_id, tempstr);
+    compiler.verbose.Message1(sym_e_unknown_id, tempstr);
   { record.field ? }
   if actasmtoken = AS_DOT then
   begin
@@ -499,7 +499,7 @@ begin
                   begin
                     consume(AS_LPAREN);
                     if not oper.setupvar('high' + actasmpattern, false) then
-                      Message1(sym_e_unknown_id, 'high' + actasmpattern);
+                      compiler.verbose.Message1(sym_e_unknown_id, 'high' + actasmpattern);
                     consume(AS_ID);
                     consume(AS_RPAREN);
                   end
@@ -510,7 +510,7 @@ begin
                   else if expr = '__OLDEBP' then
                     oper.SetupOldEBP
                   else
-                    Message1(sym_e_unknown_id, expr);
+                    compiler.verbose.Message1(sym_e_unknown_id, expr);
                 end;
               end;
             end;
@@ -707,7 +707,7 @@ begin
   if actopcode <> A_NONE then
   begin
     if actcondition.dirhint <> DH_None then
-      message1(asmr_e_unknown_opcode, actasmpattern);
+      compiler.verbose.Message1(asmr_e_unknown_opcode, actasmpattern);
     actasmtoken := AS_OPCODE;
     is_asmopcode := true;
     exit;

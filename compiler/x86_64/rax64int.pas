@@ -149,7 +149,7 @@ Unit rax64int;
             begin
               hnum:=BuildConstExpression;//(false,false);
               if (hnum<0) or (hnum>high(dword)) or ((hnum and 7)<>0) then
-                Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_stackalloc])
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_stackalloc])
               else
                 curlist.concat(cai_seh_directive.create_offset(ash_stackalloc,hnum));
             end;
@@ -159,7 +159,7 @@ Unit rax64int;
               hreg:=actasmregister;
               Consume(AS_REGISTER);
               if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBQ) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[ash_pushreg])
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[ash_pushreg])
               else
                 curlist.concat(cai_seh_directive.create_reg(ash_pushreg,hreg));
             end;
@@ -169,12 +169,12 @@ Unit rax64int;
               hreg:=actasmregister;
               Consume(AS_REGISTER);
               if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBQ) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
               Consume(AS_COMMA);
               hnum:=BuildConstExpression;//(false,false);
               if (hnum<0) or (hnum>maxoffset[actsehdirective=ash_setframe]) or
                 ((hnum mod modulo[actsehdirective=ash_setframe])<>0) then
-                Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[actsehdirective])
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[actsehdirective])
               else
                 curlist.concat(cai_seh_directive.create_reg_offset(actsehdirective,hreg,hnum));
             end;
@@ -184,11 +184,11 @@ Unit rax64int;
               hreg:=actasmregister;
               Consume(AS_REGISTER);
               if (getregtype(hreg)<>R_MMREGISTER) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[ash_savexmm]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[ash_savexmm]);
               Consume(AS_COMMA);
               hnum:=BuildConstExpression;//(false,false);
               if (hnum<0) or (hnum>high(dword)) or ((hnum and 15)<>0) then
-                Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_savexmm])
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_savexmm])
               else
                 curlist.concat(cai_seh_directive.create_reg_offset(actsehdirective,hreg,hnum));
             end;

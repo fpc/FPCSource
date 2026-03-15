@@ -1083,7 +1083,7 @@ implementation
                 { does another, non-procsym, symbol already exist with that name? }
                 if (sym.typ<>procsym) then
                   begin
-                    Message1(sym_e_duplicate_id_create_java_constructor,sym.realname);
+                    compiler.verbose.Message1(sym_e_duplicate_id_create_java_constructor,sym.realname);
                     exit;
                   end;
                 ps:=tprocsym(sym);
@@ -1093,7 +1093,7 @@ implementation
                   pd:=ps.find_bytype_parameterless(potype_procedure);
                 if assigned(pd) then
                   begin
-                    Message1(sym_e_duplicate_id_create_java_constructor,pd.fullprocname(false));
+                    compiler.verbose.Message1(sym_e_duplicate_id_create_java_constructor,pd.fullprocname(false));
                     exit;
                   end;
               end;

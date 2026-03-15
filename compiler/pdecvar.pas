@@ -146,7 +146,7 @@ implementation
                       end;
                     else
                       begin
-                        Message1(parser_e_illegal_field_or_method,current_scanner.orgpattern);
+                        compiler.verbose.Message1(parser_e_illegal_field_or_method,current_scanner.orgpattern);
                         def:=generrordef;
                         result:=false;
                       end;
@@ -154,7 +154,7 @@ implementation
                 end
                else
                 begin
-                  Message1(parser_e_illegal_field_or_method,current_scanner.orgpattern);
+                  compiler.verbose.Message1(parser_e_illegal_field_or_method,current_scanner.orgpattern);
                   def:=generrordef;
                   result:=false;
                 end;
@@ -187,14 +187,14 @@ implementation
                                     def:=tfieldvarsym(sym).vardef;
                                   else
                                     begin
-                                      Message1(sym_e_illegal_field,current_scanner.orgpattern);
+                                      compiler.verbose.Message1(sym_e_illegal_field,current_scanner.orgpattern);
                                       result:=false;
                                     end;
                                 end;
                               end
                              else
                               begin
-                                Message1(sym_e_illegal_field,current_scanner.orgpattern);
+                                compiler.verbose.Message1(sym_e_illegal_field,current_scanner.orgpattern);
                                 result:=false;
                               end;
                            end
@@ -497,7 +497,7 @@ implementation
               parser.ptype.single_type(p.propdef,[stoAllowSpecialization]);
 
               if is_dispinterface(astruct) and not is_automatable(p.propdef) then
-                Message1(type_e_not_automatable,p.propdef.typename);
+                compiler.verbose.Message1(type_e_not_automatable,p.propdef.typename);
 
               if (current_scanner.idtoken=_INDEX) then
                 begin
@@ -869,7 +869,7 @@ implementation
                  { An interface may not be delegated by more than one property,
                    it also may not have method mappings. }
                  if Assigned(ImplIntf.ImplementsGetter) then
-                   message1(parser_e_duplicate_implements_clause,ImplIntf.IntfDef.typename);
+                   compiler.verbose.Message1(parser_e_duplicate_implements_clause,ImplIntf.IntfDef.typename);
                  if Assigned(ImplIntf.NameMappings) then
                    message2(parser_e_mapping_no_implements,ImplIntf.IntfDef.typename,astruct.objrealname^);
 
@@ -905,7 +905,7 @@ implementation
                    end;
                end
              else
-               message1(parser_e_implements_uses_non_implemented_interface,def.typename);
+               compiler.verbose.Message1(parser_e_implements_uses_non_implemented_interface,def.typename);
            until not parser.pbase.try_to_consume(_COMMA);
 
          { register propgetter and propsetter procdefs }
@@ -960,7 +960,7 @@ implementation
       { only allowed for one var }
       vs:=tabstractvarsym(sc[0]);
       if sc.count>1 then
-        Message1(parser_e_directive_only_one_var,arraytokeninfo[current_scanner.idtoken].str);
+        compiler.verbose.Message1(parser_e_directive_only_one_var,arraytokeninfo[current_scanner.idtoken].str);
       read_public_and_external(vs);
     end;
 
@@ -1163,7 +1163,7 @@ implementation
       { only allowed for one var }
       vs:=tabstractvarsym(sc[0]);
       if sc.count>1 then
-        Message1(parser_e_directive_only_one_var,arraytokeninfo[current_scanner.idtoken].str);
+        compiler.verbose.Message1(parser_e_directive_only_one_var,arraytokeninfo[current_scanner.idtoken].str);
       try_read_field_external(vs);
     end;
 
@@ -1248,7 +1248,7 @@ implementation
           { only allowed for one var }
           vs:=tabstractvarsym(sc[0]);
           if sc.count>1 then
-            Message1(parser_e_directive_only_one_var,'ABSOLUTE');
+            compiler.verbose.Message1(parser_e_directive_only_one_var,'ABSOLUTE');
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           { parse the rest }
@@ -1722,7 +1722,7 @@ implementation
                 (is_object(tmpdef) or is_record(tmpdef)) and
                 is_owned_by(tabstractrecorddef(stowner),tabstractrecorddef(tmpdef)) then
               begin
-                Message1(type_e_type_is_not_completly_defined,tabstractrecorddef(tmpdef).RttiName);
+                compiler.verbose.Message1(type_e_type_is_not_completly_defined,tabstractrecorddef(tmpdef).RttiName);
                 result:=false;
                 break;
               end;

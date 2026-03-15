@@ -142,13 +142,17 @@ unit scandir;
 
 
     procedure do_message(w:integer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_scanner.skipspace;
-        Message1(w,current_scanner.readlongcomment);
+        compiler.verbose.Message1(w,current_scanner.readlongcomment);
       end;
 
 
     procedure do_version(out major, minor, revision: word; out verstr: string; allowrevision: boolean; out isset: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         majorl,
         minorl,
@@ -171,7 +175,7 @@ unit scandir;
         val(current_scanner.pattern,majorl,error);
         if (error<>0) or (majorl > high(word)) or (majorl < 0) then
           begin
-            Message1(scan_w_wrong_version_ignored,current_scanner.pattern);
+            compiler.verbose.Message1(scan_w_wrong_version_ignored,current_scanner.pattern);
             exit;
           end;
         isset:=true;
@@ -182,7 +186,7 @@ unit scandir;
             val(current_scanner.pattern,minorl,error);
             if (error<>0) or (minorl > high(word)) or (minorl < 0) then
               begin
-                Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+current_scanner.pattern);
+                compiler.verbose.Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+current_scanner.pattern);
                 exit;
               end;
             if (current_scanner.c='.') and
@@ -193,7 +197,7 @@ unit scandir;
                  val(current_scanner.pattern,revisionl,error);
                  if (error<>0) or (revisionl > high(word)) or (revisionl < 0) then
                    begin
-                      Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+tostr(minorl)+'.'+current_scanner.pattern);
+                      compiler.verbose.Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+tostr(minorl)+'.'+current_scanner.pattern);
                       exit;
                    end;
                  major:=word(majorl);
@@ -222,6 +226,8 @@ unit scandir;
 
     procedure dir_align;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
         b : longint;
       begin
@@ -246,10 +252,10 @@ unit scandir;
                else if (hs='RESET') then
                  current_settings.packrecords:=default_settings.packrecords
                else
-                 Message1(scan_e_illegal_pack_records,hs);
+                 compiler.verbose.Message1(scan_e_illegal_pack_records,hs);
              end
            else
-             Message1(scan_e_illegal_pack_records,hs);
+             compiler.verbose.Message1(scan_e_illegal_pack_records,hs);
          end
         else
          begin
@@ -257,7 +263,7 @@ unit scandir;
            case b of
              1,2,4,8,16,32 : current_settings.packrecords:=b;
            else
-            Message1(scan_e_illegal_pack_records,tostr(b));
+            compiler.verbose.Message1(scan_e_illegal_pack_records,tostr(b));
            end;
          end;
       end;
@@ -284,6 +290,8 @@ unit scandir;
 
     procedure dir_asmcpu;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
         cpu: tcputype;
         found: Boolean;
@@ -291,7 +299,7 @@ unit scandir;
         current_scanner.skipspace;
         s:=current_scanner.readid;
         If Inside_asm_statement then
-          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
+          compiler.verbose.Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='ANY' then
           current_settings.asmcputype:=cpu_none
         else if s='CURRENT' then
@@ -307,11 +315,13 @@ unit scandir;
                   break;
                 end;
             if not found then
-              Message1(scan_e_illegal_asmcpu_specifier,s);
+              compiler.verbose.Message1(scan_e_illegal_asmcpu_specifier,s);
           end;
       end;
 
     procedure dir_asmmode;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
         asmmode: tasmmode;
@@ -319,12 +329,12 @@ unit scandir;
         current_scanner.skipspace;
         s:=current_scanner.readid;
         If Inside_asm_statement then
-          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
+          compiler.verbose.Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='DEFAULT' then
           recordpendingasmmode(init_settings.asmmode)
         else
          if not SetAsmReadMode(s,asmmode) then
-           Message1(scan_e_illegal_asmmode_specifier,s)
+           compiler.verbose.Message1(scan_e_illegal_asmmode_specifier,s)
          else
            recordpendingasmmode(asmmode);
       end;
@@ -396,7 +406,7 @@ unit scandir;
                  else if (hs='EXE') and (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_cui)
                  else
-                   Message1(scan_w_unsupported_app_type,hs);
+                   compiler.verbose.Message1(scan_w_unsupported_app_type,hs);
               end;
           end;
       end;
@@ -430,7 +440,7 @@ unit scandir;
         switch:=do_localswitchdefault(cs_checkpointer);
         if (switch='+') and
            not(compiler.target.info.system in systems_support_checkpointer) then
-          Message1(scan_e_unsupported_switch,'CHECKPOINTER+');
+          compiler.verbose.Message1(scan_e_unsupported_switch,'CHECKPOINTER+');
       end;
 
 
@@ -557,7 +567,7 @@ unit scandir;
 {$endif i8086}
             then
           begin
-            Message1(scan_n_ignored_switch,current_scanner.pattern);
+            compiler.verbose.Message1(scan_n_ignored_switch,current_scanner.pattern);
             exit;
           end;
         do_localswitch(cs_force_far_calls);
@@ -844,6 +854,8 @@ unit scandir;
 
     procedure dir_pascalmainname;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s: string;
       begin
         current_scanner.skipspace;
@@ -851,12 +863,12 @@ unit scandir;
         if assigned(current_module.mainname) and
            (s<>current_module.mainname^) then
           begin
-            Message1(scan_w_multiple_main_name_overrides,current_module.mainname^);
+            compiler.verbose.Message1(scan_w_multiple_main_name_overrides,current_module.mainname^);
             stringdispose(current_module.mainname)
           end
         else if (mainaliasname<>defaultmainaliasname) and
                 (mainaliasname<>s) then
-          Message1(scan_w_multiple_main_name_overrides,mainaliasname);
+          compiler.verbose.Message1(scan_w_multiple_main_name_overrides,mainaliasname);
         mainaliasname:=s;
         if (mainaliasname<>defaultmainaliasname) then
           current_module.mainname:=stringdup(mainaliasname);
@@ -967,6 +979,8 @@ unit scandir;
 
     procedure dir_message;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
         s  : AnsiString;
         w  : longint;
@@ -997,7 +1011,7 @@ unit scandir;
               if (hs='INFO') then
                 w:=scan_i_user_defined
             else
-              Message1(scan_w_illegal_directive,hs);
+              compiler.verbose.Message1(scan_w_illegal_directive,hs);
           end;
         { Only print message when there was no error }
         if w<>0 then
@@ -1007,7 +1021,7 @@ unit scandir;
               s:=current_scanner.readlongquotedstring
             else
               s:=current_scanner.readlongcomment;
-            Message1(w,s);
+            compiler.verbose.Message1(w,s);
           end
         else
           current_scanner.readcomment;
@@ -1027,6 +1041,8 @@ unit scandir;
 
 
     procedure dir_mode;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     begin
       if not current_module.in_global then
@@ -1037,19 +1053,21 @@ unit scandir;
           current_scanner.readstring;
           if not current_module.mode_switch_allowed and
               not ((m_mac in current_settings.modeswitches) and (current_scanner.pattern='MACPAS')) then
-            Message1(scan_e_mode_switch_not_allowed,current_scanner.pattern)
+            compiler.verbose.Message1(scan_e_mode_switch_not_allowed,current_scanner.pattern)
           else if not SetCompileMode(current_scanner.pattern,false) then
-            Message1(scan_w_illegal_switch,current_scanner.pattern)
+            compiler.verbose.Message1(scan_w_illegal_switch,current_scanner.pattern)
         end;
       current_module.mode_switch_allowed:= false;
     end;
 
     procedure dir_multilinestringlineending;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         if not (m_multiline_strings in current_settings.modeswitches) then
-          Message1(scan_e_illegal_directive,'MULTILINESTRINGLINEENDING');
+          compiler.verbose.Message1(scan_e_illegal_directive,'MULTILINESTRINGLINEENDING');
         current_scanner.skipspace;
         s:=current_scanner.readid;
         if (s='CR') then
@@ -1068,10 +1086,12 @@ unit scandir;
 
     procedure dir_textblock;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         if not (m_delphi in current_settings.modeswitches) then
-          Message1(scan_e_illegal_directive,'TEXTBLOCK');
+          compiler.verbose.Message1(scan_e_illegal_directive,'TEXTBLOCK');
         current_scanner.skipspace;
         s:=current_scanner.readid;
         if (s='CR') then
@@ -1088,11 +1108,13 @@ unit scandir;
 
     procedure dir_multilinestringtrimleft;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         count : longint;
         s : string;
       begin
         if not (m_multiline_strings in current_settings.modeswitches) then
-          Message1(scan_e_illegal_directive,'MULTILINESTRINGTRIMLEFT');
+          compiler.verbose.Message1(scan_e_illegal_directive,'MULTILINESTRINGTRIMLEFT');
         current_scanner.skipspace;
         if (current_scanner.c in ['0'..'9']) then
           begin
@@ -1128,6 +1150,8 @@ unit scandir;
 
     procedure dir_modeswitch;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         if not current_module.in_global then
@@ -1142,7 +1166,7 @@ unit scandir;
               "current_scanner.pattern" }
             s:=s+current_scanner.readoptionalstate('+');
             if not SetCompileModeSwitch(s,false) then
-              Message1(scan_w_illegal_switch,s)
+              compiler.verbose.Message1(scan_w_illegal_switch,s)
           end;
       end;
 
@@ -1246,6 +1270,8 @@ unit scandir;
 
     procedure dir_optimization;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
       begin
         current_scanner.skipspace;
@@ -1260,7 +1286,7 @@ unit scandir;
         else
           begin
             if not UpdateOptimizerStr(hs,current_settings.optimizerswitches) then
-              Message1(scan_e_illegal_optimization_specifier,hs)
+              compiler.verbose.Message1(scan_e_illegal_optimization_specifier,hs)
             else
               recordpendingoptimizerswitches(current_settings.optimizerswitches)
           end;
@@ -1273,6 +1299,8 @@ unit scandir;
 
     procedure dir_packenum;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
         v : longint;
       begin
@@ -1283,7 +1311,7 @@ unit scandir;
            if (hs='NORMAL') or (hs='DEFAULT') then
             recordpendingpackenum(4)
            else
-            Message1(scan_e_illegal_pack_enum, hs);
+            compiler.verbose.Message1(scan_e_illegal_pack_enum, hs);
          end
         else
          begin
@@ -1291,17 +1319,19 @@ unit scandir;
            case v of
             1,2,4 : recordpendingpackenum(v);
            else
-            Message1(scan_e_illegal_pack_enum, current_scanner.pattern);
+            compiler.verbose.Message1(scan_e_illegal_pack_enum, current_scanner.pattern);
            end;
          end;
       end;
 
 
     procedure dir_minfpconstprec;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_scanner.skipspace;
         if not SetMinFPConstPrec(current_scanner.readid,current_settings.minfpconstprec) then
-          Message1(scan_e_illegal_minfpconstprec, current_scanner.pattern);
+          compiler.verbose.Message1(scan_e_illegal_minfpconstprec, current_scanner.pattern);
       end;
 
 
@@ -1314,7 +1344,7 @@ unit scandir;
       begin
         { can't change packrecords setting on managed vm targets }
         if compiler.target.info.system in systems_managed_vm then
-          Message1(scanner_w_directive_ignored_on_target, 'PACKRECORDS');
+          compiler.verbose.Message1(scanner_w_directive_ignored_on_target, 'PACKRECORDS');
         current_scanner.skipspace;
         if not(current_scanner.c in ['0'..'9']) then
          begin
@@ -1326,7 +1356,7 @@ unit scandir;
             if (hs='NORMAL') or (hs='DEFAULT') then
              recordpendingpackrecords(default_settings.packrecords)
            else
-            Message1(scan_e_illegal_pack_records,hs);
+            compiler.verbose.Message1(scan_e_illegal_pack_records,hs);
          end
         else
          begin
@@ -1334,7 +1364,7 @@ unit scandir;
            case v of
              1,2,4,8,16,32 : recordpendingpackrecords(v);
            else
-            Message1(scan_e_illegal_pack_records,current_scanner.pattern);
+            compiler.verbose.Message1(scan_e_illegal_pack_records,current_scanner.pattern);
            end;
          end;
       end;
@@ -1521,6 +1551,8 @@ unit scandir;
       end;
 
     procedure dir_rtti;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function read_rtti_options: trtti_visibilities;
         var
@@ -1589,14 +1621,14 @@ unit scandir;
               otherwise
                 begin
                   if current_scanner.preproc_token=_ID then
-                    Message1(scan_e_invalid_rtti_option,current_scanner.pattern);
+                    compiler.verbose.Message1(scan_e_invalid_rtti_option,current_scanner.pattern);
                   break;
                 end;
             end;
             { the option has already been used }
             if options[option] then
               begin
-                Message1(scan_e_duplicate_rtti_option,current_scanner.pattern);
+                compiler.verbose.Message1(scan_e_duplicate_rtti_option,current_scanner.pattern);
                 break;
               end;
             dir.options[option]:=read_rtti_options;
@@ -1642,7 +1674,7 @@ unit scandir;
           else
             message(error)
         else
-          message1(sym_e_id_not_found,ident);
+          compiler.verbose.Message1(sym_e_id_not_found,ident);
       end;
 
     procedure dir_setpeflags;
@@ -1849,7 +1881,7 @@ unit scandir;
       begin
         if not(compiler.target.info.system in systems_jvm) then
           begin
-            Message1(scan_w_illegal_switch,current_scanner.pattern);
+            compiler.verbose.Message1(scan_w_illegal_switch,current_scanner.pattern);
             exit;
           end;
         do_localswitch(cs_check_var_copyout);
@@ -1894,7 +1926,7 @@ unit scandir;
             val(current_scanner.pattern,major,error);
             if (error<>0) or (major > high(word)) or (major < 0) then
               begin
-                Message1(scan_w_wrong_version_ignored,current_scanner.pattern);
+                compiler.verbose.Message1(scan_w_wrong_version_ignored,current_scanner.pattern);
                 exit;
               end;
             if current_scanner.c='.' then
@@ -1904,7 +1936,7 @@ unit scandir;
                 val(current_scanner.pattern,minor,error);
                 if (error<>0) or (minor > high(word)) or (minor < 0) then
                   begin
-                    Message1(scan_w_wrong_version_ignored,tostr(major)+'.'+current_scanner.pattern);
+                    compiler.verbose.Message1(scan_w_wrong_version_ignored,tostr(major)+'.'+current_scanner.pattern);
                     exit;
                   end;
                 if (current_scanner.c='.') and
@@ -1915,7 +1947,7 @@ unit scandir;
                      val(current_scanner.pattern,revision,error);
                      if (error<>0) or (revision > high(word)) or (revision < 0) then
                        begin
-                          Message1(scan_w_wrong_version_ignored,tostr(revision)+'.'+current_scanner.pattern);
+                          compiler.verbose.Message1(scan_w_wrong_version_ignored,tostr(revision)+'.'+current_scanner.pattern);
                           exit;
                        end;
                      dllmajor:=word(major);
@@ -1985,7 +2017,7 @@ unit scandir;
           msgstate:=ms_error
         else
         begin
-          Message1(scanner_e_illegal_warn_state,state);
+          compiler.verbose.Message1(scanner_e_illegal_warn_state,state);
           exit;
         end;
 
@@ -2061,7 +2093,7 @@ unit scandir;
           begin
             i:=0;
             if not compiler.verbose.ChangeMessageVerbosity(ident,i,msgstate) then
-              Message1(scanner_w_illegal_warn_identifier,ident);
+              compiler.verbose.Message1(scanner_w_illegal_warn_identifier,ident);
           end;
       end;
 
@@ -2129,7 +2161,7 @@ unit scandir;
 {$endif i8086}
             then
           begin
-            Message1(scan_n_ignored_switch,current_scanner.pattern);
+            compiler.verbose.Message1(scan_n_ignored_switch,current_scanner.pattern);
             exit;
           end;
         do_moduleswitch(cs_huge_code);
@@ -2143,7 +2175,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
-            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
+            compiler.verbose.Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
             exit;
           end;
         current_scanner.skipspace;
@@ -2175,7 +2207,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
-            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
+            compiler.verbose.Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
             exit;
           end;
         do_localswitch(cs_hugeptr_arithmetic_normalization);
@@ -2187,7 +2219,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
-            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
+            compiler.verbose.Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
             exit;
           end;
         do_localswitch(cs_hugeptr_comparison_normalization);
@@ -2205,6 +2237,8 @@ unit scandir;
 
     procedure dir_codepage;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          s : string;
       begin
         if not current_module.in_global then
@@ -2216,7 +2250,7 @@ unit scandir;
             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
               current_settings.sourcecodepage:=CP_UTF8
             else if not cpavailable(s) then
-              Message1(option_code_page_not_available,s)
+              compiler.verbose.Message1(option_code_page_not_available,s)
             else
               current_settings.sourcecodepage:=codepagebyname(s);
             { we're not using the system code page now }

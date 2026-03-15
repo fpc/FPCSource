@@ -982,9 +982,9 @@ begin
   WriteLogo;
   Lines:=4;
   if FPCHelpLines then
-   Message1(option_usage,FixFileName(FPCBinaryPath))
+   compiler.verbose.Message1(option_usage,FixFileName(FPCBinaryPath))
   else
-   Message1(option_usage,FixFileName(system.paramstr(0)));
+   compiler.verbose.Message1(option_usage,FixFileName(system.paramstr(0)));
   lastident:=0;
   msg_str:=compiler.verbose.MessageStr(option_help_pages);
   p:=pchar(msg_str);
@@ -1149,7 +1149,7 @@ end;
 
 procedure TOption.IllegalPara(const opt: TCmdStr);
 begin
-  Message1(option_illegal_para,opt);
+  compiler.verbose.Message1(option_illegal_para,opt);
   Message(option_help_pages_para);
   StopOptions(1);
 end;
@@ -1157,14 +1157,14 @@ end;
 
 procedure TOption.UnsupportedPara(const opt: TCmdStr);
 begin
-  Message1(option_unsupported_target,opt);
+  compiler.verbose.Message1(option_unsupported_target,opt);
   StopOptions(1);
 end;
 
 
 procedure TOption.IgnoredPara(const opt: TCmdStr);
 begin
-  Message1(option_ignored_target,opt);
+  compiler.verbose.Message1(option_ignored_target,opt);
 end;
 
 
@@ -1401,13 +1401,13 @@ begin
       envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
       if envstr<>'' then
         if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',envstr,false) then
-          Message1(option_invalid_macosx_deployment_target,envstr)
+          compiler.verbose.Message1(option_invalid_macosx_deployment_target,envstr)
         else
           begin
 {$ifdef llvm}
              { We only support libunwind as part of libsystem, which happened in Mac OS X 10.6 }
             if MacOSXVersionMin.relationto(10,6,0)<0 then
-              Message1(option_invalid_macosx_deployment_target,envstr);
+              compiler.verbose.Message1(option_invalid_macosx_deployment_target,envstr);
 {$endif}
             exit;
           end;
@@ -1417,7 +1417,7 @@ begin
       envstr:=GetEnvironmentVariable('IPHONEOS_DEPLOYMENT_TARGET');
       if envstr<>'' then
         if not ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',envstr,true) then
-          Message1(option_invalid_iphoneos_deployment_target,envstr)
+          compiler.verbose.Message1(option_invalid_iphoneos_deployment_target,envstr)
         else
           exit;
     end;
@@ -1567,7 +1567,7 @@ procedure TOption.VerifyTargetProcessor;
       exit;
     { custom target processor specified -> verify it's the one we support }
     if upcase(processorstr)<>upcase(compiler.target.cpu_string) then
-      Message1(option_invalid_target_architecture,processorstr);
+      compiler.verbose.Message1(option_invalid_target_architecture,processorstr);
   end;
 
 
@@ -1611,15 +1611,15 @@ begin
         ) then
     exit;
 
-  Message1(option_handling_option,opt);
+  compiler.verbose.Message1(option_handling_option,opt);
   case opt[1] of
     '-' :
       begin
          more:=Copy(opt,3,2147483647);
          if firstpass then
-           Message1(option_interpreting_firstpass_option,opt)
+           compiler.verbose.Message1(option_interpreting_firstpass_option,opt)
          else
-           Message1(option_interpreting_option,opt);
+           compiler.verbose.Message1(option_interpreting_option,opt);
          case opt[2] of
            '?' : Interpret_Help(more);
            'a' : Interpret_A_l(opt,more);
@@ -1674,7 +1674,7 @@ begin
         if (length(FOptions.param_file)<>0) then
           Message2(option_only_one_source_support,FOptions.param_file,opt);
         FOptions.param_file:=opt;
-        Message1(option_found_file,opt);
+        compiler.verbose.Message1(option_found_file,opt);
       end;
   end;
 end;
@@ -1730,11 +1730,11 @@ begin
 { Maybe It's Directory ?}   //Jaro Change:
   if PathExists(ConfigFile,false) then
     begin
-       Message1(option_config_is_dir,filename);
+       compiler.verbose.Message1(option_config_is_dir,filename);
        exit;
     end;
 { open file }
-  Message1(option_using_file,filename);
+  compiler.verbose.Message1(option_using_file,filename);
   oldfilemode:=filemode;
   filemode:=0;
   assign(f,ConfigFile);
@@ -1744,10 +1744,10 @@ begin
   filemode:=oldfilemode;
   if ioresult<>0 then
    begin
-     Message1(option_unable_open_file,filename);
+     compiler.verbose.Message1(option_unable_open_file,filename);
      exit;
    end;
-  Message1(option_start_reading_configfile,filename);
+  compiler.verbose.Message1(option_start_reading_configfile,filename);
   fillchar(skip,sizeof(skip),0);
   level:=0;
   line:=0;
@@ -1760,7 +1760,7 @@ begin
       begin
         if opts[1]='#' then
          begin
-           Message1(option_interpreting_file_option,opts);
+           compiler.verbose.Message1(option_interpreting_file_option,opts);
            Delete(opts,1,1);
            s:=upper(GetName(opts));
            if (s='SECTION') then
@@ -1879,16 +1879,16 @@ begin
               Option_read:=true;
             end
            else
-             Message1(option_illegal_para,opts);
+             compiler.verbose.Message1(option_illegal_para,opts);
          end;
       end;
    end;
   if Level>0 then
    Message(option_too_less_endif);
   if Not Option_read then
-    Message1(option_no_option_found,filename)
+    compiler.verbose.Message1(option_no_option_found,filename)
   else
-    Message1(option_end_reading_configfile,filename);
+    compiler.verbose.Message1(option_end_reading_configfile,filename);
   Close(f);
   Dec(FileLevel);
 end;
@@ -1903,7 +1903,7 @@ var
   quote  : set of char;
   hs     : TCmdStr;
 begin
-  Message1(option_using_env,envname);
+  compiler.verbose.Message1(option_using_env,envname);
   env:=GetEnvPChar(envname);
   pc:=env;
   hs:='';
@@ -1947,7 +1947,7 @@ begin
      until false;
    end
   else
-   Message1(option_no_option_found,'(env) '+envname);
+   compiler.verbose.Message1(option_no_option_found,'(env) '+envname);
   FreeEnvPChar(env);
 end;
 
@@ -1968,14 +1968,14 @@ begin
            if not firstpass then
            begin
              Delete(opts,1,1);
-             Message1(option_reading_further_from,opts);
+             compiler.verbose.Message1(option_reading_further_from,opts);
              interpret_file(opts);
            end;
          '!' :
            if not firstpass then
            begin
              Delete(opts,1,1);
-             Message1(option_reading_further_from,'(env) '+opts);
+             compiler.verbose.Message1(option_reading_further_from,'(env) '+opts);
              interpret_envvar(opts);
            end;
          else
@@ -2004,14 +2004,14 @@ begin
          if not firstpass then
          begin
            Delete(opts,1,1);
-           Message1(option_reading_further_from,opts);
+           compiler.verbose.Message1(option_reading_further_from,opts);
            interpret_file(opts);
          end;
        '!' :
          if not firstpass then
          begin
            Delete(opts,1,1);
-           Message1(option_reading_further_from,'(env) '+opts);
+           compiler.verbose.Message1(option_reading_further_from,'(env) '+opts);
            interpret_envvar(opts);
          end;
        '"' :
@@ -2276,7 +2276,7 @@ begin
      not (init_settings.x86memorymodel in [mm_large,mm_huge]) then
     begin
       if MemoryModelSetExplicitly then
-        Message1(option_e_win16_unsupported_memory_model,x86memorymodelstr[init_settings.x86memorymodel])
+        compiler.verbose.Message1(option_e_win16_unsupported_memory_model,x86memorymodelstr[init_settings.x86memorymodel])
       else
         Message(option_n_win16_set_default_large_memory_model);
       undef_system_macro('FPC_MM_'+x86memorymodelstr[init_settings.x86memorymodel]);
@@ -2468,7 +2468,7 @@ end;
 procedure TOption.Interpret_B_l(opt, more: TCmdStr);
 
 begin
-  // Message1(option_obsolete_switch,'-b');
+  // compiler.verbose.Message1(option_obsolete_switch,'-b');
   if UnsetBool(More,0,opt,false) then
     begin
       init_settings.moduleswitches:=init_settings.moduleswitches-[cs_browser];
@@ -2946,9 +2946,9 @@ begin
     if (not is_identifier(hs)) then
       begin
         if hs='' then
-          Message1(option_missing_arg,'-d')
+          compiler.verbose.Message1(option_missing_arg,'-d')
         else
-          Message1(option_malformed_para,opt);
+          compiler.verbose.Message1(option_malformed_para,opt);
         StopOptions(1);
       end;
     if l>0 then
@@ -3020,7 +3020,7 @@ begin
              if error=0 then
                error:=1;
            if error<>0 then
-             Message1(scan_w_wrong_version_ignored,dllversion);
+             compiler.verbose.Message1(scan_w_wrong_version_ignored,dllversion);
            break;
          end;
        'w' :
@@ -3099,7 +3099,7 @@ begin
         if (upper(more)='UTF8') or (upper(more)='UTF-8') then
           init_settings.sourcecodepage:=CP_UTF8
         else if not(cpavailable(more)) then
-          Message1(option_code_page_not_available,more)
+          compiler.verbose.Message1(option_code_page_not_available,more)
         else
           init_settings.sourcecodepage:=codepagebyname(more);
         include(init_settings.moduleswitches,cs_explicit_codepage);
@@ -3532,7 +3532,7 @@ begin
        'g' :
          Message2(option_obsolete_switch_use_new,'-Og','-Os');
        'G' :
-         Message1(option_obsolete_switch,'-OG');
+         compiler.verbose.Message1(option_obsolete_switch,'-OG');
        'r' :
          Message2(option_obsolete_switch_use_new,'-Or','-O2 or -Ooregvar');
        'u' :
@@ -3750,7 +3750,7 @@ begin
             else
               include(init_settings.globalswitches,cs_constructor_name);
           't' :
-            Message1(option_obsolete_switch,'-St');
+            compiler.verbose.Message1(option_obsolete_switch,'-St');
           'v' :
             If UnsetBool(More, j, opt, false) then
               exclude(init_settings.globalswitches,cs_support_vectors)
@@ -3791,11 +3791,11 @@ procedure TOption.Interpret_T_l(opt, more: TCmdStr);
 begin
   more:=Upper(More);
   if (more='') then
-    Message1(option_missing_arg,'-t')
+    compiler.verbose.Message1(option_missing_arg,'-t')
   else
     begin
     if (self.parasubtarget<>'') and (More<>upper(self.parasubtarget)) then
-      Message1(option_subtarget_is_already_set,self.parasubtarget)
+      compiler.verbose.Message1(option_subtarget_is_already_set,self.parasubtarget)
     else
       self.parasubtarget:=more;
     end;
@@ -3821,7 +3821,7 @@ begin
    end
   else
    if More<>upper(compiler.target.info.shortname) then
-    Message1(option_target_is_already_set,compiler.target.info.shortname);
+    compiler.verbose.Message1(option_target_is_already_set,compiler.target.info.shortname);
 end;
 
 
@@ -3833,9 +3833,9 @@ begin
   else
     begin
       if (more='') then
-        Message1(option_missing_arg,'-u')
+        compiler.verbose.Message1(option_missing_arg,'-u')
       else
-        Message1(option_malformed_para,opt);
+        compiler.verbose.Message1(option_malformed_para,opt);
       StopOptions(1);
     end;
 end;
@@ -4246,7 +4246,7 @@ end;
 procedure TOption.Interpret_X_l(opt, more: TCmdStr);
 
 begin
-  message1(option_x_ignored,more);
+  compiler.verbose.Message1(option_x_ignored,more);
 end;
 
 
@@ -5177,7 +5177,7 @@ begin
   if (OutputExeDir<>'') and
      not PathExists(OutputExeDir,false) then
     begin
-      Message1(general_e_path_does_not_exist,OutputExeDir);
+      compiler.verbose.Message1(general_e_path_does_not_exist,OutputExeDir);
       StopOptions(1);
     end;
 
@@ -5303,12 +5303,12 @@ begin
           else
             Message2(option_incompatible_asm,'<invalid assembler>',compiler.target.info.name);
           compiler.target.set_target_asm(compiler.target.info.assemextern);
-          Message1(option_asm_forced,compiler.target._asm.idtxt);
+          compiler.verbose.Message1(option_asm_forced,compiler.target._asm.idtxt);
         end;
       if (af_no_debug in asminfos[option.paratargetasm]^.flags) and
          (option.paratargetdbg<>dbg_none) then
         begin
-          Message1(option_confict_asm_debug,
+          compiler.verbose.Message1(option_confict_asm_debug,
             asminfos[option.paratargetasm]^.idtxt);
           option.paratargetdbg:=dbg_none;
           exclude(init_settings.moduleswitches,cs_debuginfo);

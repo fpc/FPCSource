@@ -267,7 +267,7 @@ implementation
 
             if (p.resultdef.typ<>pointerdef) then
               begin
-                 Message1(type_e_pointer_type_expected,p.resultdef.typename);
+                 compiler.verbose.Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
                  p:=parser.pexpr.factor(false,[]);
                  p.free;
@@ -397,7 +397,7 @@ implementation
                    end
                  else
                    begin
-                     Message1(type_e_pointer_type_expected,p.resultdef.typename);
+                     compiler.verbose.Message1(type_e_pointer_type_expected,p.resultdef.typename);
                      new_dispose_statement:=compiler.cerrornode;
                    end;
                end
@@ -505,7 +505,7 @@ implementation
 
         if (p1.resultdef.typ<>pointerdef) then
          begin
-           Message1(type_e_pointer_type_expected,p1.resultdef.typename);
+           compiler.verbose.Message1(type_e_pointer_type_expected,p1.resultdef.typename);
            parser.pbase.consume_all_until(_RKLAMMER);
            parser.pbase.consume(_RKLAMMER);
            p1.free;

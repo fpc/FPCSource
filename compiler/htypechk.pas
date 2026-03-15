@@ -696,12 +696,12 @@ implementation
                       begin
                         if not assigned(tabstractrecorddef(pf.returndef).search_enumerator_move) then
                           begin
-                            Message1(sym_e_no_enumerator_move, pf.returndef.typename);
+                            compiler.verbose.Message1(sym_e_no_enumerator_move, pf.returndef.typename);
                             result:=false;
                           end;
                         if not assigned(tabstractrecorddef(pf.returndef).search_enumerator_current) then
                           begin
-                            Message1(sym_e_no_enumerator_current,pf.returndef.typename);
+                            compiler.verbose.Message1(sym_e_no_enumerator_current,pf.returndef.typename);
                             result:=false;
                           end;
                       end;

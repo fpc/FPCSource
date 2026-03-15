@@ -366,7 +366,7 @@ unit raavr;
                           end;
 
                           if err then
-                            Message1(asmr_e_invalid_ref_register, gas_regname(reg));
+                            compiler.verbose.Message1(asmr_e_invalid_ref_register, gas_regname(reg));
                         end
                       else if taicpu(Result).oper[i]^.typ = top_const then
                         begin

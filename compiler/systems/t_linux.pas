@@ -658,7 +658,7 @@ begin
          if librarysearchpath.FindFile('crti.o',false,s) then
            AddFileName(s)
          else
-           Message1(exec_w_init_file_not_found,'crti.o');
+           compiler.verbose.Message1(exec_w_init_file_not_found,'crti.o');
 
          { then the crtbegin* }
          if (cs_create_pic in current_settings.moduleswitches)
@@ -672,7 +672,7 @@ begin
              if librarysearchpath.FindFile('crtbeginS.o',false,s) then
                AddFileName(s)
              else
-               Message1(exec_w_init_file_not_found,'crtbeginS.o');
+               compiler.verbose.Message1(exec_w_init_file_not_found,'crtbeginS.o');
            end
          else
            if (cs_link_staticflag in current_settings.globalswitches) then
@@ -680,12 +680,12 @@ begin
                if librarysearchpath.FindFile('crtbeginT.o',false,s) then
                  AddFileName(s)
                else
-                 Message1(exec_w_init_file_not_found,'crtbeginT.o');
+                 compiler.verbose.Message1(exec_w_init_file_not_found,'crtbeginT.o');
              end
            else if librarysearchpath.FindFile('crtbegin.o',false,s) then
              AddFileName(s)
            else
-             Message1(exec_w_init_file_not_found,'crtbegin.o');
+             compiler.verbose.Message1(exec_w_init_file_not_found,'crtbegin.o');
        end;
       { main objectfiles }
       while not ObjectFiles.Empty do
@@ -788,18 +788,18 @@ begin
            begin
              found1:=librarysearchpath.FindFile('crtendS.o',false,s1);
              if not(found1) then
-               Message1(exec_w_init_file_not_found,'crtendS.o');
+               compiler.verbose.Message1(exec_w_init_file_not_found,'crtendS.o');
            end
          else
            begin
              found1:=librarysearchpath.FindFile('crtend.o',false,s1);
              if not(found1) then
-               Message1(exec_w_init_file_not_found,'crtend.o');
+               compiler.verbose.Message1(exec_w_init_file_not_found,'crtend.o');
            end;
 
          found2:=librarysearchpath.FindFile('crtn.o',false,s2);
          if not(found2) then
-           Message1(exec_w_init_file_not_found,'crtn.o');
+           compiler.verbose.Message1(exec_w_init_file_not_found,'crtn.o');
          if found1 or found2 then
           begin
             Add('INPUT(');
@@ -869,7 +869,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -981,6 +981,8 @@ end;
 
 Function TLinkerLinux.MakeSharedLibrary:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   InitStr,
   FiniStr,
   GCSectionsStr,
@@ -998,7 +1000,7 @@ begin
   ltostr:='';
   rpathstr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
   if (cs_link_smart in current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections'

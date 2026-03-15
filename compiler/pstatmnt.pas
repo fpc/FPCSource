@@ -851,7 +851,7 @@ implementation
           end
          else
           begin
-            Message1(parser_e_false_with_expr,p.resultdef.GetTypeName);
+            compiler.verbose.Message1(parser_e_false_with_expr,p.resultdef.GetTypeName);
             p.free;
             p := nil;
             { try to recover from error }
@@ -918,7 +918,7 @@ implementation
               { skip showing error message the second time }
               (def.typ=errordef)) then
              begin
-               Message1(type_e_class_type_expected,def.typename);
+               compiler.verbose.Message1(type_e_class_type_expected,def.typename);
                def:=generrordef;
              end;
         end;
@@ -1306,7 +1306,7 @@ implementation
                       { Address of the static symbol or base offset for local symbols }
                       parser.pbase.consume(_ID);
                       if (sym.typ=staticvarsym) and not (actype in [aitconst_128bit,aitconst_ptr]) then
-                        Message1(type_e_integer_expr_expected,sym.name);
+                        compiler.verbose.Message1(type_e_integer_expr_expected,sym.name);
                       { Additional offset }
                       if current_scanner.token in [_PLUS,_MINUS] then
                         w:=eval_intconst
@@ -1551,7 +1551,7 @@ implementation
                  end
                 else
                  begin
-                   Message1(sym_e_label_used_and_not_defined,s);
+                   compiler.verbose.Message1(sym_e_label_used_and_not_defined,s);
                    p:=compiler.cnothingnode;
                  end;
               end;

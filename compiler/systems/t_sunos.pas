@@ -466,6 +466,8 @@ end;
 
 function TLinkersolaris.MakeExecutable:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   binstr,
   s, linkstr,
   cmdstr  : TCmdStr;
@@ -476,7 +478,7 @@ var
 begin
   success:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -555,6 +557,8 @@ end;
 
 Function TLinkersolaris.MakeSharedLibrary:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   InitFiniStr : string;
   binstr, RedirectStr,
   s, linkstr, MapStr,
@@ -564,7 +568,7 @@ begin
   success:=false;
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
   WriteResponseFile(true);

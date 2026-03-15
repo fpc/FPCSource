@@ -3368,7 +3368,7 @@ implementation
         begin
           encodedtype:='';
           if not objctryencodetype(left.resultdef,encodedtype,errordef) then
-            Message1(type_e_objc_type_unsupported,errordef.typename);
+            compiler.verbose.Message1(type_e_objc_type_unsupported,errordef.typename);
           result:=compiler.cstringconstnode_pchar(pchar(encodedtype),length(encodedtype),nil);
         end;
 
@@ -4341,7 +4341,7 @@ implementation
       begin
         Result:=nil;
 
-        Message1(cg_f_unknown_internal_procedure_number,tostr(ord(inlinenumber)));
+        compiler.verbose.Message1(cg_f_unknown_internal_procedure_number,tostr(ord(inlinenumber)));
       end;
 
 

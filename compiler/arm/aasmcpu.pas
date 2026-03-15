@@ -1728,7 +1728,7 @@ implementation
                     A_IT..A_ITTTT:
                       begin
                         if in_it then
-                          Message1(asmw_e_invalid_opcode_and_operands, 'ITxx instruction is inside another ITxx instruction')
+                          compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'ITxx instruction is inside another ITxx instruction')
                         else
                           begin
                             in_it:=true;
@@ -2808,7 +2808,7 @@ implementation
         i:=instabcache^[opcode];
         if i=-1 then
          begin
-           Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
+           compiler.verbose.Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
            exit;
          end;
         insentry:=@instab[i];
@@ -2822,7 +2822,7 @@ implementation
            inc(i);
            insentry:=@instab[i];
          end;
-        Message1(asmw_e_invalid_opcode_and_operands,GetString);
+        compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
         { No instruction found, set insentry to nil and inssize to -1 }
         insentry:=nil;
         inssize:=-1;
@@ -2873,7 +2873,7 @@ implementation
                       inc(count);
                       if count > 32 then
                         begin
-                          message1(asmw_e_invalid_opcode_and_operands, 'invalid shifter imm');
+                          compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'invalid shifter imm');
                           exit;
                         end;
                     until (imm and $ff)=imm;
@@ -2926,7 +2926,7 @@ implementation
             result:=15
           else
             begin
-              Message1(asmw_e_invalid_opcode_and_operands,'Invalid coprocessor port');
+              compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,'Invalid coprocessor port');
               result:=0;
             end;
         end;
@@ -3056,7 +3056,7 @@ implementation
               bytes:=bytes or (((imm12 shr 11) and $1) shl 26);
             end
           else
-            Message1(asmw_e_value_exceeds_bounds, IntToStr(imm));
+            compiler.verbose.Message1(asmw_e_value_exceeds_bounds, IntToStr(imm));
         end;
 
       procedure setthumbshift(op: byte; is_sat: boolean = false);
@@ -3219,7 +3219,7 @@ implementation
                 begin
                   if (oper[0]^.specialreg<>NR_CPSR) and
                      (oper[0]^.specialreg<>NR_SPSR) then
-                    Message1(asmw_e_invalid_opcode_and_operands, '"Invalid special reg"');
+                    compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, '"Invalid special reg"');
 
                   if srC in oper[0]^.specialflags then
                     bytes:=bytes or (1 shl 16);
@@ -3240,7 +3240,7 @@ implementation
                   NR_APSR_g: bytes:=bytes or (1 shl 18);
                   NR_APSR_nzcvqg: bytes:=bytes or (3 shl 18);
                 else
-                  Message1(asmw_e_invalid_opcode_and_operands, 'Invalid combination APSR bits used');
+                  compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Invalid combination APSR bits used');
                 end;
 
               setshifterop(1);
@@ -3311,7 +3311,7 @@ implementation
                             ((opcode=A_PKHBT) and
                              (oper[3]^.shifterop^.shiftmode <> SM_LSL)) or
                             (oper[3]^.shifterop^.rs<>NR_NO) then
-                            Message1(asmw_e_invalid_opcode_and_operands,GetString);
+                            compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
 
                           bytes:=bytes or ((oper[3]^.shifterop^.shiftimm and $1F) shl 7);
                         end
@@ -3320,7 +3320,7 @@ implementation
                           if (oper[3]^.shifterop^.shiftmode<>sm_ror) or
                             (oper[3]^.shifterop^.rs<>NR_NO) or
                             (not (oper[3]^.shifterop^.shiftimm in [0,8,16,24])) then
-                            Message1(asmw_e_invalid_opcode_and_operands,GetString);
+                            compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
 
                           bytes:=bytes or (((oper[3]^.shifterop^.shiftimm shr 3) and $3) shl 10);
                         end;
@@ -3480,7 +3480,7 @@ implementation
                   if (oper[2]^.shifterop^.shiftmode<>sm_ror) or
                     (oper[2]^.shifterop^.rs<>NR_NO) or
                     (not (oper[2]^.shifterop^.shiftimm in [0,8,16,24])) then
-                    Message1(asmw_e_invalid_opcode_and_operands,GetString);
+                    compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
 
                   bytes:=bytes or (((oper[2]^.shifterop^.shiftimm shr 3) and $3) shl 10);
                 end;
@@ -3768,7 +3768,7 @@ implementation
                   if oper[3]^.shifterop^.shiftmode=SM_ASR then
                     bytes:=bytes or (1 shl 6)
                   else if oper[3]^.shifterop^.shiftmode<>SM_LSL then
-                    Message1(asmw_e_invalid_opcode_and_operands,GetString);
+                    compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
                 end;
             end;
           #$2B: // SETEND
@@ -3927,7 +3927,7 @@ implementation
                         inc(count);
                         if count > 32 then
                           begin
-                            message1(asmw_e_invalid_opcode_and_operands, 'invalid shifter imm (offset)');
+                            compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'invalid shifter imm (offset)');
                             exit;
                           end;
                       until (imm and $ff)=imm;
@@ -4392,7 +4392,7 @@ implementation
                     PF_F64S32,PF_F64U32:
                       begin
                         if not (oper[2]^.val in [1..32]) then
-                          message1(asmw_e_invalid_opcode_and_operands, 'fbits not within 1-32');
+                          compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'fbits not within 1-32');
 
                         bytes:=bytes or (1 shl 7);
                         rn:=32;
@@ -4403,7 +4403,7 @@ implementation
                     PF_F32S16,PF_F32U16:
                       begin
                         if not (oper[2]^.val in [0..16]) then
-                          message1(asmw_e_invalid_opcode_and_operands, 'fbits not within 0-16');
+                          compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'fbits not within 0-16');
 
                         rn:=16;
                       end;
@@ -4468,14 +4468,14 @@ implementation
                           bytes:=bytes or (1 shl 21);
                         end
                       else if oppostfix in [PF_DB,PF_DBS,PF_DBD,PF_DBX] then
-                        message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
+                        compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
                     end
                   else
                     begin
                       Rn:=getsupreg(oper[0]^.reg);
 
                       if oppostfix in [PF_DB,PF_DBS,PF_DBD,PF_DBX] then
-                        message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
+                        compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
                     end;
 
                   bytes:=bytes or (Rn shl 16);
@@ -4503,7 +4503,7 @@ implementation
 
                   dp_operation:=(oper[1]^.subreg=R_SUBFD);
                   if oper[1]^.regset^=[] then
-                    message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
+                    compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
 
                   rd:=0;
                   for r:=0 to 31 do
@@ -4542,7 +4542,7 @@ implementation
                 begin
                   dp_operation:=(oper[0]^.subreg=R_SUBFD);
                   if oper[0]^.regset^=[] then
-                    message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
+                    compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
 
                   rd:=0;
                   for r:=0 to 31 do
@@ -5536,7 +5536,7 @@ implementation
                 PF_None,PF_IA,PF_FD: bytes:=bytes or ($1 shl 23);
                 PF_DB,PF_EA: bytes:=bytes or ($2 shl 23);
               else
-                message1(asmw_e_invalid_opcode_and_operands, '"Invalid Postfix"');
+                compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, '"Invalid Postfix"');
               end;
             end;
           #$8D: { Thumb-2: BL/BLX }
@@ -5690,7 +5690,7 @@ implementation
                     PF_P: bytes:=bytes or (1 shl 22) or (1 shl 15);
                     PF_EP: ;
                     else
-                      message1(asmw_e_invalid_opcode_and_operands, '"Invalid postfix"');
+                      compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, '"Invalid postfix"');
                   end;
                 end
               else
@@ -5703,7 +5703,7 @@ implementation
                     3: bytes:=bytes or (1 shl 22) or (1 shl 15);
                     4: ;
                   else
-                    message1(asmw_e_invalid_opcode_and_operands, 'Invalid count for LFM/SFM');
+                    compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Invalid count for LFM/SFM');
                   end;
 
                   bytes:=bytes or getsupreg(oper[2]^.ref^.base) shl 16;
@@ -5776,7 +5776,7 @@ implementation
                 PF_D: bytes:=bytes or (0 shl 19) or (1 shl 7);
                 PF_E: bytes:=bytes or (1 shl 19) or (0 shl 7);
               else
-                message1(asmw_e_invalid_opcode_and_operands, 'Precision cannot be undefined');
+                compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Precision cannot be undefined');
               end;
             end;
           #$A2: { FPA: CPDO }
@@ -5804,7 +5804,7 @@ implementation
                       PF_D: bytes:=bytes or (0 shl 19) or (1 shl 7);
                       PF_E: bytes:=bytes or (1 shl 19) or (0 shl 7);
                     else
-                      message1(asmw_e_invalid_opcode_and_operands, 'Precision cannot be undefined');
+                      compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, 'Precision cannot be undefined');
                     end;
                   end;
                 A_FIX:
@@ -5844,7 +5844,7 @@ implementation
                       end;
                   end;
                 else
-                  Message1(asmw_e_invalid_opcode_and_operands, '"Unsupported opcode"');
+                  compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands, '"Unsupported opcode"');
               end;
             end;
           #$fe: // No written data

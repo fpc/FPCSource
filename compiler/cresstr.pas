@@ -268,14 +268,14 @@ uses
 
       begin
         ResFileName:=ChangeFileExt(current_module.ppufilename,'.rsj');
-        message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
+        compiler.verbose.Message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
         Assign(F,ResFileName);
         {$push}{$i-}
         Rewrite(f);
         {$pop}
         if IOresult<>0 then
           begin
-            message1(general_e_errorwritingresourcefile,ResFileName);
+            compiler.verbose.Message1(general_e_errorwritingresourcefile,ResFileName);
             exit;
           end;
         { write the data in two formats:

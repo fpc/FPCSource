@@ -300,7 +300,7 @@ implementation
                   is_object(hdef) or
                   ((hdef.typ=arraydef) and
                    not is_dynamic_array(hdef)) then
-                 Message1(type_e_invalid_default_value,FullTypeName(hdef,nil));
+                 compiler.verbose.Message1(type_e_invalid_default_value,FullTypeName(hdef,nil));
                vs:=tparavarsym(sc[0]);
                if sc.count>1 then
                  Message(parser_e_default_value_only_one_para);
@@ -325,7 +325,7 @@ implementation
             else
              begin
                if defaultrequired then
-                 Message1(parser_e_default_value_expected_for_para,vs.name);
+                 compiler.verbose.Message1(parser_e_default_value_expected_for_para,vs.name);
              end;
           end;
 
@@ -544,13 +544,13 @@ implementation
           { Dispinterfaces are restricted to using only automatable types }
           if (pd.typ=procdef) and is_dispinterface(tprocdef(pd).struct) and
              not is_automatable(hdef) then
-            Message1(type_e_not_automatable,hdef.typename);
+            compiler.verbose.Message1(type_e_not_automatable,hdef.typename);
 
           { univ cannot be used with types whose size is not known at compile
             time }
           if is_univ and
              not is_valid_univ_para_type(hdef) then
-            Message1(parser_e_invalid_univ_para,hdef.typename);
+            compiler.verbose.Message1(parser_e_invalid_univ_para,hdef.typename);
 
           for i:=0 to sc.count-1 do
             begin
@@ -636,7 +636,7 @@ implementation
             begin
               case lasttoken of
                 _CARET:
-                  Message1(parser_e_overload_operator_failed,'**');
+                  compiler.verbose.Message1(parser_e_overload_operator_failed,'**');
                 _ID:
                   case lastidtoken of
                     _ENUMERATOR:parser.pbase.optoken:=_OP_ENUMERATOR;
@@ -676,13 +676,13 @@ implementation
                         _BITWISEOR:parser.pbase.optoken:=_OP_OR;
                         _BITWISEXOR:parser.pbase.optoken:=_OP_XOR;
                         else
-                          Message1(parser_e_overload_operator_failed,'');
+                          compiler.verbose.Message1(parser_e_overload_operator_failed,'');
                       end
                     else
-                      Message1(parser_e_overload_operator_failed,'');
+                      compiler.verbose.Message1(parser_e_overload_operator_failed,'');
                   end
                 else
-                  Message1(parser_e_overload_operator_failed,'');
+                  compiler.verbose.Message1(parser_e_overload_operator_failed,'');
               end;
             end;
            sp:=overloaded_names[parser.pbase.optoken];
@@ -802,7 +802,7 @@ implementation
                 { ToDo: position }
                 if not compiler.symtablestack.searchsym(upper(sym.RealName),typesrsym,typesrsymtable) then
                   begin
-                    message1(sym_e_id_not_found,sym.name);
+                    compiler.verbose.Message1(sym_e_id_not_found,sym.name);
                     error:=true;
                     continue;
                   end;
@@ -848,7 +848,7 @@ implementation
             srsym:=search_object_name(ugenname,false);
             if not assigned(srsym) then
               begin
-                Message1(type_e_generic_declaration_does_not_match,sp+'<'+prettyname+'>');
+                compiler.verbose.Message1(type_e_generic_declaration_does_not_match,sp+'<'+prettyname+'>');
                 srsym:=generrorsym;
               end;
           end;
@@ -1065,7 +1065,7 @@ implementation
                          begin
                            {  we use a different error message for tp7 so it looks more compatible }
                            if (m_fpc in current_settings.modeswitches) then
-                             Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                             compiler.verbose.Message1(parser_e_overloaded_no_procedure,srsym.realname)
                            else
                              Message(parser_e_methode_id_expected);
                            { rename the name to an unique name to avoid an
@@ -1177,9 +1177,9 @@ implementation
                           begin
                             {  we use a different error message for tp7 so it looks more compatible }
                             if (m_fpc in current_settings.modeswitches) then
-                              Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                              compiler.verbose.Message1(parser_e_overloaded_no_procedure,srsym.realname)
                             else
-                              Message1(sym_e_duplicate_id,srsym.realname);
+                              compiler.verbose.Message1(sym_e_duplicate_id,srsym.realname);
                             { rename the name to an unique name to avoid an
                               error when inserting the symbol in the symtable }
                             orgsp:=orgsp+'$'+tostr(current_filepos.line);
@@ -1294,7 +1294,7 @@ implementation
                       not assigned(astruct) or
                       (compiler.symtablestack.top.symtablelevel<>main_program_level)
                     ) then
-                  Message1(sym_e_duplicate_id,dummysym.realname);
+                  compiler.verbose.Message1(sym_e_duplicate_id,dummysym.realname);
                 if not (sp_generic_dummy in dummysym.symoptions) then
                   begin
                     include(dummysym.symoptions,sp_generic_dummy);
@@ -1496,7 +1496,7 @@ implementation
               include(current_module.moduleflags,mf_uses_variants);
 }
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
-              Message1(type_e_not_automatable,pd.returndef.typename);
+              compiler.verbose.Message1(type_e_not_automatable,pd.returndef.typename);
 
             if assigned(pd.returndef.typesym) then
               check_hints(pd.returndef.typesym,pd.returndef.typesym.symoptions,pd.returndef.typesym.deprecatedmsg);
@@ -1690,7 +1690,7 @@ implementation
                            end;
                        if not found then
                          if assigned(pd.struct) then
-                           Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
+                           compiler.verbose.Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
                          else
                            MessagePos(pd.fileinfo,type_e_type_id_expected);
                      end;
@@ -1919,7 +1919,7 @@ begin
       if (v<int64(low(longint))) or (v>int64(high(longint))) then
         message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
       else if not assigned(tsyssym.find_by_number(longint(v.svalue))) then
-        message1(parser_e_invalid_internal_function_index,tostr(v))
+        compiler.verbose.Message1(parser_e_invalid_internal_function_index,tostr(v))
       else
         tprocdef(pd).extnumber:=longint(v.svalue);
     end;
@@ -2038,7 +2038,7 @@ begin
   if pd.typ<>procdef then
     internalerror(200304269);
   if is_objectpascal_helper(tprocdef(pd).struct) then
-    Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_ABSTRACT].str);
+    compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_ABSTRACT].str);
   if assigned(tprocdef(pd).struct) and
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
     Message(parser_e_sealed_class_cannot_have_abstract_methods)
@@ -2060,7 +2060,7 @@ begin
     internalerror(200910170);
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_FINAL].str);
+    compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_FINAL].str);
   if (po_virtualmethod in pd.procoptions) or
      (is_javaclass(tprocdef(pd).struct) and
       (po_classmethod in pd.procoptions)) then
@@ -2090,7 +2090,7 @@ begin
         Message(parser_e_enumerator_movenext_is_not_valid)
     end
     else
-      Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
+      compiler.verbose.Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
     parser.pbase.consume(current_scanner.token);
   end
   else
@@ -2118,7 +2118,7 @@ begin
     message(parser_e_genfuncs_cannot_be_virtual);
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
-    Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_VIRTUAL].str);
+    compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_VIRTUAL].str);
 {$ifdef WITHDMT}
   if is_object(tprocdef(pd).struct) and
      (token<>_SEMICOLON) then
@@ -2172,7 +2172,7 @@ begin
         not is_object(tprocdef(pd).struct)
       )
       then
-    Message1(parser_e_dir_not_allowed,arraytokeninfo[_STATIC].str);
+    compiler.verbose.Message1(parser_e_dir_not_allowed,arraytokeninfo[_STATIC].str);
   include(pd.procoptions,po_staticmethod);
 end;
 
@@ -2183,7 +2183,7 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
       if m_objfpc in current_settings.modeswitches then
-        Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_OVERRIDE].str)
+        compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_OVERRIDE].str)
     end
   else if not(is_class_or_interface_or_objc_or_java(tprocdef(pd).struct)) then
     Message(parser_e_no_object_override)
@@ -2213,7 +2213,7 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
       if m_objfpc in current_settings.modeswitches then
-        Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_MESSAGE].str);
+        compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_MESSAGE].str);
     end
   else
     if not is_class(tprocdef(pd).struct) and
@@ -2263,7 +2263,7 @@ begin
   if (po_msgstr in pd.procoptions) and
      is_objc_class_or_protocol(tprocdef(pd).struct) and
      not compiler.objcutil.objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
-    Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
+    compiler.verbose.Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
   pt.free;
   pt := nil;
 end;
@@ -2276,7 +2276,7 @@ begin
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
       if m_objfpc in current_settings.modeswitches then
-        Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_REINTRODUCE].str);
+        compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_REINTRODUCE].str);
     end
   else
     if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and
@@ -3235,7 +3235,7 @@ const
               next variable !! }
             if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
                not(current_scanner.idtoken in [_PROPERTY,_GENERIC]) then
-              Message1(parser_w_unknown_proc_directive_ignored,current_scanner.pattern);
+              compiler.verbose.Message1(parser_w_unknown_proc_directive_ignored,current_scanner.pattern);
             exit;
          end;
 

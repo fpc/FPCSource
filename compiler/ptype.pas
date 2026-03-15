@@ -255,7 +255,7 @@ implementation
                       end
                      else
                       begin
-                        Message1(sym_e_forward_type_not_resolved,hs);
+                        compiler.verbose.Message1(sym_e_forward_type_not_resolved,hs);
                         { try to recover }
                         tabstractpointerdef(def).pointeddef:=generrordef;
                       end;
@@ -453,7 +453,7 @@ implementation
             { use df_generic instead of is_generic to allow aliases in nested types as well }
             not (df_generic in tstoreddef(srsym.owner.defowner).defoptions))) then
           begin
-            Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
+            compiler.verbose.Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
             def:=generrordef;
             exit;
           end;
@@ -467,7 +467,7 @@ implementation
          { unknown sym ? }
          if not assigned(srsym) and not not_a_type then
           begin
-            Message1(sym_e_id_not_found,sorg);
+            compiler.verbose.Message1(sym_e_id_not_found,sorg);
             def:=generrordef;
             exit;
           end;
@@ -600,7 +600,7 @@ implementation
           begin
             if not assigned(srsym) or not (srsym.typ=typesym) then
               begin
-                Message1(type_e_type_is_not_completly_defined,def.typename);
+                compiler.verbose.Message1(type_e_type_is_not_completly_defined,def.typename);
                 def:=generrordef;
                 dospecialize:=false;
               end;
@@ -740,7 +740,7 @@ implementation
       procedure check_unbound_attributes;
         begin
           if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
-            Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+            compiler.verbose.Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
           rtti_attrs_def.free;
           rtti_attrs_def:=nil;
         end;
@@ -824,7 +824,7 @@ implementation
                    _PROTECTED :
                      begin
                        check_unbound_attributes;
-                       Message1(parser_e_not_allowed_in_record,tokeninfo^[_PROTECTED].str);
+                       compiler.verbose.Message1(parser_e_not_allowed_in_record,tokeninfo^[_PROTECTED].str);
                        parser.pbase.consume(_PROTECTED);
                        current_structdef.symtable.currentvisibility:=vis_protected;
                        include(current_structdef.objectoptions,oo_has_protected);
@@ -872,7 +872,7 @@ implementation
                               _PROTECTED:
                                 begin
                                   { "strict protected" is not allowed for records }
-                                  Message1(parser_e_not_allowed_in_record,tokeninfo^[_STRICT].str+' '+tokeninfo^[_PROTECTED].str);
+                                  compiler.verbose.Message1(parser_e_not_allowed_in_record,tokeninfo^[_STRICT].str+' '+tokeninfo^[_PROTECTED].str);
                                   parser.pbase.consume(_PROTECTED);
                                   current_structdef.symtable.currentvisibility:=vis_strictprotected;
                                   include(current_structdef.objectoptions,oo_has_strictprotected);
@@ -1010,7 +1010,7 @@ implementation
 
                 { only 1 class constructor is allowed }
                 if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
-                  Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
+                  compiler.verbose.Message1(parser_e_only_one_class_constructor_allowed, current_structdef.objrealname^);
 
                 oldparse_only:=parser.pbase.parse_only;
                 parser.pbase.parse_only:=true;
@@ -1037,7 +1037,7 @@ implementation
 
                 { only 1 class destructor is allowed }
                 if is_classdef and (oo_has_class_destructor in current_structdef.objectoptions) then
-                  Message1(parser_e_only_one_class_destructor_allowed, current_structdef.objrealname^);
+                  compiler.verbose.Message1(parser_e_only_one_class_destructor_allowed, current_structdef.objrealname^);
 
                 oldparse_only:=parser.pbase.parse_only;
                 parser.pbase.parse_only:=true;
@@ -1558,7 +1558,7 @@ implementation
                        indexdef:=def;
                     end
                   else
-                    Message1(parser_e_type_cant_be_used_in_array_index,def.typename);
+                    compiler.verbose.Message1(parser_e_type_cant_be_used_in_array_index,def.typename);
                 end;
               { generic parameter? }
               undefineddef:
@@ -2076,7 +2076,7 @@ implementation
                           current_module.checkforwarddefs.add(def);
                         end
                     else
-                      Message1(type_e_class_or_objcclass_type_expected,hdef.typename);
+                      compiler.verbose.Message1(type_e_class_or_objcclass_type_expected,hdef.typename);
                   end
                 else
                 if (current_scanner.idtoken=_HELPER) then

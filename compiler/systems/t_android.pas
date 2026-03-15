@@ -382,6 +382,8 @@ end;
 
 function tlinkerandroid.DoLink(IsSharedLib: boolean): boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   i: longint;
   binstr, cmdstr: TCmdStr;
   s, opts, outname: string;
@@ -393,7 +395,7 @@ begin
   else
     outname:=current_module.exefilename;
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking, outname);
+    compiler.verbose.Message1(exec_i_linking, outname);
 
   opts:='';
   if not IsSharedLib and (cs_create_pic in current_settings.moduleswitches) then

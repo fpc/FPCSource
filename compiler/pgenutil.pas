@@ -2385,7 +2385,7 @@ uses
                       tconstsym(result[i]).constdef:=def;
                     end
                   else
-                    Message1(type_e_generic_const_type_not_allowed,def.fulltypename);
+                    compiler.verbose.Message1(type_e_generic_const_type_not_allowed,def.fulltypename);
                 end;
               { after type restriction const list terminates }
               is_const:=false;
@@ -2450,7 +2450,7 @@ uses
                       { only types that are inheritable are allowed }
                       if (def.typ<>objectdef) or
                           not (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_javaclass]) then
-                        Message1(type_e_class_or_interface_type_expected,def.typename)
+                        compiler.verbose.Message1(type_e_class_or_interface_type_expected,def.typename)
                       else
                         case tobjectdef(def).objecttype of
                           odt_class,

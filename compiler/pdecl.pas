@@ -203,7 +203,7 @@ implementation
                      hp:=cconstsym.create_ptr(orgname,constguid,pg,p.resultdef);
                    end
                   else
-                   Message1(parser_e_interface_has_no_guid,tobjectdef(p.resultdef).objrealname^);
+                   compiler.verbose.Message1(parser_e_interface_has_no_guid,tobjectdef(p.resultdef).objrealname^);
                 end
                else
                 Message(parser_e_illegal_expression);
@@ -676,13 +676,13 @@ implementation
            parser.pdecobj.object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
            if wasforward and
              (tobjectdef(ttypesym(sym).typedef).objecttype<>objecttype) then
-             Message1(type_e_forward_interface_type_does_not_match,tobjectdef(ttypesym(sym).typedef).GetTypeName);
+             compiler.verbose.Message1(type_e_forward_interface_type_does_not_match,tobjectdef(ttypesym(sym).typedef).GetTypeName);
            newtype:=ttypesym(sym);
            result:=newtype.typedef;
          end
         else
           begin
-            message1(parser_h_type_redef,genorgtypename);
+            compiler.verbose.Message1(parser_h_type_redef,genorgtypename);
             result:=generrordef;
           end;
       end;
@@ -904,7 +904,7 @@ implementation
                   else
                     { this is not allowed in non-Delphi modes }
                     if not (m_delphi in current_settings.modeswitches) then
-                      Message1(sym_e_duplicate_id,genorgtypename)
+                      compiler.verbose.Message1(sym_e_duplicate_id,genorgtypename)
                     else
                       begin
                         { we need to find this symbol even if it's a variable or
@@ -1075,7 +1075,7 @@ implementation
   {$elseif defined(x86_64)}
                        { for compatibility with previous versions of fpc,
                          far pointer = regular pointer on x86_64 }
-                       Message1(parser_w_ptr_type_ignored,'FAR');
+                       compiler.verbose.Message1(parser_w_ptr_type_ignored,'FAR');
   {$endif}
                        parser.pbase.consume(_SEMICOLON);
                      end
@@ -1105,7 +1105,7 @@ implementation
                       far even on non-x86 platforms. }
                     if parser.pbase.try_to_consume(_FAR) then
                      begin
-                       Message1(parser_w_ptr_type_ignored,'FAR');
+                       compiler.verbose.Message1(parser_w_ptr_type_ignored,'FAR');
                        parser.pbase.consume(_SEMICOLON);
                      end;
 {$endif x86}
@@ -1273,7 +1273,7 @@ implementation
              had_generic:=false;
            first:=false;
            if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
-             Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+             compiler.verbose.Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
 
  {$ifdef DEBUG_NODE_XML}
           if Assigned(hdef) then
@@ -1345,7 +1345,7 @@ implementation
           parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
           begin
-            Message1(parser_f_unsupported_feature,featurestr[f_threading]);
+            compiler.verbose.Message1(parser_f_unsupported_feature,featurestr[f_threading]);
             parser.pdecvar.read_var_decls([vd_check_generic],had_generic);
           end;
       end;

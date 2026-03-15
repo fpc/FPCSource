@@ -79,13 +79,13 @@ implementation
       pcpfiletime : longint;
     begin
       result:=false;
-      Message1(package_t_pcp_loading,pcpfilename);
+      compiler.verbose.Message1(package_t_pcp_loading,pcpfilename);
       { Get pcpfile time (also check if the file exists) }
       pcpfiletime:=getnamedfiletime(pcpfilename);
       if pcpfiletime=-1 then
        exit;
     { Open the pcpfile }
-      Message1(package_u_pcp_name,pcpfilename);
+      compiler.verbose.Message1(package_u_pcp_name,pcpfilename);
       pcpfile:=tpcpfile.create(pcpfilename,compiler);
       if not pcpfile.openfile then
        begin
@@ -105,7 +105,7 @@ implementation
     { check for allowed PCP versions }
       if not (pcpfile.getversion=CurrentPCPVersion) then
        begin
-         Message1(package_u_pcp_invalid_version,tostr(pcpfile.getversion));
+         compiler.verbose.Message1(package_u_pcp_invalid_version,tostr(pcpfile.getversion));
          pcpfile.free;
          pcpfile:=nil;
          exit;
@@ -140,11 +140,11 @@ implementation
   {$endif cpufpemu}
 
     { Show Debug info }
-      Message1(package_u_pcp_time,filetimestring(pcpfiletime));
-      Message1(package_u_pcp_flags,tostr(pcpfile.header.common.flags{flags}));
-      Message1(package_u_pcp_crc,hexstr(pcpfile.header.checksum,8));
-      (*Message1(package_u_pcp_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
-      Message1(package_u_pcp_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
+      compiler.verbose.Message1(package_u_pcp_time,filetimestring(pcpfiletime));
+      compiler.verbose.Message1(package_u_pcp_flags,tostr(pcpfile.header.common.flags{flags}));
+      compiler.verbose.Message1(package_u_pcp_crc,hexstr(pcpfile.header.checksum,8));
+      (*compiler.verbose.Message1(package_u_pcp_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
+      compiler.verbose.Message1(package_u_pcp_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
       compiler.verbose.Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
       compiler.verbose.Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
       do_compile:=false;*)
@@ -159,7 +159,7 @@ implementation
     function package_exists(const ext:string;var foundfile:TCmdStr):boolean;
       begin
         if compiler.verbose.CheckVerbosity(V_Tried) then
-          Message1(package_t_packagesearch,Singlepathstring+filename+ext);
+          compiler.verbose.Message1(package_t_packagesearch,Singlepathstring+filename+ext);
         result:=FindFile(filename+ext,singlepathstring,true,foundfile);
       end;
 
@@ -333,7 +333,7 @@ implementation
         end;
       pplfilename:=pcpfile.getstring;
 
-      message1(package_u_ppl_filename,pplfilename);
+      compiler.verbose.Message1(package_u_ppl_filename,pplfilename);
     end;
 
   procedure tpcppackage.readcontainedunits;
@@ -363,7 +363,7 @@ implementation
           p^.offset:=0;
           p^.size:=0;
           containedmodules.add(name,p);
-          message1(package_u_contained_unit,name);
+          compiler.verbose.Message1(package_u_contained_unit,name);
         end;
     end;
 
@@ -387,7 +387,7 @@ implementation
         begin
           name:=pcpfile.getstring;
           requiredpackages.add(name,nil);
-          message1(package_u_required_package,name);
+          compiler.verbose.Message1(package_u_required_package,name);
         end;
     end;
 
@@ -432,17 +432,17 @@ implementation
 
       if not search_package_file then
         begin
-          Message1(package_f_cant_find_pcp,realpackagename^);
+          compiler.verbose.Message1(package_f_cant_find_pcp,realpackagename^);
           exit;
         end
       else
-        Message1(package_u_pcp_found,realpackagename^);
+        compiler.verbose.Message1(package_u_pcp_found,realpackagename^);
 
       if not assigned(pcpfile) then
         internalerror(2013053101);
 
       if pcpfile.readentry<>ibpackagename then
-        Message1(package_f_cant_read_pcp,realpackagename^);
+        compiler.verbose.Message1(package_f_cant_read_pcp,realpackagename^);
       newpackagename:=pcpfile.getstring;
       if upper(newpackagename)<>packagename^ then
         compiler.verbose.Comment(V_Error,'Package was renamed: '+realpackagename^);

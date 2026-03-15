@@ -119,7 +119,7 @@ implementation
 
      procedure TParserBaseHelpers.identifier_not_found(const s:string);
        begin
-         Message1(sym_e_id_not_found,s);
+         compiler.verbose.Message1(sym_e_id_not_found,s);
          { show a fatal that you need -S2 or -Sd, but only
            if we just parsed the a token that has m_class }
          if not(m_class in current_settings.modeswitches) and
@@ -475,7 +475,7 @@ implementation
             _LIBRARY:
               begin
                 if sp_hint_library in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
+                  compiler.verbose.Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_library);
                 try_consume_hintdirective:=true;
@@ -483,7 +483,7 @@ implementation
             _DEPRECATED:
               begin
                 if sp_hint_deprecated in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
+                  compiler.verbose.Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_deprecated);
                 try_consume_hintdirective:=true;
@@ -492,7 +492,7 @@ implementation
             _EXPERIMENTAL:
               begin
                 if sp_hint_experimental in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
+                  compiler.verbose.Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_experimental);
                 try_consume_hintdirective:=true;
@@ -500,7 +500,7 @@ implementation
             _PLATFORM:
               begin
                 if sp_hint_platform in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
+                  compiler.verbose.Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_platform);
                 try_consume_hintdirective:=true;
@@ -508,7 +508,7 @@ implementation
             _UNIMPLEMENTED:
               begin
                 if sp_hint_unimplemented in symopt then
-                  Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
+                  compiler.verbose.Message1(parser_e_dir_not_allowed,arraytokeninfo[current_scanner.idtoken].str)
                 else
                   include(symopt,sp_hint_unimplemented);
                 try_consume_hintdirective:=true;

@@ -889,6 +889,8 @@ implementation
 
 
     procedure TObjSymbol.SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(abind in [AB_GLOBAL,AB_PRIVATE_EXTERN,AB_LOCAL,AB_COMMON,AB_IMPORT,AB_WEAK]) then
           internalerror(200603016);
@@ -909,7 +911,7 @@ implementation
           begin
             if pass=apass then
               begin
-                Message1(asmw_e_duplicate_label,name);
+                compiler.verbose.Message1(asmw_e_duplicate_label,name);
                 exit;
               end;
           end;
@@ -3088,24 +3090,24 @@ implementation
                                 oscs_none:
                                   makeexternal:=false;
                                 oscs_any:
-                                  Message1(link_d_comdat_discard_any,objsym.name);
+                                  compiler.verbose.Message1(link_d_comdat_discard_any,objsym.name);
                                 oscs_same_size:
                                   if exesym.ObjSymbol.size<>objsym.size then
-                                    Message1(link_e_comdat_size_differs,objsym.name)
+                                    compiler.verbose.Message1(link_e_comdat_size_differs,objsym.name)
                                   else
-                                    Message1(link_d_comdat_discard_size,objsym.name);
+                                    compiler.verbose.Message1(link_d_comdat_discard_size,objsym.name);
                                 oscs_exact_match:
                                   if (exesym.ObjSymbol.size<>objsym.size) and not exesym.ObjSymbol.objsection.Data.equal(objsym.objsection.Data) then
-                                    Message1(link_e_comdat_content_differs,objsym.name)
+                                    compiler.verbose.Message1(link_e_comdat_content_differs,objsym.name)
                                   else
-                                    Message1(link_d_comdat_discard_content,objsym.name);
+                                    compiler.verbose.Message1(link_d_comdat_discard_content,objsym.name);
                                 oscs_associative:
                                   { this is handled in a different way }
                                   makeexternal:=false;
                                 oscs_largest:
                                   if objsym.size>exesym.ObjSymbol.size then
                                     begin
-                                      Message1(link_d_comdat_replace_size,objsym.name);
+                                      compiler.verbose.Message1(link_d_comdat_replace_size,objsym.name);
                                       { we swap the symbols and turn the smaller one to an external
                                         symbol }
                                       tmpsym:=exesym.objsymbol;
@@ -3126,7 +3128,7 @@ implementation
                                 end;
                             end
                           else
-                            Message1(link_e_comdat_selection_differs,objsym.name);
+                            compiler.verbose.Message1(link_e_comdat_selection_differs,objsym.name);
                         end;
                     end;
                 end;
@@ -3142,7 +3144,7 @@ implementation
                         exesym.State:=symstate_defined;
                       end
                     else
-                      Message1(link_e_duplicate_symbol,objsym.name);
+                      compiler.verbose.Message1(link_e_duplicate_symbol,objsym.name);
 
                     { hidden symbols must become local symbols in the executable }
                     if objsym.bind=AB_PRIVATE_EXTERN then
@@ -3513,6 +3515,8 @@ implementation
 
 
     procedure TExeOutput.FixupSymbols;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
         procedure UpdateSymbol(objsym:TObjSymbol);
         begin
@@ -3539,7 +3543,7 @@ implementation
                   if assigned(exesym.ObjSymbol) and assigned(exesym.ObjSymbol.ObjData) then
                     Message2(link_e_undefined_symbol_in_obj,exesym.name,exesym.objsymbol.ObjData.Name)
                   else
-                    Message1(link_e_undefined_symbol,exesym.name);
+                    compiler.verbose.Message1(link_e_undefined_symbol,exesym.name);
                 end;
             end;
 
@@ -4096,7 +4100,7 @@ implementation
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if AValue>MaxMemPos then
-          Message1(link_f_executable_too_big, compiler.target.os_string);
+          compiler.verbose.Message1(link_f_executable_too_big, compiler.target.os_string);
         FCurrMemPos:=AValue;
       end;
 

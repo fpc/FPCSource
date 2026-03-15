@@ -239,7 +239,7 @@ begin
       end
      else
       //compiler.verbose.Comment(V_Error,'Exporting of variables is not supported under netware');
-      Message1(parser_e_no_export_of_variables_for_target,'netware');
+      compiler.verbose.Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
 end;
@@ -494,7 +494,7 @@ begin
       end
      else
       { really, i think it is possible }
-      Message1(parser_e_no_export_of_variables_for_target,'netware');
+      compiler.verbose.Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
 
@@ -540,7 +540,7 @@ var
   StripStr : string[2];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StripStr:='';

@@ -612,7 +612,7 @@ implementation
              ibenddefs : break;
              ibend : Message(unit_f_ppu_read_error);
            else
-             Message1(unit_f_ppu_invalid_entry,tostr(b));
+             compiler.verbose.Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
            if assigned(def) then
              tstoreddef(def).ppuload_subentries(ppufile);
@@ -652,7 +652,7 @@ implementation
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
-             Message1(unit_f_ppu_invalid_entry,tostr(b));
+             compiler.verbose.Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
            if assigned(sym) then
              tstoredsym(sym).ppuload_subentries(ppufile);
@@ -940,7 +940,7 @@ implementation
           if assigned(tdef(def).typesym) then
             MessagePos1(tdef(def).typesym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename)
           else
-            Message1(type_e_objc_type_unsupported,tprocvardef(def).typename)
+            compiler.verbose.Message1(type_e_objc_type_unsupported,tprocvardef(def).typename)
       end;
 
 
@@ -962,9 +962,9 @@ implementation
            not(tlabelsym(sym).defined) then
          begin
            if tlabelsym(sym).used then
-            Message1(sym_e_label_used_and_not_defined,tlabelsym(sym).realname)
+            compiler.verbose.Message1(sym_e_label_used_and_not_defined,tlabelsym(sym).realname)
            else
-            Message1(sym_w_label_not_defined,tlabelsym(sym).realname);
+            compiler.verbose.Message1(sym_w_label_not_defined,tlabelsym(sym).realname);
          end;
       end;
 
@@ -1841,7 +1841,7 @@ implementation
               if (varalign>4) and
                 ((varalign mod 4)<>0) and
                 (vardef.typ=arraydef) then
-                Message1(sym_w_wrong_C_pack,vardef.typename);
+                compiler.verbose.Message1(sym_w_wrong_C_pack,vardef.typename);
               if varalign=0 then
                 varalign:=l;
               if (globalfieldalignment<current_settings.alignment.maxCrecordalign) then
@@ -3077,13 +3077,15 @@ implementation
 
     procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym: TSymEntry; warn: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         st : TSymtable;
         filename : TIDString;
       begin
         if not warn then
-          Message1(sym_e_duplicate_id,tsym(origsym).realname)
+          compiler.verbose.Message1(sym_e_duplicate_id,tsym(origsym).realname)
         else
-         Message1(sym_w_duplicate_id,tsym(origsym).realname);
+         compiler.verbose.Message1(sym_w_duplicate_id,tsym(origsym).realname);
         { Write hint where the original symbol was found }
         st:=finduniTSymtable(origsym.owner);
         with tsym(origsym).fileinfo do
@@ -3906,6 +3908,8 @@ implementation
 
     function find_real_class_definition(symtablestack:TSymtablestack;pd: tobjectdef; erroronfailure: boolean): tobjectdef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
         srsymtable : tsymtable;
@@ -3988,7 +3992,7 @@ implementation
         { nothing found: optionally give an error and return the original
           (empty) one }
         if erroronfailure then
-          Message1(sym_e_formal_class_not_resolved,pd.objrealname^);
+          compiler.verbose.Message1(sym_e_formal_class_not_resolved,pd.objrealname^);
         result:=pd;
       end;
 
@@ -4447,18 +4451,22 @@ implementation
 
     function search_system_type(const s: TIDString): ttypesym;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sym : tsym;
       begin
         check_systemunit_loaded;
         sym:=tsym(systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
-          message1(cg_f_unknown_system_type,s);
+          compiler.verbose.Message1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
       end;
 
 
     function try_search_system_type(const s: TIDString): ttypesym;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         sym : tsym;
       begin
@@ -4469,7 +4477,7 @@ implementation
         else
           begin
             if sym.typ<>typesym then
-              message1(cg_f_unknown_system_type,s);
+              compiler.verbose.Message1(cg_f_unknown_system_type,s);
             result:=ttypesym(sym);
           end;
       end;
@@ -4498,6 +4506,8 @@ implementation
 
     function  search_system_proc(const s: TIDString): tprocdef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         srsym: tsym;
       begin
         check_systemunit_loaded;
@@ -4507,7 +4517,7 @@ implementation
           srsym:=tsym(systemunit.Find(upper(s)));
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
-          message1(cg_f_unknown_compilerproc,s);
+          compiler.verbose.Message1(cg_f_unknown_compilerproc,s);
         result:=tprocdef(tprocsym(srsym).procdeflist[0]);
     end;
 
@@ -5007,7 +5017,7 @@ implementation
              else
                compiler.initialmacrosymtable.insertsym(mac);
            end;
-         Message1(parser_c_macro_defined,mac.name);
+         compiler.verbose.Message1(parser_c_macro_defined,mac.name);
          mac.defined:=true;
       end;
 
@@ -5073,6 +5083,8 @@ implementation
 
     procedure undef_system_macro(const name : string);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         mac : tmacro;
         s: string;
       begin
@@ -5084,7 +5096,7 @@ implementation
            {If not found, then it's already undefined.}
          else
            begin
-             Message1(parser_c_macro_undefined,mac.name);
+             compiler.verbose.Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
              mac.is_compiler_var:=false;
              { delete old definition }

@@ -254,7 +254,7 @@ unit raatt;
                      actasmtoken:=AS_TARGET_DIRECTIVE;
                      exit;
                    end;
-                 Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
+                 compiler.verbose.Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
                end;
             end;
            { only opcodes and global labels are allowed now. }
@@ -387,7 +387,7 @@ unit raatt;
               actasmtoken:=AS_END;
               exit;
             end;
-           message1(asmr_e_unknown_opcode,actasmpattern);
+           compiler.verbose.Message1(asmr_e_unknown_opcode,actasmpattern);
            actasmtoken:=AS_NONE;
          end
         else { else firsttoken }
@@ -574,7 +574,7 @@ unit raatt;
                         end
                        else
                         begin
-                          Message1(asmr_e_invalid_float_const,actasmpattern+c);
+                          compiler.verbose.Message1(asmr_e_invalid_float_const,actasmpattern+c);
                           actasmtoken:=AS_NONE;
                         end;
                      end;
@@ -1127,7 +1127,7 @@ unit raatt;
        secprogbits : TSectionProgbits;
        i: Integer;
      Begin
-       Message1(asmr_d_start_reading,'GNU AS');
+       compiler.verbose.Message1(asmr_d_start_reading,'GNU AS');
        firsttoken:=TRUE;
        { sets up all opcode and register tables in uppercase }
        if not _asmsorted then
@@ -1163,7 +1163,7 @@ unit raatt;
                    ConcatLabel(curlist,hl);
                  end
                else
-                Message1(asmr_e_unknown_label_identifier,actasmpattern);
+                compiler.verbose.Message1(asmr_e_unknown_label_identifier,actasmpattern);
                Consume(AS_LABEL);
              end;
 
@@ -1378,7 +1378,7 @@ unit raatt;
                { .rva generally applies to systems with COFF output format,
                  not just Windows. }
                if not (compiler.target.info.system in systems_all_windows) then
-                 Message1(asmr_e_unsupported_directive,token2str[AS_RVA]);
+                 compiler.verbose.Message1(asmr_e_unsupported_directive,token2str[AS_RVA]);
                Consume(AS_RVA);
                BuildRva;
              end;
@@ -1490,7 +1490,7 @@ unit raatt;
         end;
        { Return the list in an asmnode }
        assemble:=curlist;
-       Message1(asmr_d_finish_reading,'GNU AS');
+       compiler.verbose.Message1(asmr_d_finish_reading,'GNU AS');
      end;
 
 
@@ -1667,7 +1667,7 @@ unit raatt;
                     l:=SwapEndian(l);
                   end;
                 else
-                  Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
+                  compiler.verbose.Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
                 end;
                 str(l, tempstr);
                 expr:=expr + tempstr;
@@ -1707,7 +1707,7 @@ unit raatt;
                          end;
                        end
                       else
-                       Message1(sym_e_unknown_id,tempstr);
+                       compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                     end;
                  end;
                 str(l, tempstr);
@@ -1794,7 +1794,7 @@ unit raatt;
                          end;
                        end
                       else
-                       Message1(sym_e_unknown_id,tempstr);
+                       compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                     end;
                    { symbol found? }
                    if hs<>'' then

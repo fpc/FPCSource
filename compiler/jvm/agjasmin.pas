@@ -648,11 +648,11 @@ implementation
              jasminjarfound:=FindFileInExeLocations(jasminjarname,false,jasminjar);
            if (not jasminjarfound) and not(cs_asm_extern in current_settings.globalswitches) then
              begin
-               Message1(exec_e_assembler_not_found,jasminjarname);
+               compiler.verbose.Message1(exec_e_assembler_not_found,jasminjarname);
                current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
              end;
            if jasminjarfound then
-             Message1(exec_t_using_assembler,jasminjar);
+             compiler.verbose.Message1(exec_t_using_assembler,jasminjar);
          end;
        result:=asminfo^.asmcmd;
        filenames:=ScriptFixFileName(AsmFileName);

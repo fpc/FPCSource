@@ -351,7 +351,7 @@ Unit Rax86int;
                   actasmtoken:=AS_TARGET_DIRECTIVE;
                   exit;
                 end;
-              Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
+              compiler.verbose.Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
               exit;
             end;
 
@@ -398,7 +398,7 @@ Unit Rax86int;
             end;
            if is_asmdirective(actasmpattern) then
             exit;
-           message1(asmr_e_unknown_opcode,actasmpattern);
+           compiler.verbose.Message1(asmr_e_unknown_opcode,actasmpattern);
            actasmtoken:=AS_NONE;
            exit;
          end
@@ -1207,7 +1207,7 @@ Unit Rax86int;
           Message(asmr_e_invalid_seg_override);
 {$ifdef x86_64}
         if (seg=NR_CS) or (seg=NR_DS) or (seg=NR_SS) or (seg=NR_ES) then
-          Message1(asmr_w_segment_override_ignored_in_64bit_mode,masm_regname(seg));
+          compiler.verbose.Message1(asmr_w_segment_override_ignored_in_64bit_mode,masm_regname(seg));
 {$endif x86_64}
         case oper.opr.typ of
           OPR_REFERENCE:
@@ -1483,7 +1483,7 @@ Unit Rax86int;
                          end;
                        end
                       else
-                       Message1(sym_e_unknown_id,tempstr);
+                       compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                     end;
                  end;
                 str(l, tempstr);
@@ -1516,7 +1516,7 @@ Unit Rax86int;
                     l:=SwapEndian(l);
                   end;
                 else
-                  Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
+                  compiler.verbose.Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
                 end;
                 str(l, tempstr);
                 expr:=expr + tempstr;
@@ -1609,7 +1609,7 @@ Unit Rax86int;
                          end;
                        end
                       else
-                       Message1(sym_e_unknown_id,tempstr);
+                       compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                     end;
                    { symbol found? }
                    if hs<>'' then
@@ -1889,7 +1889,7 @@ Unit Rax86int;
                          end;
                      end
                    else
-                     Message1(sym_e_unknown_id,tempstr);
+                     compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                    { record.field ? }
                    if actasmtoken=AS_DOT then
                     begin
@@ -2610,7 +2610,7 @@ Unit Rax86int;
                                 end
                               else
                                 begin
-                                  Message1(sym_e_unknown_id,expr);
+                                  compiler.verbose.Message1(sym_e_unknown_id,expr);
                                   expr:='';
                                 end;
                             end;
@@ -2837,9 +2837,9 @@ Unit Rax86int;
 
             { Valid combination of prefix/override and instruction ?  }
             if (prefixop<>A_NONE) and (NOT CheckPrefix(PrefixOp,actopcode)) then
-              Message1(asmr_e_invalid_prefix_and_opcode,actasmpattern);
+              compiler.verbose.Message1(asmr_e_invalid_prefix_and_opcode,actasmpattern);
             if (overrideop<>A_NONE) and (NOT CheckOverride(OverrideOp,ActOpcode)) then
-              Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
+              compiler.verbose.Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
           end;
         { pushf/popf/pusha/popa have to default to 16 bit in Intel mode
           (Intel manual and Delphi-compatible) -- setting the opsize for
@@ -3134,7 +3134,7 @@ Unit Rax86int;
 {$endif i8086}
                       then
                      begin
-                       Message1(asmr_w_const32bit_for_address,asmsym);
+                       compiler.verbose.Message1(asmr_w_const32bit_for_address,asmsym);
                        constsize:=sizeof(pint);
                      end;
 {$ifdef i8086}
@@ -3143,7 +3143,7 @@ Unit Rax86int;
                        if not (cseof_isseg in cse_out_flags) then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
                        if constsize<2 then
-                         Message1(asmr_e_const16bit_for_segment,asmsym);
+                         compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
                        if current_settings.x86memorymodel=mm_huge then
                          curlist.concat(Tai_const.Create_fardataseg)
                        else
@@ -3156,7 +3156,7 @@ Unit Rax86int;
                        if not (cseof_isseg in cse_out_flags) then
                          Message(asmr_e_CODE_or_DATA_without_SEG);
                        if constsize<2 then
-                         Message1(asmr_e_const16bit_for_segment,asmsym);
+                         compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
                        curlist.concat(Tai_const.Create_seg_name(current_procinfo.procdef.mangledname));
                        if constsize>2 then
                          ConcatConstant(curlist,0,constsize-2);
@@ -3164,7 +3164,7 @@ Unit Rax86int;
                    else if cseof_isseg in cse_out_flags then
                      begin
                        if constsize<2 then
-                         Message1(asmr_e_const16bit_for_segment,asmsym);
+                         compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
                        curlist.concat(Tai_const.Create_seg_name(asmsym));
                        if constsize>2 then
                          ConcatConstant(curlist,0,constsize-2);
@@ -3206,7 +3206,7 @@ Unit Rax86int;
       tmpsym: tsym;
       tmpsrsymtable: TSymtable;
     Begin
-      Message1(asmr_d_start_reading,'intel');
+      compiler.verbose.Message1(asmr_d_start_reading,'intel');
       inexpression:=FALSE;
       firsttoken:=TRUE;
      { sets up all opcode and register tables in uppercase
@@ -3242,7 +3242,7 @@ Unit Rax86int;
                   ConcatLabel(curlist,hl);
                 end
               else
-               Message1(asmr_e_unknown_label_identifier,actasmpattern);
+               compiler.verbose.Message1(asmr_e_unknown_label_identifier,actasmpattern);
               Consume(AS_LABEL);
             end;
 
@@ -3287,7 +3287,7 @@ Unit Rax86int;
                 if actasmtoken=AS_ID then
                   begin
                     if (actasmpattern<>'') and (actasmpattern[1]='@') then
-                      Message1(asmr_e_local_label_cannot_be_declared_public,actasmpattern)
+                      compiler.verbose.Message1(asmr_e_local_label_cannot_be_declared_public,actasmpattern)
                     else if SearchLabel(upper(actasmpattern),hl,false) then
                       begin
                         if not hl.is_public then
@@ -3295,11 +3295,11 @@ Unit Rax86int;
                             hl.is_public:=true;
                             asmsearchsym(upper(actasmpattern),tmpsym,tmpsrsymtable);
                             if tlabelsym(tmpsym).defined then
-                              Message1(asmr_e_public_must_be_used_before_label_definition,actasmpattern);
+                              compiler.verbose.Message1(asmr_e_public_must_be_used_before_label_definition,actasmpattern);
                           end;
                       end
                     else
-                      Message1(asmr_e_unknown_label_identifier,actasmpattern);
+                      compiler.verbose.Message1(asmr_e_unknown_label_identifier,actasmpattern);
                   end;
                 Consume(AS_ID);
                 if actasmtoken=AS_COMMA then
@@ -3356,7 +3356,7 @@ Unit Rax86int;
       checklocallabels;
       { Return the list in an asmnode }
       assemble:=curlist;
-      Message1(asmr_d_finish_reading,'intel');
+      compiler.verbose.Message1(asmr_d_finish_reading,'intel');
     end;
 
 

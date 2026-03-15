@@ -1857,7 +1857,7 @@ implementation
             if is_objectpascal_helper(def) then
               begin
                 s:=generate_objectpascal_helper_key(tobjectdef(def).extendeddef);
-                Message1(sym_d_adding_helper_for,s);
+                compiler.verbose.Message1(sym_d_adding_helper_for,s);
                 list:=TFPObjectList(current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin
@@ -6347,13 +6347,13 @@ implementation
 
     procedure tabstractprocdef.declared_far;
       begin
-        Message1(parser_w_proc_directive_ignored,'FAR');
+        compiler.verbose.Message1(parser_w_proc_directive_ignored,'FAR');
       end;
 
 
     procedure tabstractprocdef.declared_near;
       begin
-        Message1(parser_w_proc_directive_ignored,'NEAR');
+        compiler.verbose.Message1(parser_w_proc_directive_ignored,'NEAR');
       end;
 
 
@@ -7622,7 +7622,7 @@ implementation
         if (iscatmethod) then
           inc(manglednamelen,length(tobjectdef(procsym.owner.defowner).childof.objextname^)+length('()'));
         if manglednamelen>255 then
-          Message1(parser_e_objc_message_name_too_long,messageinf.str^);
+          compiler.verbose.Message1(parser_e_objc_message_name_too_long,messageinf.str^);
         if not(po_classmethod in procoptions) then
           result:='"-['
         else
@@ -8495,7 +8495,7 @@ implementation
         if (oo_is_forward in objectoptions) then
           begin
              { ok, in future, the forward can be resolved }
-             Message1(sym_e_class_forward_not_resolved,objrealname^);
+             compiler.verbose.Message1(sym_e_class_forward_not_resolved,objrealname^);
              exclude(objectoptions,oo_is_forward);
           end;
      end;
@@ -8582,7 +8582,7 @@ implementation
     function tobjectdef.vmt_mangledname : TSymStr;
       begin
         if not(oo_has_vmt in objectoptions) then
-          Message1(parser_n_object_has_no_vmt,objrealname^);
+          compiler.verbose.Message1(parser_n_object_has_no_vmt,objrealname^);
         if not is_unique_objpasdef then
           vmt_mangledname:=make_mangledname('VMT',owner,objname^)
         else

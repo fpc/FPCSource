@@ -226,7 +226,7 @@ var
     procedure tppumodule.re_resolve(loadfrom: tmodule);
 
       begin
-        Message1(unit_u_reresolving_unit,modulename^);
+        compiler.verbose.Message1(unit_u_reresolving_unit,modulename^);
         if tstoredsymtable(globalsymtable).is_deref_built then
           tstoredsymtable(globalsymtable).deref(false);
         if tstoredsymtable(globalsymtable).is_derefimpl_built then
@@ -279,13 +279,13 @@ var
         ppufiletime : longint;
       begin
         openppufile:=false;
-        Message1(unit_t_ppu_loading,ppufilename,@queuecomment);
+        compiler.verbose.Message1(unit_t_ppu_loading,ppufilename,@queuecomment);
       { Get ppufile time (also check if the file exists) }
         ppufiletime:=getnamedfiletime(ppufilename);
         if ppufiletime=-1 then
          exit;
       { Open the ppufile }
-        Message1(unit_u_ppu_name,ppufilename);
+        compiler.verbose.Message1(unit_u_ppu_name,ppufilename);
         ppufile:=tcompilerppufile.create(ppufilename,compiler);
         if not ppufile.openfile then
          begin
@@ -301,7 +301,7 @@ var
       begin
         result:=false;
       { Open the ppufile }
-        Message1(unit_u_ppu_name,ppufilename);
+        compiler.verbose.Message1(unit_u_ppu_name,ppufilename);
         ppufile:=tcompilerppufile.create(ppufilename,compiler);
         if not ppufile.openstream(strm) then
          begin
@@ -330,13 +330,13 @@ var
           { check for allowed PPU versions }
             if not (ppufile.getversion = CurrentPPUVersion) then
              begin
-               Message1(unit_u_ppu_invalid_version,tostr(ppufile.getversion),@queuecomment);
+               compiler.verbose.Message1(unit_u_ppu_invalid_version,tostr(ppufile.getversion),@queuecomment);
                exit;
              end;
           { check the target processor }
             if tsystemcpu(ppufile.header.common.cpu)<>compiler.target.cpu then
              begin
-               Message1(unit_u_ppu_invalid_processor,cpu2str[tsystemcpu(ppufile.header.common.cpu)],@queuecomment);
+               compiler.verbose.Message1(unit_u_ppu_invalid_processor,cpu2str[tsystemcpu(ppufile.header.common.cpu)],@queuecomment);
                exit;
              end;
           { check target }
@@ -347,7 +347,7 @@ var
                  system_name:=psi^.shortname
                else
                  system_name:='invalid ('+tostr(ppufile.header.common.target)+')';
-               Message1(unit_u_ppu_invalid_target,system_name,@queuecomment);
+               compiler.verbose.Message1(unit_u_ppu_invalid_target,system_name,@queuecomment);
                exit;
              end;
 {$ifdef cpufpemu}
@@ -463,13 +463,13 @@ var
         change_endian:=ppufile.change_endian;
       { Show Debug info }
         if ppufiletime<>-1 then
-          Message1(unit_u_ppu_time,filetimestring(ppufiletime))
+          compiler.verbose.Message1(unit_u_ppu_time,filetimestring(ppufiletime))
         else
-          Message1(unit_u_ppu_time,'unknown');
-        Message1(unit_u_ppu_flags,tostr(headerflags));
-        Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
-        Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
-        Message1(unit_u_ppu_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
+          compiler.verbose.Message1(unit_u_ppu_time,'unknown');
+        compiler.verbose.Message1(unit_u_ppu_flags,tostr(headerflags));
+        compiler.verbose.Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
+        compiler.verbose.Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
+        compiler.verbose.Message1(unit_u_ppu_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
         compiler.verbose.Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
         compiler.verbose.Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
         openppu:=true;
@@ -498,7 +498,7 @@ var
            s : tcmdstr;
          begin
            if compiler.verbose.CheckVerbosity(V_Tried) then
-             Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
+             compiler.verbose.Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
            s:=FileName+ext;
            if prefix<>'' then
              s:=prefix+'.'+s;
@@ -687,13 +687,13 @@ var
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
             if compiler.verbose.CheckVerbosity(V_Tried) then
-              Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,sourceext));
+              compiler.verbose.Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,sourceext));
             if FindFile(ChangeFileExt(sourcefn,sourceext),'',true,hs) then
               include(fnd,auSrc);
             if (fnd=[]) then
              begin
                if compiler.verbose.CheckVerbosity(V_Tried) then
-                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pasext));
+                 compiler.verbose.Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pasext));
                if FindFile(ChangeFileExt(sourcefn,pasext),'',true,hs) then
                  include(fnd,auSrc);
              end;
@@ -702,7 +702,7 @@ var
                 (tf_p_ext_support in compiler.target.info.flags)) then
              begin
                if compiler.verbose.CheckVerbosity(V_Tried) then
-                 Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pext));
+                 compiler.verbose.Message1(unit_t_unitsearch,ChangeFileExt(sourcefn,pext));
                if FindFile(ChangeFileExt(sourcefn,pext),'',true,hs) then
                 include(fnd,auSrc)
              end;
@@ -738,7 +738,7 @@ var
         Function UnitExists(const ext:string;var foundfile:TCmdStr):boolean;
           begin
             if CheckVerbosity(V_Tried) then
-              Message1(unit_t_unitsearch,Singlepathstring+filename);
+              compiler.verbose.Message1(unit_t_unitsearch,Singlepathstring+filename);
             UnitExists:=FindFile(FileName,Singlepathstring,true,foundfile);
           end;
 
@@ -811,7 +811,7 @@ var
                 load_interface;
                 if not load_usedunits then
                   internalerror(2026020415);
-                Message1(unit_u_finished_loading_unit,modulename^);
+                compiler.verbose.Message1(unit_u_finished_loading_unit,modulename^);
 
                 result:=true;
                 break;
@@ -1359,7 +1359,7 @@ var
              begin
                mainsource:=hs;
              end;
-           Message1(unit_u_ppu_source,hs+temp,@queuecomment);
+           compiler.verbose.Message1(unit_u_ppu_source,hs+temp,@queuecomment);
            is_main:=false;
          end;
       { check if we want to rebuild every unit, only if the sources are
@@ -1628,7 +1628,7 @@ var
                begin
                  mainname:=ppufile.getpshortstring;
                  if (mainaliasname<>defaultmainaliasname) then
-                   Message1(scan_w_multiple_main_name_overrides,mainaliasname);
+                   compiler.verbose.Message1(scan_w_multiple_main_name_overrides,mainaliasname);
                  mainaliasname:=mainname^;
                end;
              ibImportSymbols :
@@ -1646,7 +1646,7 @@ var
              ibendinterface :
                break;
            else
-             Message1(unit_f_ppu_invalid_entry,tostr(b));
+             compiler.verbose.Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
            { we can already stop when we know that we must recompile }
            if state=ms_compile then
@@ -1672,7 +1672,7 @@ var
              ibendimplementation :
                break;
            else
-             Message1(unit_f_ppu_invalid_entry,tostr(b));
+             compiler.verbose.Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
          until false;
       end;
@@ -1680,7 +1680,7 @@ var
 
     procedure tppumodule.writeppu;
       begin
-         Message1(unit_u_ppu_write,realmodulename^);
+         compiler.verbose.Message1(unit_u_ppu_write,realmodulename^);
 
          { create unit flags }
 {$ifdef cpufpemu}
@@ -2389,7 +2389,7 @@ var
                     Message2(unit_f_cant_find_ppu,realmodulename^,loadedfrommodule.realmodulename^);
                 end
               else
-                Message1(unit_f_cant_compile_unit,realmodulename^);
+                compiler.verbose.Message1(unit_f_cant_compile_unit,realmodulename^);
             end;
          end;
         { we found the sources, we do not need the verbose messages anymore }
@@ -2472,7 +2472,7 @@ var
 {$endif SHORT_ON_FILE_HANDLES}
 
         { search ppu file }
-        Message1(unit_u_loading_unit,modulename^);
+        compiler.verbose.Message1(unit_u_loading_unit,modulename^);
         if auPPU in search_unit_files(from_module,false) then
         begin
           state:=ms_load;
@@ -2532,7 +2532,7 @@ var
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.continueloadppu ',modulename^,' finished state=',statestr);
             {$ENDIF}
-            Message1(unit_u_finished_loading_unit,modulename^);
+            compiler.verbose.Message1(unit_u_finished_loading_unit,modulename^);
           end else if state=ms_load then
           begin
             {$IFDEF DEBUG_PPU_CYCLES}
@@ -2699,7 +2699,7 @@ var
         begin
           { the unit is not in the loaded units,
             we create an entry and register the unit }
-          Message1(unit_u_registering_new_unit,ups);
+          compiler.verbose.Message1(unit_u_registering_new_unit,ups);
           hp:=tppumodule.create(callermodule,s,fn,true,compiler);
           addloadedunit(hp);
         end

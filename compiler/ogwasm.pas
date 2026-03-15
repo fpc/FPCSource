@@ -1493,7 +1493,7 @@ implementation
                         internalerror(2021092509);
                       objsec.Data.seek(objrel.DataOffset);
                       if TWasmObjSymbol(objrel.symbol).FuncIndex<0 then
-                        message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                        compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.symbol.name)
                       else
                         WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).FuncIndex);
                     end;
@@ -1540,7 +1540,7 @@ implementation
                         internalerror(2021092509);
                       objsec.Data.seek(objrel.DataOffset);
                       if TWasmObjSymbol(objrel.symbol).GlobalIndex<0 then
-                        message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                        compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.symbol.name)
                       else
                         WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).GlobalIndex);
                     end;
@@ -1550,7 +1550,7 @@ implementation
                         internalerror(2021092716);
                       objsec.Data.seek(objrel.DataOffset);
                       if TWasmObjSymbol(objrel.symbol).TagIndex<0 then
-                        message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                        compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.symbol.name)
                       else
                         WriteSleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).TagIndex);
                     end;
@@ -1682,7 +1682,7 @@ implementation
                           WriteByte(relout,Ord(R_WASM_SECTION_OFFSET_I32));
                           WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
 			  if (TWasmObjSection(objrel.objsection).SegSymIdx<0) then
-                            message1(asmw_e_illegal_unset_index,objrel.objsection.name)
+                            compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.objsection.name)
                           else
                             WriteUleb(relout,TWasmObjSection(objrel.objsection).SegSymIdx);
                           WriteSleb(relout,objrel.Addend);  { addend to add to the address }
@@ -1701,7 +1701,7 @@ implementation
                           WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                           FuncSym:=FindFunctionSymbol(TWasmObjSymbol(objrel.Symbol));
 			  if FuncSym.SymbolIndex<0 then
-                            message1(asmw_e_illegal_unset_index,FuncSym.Name)
+                            compiler.verbose.Message1(asmw_e_illegal_unset_index,FuncSym.Name)
                           else
                             WriteUleb(relout,FuncSym.SymbolIndex);
                           WriteSleb(relout,objrel.Addend+objrel.symbol.address)  { addend to add to the address }
@@ -1712,7 +1712,7 @@ implementation
                           WriteByte(relout,Ord(R_WASM_GLOBAL_INDEX_I32));
                           WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
 			  if (TWasmObjSymbol(objrel.symbol).SymbolIndex<0) then
-                            message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                            compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.symbol.name)
                           else
                             WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
                         end
@@ -1724,7 +1724,7 @@ implementation
 			  if (TWasmObjSymbol(objrel.symbol).SymbolIndex<0) then
                             begin
                               Writeln(objrel.symbol.objsection.Name, ' ', objrel.symbol.name, ' ', objsec.Name);
-                              message1(asmw_e_illegal_unset_index,objrel.symbol.name);
+                              compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.symbol.name);
                             end
                           else
                             WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
@@ -1746,7 +1746,7 @@ implementation
                       WriteByte(relout,Ord(R_WASM_GLOBAL_INDEX_LEB));
                       WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                       if (TWasmObjSymbol(objrel.symbol).SymbolIndex<0) then
-                        message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                        compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.symbol.name)
                       else
                         WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
                     end;
@@ -1758,7 +1758,7 @@ implementation
                       WriteByte(relout,Ord(R_WASM_TAG_INDEX_LEB));
                       WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                       if (TWasmObjSymbol(objrel.symbol).SymbolIndex<0) then
-                        message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                        compiler.verbose.Message1(asmw_e_illegal_unset_index,objrel.symbol.name)
                       else
                         WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
                     end;
@@ -2087,7 +2087,7 @@ implementation
                     WriteName(FWasmSections[wsiExport],TWasmObjSymbolExtraData(FData.FObjSymbolsExtraDataList.Find(objsym.Name)).ExportName);
                     WriteByte(FWasmSections[wsiExport],0);  { func }
                     if (objsym.FuncIndex<0) then
-                      message1(asmw_e_illegal_unset_index,objsym.name)
+                      compiler.verbose.Message1(asmw_e_illegal_unset_index,objsym.name)
                     else
                       WriteUleb(FWasmSections[wsiExport],objsym.FuncIndex);
                   end;
@@ -2203,7 +2203,7 @@ implementation
                 else
                   internalerror(2021092715);
                 if (objsym.TagIndex<0) then
-                  message1(asmw_e_illegal_unset_index,objsym.name)
+                  compiler.verbose.Message1(asmw_e_illegal_unset_index,objsym.name)
                 else
                   WriteUleb(FWasmSymbolTable,objsym.TagIndex);
                 if objsym.bind<>AB_EXTERNAL then
@@ -2218,7 +2218,7 @@ implementation
                   begin
                     WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
                     if (objsym.GlobalIndex<0) then
-                      message1(asmw_e_illegal_unset_index,objsym.name)
+                      compiler.verbose.Message1(asmw_e_illegal_unset_index,objsym.name)
                     else
                       WriteUleb(FWasmSymbolTable,objsym.GlobalIndex);
                   end
@@ -2226,7 +2226,7 @@ implementation
                   begin
                     WriteUleb(FWasmSymbolTable,0);
                     if (objsym.GlobalIndex<0) then
-                      message1(asmw_e_illegal_unset_index,objsym.name)
+                      compiler.verbose.Message1(asmw_e_illegal_unset_index,objsym.name)
                     else
                       WriteUleb(FWasmSymbolTable,objsym.GlobalIndex);
                     WriteName(FWasmSymbolTable,objsym.Name);
@@ -2241,7 +2241,7 @@ implementation
                   begin
                     WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED or WASM_SYM_EXPLICIT_NAME);
                     if (objsym.FuncIndex<0) then
-                      message1(asmw_e_illegal_unset_index,objsym.name)
+                      compiler.verbose.Message1(asmw_e_illegal_unset_index,objsym.name)
                     else
                       WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                     WriteName(FWasmSymbolTable,objsym.Name);
@@ -2250,7 +2250,7 @@ implementation
                   begin
                     WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED);
                     if (objsym.FuncIndex<0) then
-                      message1(asmw_e_illegal_unset_index,objsym.name)
+                      compiler.verbose.Message1(asmw_e_illegal_unset_index,objsym.name)
                     else
                       WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                   end;
@@ -2274,7 +2274,7 @@ implementation
                     else
                       WriteUleb(FWasmSymbolTable,0);
                     if (objsym.FuncIndex<0) then
-                      message1(asmw_e_illegal_unset_index,objsym.name)
+                      compiler.verbose.Message1(asmw_e_illegal_unset_index,objsym.name)
                     else
                       WriteUleb(FWasmSymbolTable,objsym.FuncIndex);
                   end;

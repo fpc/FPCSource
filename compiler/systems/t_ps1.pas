@@ -323,7 +323,7 @@ var
     success : boolean;
 begin
     if not (cs_link_nolink in current_settings.globalswitches) then
-      Message1(exec_i_linking,current_module.exefilename);
+      compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
     if (cs_link_map in current_settings.globalswitches) then
       mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))

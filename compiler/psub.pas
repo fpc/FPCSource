@@ -216,11 +216,13 @@ implementation
 
 
     function checknodeinlining(procdef: tprocdef): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure _no_inline(const reason: TMsgStr);
         begin
           include(procdef.implprocoptions,pio_inline_not_possible);
-          Message1(parser_n_not_supported_for_inline,reason);
+          compiler.verbose.Message1(parser_n_not_supported_for_inline,reason);
           Message(parser_h_inlining_disabled);
         end;
 
@@ -1535,7 +1537,7 @@ implementation
         Append(T);
         if IOResult <> 0 then
           begin
-            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
             current_module.ppxfilefail := True;
             Exit;
           end;
@@ -1991,7 +1993,7 @@ implementation
             { Can we inline this procedure? }
             if checknodeinlining(procdef) then
               begin
-                Message1(cg_d_autoinlining,procdef.GetTypeName);
+                compiler.verbose.Message1(cg_d_autoinlining,procdef.GetTypeName);
                 include(procdef.procoptions,po_inline);
                 CreateInlineInfo;
               end;
@@ -2494,11 +2496,11 @@ implementation
           which are assigned "on the fly" in types_dec }
 {$if not defined(jvm) and not defined(wasm)}
         if not assigned(rec_exceptaddr) then
-          Message1(cg_f_internal_type_not_found,'TEXCEPTADDR');
+          compiler.verbose.Message1(cg_f_internal_type_not_found,'TEXCEPTADDR');
         if not assigned(rec_tguid) then
-          Message1(cg_f_internal_type_not_found,'TGUID');
+          compiler.verbose.Message1(cg_f_internal_type_not_found,'TGUID');
         if not assigned(rec_jmp_buf) then
-          Message1(cg_f_internal_type_not_found,'JMP_BUF');
+          compiler.verbose.Message1(cg_f_internal_type_not_found,'JMP_BUF');
 {$endif}
 
          { if the procdef is truly a generic (thus takes parameters itself) then
@@ -2678,7 +2680,7 @@ implementation
         oldfailtokenmode : tmodeswitches;
         isnestedproc     : boolean;
       begin
-        Message1(parser_d_procedure_start,pd.fullprocname(false));
+        compiler.verbose.Message1(parser_d_procedure_start,pd.fullprocname(false));
         oldfailtokenmode:=[];
 
         { create a new procedure }
@@ -2986,7 +2988,7 @@ implementation
                        even if we could, e.g. LLVM cannot call through to something
                        else in that case) }
                      if is_c_variadic(result) then
-                       Message1(parser_e_callthrough_varargs,result.fullprocname(false));
+                       compiler.verbose.Message1(parser_e_callthrough_varargs,result.fullprocname(false));
                      call_through_new_name(result,proc_get_importname(result));
                      include(result.implprocoptions,pio_thunk);
                    end
@@ -3081,7 +3083,7 @@ implementation
         Rewrite(T);
         if IOResult<>0 then
           begin
-            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
             current_module.ppxfilefail := True;
             Exit;
           end;
@@ -3109,7 +3111,7 @@ implementation
         Append(T);
         if IOResult<>0 then
           begin
-            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
             Exit;
           end;
         {$pop}

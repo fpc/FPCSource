@@ -278,7 +278,7 @@ Implementation
         if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
          found:=FindFile(s,exepath,false,foundfile);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
-         Message1(exec_w_objfile_not_found,s);
+         compiler.verbose.Message1(exec_w_objfile_not_found,s);
 
         {Restore file extension}
         if isunit and (cs_assemble_on_target in current_settings.globalswitches) then
@@ -313,7 +313,7 @@ Implementation
          end;
         if (not found) then
          begin
-           message1(exec_w_libfile_not_found,s);
+           compiler.verbose.Message1(exec_w_libfile_not_found,s);
            FoundDll:=s;
          end;
         FindDll:=Found;
@@ -434,11 +434,11 @@ Implementation
                         { if static not avail then try smart linking }
                         if (headerflags and uf_smart_linked)<>0 then
                          begin
-                           Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
+                           compiler.verbose.Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
                            mask:=mask or link_smart;
                          end
                         else
-                         Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
+                         compiler.verbose.Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
                       end
                      else
                        mask:=mask or link_static;
@@ -455,11 +455,11 @@ Implementation
                              regular object files
                            }
                            if create_smartlink_library then
-                             Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
+                             compiler.verbose.Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
                            mask:=mask or link_static;
                          end
                         else
-                         Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
+                         compiler.verbose.Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
                       end
                      else
                       mask:=mask or link_smart;
@@ -472,11 +472,11 @@ Implementation
                         { if shared not avail then try static linking }
                         if (headerflags and uf_static_linked)<>0 then
                          begin
-                           Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
+                           compiler.verbose.Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
                            mask:=mask or link_static;
                          end
                         else
-                         Message1(exec_e_unit_not_shared_or_static_linkable,modulename^);
+                         compiler.verbose.Message1(exec_e_unit_not_shared_or_static_linkable,modulename^);
                       end
                      else
                       mask:=mask or link_shared;
@@ -556,7 +556,7 @@ Implementation
           exit;
         found:=FindLibraryFile(s,compiler.target.info.staticlibprefix,compiler.target.info.staticlibext,ns);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
-          Message1(exec_w_libfile_not_found,s);
+          compiler.verbose.Message1(exec_w_libfile_not_found,s);
         StaticLibFiles.Concat(ns);
       end;
 
@@ -604,7 +604,7 @@ Implementation
          exit;
         found:=FindLibraryFile(s,compiler.target.info.staticclibprefix,compiler.target.info.staticclibext,ns);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
-         Message1(exec_w_libfile_not_found,s);
+         compiler.verbose.Message1(exec_w_libfile_not_found,s);
         StaticLibFiles.Concat(ns);
       end;
 
@@ -874,16 +874,18 @@ Implementation
          Found:=FindExe(utilexe,false,Foundbin);
         if throwerror and (not Found) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
-           Message1(exec_e_util_not_found,utilexe);
+           compiler.verbose.Message1(exec_e_util_not_found,utilexe);
            current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
          end;
         if (FoundBin<>'') then
-         Message1(exec_t_using_util,FoundBin);
+         compiler.verbose.Message1(exec_t_using_util,FoundBin);
         FindUtil:=FoundBin;
       end;
 
 
     Function TExternalLinker.CatFileContent(para : TCmdStr) : TCmdStr;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         filecontent : TCmdStr;
         f : text;
@@ -902,7 +904,7 @@ Implementation
         {$pop}
         if IOResult<>0 then
           begin
-            Message1(exec_n_backquote_cat_file_not_found,para);
+            compiler.verbose.Message1(exec_n_backquote_cat_file_not_found,para);
           end
         else
           begin
@@ -919,6 +921,8 @@ Implementation
 
     Function TExternalLinker.DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         exitcode: longint;
       begin
         DoExec:=true;
@@ -932,7 +936,7 @@ Implementation
                exitcode:=RequotedExecuteProcess(command,para);
              except on E:EOSError do
                begin
-                 Message1(exec_e_cant_call_linker,e.Message);
+                 compiler.verbose.Message1(exec_e_cant_call_linker,e.Message);
                  current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
                  DoExec:=false;
                end;
@@ -1155,6 +1159,8 @@ Implementation
 
 
     function TExternalLinker.PostProcessELFExecutable(const fn : string;isdll:boolean):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         TElf32header=packed record
           magic0123         : array[0..3] of char;
@@ -1357,7 +1363,7 @@ Implementation
         {$push}{$I-}
         reset(f,1);
         if ioresult<>0 then
-          Message1(execinfo_f_cant_open_executable,fn);
+          compiler.verbose.Message1(execinfo_f_cant_open_executable,fn);
         { read header }
         blockread(f,elfheader32,sizeof(tElf32header));
         with elfheader32 do
@@ -1384,19 +1390,19 @@ Implementation
                   case secname of
                     '.text':
                       begin
-                        Message1(execinfo_x_codesize,tostr(secheader32.sh_size));
+                        compiler.verbose.Message1(execinfo_x_codesize,tostr(secheader32.sh_size));
                         status.codesize:=secheader32.sh_size;
                       end;
                     '.fpcdata',
                     '.rodata',
                     '.data':
                       begin
-                        Message1(execinfo_x_initdatasize,tostr(secheader32.sh_size));
+                        compiler.verbose.Message1(execinfo_x_initdatasize,tostr(secheader32.sh_size));
                         inc(status.datasize,secheader32.sh_size);
                       end;
                     '.bss':
                       begin
-                        Message1(execinfo_x_uninitdatasize,tostr(secheader32.sh_size));
+                        compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(secheader32.sh_size));
                         inc(status.datasize,secheader32.sh_size);
                       end;
                   end;
@@ -1427,19 +1433,19 @@ Implementation
                   case secname of
                     '.text':
                       begin
-                        Message1(execinfo_x_codesize,tostr(secheader64.sh_size));
+                        compiler.verbose.Message1(execinfo_x_codesize,tostr(secheader64.sh_size));
                         status.codesize:=secheader64.sh_size;
                       end;
                     '.fpcdata',
                     '.rodata',
                     '.data':
                       begin
-                        Message1(execinfo_x_initdatasize,tostr(secheader64.sh_size));
+                        compiler.verbose.Message1(execinfo_x_initdatasize,tostr(secheader64.sh_size));
                         inc(status.datasize,secheader64.sh_size);
                       end;
                     '.bss':
                       begin
-                        Message1(execinfo_x_uninitdatasize,tostr(secheader64.sh_size));
+                        compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(secheader64.sh_size));
                         inc(status.datasize,secheader64.sh_size);
                       end;
                   end;
@@ -1457,6 +1463,8 @@ Implementation
 
 
     function TExternalLinker.PostProcessMachExecutable(const fn : string;isdll:boolean):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         TMachHeader=record
           magic       : longword;
@@ -1499,7 +1507,7 @@ Implementation
         {$push}{$I-}
         reset(f,1);
         if ioresult<>0 then
-          Message1(execinfo_f_cant_open_executable,fn);
+          compiler.verbose.Message1(execinfo_f_cant_open_executable,fn);
 
 {$ifdef DEBUG_MACHO_INFO}
         writeln('Start reading Mach-O file');
@@ -1528,17 +1536,17 @@ Implementation
                   case StrPas(@machsegmentcommand64.segname) of
                     '__TEXT':
                       begin
-                        Message1(execinfo_x_codesize,tostr(machsegmentcommand64.vmsize));
+                        compiler.verbose.Message1(execinfo_x_codesize,tostr(machsegmentcommand64.vmsize));
                         status.codesize:=machsegmentcommand64.vmsize;
                       end;
                     '__DATA_CONST':
                       begin
-                        Message1(execinfo_x_initdatasize,tostr(machsegmentcommand64.vmsize));
+                        compiler.verbose.Message1(execinfo_x_initdatasize,tostr(machsegmentcommand64.vmsize));
                         inc(status.datasize,machsegmentcommand64.vmsize);
                       end;
                     '__DATA':
                       begin
-                        Message1(execinfo_x_uninitdatasize,tostr(machsegmentcommand64.vmsize));
+                        compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(machsegmentcommand64.vmsize));
                         inc(status.datasize,machsegmentcommand64.vmsize);
                       end;
                   end;
@@ -2132,7 +2140,7 @@ Implementation
       begin
         result:=false;
 
-        Message1(exec_i_linking,outputname);
+        compiler.verbose.Message1(exec_i_linking,outputname);
         FlushOutput;
 
         exeoutput:=CExeOutput.Create;
@@ -2212,10 +2220,10 @@ Implementation
         bsssize:=GetBssSize(exeoutput);
 
         { Executable info }
-        Message1(execinfo_x_codesize,tostr(status.codesize));
-        Message1(execinfo_x_initdatasize,tostr(status.datasize));
-        Message1(execinfo_x_uninitdatasize,tostr(bsssize));
-        Message1(execinfo_x_stackreserve,tostr(stacksize));
+        compiler.verbose.Message1(execinfo_x_codesize,tostr(status.codesize));
+        compiler.verbose.Message1(execinfo_x_initdatasize,tostr(status.datasize));
+        compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(bsssize));
+        compiler.verbose.Message1(execinfo_x_stackreserve,tostr(stacksize));
 
       myexit:
         { close map }

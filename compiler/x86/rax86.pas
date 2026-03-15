@@ -298,9 +298,9 @@ begin
                   end;
                 end;
               if current_procinfo.procdef.proccalloption=pocall_register then
-                message1(asmr_w_no_direct_ebp_for_parameter,ErrorRefStr)
+                compiler.verbose.Message1(asmr_w_no_direct_ebp_for_parameter,ErrorRefStr)
               else
-                message1(asmr_w_direct_ebp_for_parameter_regcall,ErrorRefStr);
+                compiler.verbose.Message1(asmr_w_direct_ebp_for_parameter_regcall,ErrorRefStr);
             end
           else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
             begin
@@ -330,7 +330,7 @@ begin
                       internalerror(2019061004);
                   end;
                 end;
-              message1(asmr_w_direct_ebp_neg_offset,ErrorRefStr);
+              compiler.verbose.Message1(asmr_w_direct_ebp_neg_offset,ErrorRefStr);
             end
           else if ((ins.opcode<>A_LEA) and (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0)) or
             ((ins.opcode=A_LEA) and (getsupreg(ins.operands[2].opr.reg)<>RS_ESP) and (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0)) then
@@ -357,7 +357,7 @@ begin
                       internalerror(2019061006);
                   end;
                 end;
-              message1(asmr_w_direct_esp_neg_offset,ErrorRefStr);
+              compiler.verbose.Message1(asmr_w_direct_esp_neg_offset,ErrorRefStr);
             end;
         end;
       if (cs_create_pic in current_settings.moduleswitches) and
@@ -1907,7 +1907,7 @@ begin
          opcode:=A_FDIVP
        else if opcode=A_FDIVR then
          opcode:=A_FDIVRP;
-       message1(asmr_w_fadd_to_faddp,std_op2str[opcode]);
+       compiler.verbose.Message1(asmr_w_fadd_to_faddp,std_op2str[opcode]);
      end;
 
   {It is valid to specify some instructions without operand size.}
@@ -1975,7 +1975,7 @@ begin
       (opcode=A_FDIV) or
       (opcode=A_FDIVR)) then
      begin
-       message1(asmr_w_adding_explicit_args_fXX,std_op2str[opcode]);
+       compiler.verbose.Message1(asmr_w_adding_explicit_args_fXX,std_op2str[opcode]);
        ops:=2;
        operands[1].opr.typ:=OPR_REGISTER;
        operands[2].opr.typ:=OPR_REGISTER;
@@ -1998,7 +1998,7 @@ begin
       (opcode=A_FMULP)
      ) then
      begin
-       message1(asmr_w_adding_explicit_first_arg_fXX,std_op2str[opcode]);
+       compiler.verbose.Message1(asmr_w_adding_explicit_first_arg_fXX,std_op2str[opcode]);
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
        operands[2].opr.reg:=operands[1].opr.reg;
@@ -2021,7 +2021,7 @@ begin
       (opcode=A_FMUL)
      ) then
      begin
-       message1(asmr_w_adding_explicit_second_arg_fXX,std_op2str[opcode]);
+       compiler.verbose.Message1(asmr_w_adding_explicit_second_arg_fXX,std_op2str[opcode]);
        ops:=2;
        operands[2].opr.typ:=OPR_REGISTER;
        operands[2].opr.reg:=NR_ST0;

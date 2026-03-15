@@ -621,7 +621,7 @@ implementation
               pocall_far16 :
                 begin
                   { Temporary stub, must be rewritten to support OS/2 far16 }
-                  Message1(parser_w_proc_directive_ignored,'FAR16');
+                  compiler.verbose.Message1(parser_w_proc_directive_ignored,'FAR16');
                 end;
               else
                 ;

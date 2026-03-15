@@ -73,12 +73,13 @@ interface
         //TODO: procedure Internalerror(i:longint; const s : ansistring);noreturn;
         procedure Comment(l:longint;s:ansistring);
         function  MessageStr(w:longint):TMsgStr;
+        //TODO: procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
+        procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
-    procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure Message4(w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
@@ -789,7 +790,7 @@ implementation
           raise ECompilerAbort.Create;
         if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(status.errorcount));
             status.skip_error:=true;
             raise ECompilerAbort.Create;
           end;
@@ -810,7 +811,7 @@ implementation
       end;
 
 
-    procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
+    procedure TVerbose.Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
 
       begin
         MaybeLoadMessageFile;
@@ -926,7 +927,7 @@ implementation
          if not(codegenerror) then
            begin
               olderrorcount:=compiler.verbose.Errorcount;
-              verbose.Message1(t,s);
+              compiler.verbose.Message1(t,s);
               codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;

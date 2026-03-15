@@ -95,7 +95,7 @@ begin
   { first test the index value }
   if eo_index in hp.options then
    begin
-     Message1(parser_e_no_export_with_index_for_target,'beos');
+     compiler.verbose.Message1(parser_e_no_export_with_index_for_target,'beos');
      exit;
    end;
   { now place in correct order }
@@ -158,7 +158,7 @@ begin
          end;
       end
      else
-      Message1(parser_e_no_export_of_variables_for_target,'beos');
+      compiler.verbose.Message1(parser_e_no_export_of_variables_for_target,'beos');
      hp2:=texported_item(hp2.next);
    end;
 end;
@@ -370,7 +370,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -433,7 +433,7 @@ var
  begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Create some replacements }
   StaticStr:='';

@@ -260,7 +260,7 @@ implementation
                   Message(parser_e_enumerator_current_is_not_valid) // property has no reader
               end
               else
-                Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
+                compiler.verbose.Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
               parser.pbase.consume(current_scanner.token);
             end
             else
@@ -382,16 +382,16 @@ implementation
       begin
         if not is_interface(intfdef) then
           begin
-             Message1(type_e_interface_type_expected,intfdef.typename);
+             compiler.verbose.Message1(type_e_interface_type_expected,intfdef.typename);
              exit;
           end;
         if ([oo_is_forward,oo_is_formal] * intfdef.objectoptions <> []) then
           begin
-             Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
+             compiler.verbose.Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
         if find_implemented_interface(current_objectdef,intfdef)<>nil then
-          Message1(sym_e_duplicate_id,intfdef.objname^)
+          compiler.verbose.Message1(sym_e_duplicate_id,intfdef.objname^)
         else
           current_objectdef.register_implemented_interface(intfdef,true);
       end;
@@ -406,14 +406,14 @@ implementation
           odt_objcprotocol:
             if not is_objcprotocol(intfdef) then
               begin
-                 Message1(type_e_protocol_type_expected,intfdef.typename);
+                 compiler.verbose.Message1(type_e_protocol_type_expected,intfdef.typename);
                  exit;
               end;
           odt_javaclass,
           odt_interfacejava:
             if not is_javainterface(intfdef) then
               begin
-                Message1(type_e_interface_type_expected,intfdef.typename);
+                compiler.verbose.Message1(type_e_interface_type_expected,intfdef.typename);
                 exit
               end;
           else
@@ -421,11 +421,11 @@ implementation
         end;
         if ([oo_is_forward,oo_is_formal] * intfdef.objectoptions <> []) then
           begin
-             Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
+             compiler.verbose.Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
         if find_implemented_interface(current_objectdef,intfdef)<>nil then
-          Message1(sym_e_duplicate_id,intfdef.objname^)
+          compiler.verbose.Message1(sym_e_duplicate_id,intfdef.objname^)
         else
           current_objectdef.register_implemented_interface(intfdef,false);
       end;
@@ -442,9 +442,9 @@ implementation
              if (hdef.typ<>objectdef) then
                begin
                   if intf then
-                    Message1(type_e_interface_type_expected,hdef.typename)
+                    compiler.verbose.Message1(type_e_interface_type_expected,hdef.typename)
                   else
-                    Message1(type_e_protocol_type_expected,hdef.typename);
+                    compiler.verbose.Message1(type_e_protocol_type_expected,hdef.typename);
                   continue;
                end;
              if intf then
@@ -610,7 +610,7 @@ implementation
                (hdef.typ<>objectdef) then
               begin
                 if assigned(hdef) then
-                  Message1(type_e_class_type_expected,hdef.typename)
+                  compiler.verbose.Message1(type_e_class_type_expected,hdef.typename)
                 else if is_objccategory(current_structdef) then
                   { a category must specify the class to extend }
                   Message(type_e_objcclass_type_expected);
@@ -641,7 +641,7 @@ implementation
                        end
                      else
                        if oo_is_sealed in childof.objectoptions then
-                         Message1(parser_e_sealed_descendant,childof.typesymbolprettyname)
+                         compiler.verbose.Message1(parser_e_sealed_descendant,childof.typesymbolprettyname)
                        else
                          childof:=compiler.symtablestack.find_real_class_definition(childof,true);
                    odt_interfacecorba,
@@ -694,7 +694,7 @@ implementation
                        Message(parser_e_mix_of_classes_and_objects)
                      else
                        if oo_is_sealed in childof.objectoptions then
-                         Message1(parser_e_sealed_descendant,childof.typename);
+                         compiler.verbose.Message1(parser_e_sealed_descendant,childof.typename);
                    odt_dispinterface:
                      Message(parser_e_dispinterface_cant_have_parent);
                    odt_helper:
@@ -740,11 +740,11 @@ implementation
               at the start of the new definition and will reset it below after the
               parent has been set }
             if (oo_is_forward in childof.objectoptions) then
-              Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^)
+              compiler.verbose.Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^)
             else if not(oo_is_formal in childof.objectoptions) then
               current_objectdef.set_parent(childof)
             else
-              Message1(sym_e_formal_class_not_resolved,childof.objrealname^);
+              compiler.verbose.Message1(sym_e_formal_class_not_resolved,childof.objrealname^);
           end;
 
         if hasparentdefined then
@@ -773,7 +773,7 @@ implementation
                 not (tobjectdef(def).objecttype in objecttypes_with_helpers)
               ) then
             begin
-              Message1(type_e_type_not_allowed_for_type_helper,def.typename);
+              compiler.verbose.Message1(type_e_type_not_allowed_for_type_helper,def.typename);
               def:=generrordef;
             end;
         end;
@@ -795,7 +795,7 @@ implementation
                         exit;
                       tmp:=tstoreddef(tmp.orgdef);
                     end;
-                  Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
+                  compiler.verbose.Message1(type_e_record_helper_must_extend_same_record,current_objectdef.childof.extendeddef.typename);
                   def:=generrordef;
                 end;
             end;
@@ -810,7 +810,7 @@ implementation
                 Internalerror(2011021101);
               if not def_is_related(def,current_objectdef.childof.extendeddef) then
                 begin
-                  Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
+                  compiler.verbose.Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
                   def:=generrordef;
                 end;
             end;
@@ -831,11 +831,11 @@ implementation
           begin
             case helpertype of
               ht_class:
-                Message1(type_e_class_type_expected,hdef.typename);
+                compiler.verbose.Message1(type_e_class_type_expected,hdef.typename);
               ht_record:
                 Message(type_e_record_type_expected);
               ht_type:
-                Message1(type_e_type_id_expected,hdef.typename);
+                compiler.verbose.Message1(type_e_type_id_expected,hdef.typename);
               else
                 internalerror(2019050532);
             end;
@@ -846,7 +846,7 @@ implementation
               ht_class:
                 if (hdef.typ<>objectdef) or
                     not is_class(hdef) then
-                  Message1(type_e_class_type_expected,hdef.typename)
+                  compiler.verbose.Message1(type_e_class_type_expected,hdef.typename)
                 else
                   begin
                     { a class helper must extend the same class or a subclass
@@ -861,7 +861,7 @@ implementation
                       (hdef.typ<>recorddef) and
                       not (m_delphi in current_settings.modeswitches)
                     ) then
-                  Message1(type_e_record_type_expected,hdef.typename)
+                  compiler.verbose.Message1(type_e_record_type_expected,hdef.typename)
                 else
                   begin
                     if hdef.typ<>recorddef then
@@ -1056,7 +1056,7 @@ implementation
 
               { only 1 class constructor is allowed }
               if is_classdef and (oo_has_class_constructor in astruct.objectoptions) then
-                Message1(parser_e_only_one_class_constructor_allowed, astruct.objrealname^);
+                compiler.verbose.Message1(parser_e_only_one_class_constructor_allowed, astruct.objrealname^);
 
               oldparse_only:=parser.pbase.parse_only;
               parser.pbase.parse_only:=true;
@@ -1103,7 +1103,7 @@ implementation
 
               { only 1 class destructor is allowed }
               if is_classdef and (oo_has_class_destructor in astruct.objectoptions) then
-                Message1(parser_e_only_one_class_destructor_allowed, astruct.objrealname^);
+                compiler.verbose.Message1(parser_e_only_one_class_destructor_allowed, astruct.objrealname^);
 
               oldparse_only:=parser.pbase.parse_only;
               parser.pbase.parse_only:=true;
@@ -1139,7 +1139,7 @@ implementation
       procedure check_unbound_attributes;
         begin
           if assigned(rtti_attrs_def) and (rtti_attrs_def.get_attribute_count>0) then
-            Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
+            compiler.verbose.Message1(parser_e_unbound_attribute,trtti_attribute(rtti_attrs_def.rtti_attributes[0]).typesym.prettyname);
           rtti_attrs_def.free;
           rtti_attrs_def:=nil;
         end;
@@ -1677,7 +1677,7 @@ implementation
         if current_scanner.token=_SEMICOLON then
           begin
             if assigned(fd) then
-              Message1(parser_e_type_alread_forward,n)
+              compiler.verbose.Message1(parser_e_type_alread_forward,n)
             else
               begin
                 if is_objectpascal_helper(current_structdef) then
@@ -1838,7 +1838,7 @@ implementation
            not(oo_has_constructor in current_structdef.objectoptions) and
            not is_objc_class_or_protocol(current_structdef) and
            not is_java_class_or_interface(current_structdef) then
-          Message1(parser_w_virtual_without_constructor,current_structdef.objrealname^);
+          compiler.verbose.Message1(parser_w_virtual_without_constructor,current_structdef.objrealname^);
 
         if is_interface(current_structdef) or
            is_objcprotocol(current_structdef) or
@@ -1863,7 +1863,7 @@ implementation
                   s:=make_mangledname('',tabstractrecorddef(current_objectdef.extendeddef).symtable,'')
                 else
                   s:=make_mangledname('',current_objectdef.extendeddef.owner,current_objectdef.extendeddef.typesym.name);
-                Message1(sym_d_adding_helper_for,s);
+                compiler.verbose.Message1(sym_d_adding_helper_for,s);
                 list:=TFPObjectList(current_module.extendeddefs.Find(s));
                 if not assigned(list) then
                   begin

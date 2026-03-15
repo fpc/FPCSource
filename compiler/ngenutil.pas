@@ -994,7 +994,7 @@ implementation
           varalign:=var_align(wantedalign);
           if (explicitalign>varalign) then
             begin
-              Message1(scanner_w_alignment_larger_than_max,sym.name);
+              compiler.verbose.Message1(scanner_w_alignment_larger_than_max,sym.name);
               varalign:=explicitalign;
             end
           else if (wantedalign>varalign) and (compiler.target.info.alignment.varalignmax>1) then
@@ -1002,7 +1002,7 @@ implementation
               { varalign:=wantedalign; this can lead to
                 troubles on systems like for instance
                 msdos which do not support 8-byte alignment }
-              Message1(scanner_n_alignment_larger_than_max,sym.name);
+              compiler.verbose.Message1(scanner_n_alignment_larger_than_max,sym.name);
 	    end;
 	end;
       asmtype:=AT_DATA;

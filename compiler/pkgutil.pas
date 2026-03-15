@@ -536,7 +536,7 @@ implementation
           if packagelist.nameofindex(i)=name then
             begin
               if not ignoreduplicates then
-                Message1(package_e_duplicate_package,name);
+                compiler.verbose.Message1(package_e_duplicate_package,name);
               exit;
             end;
         end;

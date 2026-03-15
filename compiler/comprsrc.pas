@@ -200,7 +200,7 @@ begin
   respath:=ExtractFilePath(resbin);
   if (not resfound) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
-     Message1(exec_e_res_not_found, utilsprefix+bin+source_info.exeext);
+     compiler.verbose.Message1(exec_e_res_not_found, utilsprefix+bin+source_info.exeext);
      current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
      Result:=false;
    end;
@@ -209,7 +209,7 @@ begin
 { Always try to compile resources. but don't complain if cs_link_nolink }
   if resfound then
    begin
-     Message1(exec_i_compilingresource,fname);
+     compiler.verbose.Message1(exec_i_compilingresource,fname);
      Message2(exec_d_resbin_params,resbin,s);
      FlushOutput;
      try
@@ -224,7 +224,7 @@ begin
        on E:EOSError do
        begin
          if not (cs_link_nolink in current_settings.globalswitches) then
-           Message1(exec_e_cant_call_resource_compiler, resbin);
+           compiler.verbose.Message1(exec_e_cant_call_resource_compiler, resbin);
          current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
          Result:=false;
        end
@@ -447,6 +447,8 @@ function TJVMRawResourceFile.IsCompiled(const fn: ansistring): boolean;
 
 function CopyResFile(inf,outf : TCmdStr) : boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   src,dst : TCCustomFileStream;
 begin
   { Copy .res file to units output dir. }
@@ -454,14 +456,14 @@ begin
   src:=CFileStreamClass.Create(inf,fmOpenRead or fmShareDenyNone);
   if CStreamError<>0 then
     begin
-      Message1(exec_e_cant_open_resource_file, src.FileName);
+      compiler.verbose.Message1(exec_e_cant_open_resource_file, src.FileName);
       Include(current_settings.globalswitches, cs_link_nolink);
       exit;
     end;
   dst:=CFileStreamClass.Create(current_module.outputpath+outf,fmCreate);
   if CStreamError<>0 then
     begin
-      Message1(exec_e_cant_write_resource_file, dst.FileName);
+      compiler.verbose.Message1(exec_e_cant_write_resource_file, dst.FileName);
       Include(current_settings.globalswitches, cs_link_nolink);
       exit;
     end;
@@ -499,7 +501,7 @@ begin
         s:=p+s;
       if not FileExists(s, True) then
         begin
-          Message1(exec_e_cant_open_resource_file, s);
+          compiler.verbose.Message1(exec_e_cant_open_resource_file, s);
           Include(current_settings.globalswitches, cs_link_nolink);
           exit;
         end;

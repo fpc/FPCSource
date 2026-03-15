@@ -540,6 +540,8 @@ end;
 {*************************************************************************}
 
 Function EscapeToPascal(const s:string): string;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { converts a C styled string - which contains escape }
 { characters to a pascal style string.               }
 var
@@ -589,7 +591,7 @@ Begin
            end;
          else
            Begin
-             Message1(asmr_e_escape_seq_ignored,s[i]);
+             compiler.verbose.Message1(asmr_e_escape_seq_ignored,s[i]);
              c:=s[i];
            end;
         end;
@@ -605,6 +607,8 @@ end;
 
 
 Function ParseVal(const S:String;base:byte):tcgint;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Converts a decimal string to tcgint }
 var
   code : integer;
@@ -641,7 +645,7 @@ Begin
       val(prefix+s,result,code);
       if code<>0 then
         begin
-          Message1(errmsg,s);
+          compiler.verbose.Message1(errmsg,s);
           result:=0;
         end;
     end;
@@ -1025,7 +1029,7 @@ Begin
                  (sym.owner<>current_procinfo.procdef.parast) and
                  (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
                  symtable_has_localvarsyms(current_procinfo.procdef.localst) then
-                message1(asmr_e_local_para_unreachable,s);
+                compiler.verbose.Message1(asmr_e_local_para_unreachable,s);
               opr.localsym:=tabstractnormalvarsym(sym);
               opr.localsymofs:=absoffset;
 {$ifdef x86}
@@ -1629,6 +1633,8 @@ end;
 
 
 Function GetRecordOffsetSize(s:string;out Offset: tcgint;out Size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean):boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { search and returns the offset and size of records/objects of the base }
 { with field name setup in field.                              }
 { returns FALSE if not found.                                  }
@@ -1752,7 +1758,7 @@ Begin
                { can only get the vmtoffset of virtual methods }
                if not(po_virtualmethod in procdef.procoptions) or
                    is_objectpascal_helper(procdef.struct) then
-                 Message1(asmr_e_no_vmtoffset_possible,FullTypeName(procdef,nil))
+                 compiler.verbose.Message1(asmr_e_no_vmtoffset_possible,FullTypeName(procdef,nil))
                else
                  begin
                    { size = sizeof(target_system_pointer) }

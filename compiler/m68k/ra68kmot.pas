@@ -309,7 +309,7 @@ const
       else
         begin
           actasmtoken := AS_NONE;
-          Message1(asmr_e_invalid_or_missing_opcode,actasmpattern);
+          compiler.verbose.Message1(asmr_e_invalid_or_missing_opcode,actasmpattern);
         end;
     end
     else { else firsttoken }
@@ -615,7 +615,7 @@ const
        'D': opsize := S_FD;
        'X': opsize := S_FX;
        else
-         Message1(asmr_e_unknown_opcode,s);
+         compiler.verbose.Message1(asmr_e_unknown_opcode,s);
        end;
      end;
      result:=actopcode;
@@ -767,7 +767,7 @@ const
                            end;
                         end
                         else
-                           Message1(sym_e_unknown_id,tempstr);
+                           compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                       end;
                      { symbol found? }
                      if hs<>'' then
@@ -1526,12 +1526,12 @@ const
                               if expr = 'SELF' then
                                 oper.SetupSelf
                               else begin
-                                Message1(sym_e_unknown_id,expr);
+                                compiler.verbose.Message1(sym_e_unknown_id,expr);
                               end;
                               expr:='';
                             end;
                          end;
-//                       Message1(sym_e_unknown_id,actasmpattern);
+//                       compiler.verbose.Message1(sym_e_unknown_id,actasmpattern);
                       end;
 
                        case actasmtoken of
@@ -1695,7 +1695,7 @@ const
                   if SearchLabel(upper(actasmpattern),hl,true) then
                     ConcatLabel(curlist,hl)
                   else
-                    Message1(asmr_e_unknown_label_identifier,actasmpattern);
+                    compiler.verbose.Message1(asmr_e_unknown_label_identifier,actasmpattern);
                   Consume(AS_LABEL);
                 end;
               AS_DW:

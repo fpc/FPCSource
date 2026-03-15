@@ -216,11 +216,13 @@ end;
 
 
 procedure texportlib.duplicatesymbol(const s: string);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   { only generate an error if the caller is not aware that it could generate
     duplicates (e.g. exporting from a package) }
   if not ignoreduplicates then
-    Message1(parser_e_export_name_double,s);
+    compiler.verbose.Message1(parser_e_export_name_double,s);
 end;
 
 

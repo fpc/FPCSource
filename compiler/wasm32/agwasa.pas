@@ -701,7 +701,7 @@ implementation
               RequotedExecuteProcess(t,' --symbolauto '+ObjFileName)
           end
           else
-            Message1(exec_e_util_not_found,'wasmtool');
+            compiler.verbose.Message1(exec_e_util_not_found,'wasmtool');
       end;
 
     constructor TWasaTextAssembler.CreateWithWriter(info: pasminfo;

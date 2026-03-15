@@ -283,6 +283,8 @@ implementation
 
     procedure tarobjectwriter.writear;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         arf      : TCCustomFileStream;
         fixup,l,
         relocs,i : longint;
@@ -290,7 +292,7 @@ implementation
         arf:=CFileStreamClass.Create(arfn,fmCreate);
         if CStreamError<>0 then
           begin
-             Message1(exec_e_cant_create_archivefile,arfn);
+             compiler.verbose.Message1(exec_e_cant_create_archivefile,arfn);
              exit;
           end;
         arf.Write(armagic,sizeof(armagic));

@@ -2479,7 +2479,7 @@ unit cgcpu;
             regs:=regs+[getsupreg(GetDefaultTmpReg)];
 
             if current_settings.cputype=cpu_avr1 then
-              message1(cg_w_interrupt_does_not_save_registers,current_procinfo.procdef.fullprocname(false))
+              compiler.verbose.Message1(cg_w_interrupt_does_not_save_registers,current_procinfo.procdef.fullprocname(false))
             else
               begin
                 for reg:=RS_R31 downto RS_R0 do

@@ -1804,7 +1804,7 @@ begin
   GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in current_settings.globalswitches) then
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   if (cs_link_map in current_settings.globalswitches) then
    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
@@ -2174,7 +2174,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
 (*    GCSectionsStr:='--gc-sections';
     //if not(cs_link_extern in current_settings.globalswitches) then
     if not(cs_link_nolink in current_settings.globalswitches) then
-     Message1(exec_i_linking,current_module.exefilename);*)
+     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);*)
 
     if (cs_link_map in current_settings.globalswitches) then
      mapstr:='-mw';
@@ -2246,6 +2246,8 @@ procedure TLinkerEmbedded_Wasm.SetDefaultInfo;
 
 function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  var
     GCSectionsStr  : ansistring;
     binstr, cmdstr : Tcmdstr;
     InitStr,
@@ -2259,7 +2261,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
   begin
     Result:=false;
     if not(cs_link_nolink in current_settings.globalswitches) then
-      Message1(exec_i_linking,current_module.sharedlibfilename);
+      compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
     mapstr:='';
     if (cs_link_map in current_settings.globalswitches) then

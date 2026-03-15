@@ -170,7 +170,7 @@ Unit racpugas;
           end
         else
           if not oper.SetupVar(tempstr,false) then
-            Message1(sym_e_unknown_id,tempstr);
+            compiler.verbose.Message1(sym_e_unknown_id,tempstr);
         { record.field ? }
         if actasmtoken=AS_DOT then
           begin
@@ -300,7 +300,7 @@ Unit racpugas;
             AS_REGISTER :
               begin
                 if getsupreg(actasmregister)=RS_XZR then
-                  Message1(asmr_e_invalid_ref_register,actasmpattern);
+                  compiler.verbose.Message1(asmr_e_invalid_ref_register,actasmpattern);
                 oper.opr.ref.index:=actasmregister;
                 Consume(AS_REGISTER);
                 read_index_shift(require_rbracket);
@@ -452,7 +452,7 @@ Unit racpugas;
         if actasmtoken=AS_REGISTER then
           begin
             if getsupreg(actasmregister)=RS_XZR then
-              Message1(asmr_e_invalid_ref_register,actasmpattern);
+              compiler.verbose.Message1(asmr_e_invalid_ref_register,actasmpattern);
             oper.opr.ref.base:=actasmregister;
             Consume(AS_REGISTER);
             case actasmtoken of
@@ -808,10 +808,10 @@ Unit racpugas;
                       setsubreg(result,subreg);
                     end
                   else
-                    Message1(asmr_e_invalid_arrangement,actasmpattern);
+                    compiler.verbose.Message1(asmr_e_invalid_arrangement,actasmpattern);
                 end
               else
-                Message1(asmr_e_invalid_arrangement,actasmpattern);
+                compiler.verbose.Message1(asmr_e_invalid_arrangement,actasmpattern);
               Consume(AS_ID);
             end
           else if (getregtype(result)=R_MMREGISTER) then
@@ -822,11 +822,11 @@ Unit racpugas;
                      (getsubreg(result)=actinsmmsubreg) then
                     setsubreg(result,actinsmmsubreg)
                   else
-                     Message1(asmr_e_invalid_arrangement,actasmpattern);
+                     compiler.verbose.Message1(asmr_e_invalid_arrangement,actasmpattern);
                 end
               else if getsubreg(result)=R_SUBNONE then
                 { Vxx without an arrangement is invalid, use Qxx to specify the entire 128 bits}
-                Message1(asmr_e_invalid_arrangement,'');
+                compiler.verbose.Message1(asmr_e_invalid_arrangement,'');
             end;
         end;
 
@@ -976,7 +976,7 @@ Unit racpugas;
                             begin
                               consume(AS_LPAREN);
                               if not oper.setupvar('high'+actasmpattern,false) then
-                                Message1(sym_e_unknown_id,'high'+actasmpattern);
+                                compiler.verbose.Message1(sym_e_unknown_id,'high'+actasmpattern);
                               consume(AS_ID);
                               consume(AS_RPAREN);
                             end
@@ -990,7 +990,7 @@ Unit racpugas;
                            if expr = '__OLDEBP' then
                             oper.SetupOldEBP
                           else
-                            Message1(sym_e_unknown_id,expr);
+                            compiler.verbose.Message1(sym_e_unknown_id,expr);
                         end
                        else if oper.opr.typ<>OPR_LOCAL then
                          begin
@@ -1312,7 +1312,7 @@ Unit racpugas;
         begin
           if (neg and ((hnum>0) or (hnum<maxoffset(ash)) or (((-hnum) and $7)<>0))) or
               (not neg and ((hnum<0) or (hnum>maxoffset(ash)) or ((hnum and $7)<>0))) then
-            Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[actsehdirective])
+            compiler.verbose.Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[actsehdirective])
           else
             begin
               if neg then
@@ -1397,7 +1397,7 @@ Unit racpugas;
               hreg:=actasmregister;
               Consume(AS_REGISTER);
               if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<19) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
               Consume(AS_COMMA);
               hnum:=BuildConstExpression(false,false);
               add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savereg_x);
@@ -1408,12 +1408,12 @@ Unit racpugas;
               hreg:=actasmregister;
               consume(AS_REGISTER);
               if (getregtype(hreg)<>R_INTREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<19) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
               consume(AS_COMMA);
               hreg2:=actasmregister;
               consume(AS_REGISTER);
               if (getregtype(hreg2)<>R_INTREGISTER) or (getsubreg(hreg2)<>R_SUBWHOLE) or (getsupreg(hreg2)<>getsupreg(hreg)+1) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
               consume(AS_COMMA);
               hnum:=BuildConstExpression(false,false);
               add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_saveregp_x);
@@ -1424,7 +1424,7 @@ Unit racpugas;
               hreg:=actasmregister;
               Consume(AS_REGISTER);
               if (getregtype(hreg)<>R_MMREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<8) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
               Consume(AS_COMMA);
               hnum:=BuildConstExpression(false,false);
               add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savefreg_x);
@@ -1435,12 +1435,12 @@ Unit racpugas;
               hreg:=actasmregister;
               consume(AS_REGISTER);
               if (getregtype(hreg)<>R_MMREGISTER) or (getsubreg(hreg)<>R_SUBWHOLE) or (getsupreg(hreg)<8) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
               consume(AS_COMMA);
               hreg2:=actasmregister;
               consume(AS_REGISTER);
               if (getregtype(hreg2)<>R_MMREGISTER) or (getsubreg(hreg2)<>R_SUBWHOLE) or (getsupreg(hreg2)<>getsupreg(hreg)+1) then
-                Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_register,sehdirectivestr[actsehdirective]);
               consume(AS_COMMA);
               hnum:=BuildConstExpression(false,false);
               add_reg_with_offset(actsehdirective,hreg,hnum,actsehdirective=ash_savefregp_x);
@@ -1449,7 +1449,7 @@ Unit racpugas;
             begin
               hnum:=BuildConstExpression(false,false);
               if (hnum<0) or (hnum>$FFFFFF) or ((hnum and 7)<>0) then
-                Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_stackalloc])
+                compiler.verbose.Message1(asmr_e_bad_seh_directive_offset,sehdirectivestr[ash_stackalloc])
               else
                 curlist.concat(cai_seh_directive.create_offset(ash_stackalloc,hnum));
             end;

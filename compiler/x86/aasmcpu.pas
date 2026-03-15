@@ -32,7 +32,7 @@ interface
     uses
       globtype,verbose,
       cpubase,
-      cgbase,cgutils,
+      cgbase,cgutils,compilerbase,
       aasmbase,aasmtai,aasmsym,
       ogbase;
 
@@ -730,6 +730,7 @@ implementation
        globals,
        systems,
        itcpugas,
+       compiler,
        cpuinfo;
 
     procedure AddSymbol(symname : string; defined : boolean);
@@ -2047,6 +2048,8 @@ implementation
 
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
       begin
         result:=false;
@@ -2074,7 +2077,7 @@ implementation
         i:=instabcache^[opcode];
         if i=-1 then
          begin
-           Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
+           compiler.verbose.Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
            exit;
          end;
         insentry:=@instab[i];
@@ -2086,9 +2089,9 @@ implementation
                   if not DistinctRegisters(IF_DALL in insentry^.flags) then
                     begin
                       if IF_DALL in insentry^.flags then
-                        Message1(asmw_e_registers_should_be_distinct,GetString)
+                        compiler.verbose.Message1(asmw_e_registers_should_be_distinct,GetString)
                       else
-                        Message1(asmw_e_destination_and_source_registers_must_be_distinct,GetString);
+                        compiler.verbose.Message1(asmw_e_destination_and_source_registers_must_be_distinct,GetString);
                       exit;  { unacceptable register combination (should be distinct) }
                     end;
                result:=true;
@@ -2099,7 +2102,7 @@ implementation
              break; { not found and run out of entries to test for, jump into error report }
            insentry:=@instab[i];
          end;
-        Message1(asmw_e_invalid_opcode_and_operands,GetString);
+        compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
         { No instruction found, set insentry to nil and inssize to -1 }
         insentry:=nil;
         inssize:=-1;
@@ -2589,8 +2592,10 @@ implementation
 
 
     procedure badreg(r:Tregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        Message1(asmw_e_invalid_register,generic_regname(r));
+        compiler.verbose.Message1(asmw_e_invalid_register,generic_regname(r));
       end;
 
 
@@ -3594,6 +3599,8 @@ implementation
 
 
         procedure taicpu.gencode(objdata: TObjData);
+          var
+            compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       {
        * the actual codes (C syntax, i.e. octal):
        * \0            - terminates the code. (Unless it's a literal of course.)
@@ -3812,7 +3819,7 @@ implementation
                { nothing else than a 4 byte relocation should occur
                  for GOT }
                if len<>4 then
-                 Message1(asmw_e_invalid_opcode_and_operands,GetString);
+                 compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
                Reloctype:=RELOC_GOTPC;
                { We need to add the offset of the relocation
                  of _GLOBAL_OFFSET_TABLE symbol within
@@ -4297,7 +4304,7 @@ implementation
                 (getregtype(oper[opidx]^.reg) = R_MMREGISTER) then
               if getsupreg(oper[opidx]^.reg) and $10 = $10 then
               begin
-                Message1(asmw_e_invalid_opcode_and_operands,GetString);
+                compiler.verbose.Message1(asmw_e_invalid_opcode_and_operands,GetString);
                 break;
               end;
               //badreg(oper[opidx]^.reg);
@@ -4503,7 +4510,7 @@ implementation
                  inc(data,currsym.address);
 {$pop}
                 if (data>127) or (data<-128) then
-                 Message1(asmw_e_short_jmp_out_of_range,tostr(data));
+                 compiler.verbose.Message1(asmw_e_short_jmp_out_of_range,tostr(data));
                 objdata.writeint8(shortint(data));
               end;
             &54,&55,&56:   // 054..056 - qword immediate operand
@@ -5791,6 +5798,8 @@ implementation
 
     function NoMemorySizeRequired(opcode : TAsmOp) : Boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : LongInt;
         insentry  : PInsEntry;
       begin
@@ -5798,7 +5807,7 @@ implementation
         i:=instabcache^[opcode];
         if i=-1 then
          begin
-           Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
+           compiler.verbose.Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
            exit;
          end;
         insentry:=@instab[i];

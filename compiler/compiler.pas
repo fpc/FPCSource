@@ -476,7 +476,7 @@ function TCompiler.Compile(const cmd:TCmdStr):longint;
     hp:=TCmdStrListItem(l.first);
     while assigned(hp) do
      begin
-       Message1(w,hp.str);
+       verbose.Message1(w,hp.str);
        hp:=TCmdStrListItem(hp.next);
      end;
   end;
@@ -511,10 +511,10 @@ begin
        verbose.FreeLocalVerbosity(current_settings.pmessage);
 
        { show some info }
-       Message1(general_t_compilername,FixFileName(system.paramstr(0)));
-       Message1(general_d_sourceos,source_info.name);
-       Message1(general_i_targetos,target.info.name);
-       Message1(general_t_exepath,exepath);
+       verbose.Message1(general_t_compilername,FixFileName(system.paramstr(0)));
+       verbose.Message1(general_d_sourceos,source_info.name);
+       verbose.Message1(general_i_targetos,target.info.name);
+       verbose.Message1(general_t_exepath,exepath);
        WriteCmdStrList(general_t_unitpath,unitsearchpath);
        WriteCmdStrList(general_t_includepath,includesearchpath);
        WriteCmdStrList(general_t_librarypath,librarysearchpath);
@@ -555,13 +555,13 @@ begin
           Message3(general_i_abslines_compiled,tostr(status.compiledlines),timestr,linkstr);
           if (Status.Verbosity and V_Warning = V_Warning) and
                                                (Status.CountWarnings <> 0) then
-           Message1 (general_i_number_of_warnings, tostr (Status.CountWarnings));
+           verbose.Message1 (general_i_number_of_warnings, tostr (Status.CountWarnings));
           if (Status.Verbosity and V_Hint = V_Hint) and
                                                   (Status.CountHints <> 0) then
-           Message1 (general_i_number_of_hints, tostr (Status.CountHints));
+           verbose.Message1 (general_i_number_of_hints, tostr (Status.CountHints));
           if (Status.Verbosity and V_Note = V_Note) and
                                                (Status.CountNotes <> 0) then
-           Message1 (general_i_number_of_notes, tostr (Status.CountNotes));
+           verbose.Message1 (general_i_number_of_notes, tostr (Status.CountNotes));
         end;
      finally
        { no message possible after this !!    }
@@ -621,7 +621,7 @@ begin
     on e : EInOutError do
       begin
         try
-          Message1(general_f_ioerror,e.message);
+          verbose.Message1(general_f_ioerror,e.message);
         except
           on ECompilerAbort do
             ;
@@ -631,7 +631,7 @@ begin
     on e : EOSError do
       begin
         try
-          Message1(general_f_oserror,e.message);
+          verbose.Message1(general_f_oserror,e.message);
         except
           on ECompilerAbort do
             ;

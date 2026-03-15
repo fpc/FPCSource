@@ -254,7 +254,7 @@ Implementation
                     begin
                       consume(AS_LPAREN);
                       if not tmp.setupvar('high'+actasmpattern,false) then
-                        Message1(sym_e_unknown_id,'high'+actasmpattern);
+                        compiler.verbose.Message1(sym_e_unknown_id,'high'+actasmpattern);
                       consume(AS_ID);
                       consume(AS_RPAREN);
                     end
@@ -263,7 +263,7 @@ Implementation
                       tmp.SetupSelf
                   else
                     begin
-                      message1(sym_e_unknown_id,expr);
+                      compiler.verbose.Message1(sym_e_unknown_id,expr);
                       RecoverConsume(false);
                       tmp.free;
                       Exit;
@@ -366,7 +366,7 @@ Implementation
                     begin
                       consume(AS_LPAREN);
                       if not tmp.setupvar('high'+actasmpattern,false) then
-                        Message1(sym_e_unknown_id,'high'+actasmpattern);
+                        compiler.verbose.Message1(sym_e_unknown_id,'high'+actasmpattern);
                       consume(AS_ID);
                       consume(AS_RPAREN);
                     end
@@ -375,7 +375,7 @@ Implementation
                       tmp.SetupSelf
                   else
                     begin
-                      message1(sym_e_unknown_id,expr);
+                      compiler.verbose.Message1(sym_e_unknown_id,expr);
                       RecoverConsume(false);
                       tmp.free;
                       Exit;
@@ -687,7 +687,7 @@ Implementation
                    end
                   else
                    if not oper.SetupVar(tempstr,false) then
-                    Message1(sym_e_unknown_id,tempstr);
+                    compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                   { record.field ? }
                   if actasmtoken=AS_DOT then
                    begin
@@ -830,7 +830,7 @@ Implementation
                             begin
                               consume(AS_LPAREN);
                               if not oper.setupvar('high'+actasmpattern,false) then
-                                Message1(sym_e_unknown_id,'high'+actasmpattern);
+                                compiler.verbose.Message1(sym_e_unknown_id,'high'+actasmpattern);
                               consume(AS_ID);
                               consume(AS_RPAREN);
                             end
@@ -844,7 +844,7 @@ Implementation
                            if expr = '__OLDEBP' then
                             oper.SetupOldEBP
                           else
-                            Message1(sym_e_unknown_id,expr);
+                            compiler.verbose.Message1(sym_e_unknown_id,expr);
                         end;
                      end;
                   end;
@@ -894,7 +894,7 @@ Implementation
                    Message(asmr_e_invalid_seg_override);
 {$ifdef x86_64}
                  if (tempreg=NR_CS) or (tempreg=NR_DS) or (tempreg=NR_SS) or (tempreg=NR_ES) then
-                   Message1(asmr_w_segment_override_ignored_in_64bit_mode,gas_regname(tempreg));
+                   compiler.verbose.Message1(asmr_w_segment_override_ignored_in_64bit_mode,gas_regname(tempreg));
 {$endif x86_64}
                  oper.opr.ref.segment:=tempreg;
                  { This must absolutely be followed by a reference }
@@ -987,10 +987,10 @@ Implementation
         { Valid combination of prefix/override and instruction ?  }
 
         if (prefixop<>A_NONE) and (NOT CheckPrefix(PrefixOp,actopcode)) then
-           Message1(asmr_e_invalid_prefix_and_opcode,actasmpattern);
+           compiler.verbose.Message1(asmr_e_invalid_prefix_and_opcode,actasmpattern);
 
         if (overrideop<>A_NONE) and (NOT CheckOverride(OverrideOp,ActOpcode)) then
-          Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
+          compiler.verbose.Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
         { We are reading operands, so opcode will be an AS_ID }
         operandnum:=1;
         Consume(AS_OPCODE);
@@ -1069,11 +1069,11 @@ Implementation
                                (opr.ref.symbol=nil) and
                                (opr.ref.relsymbol=nil)) then
 {$if defined(i8086)}
-                          Message1(asmr_w_invalid_reference,'(%si)');
+                          compiler.verbose.Message1(asmr_w_invalid_reference,'(%si)');
 {$elseif defined(i386)}
-                          Message1(asmr_w_invalid_reference,'(%esi)');
+                          compiler.verbose.Message1(asmr_w_invalid_reference,'(%esi)');
 {$elseif defined(x86_64)}
-                          Message1(asmr_w_invalid_reference,'(%rsi)');
+                          compiler.verbose.Message1(asmr_w_invalid_reference,'(%rsi)');
 {$endif}
                       end;
               end;
@@ -1102,11 +1102,11 @@ Implementation
                                (opr.ref.symbol=nil) and
                                (opr.ref.relsymbol=nil)) then
 {$if defined(i8086)}
-                          Message1(asmr_w_invalid_reference,'(%di)');
+                          compiler.verbose.Message1(asmr_w_invalid_reference,'(%di)');
 {$elseif defined(i386)}
-                          Message1(asmr_w_invalid_reference,'(%edi)');
+                          compiler.verbose.Message1(asmr_w_invalid_reference,'(%edi)');
 {$elseif defined(x86_64)}
-                          Message1(asmr_w_invalid_reference,'(%rdi)');
+                          compiler.verbose.Message1(asmr_w_invalid_reference,'(%rdi)');
 {$endif}
                       end;
               end;

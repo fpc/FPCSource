@@ -139,7 +139,7 @@ var
   StripStr : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StripStr:='debug dwarf all';

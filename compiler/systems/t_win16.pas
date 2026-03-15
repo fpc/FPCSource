@@ -150,7 +150,7 @@ procedure TExportLibWin16.exportprocedure(hp: texported_item);
 begin
   if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
     begin
-     message1(parser_e_export_invalid_index,tostr(hp.index));
+     compiler.verbose.Message1(parser_e_export_invalid_index,tostr(hp.index));
      exit;
     end;
   EList.Add(hp);
@@ -321,7 +321,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -346,7 +346,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.sharedlibfilename);
+    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(true);

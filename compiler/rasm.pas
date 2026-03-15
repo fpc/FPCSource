@@ -65,6 +65,7 @@ unit rasm;
       verbose,
       procinfo,
       symconst,symdef,
+      compiler,
       paramgr;
 
     type
@@ -119,7 +120,7 @@ unit rasm;
           begin
             if lab.Emitted then
               begin
-                Message1(asmr_e_dup_local_sym,lab.Name);
+                compiler.verbose.Message1(asmr_e_dup_local_sym,lab.Name);
                 result:=false;
               end;
             lab.Emitted:=true;
@@ -137,7 +138,7 @@ unit rasm;
           begin
             lab:=TLocalLabel(locallabels[i]);
             if not lab.emitted then
-              Message1(asmr_e_unknown_label_identifier,lab.name);
+              compiler.verbose.Message1(asmr_e_unknown_label_identifier,lab.name);
           end;
         locallabels.Clear;
       end;

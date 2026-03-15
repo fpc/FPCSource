@@ -1449,7 +1449,7 @@ implementation
         srsym:=search_struct_member(tabstractrecorddef(size),'FPCDEEPCOPY');
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
-          Message1(cg_f_unknown_compilerproc,size.typename+'.fpcDeepCopy');
+          compiler.verbose.Message1(cg_f_unknown_compilerproc,size.typename+'.fpcDeepCopy');
         pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
         a_call_name(list,pd,pd.mangledname,[],nil,false);
         { both parameters are removed, no function result }
@@ -1482,7 +1482,7 @@ implementation
         srsym:=search_struct_member(java_shortstring,'FPCDEEPCOPY');
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
-          Message1(cg_f_unknown_compilerproc,'ShortstringClass.FpcDeepCopy');
+          compiler.verbose.Message1(cg_f_unknown_compilerproc,'ShortstringClass.FpcDeepCopy');
         pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
         a_call_name(list,pd,pd.mangledname,[],nil,false);
         { both parameters are removed, no function result }

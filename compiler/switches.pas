@@ -152,6 +152,8 @@ const
     );
 
 procedure HandleSwitch(switch,state:char);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
 var
   switchTablePtr: ^SwitchRecTable;
@@ -190,11 +192,11 @@ begin
              current_settings.optimizerswitches:=[];
          end;
        ignoredsw :
-         Message1(scan_n_ignored_switch,'$'+switch);
+         compiler.verbose.Message1(scan_n_ignored_switch,'$'+switch);
        illegalsw :
-         Message1(scan_w_illegal_switch,'$'+switch);
+         compiler.verbose.Message1(scan_w_illegal_switch,'$'+switch);
        unsupportedsw :
-         Message1(scan_w_unsupported_switch,'$'+switch);
+         compiler.verbose.Message1(scan_w_unsupported_switch,'$'+switch);
        localsw :
          recordpendinglocalswitch(tlocalswitch(setsw),state);
        modulesw :
@@ -204,7 +206,7 @@ begin
 {$ifndef cpufpemu}
               if tmoduleswitch(setsw)=cs_fp_emulation then
                 begin
-                  Message1(scan_w_unsupported_switch_by_target,'$'+switch);
+                  compiler.verbose.Message1(scan_w_unsupported_switch_by_target,'$'+switch);
                 end
               else
 {$endif cpufpemu}
@@ -248,7 +250,7 @@ begin
            { Switch u- means pentium-safe fdiv off -> fpc default. We don't }
            { support u+                                                     }
            if state='+' then
-             Message1(scan_w_unsupported_switch,'$'+switch);
+             compiler.verbose.Message1(scan_w_unsupported_switch,'$'+switch);
          end;
        targetsw:
          UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,current_settings.targetswitches,current_module.in_global);
@@ -494,9 +496,9 @@ procedure flushpendingswitchesstate;
     if pendingstate.nextcallingstr<>'' then
       begin
         if not SetAktProcCall(pendingstate.nextcallingstr,tmpproccal) then
-          Message1(parser_w_unknown_proc_directive_ignored,pendingstate.nextcallingstr)
+          compiler.verbose.Message1(parser_w_unknown_proc_directive_ignored,pendingstate.nextcallingstr)
         else if not(tmpproccal in supported_calling_conventions) then
-          Message1(parser_e_illegal_calling_convention,pendingstate.nextcallingstr)
+          compiler.verbose.Message1(parser_e_illegal_calling_convention,pendingstate.nextcallingstr)
         else
           current_settings.defproccall:=tmpproccal;
         pendingstate.nextcallingstr:='';

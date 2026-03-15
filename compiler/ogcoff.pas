@@ -2117,6 +2117,8 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TCoffObjOutput.section_set_reloc_datapos(p:TCoffObjSection;var datapos:aword);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         p.coffrelocpos:=datapos;
         inc(datapos,sizeof(coffreloc)*p.ObjRelocations.count);
@@ -2125,7 +2127,7 @@ const pemagic : array[0..3] of byte = (
             if win32 then
               inc(datapos,sizeof(coffreloc))
             else
-              Message1(asmw_f_too_many_relocations,p.fullname);
+              compiler.verbose.Message1(asmw_f_too_many_relocations,p.fullname);
           end;
       end;
 
@@ -2662,7 +2664,7 @@ const pemagic : array[0..3] of byte = (
                     { only temporary }
                     compiler.verbose.Comment(V_Error,'Associative COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
                   else if (comdatsel=oscs_associative) and (secrec.assoc=0) then
-                    Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
+                    compiler.verbose.Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
                   else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
                     Message2(link_e_comdat_not_matching,objsym.objsection.Name,objsym.Name)
                   else
@@ -2673,7 +2675,7 @@ const pemagic : array[0..3] of byte = (
                         begin
                           objsym.objsection.AssociativeSection:=GetSection(secrec.assoc-1);
                           if not assigned(objsym.objsection.AssociativeSection) then
-                            Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
+                            compiler.verbose.Message1(link_e_comdat_associative_section_not_found,objsym.objsection.Name);
                         end;
                     end;
 

@@ -521,7 +521,7 @@ implementation
       success : boolean;
     begin
       if not(cs_link_nolink in current_settings.globalswitches) then
-       Message1(exec_i_linking,current_module.exefilename);
+       compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
     { Create some replacements }
       StaticStr:='';
@@ -650,7 +650,7 @@ implementation
       mapstr:='';
       ltostr:='';
       if not(cs_link_nolink in current_settings.globalswitches) then
-       Message1(exec_i_linking,current_module.sharedlibfilename);
+       compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
       { Write symbol order file }
       ordersymfile:=WriteSymbolOrderFile;

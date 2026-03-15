@@ -452,7 +452,7 @@ implementation
                 statement_syssym:=compiler.cbreaknode
               else
                 begin
-                  Message1(sym_e_id_not_found, current_scanner.orgpattern);
+                  compiler.verbose.Message1(sym_e_id_not_found, current_scanner.orgpattern);
                   statement_syssym:=compiler.cerrornode;
                 end;
             end;
@@ -463,7 +463,7 @@ implementation
                 statement_syssym:=compiler.ccontinuenode
               else
                 begin
-                  Message1(sym_e_id_not_found, current_scanner.orgpattern);
+                  compiler.verbose.Message1(sym_e_id_not_found, current_scanner.orgpattern);
                   statement_syssym:=compiler.cerrornode;
                 end;
             end;
@@ -527,7 +527,7 @@ implementation
                  if p1.nodetype=typen then
                    ttypenode(p1).helperallowed:=true;
                  if (p1.resultdef.typ=forwarddef) then
-                   Message1(type_e_type_is_not_completly_defined,tforwarddef(p1.resultdef).tosymname^);
+                   compiler.verbose.Message1(type_e_type_is_not_completly_defined,tforwarddef(p1.resultdef).tosymname^);
 {$ifdef wasm}
                  if is_wasm_reference_type(p1.resultdef) then
                    Message(type_e_cannot_determine_size_of_wasm_reference_type);
@@ -592,7 +592,7 @@ implementation
                 end
               else
                 begin
-                  Message1(sym_e_id_not_found, current_scanner.orgpattern);
+                  compiler.verbose.Message1(sym_e_id_not_found, current_scanner.orgpattern);
                   statement_syssym:=compiler.cerrornode;
                 end;
             end;
@@ -863,7 +863,7 @@ implementation
                 end
               else
                 begin
-                  Message1(sym_e_id_not_found, current_scanner.orgpattern);
+                  compiler.verbose.Message1(sym_e_id_not_found, current_scanner.orgpattern);
                   statement_syssym:=compiler.cerrornode;
                 end;
             end;
@@ -988,7 +988,7 @@ implementation
               if def<>generrordef then
                 { "type expected" error is already done by single_type }
                 if def.typ=forwarddef then
-                  Message1(type_e_type_is_not_completly_defined,tforwarddef(def).tosymname^)
+                  compiler.verbose.Message1(type_e_type_is_not_completly_defined,tforwarddef(def).tosymname^)
                 else
                   begin
                     statement_syssym.free;
@@ -1529,7 +1529,7 @@ implementation
            begin
               { current_scanner.pattern is still valid unless
               there is another ID just after the ID of sym }
-              Message1(sym_e_id_no_member,current_scanner.orgpattern);
+              compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern);
               p1.free;
               p1:=compiler.cerrornode;
               { try to clean up }
@@ -1659,7 +1659,7 @@ implementation
                               (oo_is_abstract in structh.objectoptions) and
                               assigned(tcallnode(p1).methodpointer) and
                               (tcallnode(p1).methodpointer.nodetype=loadvmtaddrn) then
-                            Message1(type_w_instance_abstract_class,structh.RttiName);
+                            compiler.verbose.Message1(type_w_instance_abstract_class,structh.RttiName);
                         end
                    end;
                  fieldvarsym:
@@ -1737,7 +1737,7 @@ implementation
         spezcontext:=nil;
         srsymtable:=nil;
         if not assigned(srsym) then
-          message1(sym_e_id_no_member,current_scanner.orgpattern)
+          compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern)
         else
           if not (srsym.typ in [typesym,procsym]) then
             message(type_e_type_id_expected)
@@ -1915,7 +1915,7 @@ implementation
                         erroroutresult:=false;
                       end
                     else
-                      Message1(sym_e_id_no_member,current_scanner.orgpattern);
+                      compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern);
                   end;
                 if erroroutresult then
                   begin
@@ -1970,7 +1970,7 @@ implementation
                    end
                   else
                    begin
-                     Message1(sym_e_id_no_member,current_scanner.orgpattern);
+                     compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern);
                      parser.pbase.consume(_ID);
                    end;
                 end
@@ -2688,7 +2688,7 @@ implementation
                                end
                              else
                                begin
-                                 Message1(sym_e_id_no_member,current_scanner.orgpattern);
+                                 compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                  { try to clean up }
                                  parser.pbase.consume(_ID);
                                end;
@@ -2721,7 +2721,7 @@ implementation
                            if not try_type_helper(p1,nil) then
                              begin
                                p1.free;
-                               Message1(sym_e_id_no_member,current_scanner.orgpattern);
+                               compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                p1:=compiler.cerrornode;
                                parser.pbase.consume(_ID);
                              end;
@@ -2870,7 +2870,7 @@ implementation
                                 end
                               else
                                 begin
-                                  Message1(sym_e_id_no_member,current_scanner.orgpattern);
+                                  compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                   { try to clean up }
                                   parser.pbase.consume(_ID);
                                 end;
@@ -2924,7 +2924,7 @@ implementation
                                 end
                               else
                                 begin
-                                   Message1(sym_e_id_no_member,current_scanner.orgpattern);
+                                   compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern);
                                    { try to clean up }
                                    parser.pbase.consume(_ID);
                                 end;
@@ -4115,7 +4115,7 @@ implementation
                         end
                        else
                         begin
-                          Message1(sym_e_id_no_member,hsorg);
+                          compiler.verbose.Message1(sym_e_id_no_member,hsorg);
                           p1:=compiler.cerrornode;
                         end;
                        again:=false;

@@ -145,7 +145,7 @@ var
   maxmem : longint;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Create some replacements }
   mapstr:='';
@@ -221,7 +221,7 @@ var
 begin
   Result:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.sharedlibfilename);
+    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
   { Create some replacements }
   mapstr:='';

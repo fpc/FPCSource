@@ -356,7 +356,7 @@ implementation
         libf:=CFileStreamClass.Create(FLibName,fmCreate);
         if CStreamError<>0 then
           begin
-            Message1(exec_e_cant_create_archivefile,FLibName);
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,FLibName);
             exit;
           end;
         for I:=0 to FObjectModules.Count-1 do

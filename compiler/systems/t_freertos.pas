@@ -1676,7 +1676,7 @@ begin
 
   GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   if (cs_link_map in current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
@@ -1888,7 +1888,7 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
     {$push}{$I-}
     reset(f,1);
     if ioresult<>0 then
-      Message1(execinfo_f_cant_open_executable,fn);
+      compiler.verbose.Message1(execinfo_f_cant_open_executable,fn);
     { read header }
     blockread(f,elfheader,sizeof(tElf32header));
     elfheader:=MayBeSwapHeader(elfheader);
@@ -1909,17 +1909,17 @@ function TlinkerFreeRTOS.postprocessexecutable(const fn : string;isdll:boolean):
         secname:=ReadSectionName(stringoffset+secheader.sh_name);
         if pos('.text',secname)<>0 then
           begin
-            Message1(execinfo_x_codesize,tostr(secheader.sh_size));
+            compiler.verbose.Message1(execinfo_x_codesize,tostr(secheader.sh_size));
             status.codesize:=secheader.sh_size;
           end
         else if secname='.data' then
           begin
-            Message1(execinfo_x_initdatasize,tostr(secheader.sh_size));
+            compiler.verbose.Message1(execinfo_x_initdatasize,tostr(secheader.sh_size));
             inc(status.datasize,secheader.sh_size);
           end
         else if secname='.bss' then
           begin
-            Message1(execinfo_x_uninitdatasize,tostr(secheader.sh_size));
+            compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(secheader.sh_size));
             inc(status.datasize,secheader.sh_size);
           end;
       end;

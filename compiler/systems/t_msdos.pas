@@ -195,7 +195,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -273,7 +273,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -389,7 +389,7 @@ var
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-    Message1(exec_i_linking,current_module.exefilename);
+    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
   WriteResponsefile(false);
@@ -432,7 +432,7 @@ begin
   {$push}{$I-}
    reset(f,1);
   if ioresult<>0 then
-    Message1(execinfo_f_cant_open_executable,fn);
+    compiler.verbose.Message1(execinfo_f_cant_open_executable,fn);
   { read minalloc }
   seek(f,$A);
   BlockRead(f,minalloc,2);

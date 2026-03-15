@@ -92,12 +92,14 @@ end;
 
 procedure texportlibhaiku.exportprocedure(hp : texported_item);
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   hp2 : texported_item;
 begin
   { first test the index value }
   if eo_index in hp.options then
    begin
-     Message1(parser_e_no_export_with_index_for_target,'haiku');
+     compiler.verbose.Message1(parser_e_no_export_with_index_for_target,'haiku');
      exit;
    end;
   { now place in correct order }
@@ -136,6 +138,8 @@ end;
 
 procedure texportlibhaiku.generatelib;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   hp2 : texported_item;
   pd  : tprocdef;
 begin
@@ -160,7 +164,7 @@ begin
          end;
       end
      else
-      Message1(parser_e_no_export_of_variables_for_target,'haiku');
+      compiler.verbose.Message1(parser_e_no_export_of_variables_for_target,'haiku');
      hp2:=texported_item(hp2.next);
    end;
 end;
@@ -414,7 +418,7 @@ var
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StaticStr:='';
@@ -466,6 +470,8 @@ end;
 
 Function TLinkerHaiku.MakeSharedLibrary:boolean;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   binstr,
   cmdstr,
   SoNameStr : TCmdStr;
@@ -477,7 +483,7 @@ var
  begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename);
+   compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Create some replacements }
   StaticStr:='';

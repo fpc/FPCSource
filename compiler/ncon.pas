@@ -1136,7 +1136,7 @@ implementation
                         begin
                           if not cpavailable(cp1) then
                             begin
-                              Message1(option_code_page_not_available,IntToStr(cp1));
+                              compiler.verbose.Message1(option_code_page_not_available,IntToStr(cp1));
                               exit;
                             end;
                           initwidestring(pw);
@@ -1162,7 +1162,7 @@ implementation
                         begin
                           if not cpavailable(cp2) then
                             begin
-                              Message1(option_code_page_not_available,IntToStr(cp2));
+                              compiler.verbose.Message1(option_code_page_not_available,IntToStr(cp2));
                               exit;
                             end;
                           initwidestring(pw);
@@ -1183,9 +1183,9 @@ implementation
                         begin
                           { output error message that encoding is not available for the compiler }
                           if not cpavailable(cp1) then
-                            Message1(option_code_page_not_available,IntToStr(cp1));
+                            compiler.verbose.Message1(option_code_page_not_available,IntToStr(cp1));
                           if not cpavailable(cp2) then
-                            Message1(option_code_page_not_available,IntToStr(cp2));
+                            compiler.verbose.Message1(option_code_page_not_available,IntToStr(cp2));
                         end;
                     end;
                 end;

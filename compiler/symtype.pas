@@ -587,7 +587,7 @@ implementation
         Append(T);
         if IOResult <> 0 then
           begin
-            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            compiler.verbose.Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
             current_module.ppxfilefail := True;
             Exit;
           end;

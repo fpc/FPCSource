@@ -1638,7 +1638,7 @@ implementation
            srsym := tsym(systemunit.Find(upper(name)));
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
-           Message1(cg_f_unknown_compilerproc,name);
+           compiler.verbose.Message1(cg_f_unknown_compilerproc,name);
          create(params,tprocsym(srsym),srsym.owner,nil,[],nil,acompiler);
        end;
 
@@ -1658,7 +1658,7 @@ implementation
          srsym:=nil;
          if not acompiler.symtablestack.searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
-           Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
+           compiler.verbose.Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
          create(params,tprocsym(srsym),srsymtable,nil,[],nil,acompiler);
        end;
 
@@ -3191,7 +3191,7 @@ implementation
         if not compiler.symtablestack.searchsym_in_named_module('OBJC',msgsendname,srsym,srsymtable) or
            (srsym.typ<>procsym) or
            (tprocsym(srsym).ProcdefList.count<>1) then
-          Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
+          compiler.verbose.Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
         foverrideprocnamedef:=tprocdef(tprocsym(srsym).ProcdefList[0]);
 
         { B) Handle self }
@@ -5049,7 +5049,7 @@ implementation
                 (procdefinition.typ=procdef) and
                 not (pio_inline_not_possible in tprocdef(procdefinition).implprocoptions) then
                begin
-                 Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
+                 compiler.verbose.Message1(cg_n_no_inline,tprocdef(procdefinition).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker, pno_prettynames]));
                end;
              mark_unregable_parameters;
              result:=pass1_normal;

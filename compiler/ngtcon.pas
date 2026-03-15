@@ -1367,7 +1367,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     Inc(curoffset,def.elementdef.size);
                     if current_scanner.token=_RKLAMMER then
                       begin
-                        Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
+                        compiler.verbose.Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
                         compiler.parser.pbase.consume(_RKLAMMER);
                         exit;
                       end
@@ -1723,7 +1723,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             recsym := tsym(def.symtable.Find(s));
             if not assigned(recsym) or (recsym.typ<>fieldvarsym) then
               begin
-                Message1(sym_e_illegal_field,sorg);
+                compiler.verbose.Message1(sym_e_illegal_field,sorg);
                 error := true;
               end;
             if (not error) and
@@ -1758,13 +1758,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { Delphi allows you to skip fields }
                 else if (m_delphi in current_settings.modeswitches) then
                   begin
-                    Message1(parser_w_skipped_fields_before,sorg);
+                    compiler.verbose.Message1(parser_w_skipped_fields_before,sorg);
                     srsym := recsym;
                   end
                 { FPC and TP don't }
                 else
                   begin
-                    Message1(parser_e_skipped_fields_before,sorg);
+                    compiler.verbose.Message1(parser_e_skipped_fields_before,sorg);
                     error := true;
                   end;
               end;
@@ -1839,7 +1839,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             (recsym=nil) or
             (tfieldvarsym(srsym).fieldoffset > tfieldvarsym(recsym).fieldoffset)
            ) then
-          Message1(parser_w_skipped_fields_after,sorg);
+          compiler.verbose.Message1(parser_w_skipped_fields_after,sorg);
 
         if compiler.verbose.ErrorCount=0 then
           begin
@@ -1933,9 +1933,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                (srsym.typ<>fieldvarsym) then
               begin
                 if (srsym=nil) then
-                  Message1(sym_e_id_not_found,sorg)
+                  compiler.verbose.Message1(sym_e_id_not_found,sorg)
                 else
-                  Message1(sym_e_illegal_field,sorg);
+                  compiler.verbose.Message1(sym_e_illegal_field,sorg);
                 compiler.parser.pbase.consume_all_until(_RKLAMMER);
                 break;
               end
@@ -2019,7 +2019,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 read_typed_const_data(def.elementdef);
                 if current_scanner.token=_RKLAMMER then
                   begin
-                    Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
+                    compiler.verbose.Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
                     compiler.parser.pbase.consume(_RKLAMMER);
                     exit;
                   end
@@ -2130,7 +2130,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             recsym := tsym(def.symtable.Find(s));
             if not assigned(recsym) then
               begin
-                Message1(sym_e_illegal_field,sorg);
+                compiler.verbose.Message1(sym_e_illegal_field,sorg);
                 error := true;
               end;
             if (not error) and
@@ -2165,13 +2165,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { Delphi allows you to skip fields }
                 else if (m_delphi in current_settings.modeswitches) then
                   begin
-                    Message1(parser_w_skipped_fields_before,sorg);
+                    compiler.verbose.Message1(parser_w_skipped_fields_before,sorg);
                     srsym := recsym;
                   end
                 { FPC and TP don't }
                 else
                   begin
-                    Message1(parser_e_skipped_fields_before,sorg);
+                    compiler.verbose.Message1(parser_e_skipped_fields_before,sorg);
                     error := true;
                   end;
               end;
@@ -2217,7 +2217,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             (recsym=nil) or
             (tfieldvarsym(srsym).fieldoffset > tfieldvarsym(recsym).fieldoffset)
            ) then
-          Message1(parser_w_skipped_fields_after,sorg);
+          compiler.verbose.Message1(parser_w_skipped_fields_after,sorg);
         orgbasenode.free;
         orgbasenode := nil;
         basenode:=nil;
@@ -2299,9 +2299,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                (srsym.typ<>fieldvarsym) then
               begin
                 if (srsym=nil) then
-                  Message1(sym_e_id_not_found,sorg)
+                  compiler.verbose.Message1(sym_e_id_not_found,sorg)
                 else
-                  Message1(sym_e_illegal_field,sorg);
+                  compiler.verbose.Message1(sym_e_illegal_field,sorg);
                 compiler.parser.pbase.consume_all_until(_RKLAMMER);
                 break;
               end

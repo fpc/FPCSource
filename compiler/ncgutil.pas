@@ -794,6 +794,8 @@ implementation
 
     procedure gen_proc_entry_code(list:TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hitemp,
         lotemp, stack_frame_size : longint;
       begin
@@ -828,7 +830,7 @@ implementation
          stack_frame_size := current_procinfo.calc_stackframe_size;
          if (stack_frame_size <> 0) and
             (po_nostackframe in current_procinfo.procdef.procoptions) then
-           message1(parser_e_nostackframe_with_locals,tostr(stack_frame_size));
+           compiler.verbose.Message1(parser_e_nostackframe_with_locals,tostr(stack_frame_size));
 
          hlcg.g_proc_entry(list,stack_frame_size,(po_nostackframe in current_procinfo.procdef.procoptions));
       end;

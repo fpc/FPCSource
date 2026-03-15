@@ -379,7 +379,7 @@ Interface
                               begin
                                 consume(AS_LPAREN);
                                 if not oper.setupvar('high'+actasmpattern,false) then
-                                  Message1(sym_e_unknown_id,'high'+actasmpattern);
+                                  compiler.verbose.Message1(sym_e_unknown_id,'high'+actasmpattern);
                                 consume(AS_ID);
                                 consume(AS_RPAREN);
                               end
@@ -393,7 +393,7 @@ Interface
                              if expr = '__OLDEBP' then
                               oper.SetupOldEBP
                             else
-                              Message1(sym_e_unknown_id,expr);
+                              compiler.verbose.Message1(sym_e_unknown_id,expr);
                           end;
                        end;
                     end;

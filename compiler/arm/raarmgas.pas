@@ -182,7 +182,7 @@ Unit raarmgas;
           end
         else
           if not oper.SetupVar(tempstr,false) then
-            Message1(sym_e_unknown_id,tempstr);
+            compiler.verbose.Message1(sym_e_unknown_id,tempstr);
         { record.field ? }
         if actasmtoken=AS_DOT then
           begin
@@ -957,7 +957,7 @@ Unit raarmgas;
                             begin
                               consume(AS_LPAREN);
                               if not oper.setupvar('high'+actasmpattern,false) then
-                                Message1(sym_e_unknown_id,'high'+actasmpattern);
+                                compiler.verbose.Message1(sym_e_unknown_id,'high'+actasmpattern);
                               consume(AS_ID);
                               consume(AS_RPAREN);
                             end
@@ -971,7 +971,7 @@ Unit raarmgas;
                            if expr = '__OLDEBP' then
                             oper.SetupOldEBP
                           else
-                            Message1(sym_e_unknown_id,expr);
+                            compiler.verbose.Message1(sym_e_unknown_id,expr);
                         end;
                      end;
                   end;

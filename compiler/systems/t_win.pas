@@ -677,10 +677,12 @@ implementation
 
 
     procedure TExportLibWin.exportprocedure(hp : texported_item);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
           begin
-           message1(parser_e_export_invalid_index,tostr(hp.index));
+           compiler.verbose.Message1(parser_e_export_invalid_index,tostr(hp.index));
            exit;
           end;
         if eo_index in hp.options then
@@ -738,7 +740,7 @@ implementation
 
          if Gl_DoubleIndex then
            begin
-             message1(parser_e_export_ordinal_double,tostr(Gl_DoubleIndexValue));
+             compiler.verbose.Message1(parser_e_export_ordinal_double,tostr(Gl_DoubleIndexValue));
              FreeAndNil(EList_indexed);
              FreeAndNil(EList_nonindexed);
              exit;
@@ -1436,7 +1438,7 @@ implementation
         ImageBaseStr : string[40];
       begin
         if not(cs_link_nolink in current_settings.globalswitches) then
-         Message1(exec_i_linking,current_module.exefilename);
+         compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
         { Create some replacements }
         RelocStr:='';
@@ -1530,6 +1532,8 @@ implementation
 
     Function TExternalLinkerWin.MakeSharedLibrary:boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         MapStr,
         binstr,
         cmdstr  : TCmdStr;
@@ -1546,7 +1550,7 @@ implementation
       begin
         MakeSharedLibrary:=false;
         if not(cs_link_nolink in current_settings.globalswitches) then
-         Message1(exec_i_linking,current_module.sharedlibfilename);
+         compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
       { Create some replacements }
         RelocStr:='';
@@ -1705,7 +1709,7 @@ implementation
         {$push}{$I-}
          reset(f,1);
         if ioresult<>0 then
-          Message1(execinfo_f_cant_open_executable,fn);
+          compiler.verbose.Message1(execinfo_f_cant_open_executable,fn);
         { read headers }
         blockread(f,dosheader,sizeof(tdosheader));
         if source_info.endian<>compiler.target.info.endian then
@@ -1718,9 +1722,9 @@ implementation
         blockread(f,peoptheader,sizeof(tcoffpeoptheader));
 	maybeswap(peoptheader);
         { write info }
-        Message1(execinfo_x_codesize,tostr(peoptheader.tsize));
-        Message1(execinfo_x_initdatasize,tostr(peoptheader.dsize));
-        Message1(execinfo_x_uninitdatasize,tostr(peoptheader.bsize));
+        compiler.verbose.Message1(execinfo_x_codesize,tostr(peoptheader.tsize));
+        compiler.verbose.Message1(execinfo_x_initdatasize,tostr(peoptheader.dsize));
+        compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(peoptheader.bsize));
         { change stack size (PM) }
         { I am not sure that the default value is adequate !! }
         peoptheader.SizeOfStackReserve:=stacksize;
@@ -1762,11 +1766,11 @@ implementation
 	maybeswap(peheader);
         blockwrite(f,peheader,sizeof(tcoffheader));
         if ioresult<>0 then
-          Message1(execinfo_f_cant_process_executable,fn);
+          compiler.verbose.Message1(execinfo_f_cant_process_executable,fn);
 	maybeswap(peoptheader);
         blockwrite(f,peoptheader,sizeof(tcoffpeoptheader));
         if ioresult<>0 then
-          Message1(execinfo_f_cant_process_executable,fn);
+          compiler.verbose.Message1(execinfo_f_cant_process_executable,fn);
         { skip to headerpos and skip pe magic }
         seek(f,peheaderpos+4);
         blockread(f,peheader,sizeof(tcoffheader));
@@ -1774,8 +1778,8 @@ implementation
         blockread(f,peoptheader,sizeof(tcoffpeoptheader));
 	maybeswap(peoptheader);
         { write the value after the change }
-        Message1(execinfo_x_stackreserve,tostr(peoptheader.SizeOfStackReserve));
-        Message1(execinfo_x_stackcommit,tostr(peoptheader.SizeOfStackCommit));
+        compiler.verbose.Message1(execinfo_x_stackreserve,tostr(peoptheader.SizeOfStackReserve));
+        compiler.verbose.Message1(execinfo_x_stackcommit,tostr(peoptheader.SizeOfStackCommit));
         { read section info }
         maxfillsize:=0;
         firstsecpos:=0;

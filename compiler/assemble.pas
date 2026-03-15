@@ -657,10 +657,10 @@ Implementation
            if owner.SmartAsm then
             begin
               if (owner.SmartFilesCount<=1) then
-               Message1(exec_i_assembling_smart,owner.name);
+               compiler.verbose.Message1(exec_i_assembling_smart,owner.name);
             end
            else
-             Message1(exec_i_assembling_pipe,owner.AsmFileName);
+             compiler.verbose.Message1(exec_i_assembling_pipe,owner.AsmFileName);
            if compiler.verbose.checkverbosity(V_Executable) then
              compiler.verbose.comment(V_Executable,'Executing "'+maybequoted(owner.FindAssembler)+'" with command line "'+
                owner.MakeCmdLine+'"');
@@ -676,7 +676,7 @@ Implementation
            if ioresult<>0 then
              begin
                fioerror:=true;
-               Message1(exec_d_cant_create_asmfile,owner.AsmFileName);
+               compiler.verbose.Message1(exec_d_cant_create_asmfile,owner.AsmFileName);
              end;
          end;
         outcnt:=0;
@@ -902,17 +902,19 @@ Implementation
              asfound:=FindExe(UtilExe,false,LastASBin);
            if (not asfound) and not(cs_asm_extern in current_settings.globalswitches) then
             begin
-              Message1(exec_e_assembler_not_found,LastASBin);
+              compiler.verbose.Message1(exec_e_assembler_not_found,LastASBin);
               current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
             end;
            if asfound then
-            Message1(exec_t_using_assembler,LastASBin);
+            compiler.verbose.Message1(exec_t_using_assembler,LastASBin);
          end;
         FindAssembler:=LastASBin;
       end;
 
 
     Function TExternalAssembler.CallAssembler(const command:string; const para:TCmdStr):Boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         DosExitCode : Integer;
       begin
@@ -930,12 +932,12 @@ Implementation
           DosExitCode:=RequotedExecuteProcess(command,para);
           if DosExitCode<>0
           then begin
-            Message1(exec_e_error_while_assembling,tostr(dosexitcode));
+            compiler.verbose.Message1(exec_e_error_while_assembling,tostr(dosexitcode));
             result:=false;
           end;
         except on E:EOSError do
           begin
-            Message1(exec_e_cant_call_assembler,tostr(E.ErrorCode));
+            compiler.verbose.Message1(exec_e_cant_call_assembler,tostr(E.ErrorCode));
             current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
             result:=false;
           end;
@@ -955,10 +957,10 @@ Implementation
            if SmartAsm then
             begin
               if (SmartFilesCount<=1) then
-               Message1(exec_i_assembling_smart,name);
+               compiler.verbose.Message1(exec_i_assembling_smart,name);
             end
            else
-           Message1(exec_i_assembling,name);
+           compiler.verbose.Message1(exec_i_assembling,name);
          end;
 
         repeat

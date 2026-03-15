@@ -203,7 +203,7 @@ Unit raz80asm;
                     actasmtoken:=AS_TARGET_DIRECTIVE;
                     exit;
                   end;
-                Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
+                compiler.verbose.Message1(asmr_e_not_directive_or_local_symbol,actasmpattern);
               end;
             { only opcodes, global and local labels are allowed now. }
             while c in ['A'..'Z','a'..'z','0'..'9','_','@'] do
@@ -242,7 +242,7 @@ Unit raz80asm;
                 actasmtoken:=AS_END;
                 exit;
               end;
-            message1(asmr_e_unknown_opcode,actasmpattern);
+            compiler.verbose.Message1(asmr_e_unknown_opcode,actasmpattern);
             actasmtoken:=AS_NONE;
           end
         else { else firsttoken }
@@ -436,7 +436,7 @@ Unit raz80asm;
                          end
                         else
                          begin
-                           Message1(asmr_e_invalid_float_const,actasmpattern+c);
+                           compiler.verbose.Message1(asmr_e_invalid_float_const,actasmpattern+c);
                            actasmtoken:=AS_NONE;
                          end;
                       end;
@@ -1215,7 +1215,7 @@ Unit raz80asm;
                          end;
                        end
                       else
-                       Message1(sym_e_unknown_id,tempstr);
+                       compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                     end;
                  end;
                 str(l, tempstr);
@@ -1243,7 +1243,7 @@ Unit raz80asm;
                   l:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
                      Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
                 else
-                  Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
+                  compiler.verbose.Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
                 end;
                 str(l, tempstr);
                 expr:=expr + tempstr;
@@ -1336,7 +1336,7 @@ Unit raz80asm;
                          end;
                        end
                       else
-                       Message1(sym_e_unknown_id,tempstr);
+                       compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                     end;
                    { symbol found? }
                    if hs<>'' then
@@ -1643,7 +1643,7 @@ Unit raz80asm;
                          end;
                      end
                    else
-                     Message1(sym_e_unknown_id,tempstr);
+                     compiler.verbose.Message1(sym_e_unknown_id,tempstr);
                    { record.field ? }
                    if actasmtoken=AS_DOT then
                     begin
@@ -2165,7 +2165,7 @@ Unit raz80asm;
                                 end
                               else
                                 begin
-                                  Message1(sym_e_unknown_id,expr);
+                                  compiler.verbose.Message1(sym_e_unknown_id,expr);
                                   expr:='';
                                 end;
                             end;
@@ -2362,7 +2362,7 @@ Unit raz80asm;
         section: tai_section;
         lastsectype : TAsmSectiontype;
       begin
-        Message1(asmr_d_start_reading,'Z80');
+        compiler.verbose.Message1(asmr_d_start_reading,'Z80');
         firsttoken:=TRUE;
         { sets up all opcode and register tables in uppercase }
         if not _asmsorted then
@@ -2398,7 +2398,7 @@ Unit raz80asm;
                     ConcatLabel(curlist,hl);
                   end
                 else
-                 Message1(asmr_e_unknown_label_identifier,actasmpattern);
+                 compiler.verbose.Message1(asmr_e_unknown_label_identifier,actasmpattern);
                 Consume(AS_LABEL);
               end;
 
@@ -2513,7 +2513,7 @@ Unit raz80asm;
         checklocallabels;
         { Return the list in an asmnode }
         assemble:=curlist;
-        Message1(asmr_d_finish_reading,'Z80');
+        compiler.verbose.Message1(asmr_d_finish_reading,'Z80');
       end;
 
 

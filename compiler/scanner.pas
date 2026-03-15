@@ -791,7 +791,7 @@ implementation
                  (i in [m_objectivec1,m_objectivec2]) and
                  not(compiler.target.info.system in systems_objc_supported) then
                 begin
-                  Message1(option_unsupported_target_for_feature,'Objective-C');
+                  compiler.verbose.Message1(option_unsupported_target_for_feature,'Objective-C');
                   break;
                 end;
 
@@ -800,7 +800,7 @@ implementation
                  (i = m_blocks) and
                  not(compiler.target.info.system in systems_blocks_supported) then
                 begin
-                  Message1(option_unsupported_target_for_feature,'Blocks');
+                  compiler.verbose.Message1(option_unsupported_target_for_feature,'Blocks');
                   break;
                 end;
 
@@ -942,6 +942,8 @@ implementation
 
     function opt_check(var valuedescr: String): Boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs    : string;
         state : char;
       begin
@@ -950,7 +952,7 @@ implementation
         hs:=current_scanner.readid;
         valuedescr:= hs;
         if (length(hs)>1) then
-          Message1(scan_w_illegal_switch,hs)
+          compiler.verbose.Message1(scan_w_illegal_switch,hs)
         else
           begin
             state:=current_scanner.ReadState;
@@ -1787,7 +1789,7 @@ type
                            found:=searchsym_in_record(trecorddef(def),current_scanner.preproc_pattern,srsym,srsymtable);
                          if not found then
                            begin
-                             Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
+                             compiler.verbose.Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
                              exit;
                            end;
                          preproc_consume(_ID);
@@ -1865,7 +1867,7 @@ type
                 end
               else
                 begin
-                  Message1(scan_e_error_macro_lacks_value,searchstr^);
+                  compiler.verbose.Message1(scan_e_error_macro_lacks_value,searchstr^);
                   break;
                 end
             else
@@ -1890,7 +1892,7 @@ type
                 begin
                   {Errors in mode mac is issued here. For non macpas modes there is
                    more liberty, but the error will eventually be caught at a later stage.}
-                  Message1(scan_e_error_macro_undefined,searchstr^);
+                  compiler.verbose.Message1(scan_e_error_macro_undefined,searchstr^);
                   result:=texprvalue.create_str(searchstr^); { just to have something }
                 end
               else
@@ -2102,7 +2104,7 @@ type
                           result:=texprvalue.create_int(l);
                         end
                       else
-                        Message1(sym_e_id_not_found,storedpattern);
+                        compiler.verbose.Message1(sym_e_id_not_found,storedpattern);
 
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
@@ -2179,7 +2181,7 @@ type
                             end;
                         end
                       else
-                        Message1(sym_e_id_not_found,storedpattern);
+                        compiler.verbose.Message1(sym_e_id_not_found,storedpattern);
 
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
@@ -2422,7 +2424,7 @@ type
                  { reject duplicate enums in the set }
                  if exprvalue.asInt in ns then
                    begin
-                     Message1(sym_e_duplicate_id,current_scanner.preproc_pattern);
+                     compiler.verbose.Message1(sym_e_duplicate_id,current_scanner.preproc_pattern);
                      result:=texprvalue.create_error;
                      break;
                    end;
@@ -2576,6 +2578,8 @@ type
 
     procedure dir_define_impl(macstyle: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs  : string;
         bracketcount : longint;
         mac : tmacro;
@@ -2603,7 +2607,7 @@ type
           { delete old definition }
             mac.free_buftext;
           end;
-        Message1(parser_c_macro_defined,mac.name);
+        compiler.verbose.Message1(parser_c_macro_defined,mac.name);
         mac.is_used:=true;
         if (cs_support_macro in current_settings.moduleswitches) then
           begin
@@ -2684,6 +2688,8 @@ type
 
     procedure dir_setc;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs  : string;
         mac : tmacro;
         exprvalue: texprvalue;
@@ -2706,7 +2712,7 @@ type
           { delete old definition }
             mac.free_buftext;
           end;
-        Message1(parser_c_macro_defined,mac.name);
+        compiler.verbose.Message1(parser_c_macro_defined,mac.name);
         mac.is_used:=true;
 
         { key words are never substituted }
@@ -2753,6 +2759,8 @@ type
 
     procedure dir_undef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs  : string;
         mac : tmacro;
       begin
@@ -2774,7 +2782,7 @@ type
              { delete old definition }
              mac.free_buftext;
           end;
-        Message1(parser_c_macro_undefined,mac.name);
+        compiler.verbose.Message1(parser_c_macro_undefined,mac.name);
         mac.is_used:=true;
       end;
 
@@ -2876,7 +2884,7 @@ type
                hs:=GetEnvironmentVariable(hs);
            end;
            if hs='' then
-            Message1(scan_w_include_env_not_found,path);
+            compiler.verbose.Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
            if macroIsString then
              hs:=''''+hs+'''';
@@ -2929,10 +2937,10 @@ type
                current_scanner.addfile(hp);
                current_module.sourcefiles.register_file(hp);
                if (not found) then
-                Message1(scan_f_cannot_open_includefile,hs);
+                compiler.verbose.Message1(scan_f_cannot_open_includefile,hs);
               if (not current_scanner.openinputfile) then
-                Message1(scan_f_cannot_open_includefile,hs);
-               Message1(scan_t_start_include_file,current_scanner.inputfile.path+current_scanner.inputfile.name);
+                compiler.verbose.Message1(scan_f_cannot_open_includefile,hs);
+               compiler.verbose.Message1(scan_t_start_include_file,current_scanner.inputfile.path+current_scanner.inputfile.name);
                current_scanner.reload;
              end
            else
@@ -3096,10 +3104,12 @@ type
 
 
     procedure tscannerfile.firstfile;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
       { load block }
         if not openinputfile then
-          Message1(scan_f_cannot_open_input,inputfile.name);
+          compiler.verbose.Message1(scan_f_cannot_open_input,inputfile.name);
         reload;
       end;
 
@@ -4008,6 +4018,8 @@ type
 
     procedure tscannerfile.reload;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         wasmacro: Boolean;
       begin
         with inputfile do
@@ -4113,7 +4125,7 @@ type
                 nextfile;
                 tempopeninputfile;
               { status }
-                Message1(scan_t_back_in,inputfile.name);
+                compiler.verbose.Message1(scan_t_back_in,inputfile.name);
               { end of include file is like a line break which ends e.g. also // style comments }
                 if not(wasmacro) and (current_commentstyle=comment_delphi) then
                   begin
@@ -4240,6 +4252,8 @@ type
 
 
     procedure tscannerfile.inc_comment_level;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          if (m_nested_comment in current_settings.modeswitches) then
            inc(comment_level)
@@ -4249,7 +4263,7 @@ type
           begin
              savetokenpos;
              gettokenpos; { update for warning }
-             Message1(scan_w_comment_level,tostr(comment_level));
+             compiler.verbose.Message1(scan_w_comment_level,tostr(comment_level));
              restoretokenpos;
           end;
       end;
@@ -4361,11 +4375,13 @@ type
 
     procedure tscannerfile.poppreprocstack;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hp : tpreprocstack;
       begin
         if assigned(preprocstack) then
          begin
-           Message1(scan_c_endif_found,preprocstack.name);
+           compiler.verbose.Message1(scan_c_endif_found,preprocstack.name);
            hp:=preprocstack.next;
            preprocstack.free;
            preprocstack:=hp;
@@ -4484,11 +4500,13 @@ type
       end;
 
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         savetokenpos;
         repeat
           current_scanner.gettokenpos;
-          Message1(scan_d_handling_switch,'$'+p.name);
+          compiler.verbose.Message1(scan_d_handling_switch,'$'+p.name);
           p.proc();
           { accept the text ? }
           if (current_scanner.preprocstack=nil) or current_scanner.preprocstack.accept then
@@ -4513,6 +4531,8 @@ type
 
     procedure tscannerfile.handledirectives;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          t  : tdirectiveitem;
          hs : string;
       begin
@@ -4522,7 +4542,7 @@ type
          { handle empty directive }
          if hs='' then
            begin
-             Message1(scan_w_illegal_switch,'$');
+             compiler.verbose.Message1(scan_w_illegal_switch,'$');
              exit;
            end;
 {$ifdef PREPROCWRITE}
@@ -4552,7 +4572,7 @@ type
          { Check for compiler switches }
          while (length(hs)=1) and (c in ['-','+']) do
           begin
-            Message1(scan_d_handling_switch,'$'+hs+c);
+            compiler.verbose.Message1(scan_d_handling_switch,'$'+hs+c);
             HandleSwitch(hs[1],c);
             current_scanner.readchar; {Remove + or -}
             if c=',' then
@@ -4568,7 +4588,7 @@ type
                      hs:=current_scanner.readid;
                    end;
                   if (hs='') then
-                   Message1(scan_w_illegal_directive,'$'+c);
+                   compiler.verbose.Message1(scan_w_illegal_directive,'$'+c);
                 end;
              end
             else
@@ -4588,14 +4608,14 @@ type
                 handleconditional(t)
                else
                 begin
-                  Message1(scan_d_handling_switch,'$'+hs);
+                  compiler.verbose.Message1(scan_d_handling_switch,'$'+hs);
                   t.proc();
                 end;
              end
             else
              begin
                current_scanner.ignoredirectives.Add(hs,DirectiveIgnored);
-               Message1(scan_w_illegal_directive,'$'+hs);
+               compiler.verbose.Message1(scan_w_illegal_directive,'$'+hs);
              end;
             { conditionals already read the comment }
             if (current_scanner.comment_level>0) then

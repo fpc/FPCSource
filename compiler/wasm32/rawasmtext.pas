@@ -258,7 +258,7 @@ Unit rawasmtext;
                 end
               else
                 begin
-                  message1(asmr_e_unknown_opcode,actasmpattern);
+                  compiler.verbose.Message1(asmr_e_unknown_opcode,actasmpattern);
                   actasmtoken:=AS_NONE;
                 end;
             end;
@@ -436,10 +436,10 @@ Unit rawasmtext;
                                         Chr(%10000000 or (tmpI and $3F))
                                   end
                                 else
-                                  Message1(asmr_e_escape_seq_ignored,'u'+tmpS);
+                                  compiler.verbose.Message1(asmr_e_escape_seq_ignored,'u'+tmpS);
                               end
                             else
-                              Message1(asmr_e_escape_seq_ignored,'u');
+                              compiler.verbose.Message1(asmr_e_escape_seq_ignored,'u');
                           end;
                         '0'..'9','a'..'f','A'..'F':
                           begin
@@ -454,13 +454,13 @@ Unit rawasmtext;
                               end
                             else
                               begin
-                                Message1(asmr_e_escape_seq_ignored,tmpS+c);
+                                compiler.verbose.Message1(asmr_e_escape_seq_ignored,tmpS+c);
                                 c:=current_scanner.asmgetchar;
                               end;
                           end;
                         else
                           begin
-                            Message1(asmr_e_escape_seq_ignored,c);
+                            compiler.verbose.Message1(asmr_e_escape_seq_ignored,c);
                             c:=current_scanner.asmgetchar;
                           end;
                       end;
@@ -1041,7 +1041,7 @@ Unit rawasmtext;
                             end;
                           end
                         else
-                          Message1(sym_e_unknown_id,actasmpattern);
+                          compiler.verbose.Message1(sym_e_unknown_id,actasmpattern);
                       end;
                     else
                       begin
@@ -1087,7 +1087,7 @@ Unit rawasmtext;
 
     function twasmreader.Assemble: tlinkedlist;
       begin
-        Message1(asmr_d_start_reading,'WebAssembly');
+        compiler.verbose.Message1(asmr_d_start_reading,'WebAssembly');
         firsttoken:=TRUE;
         { sets up all opcode and register tables in uppercase }
         if not _asmsorted then
@@ -1122,7 +1122,7 @@ Unit rawasmtext;
 
         { Return the list in an asmnode }
         assemble:=curlist;
-        Message1(asmr_d_finish_reading,'WebAssembly');
+        compiler.verbose.Message1(asmr_d_finish_reading,'WebAssembly');
       end;
 
 

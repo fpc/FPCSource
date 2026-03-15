@@ -187,7 +187,7 @@ implementation
     var
       oldparse_only: boolean;
     begin
-      Message1(parser_d_internal_parser_string,str);
+      compiler.verbose.Message1(parser_d_internal_parser_string,str);
       oldparse_only:=compiler.parser.pbase.parse_only;
       compiler.parser.pbase.parse_only:=true;
       result:=false;
@@ -237,14 +237,14 @@ implementation
       if ((status.verbosity and v_debug)<>0) then
         begin
            if assigned(usefwpd) then
-             Message1(parser_d_internal_parser_string,usefwpd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar])+str)
+             compiler.verbose.Message1(parser_d_internal_parser_string,usefwpd.customprocname([pno_proctypeoption,pno_paranames,pno_ownername,pno_noclassmarker,pno_noleadingdollar])+str)
            else
              begin
                if is_classdef then
                  tmpstr:='class '
                else
                  tmpstr:='';
-               Message1(parser_d_internal_parser_string,tmpstr+str);
+               compiler.verbose.Message1(parser_d_internal_parser_string,tmpstr+str);
              end;
         end;
       oldparse_only:=compiler.parser.pbase.parse_only;
@@ -290,7 +290,7 @@ implementation
       old_block_type: tblock_type;
       old_parse_only: boolean;
     begin
-      Message1(parser_d_internal_parser_string,str);
+      compiler.verbose.Message1(parser_d_internal_parser_string,str);
       { a string that will be interpreted as the start of a new section ->
         typed constant parsing will stop }
       str:=str+'type ';
@@ -321,7 +321,7 @@ implementation
 
      begin
       result:=nil;
-      Message1(parser_d_internal_parser_string,str);
+      compiler.verbose.Message1(parser_d_internal_parser_string,str);
       oldparse_only:=compiler.parser.pbase.parse_only;
       compiler.parser.pbase.parse_only:=true;
       { "const" starts a new kind of block and hence makes the scanner return }
@@ -1656,7 +1656,7 @@ implementation
      oldallow : boolean;
 
    begin
-    Message1(parser_d_internal_parser_string,str);
+    compiler.verbose.Message1(parser_d_internal_parser_string,str);
     oldparse_only:=compiler.parser.pbase.parse_only;
     compiler.parser.pbase.parse_only:=false;
     { "const" starts a new kind of block and hence makes the scanner return }

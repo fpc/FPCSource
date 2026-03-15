@@ -2736,6 +2736,8 @@ implementation
 
     constructor tconstsym.ppuload(ppufile:tcompilerppufile);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          pd : pbestreal;
          ps : pnormalset;
          pc : pchar;
@@ -2821,7 +2823,7 @@ implementation
            constnil :
              ppufile.getderef(constdefderef);
            else
-             Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
+             compiler.verbose.Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
          end;
          ppuload_platform(ppufile);
       end;
