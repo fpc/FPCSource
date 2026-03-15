@@ -1603,7 +1603,7 @@ implementation
                           make_not_regable(hp,[ra_addr_regable])
                         else
                           if report_errors then
-                            CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                            compiler.verbose.CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
                       end
 {$ifdef llvm}
                     { we can never typecast a non-memory value on the assignment

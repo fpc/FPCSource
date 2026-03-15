@@ -3303,13 +3303,13 @@ implementation
 
               { source must be a packed array }
               if not is_packed_array(source.left.resultdef) then
-                CGMessagePos2(source.left.fileinfo,type_e_got_expected_packed_array,'1',source.left.resultdef.typename)
+                compiler.verbose.CGMessagePos2(source.left.fileinfo,type_e_got_expected_packed_array,'1',source.left.resultdef.typename)
               else
                 packedarraydef := tarraydef(source.left.resultdef);
               { target can be any kind of array, as long as it's not packed }
               if (target.left.resultdef.typ <> arraydef) or
                  is_packed_array(target.left.resultdef) then
-                CGMessagePos2(target.left.fileinfo,type_e_got_expected_unpacked_array,'2',target.left.resultdef.typename)
+                compiler.verbose.CGMessagePos2(target.left.fileinfo,type_e_got_expected_unpacked_array,'2',target.left.resultdef.typename)
               else
                 unpackedarraydef := tarraydef(target.left.resultdef);
             end
@@ -3321,12 +3321,12 @@ implementation
               { source can be any kind of array, as long as it's not packed }
               if (source.left.resultdef.typ <> arraydef) or
                  is_packed_array(source.left.resultdef) then
-                CGMessagePos2(source.left.fileinfo,type_e_got_expected_unpacked_array,'1',source.left.resultdef.typename)
+                compiler.verbose.CGMessagePos2(source.left.fileinfo,type_e_got_expected_unpacked_array,'1',source.left.resultdef.typename)
               else
                 unpackedarraydef := tarraydef(source.left.resultdef);
               { target must be a packed array }
               if not is_packed_array(target.left.resultdef) then
-                CGMessagePos2(target.left.fileinfo,type_e_got_expected_packed_array,'3',target.left.resultdef.typename)
+                compiler.verbose.CGMessagePos2(target.left.fileinfo,type_e_got_expected_packed_array,'3',target.left.resultdef.typename)
               else
                 packedarraydef := tarraydef(target.left.resultdef);
             end;
@@ -3933,7 +3933,7 @@ implementation
                   if (resultdef.typ <> arraydef) then
                     compiler.verbose.CGMessagePos(left.fileinfo,type_e_mismatch)
                   else if is_packed_array(resultdef) then
-                    CGMessagePos2(left.fileinfo,type_e_got_expected_unpacked_array,'1',resultdef.typename);
+                    compiler.verbose.CGMessagePos2(left.fileinfo,type_e_got_expected_unpacked_array,'1',resultdef.typename);
                   if not(is_integer(tcallparanode(tcallparanode(left).right).left.resultdef)) then
                     compiler.verbose.CGMessagePos1(tcallparanode(left).right.fileinfo,
                       type_e_integer_expr_expected,

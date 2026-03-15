@@ -1562,7 +1562,7 @@ implementation
                 if (unitmap[pu.u.moduleid].refs=0) and
                    pu.in_uses and
                    ((pu.u.moduleflags * [mf_init,mf_finalize])=[]) then
-                  CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
+                  compiler.verbose.CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
             pu:=tused_unit(pu.next);
           end;
