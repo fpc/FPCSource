@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit MarkDown.Scanner;
+unit Markdown.Scanner;
 
 {$mode ObjFPC}{$H+}
 
@@ -24,13 +24,13 @@ uses
 {$ELSE}
   SysUtils,
 {$ENDIF}
-  MarkDown.Elements;
+  Markdown.Elements;
 
 type
 
-  { TMarkDownTextScanner }
+  { TMarkdownTextScanner }
 
-  TMarkDownTextScanner = class
+  TMarkdownTextScanner = class
   private
     FText : String;
     FCursor : integer;
@@ -96,11 +96,11 @@ type
 
 implementation
 
-uses MarkDown.Utils;
+uses Markdown.Utils;
 
-{ TMarkDownTextScanner }
+{ TMarkdownTextScanner }
 
-constructor TMarkDownTextScanner.Create(const aText: String; aLineNo: integer);
+constructor TMarkdownTextScanner.Create(const aText: String; aLineNo: integer);
 begin
   inherited Create;
   FText:=aText;
@@ -110,18 +110,18 @@ begin
   FPos.Col:=1;
 end;
 
-destructor TMarkDownTextScanner.Destroy;
+destructor TMarkdownTextScanner.Destroy;
 begin
   inherited;
 end;
 
-procedure TMarkDownTextScanner.GotoBookMark;
+procedure TMarkdownTextScanner.GotoBookMark;
 begin
   FCursor:=FMark;
   FPos:=FMarkPos;
 end;
 
-function TMarkDownTextScanner.FindMatchingOccurrence(const S: String): boolean;
+function TMarkdownTextScanner.FindMatchingOccurrence(const S: String): boolean;
 var
   i, len, LenText,lMax : integer;
 begin
@@ -139,7 +139,7 @@ begin
     end;
 end;
 
-function TMarkDownTextScanner.FindMatchingOccurrence(const S: String; ExcludeBefore: char): boolean;
+function TMarkdownTextScanner.FindMatchingOccurrence(const S: String; ExcludeBefore: char): boolean;
 var
   i, len, lenText, lMax : integer;
 begin
@@ -159,18 +159,18 @@ begin
     end;
 end;
 
-procedure TMarkDownTextScanner.SkipWhitespace;
+procedure TMarkdownTextScanner.SkipWhitespace;
 begin
   while isWhitespaceChar(peek) do
     NextChar();
 end;
 
-function TMarkDownTextScanner.GetEOF: boolean;
+function TMarkdownTextScanner.GetEOF: boolean;
 begin
   Result:=FCursor>Length(FText);
 end;
 
-function TMarkDownTextScanner.GetPeek: char;
+function TMarkdownTextScanner.GetPeek: char;
 begin
   if EOF then
     Result:=#0
@@ -178,7 +178,7 @@ begin
     Result:=FText[FCursor];
 end;
 
-function TMarkDownTextScanner.GetPeekEndRun: char;
+function TMarkdownTextScanner.GetPeekEndRun: char;
 var
   i,Len : integer;
   c : char;
@@ -199,7 +199,7 @@ begin
     end;
 end;
 
-function TMarkDownTextScanner.GetPeekLast: char;
+function TMarkdownTextScanner.GetPeekLast: char;
 begin
   if FCursor = 1 then
     Result:=#0
@@ -207,7 +207,7 @@ begin
     Result:=FText[FCursor-1];
 end;
 
-function TMarkDownTextScanner.GetPeekNext: char;
+function TMarkdownTextScanner.GetPeekNext: char;
 begin
   if FCursor >= Length(FText) then
     Result:=#0
@@ -215,7 +215,7 @@ begin
     Result:=FText[FCursor+1];
 end;
 
-function TMarkDownTextScanner.PeekRun(checkBefore: boolean): String;
+function TMarkdownTextScanner.PeekRun(checkBefore: boolean): String;
 var
   i,Len : integer;
   c : char;
@@ -230,7 +230,7 @@ begin
   Result:=Copy(FText,FCursor,I-FCursor);
 end;
 
-function TMarkDownTextScanner.NextChars(aCount: integer): String;
+function TMarkdownTextScanner.NextChars(aCount: integer): String;
 
 var
   i,lCount : integer;
@@ -251,7 +251,7 @@ begin
     SetLength(Result,lCount);
 end;
 
-function TMarkDownTextScanner.NextEquals: String;
+function TMarkdownTextScanner.NextEquals: String;
 
 const
   Delta = 10;
@@ -277,7 +277,7 @@ begin
   SetLength(Result,lCount);
 end;
 
-function TMarkDownTextScanner.NextChar: char;
+function TMarkdownTextScanner.NextChar: char;
 
 begin
   if EOF then
@@ -296,24 +296,24 @@ begin
     end;
 end;
 
-function TMarkDownTextScanner.Has(const S: string): boolean;
+function TMarkdownTextScanner.Has(const S: string): boolean;
 begin
   Result:=peekLen(Length(s))=s;
 end;
 
-function TMarkDownTextScanner.Location: TPosition;
+function TMarkdownTextScanner.Location: TPosition;
 begin
   Result:=fPos;
   Inc(Result.line,FLineNo);
 end;
 
-procedure TMarkDownTextScanner.BookMark;
+procedure TMarkdownTextScanner.BookMark;
 begin
   FMark:=FCursor;
   FMarkPos:=FPos;
 end;
 
-function TMarkDownTextScanner.PeekUntil(aMatch : TSysCharSet) : String;
+function TMarkdownTextScanner.PeekUntil(aMatch : TSysCharSet) : String;
 var
   i,Len : integer;
 begin
@@ -327,7 +327,7 @@ begin
     Result:=Copy(FText,FCursor,I-FCursor);
 end;
 
-function TMarkDownTextScanner.PeekWhile(aMatch: TSysCharSet): String;
+function TMarkdownTextScanner.PeekWhile(aMatch: TSysCharSet): String;
 var
   i,Len : integer;
 begin
@@ -338,7 +338,7 @@ begin
   Result:=Copy(FText,FCursor,I-FCursor);
 end;
 
-function TMarkDownTextScanner.PeekLen(aLength: integer): String;
+function TMarkdownTextScanner.PeekLen(aLength: integer): String;
 
 begin
   Result:=Copy(FText,FCursor,aLength);

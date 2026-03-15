@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit MarkDown.Utils;
+unit Markdown.Utils;
 
 {$mode ObjFPC}{$H+}
 
