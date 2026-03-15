@@ -16,7 +16,7 @@ unit fpTLSBigInt;
 
 interface
 
-uses SysUtils;
+uses SysUtils, fphashutils;
 
 {off $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
 
