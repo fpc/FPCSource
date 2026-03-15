@@ -5159,17 +5159,17 @@ begin
 {$ifndef Unix}
   param_file:=FixFileName(param_file);
 {$endif not unix}
-  inputfilepath:=ExtractFilePath(param_file);
+  compiler.globals.inputfilepath:=ExtractFilePath(param_file);
   inputfilename:=ExtractFileName(param_file);
   if ExtractFileExt(inputfilename)='' then
     begin
-      if FileExists(inputfilepath+ChangeFileExt(inputfilename,sourceext)) then
+      if FileExists(compiler.globals.inputfilepath+ChangeFileExt(inputfilename,sourceext)) then
         inputfilename:=ChangeFileExt(inputfilename,sourceext)
-      else if FileExists(inputfilepath+ChangeFileExt(inputfilename,pasext)) then
+      else if FileExists(compiler.globals.inputfilepath+ChangeFileExt(inputfilename,pasext)) then
         inputfilename:=ChangeFileExt(inputfilename,pasext)
       else if ((m_mac in current_settings.modeswitches) or
               (tf_p_ext_support in compiler.target.info.flags))
-             and FileExists(inputfilepath+ChangeFileExt(inputfilename,pext)) then
+             and FileExists(compiler.globals.inputfilepath+ChangeFileExt(inputfilename,pext)) then
         inputfilename:=ChangeFileExt(inputfilename,pext);
     end;
 
@@ -5222,8 +5222,8 @@ begin
   tmplist := nil;
 
   { add unit environment and exepath to the unit search path }
-  if inputfilepath<>'' then
-   Unitsearchpath.AddPath(inputfilepath,true);
+  if compiler.globals.inputfilepath<>'' then
+   Unitsearchpath.AddPath(compiler.globals.inputfilepath,true);
   if not disable_configfile then
     begin
       env:=GetEnvironmentVariable(compiler.target.info.unit_env);

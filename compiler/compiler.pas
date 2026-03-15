@@ -540,7 +540,7 @@ begin
        else
   {$endif PREPROCWRITE}
          begin
-         m:=tppumodule.create(Nil,'',inputfilepath+inputfilename,false,self);
+         m:=tppumodule.create(Nil,'',Globals.inputfilepath+inputfilename,false,self);
          m.state:=ms_compile;
          m.is_initial:=true;
          { We need to add the initial module manually to the list of units }
