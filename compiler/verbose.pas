@@ -55,6 +55,9 @@ interface
       { TVerbose }
 
       TVerbose = class
+      private
+        Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
+      public
         procedure SetRedirectFile(const fn:string);
         function  SetVerbosity(const s:TCmdStr):boolean;
         procedure PrepareReport;
@@ -664,7 +667,7 @@ implementation
         { todo }
       end;
 
-    Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
+    Procedure TVerbose.Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
