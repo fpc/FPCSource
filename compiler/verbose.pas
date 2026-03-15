@@ -95,12 +95,12 @@ interface
         procedure CGMessagePos1(const pos:tfileposinfo;t:longint;const s1:TMsgStr);
         procedure CGMessagePos2(const pos:tfileposinfo;t:longint;const s1,s2:TMsgStr);
         procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:TMsgStr);
+
+        procedure FlushOutput;
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
-
-    procedure FlushOutput;
 
     procedure InitVerbose;
     procedure DoneVerbose;
@@ -1019,7 +1019,7 @@ implementation
       end;
 
 
-    procedure FlushOutput;
+    procedure TVerbose.FlushOutput;
       begin
         if not (Status.Use_StdErr) then (* StdErr is flushed after every line *)
           begin

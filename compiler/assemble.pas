@@ -928,7 +928,7 @@ Implementation
             exit;
           end;
         try
-          FlushOutput;
+          compiler.verbose.FlushOutput;
           DosExitCode:=RequotedExecuteProcess(command,para);
           if DosExitCode<>0
           then begin

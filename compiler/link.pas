@@ -934,7 +934,7 @@ Implementation
         DoExec:=true;
         if not(cs_link_nolink in current_settings.globalswitches) then
          begin
-           FlushOutput;
+           compiler.verbose.FlushOutput;
            if useshell then
              exitcode:=shell(maybequoted(command)+' '+para)
            else
@@ -2147,7 +2147,7 @@ Implementation
         result:=false;
 
         compiler.verbose.Message1(exec_i_linking,outputname);
-        FlushOutput;
+        compiler.verbose.FlushOutput;
 
         exeoutput:=CExeOutput.Create;
 

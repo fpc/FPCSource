@@ -211,7 +211,7 @@ begin
    begin
      compiler.verbose.Message1(exec_i_compilingresource,fname);
      compiler.verbose.Message2(exec_d_resbin_params,resbin,s);
-     FlushOutput;
+     compiler.verbose.FlushOutput;
      try
        if RequotedExecuteProcess(resbin,s) <> 0 then
        begin
