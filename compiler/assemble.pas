@@ -687,6 +687,8 @@ Implementation
 
     procedure TExternalAssemblerOutputFile.AsmClose;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         f : file;
         FileAge : longint;
       begin
@@ -695,7 +697,7 @@ Implementation
         if owner.DoPipe then
           begin
             if PClose(outfile) <> 0 then
-              GenerateError;
+              compiler.verbose.GenerateError;
           end
         else
 {$endif}
@@ -942,6 +944,8 @@ Implementation
 
 
     Function TExternalAssembler.DoAssemble:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=true;
         if DoPipe then
@@ -963,7 +967,7 @@ Implementation
         if result then
           writer.RemoveAsm
         else
-          GenerateError;
+          compiler.verbose.GenerateError;
       end;
 
 

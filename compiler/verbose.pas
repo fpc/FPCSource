@@ -68,9 +68,9 @@ interface
         procedure ShowStatus;
         function  ErrorCount:longint;
         procedure SetErrorFlags(const s:string);
+        procedure GenerateError;
       end;
 
-    procedure GenerateError;
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
     procedure Comment(l:longint;s:ansistring);
@@ -585,7 +585,7 @@ implementation
       end;
 
 
-    procedure GenerateError;
+    procedure TVerbose.GenerateError;
       begin
         inc(status.errorcount);
       end;
@@ -597,6 +597,8 @@ implementation
     end;
 
     procedure InternalError(i:longint; const s : ansistring);noreturn;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       procedure doraise;
         begin
           raise ECompilerAbort.Create;
@@ -604,7 +606,7 @@ implementation
       begin
         UpdateStatus;
         do_internalerrorex(i,s);
-        GenerateError;
+        compiler.verbose.GenerateError;
         doraise;
       end;
 
@@ -620,7 +622,7 @@ implementation
            (status.errorwarning and ((l and V_Warning)<>0)) or
            (status.errornote and ((l and V_Note)<>0)) or
            (status.errorhint and ((l and V_Hint)<>0)) then
-         GenerateError
+         compiler.verbose.GenerateError
         else
          if l and V_Warning <> 0 then
           inc(status.countWarnings)
@@ -690,7 +692,7 @@ implementation
                 'F' :
                   begin
                     v:=v or V_Fatal;
-                    GenerateError;
+                    compiler.verbose.GenerateError;
                     dostop:=true;
                   end;
                 'E','W','N','H':
@@ -704,7 +706,7 @@ implementation
                     if st=ms_error then
                       begin
                         v:=v or V_Error;
-                        GenerateError;
+                        compiler.verbose.GenerateError;
                       end
                     else if st<>ms_off then
                       case ch of
@@ -713,7 +715,7 @@ implementation
                            v:=v or V_Warning;
                            if compiler.verbose.CheckVerbosity(V_Warning) then
                              if status.errorwarning then
-                              GenerateError
+                              compiler.verbose.GenerateError
                              else
                               inc(status.countWarnings);
                          end;
@@ -722,7 +724,7 @@ implementation
                            v:=v or V_Note;
                            if compiler.verbose.CheckVerbosity(V_Note) then
                              if status.errornote then
-                              GenerateError
+                              compiler.verbose.GenerateError
                              else
                               inc(status.countNotes);
                          end;
@@ -731,7 +733,7 @@ implementation
                            v:=v or V_Hint;
                            if compiler.verbose.CheckVerbosity(V_Hint) then
                              if status.errorhint then
-                              GenerateError
+                              compiler.verbose.GenerateError
                              else
                               inc(status.countHints);
                          end;
