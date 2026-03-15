@@ -41,9 +41,6 @@ interface
 
 {$i msgidx.inc}
 
-    var
-      msg : pmessage;
-
     type
       tmsgqueueevent = procedure(const s:TMsgStr;v,w:longint) of object;
 
@@ -55,6 +52,7 @@ interface
       private
         lastfileidx,
         lastmoduleidx : longint;
+        msg : pmessage;
         Fmsgfilename : string;
 
         procedure Loadprefixes;
