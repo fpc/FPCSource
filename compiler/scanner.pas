@@ -1021,9 +1021,9 @@ implementation
         if current_scanner.c <> '''' then
           compiler.verbose.Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
-        if OutputFileName='' then
-          OutputFileName:=compiler.globals.InputFileName;
-        OutputFileName:=ChangeFileExt(OutputFileName,'.'+s);
+        if compiler.globals.OutputFileName='' then
+          compiler.globals.OutputFileName:=compiler.globals.InputFileName;
+        compiler.globals.OutputFileName:=ChangeFileExt(compiler.globals.OutputFileName,'.'+s);
         with current_module do
           setfilename(paramfn, paramallowoutput);
       end;

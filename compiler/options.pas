@@ -3470,7 +3470,7 @@ begin
       D:=ExtractFilePath(More);
       if (D<>'') then
         OutputExeDir:=FixPath(D,True);
-      OutputFileName:=ExtractFileName(More);
+      compiler.globals.OutputFileName:=ExtractFileName(More);
     end
   else
     IllegalPara(opt);

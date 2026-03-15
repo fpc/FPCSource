@@ -633,11 +633,11 @@ uses
 
          { lib and exe could be loaded with a file specified with -o }
          if AllowOutput and is_initial and
-            (OutputFileName<>'')then
+            (compiler.globals.OutputFileName<>'')then
            begin
-             exefilename:=p+OutputFileName;
-             sharedlibfilename:=p+OutputFileName;
-             n:=ChangeFileExt(OutputFileName,''); { for mapfilename and dbgfilename }
+             exefilename:=p+compiler.globals.OutputFileName;
+             sharedlibfilename:=p+compiler.globals.OutputFileName;
+             n:=ChangeFileExt(compiler.globals.OutputFileName,''); { for mapfilename and dbgfilename }
            end
          else
            begin

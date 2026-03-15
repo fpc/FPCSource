@@ -301,8 +301,6 @@ Const
 
 
     var
-       { specified outputfile with -o parameter }
-       outputfilename    : string;
        outputprefix      : pshortstring;
        outputsuffix      : pshortstring;
        { selected subtarget }
@@ -725,6 +723,8 @@ Const
         { specified inputfile }
         inputfilepath     : string;
         inputfilename     : string;
+        { specified outputfile with -o parameter }
+        outputfilename    : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1761,7 +1761,7 @@ implementation
         global_unit_count:=0;
 
         { Output }
-        OutputFileName:='';
+        compiler.globals.OutputFileName:='';
         OutputPrefix:=Nil;
         OutputSuffix:=Nil;
 
