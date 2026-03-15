@@ -151,7 +151,7 @@ type
 
   { ECSSResolver }
 
-  ECSSResolver = class(ECSSException)
+  ECSSResolver = class(ECSSECSSResolver)
   end;
 
   TCSSAttributeMatchKind = (
@@ -705,7 +705,7 @@ begin
     QuickSort(0,l-1);
     for i:=0 to l-2 do
       if Values[i].AttrID>=Values[i+1].AttrID then
-        raise Exception.Create('20240816160749');
+        raise ECSSResolver.Create('20240816160749');
   end;
 end;
 
@@ -751,7 +751,7 @@ var
   i: Integer;
 begin
   if AttrID<=CSSAttributeID_All then
-    raise Exception.Create('20240729084610');
+    raise ECSSResolver.Create('20240729084610');
   if Values=nil then
   begin
     AddNew;

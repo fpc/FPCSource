@@ -33,7 +33,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
-  ECSSParser = Class(ECSSException);
+  ECSSParser = Class(ECSSECSSParser);
 
   { TCSSParser }
 
@@ -958,7 +958,7 @@ end;
 function TCSSParser.ParsePseudoElement: TCSSElement;
 begin
   if CurrentToken<>ctkDOUBLECOLON then
-    raise Exception.Create('20250224201230');
+    raise ECSSParser.Create('20250224201230');
   GetNextToken;
   case CurrentToken of
   ctkIDENTIFIER: Result:=ParseIdentifier;
