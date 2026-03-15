@@ -1318,7 +1318,7 @@ implementation
                     not(is_open_string(parasym.vardef)) and
                     not(equal_defs(compiler.symtablestack,left.resultdef,parasym.vardef)) then
                    begin
-                     CGMessagePos(left.fileinfo,type_e_strict_var_string_violation);
+                     compiler.verbose.CGMessagePos(left.fileinfo,type_e_strict_var_string_violation);
                    end;
 
                  { passing a value to an "univ" parameter implies an explicit
@@ -1359,17 +1359,17 @@ implementation
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                            compiler.verbose.CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_constref:
                          begin
                            if not valid_for_formal_constref(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                            compiler.verbose.CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_const :
                          begin
                            if not valid_for_formal_const(left,true) then
-                            CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
+                            compiler.verbose.CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list)
                            else if (compiler.target.info.system in systems_managed_vm) and
                               (left.resultdef.typ in [orddef,floatdef]) then
                              begin

@@ -123,7 +123,7 @@ implementation
          { don't allow constants }
          if is_constnode(left) then
           begin
-            CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
+            compiler.verbose.CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
             exit;
           end;
 

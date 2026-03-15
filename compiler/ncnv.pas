@@ -597,7 +597,7 @@ implementation
                        }
                        if assigned(hdef) and not(equal_defs(compiler.symtablestack,hdef,p3.resultdef)) then
                          begin
-                            CGMessagePos(p3.fileinfo,type_e_typeconflict_in_set);
+                            compiler.verbose.CGMessagePos(p3.fileinfo,type_e_typeconflict_in_set);
                          end
                        else
                          begin
@@ -615,7 +615,7 @@ implementation
                                  end;
 
                               if tordconstnode(p2).value.svalue>tordconstnode(p3).value.svalue then
-                                CGMessagePos(p2.fileinfo,type_w_empty_constant_range_set);
+                                compiler.verbose.CGMessagePos(p2.fileinfo,type_w_empty_constant_range_set);
                               for l:=tordconstnode(p2).value.svalue to tordconstnode(p3).value.svalue do
                                 do_set(l);
                               p2.free;

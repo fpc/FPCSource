@@ -1378,7 +1378,7 @@ implementation
             (tordconstnode(left).value.uvalue=0) and
             not(nf_internal in left.flags) and
             assigned(right) then
-           CGMessagePos(right.fileinfo,cg_w_unreachable_code);
+           compiler.verbose.CGMessagePos(right.fileinfo,cg_w_unreachable_code);
       end;
 
 
@@ -1696,7 +1696,7 @@ implementation
                     result:=compiler.cnothingnode;
                   right:=nil;
                   if warn and assigned(t1) and not(nf_internal in left.flags) then
-                    CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
+                    compiler.verbose.CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
                end
              else
                begin
@@ -1706,7 +1706,7 @@ implementation
                     result:=compiler.cnothingnode;
                   t1:=nil;
                   if warn and assigned(right) and not(nf_internal in left.flags) then
-                    CGMessagePos(right.fileinfo,cg_w_unreachable_code);
+                    compiler.verbose.CGMessagePos(right.fileinfo,cg_w_unreachable_code);
                end;
           end;
 {$if defined(HAS_MINMAX_INTRINSICS)}
@@ -2501,7 +2501,7 @@ implementation
                       compiler.verbose.CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
                   end
                 else
-                  CGMessagePos(self.fileinfo,cg_e_interprocedural_goto_only_to_outer_scope_allowed);
+                  compiler.verbose.CGMessagePos(self.fileinfo,cg_e_interprocedural_goto_only_to_outer_scope_allowed);
               end
             else
               compiler.verbose.CGMessage1(cg_e_goto_label_not_found,labelsym.realname);

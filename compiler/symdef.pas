@@ -8875,7 +8875,7 @@ implementation
               at the very end.  }
             if not(po_msgstr in pd.procoptions) then
               begin
-                CGMessagePos(pd.fileinfo,parser_e_objc_requires_msgstr);
+                compiler.verbose.CGMessagePos(pd.fileinfo,parser_e_objc_requires_msgstr);
                 { recover to avoid internalerror later on }
                 include(pd.procoptions,po_msgstr);
                 pd.messageinf.str:=stringdup('MissingDeclaration');

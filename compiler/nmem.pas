@@ -575,7 +575,7 @@ implementation
                (left.nodetype in [stringconstn,setconstn])
               ) then
          begin
-           CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
+           compiler.verbose.CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
            exit;
          end;
 
@@ -815,7 +815,7 @@ implementation
                     { can't calculate the address of a non-byte aligned field }
                     if (hsym.fieldoffset mod 8)<>0 then
                       begin
-                        CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                        compiler.verbose.CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
                         exit
                       end;
                     inc(offset,hsym.fieldoffset div 8)
@@ -1422,7 +1422,7 @@ implementation
            those convert the range node into something else in
            tcallnode.gen_high_tree }
          if (right.nodetype=rangen) then
-           CGMessagePos(right.fileinfo,parser_e_illegal_expression)
+           compiler.verbose.CGMessagePos(right.fileinfo,parser_e_illegal_expression)
          else if left.resultdef.typ=arraydef then
            result:=first_arraydef
          else

@@ -1323,16 +1323,16 @@ implementation
                                      if vsf_use_hints in varstateflags then
                                        begin
                                          if is_managed_type(hsym.vardef) then
-                                           CGMessagePos(p.fileinfo,sym_h_managed_function_result_uninitialized)
+                                           compiler.verbose.CGMessagePos(p.fileinfo,sym_h_managed_function_result_uninitialized)
                                          else
-                                           CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized);
+                                           compiler.verbose.CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized);
                                        end
                                      else
                                        begin
                                          if is_managed_type(hsym.vardef) then
-                                           CGMessagePos(p.fileinfo,sym_w_managed_function_result_uninitialized)
+                                           compiler.verbose.CGMessagePos(p.fileinfo,sym_w_managed_function_result_uninitialized)
                                          else
-                                          CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized);
+                                          compiler.verbose.CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized);
                                        end;
                                    end
                                  else
@@ -1431,11 +1431,11 @@ implementation
                     result:=current_procinfo.procdef.proctypeoption=potype_constructor;
                 if not result and
                    report_errors then
-                  CGMessagePos(hp.fileinfo,type_e_invalid_final_assignment);
+                  compiler.verbose.CGMessagePos(hp.fileinfo,type_e_invalid_final_assignment);
               end
             else
               if report_errors then
-                CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
+                compiler.verbose.CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
           end;
 
 
@@ -1473,7 +1473,7 @@ implementation
            is_void(hp.resultdef) then
          begin
            if report_errors then
-             CGMessagePos(hp.fileinfo,errmsg);
+             compiler.verbose.CGMessagePos(hp.fileinfo,errmsg);
            exit;
          end;
         typeconvs:=nil;
@@ -1516,7 +1516,7 @@ implementation
                      result:=true
                    else
                      if report_errors then
-                       CGMessagePos(hp.fileinfo,errmsg);
+                       compiler.verbose.CGMessagePos(hp.fileinfo,errmsg);
                  end
                else
                  begin
@@ -1531,7 +1531,7 @@ implementation
                      result:=true
                    else
                      if report_errors then
-                       CGMessagePos(hp.fileinfo,errmsg);
+                       compiler.verbose.CGMessagePos(hp.fileinfo,errmsg);
                  end;
                mayberesettypeconvs;
                exit;
@@ -1577,7 +1577,7 @@ implementation
                     (fromdef.typ=formaldef) then
                    begin
                      if report_errors then
-                       CGMessagePos(hp.fileinfo,type_e_no_managed_formal_assign_typecast);
+                       compiler.verbose.CGMessagePos(hp.fileinfo,type_e_no_managed_formal_assign_typecast);
                      mayberesettypeconvs;
                      exit;
                    end
@@ -1616,7 +1616,7 @@ implementation
                     not(ttypeconvnode(hp).assign_allowed) then
                    begin
                      if report_errors then
-                       CGMessagePos(hp.fileinfo,errmsg);
+                       compiler.verbose.CGMessagePos(hp.fileinfo,errmsg);
                      mayberesettypeconvs;
                      exit;
                    end;
@@ -1643,7 +1643,7 @@ implementation
                     not(valid_range in opts) then
                   begin
                     if report_errors then
-                      CGMessagePos(tvecnode(hp).right.fileinfo,parser_e_illegal_expression);
+                      compiler.verbose.CGMessagePos(tvecnode(hp).right.fileinfo,parser_e_illegal_expression);
                     mayberesettypeconvs;
                     exit;
                   end;
@@ -1658,9 +1658,9 @@ implementation
                    begin
                      if report_errors then
                        if (valid_property in opts) then
-                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
+                         compiler.verbose.CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
                        else
-                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                         compiler.verbose.CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
                      mayberesettypeconvs;
                      exit;
                    end;
@@ -1685,7 +1685,7 @@ implementation
                  if not(gotsubscript or gotvec) then
                    begin
                      if report_errors then
-                       CGMessagePos(hp.fileinfo,errmsg);
+                       compiler.verbose.CGMessagePos(hp.fileinfo,errmsg);
                      mayberesettypeconvs;
                      exit;
                    end;
@@ -1703,9 +1703,9 @@ implementation
                    begin
                      if report_errors then
                        if (valid_property in opts) then
-                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
+                         compiler.verbose.CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
                        else
-                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
+                         compiler.verbose.CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
                      mayberesettypeconvs;
                      exit;
                    end;
@@ -1764,7 +1764,7 @@ implementation
                    result:=true
                  else
                   if report_errors then
-                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                   compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  mayberesettypeconvs;
                  exit;
                end;
@@ -1780,7 +1780,7 @@ implementation
                    end;
 
                  if report_errors then
-                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                   compiler.verbose.CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  mayberesettypeconvs;
                  exit;
                end;
@@ -1789,7 +1789,7 @@ implementation
                begin
                  { these constants will be passed by value }
                  if report_errors then
-                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                   compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  mayberesettypeconvs;
                  exit;
                end;
@@ -1803,14 +1803,14 @@ implementation
                    result:=true
                  else
                    if report_errors then
-                     CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                     compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  mayberesettypeconvs;
                  exit;
                end;
              addrn :
                begin
                  if report_errors then
-                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                   compiler.verbose.CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  mayberesettypeconvs;
                  exit;
                end;
@@ -1831,7 +1831,7 @@ implementation
                          result:=true
                      else
                       if report_errors then
-                       CGMessagePos(hp.fileinfo,errmsg);
+                       compiler.verbose.CGMessagePos(hp.fileinfo,errmsg);
                      mayberesettypeconvs;
                      exit;
                    end
@@ -1849,7 +1849,7 @@ implementation
                      else
                        begin
                          if report_errors then
-                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                          compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                          mayberesettypeconvs;
                          exit;
                        end;
@@ -1857,7 +1857,7 @@ implementation
                  else
                    begin
                      if report_errors then
-                      CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                      compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                      mayberesettypeconvs;
                      exit;
                    end;
@@ -1870,7 +1870,7 @@ implementation
                    result:=true
                  else
                    if report_errors then
-                    CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                    compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  mayberesettypeconvs;
                  exit;
                end;
@@ -1880,7 +1880,7 @@ implementation
                  if df_generic in current_procinfo.procdef.defoptions then
                    result:=true
                  else if report_errors then
-                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                   compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
 
                  mayberesettypeconvs;
                  exit;
@@ -1919,7 +1919,7 @@ implementation
                          result:=true
                        else
                          if report_errors then
-                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                          compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        mayberesettypeconvs;
                        exit;
                      end;
@@ -1929,7 +1929,7 @@ implementation
                          result:=true
                        else
                          if report_errors then
-                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                          compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        mayberesettypeconvs;
                        exit;
                      end;
@@ -1940,14 +1940,14 @@ implementation
                          result:=true
                        else
                          if report_errors then
-                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                          compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        mayberesettypeconvs;
                        exit;
                      end;
                    else
                      begin
                        if report_errors then
-                        CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                        compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        mayberesettypeconvs;
                        exit;
                      end;
@@ -1956,7 +1956,7 @@ implementation
              else
                begin
                  if report_errors then
-                  CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                  compiler.verbose.CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  mayberesettypeconvs;
                  exit;
                end;
@@ -3886,7 +3886,7 @@ implementation
             { Maybe passing the correct type but passing a const to var parameter }
             if (compare_defs(pt.resultdef,wrongpara.vardef,pt.nodetype)<>te_incompatible) and
                not valid_for_var(pt.left,true) then
-              CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
+              compiler.verbose.CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
             else
               CGMessagePos3(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,tostr(hp^.wrongparanr),
                 FullTypeName(pt.left.resultdef,wrongpara.vardef),

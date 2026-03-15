@@ -358,7 +358,7 @@ implementation
                 lenpara := tcallparanode(lenpara.right);
                 if not is_real then
                   begin
-                    CGMessagePos(lenpara.fileinfo,parser_e_illegal_colon_qualifier);
+                    compiler.verbose.CGMessagePos(lenpara.fileinfo,parser_e_illegal_colon_qualifier);
                     exit
                   end;
                 if not is_integer(lenpara.resultdef) then
@@ -821,7 +821,7 @@ implementation
           { can't read/write types }
           if (para.left.nodetype=typen) and not(is_typeparam(ttypenode(para.left).typedef)) then
             begin
-              CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+              compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
               error_para := true;
             end;
 
@@ -845,7 +845,7 @@ implementation
                   name:=procprefixes[do_read]+tstringdef(para.left.resultdef).stringtypname;
                   if (m_isolike_io in current_settings.modeswitches) and (tstringdef(para.left.resultdef).stringtype<>st_shortstring) then
                     begin
-                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type_in_iso_mode);
+                      compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type_in_iso_mode);
                       error_para := true;
                     end;
                 end;
@@ -853,7 +853,7 @@ implementation
                 begin
                   if (not is_pchar(para.left.resultdef)) or do_read then
                     begin
-                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                      compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                       error_para := true;
                     end
                   else
@@ -878,7 +878,7 @@ implementation
                   if m_isolike_io in current_settings.modeswitches then
                     begin
                       error_para := true;
-                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                      compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                     end;
 
                   name:=procprefixes[do_read]+'enum';
@@ -957,7 +957,7 @@ implementation
                     bool64bit:
                       if do_read then
                         begin
-                          CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                          compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                           error_para := true;
                         end
                       else
@@ -967,7 +967,7 @@ implementation
                         end
                     else
                       begin
-                        CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                        compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                         error_para := true;
                       end;
                   end;
@@ -983,13 +983,13 @@ implementation
                     name := procprefixes[do_read]+'pchar_as_array'
                   else
                     begin
-                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                      compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                       error_para := true;
                     end
                 end;
               else
                 begin
-                  CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                  compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                   error_para := true;
                 end;
             end;
@@ -1022,13 +1022,13 @@ implementation
           { check if a fracpara is allowed }
           if assigned(fracpara) and not is_real then
             begin
-              CGMessagePos(fracpara.fileinfo,parser_e_illegal_colon_qualifier);
+              compiler.verbose.CGMessagePos(fracpara.fileinfo,parser_e_illegal_colon_qualifier);
               error_para := true;
             end
           else if assigned(lenpara) and do_read then
             begin
               { I think this is already filtered out by parsing, but I'm not sure (JM) }
-              CGMessagePos(lenpara.fileinfo,parser_e_illegal_colon_qualifier);
+              compiler.verbose.CGMessagePos(lenpara.fileinfo,parser_e_illegal_colon_qualifier);
               error_para := true;
             end;
 
@@ -1282,7 +1282,7 @@ implementation
           { check if valid parameter }
           if para.left.nodetype=typen then
             begin
-              CGMessagePos(para.left.fileinfo,type_e_cant_read_write_type);
+              compiler.verbose.CGMessagePos(para.left.fileinfo,type_e_cant_read_write_type);
               found_error := true;
             end;
 
@@ -1300,7 +1300,7 @@ implementation
           if assigned(para.right) and
             (cpf_is_colon_para in tcallparanode(para.right).callparaflags) then
             begin
-              CGMessagePos(para.right.fileinfo,parser_e_illegal_colon_qualifier);
+              compiler.verbose.CGMessagePos(para.right.fileinfo,parser_e_illegal_colon_qualifier);
 
               { skip all colon para's }
               nextpara := tcallparanode(tcallparanode(para.right).right);
@@ -1417,7 +1417,7 @@ implementation
               begin
                 if (tfiledef(filepara.resultdef).filetyp=ft_untyped) then
                   begin
-                    CGMessagePos(fileinfo,type_e_no_read_write_for_untyped_file);
+                    compiler.verbose.CGMessagePos(fileinfo,type_e_no_read_write_for_untyped_file);
                     exit;
                   end
                 else
@@ -1426,7 +1426,7 @@ implementation
                       begin
                         if (inlinenumber in [in_readln_x,in_writeln_x]) then
                           begin
-                            CGMessagePos(fileinfo,type_e_no_readln_writeln_for_typed_file);
+                            compiler.verbose.CGMessagePos(fileinfo,type_e_no_readln_writeln_for_typed_file);
                             exit;
                           end;
                         is_typed := true;
@@ -1441,7 +1441,7 @@ implementation
             assigned(filepara.right) and
             (cpf_is_colon_para in tcallparanode(filepara.right).callparaflags) then
           begin
-            CGMessagePos(filepara.fileinfo,parser_e_illegal_colon_qualifier);
+            compiler.verbose.CGMessagePos(filepara.fileinfo,parser_e_illegal_colon_qualifier);
             { for recovery we can simply continue, because the compiler will
               simply treat the next parameters as normal parameters }
           end;
@@ -1709,7 +1709,7 @@ implementation
            not is_currency(destpara.resultdef) and
            not(destpara.resultdef.typ in [floatdef,enumdef]) then
           begin
-            CGMessagePos(destpara.fileinfo,type_e_integer_or_real_expr_expected);
+            compiler.verbose.CGMessagePos(destpara.fileinfo,type_e_integer_or_real_expr_expected);
             exit;
           end;
 
@@ -1951,7 +1951,7 @@ implementation
 
         begin
           if typemismatch then
-            CGMessagePos(fi,type_e_mismatch)
+            compiler.verbose.CGMessagePos(fi,type_e_mismatch)
           else
             CGMessagePos1(fi,parser_e_wrong_parameter_size,'Copy');
           if func='' then
@@ -2448,7 +2448,7 @@ implementation
                        unsupported typex are also trapped here }
                      if is_integer(left.resultdef) then
                        { Not as informative, but less confusing }
-                       CGMessagePos(left.fileinfo,parser_e_illegal_expression)
+                       compiler.verbose.CGMessagePos(left.fileinfo,parser_e_illegal_expression)
                      else
                        CGMessagePos1(left.fileinfo,type_e_integer_expr_expected,left.resultdef.typename);
                      result:=compiler.cerrornode;
@@ -2491,7 +2491,7 @@ implementation
                    begin
                      vl:=eh_return_data_regno(vl.svalue);
                      if vl=-1 then
-                       CGMessagePos(left.fileinfo,type_e_range_check_error_bounds);
+                       compiler.verbose.CGMessagePos(left.fileinfo,type_e_range_check_error_bounds);
                      hp:=genintconstnode(vl,compiler);
                    end;
                  else
@@ -3747,7 +3747,7 @@ implementation
                                        internalerror(2006020901);
                                    end
                                  else
-                                   CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
+                                   compiler.verbose.CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
                                end;
                             end
                            { generic type parameter? }
@@ -3766,11 +3766,11 @@ implementation
                                    exit;
                                  end
                                else
-                                 CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                                 compiler.verbose.CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
                              end;
                         end
                       else
-                        CGMessagePos(fileinfo,type_e_mismatch);
+                        compiler.verbose.CGMessagePos(fileinfo,type_e_mismatch);
                     end;
                 end;
 
@@ -3815,7 +3815,7 @@ implementation
                                 inserttypeconv(tcallparanode(left).left,tcallparanode(tcallparanode(left).right).left.resultdef,compiler);
                             end
                           else
-                            CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                            compiler.verbose.CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
                         end
                       { generic type parameter? }
                       else if is_typeparam(tcallparanode(left).right.resultdef) then
@@ -3824,7 +3824,7 @@ implementation
                           exit;
                         end
                       else
-                        CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
+                        compiler.verbose.CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
                     end;
                 end;
 
@@ -3852,7 +3852,7 @@ implementation
                           exit;
                         end
                       else
-                        CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
+                        compiler.verbose.CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
                     end;
                 end;
 
@@ -3931,7 +3931,7 @@ implementation
                   result:=nil;
                   resultdef:=tcallparanode(left).left.resultdef;
                   if (resultdef.typ <> arraydef) then
-                    CGMessagePos(left.fileinfo,type_e_mismatch)
+                    compiler.verbose.CGMessagePos(left.fileinfo,type_e_mismatch)
                   else if is_packed_array(resultdef) then
                     CGMessagePos2(left.fileinfo,type_e_got_expected_unpacked_array,'1',resultdef.typename);
                   if not(is_integer(tcallparanode(tcallparanode(left).right).left.resultdef)) then
@@ -4289,7 +4289,7 @@ implementation
                         begin
                           { pointer is only allowed for Exchange and CmpExchange }
                           if (inlinenumber<>in_atomic_xchg) and (inlinenumber<>in_atomic_cmp_xchg) then
-                            cgmessagepos(fileinfo,type_e_ordinal_expr_expected);
+                            compiler.verbose.CGMessagePos(fileinfo,type_e_ordinal_expr_expected);
                           resultdef:=voidpointertype;
                           convdef:=ptrsinttype;
                         end;
@@ -4322,9 +4322,9 @@ implementation
                       resultdef:=tcallparanode(left).left.resultdef;
                     end
                   else if (inlinenumber=in_atomic_xchg) or (inlinenumber=in_atomic_cmp_xchg) then
-                    CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_or_pointer_expr_expected)
+                    compiler.verbose.CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_or_pointer_expr_expected)
                   else
-                    CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_expr_expected);
+                    compiler.verbose.CGMessagePos(tcallparanode(left).left.fileinfo,type_e_ordinal_expr_expected);
                 end;
               else
                 result:=pass_typecheck_cpu;
@@ -4685,7 +4685,7 @@ implementation
           in_slice_x:
             { slice can be used only in calls for open array parameters, so it has to be converted appropriately before
               if we get here, the array could not be passed to an open array parameter so it is an error }
-            CGMessagePos(left.fileinfo,type_e_mismatch);
+            compiler.verbose.CGMessagePos(left.fileinfo,type_e_mismatch);
 
           in_ord_x,
           in_chr_byte:
@@ -5667,7 +5667,7 @@ implementation
                  and not iscompelem
                  and not isconstr then
                begin
-                 CGMessagePos(fileinfo,type_e_array_required);
+                 compiler.verbose.CGMessagePos(fileinfo,type_e_array_required);
                  exit(compiler.cerrornode);
                end;
              insertblock:=internalstatements(compiler,insertstatement);

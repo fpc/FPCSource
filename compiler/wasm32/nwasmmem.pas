@@ -52,7 +52,7 @@ implementation
 
       if assigned(left) and is_wasm_externref(left.resultdef) then
         begin
-          CGMessagePos(left.fileinfo,type_e_cannot_take_address_of_wasm_externref);
+          compiler.verbose.CGMessagePos(left.fileinfo,type_e_cannot_take_address_of_wasm_externref);
           result:=nil;
           exit;
         end;
