@@ -2843,7 +2843,7 @@ type
                if timestr<>'' then
                  hs:=timestr
                else
-                 hs:=gettimestr;
+                 hs:=compiler.time.gettimestr;
              'DATE':
                if datestr<>'' then
                  hs:=datestr
