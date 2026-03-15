@@ -191,8 +191,6 @@ implementation
       end;
 
     procedure TVerbose.RestoreLocalVerbosity(pstate : pmessagestaterecord);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       { apply the whole stack of message/verbosity changes }
       var
         msgset : thashset;
@@ -210,7 +208,7 @@ implementation
             { only apply the newest message state }
             if not assigned(msgset.findoradd(@pstate^.value,sizeof(pstate^.value),msgfound)) or
                 not msgfound then
-              compiler.verbose.SetMessageVerbosity(pstate^.value,pstate^.state);
+              SetMessageVerbosity(pstate^.value,pstate^.state);
             pstate:=pstate^.next;
           end;
         msgset.free;
@@ -622,8 +620,6 @@ implementation
 
     procedure TVerbose.Comment(l:longint;s:ansistring);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         dostop : boolean;
       begin
         dostop:=((l and V_Fatal)<>0);
@@ -632,7 +628,7 @@ implementation
            (status.errorwarning and ((l and V_Warning)<>0)) or
            (status.errornote and ((l and V_Note)<>0)) or
            (status.errorhint and ((l and V_Hint)<>0)) then
-         compiler.verbose.GenerateError
+         GenerateError
         else
          if l and V_Warning <> 0 then
           inc(status.countWarnings)
@@ -643,7 +639,7 @@ implementation
            if l and V_Hint <> 0 then
             inc(status.countHints);
       { check verbosity level }
-        if not compiler.verbose.CheckVerbosity(l) then
+        if not CheckVerbosity(l) then
           exit;
         if (l and V_LineInfoMask)<>0 then
           l:=l or V_LineInfo;
@@ -676,8 +672,6 @@ implementation
 
     Procedure TVerbose.Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         idx,i,v : longint;
         dostop  : boolean;
         doqueue : boolean;
@@ -702,7 +696,7 @@ implementation
                 'F' :
                   begin
                     v:=v or V_Fatal;
-                    compiler.verbose.GenerateError;
+                    GenerateError;
                     dostop:=true;
                   end;
                 'E','W','N','H':
@@ -716,34 +710,34 @@ implementation
                     if st=ms_error then
                       begin
                         v:=v or V_Error;
-                        compiler.verbose.GenerateError;
+                        GenerateError;
                       end
                     else if st<>ms_off then
                       case ch of
                        'W':
                          begin
                            v:=v or V_Warning;
-                           if compiler.verbose.CheckVerbosity(V_Warning) then
+                           if CheckVerbosity(V_Warning) then
                              if status.errorwarning then
-                              compiler.verbose.GenerateError
+                              GenerateError
                              else
                               inc(status.countWarnings);
                          end;
                        'N' :
                          begin
                            v:=v or V_Note;
-                           if compiler.verbose.CheckVerbosity(V_Note) then
+                           if CheckVerbosity(V_Note) then
                              if status.errornote then
-                              compiler.verbose.GenerateError
+                              GenerateError
                              else
                               inc(status.countNotes);
                          end;
                        'H' :
                          begin
                            v:=v or V_Hint;
-                           if compiler.verbose.CheckVerbosity(V_Hint) then
+                           if CheckVerbosity(V_Hint) then
                              if status.errorhint then
-                              compiler.verbose.GenerateError
+                              GenerateError
                              else
                               inc(status.countHints);
                          end;
@@ -773,7 +767,7 @@ implementation
           end;
         Delete(s,1,idx);
       { check verbosity level }
-        if not compiler.verbose.CheckVerbosity(v) then
+        if not CheckVerbosity(v) then
           begin
             doqueue := onqueue <> nil;
             if not doqueue then
@@ -797,7 +791,7 @@ implementation
           raise ECompilerAbort.Create;
         if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
           begin
-            compiler.verbose.Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
             status.skip_error:=true;
             raise ECompilerAbort.Create;
           end;
@@ -913,114 +907,98 @@ implementation
 
     procedure TVerbose.CGMessage(t : longint);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.Message(t);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              Message(t);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
     procedure TVerbose.CGMessage1(t : longint;const s : TMsgStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.Message1(t,s);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              Message1(t,s);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
     procedure TVerbose.CGMessage2(t : longint;const s1,s2 : TMsgStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.Message2(t,s1,s2);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              Message2(t,s1,s2);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
     procedure TVerbose.CGMessage3(t : longint;const s1,s2,s3 : TMsgStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.Message3(t,s1,s2,s3);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              Message3(t,s1,s2,s3);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
 
     procedure TVerbose.CGMessagePos(const pos:tfileposinfo;t : longint);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.MessagePos(pos,t);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              MessagePos(pos,t);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
     procedure TVerbose.CGMessagePos1(const pos:tfileposinfo;t : longint;const s1 : TMsgStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.MessagePos1(pos,t,s1);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              MessagePos1(pos,t,s1);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
     procedure TVerbose.CGMessagePos2(const pos:tfileposinfo;t : longint;const s1,s2 : TMsgStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.MessagePos2(pos,t,s1,s2);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              MessagePos2(pos,t,s1,s2);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
     procedure TVerbose.CGMessagePos3(const pos:tfileposinfo;t : longint;const s1,s2,s3 : TMsgStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=compiler.verbose.Errorcount;
-              compiler.verbose.MessagePos3(pos,t,s1,s2,s3);
-              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+              olderrorcount:=Errorcount;
+              MessagePos3(pos,t,s1,s2,s3);
+              codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
 
