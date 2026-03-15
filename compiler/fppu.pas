@@ -463,7 +463,7 @@ var
         change_endian:=ppufile.change_endian;
       { Show Debug info }
         if ppufiletime<>-1 then
-          compiler.verbose.Message1(unit_u_ppu_time,filetimestring(ppufiletime))
+          compiler.verbose.Message1(unit_u_ppu_time,compiler.time.filetimestring(ppufiletime))
         else
           compiler.verbose.Message1(unit_u_ppu_time,'unknown');
         compiler.verbose.Message1(unit_u_ppu_flags,tostr(headerflags));
@@ -1323,7 +1323,7 @@ var
                     begin
                       if is_main then
                         main_dir:=ExtractFilePath(hs);
-                      temp:=' time '+filetimestring(source_time);
+                      temp:=' time '+compiler.time.filetimestring(source_time);
                       if (orgfiletime<>-1) and
                          (source_time<>orgfiletime) then
                         begin
@@ -1510,7 +1510,7 @@ var
           { make sure we don't throw away a precompiled unit if the user simply
             forgot to specify the right wpo feedback file
           }
-          compiler.verbose.Message3(unit_e_different_wpo_file,ppufilename,orgwpofilename,filetimestring(orgwpofiletime));
+          compiler.verbose.Message3(unit_e_different_wpo_file,ppufilename,orgwpofilename,compiler.time.filetimestring(orgwpofiletime));
       end;
 
 

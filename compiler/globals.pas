@@ -717,6 +717,7 @@ Const
         startsystime : TSystemTime;
         function getdatestr:string;
         function gettimestr:string;
+        function filetimestring( t : longint) : string;
       end;
 
       { TCompilerGlobals }
@@ -724,7 +725,6 @@ Const
       TCompilerGlobals = class
       end;
 
-    function filetimestring( t : longint) : string;
     function getrealtime(const st: TSystemTime) : real;
     function getrealtime : real;
 
@@ -992,7 +992,7 @@ implementation
       end;
 
 
-   function  filetimestring( t : longint) : string;
+   function  TCompilerTime.filetimestring( t : longint) : string;
    {
      convert dos datetime t to a string YY/MM/DD HH:MM:SS
    }

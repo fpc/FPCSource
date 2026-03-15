@@ -140,7 +140,7 @@ implementation
   {$endif cpufpemu}
 
     { Show Debug info }
-      compiler.verbose.Message1(package_u_pcp_time,filetimestring(pcpfiletime));
+      compiler.verbose.Message1(package_u_pcp_time,compiler.time.filetimestring(pcpfiletime));
       compiler.verbose.Message1(package_u_pcp_flags,tostr(pcpfile.header.common.flags{flags}));
       compiler.verbose.Message1(package_u_pcp_crc,hexstr(pcpfile.header.checksum,8));
       (*compiler.verbose.Message1(package_u_pcp_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
