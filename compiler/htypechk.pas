@@ -944,7 +944,7 @@ implementation
             { exit when no overloads are found }
             if (result=0) and generror then
               begin
-                CGMessage3(parser_e_operator_not_overloaded_3,ld.GetTypeName,arraytokeninfo[optoken].str,rd.GetTypeName);
+                compiler.verbose.CGMessage3(parser_e_operator_not_overloaded_3,ld.GetTypeName,arraytokeninfo[optoken].str,rd.GetTypeName);
                 candidates.done;
                 ppn.free;
                 ppn:=nil;

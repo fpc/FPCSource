@@ -1663,7 +1663,7 @@ implementation
                     begin
                       if ImportSymbol.MangledName=symmangledname then
                         begin
-                          CGMessage3(sym_w_library_overload,symname,libname,OtherIL.Name);
+                          compiler.verbose.CGMessage3(sym_w_library_overload,symname,libname,OtherIL.Name);
                           break;
                         end;
                     end;

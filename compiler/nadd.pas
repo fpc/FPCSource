@@ -2535,7 +2535,7 @@ const
                     end;
                   else
                     begin
-                      CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                      compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                       result:=compiler.cnothingnode;
                       exit;
                     end;
@@ -2559,7 +2559,7 @@ const
                   end
                 else if not(nodetype in [ltn,lten,gtn,gten,unequaln,equaln]) then
                   begin
-                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                    compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                     result:=compiler.cnothingnode;
                     exit;
                   end;
@@ -2750,7 +2750,7 @@ const
          else if (ld.typ=floatdef) then
            begin
              if not(nodetype in [addn,subn,muln,slashn,equaln,unequaln,ltn,lten,gtn,gten]) then
-               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+               compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
            end
 
          { left side a setdef, must be before string processing,
@@ -2900,7 +2900,7 @@ const
                         IncompatibleTypes(ld,rd);
                      end
                     else
-                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                     compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  end;
                subn:
                  begin
@@ -2919,7 +2919,7 @@ const
                           IncompatibleTypes(ld,rd);
                       end
                     else
-                      CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                      compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
 
                     if not(anf_has_pointerdiv in addnodeflags) and
                       (tpointerdef(rd).pointeddef.size>1) then
@@ -2933,7 +2933,7 @@ const
                     exit;
                  end;
                else
-                 CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                 compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
             end;
           end
 
@@ -3056,7 +3056,7 @@ const
                 end;
               end
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { implicit pointer object type comparison }
@@ -3077,7 +3077,7 @@ const
                   inserttypeconv(right,left.resultdef,compiler);
               end
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          else if (rd.typ=classrefdef) and (ld.typ=classrefdef) then
@@ -3091,7 +3091,7 @@ const
                   inserttypeconv(left,right.resultdef,compiler);
               end
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { allow comparison with nil pointer }
@@ -3100,7 +3100,7 @@ const
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(left,right.resultdef,compiler)
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          else if is_implicit_pointer_object_type(ld) or (ld.typ=classrefdef) then
@@ -3108,7 +3108,7 @@ const
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(right,left.resultdef,compiler)
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
        { support procvar=nil,procvar<>nil }
@@ -3116,7 +3116,7 @@ const
                  ((rd.typ=procvardef) and (lt=niln)) then
           begin
             if not(nodetype in [equaln,unequaln]) then
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
             { find proc field in methodpointer record }
             hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
             if not assigned(hsym) then
@@ -3178,7 +3178,7 @@ const
                  (is_dynamic_array(ld) and is_dynamic_array(rd)) then
           begin
             if not(nodetype in [equaln,unequaln]) then
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
             if lt=niln then
               inserttypeconv_explicit(left,right.resultdef,compiler)
             else
@@ -3199,9 +3199,9 @@ const
                 { mul is a little bit restricted }
                 muln:
                   if not(mmx_type(ld) in [mmxu16bit,mmxs16bit,mmxfixed16]) then
-                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                    compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 else
-                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                  compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
               end;
             end
 {$endif SUPPORT_MMX}
@@ -3213,7 +3213,7 @@ const
                  equal_defs(compiler.symtablestack,ld,rd) then
             begin
               if not(nodetype in [addn,subn,xorn,orn,andn,muln,slashn]) then
-                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
               { both defs must be equal, so taking left or right as resultdef doesn't matter }
               resultdef:=to_hwvectordef(left.resultdef,false,compiler);
             end
@@ -3234,12 +3234,12 @@ const
             if nodetype=addn then
               begin
                 if (rt=niln) then
-                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
+                  compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
                 if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags))  or
                    (not (is_pchar(rd) or is_chararray(rd) or is_open_chararray(rd) or is_widechar(rd) or is_widechararray(rd) or is_open_widechararray(rd)) and
                     not(cs_pointermath in current_settings.localswitches) and
                     not((rd.typ=pointerdef) and tpointerdef(rd).has_pointer_math)) then
-                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                  compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.typ=pointerdef) and
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
@@ -3249,7 +3249,7 @@ const
                    end;
               end
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          else if (ld.typ=pointerdef) or
@@ -3267,12 +3267,12 @@ const
              if nodetype in [addn,subn] then
                begin
                  if (lt=niln) then
-                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
+                   compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
                  if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags)) or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
                     not(cs_pointermath in current_settings.localswitches) and
                     not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
-                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                   compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  if (ld.typ=pointerdef) then
                  begin
                    if is_big_untyped_addrnode(left) then
@@ -3293,7 +3293,7 @@ const
                      end;
                end
              else
-               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+               compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
            end
 
          else if (rd.typ=procvardef) and
@@ -3325,7 +3325,7 @@ const
                   end;
               end
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { enums }
@@ -3334,7 +3334,7 @@ const
             if allowenumop(nodetype) or (nf_internal in flags) then
               inserttypeconv(right,left.resultdef,compiler)
             else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
          { generic conversion, this is for error recovery }
@@ -4392,7 +4392,7 @@ const
                   notnode:=true;
                 end;
               else
-                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
             end;
           end
         else
@@ -4420,7 +4420,7 @@ const
                 procname:='ne';
               else
                 begin
-                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                  compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
                   exit;
                 end;
             end;
