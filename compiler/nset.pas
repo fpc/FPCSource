@@ -1337,7 +1337,7 @@ implementation
         else if labelcoverage=typcount then
           begin
             { labels for all values of the operand are present, but an extra else block is present }
-            MessagePos(elseblock.fileinfo, cg_w_unreachable_code);
+            compiler.verbose.MessagePos(elseblock.fileinfo, cg_w_unreachable_code);
           end;
       end;
 

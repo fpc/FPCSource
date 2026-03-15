@@ -253,7 +253,7 @@ implementation
             { First parameter must be var }
             if (paranr=10) and
                (varspez<>vs_var) then
-              MessagePos(fileinfo,parser_e_ill_msg_param);
+              compiler.verbose.MessagePos(fileinfo,parser_e_ill_msg_param);
           end;
       end;
 
@@ -900,7 +900,7 @@ implementation
                       fileinfo:=impltype.fileinfo
                     else
                       fileinfo:=tstoreddef(impltype.typedef).genconstraintdata.fileinfo;
-                    messagepos(fileinfo,parser_e_generic_constraints_not_allowed_here);
+                    compiler.verbose.MessagePos(fileinfo,parser_e_generic_constraints_not_allowed_here);
                     result:=false;
                   end;
               end;
@@ -1075,13 +1075,13 @@ implementation
                      end
                     else
                      begin
-                       MessagePos(procstartfilepos,parser_e_methode_id_expected);
+                       compiler.verbose.MessagePos(procstartfilepos,parser_e_methode_id_expected);
                        { recover by making it a normal procedure instead of method }
                        astruct:=nil;
                      end;
                   end
                  else
-                  MessagePos(classstartfilepos,parser_e_class_id_expected);
+                  compiler.verbose.MessagePos(classstartfilepos,parser_e_class_id_expected);
                until not searchagain;
              end
             else
@@ -1692,7 +1692,7 @@ implementation
                          if assigned(pd.struct) then
                            compiler.verbose.Message1(parser_e_at_least_one_argument_must_be_of_type,pd.struct.RttiName)
                          else
-                           MessagePos(pd.fileinfo,type_e_type_id_expected);
+                           compiler.verbose.MessagePos(pd.fileinfo,type_e_type_id_expected);
                      end;
                    if not assigned(pd.struct) or assigned(astruct) then
                      begin
@@ -1884,7 +1884,7 @@ implementation
             if (result.proctypeoption<>potype_operator) and
                is_classdef and
                not (po_staticmethod in result.procoptions) then
-              MessagePos(result.fileinfo, parser_e_class_methods_only_static_in_records);
+              compiler.verbose.MessagePos(result.fileinfo, parser_e_class_methods_only_static_in_records);
 
             // we can't add hidden params here because record is not yet defined
             // and therefore record size which has influence on parameter passing rules may change too

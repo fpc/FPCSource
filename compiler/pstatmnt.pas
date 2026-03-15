@@ -433,7 +433,7 @@ implementation
                (hloopvar.resultdef.typ<>undefineddef)
                then
                begin
-                 MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
+                 compiler.verbose.MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
                  hloopvar.resultdef:=generrordef;
                end;
 
@@ -504,15 +504,15 @@ implementation
                            { Typed const is allowed in tp7 }
                            if not(m_tp7 in current_settings.modeswitches) or
                               not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
-                             MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                             compiler.verbose.MessagePos(hp.fileinfo,type_e_illegal_count_var);
                          end;
                      end;
                    else
-                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                     compiler.verbose.MessagePos(hp.fileinfo,type_e_illegal_count_var);
                  end;
                end
              else
-               MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
+               compiler.verbose.MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
              hfrom:=parser.pexpr.comp_expr([ef_accept_equal]);
 

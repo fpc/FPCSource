@@ -344,7 +344,7 @@ implementation
         if not(m_objectivec2 in current_settings.modeswitches) then
           begin
             result:=compiler.cerrornode;
-            MessagePos(expr.fileinfo,parser_e_objc_enumerator_2_0);
+            compiler.verbose.MessagePos(expr.fileinfo,parser_e_objc_enumerator_2_0);
             exit;
           end;
         { Requires the NSFastEnumeration protocol and NSFastEnumerationState
@@ -354,7 +354,7 @@ implementation
            not assigned(objc_fastenumerationstate) then
           begin
             result:=compiler.cerrornode;
-            MessagePos(expr.fileinfo,parser_e_objc_missing_enumeration_defs);
+            compiler.verbose.MessagePos(expr.fileinfo,parser_e_objc_missing_enumeration_defs);
             exit;
           end;
 
@@ -988,7 +988,7 @@ implementation
                 (tarraydef(expr.resultdef).elementdef=voidtype)) then
               begin
                 if assigned(hloopbody) then
-                  MessagePos(hloopbody.fileinfo,cg_w_unreachable_code);
+                  compiler.verbose.MessagePos(hloopbody.fileinfo,cg_w_unreachable_code);
                 result:=compiler.cnothingnode;
               end
             else

@@ -843,7 +843,7 @@ implementation
                 begin
                   if is_constrealnode(p) and
                      not(nf_explicit in p.flags) then
-                    MessagePos(p.fileinfo,type_w_double_c_varargs);
+                    compiler.verbose.MessagePos(p.fileinfo,type_w_double_c_varargs);
                   if (tfloatdef(p.resultdef).floattype in [s32real,s64currency]) or
                      (is_constrealnode(p) and
                       not(nf_explicit in p.flags)) then

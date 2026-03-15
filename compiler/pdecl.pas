@@ -574,7 +574,7 @@ implementation
                               if not is_constnode(tcallparanode(ptmp).left) then
                                 begin
                                   parasok:=false;
-                                  messagepos(tcallparanode(ptmp).left.fileinfo,type_e_constant_expr_expected);
+                                  compiler.verbose.MessagePos(tcallparanode(ptmp).left.fileinfo,type_e_constant_expr_expected);
                                 end;
                               paras[high(paras)-pcount]:=tcallparanode(ptmp).left.getcopy;
                               inc(pcount);
@@ -1130,7 +1130,7 @@ implementation
                          begin
                            if not (m_function_references in current_settings.modeswitches) and
                                not (po_is_block in tprocvardef(hdef).procoptions) then
-                             messagepos(storetokenpos,sym_e_error_in_type_def)
+                             compiler.verbose.MessagePos(storetokenpos,sym_e_error_in_type_def)
                            else
                              begin
                                if setdummysym then

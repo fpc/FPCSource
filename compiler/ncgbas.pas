@@ -76,7 +76,7 @@ interface
 
     uses
       globals,
-      cutils,verbose,
+      cutils,verbose,compiler,
       aasmbase,aasmcpu,
       symsym,symconst,defutil,
       pass_2,ncgutil,
@@ -195,7 +195,7 @@ interface
               LOC_REGISTER :
                 begin
                   if getoffset then
-                    MessagePos(filepos,asmr_e_invalid_reference_syntax);
+                    compiler.verbose.MessagePos(filepos,asmr_e_invalid_reference_syntax);
                   { Subscribed access }
                   if forceref or
 {$ifdef avr}
@@ -238,7 +238,7 @@ interface
                   op.typ:=top_reg;
                   op.reg:=NR_NO;
                   if getoffset then
-                    MessagePos(filepos,asmr_e_invalid_reference_syntax);
+                    compiler.verbose.MessagePos(filepos,asmr_e_invalid_reference_syntax);
                   { Using an MM/FPU register in a reference is not possible }
                   if forceref or (sofs<>0) then
                     MessagePos1(filepos,asmr_e_invalid_ref_register,std_regname(sym.localloc.register))
@@ -252,7 +252,7 @@ interface
                     result is returned via a complex location
                     (more than one register, ...) }
                   if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                    MessagePos(filepos,asmr_e_complex_function_result_location)
+                    compiler.verbose.MessagePos(filepos,asmr_e_complex_function_result_location)
                   else
                     internalerror(2012082101);
                   { recover }

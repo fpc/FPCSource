@@ -8855,6 +8855,8 @@ implementation
 
     procedure check_and_finish_msg(data: tobject; arg: pointer);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         def: tdef absolute data;
         pd: tprocdef absolute data;
         i,
@@ -8893,7 +8895,7 @@ implementation
                      not is_array_of_const(tparavarsym(pd.paras[i]).vardef) then
                     dec(paracount);
                 if (paracount<>0) then
-                  MessagePos(pd.fileinfo,sym_e_objc_para_mismatch);
+                  compiler.verbose.MessagePos(pd.fileinfo,sym_e_objc_para_mismatch);
 
                 pd.setmangledname(pd.objcmangledname);
               end
@@ -8903,7 +8905,7 @@ implementation
             if not(oo_is_external in pd.struct.objectoptions) then
               begin
                 if (po_varargs in pd.procoptions) then
-                  MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external)
+                  compiler.verbose.MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external)
                 else
                   begin
                     { check for "array of const" parameters }
@@ -8911,7 +8913,7 @@ implementation
                       begin
                         if (tsym(pd.parast.symlist[i]).typ=paravarsym) and
                            is_array_of_const(tparavarsym(pd.parast.symlist[i]).vardef) then
-                          MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external);
+                          compiler.verbose.MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external);
                       end;
                   end;
               end;

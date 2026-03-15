@@ -3898,6 +3898,8 @@ implementation
 
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(cs_check_ordinal_size in current_settings.localswitches) then
           exit;
@@ -3925,9 +3927,9 @@ implementation
                not is_in_limit(source.resultdef,destdef)) then
              begin
                if (cs_check_range in current_settings.localswitches) then
-                 MessagePos(location,type_w_smaller_possible_range_check)
+                 compiler.verbose.MessagePos(location,type_w_smaller_possible_range_check)
                else
-                 MessagePos(location,type_h_smaller_possible_range_check);
+                 compiler.verbose.MessagePos(location,type_h_smaller_possible_range_check);
              end;
          end;
       end;

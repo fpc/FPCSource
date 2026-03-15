@@ -1006,7 +1006,7 @@ implementation
                        (tobjectdef(tobjectdef(astruct).extendeddef).objecttype<>odt_class)
                      ) and
                      is_classdef and not (po_staticmethod in result.procoptions) then
-                    MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
+                    compiler.verbose.MessagePos(result.fileinfo,parser_e_class_methods_only_static_in_records);
 
                   parser.pparautl.handle_calling_convention(result,hcc_default_actions_intf_struct);
 
@@ -1070,7 +1070,7 @@ implementation
                      (result.minparacount=0) then
                       { as long as parameterless constructors aren't allowed in records they
                        aren't allowed in record/type helpers either }
-                    MessagePos(result.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
+                    compiler.verbose.MessagePos(result.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
                 end;
 
               chkcpp(result);

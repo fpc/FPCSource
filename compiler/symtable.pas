@@ -1001,7 +1001,7 @@ implementation
                         (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
                         not (po_noreturn in tprocdef(tsym(sym).owner.defowner).procoptions) and
                         not(cs_opt_nodedfa in current_settings.optimizerswitches) then
-                       MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
+                       compiler.verbose.MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
                    end
                  else if (tsym(sym).owner.symtabletype=parasymtable) then
                    MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)

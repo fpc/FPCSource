@@ -609,7 +609,7 @@ implementation
                 to enum type }
               if not assigned(esym) then
                 begin
-                  MessagePos(csym.fileinfo,parser_e_range_check_error);
+                  compiler.verbose.MessagePos(csym.fileinfo,parser_e_range_check_error);
                   exit;
                 end;
               replace_scanner('jvm_enum_const',sstate);

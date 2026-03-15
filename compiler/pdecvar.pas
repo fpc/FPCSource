@@ -1563,7 +1563,7 @@ implementation
                        begin
                          if not (m_function_references in current_settings.modeswitches) and
                              not (po_is_block in tprocvardef(hdef).procoptions) then
-                           messagepos(typepos,sym_e_error_in_type_def)
+                           compiler.verbose.MessagePos(typepos,sym_e_error_in_type_def)
                          else
                            begin
                              if compiler.procdefutil.adjust_funcref(hdef,nil,nil) then
@@ -1602,7 +1602,7 @@ implementation
                    begin
                      if not (m_function_references in current_settings.modeswitches) and
                          not (po_is_block in tprocvardef(hdef).procoptions) then
-                       messagepos(typepos,sym_e_error_in_type_def)
+                       compiler.verbose.MessagePos(typepos,sym_e_error_in_type_def)
                      else
                        begin
                          if compiler.procdefutil.adjust_funcref(hdef,nil,nil) then
@@ -1854,7 +1854,7 @@ implementation
              maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
-               messagepos(typepos,sym_e_wasm_ref_types_cannot_be_used_in_records);
+               compiler.verbose.MessagePos(typepos,sym_e_wasm_ref_types_cannot_be_used_in_records);
 {$endif wasm}
              block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
@@ -1947,7 +1947,7 @@ implementation
                    begin
                      if not (m_function_references in current_settings.modeswitches) and
                          not (po_is_block in tprocvardef(hdef).procoptions) then
-                       messagepos(typepos,sym_e_error_in_type_def)
+                       compiler.verbose.MessagePos(typepos,sym_e_error_in_type_def)
                      else
                        begin
                          if compiler.procdefutil.adjust_funcref(hdef,nil,nil) then
@@ -1982,7 +1982,7 @@ implementation
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
-                 MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_cant_publish_that);
+                 compiler.verbose.MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_cant_publish_that);
                  visibility:=vis_public;
                end;
 
@@ -1990,7 +1990,7 @@ implementation
                 not(oo_can_have_published in tobjectdef(hdef).objectoptions) and
                 not(m_delphi in current_settings.modeswitches) then
                begin
-                 MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_only_publishable_classes_can_be_published);
+                 compiler.verbose.MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_only_publishable_classes_can_be_published);
                  visibility:=vis_public;
                end;
              if vd_class in options then

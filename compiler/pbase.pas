@@ -137,7 +137,7 @@ implementation
          if not(m_class in current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
             (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
-           MessagePos(filepos,parser_f_need_objfpc_or_delphi_mode);
+           compiler.verbose.MessagePos(filepos,parser_f_need_objfpc_or_delphi_mode);
        end;
 
 

@@ -250,7 +250,7 @@ implementation
                             else
                               { this is the case for inline pointer declarations }
                               fileinfo:=srsym.fileinfo;
-                            MessagePos(fileinfo,parser_e_no_generics_as_types);
+                            compiler.verbose.MessagePos(fileinfo,parser_e_no_generics_as_types);
                           end;
                       end
                      else
@@ -1020,7 +1020,7 @@ implementation
                   begin
                     pd:=parser.pdecobj.constructor_head;
                     if pd.minparacount = 0 then
-                      MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
+                      compiler.verbose.MessagePos(pd.procsym.fileinfo,parser_e_no_parameterless_constructor_in_records);
                   end;
 
                 parser.pbase.parse_only:=oldparse_only;

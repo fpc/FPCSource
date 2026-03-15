@@ -488,14 +488,14 @@ implementation
                  paramanager.push_high_param(varspez,vardef,pocall_default) then
                begin
                  if is_open_string(vardef) then
-                    MessagePos(fileinfo,parser_w_cdecl_no_openstring);
+                    compiler.verbose.MessagePos(fileinfo,parser_w_cdecl_no_openstring);
                  if not(po_external in pd.procoptions) and
                     (pd.typ<>procvardef) and
                     not is_objc_class_or_protocol(tprocdef(pd).struct) then
                    if is_array_of_const(vardef) then
-                     MessagePos(fileinfo,parser_e_varargs_need_cdecl_and_external)
+                     compiler.verbose.MessagePos(fileinfo,parser_e_varargs_need_cdecl_and_external)
                    else
-                     MessagePos(fileinfo,parser_w_cdecl_has_no_high);
+                     compiler.verbose.MessagePos(fileinfo,parser_w_cdecl_has_no_high);
                end;
               if (vardef.typ=formaldef) and (Tformaldef(vardef).typed) then
                 begin
@@ -528,12 +528,12 @@ implementation
                 if not is_variant_array(tparavarsym(sym).vardef) and
                    not is_array_of_const(tparavarsym(sym).vardef) and
                    (tparavarsym(sym).varspez<>vs_var) then
-                  MessagePos(tparavarsym(sym).fileinfo,parser_h_c_arrays_are_references);
+                  compiler.verbose.MessagePos(tparavarsym(sym).fileinfo,parser_h_c_arrays_are_references);
                 if is_array_of_const(tparavarsym(sym).vardef) and
                    (i<lastparaidx) and
                    (tsym(pd.parast.SymList[i+1]).typ=paravarsym) and
                    not(vo_is_high_para in tparavarsym(pd.parast.SymList[i+1]).varoptions) then
-                  MessagePos(tparavarsym(sym).fileinfo,parser_e_C_array_of_const_must_be_last);
+                  compiler.verbose.MessagePos(tparavarsym(sym).fileinfo,parser_e_C_array_of_const_must_be_last);
               end;
           end;
       end;
@@ -736,7 +736,7 @@ implementation
                     fileinfo:=currsym.fileinfo
                   else
                     fileinfo:=tstoreddef(currtype.typedef).genconstraintdata.fileinfo;
-                  messagepos(fileinfo,parser_e_generic_constraints_not_allowed_here);
+                  compiler.verbose.MessagePos(fileinfo,parser_e_generic_constraints_not_allowed_here);
                   result:=false;
                 end;
               if not fwpd.interfacedef and not assigned(fwpd.struct) and
@@ -949,7 +949,7 @@ implementation
                               fwpd.proccalloption:=currpd.proccalloption
                           else
                             begin
-                              MessagePos(currpd.fileinfo,parser_e_call_convention_dont_match_forward);
+                              compiler.verbose.MessagePos(currpd.fileinfo,parser_e_call_convention_dont_match_forward);
                               tprocsym(currpd.procsym).write_parameter_lists(currpd);
                               { restore interface settings }
                               currpd.proccalloption:=fwpd.proccalloption;
@@ -957,7 +957,7 @@ implementation
                         end
                       else
                         begin
-                          MessagePos(currpd.fileinfo,parser_e_call_convention_dont_match_forward);
+                          compiler.verbose.MessagePos(currpd.fileinfo,parser_e_call_convention_dont_match_forward);
                           tprocsym(currpd.procsym).write_parameter_lists(currpd);
                           { restore interface settings }
                           currpd.proccalloption:=fwpd.proccalloption;
@@ -1054,7 +1054,7 @@ implementation
 
                    { Forward declaration is external? }
                    if (po_external in fwpd.procoptions) then
-                     MessagePos(currpd.fileinfo,parser_e_proc_already_external);
+                     compiler.verbose.MessagePos(currpd.fileinfo,parser_e_proc_already_external);
 
                    { check for conflicts with "virtual" if this is a virtual
                      method, as "virtual" cannot be repeated in the
@@ -1121,7 +1121,7 @@ implementation
 
                    { marked as local but exported from unit? }
                    if (po_kylixlocal in fwpd.procoptions) and (fwpd.owner.symtabletype=globalsymtable) then
-                     MessagePos(fwpd.fileinfo,type_e_cant_export_local);
+                     compiler.verbose.MessagePos(fwpd.fileinfo,type_e_cant_export_local);
 
                    if fwpd.extnumber=$ffff then
                      fwpd.extnumber:=currpd.extnumber;
@@ -1177,10 +1177,10 @@ implementation
                   { abstract methods aren't forward defined, but this }
                   { needs another error message                   }
                   if (po_abstractmethod in fwpd.procoptions) then
-                    MessagePos(currpd.fileinfo,parser_e_abstract_no_definition)
+                    compiler.verbose.MessagePos(currpd.fileinfo,parser_e_abstract_no_definition)
                   else
                     begin
-                      MessagePos(currpd.fileinfo,parser_e_overloaded_have_same_parameters);
+                      compiler.verbose.MessagePos(currpd.fileinfo,parser_e_overloaded_have_same_parameters);
                       tprocsym(currpd.procsym).write_parameter_lists(currpd);
                     end;
                  end;
@@ -1214,7 +1214,7 @@ implementation
                  if not(fwpd.forwarddef) then
                   begin
                     if (m_tp7 in current_settings.modeswitches) then
-                      MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off)
+                      compiler.verbose.MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off)
                     else
                       MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
@@ -1243,7 +1243,7 @@ implementation
               not (oo_is_external in tobjectdef(currpd.struct).objectoptions)
             ) then
           begin
-            MessagePos(currpd.fileinfo,parser_e_overloaded_have_same_parameters);
+            compiler.verbose.MessagePos(currpd.fileinfo,parser_e_overloaded_have_same_parameters);
             tprocsym(currpd.procsym).write_parameter_lists(currpd);
           end;
 

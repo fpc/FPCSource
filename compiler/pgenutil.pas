@@ -396,7 +396,7 @@ uses
             { validate const params }
             if not genericdef.is_generic_param_const(i) and is_const then
               begin
-                MessagePos(filepos,type_e_mismatch);
+                compiler.verbose.MessagePos(filepos,type_e_mismatch);
                 exit(false);
               end
             else if genericdef.is_generic_param_const(i) then
@@ -404,7 +404,7 @@ uses
                 { param type mismatch (type <> const) }
                  if genericdef.is_generic_param_const(i)<>is_const then
                    begin
-                    MessagePos(filepos,type_e_mismatch);
+                    compiler.verbose.MessagePos(filepos,type_e_mismatch);
                     exit(false);
                   end;
                 { type constrained param doesn't match type }
@@ -441,12 +441,12 @@ uses
                               if tobjectdef(paradef).objecttype=odt_object then
                                 continue
                               else
-                                MessagePos(filepos,type_e_record_type_expected);
+                                compiler.verbose.MessagePos(filepos,type_e_record_type_expected);
                             else
-                              MessagePos(filepos,type_e_record_type_expected);
+                              compiler.verbose.MessagePos(filepos,type_e_record_type_expected);
                           end
                         else
-                          MessagePos(filepos,type_e_record_type_expected);
+                          compiler.verbose.MessagePos(filepos,type_e_record_type_expected);
                       objectdef:
                         case tobjectdef(formaldef).objecttype of
                           odt_class,

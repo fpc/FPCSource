@@ -705,6 +705,8 @@ unit optdfa;
     { searches for a given node n and warns if the node is found as being uninitialized. If a node is
       found, searching is stopped so each call issues only one warning/hint }
     function SearchNode(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function WarnedForLocation(f : tfileposinfo) : boolean;
         var
@@ -839,9 +841,9 @@ unit optdfa;
                       if (vo_is_funcret in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
                         begin
                           if is_managed_type(varsym.vardef) then
-                            MessagePos(n.fileinfo,sym_w_managed_function_result_uninitialized)
+                            compiler.verbose.MessagePos(n.fileinfo,sym_w_managed_function_result_uninitialized)
                           else
-                            MessagePos(n.fileinfo,sym_w_function_result_uninitialized);
+                            compiler.verbose.MessagePos(n.fileinfo,sym_w_function_result_uninitialized);
                           AddFilepos(n.fileinfo);
                           result:=fen_norecurse_true;
                         end
@@ -874,6 +876,8 @@ unit optdfa;
 
 
     procedure CheckAndWarn(code : tnode;nodetosearch : tnode);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       var
         SearchNodeInfo : TSearchNodeInfo;
@@ -968,9 +972,9 @@ unit optdfa;
                   not(current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then
                   begin
                     if is_managed_type(current_procinfo.procdef.returndef) then
-                      MessagePos(node.fileinfo,sym_w_managed_function_result_uninitialized)
+                      compiler.verbose.MessagePos(node.fileinfo,sym_w_managed_function_result_uninitialized)
                     else
-                      MessagePos(node.fileinfo,sym_w_function_result_uninitialized);
+                      compiler.verbose.MessagePos(node.fileinfo,sym_w_function_result_uninitialized);
 
                     Setlength(SearchNodeInfo.warnedfilelocs,length(SearchNodeInfo.warnedfilelocs)+1);
                     SearchNodeInfo.warnedfilelocs[high(SearchNodeInfo.warnedfilelocs)]:=node.fileinfo;

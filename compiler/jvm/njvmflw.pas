@@ -135,7 +135,7 @@ implementation
            MessagePos2(left.fileinfo,type_e_incompatible_types,left.resultdef.typename,'class(JLThrowable)');
          { Java exceptions cannot be raised "at" a specific location }
          if assigned(right) then
-           MessagePos(right.fileinfo,parser_e_illegal_expression);
+           compiler.verbose.MessagePos(right.fileinfo,parser_e_illegal_expression);
       end;
 
 

@@ -112,12 +112,12 @@ unit navrinl;
               para2:=tcallparanode(tcallparanode(para3).nextpara);
               para1:=tcallparanode(tcallparanode(para2).nextpara);
               if not(is_constintnode(para4.paravalue)) then
-                MessagePos(para4.paravalue.fileinfo,type_e_constant_expr_expected);
+                compiler.verbose.MessagePos(para4.paravalue.fileinfo,type_e_constant_expr_expected);
               if not(is_constboolnode(para3.paravalue)) then
-                MessagePos(para3.paravalue.fileinfo,type_e_constant_expr_expected);
+                compiler.verbose.MessagePos(para3.paravalue.fileinfo,type_e_constant_expr_expected);
               if (tordconstnode(para4.paravalue).value<0) or
                 (tordconstnode(para4.paravalue).value>15) then
-                MessagePos(para4.paravalue.fileinfo,parser_e_range_check_error);
+                compiler.verbose.MessagePos(para4.paravalue.fileinfo,parser_e_range_check_error);
             end;
           else
             Result:=inherited pass_typecheck_cpu;

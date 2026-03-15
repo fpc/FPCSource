@@ -3701,7 +3701,7 @@ implementation
                    else
                      begin
                        if wasgenericdummy then
-                         messagepos(tokenpos,parser_e_no_generics_as_types)
+                         compiler.verbose.MessagePos(tokenpos,parser_e_no_generics_as_types)
                        else
                          parser.pbase.identifier_not_found(orgstoredpattern,tokenpos);
                        srsym:=generrorsym;
@@ -4462,7 +4462,7 @@ implementation
                        begin
                          p1.free;
                          p1:=compiler.cerrornode;
-                         MessagePos(filepos,parser_e_illegal_expression);
+                         compiler.verbose.MessagePos(filepos,parser_e_illegal_expression);
                        end;
                    end
                  else
