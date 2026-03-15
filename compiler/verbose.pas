@@ -56,6 +56,7 @@ interface
 
       TVerbose = class
       private
+        procedure MaybeLoadMessageFile;
         Procedure UpdateStatus;
         function GetMessageState(m:longint):tmsgstate;
         Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
@@ -451,7 +452,7 @@ implementation
       end;
 
 
-    procedure MaybeLoadMessageFile;
+    procedure TVerbose.MaybeLoadMessageFile;
       begin
         { Load new message file }
         if (msgfilename<>'')  then
