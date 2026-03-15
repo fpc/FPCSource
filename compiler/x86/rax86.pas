@@ -880,7 +880,7 @@ begin
                   end
                   else
                   begin
-                    Message4(asmr_w_check_mem_operand_size_offset,
+                    compiler.verbose.Message4(asmr_w_check_mem_operand_size_offset,
 			     getstring(false),
                              ToStr(memopsize),
                              ToStr(memrefsize),

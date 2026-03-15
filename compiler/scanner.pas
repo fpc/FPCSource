@@ -4377,11 +4377,13 @@ type
   -------------------------------------------}
 
     procedure tscannerfile.checkpreprocstack;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
       { check for missing ifdefs }
         while assigned(preprocstack) do
          begin
-           Message4(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,
+           compiler.verbose.Message4(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,
              current_module.sourcefiles.get_file_name(preprocstack.fileindex),
              tostr(preprocstack.line_nb));
            poppreprocstack;
