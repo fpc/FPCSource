@@ -69,8 +69,6 @@ interface
         function  ErrorCount:longint;
         procedure SetErrorFlags(const s:string);
         procedure GenerateError;
-        //TODO: procedure Internalerror(i:longint);noreturn;
-        //TODO: procedure Internalerror(i:longint; const s : ansistring);noreturn;
         procedure Comment(l:longint;s:ansistring);
         function  MessageStr(w:longint):TMsgStr;
         //TODO: procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
@@ -83,6 +81,7 @@ interface
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
+
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
     procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
