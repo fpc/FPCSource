@@ -5160,17 +5160,17 @@ begin
   param_file:=FixFileName(param_file);
 {$endif not unix}
   compiler.globals.inputfilepath:=ExtractFilePath(param_file);
-  inputfilename:=ExtractFileName(param_file);
-  if ExtractFileExt(inputfilename)='' then
+  compiler.globals.inputfilename:=ExtractFileName(param_file);
+  if ExtractFileExt(compiler.globals.inputfilename)='' then
     begin
-      if FileExists(compiler.globals.inputfilepath+ChangeFileExt(inputfilename,sourceext)) then
-        inputfilename:=ChangeFileExt(inputfilename,sourceext)
-      else if FileExists(compiler.globals.inputfilepath+ChangeFileExt(inputfilename,pasext)) then
-        inputfilename:=ChangeFileExt(inputfilename,pasext)
+      if FileExists(compiler.globals.inputfilepath+ChangeFileExt(compiler.globals.inputfilename,sourceext)) then
+        compiler.globals.inputfilename:=ChangeFileExt(compiler.globals.inputfilename,sourceext)
+      else if FileExists(compiler.globals.inputfilepath+ChangeFileExt(compiler.globals.inputfilename,pasext)) then
+        compiler.globals.inputfilename:=ChangeFileExt(compiler.globals.inputfilename,pasext)
       else if ((m_mac in current_settings.modeswitches) or
               (tf_p_ext_support in compiler.target.info.flags))
-             and FileExists(compiler.globals.inputfilepath+ChangeFileExt(inputfilename,pext)) then
-        inputfilename:=ChangeFileExt(inputfilename,pext);
+             and FileExists(compiler.globals.inputfilepath+ChangeFileExt(compiler.globals.inputfilename,pext)) then
+        compiler.globals.inputfilename:=ChangeFileExt(compiler.globals.inputfilename,pext);
     end;
 
   { Check output dir }

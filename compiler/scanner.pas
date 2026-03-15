@@ -1022,7 +1022,7 @@ implementation
           compiler.verbose.Message2(scan_f_syn_expected, '''', current_scanner.c);
         s := current_scanner.readquotedstring;
         if OutputFileName='' then
-          OutputFileName:=InputFileName;
+          OutputFileName:=compiler.globals.InputFileName;
         OutputFileName:=ChangeFileExt(OutputFileName,'.'+s);
         with current_module do
           setfilename(paramfn, paramallowoutput);

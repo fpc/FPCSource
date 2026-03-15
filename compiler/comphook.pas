@@ -319,12 +319,12 @@ begin
         MsgTypeStr:=fatalstr;
       if (status.verbosity and V_Parallel)=V_Parallel then
         begin
-          if (inputfilename<>'') and (status.currentmodule<>'') then
-            MsgTypeStr:=MsgTypeStr+'('+inputfilename+'/'+status.currentmodule+')'
+          if (compiler.globals.inputfilename<>'') and (status.currentmodule<>'') then
+            MsgTypeStr:=MsgTypeStr+'('+compiler.globals.inputfilename+'/'+status.currentmodule+')'
           else if (status.currentmodule<>'') then
             MsgTypeStr:=MsgTypeStr+'('+status.currentmodule+')'
-          else if (inputfilename<>'') then
-            MsgTypeStr:=MsgTypeStr+'('+inputfilename+')';
+          else if (compiler.globals.inputfilename<>'') then
+            MsgTypeStr:=MsgTypeStr+'('+compiler.globals.inputfilename+')';
         end
       else if (status.verbosity and Level)=V_Used then
         MsgTypeStr:=PadSpace('('+status.currentmodule+')',10);

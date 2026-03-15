@@ -301,7 +301,6 @@ Const
 
 
     var
-       inputfilename     : string;
        { specified outputfile with -o parameter }
        outputfilename    : string;
        outputprefix      : pshortstring;
@@ -725,6 +724,7 @@ Const
       TCompilerGlobals = class
         { specified inputfile }
         inputfilepath     : string;
+        inputfilename     : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

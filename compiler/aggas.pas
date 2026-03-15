@@ -2038,7 +2038,7 @@ implementation
       if current_module.mainsource<>'' then
         n:=ExtractFileName(current_module.mainsource)
       else
-        n:=InputFileName;
+        n:=compiler.globals.InputFileName;
 
       { gcc does not add it either for Darwin. Grep for
         TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h

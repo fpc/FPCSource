@@ -118,7 +118,7 @@ begin
   case compiler.target.info.system of
     system_i386_Os2, system_i386_emx:
       begin
-        write(t,'NAME '+ChangeFileExt(inputfilename,''));
+        write(t,'NAME '+ChangeFileExt(compiler.globals.inputfilename,''));
         if usewindowapi then
           write(t,' WINDOWAPI');
         writeln(t,'');
