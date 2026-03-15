@@ -242,7 +242,7 @@ implementation
                      DefFile.AddExport(DefString);
                   end;
                 // consumed the symbol. Only do something if there was no error.
-                if ErrorCount=0 then
+                if compiler.verbose.ErrorCount=0 then
                   case srsym.typ of
                     procsym:
                       begin

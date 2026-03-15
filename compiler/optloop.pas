@@ -149,7 +149,7 @@ type
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
           exit;
-        if ErrorCount<>0 then
+        if compiler.verbose.ErrorCount<>0 then
           exit;
         if not(node.nodetype in [forn]) then
           exit;

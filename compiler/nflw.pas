@@ -2538,7 +2538,7 @@ implementation
           begin
             { don't trigger IE when there was already an error, i.e. the
               label is not defined. See tw11763 (PFV) }
-            if (errorcount=0) and
+            if (compiler.verbose.errorcount=0) and
             { don't trigger IE if it's a global goto }
                ((assigned(labelsym.owner) and (current_procinfo.procdef.parast.symtablelevel=labelsym.owner.symtablelevel)) or
                not(assigned(labelsym.owner))) then

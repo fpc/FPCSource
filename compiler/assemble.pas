@@ -2708,6 +2708,8 @@ Implementation
 
 
     procedure TInternalAssembler.writetree;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       label
         doexit;
       var
@@ -2733,7 +2735,7 @@ Implementation
          end;
         ObjData.afteralloc;
         { leave if errors have occurred }
-        if errorcount>0 then
+        if compiler.verbose.errorcount>0 then
          goto doexit;
 
         { Pass 1 }
@@ -2754,7 +2756,7 @@ Implementation
         ObjData.afteralloc;
 
         { leave if errors have occurred }
-        if errorcount>0 then
+        if compiler.verbose.errorcount>0 then
          goto doexit;
 
         { Pass 2 }
@@ -2775,7 +2777,7 @@ Implementation
         ObjData.afterwrite;
 
         { don't write the .o file if errors have occurred }
-        if errorcount=0 then
+        if compiler.verbose.errorcount=0 then
          begin
            { write objectfile }
            ObjOutput.startobjectfile(ObjFileName);
@@ -2792,6 +2794,8 @@ Implementation
 
 
     procedure TInternalAssembler.writetreesmart;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : Tai;
         startsectype : TAsmSectiontype;
@@ -2829,7 +2833,7 @@ Implementation
            TreePass0(hp);
            ObjData.afteralloc;
            { leave if errors have occurred }
-           if errorcount>0 then
+           if compiler.verbose.errorcount>0 then
              break;
 
            { Pass 1 }
@@ -2842,7 +2846,7 @@ Implementation
            ObjData.afteralloc;
 
            { leave if errors have occurred }
-           if errorcount>0 then
+           if compiler.verbose.errorcount>0 then
              break;
 
            { Pass 2 }
@@ -2856,7 +2860,7 @@ Implementation
            ObjData.afterwrite;
 
            { leave if errors have occurred }
-           if errorcount>0 then
+           if compiler.verbose.errorcount>0 then
              break;
 
            { write the current objectfile }

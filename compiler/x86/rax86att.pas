@@ -856,7 +856,7 @@ Implementation
                       if (actasmtoken=AS_PLUS) then
                         begin
                           l:=BuildConstExpression(true,false);
-                          if errorcount=0 then
+                          if compiler.verbose.errorcount=0 then
                             case oper.opr.typ of
                               OPR_CONSTANT :
                                 inc(oper.opr.val,l);

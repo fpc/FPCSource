@@ -2088,8 +2088,10 @@ implementation
 
 
     function TObjOutput.writeobjectfile(Data:TObjData):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if errorcount=0 then
+        if compiler.verbose.errorcount=0 then
          result:=writeData(Data)
         else
          result:=true;
@@ -2461,12 +2463,14 @@ implementation
 
 
     function TExeOutput.WriteExeFile(const fn:string):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=false;
         if FWriter.createfile(fn) then
          begin
            { Only write the .o if there are no errors }
-           if errorcount=0 then
+           if compiler.verbose.errorcount=0 then
              result:=writedata
            else
              result:=true;

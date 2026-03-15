@@ -1763,6 +1763,8 @@ Implementation
 
     procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         objreader : TObjectReader;
         objinput: TObjInput;
         objdata: TObjData;
@@ -1775,7 +1777,7 @@ Implementation
           exit;
         Comment(V_Tried,'Opening library '+para);
         objreader:=CArObjectreader.createAr(para,true);
-        if ErrorCount>0 then
+        if compiler.verbose.ErrorCount>0 then
           exit;
         if objreader.isarchive then
           TFPObjectList(FGroupStack.Last).Add(TStaticLibrary.Create(para,objreader,CObjInput))
@@ -2112,6 +2114,8 @@ Implementation
 
 
     function TInternalLinker.RunLinkScript(const outputname:TCmdStr):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       label
         myexit;
       var
@@ -2138,14 +2142,14 @@ Implementation
         { Load .o files and resolve symbols }
         FGroupStack.Add(FStaticLibraryList);
         ParseScript_Load;
-        if ErrorCount>0 then
+        if compiler.verbose.ErrorCount>0 then
           goto myexit;
         exeoutput.ResolveSymbols(StaticLibraryList);
         { Generate symbols and code to do the importing }
         exeoutput.GenerateLibraryImports(ImportLibraryList);
         { Fill external symbols data }
         exeoutput.FixupSymbols;
-        if ErrorCount>0 then
+        if compiler.verbose.ErrorCount>0 then
           goto myexit;
 
         { parse linker options specific for output format }
@@ -2159,7 +2163,7 @@ Implementation
           exeoutput.MergeStabs;
         exeoutput.MarkEmptySections;
         exeoutput.AfterUnusedSectionRemoval;
-        if ErrorCount>0 then
+        if compiler.verbose.ErrorCount>0 then
           goto myexit;
 
         { Calc positions in mem }
@@ -2167,7 +2171,7 @@ Implementation
         exeoutput.FixupRelocations;
         exeoutput.RemoveUnusedExeSymbols;
         exeoutput.PrintMemoryMap;
-        if ErrorCount>0 then
+        if compiler.verbose.ErrorCount>0 then
           goto myexit;
 
         if cs_link_separate_dbg_file in current_settings.globalswitches then

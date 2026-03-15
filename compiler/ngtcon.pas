@@ -1378,7 +1378,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 compiler.parser.pbase.consume(_RKLAMMER);
               end;
             curoffset:=oldoffset;
-            if ErrorCount=0 then
+            if compiler.verbose.ErrorCount=0 then
               ftcb.maybe_end_aggregate(def);
           end
         { if array of char then we allow also a string }
@@ -1841,7 +1841,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            ) then
           Message1(parser_w_skipped_fields_after,sorg);
 
-        if ErrorCount=0 then
+        if compiler.verbose.ErrorCount=0 then
           begin
             if not(is_packed) then
               fillbytes:=0

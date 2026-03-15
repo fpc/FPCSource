@@ -979,7 +979,7 @@ implementation
        { have we finished all aggregates? }
        if (getcurragginfo<>nil) and
           { in case of syntax errors, the aggregate may not have been finished }
-          (ErrorCount=0) then
+          (compiler.verbose.ErrorCount=0) then
          internalerror(2015072301);
 
        { must call finalize_vectorized_dead_strip_asmlist() instead }
@@ -1287,7 +1287,7 @@ implementation
        { the queue should have been flushed if it was used
          (but if there were errors, we may have aborted before that happened) }
        if (fqueue_offset<>low(fqueue_offset)) and
-          (ErrorCount=0) then
+          (compiler.verbose.ErrorCount=0) then
          internalerror(2014062901);
        faggregateinformation.free;
        faggregateinformation := nil;

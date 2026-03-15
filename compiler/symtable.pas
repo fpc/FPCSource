@@ -983,7 +983,7 @@ implementation
             { also don't complain about unused symbols in generic procedures }
             { and methods                                                    }
             { and neither in abstract methods                                }
-            if (Errorcount<>0) or
+            if (compiler.verbose.Errorcount<>0) or
                ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) or
                (sp_internal in tsym(sym).symoptions) or
                ((assigned(tsym(sym).owner.defowner) and
@@ -1030,7 +1030,7 @@ implementation
         else if ((tsym(sym).owner.symtabletype in
               [ObjectSymtable,parasymtable,localsymtable,staticsymtable,recordsymtable])) then
           begin
-           if (Errorcount<>0) or
+           if (compiler.verbose.Errorcount<>0) or
               (sp_internal in tsym(sym).symoptions) then
              exit;
            { do not claim for inherited private fields !! }

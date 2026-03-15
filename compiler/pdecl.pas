@@ -537,7 +537,7 @@ implementation
 
               pcalln:=compiler.ccallnode(paran,tprocsym(constrsym),od.symtable,compiler.cloadvmtaddrnode(p),[cnf_no_convert_procvar],nil);
               p:=nil;
-              ecnt:=errorcount;
+              ecnt:=compiler.verbose.errorcount;
               typecheckpass(pcalln);
 
               if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not codegenerror then
@@ -602,7 +602,7 @@ implementation
                 end
               else begin
                 { provide *some* error in case there hasn't been one }
-                if errorcount=ecnt then
+                if compiler.verbose.errorcount=ecnt then
                   message(parser_e_illegal_expression);
                 pcalln.free;
                 pcalln := nil;

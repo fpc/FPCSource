@@ -1347,9 +1347,9 @@ type
           end;
 
         { leave when we got an error }
-        if (Errorcount>0) and not status.skip_error then
+        if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             compiler.symtablestack.pop(curr.globalsymtable);
             curr.state:=ms_moduleerror;
@@ -1368,7 +1368,7 @@ type
         {$IFDEF Debug_WaitCRC}
         writeln('parse_unit_interface_declarations ',curr.realmodulename^);
         {$ENDIF}
-        if Errorcount=0 then
+        if compiler.verbose.Errorcount=0 then
           tppumodule(curr).getppucrc;
         curr.in_interface:=false;
         curr.interface_compiled:=true;
@@ -1594,7 +1594,7 @@ type
         hal : tasmlisttype;
       begin
         result:=false;
-        if Errorcount=0 then
+        if compiler.verbose.Errorcount=0 then
           begin
             for hal:=low(TasmlistType) to high(TasmlistType) do
               if not current_asmdata.asmlists[hal].empty then
@@ -1646,7 +1646,7 @@ type
          generate_attr_constrs(current_module.used_rtti_attrs);
 
          { Generate VMTs }
-         if Errorcount=0 then
+         if compiler.verbose.Errorcount=0 then
            begin
              write_vmts(module.globalsymtable,true);
              write_vmts(module.localsymtable,false);
@@ -1741,7 +1741,7 @@ type
          { reset wpo flags for all defs }
          reset_all_defs(module);
 
-         if (Errorcount=0) then
+         if (compiler.verbose.Errorcount=0) then
            begin
              { tests, if all (interface) forwards are resolved }
              tstoredsymtable(module.globalsymtable).check_forwards;
@@ -1759,9 +1759,9 @@ type
            end;
 
          { leave when we got an error }
-         if (Errorcount>0) and not status.skip_error then
+         if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             module_is_done(module);
             module.state:=ms_moduleerror;
@@ -1826,7 +1826,7 @@ type
         module.remove_all_waitsforthisunit;
 
         { compute CRC }
-        if ErrorCount=0 then
+        if compiler.verbose.ErrorCount=0 then
           begin
           if not module.are_all_used_units_compiled then
             begin
@@ -1866,7 +1866,7 @@ type
         {$IF defined(Debug_WaitCRC) or defined(Debug_FreeParseMem)}
         writeln('finish_unit ',module.realmodulename^,' write ppu and free mem...');
         {$ENDIF}
-        result:=ErrorCount=0;
+        result:=compiler.verbose.ErrorCount=0;
 
         old_module:=current_module;
         set_current_module(module);
@@ -1900,9 +1900,9 @@ type
         free_localsymtables(module.localsymtable);
 
         { leave when we got an error }
-        if (Errorcount>0) and not status.skip_error then
+        if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             module_is_done(module);
             module.state := ms_moduleerror;
@@ -2216,7 +2216,7 @@ type
            current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
 
          { all labels must be defined before generating code }
-         if Errorcount=0 then
+         if compiler.verbose.Errorcount=0 then
            tstoredsymtable(curr.localsymtable).checklabels;
 
          compiler.symtablestack.pop(curr.localsymtable);
@@ -2225,7 +2225,7 @@ type
          parser.pbase.consume(_END);
          parser.pbase.consume(_POINT);
 
-         if (Errorcount=0) then
+         if (compiler.verbose.Errorcount=0) then
            begin
              { test static symtable }
              tstoredsymtable(curr.localsymtable).allsymbolsused;
@@ -2248,9 +2248,9 @@ type
 {$endif DEBUG_NODE_XML}
 
          { leave when we got an error }
-         if (Errorcount>0) and not status.skip_error then
+         if (compiler.verbose.Errorcount>0) and not status.skip_error then
            begin
-             Message1(unit_f_errors_in_unit,tostr(Errorcount));
+             Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
              status.skip_error:=true;
              curr.state:=ms_moduleerror;
              pkg.free;
@@ -2331,9 +2331,9 @@ type
            free_localsymtables(curr.localsymtable);
 
          { leave when we got an error }
-         if (Errorcount>0) and not status.skip_error then
+         if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             curr.state:=ms_moduleerror;
             pkg.free;
@@ -2408,9 +2408,9 @@ type
                end;
 
              { Give Fatal with error count for linker errors }
-             if (Errorcount>0) and not status.skip_error then
+             if (compiler.verbose.Errorcount>0) and not status.skip_error then
               begin
-                Message1(unit_f_errors_in_unit,tostr(Errorcount));
+                Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
                 status.skip_error:=true;
                 curr.state:=ms_moduleerror;
                 result:=false;
@@ -2508,7 +2508,7 @@ type
         { reset wpo flags for all defs }
         reset_all_defs(curr);
 
-        if (Errorcount=0) then
+        if (compiler.verbose.Errorcount=0) then
           begin
             { test static symtable }
             tstoredsymtable(curr.localsymtable).allsymbolsused;
@@ -2519,9 +2519,9 @@ type
           end;
 
         { leave when we got an error }
-        if (Errorcount>0) and not status.skip_error then
+        if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             curr.state:=ms_moduleerror;
             exit;
@@ -2633,9 +2633,9 @@ type
           free_localsymtables(curr.localsymtable);
 
         { leave when we got an error }
-        if (Errorcount>0) and not status.skip_error then
+        if (compiler.verbose.Errorcount>0) and not status.skip_error then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
+            Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
             status.skip_error:=true;
             curr.state:=ms_moduleerror;
             exit;
@@ -2646,9 +2646,9 @@ type
           proc_create_executable(curr,sysinitmod,islibrary);
 
         { Give Fatal with error count for linker errors }
-        if (Errorcount>0) and not status.skip_error then
+        if (compiler.verbose.Errorcount>0) and not status.skip_error then
          begin
-           Message1(unit_f_errors_in_unit,tostr(Errorcount));
+           Message1(unit_f_errors_in_unit,tostr(compiler.verbose.Errorcount));
            status.skip_error:=true;
          end;
 
@@ -2768,7 +2768,7 @@ type
           end;
 
         { Generate specializations of objectdefs methods }
-        if Errorcount=0 then
+        if compiler.verbose.Errorcount=0 then
           parser.pgenutil.generate_specialization_procs;
 
         { This needs to be done before we generate the VMTs }
@@ -2780,7 +2780,7 @@ type
         generate_attr_constrs(curr.used_rtti_attrs);
 
         { Generate VMTs }
-        if Errorcount=0 then
+        if compiler.verbose.Errorcount=0 then
           write_vmts(curr.localsymtable,false);
 
         { add implementations for synthetic method declarations added by
@@ -2822,7 +2822,7 @@ type
            compiler.nodeutils.RegisterModuleFiniFunction(search_system_proc('fpc_lib_exit'));
 
         { all labels must be defined before generating code }
-        if Errorcount=0 then
+        if compiler.verbose.Errorcount=0 then
           tstoredsymtable(curr.localsymtable).checklabels;
 
         { See remark in unit init/final }

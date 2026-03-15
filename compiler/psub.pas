@@ -1772,7 +1772,7 @@ implementation
         old_current_procinfo : tprocinfo;
       begin
         { do the conversion only if there haven't been any errors so far }
-        if ErrorCount<>0 then
+        if compiler.verbose.ErrorCount<>0 then
           exit;
         old_current_procinfo:=current_procinfo;
         current_procinfo:=self;
@@ -1942,7 +1942,7 @@ implementation
           end;
 
         { We need valid code }
-        if Errorcount<>0 then
+        if compiler.verbose.Errorcount<>0 then
           exit;
 
         { No code can be generated for generic template }
@@ -2054,7 +2054,7 @@ implementation
         add_entry_exit_code;
 
         { only do secondpass if there are no errors }
-        if (ErrorCount<>0) then
+        if (compiler.verbose.ErrorCount<>0) then
           begin
 {$ifdef DEBUG_NODE_XML}
             { Print out nodes as they appear after the first pass }
@@ -2599,7 +2599,7 @@ implementation
          { Check for unused labels, forwards, symbols for procedures. Static
            symtable is checked in pmodules.
            The check must be done after the typecheckpass }
-         if (Errorcount=0) and
+         if (compiler.verbose.Errorcount=0) and
             (tstoredsymtable(procdef.localst).symtabletype<>staticsymtable) then
            begin
              { check if forwards are resolved }

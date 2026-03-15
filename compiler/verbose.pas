@@ -66,9 +66,9 @@ interface
 
         function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
         procedure ShowStatus;
+        function  ErrorCount:longint;
       end;
 
-    function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
     procedure GenerateError;
     procedure Internalerror(i:longint);noreturn;
@@ -504,7 +504,7 @@ implementation
       end;
 
 
-    function ErrorCount:longint;
+    function TVerbose.ErrorCount:longint;
       begin
         ErrorCount:=status.errorcount;
       end;
@@ -901,98 +901,114 @@ implementation
 
     procedure cgmessage(t : longint);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=Errorcount;
+              olderrorcount:=compiler.verbose.Errorcount;
               verbose.Message(t);
-              codegenerror:=olderrorcount<>Errorcount;
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;
 
     procedure cgmessage1(t : longint;const s : TMsgStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=Errorcount;
+              olderrorcount:=compiler.verbose.Errorcount;
               verbose.Message1(t,s);
-              codegenerror:=olderrorcount<>Errorcount;
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;
 
     procedure cgmessage2(t : longint;const s1,s2 : TMsgStr);
       var
-         olderrorcount : longint;
-      begin
-         if not(codegenerror) then
-           begin
-              olderrorcount:=Errorcount;
-              verbose.Message2(t,s1,s2);
-              codegenerror:=olderrorcount<>Errorcount;
-           end;
-      end;
-
-    procedure cgmessage3(t : longint;const s1,s2,s3 : TMsgStr);
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=Errorcount;
+              olderrorcount:=compiler.verbose.Errorcount;
+              verbose.Message2(t,s1,s2);
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+           end;
+      end;
+
+    procedure cgmessage3(t : longint;const s1,s2,s3 : TMsgStr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=compiler.verbose.Errorcount;
               verbose.Message3(t,s1,s2,s3);
-              codegenerror:=olderrorcount<>Errorcount;
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;
 
 
     procedure cgmessagepos(const pos:tfileposinfo;t : longint);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=Errorcount;
+              olderrorcount:=compiler.verbose.Errorcount;
               verbose.MessagePos(pos,t);
-              codegenerror:=olderrorcount<>Errorcount;
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;
 
     procedure cgmessagepos1(const pos:tfileposinfo;t : longint;const s1 : TMsgStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=Errorcount;
+              olderrorcount:=compiler.verbose.Errorcount;
               verbose.MessagePos1(pos,t,s1);
-              codegenerror:=olderrorcount<>Errorcount;
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;
 
     procedure cgmessagepos2(const pos:tfileposinfo;t : longint;const s1,s2 : TMsgStr);
       var
-         olderrorcount : longint;
-      begin
-         if not(codegenerror) then
-           begin
-              olderrorcount:=Errorcount;
-              verbose.MessagePos2(pos,t,s1,s2);
-              codegenerror:=olderrorcount<>Errorcount;
-           end;
-      end;
-
-    procedure cgmessagepos3(const pos:tfileposinfo;t : longint;const s1,s2,s3 : TMsgStr);
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          olderrorcount : longint;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=Errorcount;
+              olderrorcount:=compiler.verbose.Errorcount;
+              verbose.MessagePos2(pos,t,s1,s2);
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos3(const pos:tfileposinfo;t : longint;const s1,s2,s3 : TMsgStr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=compiler.verbose.Errorcount;
               verbose.MessagePos3(pos,t,s1,s2,s3);
-              codegenerror:=olderrorcount<>Errorcount;
+              codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;
 

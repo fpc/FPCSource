@@ -5141,7 +5141,7 @@ begin
   Option.VerifyTargetProcessor;
 
   { Stop if errors in options }
-  if ErrorCount>0 then
+  if compiler.verbose.ErrorCount>0 then
    StopOptions(1);
 
   { Write logo }

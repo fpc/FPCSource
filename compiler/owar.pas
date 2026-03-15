@@ -28,6 +28,7 @@ interface
 uses
   globtype,
   cclasses,
+  compilerbase,
   owbase;
 
 type
@@ -95,6 +96,7 @@ implementation
       cstreams,
       systems,
       globals,
+      compiler,
       verbose;
 
     const
@@ -178,8 +180,10 @@ implementation
 
 
     destructor tarobjectwriter.destroy;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if Errorcount=0 then
+        if compiler.verbose.Errorcount=0 then
          writear;
         arData.Free;
         arData := nil;

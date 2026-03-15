@@ -1812,6 +1812,8 @@ implementation
   end;
 
   procedure add_synthetic_interface_classes_for_st(st : tsymtable; gen_intf, gen_impl : boolean);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   var
     i   : longint;
@@ -1826,7 +1828,7 @@ implementation
   begin
     { skip if any errors have occurred, since then this can only cause more
       errors }
-    if ErrorCount<>0 then
+    if compiler.verbose.ErrorCount<>0 then
       exit;
     isDelphiMode:=(m_delphi in current_settings.modeswitches);
     replace_scanner('hiddenclass_impl',sstate);
@@ -1866,13 +1868,15 @@ implementation
 
   procedure add_synthetic_method_implementations(st: tsymtable);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       i: longint;
       def: tdef;
       sstate: tscannerstate;
     begin
       { skip if any errors have occurred, since then this can only cause more
         errors }
-      if ErrorCount<>0 then
+      if compiler.verbose.ErrorCount<>0 then
         exit;
       replace_scanner('synthetic_impl',sstate);
       add_synthetic_method_implementations_for_st(st);
