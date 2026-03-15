@@ -61,8 +61,10 @@ interface
         Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
 
         procedure InitVerbose;
+        procedure DoneVerbose;
       public
         constructor Create;
+        destructor Destroy; override;
 
         procedure SetRedirectFile(const fn:string);
         function  SetVerbosity(const s:TCmdStr):boolean;
@@ -106,9 +108,6 @@ interface
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
-
-    procedure DoneVerbose;
-
 
     const
       printnodespacing = '   ';
@@ -1045,6 +1044,12 @@ implementation
       end;
 
 
+    destructor TVerbose.Destroy;
+      begin
+        DoneVerbose;
+      end;
+
+
     procedure TVerbose.InitVerbose;
       begin
       { Init }
@@ -1076,7 +1081,7 @@ implementation
       end;
 
 
-    procedure DoneVerbose;
+    procedure TVerbose.DoneVerbose;
       begin
         if assigned(msg) then
          begin

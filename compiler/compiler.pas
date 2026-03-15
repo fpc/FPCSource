@@ -568,7 +568,6 @@ begin
 
        SetExceptionMask(ExceptionMask);
      end;
-     DoneVerbose;
      FreeAndNil(FVerbose);
   except
     on EControlCAbort do
@@ -585,7 +584,7 @@ begin
           on ECompilerAbort do
             ;
         end;
-        DoneVerbose;
+        FreeAndNil(FVerbose);
       end;
     on ECompilerAbort do
       begin
@@ -601,11 +600,11 @@ begin
           on ECompilerAbort do
             ;
         end;
-        DoneVerbose;
+        FreeAndNil(FVerbose);
       end;
     on ECompilerAbortSilent do
       begin
-        DoneVerbose;
+        FreeAndNil(FVerbose);
       end;
     on EOutOfMemory do
       begin
@@ -615,7 +614,7 @@ begin
           on ECompilerAbort do
             ;
         end;
-        DoneVerbose;
+        FreeAndNil(FVerbose);
       end;
     on e : EInOutError do
       begin
@@ -625,7 +624,7 @@ begin
           on ECompilerAbort do
             ;
         end;
-        DoneVerbose;
+        FreeAndNil(FVerbose);
       end;
     on e : EOSError do
       begin
@@ -635,7 +634,7 @@ begin
           on ECompilerAbort do
             ;
         end;
-        DoneVerbose;
+        FreeAndNil(FVerbose);
       end;
     on Exception do
       begin
@@ -655,7 +654,7 @@ begin
           on ECompilerAbort do
             ;
         end;
-        DoneVerbose;
+        FreeAndNil(FVerbose);
         Raise;
       end;
   end;
