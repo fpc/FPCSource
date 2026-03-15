@@ -3680,7 +3680,7 @@ begin
             SetCompileMode('DELPHI',true);
           'e' :
             begin
-              SetErrorFlags(copy(more,j+1));
+              compiler.verbose.SetErrorFlags(copy(more,j+1));
               break;
             end;
           'f' :

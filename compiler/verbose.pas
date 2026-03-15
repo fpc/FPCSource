@@ -67,9 +67,9 @@ interface
         function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
         procedure ShowStatus;
         function  ErrorCount:longint;
+        procedure SetErrorFlags(const s:string);
       end;
 
-    procedure SetErrorFlags(const s:string);
     procedure GenerateError;
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
@@ -510,7 +510,7 @@ implementation
       end;
 
 
-    procedure SetErrorFlags(const s:string);
+    procedure TVerbose.SetErrorFlags(const s:string);
       var
         code : integer;
         i,j,l : longint;
