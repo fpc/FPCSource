@@ -169,7 +169,7 @@ begin
   { first test the index value }
   if eo_index in hp.options then
    begin
-     Comment(V_Error,'can''t export with index under netware');
+     compiler.verbose.Comment(V_Error,'can''t export with index under netware');
      exit;
    end;
   { use pascal name is none specified }
@@ -238,7 +238,7 @@ begin
          end;
       end
      else
-      //Comment(V_Error,'Exporting of variables is not supported under netware');
+      //compiler.verbose.Comment(V_Error,'Exporting of variables is not supported under netware');
       Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
@@ -347,7 +347,7 @@ begin
        s2 := FindObjectFile('libcpre.gcc','',false);
    end else
      s2 := FindObjectFile('nwpre','',false);
-  Comment (V_Debug,'adding Object File '+s2);
+  compiler.verbose.Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
   if compiler.target.info.system = system_i386_netwlibc then
@@ -356,7 +356,7 @@ begin
        s2 := FindObjectFile('nwl_dlle','',false)
      else
        s2 := FindObjectFile('nwl_main','',false);
-     Comment (V_Debug,'adding Object File '+s2);
+     compiler.verbose.Comment (V_Debug,'adding Object File '+s2);
      {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
     end;
 
@@ -367,7 +367,7 @@ begin
     if s<>'' then
     begin
       s2 := FindObjectFile (s,'',false);
-      Comment (V_Debug,'adding Object File '+s2);
+      compiler.verbose.Comment (V_Debug,'adding Object File '+s2);
       {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
     end;
   end;
@@ -399,7 +399,7 @@ begin
   if not (cs_link_strip in current_settings.globalswitches) then
   begin
     NLMConvLinkFile.Add ('DEBUG');
-    Comment(V_Debug,'DEBUG');
+    compiler.verbose.Comment(V_Debug,'DEBUG');
   end;
 
   { Write staticlibraries }
@@ -418,7 +418,7 @@ begin
          begin
            S2 := FindObjectFile(s,'',false);
            {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
-           Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
+           compiler.verbose.Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
            i:=Pos(compiler.target.info.staticlibext,S);
@@ -427,11 +427,11 @@ begin
            S := S + '.imp'; S2 := '';
            librarysearchpath.FindFile(S,false,S2);
            {$ifdef netware}
-           Comment(V_Debug,'IMPORT @'+s2);
+           compiler.verbose.Comment(V_Debug,'IMPORT @'+s2);
            s2 := FExpand (S2);
            {$endif}
            NLMConvLinkFile.Add('IMPORT @'+S2);
-           Comment(V_Debug,'IMPORT @'+s2);
+           compiler.verbose.Comment(V_Debug,'IMPORT @'+s2);
          end;
         end
       end;
@@ -460,23 +460,23 @@ begin
              S := copy(S,2,255) + '.imp';
              librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
              {$endif}
              NLMConvLinkFile.Add('IMPORT @'+S3);
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
            end else
            begin
              S := S + '.imp';
              librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
              {$endif}
              NLMConvLinkFile.Add('IMPORT @'+S3);
              NLMConvLinkFile.Add('MODULE '+s2);
-             Comment(V_Debug,'MODULE '+S2);
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'MODULE '+S2);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
            end;
          end;
       end;
@@ -489,7 +489,7 @@ begin
      if not hp2.is_var then
       begin
         { Export the Symbol }
-        Comment(V_Debug,'EXPORT '+hp2.name^);
+        compiler.verbose.Comment(V_Debug,'EXPORT '+hp2.name^);
         NLMConvLinkFile.Add ('EXPORT '+hp2.name^);
       end
      else
@@ -517,14 +517,14 @@ begin
   while p > 0 do
   begin
     s2 := copy(s,1,p-1);
-    comment (V_Debug,'adding "'+s2+'" to nlmvonv input');
+    compiler.verbose.Comment (V_Debug,'adding "'+s2+'" to nlmvonv input');
     NLMConvLinkFile.Add(s2);
     delete (s,1,p);
     p := pos (';',s);
   end;
   if s <> '' then
   begin
-    comment (V_Debug,'adding "'+s+'" to nlmvonv input');
+    compiler.verbose.Comment (V_Debug,'adding "'+s+'" to nlmvonv input');
     NLMConvLinkFile.Add(s);
   end;
 
@@ -560,7 +560,7 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$TMPOBJ',maybequoted(outputexedir+tmpLinkFileName));
   BinStr:=FindUtil(utilsprefix+BinStr);
-  Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
+  compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(BinStr,CmdStr,true,false);
 
   { Remove ResponseFile }
@@ -575,7 +575,7 @@ begin
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
     BinStr:=FindUtil(utilsprefix+BinStr);
     Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
-    Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
+    compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);
     if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
@@ -655,7 +655,7 @@ end;
           if not sysutils.fileExists(fn) then
             if not includesearchpath.FindFile(fileName,true,fn) then
             begin
-              comment(v_error,'linker options file "'+fileName+'" not found');
+              compiler.verbose.Comment(v_error,'linker options file "'+fileName+'" not found');
               exit;
             end;
           assign(t,fn); reset(t);
@@ -701,7 +701,7 @@ end;
           if not sysutils.fileExists(fn) then
             if not includesearchpath.FindFile(fileName,true,fn) then
             begin
-              comment(v_error,'linker options file "'+fileName+'" not found');
+              compiler.verbose.Comment(v_error,'linker options file "'+fileName+'" not found');
               exit;
             end;
           assign(t,fn); reset(t);
@@ -756,7 +756,7 @@ end;
             if prelude = '' then internalerror(201103271);
             if pos ('.',prelude) = 0 then prelude := prelude + '.o';
             s2 := FindObjectFile(prelude,'',false);
-            Comment (V_Debug,'adding init Object File '+s2);
+            compiler.verbose.Comment (V_Debug,'adding init Object File '+s2);
             Concat('READOBJECT '+MaybeQuoted(s2));
             while not ObjectFiles.Empty do
               begin
@@ -764,7 +764,7 @@ end;
                 if s<>'' then
                 begin
                   Concat('READOBJECT '+MaybeQuoted(s));
-                  Comment (V_Debug,'adding Object File '+s);
+                  compiler.verbose.Comment (V_Debug,'adding Object File '+s);
                 end;
               end;
             while not StaticLibFiles.Empty do
@@ -772,7 +772,7 @@ end;
                 s:=StaticLibFiles.GetFirst;
                 if s<>'' then
                 begin
-                  Comment (V_Debug,'adding StaticLibFile '+s);
+                  compiler.verbose.Comment (V_Debug,'adding StaticLibFile '+s);
                   Concat('READSTATICLIBRARY '+MaybeQuoted(s));
                 end;
               end;
@@ -781,10 +781,10 @@ end;
                 S:=SharedLibFiles.GetFirst;
                 if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.importlibext,s2) then
                 begin
-                  Comment (V_Debug,'adding LibraryFile '+s);
+                  compiler.verbose.Comment (V_Debug,'adding LibraryFile '+s);
                   Concat('READSTATICLIBRARY '+MaybeQuoted(s2));
                 end else
-                  Comment(V_Error,'Import library not found for '+S);
+                  compiler.verbose.Comment(V_Error,'Import library not found for '+S);
               end;}
             if IsSharedLibrary then
               Concat('ISSHAREDLIBRARY');
@@ -932,7 +932,7 @@ end;
         s := ChangeFileExt(prelude,'.imp');  // nwpre.imp
         if not librarysearchpath.FindFile(s,true,s2) then
           begin
-            comment(v_error,s+' not found');
+            compiler.verbose.Comment(v_error,s+' not found');
             exit;
           end;
         assign(t,s2); reset(t);
@@ -973,7 +973,7 @@ end;
 
     Function  TInternalLinkerNetware.MakeSharedLibrary:boolean;
     begin
-      Comment(V_Error,'Make shared library not supported for netware');
+      compiler.verbose.Comment(V_Error,'Make shared library not supported for netware');
       MakeSharedLibrary := false;
     end;
 

@@ -2032,7 +2032,7 @@ implementation
     begin
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource);
 {$endif}
 
       if current_module.mainsource<>'' then
@@ -2081,7 +2081,7 @@ implementation
       WriteExtraFooter;
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
     end;
 

@@ -58,7 +58,7 @@ procedure ttgz80.setfirsttemp(l: asizeint);
     firsttemp:=l;
     lasttemp:=l;
 {$ifdef EXTDEBUG}
-    Comment(V_Note,'tgobj: (SetFirstTemp) set to '+tostr(l));
+    compiler.verbose.Comment(V_Note,'tgobj: (SetFirstTemp) set to '+tostr(l));
 {$endif}
   end;
 

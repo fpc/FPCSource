@@ -2460,6 +2460,8 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjInput.read_symbols(objdata:TObjData);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         size,
         address,
         nsyms,
@@ -2484,7 +2486,7 @@ const pemagic : array[0..3] of byte = (
         { keeps string manipulations out of main routine }
         procedure UnsupportedSymbolType;
           begin
-            Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(symcls)+' at index '+tostr(symidx)+' while reading '+InputFileName);
+            compiler.verbose.Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(symcls)+' at index '+tostr(symidx)+' while reading '+InputFileName);
           end;
 
       begin
@@ -2658,7 +2660,7 @@ const pemagic : array[0..3] of byte = (
 
                   if comdatsel in [oscs_associative] then
                     { only temporary }
-                    Comment(V_Error,'Associative COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
+                    compiler.verbose.Comment(V_Error,'Associative COMDAT sections are not yet supported (symbol: '+objsym.objsection.Name+')')
                   else if (comdatsel=oscs_associative) and (secrec.assoc=0) then
                     Message1(link_e_comdat_associative_section_expected,objsym.objsection.name)
                   else if (objsym.objsection.ComdatSelection<>oscs_none) and (comdatsel<>oscs_none) and (objsym.objsection.ComdatSelection<>comdatsel) then
@@ -3904,6 +3906,8 @@ const pemagic : array[0..3] of byte = (
 
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         DLLReader : TObjectReader;
         DosHeader : array[0..$7f] of byte;
         PEMagic   : array[0..3] of byte;
@@ -3938,7 +3942,7 @@ const pemagic : array[0..3] of byte = (
         if not DLLReader.Read(DosHeader,sizeof(DosHeader)) or
            (DosHeader[0]<>$4d) or (DosHeader[1]<>$5a) then
           begin
-            Comment(V_Error,'Invalid DLL '+dllname+', Dos Header invalid');
+            compiler.verbose.Comment(V_Error,'Invalid DLL '+dllname+', Dos Header invalid');
             exit;
           end;
         newheaderofs:=cardinal(DosHeader[$3c]) or (DosHeader[$3d] shl 8) or (DosHeader[$3e] shl 16) or (DosHeader[$3f] shl 24);
@@ -3946,7 +3950,7 @@ const pemagic : array[0..3] of byte = (
         if not DLLReader.Read(PEMagic,sizeof(PEMagic)) or
            (PEMagic[0]<>$50) or (PEMagic[1]<>$45) or (PEMagic[2]<>$00) or (PEMagic[3]<>$00) then
           begin
-            Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
+            compiler.verbose.Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
             exit;
           end;
 	header_ok:=DLLReader.Read(Header,sizeof(TCoffHeader));
@@ -3955,7 +3959,7 @@ const pemagic : array[0..3] of byte = (
            (Header.mach<>COFF_MAGIC) or
            (Header.opthdr<>sizeof(tcoffpeoptheader)) then
           begin
-            Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
+            compiler.verbose.Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
             exit;
           end;
         { Read optheader }
@@ -3967,7 +3971,7 @@ const pemagic : array[0..3] of byte = (
           begin
             if not DLLreader.read(sechdr,sizeof(sechdr)) then
               begin
-                Comment(V_Error,'Error reading coff file '+DLLName);
+                compiler.verbose.Comment(V_Error,'Error reading coff file '+DLLName);
                 exit;
               end;
             MaybeSwap(sechdr);
@@ -3980,7 +3984,7 @@ const pemagic : array[0..3] of byte = (
           end;
         if not found then
           begin
-            Comment(V_Warning,'DLL '+DLLName+' does not contain any exports');
+            compiler.verbose.Comment(V_Warning,'DLL '+DLLName+' does not contain any exports');
             exit;
           end;
         { Process edata }
@@ -3995,7 +3999,7 @@ const pemagic : array[0..3] of byte = (
             if {(NameOfs<0) or}
                (NameOfs>sechdr.vsize) then
               begin
-                Comment(V_Error,'DLL does contains invalid exports');
+                compiler.verbose.Comment(V_Error,'DLL does contains invalid exports');
                 break;
               end;
             { Read Function name from DLL, prepend _ and terminate with #0 }

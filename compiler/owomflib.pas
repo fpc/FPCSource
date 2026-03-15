@@ -533,7 +533,7 @@ implementation
                 length_of_string:=block^[ofs];
                 if (ofs+1+length_of_string+1)>High(TBlock) then
                   begin
-                    Comment(V_Error,'OMF dictionary entry goes beyond end of block');
+                    compiler.verbose.Comment(V_Error,'OMF dictionary entry goes beyond end of block');
                     continue;
                   end;
                 SetLength(name,length_of_string);
@@ -577,7 +577,7 @@ implementation
           if islib then
             ReadLibrary
           else if (not allow_nonar) then
-            Comment(V_Error,'Not an OMF library file, illegal magic: '+filename);
+            compiler.verbose.Comment(V_Error,'Not an OMF library file, illegal magic: '+filename);
         end;
     end;
 

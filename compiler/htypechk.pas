@@ -2864,16 +2864,16 @@ implementation
       begin
         if not CheckVerbosity(lvl) then
          exit;
-        Comment(lvl+V_LineInfo,'Overloaded callnode: '+FProcsym.name+'('+ParaTreeStr(tcallparanode(FParaNode))+')');
+        compiler.verbose.Comment(lvl+V_LineInfo,'Overloaded callnode: '+FProcsym.name+'('+ParaTreeStr(tcallparanode(FParaNode))+')');
         hp:=FCandidateProcs;
         while assigned(hp) do
          begin
-           Comment(lvl,'  '+hp^.data.fullprocname(false));
+           compiler.verbose.Comment(lvl,'  '+hp^.data.fullprocname(false));
            if (hp^.invalid) then
-            Comment(lvl,'   invalid')
+            compiler.verbose.Comment(lvl,'   invalid')
            else
             begin
-              Comment(lvl,'   ex: '+tostr(hp^.te_count[te_exact])+
+              compiler.verbose.Comment(lvl,'   ex: '+tostr(hp^.te_count[te_exact])+
                           ' eq: '+tostr(hp^.te_count[te_equal])+
                           ' l1: '+tostr(hp^.te_count[te_convert_l1])+
                           ' l2: '+tostr(hp^.te_count[te_convert_l2])+
@@ -2890,7 +2890,7 @@ implementation
                begin
                  currpara:=tparavarsym(hp^.data.paras[i]);
                  if not(vo_is_hidden_para in currpara.varoptions) then
-                   Comment(lvl,'    - '+currpara.vardef.typename+' : '+EqualTypeName[currpara.eqval]);
+                   compiler.verbose.Comment(lvl,'    - '+currpara.vardef.typename+' : '+EqualTypeName[currpara.eqval]);
                end;
             end;
            hp:=hp^.next;

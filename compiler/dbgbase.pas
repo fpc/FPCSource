@@ -632,7 +632,7 @@ implementation
       begin
         if not assigned(CDebugInfo[compiler.target.dbg.id]) then
           begin
-            Comment(V_Fatal,'cg_f_debuginfo_output_not_supported');
+            compiler.verbose.Comment(V_Fatal,'cg_f_debuginfo_output_not_supported');
             exit;
           end;
 {$ifndef llvm}

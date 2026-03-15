@@ -662,7 +662,7 @@ Implementation
            else
              Message1(exec_i_assembling_pipe,owner.AsmFileName);
            if compiler.verbose.checkverbosity(V_Executable) then
-             comment(V_Executable,'Executing "'+maybequoted(owner.FindAssembler)+'" with command line "'+
+             compiler.verbose.comment(V_Executable,'Executing "'+maybequoted(owner.FindAssembler)+'" with command line "'+
                owner.MakeCmdLine+'"');
            POpen(outfile,maybequoted(owner.FindAssembler)+' '+owner.MakeCmdLine,'W');
          end

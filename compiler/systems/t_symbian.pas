@@ -87,7 +87,7 @@ implementation
                 if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
                   Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
                 else
-                  Comment(V_Error,'Import library not found for '+S);
+                  compiler.verbose.Comment(V_Error,'Import library not found for '+S);
             end;
             if IsSharedLibrary then
             begin

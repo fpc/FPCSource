@@ -207,9 +207,9 @@ implementation
               cg.executionweight:=100;
 {$ifdef EXTDEBUG}
             if (p.expectloc=LOC_INVALID) then
-              Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
+              compiler.verbose.Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
             if (p.location.loc<>LOC_INVALID) then
-              Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
+              compiler.verbose.Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
             if (cs_asm_nodes in current_settings.globalswitches) then
               logsecond(p.nodetype,true);
 {$endif EXTDEBUG}
@@ -228,12 +228,12 @@ implementation
 {$endif SUPPORT_MMX}
                       or ((p.location.loc=loc_reference) and (p.expectloc=loc_creference))
                       or ((p.location.loc=loc_void) and (p.nodetype = calln)) then
-                     Comment(V_Note,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype])
+                     compiler.verbose.Comment(V_Note,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype])
                    else
-                     Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
+                     compiler.verbose.Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
                  end;
                if (p.location.loc=LOC_INVALID) then
-                 Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
+                 compiler.verbose.Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;
 {$endif EXTDEBUG}
             if codegenerror then

@@ -470,8 +470,8 @@ var
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
-        Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
-        Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
+        compiler.verbose.Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
+        compiler.verbose.Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
         openppu:=true;
       end;
 
@@ -2171,11 +2171,11 @@ var
               Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.ppufilename,@queuecomment);
   {$ifdef DEBUG_UNIT_CRC_CHANGES}
               if (pu.u.interface_crc<>pu.interface_checksum) then
-                Comment(V_Normal,'  intfcrc change: '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
+                compiler.verbose.Comment(V_Normal,'  intfcrc change: '+hexstr(pu.u.interface_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.interface_checksum,8)+' in unit '+realmodulename^)
               else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                Comment(V_Normal,'  indcrc change: '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^)
+                compiler.verbose.Comment(V_Normal,'  indcrc change: '+hexstr(pu.u.indirect_crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.indirect_checksum,8)+' in unit '+realmodulename^)
               else
-                Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
+                compiler.verbose.Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
   {$endif DEBUG_UNIT_CRC_CHANGES}
               recompile_reason:=rr_crcchanged;
               {$IFDEF DEBUG_PPU_CYCLES}
@@ -2219,7 +2219,7 @@ var
               or (pu.u.crc<>pu.checksum) then
           begin
             {$ifdef DEBUG_UNIT_CRC_CHANGES}
-            Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
+            compiler.verbose.Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
             {$endif DEBUG_UNIT_CRC_CHANGES}
             recompile_reason:=rr_crcchanged;
             {$IFDEF DEBUG_PPU_CYCLES}

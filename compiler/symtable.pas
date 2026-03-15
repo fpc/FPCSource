@@ -521,7 +521,7 @@ implementation
         inherited create(s,ACompiler);
         { Note: this happens for the initial macro symtable, so no error here }
         if not assigned(current_module) then
-          comment(v_debug,'Current module not available for module id')
+          compiler.verbose.comment(v_debug,'Current module not available for module id')
         else
           moduleid:=current_module.moduleid;
       end;

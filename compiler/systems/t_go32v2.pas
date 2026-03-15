@@ -79,7 +79,7 @@ implementation
           if FindLibraryFile(name,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
             LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
           else
-            Comment(V_Error,'Import library not found for '+name);
+            compiler.verbose.Comment(V_Error,'Import library not found for '+name);
         end;
 
       begin

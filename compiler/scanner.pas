@@ -2954,7 +2954,7 @@ type
          rewrite(f);
         {$pop}
         if ioresult<>0 then
-         Comment(V_Fatal,'can''t create file '+fn);
+         compiler.verbose.Comment(V_Fatal,'can''t create file '+fn);
         setlength(buf,preprocbufsize);
         settextbuf(f,buf[0],preprocbufsize);
       { reset }
@@ -3455,6 +3455,8 @@ type
 
 
     procedure tscannerfile.tokenreadsettings(var asettings : tsettings; expected_size : asizeint);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     {    This procedure
        needs to be changed whenever
@@ -3535,7 +3537,7 @@ type
             whitespacetrimauto:=boolean(tokenreadbyte);
            endpos:=replaytokenbuf.pos;
            if endpos-startpos<>expected_size then
-             Comment(V_Error,'Wrong size of Settings read-in');
+             compiler.verbose.Comment(V_Error,'Wrong size of Settings read-in');
          end;
      end;
 

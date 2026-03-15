@@ -443,7 +443,7 @@ implementation
                   begin
                     { This should be the first parameter }
                     //if (intparareg<>1) then
-                    //  Comment(V_Warning,'intparareg should be one for funcret in tcpuparamanager.create_paraloc_info_intern');
+                    //  compiler.verbose.Comment(V_Warning,'intparareg should be one for funcret in tcpuparamanager.create_paraloc_info_intern');
                     paraloc^.loc:=LOC_REGISTER;
                     paraloc^.register:=newreg(R_INTREGISTER,parasupregs[0],R_SUBWHOLE);
                     inc(intparasize,align(tcgsize2size[paraloc^.size],sizeof(aint)));

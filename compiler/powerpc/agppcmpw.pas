@@ -1212,7 +1212,7 @@ interface
     begin
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.comment(v_info,'Start writing MPW-styled assembler output for '+current_module.mainsource);
 {$endif}
 
       WriteAsmFileHeader;
@@ -1230,7 +1230,7 @@ interface
 
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       comment(v_info,'Done writing MPW-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.comment(v_info,'Done writing MPW-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

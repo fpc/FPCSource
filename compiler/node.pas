@@ -871,7 +871,7 @@ implementation
     procedure tnode.mark_write;
       begin
 {$ifdef EXTDEBUG}
-        Comment(V_Warning,'mark_write not implemented for '+nodetype2str[nodetype]);
+        compiler.verbose.Comment(V_Warning,'mark_write not implemented for '+nodetype2str[nodetype]);
 {$endif EXTDEBUG}
       end;
 

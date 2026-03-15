@@ -459,6 +459,8 @@ implementation
 ****************************************************************************}
 
     procedure printnode_reset;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         assign(printnodefile,treelogfilename);
         {$push}{$I-}
@@ -466,7 +468,7 @@ implementation
         {$pop}
         if ioresult<>0 then
          begin
-           Comment(V_Error,'Error creating '+treelogfilename);
+           compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
         close(printnodefile);
@@ -752,7 +754,7 @@ implementation
         {$pop}
         if ioresult<>0 then
          begin
-           Comment(V_Error,'Error creating '+treelogfilename);
+           compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
         writeln(printnodefile);
@@ -1387,14 +1389,14 @@ implementation
           tempcreaten:
             begin
               {$ifdef EXTDEBUG}
-              comment(V_Debug,'keeping track of new temp node: '+hexstr(ttempbasenode(n).tempinfo));
+              compiler.verbose.Comment(V_Debug,'keeping track of new temp node: '+hexstr(ttempbasenode(n).tempinfo));
               {$endif EXTDEBUG}
               nodeset.FindOrAdd(ttempbasenode(n).tempinfo,sizeof(pointer));
             end;
           tempdeleten:
             begin
               {$ifdef EXTDEBUG}
-              comment(V_Debug,'got temp delete node: '+hexstr(ttempbasenode(n).tempinfo));
+              compiler.verbose.Comment(V_Debug,'got temp delete node: '+hexstr(ttempbasenode(n).tempinfo));
               {$endif EXTDEBUG}
               { don't remove temp nodes so that outside code can know if some temp
                 was only created in here }
@@ -1402,7 +1404,7 @@ implementation
               if assigned(hashsetitem) then
                 begin
                   {$ifdef EXTDEBUG}
-                  comment(V_Debug,'no longer keeping track of temp node');
+                  compiler.verbose.Comment(V_Debug,'no longer keeping track of temp node');
                   {$endif EXTDEBUG}
                   writeln('no longer keeping track of temp node');
                   nodeset.Remove(hashsetitem);
@@ -1411,7 +1413,7 @@ implementation
           temprefn:
             begin
               {$ifdef EXTDEBUG}
-              comment(V_Debug,'found temp ref node: '+hexstr(ttempbasenode(n).tempinfo));
+              compiler.verbose.Comment(V_Debug,'found temp ref node: '+hexstr(ttempbasenode(n).tempinfo));
               {$endif EXTDEBUG}
               if not assigned(nodeset.find(ttempbasenode(n).tempinfo,sizeof(pointer))) then
                 begin
@@ -1419,18 +1421,18 @@ implementation
                     begin
                       entry:=ptempinfo_flags_entry(tempinfo_flags_map[i]);
                       {$ifdef EXTDEBUG}
-                      comment(V_Debug,'comparing with tempinfo: '+hexstr(entry^.tempinfo));
+                      compiler.verbose.Comment(V_Debug,'comparing with tempinfo: '+hexstr(entry^.tempinfo));
                       {$endif EXTDEBUG}
                       if entry^.tempinfo=ttempbasenode(n).tempinfo then
                         begin
                           {$ifdef EXTDEBUG}
-                          comment(V_Debug,'temp node exists');
+                          compiler.verbose.Comment(V_Debug,'temp node exists');
                           {$endif EXTDEBUG}
                           exit;
                         end;
                     end;
                   {$ifdef EXTDEBUG}
-                  comment(V_Debug,'storing node');
+                  compiler.verbose.Comment(V_Debug,'storing node');
                   {$endif EXTDEBUG}
                   new(entry);
                   entry^.tempinfo:=ttempbasenode(n).tempinfo;
@@ -1440,7 +1442,7 @@ implementation
               else
                 begin
                   {$ifdef EXTDEBUG}
-                  comment(V_Debug,'ignoring node');
+                  compiler.verbose.Comment(V_Debug,'ignoring node');
                   {$endif EXTDEBUG}
                 end;
             end;
@@ -1457,7 +1459,7 @@ implementation
         if assigned(tempinfo_flags_map) then
           internalerror(2020040601);
         {$ifdef EXTDEBUG}
-        comment(V_Debug,'storing temp nodes of '+procdef.mangledname);
+        compiler.verbose.Comment(V_Debug,'storing temp nodes of '+procdef.mangledname);
         {$endif EXTDEBUG}
         tempinfo_flags_map:=tfplist.create;
         nodeset:=THashSet.Create(32,false,false);

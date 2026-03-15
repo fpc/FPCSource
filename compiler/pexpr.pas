@@ -1175,7 +1175,7 @@ implementation
                this is only temporary we use a non translated message }
              if assigned(spezcontext) then
                begin
-                 comment(v_error, 'Pointers to generics functions not implemented');
+                 compiler.verbose.comment(v_error, 'Pointers to generics functions not implemented');
                  p1:=compiler.cerrornode;
                  spezcontext.free;
                  spezcontext := nil;
@@ -4488,7 +4488,7 @@ implementation
         if not assigned(p1) then
          begin
 {$ifdef EXTDEBUG}
-           Comment(V_Warning,'factor: p1=nil');
+           compiler.verbose.Comment(V_Warning,'factor: p1=nil');
 {$endif}
            p1:=compiler.cerrornode;
            updatefpos:=true;

@@ -510,7 +510,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {Message(scan_w_description_not_support);}
-          comment (V_Warning,'Screenname only supported for target netware');
+          compiler.verbose.comment (V_Warning,'Screenname only supported for target netware');
         current_scanner.skipspace;
         nwscreenname:=current_scanner.readcomment;
       end;
@@ -521,7 +521,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {Message(scan_w_description_not_support);}
-          comment (V_Warning,'Threadname only supported for target netware');
+          compiler.verbose.comment (V_Warning,'Threadname only supported for target netware');
         current_scanner.skipspace;
         nwthreadname:=current_scanner.readcomment;
       end;
@@ -532,7 +532,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
           {Message(scan_w_description_not_support);}
-          comment (V_Warning,'Copyright only supported for target netware');
+          compiler.verbose.comment (V_Warning,'Copyright only supported for target netware');
         current_scanner.skipspace;
         nwcopyright:=current_scanner.readcomment;
       end;
@@ -579,11 +579,13 @@ unit scandir;
       end;
 
     procedure dir_fputype;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_scanner.skipspace;
         undef_system_macro('FPU'+fputypestr[current_settings.fputype]);
         if not(SetFPUType(upper(current_scanner.readcomment),current_settings.fputype)) then
-          comment(V_Error,'Illegal FPU type');
+          compiler.verbose.comment(V_Error,'Illegal FPU type');
         def_system_macro('FPU'+fputypestr[current_settings.fputype]);
      end;
 
@@ -816,7 +818,7 @@ unit scandir;
         else if (LinkModeStr='SHARED') or (LinkModeStr='') then
          linkmode:=lm_shared
         else
-         Comment(V_Error,'Wrong link mode specified: "'+Linkmodestr+'"');
+         compiler.verbose.Comment(V_Error,'Wrong link mode specified: "'+Linkmodestr+'"');
 
         { add to the list of other libraries }
         if linkMode=lm_static then

@@ -2077,12 +2077,14 @@ implementation
 
 
     function TObjOutput.startObjectfile(const fn:string):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=false;
         { start the writer already, so the .a generation can initialize
           the position of the current objectfile }
         if not FWriter.createfile(fn) then
-         Comment(V_Fatal,'Can''t create object '+fn);
+         compiler.verbose.Comment(V_Fatal,'Can''t create object '+fn);
         result:=true;
       end;
 
@@ -2247,6 +2249,8 @@ implementation
 
 
     procedure TExeSection.AddObjSection(objsec:TObjSection;ignoreprops:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         ObjSectionList.Add(objsec);
         { relate ObjSection to ExeSection, and mark it Used by default }
@@ -2259,7 +2263,7 @@ implementation
             { Only if the section contains (un)initialized data the
               data flag must match. }
             if ((oso_Data in SecOptions)<>(oso_Data in objsec.SecOptions)) then
-              Comment(V_Error,'Incompatible section options');
+              compiler.verbose.Comment(V_Error,'Incompatible section options');
           end
         else
           begin
@@ -2478,7 +2482,7 @@ implementation
            FWriter.closefile;
          end
         else
-         Comment(V_Fatal,'Can''t create executable '+fn);
+         compiler.verbose.Comment(V_Fatal,'Can''t create executable '+fn);
       end;
 
 
@@ -2494,9 +2498,11 @@ implementation
 
 
     procedure TExeOutput.AddObjData(ObjData:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if ObjData.classtype<>FCObjData then
-          Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
+          compiler.verbose.Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
         ObjDataList.Add(ObjData);
         ExecStack:=ExecStack or ObjData.ExecStack;
       end;
@@ -2528,6 +2534,8 @@ implementation
 
     procedure TExeOutput.Load_ImageBase(const avalue:string);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         code : integer;
         objsec : TObjSection;
         objsym : TObjSymbol;
@@ -2535,7 +2543,7 @@ implementation
       begin
         val(avalue,FImageBase,code);
         if code<>0 then
-          Comment(V_Error,'Invalid number '+avalue);
+          compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
         { Create __image_base__ symbol, create the symbol
           in a section with adress 0 and at offset 0 }
         objsec:=internalObjData.createsection('*__image_base__',0,[]);
@@ -2667,13 +2675,15 @@ implementation
 
     procedure TExeOutput.Order_Align(const avalue:string);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         code     : integer;
         alignval : shortint;
         objsec   : TObjSection;
       begin
         val(avalue,alignval,code);
         if code<>0 then
-          Comment(V_Error,'Invalid number '+avalue);
+          compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
         if alignval<=0 then
           exit;
         { Create an empty section with the required aligning }
@@ -2685,6 +2695,8 @@ implementation
 
     procedure TExeOutput.Order_Zeros(const avalue:string);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         zeros : array[0..1023] of byte;
         code  : integer;
         len   : longint;
@@ -2692,7 +2704,7 @@ implementation
       begin
         val(avalue,len,code);
         if code<>0 then
-          Comment(V_Error,'Invalid number '+avalue);
+          compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
         if len<=0 then
           exit;
         if len>sizeof(zeros) then
@@ -2750,7 +2762,7 @@ implementation
               else
                 val(oneval,anumval,code);
               if code<>0 then
-                Comment(V_Error,'Invalid number '+avalue)
+                compiler.verbose.Comment(V_Error,'Invalid number '+avalue)
               else
                 begin
                   if (indexpos<MAXVAL) then
@@ -2770,18 +2782,18 @@ implementation
                       inc(indexpos);
                     end
                   else
-                    Comment(V_Error,'Buffer overrun in Order_values');
+                    compiler.verbose.Comment(V_Error,'Buffer overrun in Order_values');
                 end;
             end;
         until allvals='';
         if indexpos=0 then
           begin
-            Comment(V_Error,'Invalid number '+avalue);
+            compiler.verbose.Comment(V_Error,'Invalid number '+avalue);
             exit;
           end;
         if indexpos=MAXVAL then
           begin
-            Comment(V_Error,'Too many values '+avalue);
+            compiler.verbose.Comment(V_Error,'Too many values '+avalue);
             internalerror(2006022505);
           end;
         len:=bytesize*indexpos;
@@ -2964,6 +2976,8 @@ implementation
 
     procedure TExeOutput.PackUnresolvedExeSymbols(const s:string);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
         exesym : TExeSymbol;
       begin
@@ -2975,11 +2989,13 @@ implementation
               UnresolvedExeSymbols[i]:=nil;
           end;
         UnresolvedExeSymbols.Pack;
-        Comment(V_Debug,'Number of unresolved externals '+s+' '+tostr(UnresolvedExeSymbols.Count));
+        compiler.verbose.Comment(V_Debug,'Number of unresolved externals '+s+' '+tostr(UnresolvedExeSymbols.Count));
       end;
 
 
     procedure TExeOutput.ResolveSymbols(StaticLibraryList:TFPObjectList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         ObjData   : TObjData;
         exesym    : TExeSymbol;
@@ -3306,7 +3322,7 @@ implementation
             if objsym.exesymbol.State=symstate_defined then
               begin
                 if objsym.exesymbol.ObjSymbol.size<>objsym.size then
-                  Comment(V_Debug,'Size of common symbol '+objsym.name+' is different, expected '+tostr(objsym.size)+' got '+tostr(objsym.exesymbol.ObjSymbol.size));
+                  compiler.verbose.Comment(V_Debug,'Size of common symbol '+objsym.name+' is different, expected '+tostr(objsym.size)+' got '+tostr(objsym.exesymbol.ObjSymbol.size));
               end
             else
               begin
@@ -3348,7 +3364,7 @@ implementation
                   end;
               end
             else
-              Comment(V_Error,'Entrypoint '+EntryName+' not defined');
+              compiler.verbose.Comment(V_Error,'Entrypoint '+EntryName+' not defined');
           end;
 
         { Generate VTable tree }
@@ -3747,6 +3763,8 @@ implementation
 
     procedure TExeOutput.MarkEmptySections;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i, j   : longint;
         exesec : TExeSection;
         doremove : boolean;
@@ -3777,7 +3795,7 @@ implementation
               end;
             if doremove then
               begin
-                Comment(V_Debug,'Disabling empty section '+exesec.name);
+                compiler.verbose.Comment(V_Debug,'Disabling empty section '+exesec.name);
                 exesec.Disabled:=true;
               end;
           end;
@@ -4151,8 +4169,10 @@ implementation
 
 
     procedure TObjInput.inputerror(const s : string);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        Comment(V_Error,s+' while reading '+InputFileName);
+        compiler.verbose.Comment(V_Error,s+' while reading '+InputFileName);
       end;
 
 

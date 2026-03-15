@@ -301,7 +301,7 @@ implementation
        begin
          inppu.free;
          inppu := nil;
-         Comment(V_Error,'Could not open : '+PPUFn);
+         compiler.verbose.Comment(V_Error,'Could not open : '+PPUFn);
          Exit;
        end;
     { Check the ppufile }
@@ -309,7 +309,7 @@ implementation
        begin
          inppu.free;
          inppu := nil;
-         Comment(V_Error,'Not a PPU File : '+PPUFn);
+         compiler.verbose.Comment(V_Error,'Not a PPU File : '+PPUFn);
          Exit;
        end;
       ppuversion:=inppu.getversion;
@@ -317,7 +317,7 @@ implementation
        begin
          inppu.free;
          inppu := nil;
-         Comment(V_Error,'Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn);
+         compiler.verbose.Comment(V_Error,'Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn);
          Exit;
        end;
     { Already a lib? }
@@ -325,7 +325,7 @@ implementation
        begin
          inppu.free;
          inppu := nil;
-         Comment(V_Error,'PPU is already in a library : '+PPUFn);
+         compiler.verbose.Comment(V_Error,'PPU is already in a library : '+PPUFn);
          Exit;
        end;
     { We need a static linked unit, but we also accept those without .o file }
@@ -333,13 +333,13 @@ implementation
        begin
          inppu.free;
          inppu := nil;
-         Comment(V_Error,'PPU is not static linked : '+PPUFn);
+         compiler.verbose.Comment(V_Error,'PPU is not static linked : '+PPUFn);
          Exit;
        end;
     { Check if shared is allowed }
       if tsystem(inppu.header.common.target) in [system_i386_go32v2] then
        begin
-         Comment(V_Error,'Shared library not supported for ppu target, switching to static library');
+         compiler.verbose.Comment(V_Error,'Shared library not supported for ppu target, switching to static library');
          MakeStatic:=true;
        end;
     { Create the new ppu }
@@ -362,7 +362,7 @@ implementation
            inppu := nil;
            outppu.free;
            outppu := nil;
-           Comment(V_Error,'No files to be linked found : '+PPUFn);
+           compiler.verbose.Comment(V_Error,'No files to be linked found : '+PPUFn);
            Exit;
          end;
         if b<>untilb then
@@ -483,7 +483,7 @@ implementation
           entry:=ppackageentry(packagelist[i]);
           if assigned(entry^.package) then
             internalerror(2013053104);
-          Comment(V_Info,'Loading package: '+entry^.realpkgname);
+          compiler.verbose.Comment(V_Info,'Loading package: '+entry^.realpkgname);
           pcp:=tpcppackage.create(entry^.realpkgname,compiler);
           pcp.loadpcp;
           entry^.package:=pcp;

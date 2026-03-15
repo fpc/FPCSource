@@ -746,7 +746,7 @@ implementation
                       1 shl 23: ;           { ADD instruction }
                       1 shl 22: tmp:=-tmp;  { SUB instruction }
                     else
-                      Comment(v_error,'Group ALU relocations are permitted only for ADD or SUB instructions');
+                      compiler.verbose.Comment(v_error,'Group ALU relocations are permitted only for ADD or SUB instructions');
                       continue;
                     end;
                   end

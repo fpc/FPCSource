@@ -339,6 +339,8 @@ implementation
 
     constructor tarobjectreader.createAr(const Aarfn:string;allow_nonar:boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         magic:array[0..sizeof(armagic)-1] of char;
       begin
         inherited Create;
@@ -353,7 +355,7 @@ implementation
             if isar then
               ReadArchive
             else if (not allow_nonar) then
-              Comment(V_Error,'Not a ar file, illegal magic: '+filename);
+              compiler.verbose.Comment(V_Error,'Not a ar file, illegal magic: '+filename);
             Seek(0);
           end;
       end;
@@ -397,6 +399,8 @@ implementation
 
     function tarobjectreader.DecodeMemberName(ahdr:TArHdr):string;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
         code : integer;
         hsp,
@@ -419,7 +423,7 @@ implementation
             val(hs,lfnidx,code);
             if (lfnidx<0) or (lfnidx>=LFNSize) then
               begin
-                Comment(V_Error,'Invalid ar member lfn name index in '+filename);
+                compiler.verbose.Comment(V_Error,'Invalid ar member lfn name index in '+filename);
                 exit;
               end;
             p:=@LFNStrs[lfnidx];
@@ -442,6 +446,8 @@ implementation
 
     function tarobjectreader.DecodeMemberSize(ahdr:TArHdr):longint;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
         code : integer;
         hsp,
@@ -458,11 +464,13 @@ implementation
         hs[0]:=chr(hsp-@hs[1]);
         val(hs,result,code);
         if result<=0 then
-          Comment(V_Error,'Invalid ar member size in '+filename);
+          compiler.verbose.Comment(V_Error,'Invalid ar member size in '+filename);
       end;
 
 
     procedure tarobjectreader.ReadArchive;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         currarhdr   : tarhdr;
         nrelocs,
@@ -488,7 +496,7 @@ implementation
         symsize:=currfilesize-relocsize-4;
         if symsize<0 then
           begin
-            Comment(V_Error,'Illegal symtable in ar file '+filename);
+            compiler.verbose.Comment(V_Error,'Illegal symtable in ar file '+filename);
             exit;
           end;
         { Read relocs }
@@ -514,7 +522,7 @@ implementation
             inc(currp);
             if currp>endp then
               begin
-                Comment(V_Error,'Illegal symtable in ar file '+filename);
+                compiler.verbose.Comment(V_Error,'Illegal symtable in ar file '+filename);
                 break;
               end;
           end;

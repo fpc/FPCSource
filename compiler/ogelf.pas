@@ -2174,12 +2174,14 @@ implementation
 
     procedure TElfExeOutput.Load_DynamicObject(objdata:TObjData;asneeded:boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i: longint;
         exesym: TExeSymbol;
         objsym: TObjSymbol;
         needed: boolean;
       begin
-        Comment(v_debug,'Dynamic object: '+objdata.name);
+        compiler.verbose.Comment(v_debug,'Dynamic object: '+objdata.name);
         needed:=false;
         for i:=0 to UnresolvedExeSymbols.Count-1 do
           begin
@@ -2225,6 +2227,8 @@ implementation
 
 
     procedure TElfExeOutput.Order_end;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure set_oso_keep(const s:string;out firstsec:TObjSection);
         var
@@ -2266,7 +2270,7 @@ implementation
         set_oso_keep('.dtors',dummy);
         set_oso_keep('.preinit_array',preinitarraysec);
         if assigned(preinitarraysec) and IsSharedLibrary then
-          Comment(v_error,'.preinit_array section is not allowed in shared libraries');
+          compiler.verbose.Comment(v_error,'.preinit_array section is not allowed in shared libraries');
         set_oso_keep('.init_array',initarraysec);
         set_oso_keep('.fini_array',finiarraysec);
         set_oso_keep('.eh_frame',dummy);
@@ -2279,6 +2283,8 @@ implementation
 
 
     procedure TElfExeOutput.OrderOrphanSections;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,j:longint;
         objdata:TObjData;
@@ -2340,12 +2346,12 @@ implementation
                   inspos:=6   { text }
                 else
                   begin
-                    Comment(v_debug,'Orphan section '+objsec.fullname+' has attributes that are not handled!');
+                    compiler.verbose.Comment(v_debug,'Orphan section '+objsec.fullname+' has attributes that are not handled!');
                     continue;
                   end;
                 if (inserts[inspos]=nil) then
                   begin
-                    Comment(v_debug,'Orphan section '+objsec.fullname+': nowhere to insert, ignored');
+                    compiler.verbose.Comment(v_debug,'Orphan section '+objsec.fullname+': nowhere to insert, ignored');
                     continue;
                   end;
                 idx:=allsections.IndexOf(inserts[inspos]);
@@ -2366,6 +2372,8 @@ implementation
 
 
     procedure TElfExeOutput.AfterUnusedSectionRemoval;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i:longint;
         exesym:TExeSymbol;
@@ -2446,7 +2454,7 @@ implementation
               (exesym.state<>symstate_undefweak) then
               begin
                 if exesym.ObjSymbol.size=0 then
-                  Comment(v_error,'Dynamic variable '+exesym.name+' has zero size');
+                  compiler.verbose.Comment(v_error,'Dynamic variable '+exesym.name+' has zero size');
                 internalobjdata.setSection(dynbssobjsec);
                 internalobjdata.allocalign(size_2_align(exesym.ObjSymbol.size));
                 objsym:=internalobjdata.SymbolDefine(exesym.name,AB_GLOBAL,AT_DATA);
@@ -3280,16 +3288,20 @@ implementation
 
 
     procedure TElfExeOutput.ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { TODO: include objsec properties into message }
-        Comment(v_error,'Relocation '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
+        compiler.verbose.Comment(v_error,'Relocation '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
       end;
 
 
     procedure TElfExeOutput.ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { TODO: include objsec properties into message }
-        Comment(v_error,'Relocation truncated to fit: '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+'''');
+        compiler.verbose.Comment(v_error,'Relocation truncated to fit: '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+'''');
       end;
 
 

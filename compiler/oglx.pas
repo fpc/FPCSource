@@ -335,7 +335,7 @@ begin
     hsym:=tasmsymbol(globalsyms.Find('start'));
     if not assigned(hsym) then
     begin
-        comment(V_Error,'Entrypoint "start" not defined');
+        compiler.verbose.comment(V_Error,'Entrypoint "start" not defined');
         exit;
     end;
     header.eip:=hsym.address-sections[sec_code].mempos;

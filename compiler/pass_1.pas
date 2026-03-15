@@ -210,7 +210,7 @@ implementation
              if not(tnf_error in p.transientflags) then
                begin
                  if (p.expectloc=LOC_INVALID) then
-                   Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
+                   compiler.verbose.Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
                end;
 {$endif EXTDEBUG}
              codegenerror:=codegenerror or oldcodegenerror;

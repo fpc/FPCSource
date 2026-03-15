@@ -743,6 +743,8 @@ implementation
 
     procedure tstoredsym.register_sym;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         tmod : tmodule;
       begin
         if registered then
@@ -752,7 +754,7 @@ implementation
             tmod:=find_module_from_symtable(owner);
             if assigned(tmod) and assigned(current_module) and (tmod<>current_module) then
               begin
-                comment(v_error,'Symbol '+realname+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
+                compiler.verbose.comment(v_error,'Symbol '+realname+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
               end;
             if not assigned(tmod) then
               tmod:=current_module;

@@ -69,11 +69,13 @@ interface
         function  ErrorCount:longint;
         procedure SetErrorFlags(const s:string);
         procedure GenerateError;
+        //procedure Internalerror(i:longint);noreturn;
+        //procedure Internalerror(i:longint; const s : ansistring);noreturn;
+        procedure Comment(l:longint;s:ansistring);
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
-    procedure Comment(l:longint;s:ansistring);
     function  MessageStr(w:longint):TMsgStr;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
     procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
@@ -610,7 +612,7 @@ implementation
         doraise;
       end;
 
-    procedure Comment(l:longint;s:ansistring);
+    procedure TVerbose.Comment(l:longint;s:ansistring);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var

@@ -189,6 +189,8 @@ Implementation
 
     function GetFileCRC(const fn:TPathStr):cardinal;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         fs : TCStream;
         bufcount,
         bufsize  : Integer;
@@ -201,7 +203,7 @@ Implementation
           begin
             fs.Free;
             fs := nil;
-            Comment(V_Error,'Can''t open file: '+fn);
+            compiler.verbose.Comment(V_Error,'Can''t open file: '+fn);
             exit;
           end;
         setlength(buf,bufsize);
@@ -1648,7 +1650,7 @@ Implementation
             if FindLibraryFile(s,compiler.target.info.staticClibprefix,compiler.target.info.staticClibext,s2) then
               LinkScript.Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
             else
-              Comment(V_Error,'Import library not found for '+S);
+              compiler.verbose.Comment(V_Error,'Import library not found for '+S);
           end;
       end;
 
@@ -1739,13 +1741,15 @@ Implementation
 
     procedure TInternalLinker.Load_ReadObject(const para:TCmdStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         objdata   : TObjData;
         objinput  : TObjinput;
         objreader : TObjectReader;
         fn        : TCmdStr;
       begin
         fn:=FindObjectFile(para,'',false);
-        Comment(V_Tried,'Reading object '+fn);
+        compiler.verbose.Comment(V_Tried,'Reading object '+fn);
         objinput:=CObjInput.Create;
         objreader:=TObjectreader.create;
         if objreader.openfile(fn) then
@@ -1775,7 +1779,7 @@ Implementation
         { Don't load import libraries }
         if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
-        Comment(V_Tried,'Opening library '+para);
+        compiler.verbose.Comment(V_Tried,'Opening library '+para);
         objreader:=CArObjectreader.createAr(para,true);
         if compiler.verbose.ErrorCount>0 then
           exit;
@@ -1799,7 +1803,7 @@ Implementation
             end
           else       { try parsing as script }
             begin
-              Comment(V_Tried,'Interpreting '+para+' as ld script');
+              compiler.verbose.Comment(V_Tried,'Interpreting '+para+' as ld script');
               ScriptLexer:=TScriptLexer.Create(objreader);
               ParseLdScript(ScriptLexer);
               ScriptLexer.Free;
@@ -1828,6 +1832,8 @@ Implementation
 
     procedure TInternalLinker.ParseScript_Handle;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s{, para}, keyword : String;
         hp : TCmdStrListItem;
         i : longint;
@@ -1846,7 +1852,7 @@ Implementation
             keyword:=Upper(GetToken(s,' '));
             {para:=}GetToken(s,' ');
             if Trim(s)<>'' then
-              Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
+              compiler.verbose.Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
             if (keyword<>'SYMBOL') and
                (keyword<>'SYMBOLS') and
                (keyword<>'STABS') and
@@ -1868,7 +1874,7 @@ Implementation
                (keyword<>'GROUP') and
                (keyword<>'ENDGROUP')
                then
-              Comment(V_Warning,'Unknown keyword "'+keyword+'" in "'+hp.str
+              compiler.verbose.Comment(V_Warning,'Unknown keyword "'+keyword+'" in "'+hp.str
                 +'" internal linker script');
             hp:=TCmdStrListItem(hp.next);
           end;
@@ -1877,6 +1883,8 @@ Implementation
       end;
 
     procedure TInternalLinker.ParseScript_PostCheck;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : TCmdStrListItem;
         i : longint;
@@ -1888,7 +1896,7 @@ Implementation
             inc(i);
             if not IsHandled[i] then
               begin
-                Comment(V_Warning,'"'+hp.str+
+                compiler.verbose.Comment(V_Warning,'"'+hp.str+
                   '" internal linker script not handled');
               end;
             hp:=TCmdStrListItem(hp.next);

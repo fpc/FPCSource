@@ -3599,7 +3599,7 @@ cleanup:
                   else
                     begin
                       framebase:=0;
-                      Comment(V_Warning,'Encountered an OMF reference to a symbol, that is not present in the final executable: '+objreloc.symbol.Name);
+                      compiler.verbose.Comment(V_Warning,'Encountered an OMF reference to a symbol, that is not present in the final executable: '+objreloc.symbol.Name);
                     end;
                 case objreloc.typ of
                   RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG,RELOC_FARPTR,RELOC_FARPTR48:
@@ -3649,7 +3649,7 @@ cleanup:
                     else
                       begin
                         framebase:=0;
-                        Comment(V_Warning,'Encountered an OMF reference to a section, that is not present in the final executable: '+TOmfObjSection(objreloc.objsection).Name);
+                        compiler.verbose.Comment(V_Warning,'Encountered an OMF reference to a section, that is not present in the final executable: '+TOmfObjSection(objreloc.objsection).Name);
                       end;
                   end;
                 case objreloc.typ of

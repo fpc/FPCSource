@@ -28,7 +28,8 @@ interface
 uses
   globtype,
   cstreams,
-  cclasses;
+  cclasses,
+  compilerbase;
 
 type
   tobjectwriter=class
@@ -94,7 +95,7 @@ implementation
 
 uses
    SysUtils,
-   verbose, globals;
+   verbose, globals, compiler;
 
 const
   bufsize = 32768;
@@ -270,12 +271,14 @@ end;
 
 
 function tobjectreader.openfile(const fn:string):boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   openfile:=false;
   f:=CFileStreamClass.Create(fn,fmOpenRead);
   if CStreamError<>0 then
     begin
-       Comment(V_Error,'Can''t open object file: '+fn);
+       compiler.verbose.Comment(V_Error,'Can''t open object file: '+fn);
        exit;
     end;
   ffilename:=fn;

@@ -204,7 +204,7 @@ implementation
 {$ifdef EXTDEBUG}
            if not(templist^.temptype in FreeTempTypes) then
              begin
-               Comment(V_Warning,'tgobj: (ResetTempgen) temp at pos '+tostr(templist^.pos)+
+               compiler.verbose.Comment(V_Warning,'tgobj: (ResetTempgen) temp at pos '+tostr(templist^.pos)+
                        ' with size '+tostr(templist^.size)+' and type '+TempTypeStr[templist^.temptype]+
                        ' from pos '+tostr(templist^.posinfo.line)+':'+tostr(templist^.posinfo.column)+
                        ' not freed at the end of the procedure');
@@ -220,7 +220,7 @@ implementation
         lasttemp:=0;
         alignmismatch:=0;
 {$ifdef EXTDEBUG}
-         Comment(V_Note,'tgobj: (ResetTempGen) all temps freed');
+         compiler.verbose.Comment(V_Note,'tgobj: (ResetTempGen) all temps freed');
 {$endif}
       end;
 
@@ -238,7 +238,7 @@ implementation
          firsttemp:=l;
          lasttemp:=l;
 {$ifdef EXTDEBUG}
-         Comment(V_Note,'tgobj: (SetFirstTempGen) set to '+tostr(l));
+         compiler.verbose.Comment(V_Note,'tgobj: (SetFirstTempGen) set to '+tostr(l));
 {$endif}
       end;
 
@@ -269,7 +269,7 @@ implementation
          if size=0 then
           begin
 {$ifdef EXTDEBUG}
-            Comment(V_Note,'tgobj: (AllocTemp) temp of size 0 requested, allocating 4 bytes');
+            compiler.verbose.Comment(V_Note,'tgobj: (AllocTemp) temp of size 0 requested, allocating 4 bytes');
 {$endif}
             size:=4;
           end;
@@ -294,7 +294,7 @@ implementation
              begin
 {$ifdef EXTDEBUG}
                if not(hp^.temptype in FreeTempTypes) then
-                 Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to  a free temp type !');
+                 compiler.verbose.Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to  a free temp type !');
 {$endif}
                { Check only slots that are
                   - free
@@ -447,7 +447,7 @@ implementation
                 lasttemp:=tl^.pos+size;
               end;
 {$ifdef EXTDEBUG}
-         Comment(V_Note,'tgobj: (AllocTemp) lasttemp set to '+tostr(lasttemp));
+         compiler.verbose.Comment(V_Note,'tgobj: (AllocTemp) lasttemp set to '+tostr(lasttemp));
 {$endif}
             tl^.fini:=fini;
             tl^.alignment:=alignment;
@@ -462,7 +462,7 @@ implementation
            list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]+' for def '+tl^.def.typename))
          else
            list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]));
-         Comment(V_Note,'tgobj: (AllocTemp) temp of size '+tostr(size)+' type '+TempTypeStr[tl^.temptype]+' requested, allocated at offset '+tostr(tl^.pos));
+         compiler.verbose.Comment(V_Note,'tgobj: (AllocTemp) temp of size '+tostr(size)+' type '+TempTypeStr[tl^.temptype]+' requested, allocated at offset '+tostr(tl^.pos));
 {$else}
          list.concat(tai_tempalloc.alloc(tl^.pos,tl^.size));
 {$endif}
@@ -478,7 +478,7 @@ implementation
          hprev:=nil;
          hprevfree:=nil;
 {$ifdef EXTDEBUG}
-         Comment(V_Note,'tgobj: (FreeTemp) freeing of temp at pos '+tostr(pos.val)+' requested');
+         compiler.verbose.Comment(V_Note,'tgobj: (FreeTemp) freeing of temp at pos '+tostr(pos.val)+' requested');
 {$endif}
          while assigned(hp) do
           begin
@@ -488,7 +488,7 @@ implementation
                if hp^.temptype in FreeTempTypes then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Warning,'tgobj: (FreeTemp) temp at pos '+tostr(pos.val)+ ' is already free !');
+                  compiler.verbose.Comment(V_Warning,'tgobj: (FreeTemp) temp at pos '+tostr(pos.val)+ ' is already free !');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp is already freed'));
 {$endif}
                   exit;
@@ -498,9 +498,9 @@ implementation
                 begin
 {$ifdef DEBUG_FREETEMP}
                   if hp^.temptype = tt_persistent then
-                    Comment(V_Note,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing')
+                    compiler.verbose.Comment(V_Note,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing')
                   else
-                    Comment(V_Warning,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
+                    compiler.verbose.Comment(V_Warning,'tgobj: (Freetemp) temp at pos '+tostr(pos.val)+ ' has different type ('+TempTypeStr[hp^.temptype]+'), not releasing');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp has wrong type ('+TempTypeStr[hp^.temptype]+') not releasing'));
 {$endif}
                   exit;
@@ -625,7 +625,7 @@ implementation
              hp := hp^.next;
            end;
 {$ifdef EXTDEBUG}
-         comment(v_debug,'tgobj: (SizeOfTemp) temp at pos '+tostr(ref.temppos.val)+' not found !');
+         compiler.verbose.Comment(v_debug,'tgobj: (SizeOfTemp) temp at pos '+tostr(ref.temppos.val)+' not found !');
          list.concat(tai_tempalloc.allocinfo(ref.temppos.val,0,'temp not found'));
 {$endif}
       end;
@@ -645,7 +645,7 @@ implementation
                 begin
 {$ifdef EXTDEBUG}
                   if hp^.temptype=temptype then
-                    Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
+                    compiler.verbose.Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
                        ' at pos '+tostr(ref.temppos.val)+ ' is already of the correct type !');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'type changed to '+TempTypeStr[temptype]));
 {$endif}
@@ -655,7 +655,7 @@ implementation
                else
                 begin
 {$ifdef EXTDEBUG}
-                   Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
+                   compiler.verbose.Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
                       ' at pos '+tostr(ref.temppos.val)+ ' is already freed !');
                   list.concat(tai_tempalloc.allocinfo(hp^.pos,hp^.size,'temp is already freed'));
 {$endif}
@@ -665,7 +665,7 @@ implementation
             hp:=hp^.next;
           end;
 {$ifdef EXTDEBUG}
-         Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
+         compiler.verbose.Comment(V_Warning,'tgobj: (ChangeTempType) temp'+
             ' at pos '+tostr(ref.temppos.val)+ ' not found !');
          list.concat(tai_tempalloc.allocinfo(ref.temppos.val,0,'temp not found'));
 {$endif}

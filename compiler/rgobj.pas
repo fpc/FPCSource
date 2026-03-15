@@ -2200,7 +2200,7 @@ unit rgobj;
               begin
                 { Only report for imaginary registers }
                 if live_registers.buf[i]>=first_imaginary then
-                  Comment(V_Warning,'Register '+std_regname(newreg(regtype,live_registers.buf[i],defaultsub))+' not released');
+                  compiler.verbose.Comment(V_Warning,'Register '+std_regname(newreg(regtype,live_registers.buf[i],defaultsub))+' not released');
               end;
           end;
 {$endif}

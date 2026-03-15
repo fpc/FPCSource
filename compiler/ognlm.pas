@@ -412,7 +412,7 @@ end;
       var
         b:byte;
       begin
-        //Comment (V_Debug,'TNLMexeoutput.write_symbol '+name);
+        //compiler.verbose.Comment (V_Debug,'TNLMexeoutput.write_symbol '+name);
         {  type (0=.data,1=.code,2,..=????)                   1 byte
            addr                                               4 bytes
            name LString                                     1+n bytes }
@@ -634,7 +634,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
       begin
         with tExeSection(p) do
           begin
-            //comment (v_debug,'ExeSectionList_write_header: '+name);
+            //compiler.verbose.comment (v_debug,'ExeSectionList_write_header: '+name);
             nam := name;
             alignAmount := 4 - ((length (nam) + 1) MOD 4);
             FWriter.write(nam[1],length(nam));
@@ -923,7 +923,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         var
           secname:string;
         begin
-          //Comment (V_Debug,'TNLMexeoutput.GenerateLibraryImports.AddImport '+afuncName);
+          //compiler.verbose.Comment (V_Debug,'TNLMexeoutput.GenerateLibraryImports.AddImport '+afuncName);
           result:=nil;
           if assigned(exemap) then
             exemap.Add(' Importing Function '+afuncname);
@@ -1023,7 +1023,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                               importAddressList.Add(objreloc);
                             end else
                             begin
-                              comment(v_error,objreloc.symbol.name+' is external but not defined in nlm imports');
+                              compiler.verbose.comment(v_error,objreloc.symbol.name+' is external but not defined in nlm imports');
                             end;
                         end;
                     end
@@ -1066,7 +1066,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                   objsec := objreloc.objsection;
                   if oso_executable in objreloc.objsection.SecOptions then
                     begin
-                      if objreloc.typ <> RELOC_RELATIVE then comment(v_error,'reference to external symbols must be RELOC_RELATIVE');
+                      if objreloc.typ <> RELOC_RELATIVE then compiler.verbose.comment(v_error,'reference to external symbols must be RELOC_RELATIVE');
                       // TODO: how to check if size is 4 ????
 
                       k := objsec.MemPos + objreloc.DataOffset;
@@ -1083,7 +1083,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                           objsec.Data.seek(objreloc.DataOffset-1);
                           objsec.data.read(b,1);
                           if b <> $E8 then
-                            comment(v_error,'no rcall (E8) before imported symbol target address');
+                            compiler.verbose.comment(v_error,'no rcall (E8) before imported symbol target address');
                           k := -4;
                           objsec.Data.write(k,sizeof(k));
                         end else
@@ -1094,7 +1094,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                         end;
                         objreloc.typ := RELOC_NONE;  // to avoid that TCoffObjSection.fixuprelocs changes the address again
                     end else
-                      comment(v_error,'Importing of symbols only supported for .text');
+                      compiler.verbose.comment(v_error,'Importing of symbols only supported for .text');
                 end;
             end;
         end;
@@ -1136,7 +1136,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
           exesym:=texesymbol(ExeSymbolList.Find(hp.sym.prettyname));
           if not assigned(exesym) then
           begin
-            comment(v_error,'exported symbol '+hp.sym.prettyname+' not found');
+            compiler.verbose.comment(v_error,'exported symbol '+hp.sym.prettyname+' not found');
             exit;
           end;
           // for exported functions we have to set the upper bit
@@ -1305,13 +1305,13 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
               if not fileExists(fn) then
                if not unitsearchpath.FindFile(fileName,true,fn) then
                  begin
-                   comment(v_error,'can not find '+desc+' file '+fileName);
+                   compiler.verbose.comment(v_error,'can not find '+desc+' file '+fileName);
                    exit;
                  end;
                fileH := fileOpen (fn,fmOpenRead);
                if fileH = THandle(-1) then
                  begin
-                   comment(v_error,'can not open '+desc+' file '+fn);
+                   compiler.verbose.comment(v_error,'can not open '+desc+' file '+fn);
                    exit;
                   end;
                { load file into section  }
@@ -1346,11 +1346,11 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                 end;
               if keyword = 'DATE' then  // month day 4-digit-year
               begin
-                if not toInteger(GetToken(opt,' '),1,12,i) then comment(v_error,'DATE: invalid month')
+                if not toInteger(GetToken(opt,' '),1,12,i) then compiler.verbose.comment(v_error,'DATE: invalid month')
                   else nlmVersionHeader.month := i;
-                if not toInteger(GetToken(opt,' '),1,31,i) then comment(v_error,'DATE: invalid day')
+                if not toInteger(GetToken(opt,' '),1,31,i) then compiler.verbose.comment(v_error,'DATE: invalid day')
                   else nlmVersionHeader.day := i;
-                if not toInteger(GetToken(opt,' '),1900,3000,i) then comment(v_error,'DATE: invalid year')
+                if not toInteger(GetToken(opt,' '),1900,3000,i) then compiler.verbose.comment(v_error,'DATE: invalid year')
                   else nlmVersionHeader.year := i;
               end else
               if keyword = 'DEBUG' then
@@ -1366,7 +1366,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
               if keyword = 'FLAG' then
                 begin
                   s := upper(GetToken(opt,' '));
-                  if (not toInteger(GetToken(opt,' '),1,$FFFFFFF,i)) or ((s <> 'ON') and (S <> 'OFF')) then comment(v_error,'FLAG: invalid') else
+                  if (not toInteger(GetToken(opt,' '),1,$FFFFFFF,i)) or ((s <> 'ON') and (S <> 'OFF')) then compiler.verbose.comment(v_error,'FLAG: invalid') else
                     if (s='ON') then
                       nlmHeader.flags:=nlmHeader.flags or i else
                     nlmHeader.flags:=nlmHeader.flags and ($FFFFFFF-i);
@@ -1403,7 +1403,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                 end else
               if (keyword = 'STACK') or (keyword = 'STACKSIZE') then
                 begin
-                   if (not toInteger(GetToken(opt,' '),1,$FFFFFFF,i)) then comment(v_error,'invalid stacksize') else
+                   if (not toInteger(GetToken(opt,' '),1,$FFFFFFF,i)) then compiler.verbose.comment(v_error,'invalid stacksize') else
                      stacksize := i;
                 end else
               if keyword = 'SYNCHRONIZE' then
@@ -1418,16 +1418,16 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                 end else
               if keyword = 'TYPE' then
                 begin
-                   if (not toInteger(GetToken(opt,' '),1,16,i)) then comment(v_error,'invalid TYPE') else
+                   if (not toInteger(GetToken(opt,' '),1,16,i)) then compiler.verbose.comment(v_error,'invalid TYPE') else
                      nlmHeader.moduleType := i;  // TODO: set executable extension (.DSK, .LAN, ...)
                 end else
               if keyword = 'VERSION' then
                 begin
-                   if (not toInteger(GetToken(opt,' '),0,$FFFFFFF,i)) then comment(v_error,'invalid major version') else
+                   if (not toInteger(GetToken(opt,' '),0,$FFFFFFF,i)) then compiler.verbose.comment(v_error,'invalid major version') else
                      nlmVersionHeader.majorVersion := i;
-                   if (not toInteger(GetToken(opt,' '),0,99,i)) then comment(v_error,'invalid minor version') else
+                   if (not toInteger(GetToken(opt,' '),0,99,i)) then compiler.verbose.comment(v_error,'invalid minor version') else
                      nlmVersionHeader.minorVersion := i;
-                   if (not toInteger(GetToken(opt,' '),0,$FFFFFFF,i)) then comment(v_error,'invalid minor version') else
+                   if (not toInteger(GetToken(opt,' '),0,$FFFFFFF,i)) then compiler.verbose.comment(v_error,'invalid minor version') else
                      if i > 26 then
                        nlmVersionHeader.revision := 0 else
                        nlmVersionHeader.revision := i;

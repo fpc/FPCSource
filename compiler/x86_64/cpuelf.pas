@@ -254,7 +254,7 @@ implementation
             if not (IsSharedLibrary or (sym.dynindex>0)) then
               begin
                 if not IsValidIEtoLE(objsec,ObjReloc) then
-                  Comment(v_error,'Cannot transform TLS IE to LE');
+                  compiler.verbose.Comment(v_error,'Cannot transform TLS IE to LE');
                 TranslateIEtoLE(objsec,ObjReloc);
                 ObjReloc.ftype:=R_X86_64_TPOFF32;
                 exit;

@@ -145,8 +145,8 @@ implementation
       Message1(package_u_pcp_crc,hexstr(pcpfile.header.checksum,8));
       (*Message1(package_u_pcp_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
       Message1(package_u_pcp_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
-      Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
-      Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
+      compiler.verbose.Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
+      compiler.verbose.Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
       do_compile:=false;*)
       result:=true;
     end;
@@ -445,7 +445,7 @@ implementation
         Message1(package_f_cant_read_pcp,realpackagename^);
       newpackagename:=pcpfile.getstring;
       if upper(newpackagename)<>packagename^ then
-        Comment(V_Error,'Package was renamed: '+realpackagename^);
+        compiler.verbose.Comment(V_Error,'Package was renamed: '+realpackagename^);
 
       readcontainernames;
 

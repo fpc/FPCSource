@@ -167,7 +167,7 @@ begin
   { first test the index value }
   if eo_index in hp.options then
    begin
-     Comment(V_Error,'can''t export with index under netware');
+     compiler.verbose.Comment(V_Error,'can''t export with index under netware');
      exit;
    end;
   { use pascal name is none specified }
@@ -236,7 +236,7 @@ begin
          end;
       end
      else
-      //Comment(V_Error,'Exporting of variables is not supported under netware');
+      //compiler.verbose.Comment(V_Error,'Exporting of variables is not supported under netware');
       Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
@@ -341,14 +341,14 @@ begin
   s2 := FindObjectFile('nwplibc','',false);
   if s2 = '' then
     s2 := FindObjectFile('libcpre.gcc','',false);
-  Comment (V_Debug,'adding Object File '+s2);
+  compiler.verbose.Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
   if isDll then  {needed to provide main}
     s2 := FindObjectFile('nwl_dlle','',false)
   else
     s2 := FindObjectFile('nwl_main','',false);
-  Comment (V_Debug,'adding Object File '+s2);
+  compiler.verbose.Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
   { main objectfiles, add to linker input }
@@ -358,7 +358,7 @@ begin
     if s<>'' then
     begin
       s2 := FindObjectFile (s,'',false);
-      Comment (V_Debug,'adding Object File '+s2);
+      compiler.verbose.Comment (V_Debug,'adding Object File '+s2);
       {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
     end;
   end;
@@ -380,7 +380,7 @@ begin
   if not (cs_link_strip in current_settings.globalswitches) then
   begin
     NLMConvLinkFile.Add ('DEBUG');
-    Comment(V_Debug,'DEBUG');
+    compiler.verbose.Comment(V_Debug,'DEBUG');
   end;
 
   { Write staticlibraries }
@@ -399,7 +399,7 @@ begin
          begin
            S2 := FindObjectFile(s,'',false);
            {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
-           Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
+           compiler.verbose.Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
            i:=Pos(compiler.target.info.staticlibext,S);
@@ -408,11 +408,11 @@ begin
            S := S + '.imp'; S2 := '';
            librarysearchpath.FindFile(S,false,S2);
            {$ifdef netware}
-           Comment(V_Debug,'IMPORT @'+s2);
+           compiler.verbose.Comment(V_Debug,'IMPORT @'+s2);
            s2 := FExpand (S2);
            {$endif}
            NLMConvLinkFile.Add('IMPORT @'+S2);
-           Comment(V_Debug,'IMPORT @'+s2);
+           compiler.verbose.Comment(V_Debug,'IMPORT @'+s2);
          end;
         end
       end;
@@ -443,23 +443,23 @@ begin
              S := S + '.imp';
              librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
              {$endif}
              NLMConvLinkFile.Add('IMPORT @'+S3);
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
            end else
            begin
              S := S + '.imp';
              librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
              {$endif}
              NLMConvLinkFile.Add('IMPORT @'+S3);
              NLMConvLinkFile.Add('MODULE '+s2);
-             Comment(V_Debug,'MODULE '+S2);
-             Comment(V_Debug,'IMPORT @'+S3);
+             compiler.verbose.Comment(V_Debug,'MODULE '+S2);
+             compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
            end;
          end
       end;
@@ -472,12 +472,12 @@ begin
      if not hp2.is_var then
       begin
         { Export the Symbol }
-        Comment(V_Debug,'EXPORT '+hp2.name^);
+        compiler.verbose.Comment(V_Debug,'EXPORT '+hp2.name^);
         NLMConvLinkFile.Add ('EXPORT '+hp2.name^);
       end
      else
       { really, i think it is possible }
-      {Comment(V_Error,'Exporting of variables is not supported under netware');}
+      {compiler.verbose.Comment(V_Error,'Exporting of variables is not supported under netware');}
       Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
@@ -501,14 +501,14 @@ begin
   while p > 0 do
   begin
     s2 := copy(s,1,p-1);
-    comment (V_Debug,'adding "'+s2+'" to nlmvonv input');
+    compiler.verbose.Comment (V_Debug,'adding "'+s2+'" to nlmvonv input');
     NLMConvLinkFile.Add(s2);
     delete (s,1,p);
     p := pos (';',s);
   end;
   if s <> '' then
   begin
-    comment (V_Debug,'adding "'+s+'" to nlmvonv input');
+    compiler.verbose.Comment (V_Debug,'adding "'+s+'" to nlmvonv input');
     NLMConvLinkFile.Add(s);
   end;
 
@@ -579,7 +579,7 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$TMPOBJ',maybequoted(outputexedir+tmpLinkFileName));
   BinStr:=FindUtil(utilsprefix+BinStr);
-  Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
+  compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(BinStr,CmdStr,true,false);
 
   { Remove ResponseFile }
@@ -594,7 +594,7 @@ begin
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
     Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
     BinStr:=FindUtil(utilsprefix+BinStr);
-    Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
+    compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);
     if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin

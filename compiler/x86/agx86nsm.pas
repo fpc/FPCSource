@@ -1400,7 +1400,7 @@ interface
     begin
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.comment(v_info,'Start writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif}
       ResetSectionsList;
       WriteHeader;
@@ -1427,7 +1427,7 @@ interface
       WriteGroups;
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

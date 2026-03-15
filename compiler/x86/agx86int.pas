@@ -1081,7 +1081,7 @@ implementation
     begin
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource);
 {$endif}
       if asminfo^.id<>as_x86_64_masm then
         begin
@@ -1130,7 +1130,7 @@ implementation
 
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
-       comment(v_info,'Done writing intel-styled assembler output for '+current_module.mainsource);
+       compiler.verbose.comment(v_info,'Done writing intel-styled assembler output for '+current_module.mainsource);
 {$endif EXTDEBUG}
    end;
 

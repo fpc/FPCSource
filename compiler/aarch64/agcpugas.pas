@@ -478,10 +478,10 @@ unit agcpugas;
                             tmplist.concat(tai_comment.Create(strpnew('instr: '+tostr(instrcount)+', data: '+tostr(datacount)+', unwind: '+tostr(unwinddata.size))));
 
                             {$ifdef EXTDEBUG}
-                            comment(V_Debug,'got section: '+lastsec.name^);
-                            comment(V_Debug,'got instructions: '+tostr(instrcount));
-                            comment(V_Debug,'got data: '+tostr(datacount));
-                            comment(V_Debug,'got unwinddata: '+tostr(unwinddata.size));
+                            compiler.verbose.comment(V_Debug,'got section: '+lastsec.name^);
+                            compiler.verbose.comment(V_Debug,'got instructions: '+tostr(instrcount));
+                            compiler.verbose.comment(V_Debug,'got data: '+tostr(datacount));
+                            compiler.verbose.comment(V_Debug,'got unwinddata: '+tostr(unwinddata.size));
                             {$endif EXTDEBUG}
 
                             if datacount mod 4<>0 then
@@ -492,7 +492,7 @@ unit agcpugas;
                             { splitting to multiple pdata/xdata sections is not yet
                               supported, so 1 MB is our limit for now }
                             if totalcount>(1 shl 18) then
-                              comment(V_Error,'Function is larger than 1 MB which is not supported for SEH currently');
+                              compiler.verbose.comment(V_Error,'Function is larger than 1 MB which is not supported for SEH currently');
 
                             unwindrec:=min(totalcount,(1 shl 18)-1);
                             if handlerflags<>0 then
@@ -517,7 +517,7 @@ unit agcpugas;
                                 { once we're able to split a .pdata entry this can be
                                   removed as well }
                                 if unwinddata.size div 4>255 then
-                                  comment(V_Error,'Too many unwind codes for SEH');
+                                  compiler.verbose.comment(V_Error,'Too many unwind codes for SEH');
                                 unwindrec:=(unwinddata.size div 4) shl 16;
                                 tmplist.concat(tai_const.create_32bit(longint(unwindrec)));
                                 if cs_asm_source in init_settings.globalswitches then

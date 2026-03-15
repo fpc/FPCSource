@@ -587,7 +587,7 @@ implementation
               else if idf_version>=50200 then
                 CheckAddUnit('espidf_50200')
               else
-                Comment(V_Warning, 'Unsupported esp-idf version');
+                compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
             end
           else if (current_settings.controllertype=ct_esp32s2) or (current_settings.controllertype=ct_esp32s3) then
             begin
@@ -621,7 +621,7 @@ implementation
               else if idf_version>=40400 then
                 CheckAddUnit('esp32c2idf_40400')
               else
-                Comment(V_Warning, 'Unsupported esp-idf version');
+                compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
             end;
           if (current_settings.controllertype=ct_esp32c3) then
             begin
@@ -641,7 +641,7 @@ implementation
               if idf_version>=50200 then
                 CheckAddUnit('esp32c6idf_50200')
               else
-                Comment(V_Warning, 'Unsupported esp-idf version');
+                compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
             end;
 {$endif RISCV32}
       end;

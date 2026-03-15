@@ -148,7 +148,7 @@ implementation
             tcpuprocdef(procdef).total_local_size:=result;
           end
         else if computed_local_size <> result then
-          Comment(V_Error,'tcpuprocinfo.calc_stackframe_size result changed');
+          compiler.verbose.Comment(V_Error,'tcpuprocinfo.calc_stackframe_size result changed');
       end;
 
 

@@ -291,7 +291,7 @@ begin
       msg:=MessageStr(option_logo);
       p:=pchar(msg);
       while assigned(p) do
-        Comment(V_Normal,GetMsgLine(p));
+        compiler.verbose.Comment(V_Normal,GetMsgLine(p));
       LogoWritten:= true;
     end;
 end;
@@ -344,12 +344,12 @@ const
          OrigString := HS2;
          Exit;
         end;
-       Comment (V_Normal, HS2);
+       compiler.verbose.Comment (V_Normal, HS2);
        Delete (OrigString, 1, Pred (I) + Length (NewLineStr));
       end;
     until I = 0;
     if (OrigString <> '') and (Pos (Placeholder, OrigString) = 0) then
-     Comment (V_Normal, OrigString);
+     compiler.verbose.Comment (V_Normal, OrigString);
   end;
 
   procedure ListOSTargets (OrigString: TCmdStr);
@@ -362,7 +362,7 @@ const
      begin
       hs1:=targetinfos[target]^.shortname;
       if OrigString = '' then
-       Comment (V_Normal, hs1)
+       compiler.verbose.Comment (V_Normal, hs1)
       else
        begin
         hs := OrigString;
@@ -370,7 +370,7 @@ const
         if tf_under_development in targetinfos[target]^.flags then
          hs1:=hs1+' {*}';
         Replace(hs,OSTargetsPlaceholder,hs1);
-        Comment(V_Normal,hs);
+        compiler.verbose.Comment(V_Normal,hs);
        end;
      end;
   end;
@@ -402,7 +402,7 @@ const
       if (OrigString = '') then
        begin
         if CPUTypeStr [CPU] <> '' then
-         Comment (V_Normal, CPUTypeStr [CPU]);
+         compiler.verbose.Comment (V_Normal, CPUTypeStr [CPU]);
        end
       else
        begin
@@ -411,7 +411,7 @@ const
           hs:=OrigString;
           HS1 := HS1 + ',';
           Replace(hs,CPUListPlaceholder,hs1);
-          Comment(V_Normal,hs);
+          compiler.verbose.Comment(V_Normal,hs);
           hs1:=''
          end
         else if hs1<>'' then
@@ -424,7 +424,7 @@ const
      begin
       hs:=OrigString;
       Replace(hs,CPUListPlaceholder,hs1);
-      Comment(V_Normal,hs);
+      compiler.verbose.Comment(V_Normal,hs);
       hs1:=''
      end;
   end;
@@ -451,7 +451,7 @@ const
       if (OrigString = '') then
        begin
         if FPUTypeStr [FPU] <> '' then
-         Comment (V_Normal, FPUTypeStr [FPU]);
+         compiler.verbose.Comment (V_Normal, FPUTypeStr [FPU]);
        end
       else
        begin
@@ -460,7 +460,7 @@ const
           hs:=OrigString;
           HS1 := HS1 + ',';
           Replace(hs,FPUListPlaceholder,hs1);
-          Comment(V_Normal,hs);
+          compiler.verbose.Comment(V_Normal,hs);
           hs1:=''
          end
         else if hs1<>'' then
@@ -473,7 +473,7 @@ const
      begin
       hs:=OrigString;
       Replace(hs,FPUListPlaceholder,hs1);
-      Comment(V_Normal,hs);
+      compiler.verbose.Comment(V_Normal,hs);
       hs1:=''
      end;
   end;
@@ -502,12 +502,12 @@ const
       if hs1<>'' then
        begin
         if OrigString = '' then
-         Comment (V_Normal, HS1)
+         compiler.verbose.Comment (V_Normal, HS1)
         else
          begin
           hs:=OrigString;
           Replace(hs,ABIListPlaceholder,hs1);
-          Comment(V_Normal,hs);
+          compiler.verbose.Comment(V_Normal,hs);
          end;
        end;
      end;
@@ -541,12 +541,12 @@ const
         if hs1<>'' then
          begin
           if OrigString = '' then
-           Comment (V_Normal, hs1)
+           compiler.verbose.Comment (V_Normal, hs1)
           else
            begin
             hs:=OrigString;
             Replace(hs,OptListPlaceholder,hs1);
-            Comment(V_Normal,hs);
+            compiler.verbose.Comment(V_Normal,hs);
            end;
          end;
        end;
@@ -579,12 +579,12 @@ const
         if hs1<>'' then
          begin
           if OrigString = '' then
-           Comment (V_Normal, hs1)
+           compiler.verbose.Comment (V_Normal, hs1)
           else
            begin
             hs:=OrigString;
             Replace(hs,WPOListPlaceholder,hs1);
-            Comment(V_Normal,hs);
+            compiler.verbose.Comment(V_Normal,hs);
            end;
          end;
        end;
@@ -614,12 +614,12 @@ const
       if hs1<>'' then
        begin
         if OrigString = '' then
-         Comment (V_Normal, hs1)
+         compiler.verbose.Comment (V_Normal, hs1)
         else
          begin
           hs:=OrigString;
           Replace(hs,AsmModeListPlaceholder,hs1);
-          Comment(V_Normal,hs);
+          compiler.verbose.Comment(V_Normal,hs);
          end;
        end;
      end;
@@ -651,7 +651,7 @@ const
         if (OrigString = '') then
          begin
           if Embedded_Controllers [ControllerType].ControllerTypeStr <> '' then
-           Comment (V_Normal, Embedded_Controllers [ControllerType].ControllerTypeStr);
+           compiler.verbose.Comment (V_Normal, Embedded_Controllers [ControllerType].ControllerTypeStr);
          end
         else
          begin
@@ -661,7 +661,7 @@ const
             hs:=OrigString;
             HS1 := HS1 + ',';
             Replace(hs,ControllerListPlaceholder,hs1);
-            Comment(V_Normal,hs);
+            compiler.verbose.Comment(V_Normal,hs);
             hs1:=''
            end
           else if hs1<>'' then
@@ -674,7 +674,7 @@ const
        begin
         hs:=OrigString;
         Replace(hs,ControllerListPlaceholder,hs1);
-        Comment(V_Normal,hs);
+        compiler.verbose.Comment(V_Normal,hs);
         hs1:=''
        end;
      end;
@@ -710,7 +710,7 @@ const
       if (OrigString = '') then
        begin
         if FeatureStr [Feature] <> '' then
-         Comment (V_Normal, FeatureStr [Feature]);
+         compiler.verbose.Comment (V_Normal, FeatureStr [Feature]);
        end
       else
        begin
@@ -719,7 +719,7 @@ const
           HS := OrigString;
           HS1 := HS1 + ',';
           Replace (HS, FeatureListPlaceholder, HS1);
-          Comment (V_Normal, HS);
+          compiler.verbose.Comment (V_Normal, HS);
           HS1 := ''
          end
         else if HS1 <> '' then
@@ -732,7 +732,7 @@ const
      begin
       HS := OrigString;
       Replace (HS, FeatureListPlaceholder, HS1);
-      Comment (V_Normal, HS);
+      compiler.verbose.Comment (V_Normal, HS);
       HS1 := ''
      end;
   end;
@@ -759,7 +759,7 @@ const
       if (OrigString = '') then
        begin
         if ModeswitchStr [Modeswitch] <> '' then
-         Comment (V_Normal, ModeswitchStr [Modeswitch]);
+         compiler.verbose.Comment (V_Normal, ModeswitchStr [Modeswitch]);
        end
       else
        begin
@@ -768,7 +768,7 @@ const
           HS := OrigString;
           HS1 := HS1 + ',';
           Replace (HS, ModeswitchListPlaceholder, HS1);
-          Comment (V_Normal, HS);
+          compiler.verbose.Comment (V_Normal, HS);
           HS1 := ''
          end
         else if HS1 <> '' then
@@ -781,7 +781,7 @@ const
      begin
       HS := OrigString;
       Replace (HS, ModeswitchListPlaceholder, HS1);
-      Comment (V_Normal, HS);
+      compiler.verbose.Comment (V_Normal, HS);
       HS1 := ''
      end;
   end;
@@ -802,12 +802,12 @@ const
       SplitLine (OrigString, CodeGenerationBackendPlaceholder, HS3);
       hs1:=cgbackend2str[cgbackend];
       if OrigString = '' then
-        Comment (V_Normal, hs1)
+        compiler.verbose.Comment (V_Normal, hs1)
       else
         begin
           hs:=OrigString;
           Replace(hs,CodeGenerationBackendPlaceholder,hs1);
-          Comment(V_Normal,hs);
+          compiler.verbose.Comment(V_Normal,hs);
         end;
     end;
 
@@ -830,17 +830,17 @@ const
         if hs1<>'' then
          begin
           if OrigString = '' then
-           Comment (V_Normal, hs1)
+           compiler.verbose.Comment (V_Normal, hs1)
           else
            begin
             hs:=OrigString;
             Replace(hs,LLVMVersionPlaceholder,hs1);
-            Comment(V_Normal,hs);
+            compiler.verbose.Comment(V_Normal,hs);
            end;
          end;
        end;
 {$else LLVM}
-      Comment (V_Normal, '')
+      compiler.verbose.Comment (V_Normal, '')
 {$endif LLVM}
     end;
 
@@ -895,7 +895,7 @@ begin
       else if pos(LLVMVersionPlaceholder,s)>0 then
        ListLLVMVersions (s)
       else
-       Comment(V_Normal,s);
+       compiler.verbose.Comment(V_Normal,s);
      end;
    end
   else if Copy(More,1,1) = 'x' then
@@ -927,10 +927,10 @@ begin
      while J <= Length (More) do
       begin
        if J > 1 then
-        Comment(V_Normal,'');  (* Put empty line between multiple sections *)
+        compiler.verbose.Comment(V_Normal,'');  (* Put empty line between multiple sections *)
        case More [J] of
         'a': ListABITargets ('');
-        'b': Comment(V_Normal, cgbackend2str[cgbackend]);
+        'b': compiler.verbose.Comment(V_Normal, cgbackend2str[cgbackend]);
         'c': ListCPUInstructionSets ('');
         'f': ListFPUInstructionSets ('');
         'i': ListAsmModes ('');
@@ -1118,7 +1118,7 @@ begin
          opt:=PadEnd('-'+opt,outline);
         if (ident=0) and (lastident<>0) then
          begin
-           Comment(V_Normal,'');
+           compiler.verbose.Comment(V_Normal,'');
            inc(Lines);
          end;
         HelpLine := PadEnd('',ident)+opt+Copy(s,j+1,255);
@@ -1138,7 +1138,7 @@ begin
             end;
            lines:=0;
          end;
-        Comment(V_Normal,HelpLine);
+        compiler.verbose.Comment(V_Normal,HelpLine);
         LastIdent:=Ident;
         Inc (Lines, HelpLineHeight);
       end;
@@ -4491,10 +4491,12 @@ end;
 ****************************************************************************}
 
 function check_configfile(fn:string; var foundfn:string):boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   function CfgFileExists(const fn:string):boolean;
   begin
-    Comment(V_Tried,'Configfile search: '+fn);
+    compiler.verbose.Comment(V_Tried,'Configfile search: '+fn);
     CfgFileExists:=FileExists(fn);
   end;
 

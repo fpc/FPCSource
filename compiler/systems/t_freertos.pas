@@ -1643,7 +1643,7 @@ begin
         else if idf_version>=50000 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-time.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
         else
-          Comment(V_Error,'Unsupported esp-idf version specified');
+          compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
 
       if current_settings.controllertype=ct_esp32c3 then
         begin
@@ -1659,13 +1659,13 @@ begin
            Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libc.ld';
         end
         else
-          Comment(V_Error,'Unsupported esp-idf version specified');
+          compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
 
       if current_settings.controllertype=ct_esp32c6 then
         if idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.phy.ld -T '+cntrlr+'.rom.coexist.ld -T '+cntrlr+'.rom.net80211.ld -T '+cntrlr+'.rom.pp.ld -T '+cntrlr+'.rom.wdt.ld -T '+cntrlr+'.rom.systimer.ld -T '+cntrlr+'.rom.newlib-normal.ld -T '+cntrlr+'.rom.heap.ld'
         else
-         Comment(V_Error,'Unsupported esp-idf version specified');
+         compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
   {$endif RISCV32}
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.peripherals.ld'
     end;

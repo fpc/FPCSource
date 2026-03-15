@@ -2616,7 +2616,7 @@ unit cgcpu;
               begin
                 {$ifdef EXTDEBUG}
                 if not (pi_needs_got in current_procinfo.flags) then
-                	Comment(V_warning,'pi_needs_got not included');
+                	compiler.verbose.Comment(V_warning,'pi_needs_got not included');
                 {$endif EXTDEBUG}
                 Include(current_procinfo.flags,pi_needs_got);
                 reference_reset(tmpref,4,[]);
