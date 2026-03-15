@@ -72,11 +72,11 @@ interface
         //procedure Internalerror(i:longint);noreturn;
         //procedure Internalerror(i:longint; const s : ansistring);noreturn;
         procedure Comment(l:longint;s:ansistring);
+        function  MessageStr(w:longint):TMsgStr;
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
-    function  MessageStr(w:longint):TMsgStr;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
     procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
     procedure Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
@@ -796,7 +796,7 @@ implementation
       end;
 
 
-    function  MessageStr(w:longint):TMsgStr;
+    function  TVerbose.MessageStr(w:longint):TMsgStr;
       begin
         MaybeLoadMessageFile;
         MessageStr:=msg^.Get(w,[]);

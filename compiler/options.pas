@@ -288,7 +288,7 @@ var
 begin
   if not LogoWritten then
     begin
-      msg:=MessageStr(option_logo);
+      msg:=compiler.verbose.MessageStr(option_logo);
       p:=pchar(msg);
       while assigned(p) do
         compiler.verbose.Comment(V_Normal,GetMsgLine(p));
@@ -864,7 +864,7 @@ const
 begin
   if More = '' then
    begin
-    msg_str:=MessageStr(option_info);
+    msg_str:=compiler.verbose.MessageStr(option_info);
     p:=pchar(msg_str);
     while assigned(p) do
      begin
@@ -986,7 +986,7 @@ begin
   else
    Message1(option_usage,FixFileName(system.paramstr(0)));
   lastident:=0;
-  msg_str:=MessageStr(option_help_pages);
+  msg_str:=compiler.verbose.MessageStr(option_help_pages);
   p:=pchar(msg_str);
   while assigned(p) do
    begin
