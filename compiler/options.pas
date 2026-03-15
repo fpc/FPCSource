@@ -3198,7 +3198,7 @@ begin
           packagesearchpath.AddPath(More,true);
       end;
     'r' :
-      Msgfilename:=More;
+      compiler.verbose.Msgfilename:=More;
     'R' :
       ResCompiler:=More;
     't' :
@@ -4965,7 +4965,7 @@ begin
   Option.TargetOptions(true);
 
 { get default messagefile }
-  msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
+  compiler.verbose.msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
 
 { default configfile can be specified on the commandline,
    remove it first }

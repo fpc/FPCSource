@@ -47,9 +47,6 @@ interface
     type
       tmsgqueueevent = procedure(const s:TMsgStr;v,w:longint) of object;
 
-    const
-      msgfilename : string = '';
-
     type
 
       { TVerbose }
@@ -58,6 +55,7 @@ interface
       private
         lastfileidx,
         lastmoduleidx : longint;
+        Fmsgfilename : string;
 
         procedure Loadprefixes;
         procedure LoadMsgFile(const fn:string);
@@ -110,6 +108,8 @@ interface
         procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:TMsgStr);
 
         procedure FlushOutput;
+
+        property msgfilename: string read Fmsgfilename write Fmsgfilename;
       end;
 
     procedure Internalerror(i:longint);noreturn;
@@ -458,10 +458,10 @@ implementation
     procedure TVerbose.MaybeLoadMessageFile;
       begin
         { Load new message file }
-        if (msgfilename<>'')  then
+        if (Fmsgfilename<>'')  then
          begin
-           LoadMsgFile(msgfilename);
-           msgfilename:='';
+           LoadMsgFile(Fmsgfilename);
+           Fmsgfilename:='';
          end;
       end;
 
