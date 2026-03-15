@@ -512,8 +512,8 @@ begin
 
        FreeAndNil(FTime);
        FTime:=TCompilerTime.Create;
-       GetLocalTime(startsystime);
-       Time.starttime := getrealtime(startsystime);
+       GetLocalTime(Time.startsystime);
+       Time.starttime := getrealtime(Time.startsystime);
 
        { Initialize the compiler }
        InitCompiler(cmd);

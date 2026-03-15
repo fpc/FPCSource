@@ -2851,32 +2851,32 @@ type
                  hs:=getdatestr;
              'DATEYEAR':
                begin
-                 hs:=tostr(startsystime.Year);
+                 hs:=tostr(compiler.time.startsystime.Year);
                  macroIsString:=false;
                end;
              'DATEMONTH':
                begin
-                 hs:=tostr(startsystime.Month);
+                 hs:=tostr(compiler.time.startsystime.Month);
                  macroIsString:=false;
                end;
              'DATEDAY':
                begin
-                 hs:=tostr(startsystime.Day);
+                 hs:=tostr(compiler.time.startsystime.Day);
                  macroIsString:=false;
                end;
              'TIMEHOUR':
                begin
-                 hs:=tostr(startsystime.Hour);
+                 hs:=tostr(compiler.time.startsystime.Hour);
                  macroIsString:=false;
                end;
              'TIMEMINUTE':
                begin
-                 hs:=tostr(startsystime.Minute);
+                 hs:=tostr(compiler.time.startsystime.Minute);
                  macroIsString:=false;
                end;
              'TIMESECOND':
                begin
-                 hs:=tostr(startsystime.Second);
+                 hs:=tostr(compiler.time.startsystime.Second);
                  macroIsString:=false;
                end;
              'FILE':

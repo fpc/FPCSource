@@ -708,15 +708,13 @@ Const
 {$endif defined(LLVM) and not defined(GENERIC_CPU)}
       );
 
-    var
-      startsystime : TSystemTime;
-
     type
 
       { TCompilerTime }
 
       TCompilerTime = class
         starttime  : real;
+        startsystime : TSystemTime;
       end;
 
       { TCompilerGlobals }
