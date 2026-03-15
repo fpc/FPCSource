@@ -398,9 +398,9 @@ implementation
                         end
                       else
 {$ifdef jvm}
-                        MessagePos4(pd.fileinfo,parser_e_method_lower_visibility,
+                        compiler.verbose.MessagePos4(pd.fileinfo,parser_e_method_lower_visibility,
 {$else jvm}
-                        MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,
+                        compiler.verbose.MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,
 {$endif jvm}
                           pd.fullprocname(false),
                           visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentryvis])
