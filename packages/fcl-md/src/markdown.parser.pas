@@ -56,7 +56,7 @@ type
     function NextLine : TMarkDownLine;
     function Done : Boolean;
     procedure RedoLine(aResetLine: Boolean);
-    function InList(aBlock : TMarkDownBlock; ordered : boolean; marker : String; indent : integer; grace : integer; out list : TMarkDownListBlock) : boolean;
+    function InList(aBlock : TMarkDownBlock; ordered : boolean; const marker : String; indent : integer; grace : integer; out list : TMarkDownListBlock) : boolean;
     function IsBlock(aBlock : TMarkDownBlock; blocks : TMarkDownBlockList; const aLine : String; wsLen : integer = 3) : boolean;
     function CurrentLine : TMarkDownLine;
     procedure Parse(aParent: TMarkDownContainerBlock; aPArentProcessor: TMarkDownBlockProcessor); overload;
@@ -268,8 +268,8 @@ begin
 end;
 
 
-function TMarkDownBlockProcessor.InList(aBlock: TMarkDownBlock; ordered: boolean; marker: String; indent: integer; grace: integer;
-  out list: TMarkDownListBlock): boolean;
+function TMarkDownBlockProcessor.InList(aBlock: TMarkDownBlock; ordered: boolean; const marker: String; indent: integer;
+  grace: integer; out list: TMarkDownListBlock): boolean;
 
 begin
   Result:=FParser.InList(aBlock,ordered,marker,indent,grace,list);

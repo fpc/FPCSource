@@ -90,7 +90,7 @@ function CopyMatching(const S : String; aMatches : TSysCharSet) : String;
 
 function StartsWithWhitespace(const S : String; aMatch : AnsiChar; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
 function StartsWithWhitespace(const S : String; aMatch : TSysCharSet; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
-function StartsWithWhitespace(const S : String; aMatch : String; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
+function StartsWithWhitespace(const S : String; const aMatch : String; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
 // Returns the number of space characters. Tab is a tabulator of 4
 function LeadingWhitespace(const S : String) : integer; inline;
 // Returns the number of space characters. Tab is a tabulator of 4.
@@ -318,7 +318,7 @@ begin
     Dec(aLength);
 end;
 
-function StartsWithWhitespace(const S: String; aMatch: String; out aLength: integer; aWSLen: integer): boolean;
+function StartsWithWhitespace(const S: String; const aMatch: String; out aLength: integer; aWSLen: integer): boolean;
 
 var
   Len, I : integer;

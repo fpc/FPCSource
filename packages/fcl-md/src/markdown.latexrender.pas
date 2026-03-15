@@ -55,7 +55,7 @@ type
     Procedure RenderDocument(aDocument : TMarkDownDocument; aDest : TStrings); overload;
     procedure RenderChildren(aBlock : TMarkDownContainerBlock; aAppendNewLine : Boolean); overload;
     function RenderLaTeX(aDocument : TMarkDownDocument) : string;
-    Procedure RenderToFile(aDocument : TMarkDownDocument; aFileName : string);
+    Procedure RenderToFile(aDocument : TMarkDownDocument; const aFileName : string);
     class procedure FastRenderToFile(aDocument : TMarkDownDocument; const aFileName : string; aOptions : TLaTeXOptions = []; const aTitle : String = ''; const aAuthor : string = '');
     class function FastRender(aDocument : TMarkDownDocument; aOptions : TLaTeXOptions = []; const aTitle : String = ''; const aAuthor : string = '') : string;
   published
@@ -211,11 +211,11 @@ type
   { TStringBuilderHelper }
 
   TStringBuilderHelper = class helper for TAnsiStringBuilder
-    function Append(aAnsiString : Ansistring) : TAnsiStringBuilder;
+    function Append(const aAnsiString : Ansistring) : TAnsiStringBuilder;
   end;
 
 
-function TStringBuilderHelper.Append(aAnsiString: Ansistring): TAnsiStringBuilder;
+function TStringBuilderHelper.Append(const aAnsiString: Ansistring): TAnsiStringBuilder;
 begin
   Result:=Inherited Append(aAnsiString,0,System.Length(aAnsistring))
 end;
@@ -320,7 +320,7 @@ begin
   FLaTeX:='';
 end;
 
-procedure TMarkDownLaTeXRenderer.RenderToFile(aDocument: TMarkDownDocument; aFileName: string);
+procedure TMarkDownLaTeXRenderer.RenderToFile(aDocument: TMarkDownDocument; const aFileName: string);
 var
   lTeX : String;
   lFile : THandle;

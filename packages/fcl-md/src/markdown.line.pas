@@ -31,7 +31,7 @@ type
     FCursor : integer;
     FMark : integer;
   public
-    constructor create(aLine : AnsiString; aLineNo : integer);
+    constructor create(const aLine : AnsiString; aLineNo : integer);
     procedure Reset;
     procedure Mark;
     procedure Rewind;
@@ -66,7 +66,7 @@ uses
 
 { TMarkDownLine }
 
-constructor TMarkDownLine.create(aLine: AnsiString; aLineNo: integer);
+constructor TMarkDownLine.create(const aLine: AnsiString; aLineNo: integer);
 
 begin
   inherited create;

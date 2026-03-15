@@ -226,11 +226,11 @@ type
   { TStringBuilderHelper }
 
   TStringBuilderHelper = class helper for TAnsiStringBuilder
-    function Append(aAnsiString : Ansistring) : TAnsiStringBuilder;
+    function Append(const aAnsiString : Ansistring) : TAnsiStringBuilder;
   end;
 
 
-function TStringBuilderHelper.Append(aAnsiString: Ansistring): TAnsiStringBuilder;
+function TStringBuilderHelper.Append(const aAnsiString: Ansistring): TAnsiStringBuilder;
 begin
   Result:=Inherited Append(aAnsiString,0,System.Length(aAnsistring))
 end;

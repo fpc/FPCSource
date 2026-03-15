@@ -80,7 +80,7 @@ Type
     property HasAttrs : Boolean Read GetHasAttrs;
     property NodeText : ansistring read GetNodetext;
     procedure AddText(ch : char); overload;
-    procedure AddText(s : AnsiString); overload;
+    procedure AddText(const s : AnsiString); overload;
     procedure RemoveChars(count : integer);
     function IsEmpty : boolean;
     property Pos : TPosition Read FPos;
@@ -95,8 +95,8 @@ Type
     procedure ClearActive; inline;
   public
     // When the last block is active, add to that block. Otherwise, create a new text node
-    function AddText(aPos: TPosition; aContent: AnsiString): TMarkDownTextNode;
-    function AddTextNode(aPos: TPosition; aKind: TTextNodeKind; cnt: AnsiString; aDoClose: Boolean=True): TMarkDownTextNode; // always make a new node, and make it inactive
+    function AddText(aPos: TPosition; const aContent: AnsiString): TMarkDownTextNode;
+    function AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: AnsiString; aDoClose: Boolean=True): TMarkDownTextNode; // always make a new node, and make it inactive
     procedure RemoveAfter(node : TMarkDownTextNode);
     function LastNode : TMarkDownTextNode;
     procedure ApplyStyleBetween(aStart,aStop : TMarkDownTextNode; aStyle : TNodeStyle);
@@ -243,7 +243,7 @@ Type
   protected
     procedure SetClosed(const aValue: boolean);override;
   public
-    constructor Create(aParent : TMarkDownBlock; aLine : integer; aText : AnsiString); reintroduce;
+    constructor Create(aParent : TMarkDownBlock; aLine : integer; const aText : AnsiString); reintroduce;
     destructor Destroy; override;
     property Text : AnsiString read FText write FText;
     property Nodes : TMarkDownTextNodeList Read FNodes Write FNodes;
@@ -253,7 +253,7 @@ implementation
 
 { TMarkDownTextNode }
 
-procedure TMarkDownTextNode.addText(s: AnsiString);
+procedure TMarkDownTextNode.addText(const s: AnsiString);
 
 var
   len,AddLen,NewLen : Integer;
@@ -376,7 +376,7 @@ begin
     end;
 end;
 
-function TMarkDownTextNodeList.addText(aPos : TPosition; aContent: AnsiString): TMarkDownTextNode;
+function TMarkDownTextNodeList.AddText(aPos: TPosition; const aContent: AnsiString): TMarkDownTextNode;
 var
   lNode : TMarkDownTextNode;
 begin
@@ -393,7 +393,8 @@ begin
   Result.addText(aContent);
 end;
 
-function TMarkDownTextNodeList.addTextNode(aPos : TPosition; aKind : TTextNodeKind; cnt: AnsiString; aDoClose : Boolean = True): TMarkDownTextNode;
+function TMarkDownTextNodeList.AddTextNode(aPos: TPosition; aKind: TTextNodeKind; const cnt: AnsiString; aDoClose: Boolean
+  ): TMarkDownTextNode;
 begin
   ClearActive;
   Result:=TMarkDownTextNode.Create(aPos,aKind);
@@ -607,7 +608,7 @@ begin
     FNodes.ClearActive;
 end;
 
-constructor TMarkDownTextBlock.Create(aParent: TMarkDownBlock; aLine: integer; aText: AnsiString);
+constructor TMarkDownTextBlock.Create(aParent: TMarkDownBlock; aLine: integer; const aText: AnsiString);
 begin
   inherited Create(aParent,aLine);
   FText:=aText;

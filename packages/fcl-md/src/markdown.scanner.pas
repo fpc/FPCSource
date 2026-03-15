@@ -48,7 +48,7 @@ type
     Property LineNo : Integer Read FLineNo;
   public
     // Create a scanner for text, aLineNo is the line number in the markdown document.
-    constructor Create(aText : String; aLineNo : integer);
+    constructor Create(const aText : String; aLineNo : integer);
     destructor Destroy; override;
     // Bookmark current position of cursor
     procedure BookMark;
@@ -73,7 +73,7 @@ type
     // Get the next aCount characters. Advance the cursor position.
     function NextChars(aCount : integer) : String;
     // Check that the text has S starting at the next character position
-    function Has(S : string) : boolean;
+    function Has(const S : string) : boolean;
     // Check if there is a second occurrence after an occurrence of string S at current position.
     function FindMatchingOccurrence(const S : String) : boolean;
     // Check if there is a second occurrence after an occurrence of string S at current position, second occurrence may not be preceded by ExcludeBefore.
@@ -100,7 +100,7 @@ uses MarkDown.Utils;
 
 { TMarkDownTextScanner }
 
-constructor TMarkDownTextScanner.Create(aText: String; aLineNo : integer);
+constructor TMarkDownTextScanner.Create(const aText: String; aLineNo: integer);
 begin
   inherited Create;
   FText:=aText;
@@ -296,7 +296,7 @@ begin
     end;
 end;
 
-function TMarkDownTextScanner.Has(S: string): boolean;
+function TMarkDownTextScanner.Has(const S: string): boolean;
 begin
   Result:=peekLen(Length(s))=s;
 end;
