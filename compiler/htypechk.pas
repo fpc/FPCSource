@@ -1732,7 +1732,7 @@ implementation
                     (vo_is_loop_counter in tsubscriptnode(hp).vs.varoptions) then
                    begin
                      if report_errors then
-                       CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname);
+                       compiler.verbose.CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname);
                      mayberesettypeconvs;
                      exit;
                    end;
@@ -1898,7 +1898,7 @@ implementation
                           (vo_is_loop_counter in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
                          begin
                            if report_errors then
-                             CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
+                             compiler.verbose.CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
                            mayberesettypeconvs;
                            exit;
                          end;

@@ -99,7 +99,7 @@ function tobjcselectornode.pass_typecheck: tnode;
               { ok }
             end
           else
-            CGMessage1(type_e_expected_objc_method_but_got,left.resultdef.typename);
+            compiler.verbose.CGMessage1(type_e_expected_objc_method_but_got,left.resultdef.typename);
         end;
       stringconstn:
         begin
@@ -112,7 +112,7 @@ function tobjcselectornode.pass_typecheck: tnode;
               setlength(s,len);
               if len>0 then
                 move(tstringconstnode(left).valueas[0],s[1],len);
-              CGMessage1(type_e_invalid_objc_selector_name,s);
+              compiler.verbose.CGMessage1(type_e_invalid_objc_selector_name,s);
               exit;
             end;
         end

@@ -222,6 +222,8 @@ const
 
 
   function twpodeadcodeinfofromexternallinker.parselinenm(const line: ansistring): boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if fuseaixextractstrings then
         begin
@@ -239,7 +241,7 @@ const
         begin
           if (length(line) < fsymnamepos) then
             begin
-              cgmessage1(wpo_error_reading_symbol_file,'nm');
+              compiler.verbose.CGMessage1(wpo_error_reading_symbol_file,'nm');
               close(fsymfile);
               deletefile(fsymfilename);
               result:=false;
@@ -255,6 +257,8 @@ const
 
 
   function twpodeadcodeinfofromexternallinker.parselineobjdump(const line: ansistring): boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { there are a couple of empty lines at the end }
       if (line='') then
@@ -264,7 +268,7 @@ const
         end;
       if (length(line) < fsymtypepos) then
         begin
-          cgmessage1(wpo_error_reading_symbol_file,'objdump');
+          compiler.verbose.CGMessage1(wpo_error_reading_symbol_file,'objdump');
           close(fsymfile);
           deletefile(fsymfilename);
           result:=false;
@@ -310,7 +314,7 @@ const
         result:=error;
         if not result then
           exit;
-        cgmessage1(wpo_error_reading_symbol_file,symbolprogfullpath);
+        compiler.verbose.CGMessage1(wpo_error_reading_symbol_file,symbolprogfullpath);
 {$push}{$i-}
         close(fsymfile);
 {$pop}

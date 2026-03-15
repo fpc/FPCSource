@@ -578,7 +578,7 @@ implementation
         if not assigned(paras) then
          begin
            result:=compiler.cerrornode;
-           CGMessage1(parser_e_wrong_parameter_size,'SetLength');
+           compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
         result:=compiler.cinlinenode(in_setlength_x,false,paras);
@@ -661,9 +661,9 @@ implementation
             assigned(tcallparanode(ppn.right).right)) then
          begin
            if isinit then
-             CGMessage1(parser_e_wrong_parameter_size,'Initialize')
+             compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'Initialize')
            else
-             CGMessage1(parser_e_wrong_parameter_size,'Finalize');
+             compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'Finalize');
            exit;
          end;
 
@@ -723,7 +723,7 @@ implementation
         parser.pbase.consume(_RKLAMMER);
         if not assigned(paras) and checkempty then
           begin
-            CGMessage1(parser_e_wrong_parameter_size,name);
+            compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,name);
             exit;
           end;
         result.free;

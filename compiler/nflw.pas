@@ -2498,13 +2498,13 @@ implementation
                         nil)));
                       end
                     else
-                      CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
+                      compiler.verbose.CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
                   end
                 else
                   CGMessagePos(self.fileinfo,cg_e_interprocedural_goto_only_to_outer_scope_allowed);
               end
             else
-              CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
+              compiler.verbose.CGMessage1(cg_e_goto_label_not_found,labelsym.realname);
           end;
 
         { check if we don't mess with exception blocks }
@@ -2674,7 +2674,7 @@ implementation
               exit;
              if not is_class(left.resultdef) and
                 not is_javaclass(left.resultdef) then
-               CGMessage1(type_e_class_type_expected,left.resultdef.typename);
+               compiler.verbose.CGMessage1(type_e_class_type_expected,left.resultdef.typename);
              { insert needed typeconvs for addr,frame }
              if assigned(right) then
                begin
@@ -2956,7 +2956,7 @@ implementation
          resultdef:=voidtype;
          if not is_class(excepttype) and
             not is_javaclass(excepttype) then
-           CGMessage1(type_e_class_type_expected,excepttype.typename);
+           compiler.verbose.CGMessage1(type_e_class_type_expected,excepttype.typename);
          if assigned(left) then
            typecheckpass(left);
          if assigned(right) then

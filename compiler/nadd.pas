@@ -2910,7 +2910,7 @@ const
                         if is_voidpointer(right.resultdef) then
                         begin
                           if is_big_untyped_addrnode(right) then
-                            CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
+                            compiler.verbose.CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                           inserttypeconv(right,left.resultdef,compiler)
                         end
                         else if is_voidpointer(left.resultdef) then
@@ -3276,7 +3276,7 @@ const
                  if (ld.typ=pointerdef) then
                  begin
                    if is_big_untyped_addrnode(left) then
-                     CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
+                     compiler.verbose.CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                    if (tpointerdef(ld).pointeddef.size>1) then
                    begin
                      right:=compiler.caddnode(muln,right,

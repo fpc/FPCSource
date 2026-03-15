@@ -1046,7 +1046,7 @@ implementation
             else
               begin
                 if ([m_iso,m_extpas]*current_settings.modeswitches)<>[] then
-                  cgmessage1(cg_e_case_missing_value,tostr(tordconstnode(left).value))
+                  compiler.verbose.CGMessage1(cg_e_case_missing_value,tostr(tordconstnode(left).value))
                 else
                   compiler.verbose.CGMessage(cg_w_case_incomplete);
                 { no else block, so there is no code to execute at all }

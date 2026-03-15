@@ -3820,7 +3820,7 @@ implementation
         oldleft:=tcallparanode(left);
         if oldleft.left.nodetype<>arrayconstructorn then
           begin
-            CGMessage1(type_e_wrong_type_in_array_constructor,oldleft.left.resultdef.typename);
+            compiler.verbose.CGMessage1(type_e_wrong_type_in_array_constructor,oldleft.left.resultdef.typename);
             exit;
           end;
         include(callnodeflags,cnf_uses_varargs);
@@ -4095,7 +4095,7 @@ implementation
                        internalerror(200402265);
                      if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                        begin
-                         CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');
+                         compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');
                          exit;
                        end;
                      dec(paraidx);
@@ -4124,7 +4124,7 @@ implementation
                begin
                   if assigned(pt) then
                     current_filepos:=pt.fileinfo;
-                  CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');
+                  compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');
                   exit;
                end;
           end
@@ -4480,7 +4480,7 @@ implementation
                 is_objectpascal_helper(tdef(procdefinition.owner.defowner))
                ) or
                is_objc_protocol_or_category(methodpointer.resultdef)) then
-             CGMessage1(type_e_class_type_expected,methodpointer.resultdef.typename);
+             compiler.verbose.CGMessage1(type_e_class_type_expected,methodpointer.resultdef.typename);
 
            { if an inherited con- or destructor should be  }
            { called in a con- or destructor then a warning }

@@ -305,7 +305,7 @@ implementation
         if (source=dest) or
            (cpf_is_colon_para in tcallparanode(dest).callparaflags) then
           begin
-            CGMessage1(parser_e_wrong_parameter_size,'Str');
+            compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'Str');
             exit;
           end;
 
@@ -1272,7 +1272,7 @@ implementation
       { check for "no parameters" (you need at least one extra para for typed files) }
       if not assigned(para) then
         begin
-          CGMessage1(parser_e_wrong_parameter_size,procnamesdisplay[is_rwstr,do_read]);
+          compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,procnamesdisplay[is_rwstr,do_read]);
           found_error := true;
         end;
 
@@ -1661,7 +1661,7 @@ implementation
         if not(assigned(left)) or
            not(assigned(tcallparanode(left).right)) then
          begin
-           CGMessage1(parser_e_wrong_parameter_size,'Val');
+           compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'Val');
            exit;
          end;
 
@@ -1893,7 +1893,7 @@ implementation
          internalerror(2013112912);
         if dims=0 then
          begin
-           CGMessage1(parser_e_wrong_parameter_size,'SetLength');
+           compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
         { last param must be var }
@@ -1927,7 +1927,7 @@ implementation
                 begin
                   if not(is_dynamic_array(def)) then
                     begin
-                      CGMessage1(parser_e_wrong_parameter_size,'SetLength');
+                      compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'SetLength');
                       break;
                     end;
                   dec(counter);
@@ -2590,7 +2590,7 @@ implementation
                               left:=nil;
                             end;
                           uvoid :
-                            CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
+                            compiler.verbose.CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                           else
                             begin
                               { all other orddef need no transformation }
@@ -3405,7 +3405,7 @@ implementation
                     compiler.verbose.CGMessage(type_w_maybe_wrong_hi_lo);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   if not is_integer(left.resultdef) then
-                    CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
+                    compiler.verbose.CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
                   case inlinenumber of
                     in_lo_word,
                     in_hi_word :
@@ -3495,10 +3495,10 @@ implementation
                      pointerdef :
                        begin
                          if not(m_mac in current_settings.modeswitches) then
-                           CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
+                           compiler.verbose.CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                        end
                      else
-                       CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
+                       compiler.verbose.CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                    end;
                 end;
 
@@ -4115,7 +4115,7 @@ implementation
                            inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype,compiler);
                          end
                        else
-                         CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
+                         compiler.verbose.CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
                     end
                   else
                     compiler.verbose.CGMessage(type_e_mismatch);
@@ -4151,7 +4151,7 @@ implementation
                  begin
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    if not is_integer(left.resultdef) then
-                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
+                     compiler.verbose.CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
                    if torddef(left.resultdef).ordtype in [u64bit, s64bit] then
                      resultdef:=u64inttype
                    else
@@ -4162,7 +4162,7 @@ implementation
                  begin
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    if not is_integer(left.resultdef) then
-                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
+                     compiler.verbose.CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
                    resultdef:=left.resultdef;
                  end;
 
@@ -5578,7 +5578,7 @@ implementation
          result:=nil;
          if not assigned(left) or
             assigned(tcallparanode(left).right) then
-           CGMessage1(parser_e_wrong_parameter_size,'FpcInternalBox');
+           compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'FpcInternalBox');
          resultdef:=class_tobject;
        end;
 
@@ -5589,7 +5589,7 @@ implementation
          if not assigned(left) or
             not assigned(tcallparanode(left).right) or
             assigned(tcallparanode(tcallparanode(left).right).right) then
-           CGMessage1(parser_e_wrong_parameter_size,'FpcInternalUnBox');
+           compiler.verbose.CGMessage1(parser_e_wrong_parameter_size,'FpcInternalUnBox');
          if tcallparanode(left).left.nodetype<>typen then
            internalerror(2011071701);
          ttypenode(tcallparanode(left).left).allowed:=true;
@@ -6104,14 +6104,14 @@ implementation
 
      function tinlinenode.first_fma: tnode;
        begin
-         CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
+         compiler.verbose.CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'FMA');
          result:=nil;
        end;
 
 
      function tinlinenode.first_minmax: tnode;
        begin
-         CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'MIN/MAX');
+         compiler.verbose.CGMessage1(cg_e_function_not_support_by_selected_instruction_set,'MIN/MAX');
          result:=nil;
        end;
 

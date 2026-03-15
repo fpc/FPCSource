@@ -476,12 +476,14 @@ implementation
     end;
 
   constructor twpofilereader.create(const fn: tcmdstr; dest: twpoinfomanagerbase);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if not FileExists(fn) or
          { FileExists also returns true for directories }
          DirectoryExists(fn) then
         begin
-          cgmessage1(wpo_cant_find_file,fn);
+          compiler.verbose.CGMessage1(wpo_cant_find_file,fn);
           exit;
         end;
       assign(finputfile,fn);
@@ -497,13 +499,15 @@ implementation
 
   procedure twpofilereader.processfile;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       sectionhandler: twpocomponentbaseclass;
       i: longint;
       wpotype: twpotype;
       s,
       sectionname: string;
     begin
-      cgmessage1(wpo_begin_processing,ffilename);
+      compiler.verbose.CGMessage1(wpo_begin_processing,ffilename);
       reset(finputfile);
       flinenr:=0;
       while getnextnoncommentline(s) do
@@ -543,7 +547,7 @@ implementation
                 end
               else
                 begin
-                  cgmessage1(wpo_skipping_unnecessary_section,sectionname);
+                  compiler.verbose.CGMessage1(wpo_skipping_unnecessary_section,sectionname);
                   { skip the current section }
                   while sectiongetnextline(s) do
                     ;
@@ -551,14 +555,14 @@ implementation
             end
           else
             begin
-              cgmessage1(wpo_no_section_handler,sectionname);
+              compiler.verbose.CGMessage1(wpo_no_section_handler,sectionname);
               { skip the current section }
               while sectiongetnextline(s) do
                 ;
             end;
         end;
       close(finputfile);
-      cgmessage1(wpo_end_processing,ffilename);
+      compiler.verbose.CGMessage1(wpo_end_processing,ffilename);
     end;
 
   function twpofilereader.sectiongetnextline(out s: string): boolean;
@@ -609,6 +613,8 @@ implementation
 
   procedure twpofilewriter.writefile;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       i: longint;
     begin
       {$push}{$i-}
@@ -616,7 +622,7 @@ implementation
       {$pop}
       if (ioresult <> 0) then
         begin
-          cgmessage1(wpo_cant_create_feedback_file,ffilename);
+          compiler.verbose.CGMessage1(wpo_cant_create_feedback_file,ffilename);
           exit;
         end;
       for i:=0 to fsectioncontents.count-1 do
@@ -717,14 +723,14 @@ implementation
       if (([cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts] * init_settings.dowpoptimizerswitches) <> []) and
          not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) then
         begin
-          cgmessage1(wpo_not_enough_info,wpo2str[wpo_devirtualization_context_insensitive]);
+          compiler.verbose.CGMessage1(wpo_not_enough_info,wpo2str[wpo_devirtualization_context_insensitive]);
           exit;
         end;
 
       if (cs_wpo_symbol_liveness in init_settings.dowpoptimizerswitches) and
          not assigned(wpoinfouse[wpo_live_symbol_information]) then
         begin
-          cgmessage1(wpo_not_enough_info,wpo2str[wpo_live_symbol_information]);
+          compiler.verbose.CGMessage1(wpo_not_enough_info,wpo2str[wpo_live_symbol_information]);
           exit;
         end;
 

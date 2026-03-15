@@ -759,22 +759,24 @@ implementation
 
     procedure ttgobj.getlocal(list: TAsmList; size: asizeint; alignment, explicitalignment: shortint; def: tdef; sym : tsym; var ref : treference);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         lalign : shortint;
       begin
         lalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         if (explicitalignment>lalign) then
           begin
             if assigned(sym) then
-              CGMessage1(scanner_w_local_alignment_larger_than_max,sym.name)
+              compiler.verbose.CGMessage1(scanner_w_local_alignment_larger_than_max,sym.name)
             else
-              CGMessage1(scanner_w_local_alignment_larger_than_max,def.typename);
+              compiler.verbose.CGMessage1(scanner_w_local_alignment_larger_than_max,def.typename);
           end
         else if (alignment>lalign) and (current_settings.alignment.localalignmax>1) then
           begin
             if assigned(sym) then
-              CGMessage1(scanner_n_local_alignment_larger_than_max,sym.name)
+              compiler.verbose.CGMessage1(scanner_n_local_alignment_larger_than_max,sym.name)
             else
-              CGMessage1(scanner_n_local_alignment_larger_than_max,def.typename);
+              compiler.verbose.CGMessage1(scanner_n_local_alignment_larger_than_max,def.typename);
 	  end;
         alloctemp(list,size,lalign,tt_persistent,def,false,ref);
       end;

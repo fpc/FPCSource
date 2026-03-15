@@ -978,11 +978,11 @@ implementation
             ((Torddef(node.resultdef).low>Torddef(def).low) or (Torddef(node.resultdef).high<Torddef(def).high)) then
            case node.nodetype of
              addn:
-               cgmessage1(type_h_convert_add_operands_to_prevent_overflow,def.typename);
+               compiler.verbose.CGMessage1(type_h_convert_add_operands_to_prevent_overflow,def.typename);
              subn:
-               cgmessage1(type_h_convert_sub_operands_to_prevent_overflow,def.typename);
+               compiler.verbose.CGMessage1(type_h_convert_sub_operands_to_prevent_overflow,def.typename);
              muln:
-               cgmessage1(type_h_convert_mul_operands_to_prevent_overflow,def.typename);
+               compiler.verbose.CGMessage1(type_h_convert_mul_operands_to_prevent_overflow,def.typename);
              else
                ;
            end;
@@ -1831,7 +1831,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidstr) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              compiler.verbose.CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=compiler.cstringconstnode_str(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
           end
@@ -1845,7 +1845,7 @@ implementation
         if assigned(tobjectdef(left.resultdef).iidguid) then
           begin
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
-              CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+              compiler.verbose.CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=compiler.cguidconstnode(tobjectdef(left.resultdef).iidguid^);
           end
         else
@@ -4967,7 +4967,7 @@ implementation
                      FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
               end
             else
-              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+              compiler.verbose.CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
             case nodetype of
               isn:
                 resultdef:=pasbool1type;
@@ -4994,11 +4994,11 @@ implementation
             if is_javainterface(right.resultdef) then
               begin
                 if not is_java_class_or_interface(left.resultdef) then
-                  CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+                  compiler.verbose.CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
               end
             else if not(is_class(left.resultdef) or
                    is_interfacecom(left.resultdef)) then
-              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename)
+              compiler.verbose.CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename)
             else
               begin
 
@@ -5022,7 +5022,7 @@ implementation
                         if assigned(tobjectdef(right.resultdef).iidguid) then
                           begin
                             if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                              CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                              compiler.verbose.CGMessage1(type_e_interface_has_no_guid,tobjectdef(right.resultdef).typename);
                             hp:=compiler.cguidconstnode(tobjectdef(right.resultdef).iidguid^);
                             right.free;
                             right:=hp;
@@ -5035,7 +5035,7 @@ implementation
               end;
           end
         else
-          CGMessage1(type_e_class_or_interface_type_expected,right.resultdef.typename);
+          compiler.verbose.CGMessage1(type_e_class_or_interface_type_expected,right.resultdef.typename);
       end;
 
 {*****************************************************************************
