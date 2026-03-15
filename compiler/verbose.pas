@@ -56,6 +56,9 @@ interface
 
       TVerbose = class
       private
+        lastfileidx,
+        lastmoduleidx : longint;
+
         procedure Loadprefixes;
         procedure LoadMsgFile(const fn:string);
         procedure MaybeLoadMessageFile;
@@ -461,11 +464,6 @@ implementation
            msgfilename:='';
          end;
       end;
-
-
-    var
-      lastfileidx,
-      lastmoduleidx : longint;
 
 
     Procedure TVerbose.UpdateStatus;
