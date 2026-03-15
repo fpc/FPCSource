@@ -694,7 +694,7 @@ type
 
 var
   lState : TState;
-  c : char;
+  c,prev : char;
 
 begin
   Result:=False;
@@ -702,6 +702,7 @@ begin
     Exit;
   lState:=sNeutral;
   for c in s do
+    begin
     Case lState of
     sNeutral:
       if c='@' then
@@ -713,10 +714,17 @@ begin
         lState:=sHost;
     else
       if c='.' then
-        lState:=sDomain
+        if prev='@' then
+          exit
+        else  
+          lState:=sDomain
       else if c='+' then
         Exit;
     end;
+    prev:=c;    
+    end;
+  if prev in ['@','.'] then
+    exit;
   Result:=lState=sDomain;
 end;
 
