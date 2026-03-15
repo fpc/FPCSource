@@ -532,7 +532,7 @@ implementation
           if is_constintnode(n) then
             result:=tordconstnode(n).value.svalue
           else
-            Message(type_e_constant_expr_expected);
+            compiler.verbose.Message(type_e_constant_expr_expected);
         end;
 
 

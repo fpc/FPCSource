@@ -1209,6 +1209,8 @@ implementation
 
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sl : tpropaccesslist;
 
         procedure addnode(p:tnode);
@@ -1234,7 +1236,7 @@ implementation
                   sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value,tvecnode(p).right.resultdef)
                 else
                   begin
-                    Message(parser_e_illegal_expression);
+                    compiler.verbose.Message(parser_e_illegal_expression);
                     { recovery }
                     sl.addconst(sl_vec,0,tvecnode(p).right.resultdef);
                   end;

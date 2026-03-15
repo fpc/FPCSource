@@ -338,7 +338,7 @@ Implementation
       begin
         inc(SmartFilesCount);
         if SmartFilesCount>999999 then
-         Message(asmw_f_too_many_asm_files);
+         compiler.verbose.Message(asmw_f_too_many_asm_files);
         case place of
           cut_begin :
             begin
@@ -1990,6 +1990,8 @@ Implementation
 
     function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         objsym,
         objsymend : TObjSymbol;
         cpu: tcputype;
@@ -2023,7 +2025,7 @@ Implementation
                begin
                  if (oso_data in ObjData.CurrObjSec.secoptions) and
                     not (oso_sparse_data in ObjData.CurrObjSec.secoptions) then
-                   Message(asmw_e_alloc_data_only_in_bss);
+                   compiler.verbose.Message(asmw_e_alloc_data_only_in_bss);
 {$ifdef USE_COMM_IN_BSS}
                  if writingpackages and
                     Tai_datablock(hp).is_global then
@@ -2959,7 +2961,7 @@ Implementation
         a : TAssembler;
       begin
         if not assigned(CAssembler[compiler.target._asm.id]) then
-          Message(asmw_f_assembler_output_not_supported);
+          compiler.verbose.Message(asmw_f_assembler_output_not_supported);
         a:=CAssembler[compiler.target._asm.id].Create(@compiler.target._asm,smart);
         a.MakeObject;
         a.Free;

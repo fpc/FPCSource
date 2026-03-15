@@ -132,7 +132,7 @@ unit ra68k;
         if it[i].i=A_NONE then
         begin
           { NO MATCH! }
-          Message(asmr_e_invalid_combination_opcode_and_operand);
+          compiler.verbose.Message(asmr_e_invalid_combination_opcode_and_operand);
           exit;
         end;
         inc(i);
@@ -179,13 +179,13 @@ unit ra68k;
                         S_NO,operands[1].opr.ref));
                     end
                   else
-                    Message(asmr_e_invalid_opcode_and_operand);
+                    compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                 end;
            OPR_NONE:
-                Message(asmr_e_invalid_opcode_and_operand);
+                compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
           else
            begin
-             Message(asmr_e_invalid_opcode_and_operand);
+             compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
            end;
           end;
         end;
@@ -207,7 +207,7 @@ unit ra68k;
                                   opsize,operands[1].opr.reg,operands[2].opr.ref));
                        else { else case }
                          begin
-                           Message(asmr_e_invalid_opcode_and_operand);
+                           compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                          end;
                        end; { end second operand case for OPR_REGISTER }
                      end;
@@ -220,7 +220,7 @@ unit ra68k;
                                   opsize,operands[1].opr.regset,operands[2].opr.ref));
                             else
                              begin
-                               Message(asmr_e_invalid_opcode_and_operand);
+                               compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                              end;
                             end; { end second operand case for OPR_regset }
                           end;
@@ -248,7 +248,7 @@ unit ra68k;
                            end;
                       else
                          begin
-                           Message(asmr_e_invalid_opcode_and_operand);
+                           compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                          end;
                       end; { end second operand case for OPR_CONSTANT }
                    { ref,reg     }
@@ -273,7 +273,7 @@ unit ra68k;
                             operands[2].opr.ref));
                       else
                          begin
-                           Message(asmr_e_invalid_opcode_and_operand);
+                           compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                          end;
                       end; { end second operand case for OPR_REFERENCE }
            OPR_SYMBOL: case operands[2].opr.typ of
@@ -291,12 +291,12 @@ unit ra68k;
                            end;
                       else
                          begin
-                           Message(asmr_e_invalid_opcode_and_operand);
+                           compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                          end;
                       end; { end second operand case for OPR_SYMBOL }
                   else
                      begin
-                       Message(asmr_e_invalid_opcode_and_operand);
+                       compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                      end;
                   end; { end first operand case }
         end;
@@ -308,7 +308,7 @@ unit ra68k;
              or (operands[2].opr.typ <> OPR_REGISTER)
              or (operands[3].opr.typ <> OPR_REGISTER) then
              begin
-               Message(asmr_e_invalid_opcode_and_operand);
+               compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
              end
              else
              begin
@@ -317,7 +317,7 @@ unit ra68k;
              end;
            end
            else
-            Message(asmr_e_invalid_opcode_and_operand);
+            compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
         end;
   end; { end case }
  end;
@@ -335,9 +335,9 @@ unit ra68k;
            ((opcode >= A_FBEQ) and (opcode <= A_FBNGLE)) then
           begin
            if ops > 2 then
-             Message(asmr_e_invalid_opcode_and_operand)
+             compiler.verbose.Message(asmr_e_invalid_opcode_and_operand)
            else if operands[1].opr.typ <> OPR_SYMBOL then
-             Message(asmr_e_invalid_opcode_and_operand)
+             compiler.verbose.Message(asmr_e_invalid_opcode_and_operand)
            else if (operands[1].opr.typ = OPR_SYMBOL) and
             (ops = 1) then
               if assigned(operands[1].opr.symbol) and
@@ -345,7 +345,7 @@ unit ra68k;
                 result:=taicpu.op_sym(opcode,S_NO,
                   operands[1].opr.symbol)
               else
-                Message(asmr_e_invalid_opcode_and_operand);
+                compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
           end
         else if ((opcode >= A_DBCC) and (opcode <= A_DBF))
           or ((opcode >= A_FDBEQ) and (opcode <= A_FDBNGLE)) then
@@ -354,13 +354,13 @@ unit ra68k;
                (operands[1].opr.typ <> OPR_REGISTER) or
                (operands[2].opr.typ <> OPR_SYMBOL) or
                (operands[2].opr.symofs <> 0) then
-              Message(asmr_e_invalid_opcode_and_operand)
+              compiler.verbose.Message(asmr_e_invalid_opcode_and_operand)
             else
              result:=taicpu.op_reg_sym(opcode,opsize,operands[1].opr.reg,
               operands[2].opr.symbol);
           end
         else
-          Message(asmr_e_invalid_opcode_and_operand);
+          compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
        if assigned(result) then
           p.concat(result);
       end;

@@ -116,7 +116,7 @@ implementation
         sym:=tenumsym(tenumdef(resultdef).int2enumsym(int64(value)));
         if not assigned(sym) then
           begin
-            Message(parser_e_range_check_error);
+            compiler.verbose.Message(parser_e_range_check_error);
             result:=nil;
             exit;
           end;

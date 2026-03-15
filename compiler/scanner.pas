@@ -891,24 +891,30 @@ implementation
       end;
 
     procedure dir_endif;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (cs_legacyifend in current_settings.localswitches) and
           (current_scanner.preprocstack.typ<>pp_ifdef) and (current_scanner.preprocstack.typ<>pp_ifndef) and
             not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_ifdef,pp_ifndef])) then
-          Message(scan_e_unexpected_endif);
+          compiler.verbose.Message(scan_e_unexpected_endif);
         current_scanner.poppreprocstack;
       end;
 
     procedure dir_ifend;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (cs_legacyifend in current_settings.localswitches) and
           (current_scanner.preprocstack.typ<>pp_elseif) and (current_scanner.preprocstack.typ<>pp_if) and
             not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_if,pp_elseif])) then
-          Message(scan_e_unexpected_ifend);
+          compiler.verbose.Message(scan_e_unexpected_ifend);
         current_scanner.poppreprocstack;
       end;
 
     function isdef(var valuedescr: String): Boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hs    : string;
       begin
@@ -916,7 +922,7 @@ implementation
         hs:=current_scanner.readid;
         valuedescr:= hs;
         if hs='' then
-          Message(scan_e_error_in_preproc_expr);
+          compiler.verbose.Message(scan_e_error_in_preproc_expr);
         isdef:=defined_macro(hs);
       end;
 
@@ -927,13 +933,15 @@ implementation
 
     function isnotdef(var valuedescr: String): Boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs    : string;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
         valuedescr:= hs;
         if hs='' then
-          Message(scan_e_error_in_preproc_expr);
+          compiler.verbose.Message(scan_e_error_in_preproc_expr);
         isnotdef:=not defined_macro(hs);
       end;
 
@@ -961,7 +969,7 @@ implementation
             if state in ['-','+'] then
               opt_check:=CheckSwitch(hs[1],state)
             else
-              Message(scan_e_error_in_preproc_expr);
+              compiler.verbose.Message(scan_e_error_in_preproc_expr);
           end;
       end;
 
@@ -1486,7 +1494,7 @@ type
                     result:=texprvalue.create_real(lvd/rvd);
                   else
                     begin
-                      Message(parser_e_illegal_expression);
+                      compiler.verbose.Message(parser_e_illegal_expression);
                       result:=texprvalue.create_error;
                     end;
                 end;
@@ -1512,7 +1520,7 @@ type
                   result:=texprvalue.create_str(lvs+rvs);
                 else
                   begin
-                    Message(parser_e_illegal_expression);
+                    compiler.verbose.Message(parser_e_illegal_expression);
                     result:=texprvalue.create_error;
                   end;
               end;
@@ -1671,7 +1679,7 @@ type
         procedure preproc_consume(t:ttoken);
         begin
           if t<>current_scanner.preproc_token then
-            Message(scan_e_preproc_syntax_error);
+            compiler.verbose.Message(scan_e_preproc_syntax_error);
           current_scanner.preproc_token:=current_scanner.readpreproc;
         end;
 
@@ -1809,13 +1817,13 @@ type
                        end
                      else
                        begin
-                         Message(sym_e_type_must_be_rec_or_object_or_class);
+                         compiler.verbose.Message(sym_e_type_must_be_rec_or_object_or_class);
                          exit;
                        end;
                    end
                  else
                    begin
-                     Message(type_e_type_id_expected);
+                     compiler.verbose.Message(type_e_type_id_expected);
                      exit;
                    end;
                end;
@@ -1855,7 +1863,7 @@ type
             inc(macrocount);
             if macrocount>max_macro_nesting then
               begin
-                Message(scan_w_macro_too_deep);
+                compiler.verbose.Message(scan_w_macro_too_deep);
                 break;
               end;
 
@@ -1865,7 +1873,7 @@ type
                   if mac.buflen>255 then
                     begin
                       len:=255;
-                      Message(scan_w_macro_cut_after_255_chars);
+                      compiler.verbose.Message(scan_w_macro_cut_after_255_chars);
                     end
                   else
                     len:=mac.buflen;
@@ -1990,7 +1998,7 @@ type
                     else if (m_mac in current_settings.modeswitches) then
                       hasKlammer:= false
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
 
                     if current_scanner.preproc_token =_ID then
                       begin
@@ -2007,13 +2015,13 @@ type
                         current_scanner.skipspace;
                       end
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
 
                     if hasKlammer then
                       if current_scanner.preproc_token =_RKLAMMER then
                         preproc_consume(_RKLAMMER)
                       else
-                        Message(scan_e_error_in_preproc_expr);
+                        compiler.verbose.Message(scan_e_error_in_preproc_expr);
                   end
                 else
                 if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
@@ -2035,7 +2043,7 @@ type
                         current_scanner.skipspace;
                       end
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
                   end
                 else
                 if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='OPTION') then
@@ -2048,15 +2056,15 @@ type
                         current_scanner.skipspace;
                       end
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
 
                     if not (current_scanner.preproc_token = _ID) then
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
 
                     hs:=current_scanner.preproc_pattern;
                     if (length(hs) > 1) then
                       {This is allowed in Metrowerks Pascal}
-                      Message(scan_e_error_in_preproc_expr)
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr)
                     else
                       begin
                         if CheckSwitch(hs[1],'+') then
@@ -2070,7 +2078,7 @@ type
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
                   end
                 else
                 if current_scanner.preproc_pattern='SIZEOF' then
@@ -2083,7 +2091,7 @@ type
                         current_scanner.skipspace;
                       end
                     else
-                      Message(scan_e_preproc_syntax_error);
+                      compiler.verbose.Message(scan_e_preproc_syntax_error);
 
                     storedpattern:=current_scanner.preproc_pattern;
                     preproc_consume(_ID);
@@ -2106,12 +2114,12 @@ type
                               typesym:
                                 begin
                                   if ttypesym(srsym).typedef.typ in [errordef,abstractdef,forwarddef] then
-                                    Message(parser_e_illegal_expression);
+                                    compiler.verbose.Message(parser_e_illegal_expression);
                                   l:=ttypesym(srsym).typedef.size;
                                   MarkSymbolAsUsed(srsym);
                                 end;
                               else
-                                Message(scan_e_error_in_preproc_expr);
+                                compiler.verbose.Message(scan_e_error_in_preproc_expr);
                             end;
                           result:=texprvalue.create_int(l);
                         end
@@ -2121,7 +2129,7 @@ type
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
                     else
-                      Message(scan_e_preproc_syntax_error);
+                      compiler.verbose.Message(scan_e_preproc_syntax_error);
                   end
                 else
                 if current_scanner.preproc_pattern='HIGH' then
@@ -2134,7 +2142,7 @@ type
                         current_scanner.skipspace;
                       end
                     else
-                      Message(scan_e_preproc_syntax_error);
+                      compiler.verbose.Message(scan_e_preproc_syntax_error);
 
                     storedpattern:=current_scanner.preproc_pattern;
                     preproc_consume(_ID);
@@ -2162,7 +2170,7 @@ type
                                   MarkSymbolAsUsed(srsym);
                                 end;
                               else
-                                Message(scan_e_error_in_preproc_expr);
+                                compiler.verbose.Message(scan_e_error_in_preproc_expr);
                             end;
                           if assigned(hdef) then
                             begin
@@ -2179,16 +2187,16 @@ type
                                   result:=texprvalue.create_int(tenumdef(hdef).maxval);
                                 arraydef:
                                   if is_open_array(hdef) or is_array_of_const(hdef) or is_dynamic_array(hdef) then
-                                    Message(type_e_mismatch)
+                                    compiler.verbose.Message(type_e_mismatch)
                                   else
                                     result:=texprvalue.create_int(tarraydef(hdef).highrange);
                                 stringdef:
                                   if is_open_string(hdef) or is_ansistring(hdef) or is_wide_or_unicode_string(hdef) then
-                                    Message(type_e_mismatch)
+                                    compiler.verbose.Message(type_e_mismatch)
                                   else
                                     result:=texprvalue.create_int(tstringdef(hdef).len);
                                 else
-                                  Message(type_e_mismatch);
+                                  compiler.verbose.Message(type_e_mismatch);
                               end;
                             end;
                         end
@@ -2198,7 +2206,7 @@ type
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
                     else
-                      Message(scan_e_preproc_syntax_error);
+                      compiler.verbose.Message(scan_e_preproc_syntax_error);
                   end
                 else
                 if current_scanner.preproc_pattern='DECLARED' then
@@ -2211,7 +2219,7 @@ type
                         current_scanner.skipspace;
                       end
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
                     if current_scanner.preproc_token =_ID then
                       begin
                         hs := upper(current_scanner.preproc_pattern);
@@ -2229,7 +2237,7 @@ type
                                 current_scanner.skipspace;
                               end;
                             if not (current_scanner.preproc_token in [_GT,_RSHARPBRACKET]) then
-                              Message(scan_e_error_in_preproc_expr)
+                              compiler.verbose.Message(scan_e_error_in_preproc_expr)
                             else
                               preproc_consume(current_scanner.preproc_token);
                             str(l,countstr);
@@ -2263,11 +2271,11 @@ type
                           result:=texprvalue.create_bool(false);
                       end
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
                   end
                 else
                 if current_scanner.preproc_pattern='ORD' then
@@ -2280,7 +2288,7 @@ type
                         current_scanner.skipspace;
                       end
                     else
-                      Message(scan_e_preproc_syntax_error);
+                      compiler.verbose.Message(scan_e_preproc_syntax_error);
 
                     exprvalue:=preproc_factor(eval);
                     if eval then
@@ -2300,7 +2308,7 @@ type
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
                     else
-                      Message(scan_e_error_in_preproc_expr);
+                      compiler.verbose.Message(scan_e_error_in_preproc_expr);
                   end
                 else
                 if current_scanner.preproc_pattern='NOT' then
@@ -2353,7 +2361,7 @@ type
                                             result.free;
                                             result:=nil;
                                             // TODO(ryan): better error?
-                                            Message(scan_e_error_in_preproc_expr);
+                                            compiler.verbose.Message(scan_e_error_in_preproc_expr);
                                           end;
                                       if result<>nil then
                                         begin
@@ -2371,7 +2379,7 @@ type
                                             result.free;
                                             result:=nil;
                                             // TODO(ryan): better error?
-                                            Message(scan_e_error_in_preproc_expr);
+                                            compiler.verbose.Message(scan_e_error_in_preproc_expr);
                                           end;
                                       if result<>nil then
                                         begin
@@ -2390,7 +2398,7 @@ type
                             result.free;
                             result:=nil;
                             // TODO(ryan): better error?
-                            Message(scan_e_error_in_preproc_expr);
+                            compiler.verbose.Message(scan_e_error_in_preproc_expr);
                           end;
                       end
                       { skip id(<expr>) if expression must not be evaluated }
@@ -2405,7 +2413,7 @@ type
                               if current_scanner.preproc_token =_RKLAMMER then
                                 preproc_consume(_RKLAMMER)
                               else
-                                Message(scan_e_error_in_preproc_expr);
+                                compiler.verbose.Message(scan_e_error_in_preproc_expr);
                             end;
                         end;
                   end
@@ -2456,7 +2464,7 @@ type
                result:=texprvalue.try_parse_number(current_scanner.preproc_pattern);
                if not assigned(result) then
                  begin
-                   Message(parser_e_invalid_integer);
+                   compiler.verbose.Message(parser_e_invalid_integer);
                    result:=texprvalue.create_int(1);
                  end;
                preproc_consume(_INTCONST);
@@ -2471,7 +2479,7 @@ type
                result:=texprvalue.try_parse_real(current_scanner.preproc_pattern);
                if not assigned(result) then
                  begin
-                   Message(parser_e_error_in_real);
+                   compiler.verbose.Message(parser_e_error_in_real);
                    result:=texprvalue.create_real(1.0);
                  end;
                preproc_consume(_REALNUMBER);
@@ -2487,12 +2495,12 @@ type
                else if is_fpu(exprvalue.def) then
                  result:=texprvalue.create_real(-pbestreal(exprvalue.value.valueptr)^)
                else
-                 Message(scan_e_error_in_preproc_expr);
+                 compiler.verbose.Message(scan_e_error_in_preproc_expr);
                exprvalue.free;
                exprvalue := nil;
              end
            else
-             Message(scan_e_error_in_preproc_expr);
+             compiler.verbose.Message(scan_e_error_in_preproc_expr);
            if not assigned(result) then
              result:=texprvalue.create_error;
         end;
@@ -2602,7 +2610,7 @@ type
         hs:=current_scanner.readid;
         if hs='' then
           begin
-            Message(scan_e_emptymacroname);
+            compiler.verbose.Message(scan_e_emptymacroname);
             exit;
           end;
         mac:=tmacro(search_macro(hs));
@@ -2640,7 +2648,7 @@ type
 
              { key words are never substituted }
              if is_keyword(hs) then
-               Message(scan_e_keyword_cant_be_a_macro);
+               compiler.verbose.Message(scan_e_keyword_cant_be_a_macro);
 
              current_scanner.gettokenpos;
              mac.fileinfo:=current_tokenpos;
@@ -2664,7 +2672,7 @@ type
                    current_scanner.end_of_file;
                end;
                if macropos>=maxmacrolen then
-                 Message(scan_f_macro_buffer_overflow);
+                 compiler.verbose.Message(scan_f_macro_buffer_overflow);
                macrobuffer[macropos]:=current_scanner.c;
                inc(macropos);
                current_scanner.readchar;
@@ -2683,7 +2691,7 @@ type
               begin
                 current_scanner.readchar;
                 if current_scanner.c='=' then
-                  Message(scan_w_macro_support_turned_off);
+                  compiler.verbose.Message(scan_w_macro_support_turned_off);
               end;
           end;
       end;
@@ -2729,7 +2737,7 @@ type
 
         { key words are never substituted }
         if is_keyword(hs) then
-          Message(scan_e_keyword_cant_be_a_macro);
+          compiler.verbose.Message(scan_e_keyword_cant_be_a_macro);
 
         { macro assignment can be both := and = }
         current_scanner.skipspace;
@@ -2760,12 +2768,12 @@ type
                  move(hs[1],mac.allocate_buftext(length(hs))^,length(hs));
                end
              else
-               Message(scan_e_preproc_syntax_error);
+               compiler.verbose.Message(scan_e_preproc_syntax_error);
              exprvalue.free;
              exprvalue := nil;
           end
         else
-          Message(scan_e_preproc_syntax_error);
+          compiler.verbose.Message(scan_e_preproc_syntax_error);
       end;
 
 
@@ -2956,7 +2964,7 @@ type
                current_scanner.reload;
              end
            else
-             Message(scan_f_include_deep_ten);
+             compiler.verbose.Message(scan_f_include_deep_ten);
          end;
       end;
 
@@ -4099,13 +4107,13 @@ type
                           the middle of a file either) *)
                        if (current_settings.sourcecodepage<>CP_UTF8) and
                           not current_module.in_global then
-                         Message(scanner_f_illegal_utf8_bom);
+                         compiler.verbose.Message(scanner_f_illegal_utf8_bom);
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
                        inc_inputpointer(3);
 {$else not CHECK_INPUTPOINTER_LIMITS}
                        inc(inputpointer,3);
 {$endif CHECK_INPUTPOINTER_LIMITS}
-                       message(scan_c_switching_to_utf8);
+                       compiler.verbose.Message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:=CP_UTF8;
                        exclude(current_settings.moduleswitches,cs_system_codepage);
                        include(current_settings.moduleswitches,cs_explicit_codepage);
@@ -4369,7 +4377,7 @@ type
         if in_multiline_string then
           compiler.verbose.Message2(scan_f_unterminated_multiline_string, tostr(multiline_start_line), tostr(multiline_start_column))
         else
-          Message(scan_f_end_of_file);
+          compiler.verbose.Message(scan_f_end_of_file);
       end;
 
   {-------------------------------------------
@@ -4405,7 +4413,7 @@ type
            preprocstack:=hp;
          end
         else
-         Message(scan_e_endif_without_if);
+         compiler.verbose.Message(scan_e_endif_without_if);
       end;
 
 
@@ -4455,7 +4463,7 @@ type
             compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'rejected');
          end
         else
-         Message(scan_e_endif_without_if);
+         compiler.verbose.Message(scan_e_endif_without_if);
       end;
 
     procedure tscannerfile.elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
@@ -4493,7 +4501,7 @@ type
              compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'rejected');
          end
         else
-         Message(scan_e_endif_without_if);
+         compiler.verbose.Message(scan_e_endif_without_if);
       end;
 
 
@@ -4538,7 +4546,7 @@ type
           else
            begin
              current_scanner.gettokenpos;
-             Message(scan_c_skipping_until);
+             compiler.verbose.Message(scan_c_skipping_until);
              repeat
                current_scanner.skipuntildirective;
                if not (m_mac in current_settings.modeswitches) then
@@ -4670,6 +4678,8 @@ type
 
     procedure tscannerfile.readstring;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
         err : boolean;
       begin
@@ -4697,7 +4707,7 @@ type
                  begin
                    if not err then
                      begin
-                       Message(scan_e_string_exceeds_255_chars);
+                       compiler.verbose.Message(scan_e_string_exceeds_255_chars);
                        err:=true;
                      end;
                  end;
@@ -4724,7 +4734,7 @@ type
                  begin
                    if not err then
                      begin
-                       Message(scan_e_string_exceeds_255_chars);
+                       compiler.verbose.Message(scan_e_string_exceeds_255_chars);
                        err:=true;
                      end;
                  end;
@@ -4949,7 +4959,7 @@ type
                                  tostr(multiline_start_line),
                                  tostr(multiline_start_column))
                       else
-                        Message(scan_f_string_exceeds_line);
+                        compiler.verbose.Message(scan_f_string_exceeds_line);
                     end;
                 '''' :
                   if not in_multiline_string then
@@ -4975,7 +4985,7 @@ type
                 begin
                   if not msgwritten then
                     begin
-                      Message(scan_e_string_exceeds_255_chars);
+                      compiler.verbose.Message(scan_e_string_exceeds_255_chars);
                       msgwritten:=true;
                     end;
                  end;
@@ -5067,6 +5077,8 @@ type
 
     function tscannerfile.readlongquotedstring:RawByteString;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
         msgwritten : boolean;
 
@@ -5089,7 +5101,7 @@ type
                 #26 :
                   end_of_file;
                 #10,#13 :
-                  Message(scan_f_string_exceeds_line);
+                  compiler.verbose.Message(scan_f_string_exceeds_line);
                 '''' :
                   begin
                     readchar;
@@ -5107,6 +5119,8 @@ type
 
     function tscannerfile.readstate:char;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         state : char;
       begin
         state:=' ';
@@ -5123,12 +5137,14 @@ type
         else
          state:=c;
         if not (state in ['+','-']) then
-         Message(scan_e_wrong_switch_toggle);
+         compiler.verbose.Message(scan_e_wrong_switch_toggle);
         readstate:=state;
       end;
 
 
     function tscannerfile.readoptionalstate(fallback:char):char;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         state : char;
       begin
@@ -5154,12 +5170,14 @@ type
           else
             state:=c;
         if not (state in ['+','-']) then
-         Message(scan_e_wrong_switch_toggle);
+         compiler.verbose.Message(scan_e_wrong_switch_toggle);
         readoptionalstate:=state;
       end;
 
 
     function tscannerfile.readstatedefault:char;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         state : char;
       begin
@@ -5180,7 +5198,7 @@ type
         else
          state:=c;
         if not (state in ['+','-','*']) then
-         Message(scan_e_wrong_switch_toggle_default);
+         compiler.verbose.Message(scan_e_wrong_switch_toggle_default);
         readstatedefault:=state;
       end;
 
@@ -5405,13 +5423,15 @@ type
 
 
     procedure tscannerfile.skipdelphicomment;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_commentstyle:=comment_delphi;
         inc_comment_level;
         readchar;
         { this is not supported }
         if c='$' then
-          Message(scan_w_wrong_styled_switch);
+          compiler.verbose.Message(scan_w_wrong_styled_switch);
         { skip comment }
         while not (c in [#10,#13,#26]) do
           readchar;
@@ -5785,7 +5805,7 @@ type
               end;
               val(asciinr,m,code);
               if (asciinr='') or (code<>0) then
-                Message(scan_e_illegal_char_const)
+                compiler.verbose.Message(scan_e_illegal_char_const)
               else if (m<0) or (m>255) or (length(asciinr)>3) then
                 begin
                    if (m>=0) and (m<=$10FFFF) then
@@ -5810,7 +5830,7 @@ type
                          end;
                      end
                    else
-                     Message(scan_e_illegal_char_const)
+                     compiler.verbose.Message(scan_e_illegal_char_const)
                 end
               else if iswidestring then
                 concatwidestringchar(patternw,asciichar2unicode(char(m)))
@@ -5894,7 +5914,7 @@ type
                               end;
                             end
                           else
-                            Message(scan_f_string_exceeds_line);
+                            compiler.verbose.Message(scan_f_string_exceeds_line);
                         end;
                       end;
                     '''' :
@@ -5952,18 +5972,18 @@ type
                         d:=ord(c) and $f;
                         readchar;
                         if (ord(c) and $c0)<>$80 then
-                          message(scan_e_utf8_malformed);
+                          compiler.verbose.Message(scan_e_utf8_malformed);
                         d:=(d shl 6) or (ord(c) and $3f);
                         readchar;
                         if (ord(c) and $c0)<>$80 then
-                          message(scan_e_utf8_malformed);
+                          compiler.verbose.Message(scan_e_utf8_malformed);
                         d:=(d shl 6) or (ord(c) and $3f);
                         readchar;
                         if (ord(c) and $c0)<>$80 then
-                          message(scan_e_utf8_malformed);
+                          compiler.verbose.Message(scan_e_utf8_malformed);
                         d:=(d shl 6) or (ord(c) and $3f);
                         if d<$10000 then
-                          message(scan_e_utf8_malformed);
+                          compiler.verbose.Message(scan_e_utf8_malformed);
                         d:=d-$10000;
                         { high surrogate }
                         w:=$d800+(d shr 10);
@@ -5978,11 +5998,11 @@ type
                         w:=ord(c) and $f;
                         readchar;
                         if (ord(c) and $c0)<>$80 then
-                          message(scan_e_utf8_malformed);
+                          compiler.verbose.Message(scan_e_utf8_malformed);
                         w:=(w shl 6) or (ord(c) and $3f);
                         readchar;
                         if (ord(c) and $c0)<>$80 then
-                          message(scan_e_utf8_malformed);
+                          compiler.verbose.Message(scan_e_utf8_malformed);
                         w:=(w shl 6) or (ord(c) and $3f);
                         concatwidestringchar(patternw,w);
                       end
@@ -5992,13 +6012,13 @@ type
                         w:=ord(c) and $1f;
                         readchar;
                         if (ord(c) and $c0)<>$80 then
-                          message(scan_e_utf8_malformed);
+                          compiler.verbose.Message(scan_e_utf8_malformed);
                         w:=(w shl 6) or (ord(c) and $3f);
                         concatwidestringchar(patternw,w);
                       end
                     { illegal }
                     else if (ord(c) and $80)<>0 then
-                      message(scan_e_utf8_malformed)
+                      compiler.verbose.Message(scan_e_utf8_malformed)
                     else
                       concatwidestringchar(patternw,tcompilerwidechar(c))
                   end
@@ -6314,7 +6334,7 @@ type
                        exit;
                      end
                     else
-                     Message(scan_w_macro_too_deep);
+                     compiler.verbose.Message(scan_w_macro_too_deep);
                   end;
                end;
             end;

@@ -1559,6 +1559,8 @@ implementation
       end;
 
     procedure taicpu.create_ot(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       {
         this function will also fix some other fields which only needs to be once
       }
@@ -1711,7 +1713,7 @@ implementation
                       or ((i=0) and (opcode in [A_AAD,A_AAM]))
 {$endif x86_64}
                       ) then
-                      message(asmr_e_invalid_opcode_and_operand);
+                      compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
                     if
 {$ifdef i8086}
                        (longint(val)>=-128) and (val<=127) then
@@ -2395,7 +2397,7 @@ implementation
 {$ifdef i8086}
            if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) and
               ((segprefix=NR_FS) or (segprefix=NR_GS)) then
-             Message(asmw_e_instruction_not_supported_by_cpu);
+             compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
            objdata.writebytes(segprefixes[segprefix],1);
            { fix the offset for GenNode }
@@ -2665,6 +2667,8 @@ implementation
 
     function process_ea_ref_64_32(const input:toper;var output:ea;rfield:longint; uselargeoffset,forceSibByte: boolean):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sym   : tasmsymbol;
         md,s  : byte;
         base,index,scalefactor,
@@ -2707,9 +2711,9 @@ implementation
          begin
            if ((br=NR_RIP) and (ir<>NR_NO)) or
              (ir=NR_RIP) then
-             message(asmw_e_illegal_use_of_rip);
+             compiler.verbose.Message(asmw_e_illegal_use_of_rip);
            if ir=NR_STACK_POINTER_REG then
-             Message(asmw_e_illegal_use_of_sp);
+             compiler.verbose.Message(asmw_e_illegal_use_of_sp);
            { 16 bit? }
 
            if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY,R_SUBMMZ]) and
@@ -2721,7 +2725,7 @@ implementation
            else if ((ir<>NR_NO) and (isub<>R_SUBQ) and (isub<>R_SUBD)) or
                    ((br<>NR_NO) and (bsub<>R_SUBQ) and (bsub<>R_SUBD)) then
            begin
-             message(asmw_e_16bit_32bit_not_supported);
+             compiler.verbose.Message(asmw_e_16bit_32bit_not_supported);
            end;
 
            { wrong, for various reasons }
@@ -2989,7 +2993,7 @@ implementation
            end
            else if ((ir<>NR_NO) and (isub<>R_SUBD)) or
                    ((br<>NR_NO) and (bsub<>R_SUBD)) then
-             message(asmw_e_16bit_not_supported);
+             compiler.verbose.Message(asmw_e_16bit_not_supported);
 {$ifdef OPTEA}
            { make single reg base }
            if (br=NR_NO) and (s=1) then
@@ -3156,7 +3160,7 @@ implementation
 
             if ((ir<>NR_NO) and (isub<>R_SUBW)) or
                ((br<>NR_NO) and (bsub<>R_SUBW)) then
-              message(asmw_e_32bit_not_supported);
+              compiler.verbose.Message(asmw_e_32bit_not_supported);
             { scalefactor can only be 1 in 16-bit addresses }
             if (s<>1) and (ir<>NR_NO) then
               exit;
@@ -3230,6 +3234,8 @@ implementation
       end;
 
     function taicpu.calcsize(p:PInsEntry):shortint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         codes : pchar;
         c     : byte;
@@ -3436,7 +3442,7 @@ implementation
                 if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, EVEXTupleState = etsNotTuple) then
 {$endif x86_64}
                  inc(len,ea_data.size)
-                  else Message(asmw_e_invalid_effective_address);
+                  else compiler.verbose.Message(asmw_e_invalid_effective_address);
 
 {$ifdef x86_64}
                 rex:=rex or ea_data.rex;
@@ -3505,7 +3511,7 @@ implementation
         until false;
 {$ifdef x86_64}
         if ((rex and $80)<>0) and ((rex and $4F)<>0) then
-          Message(asmw_e_bad_reg_with_rex);
+          compiler.verbose.Message(asmw_e_bad_reg_with_rex);
         rex:=rex and $4F;      { reset extra bits in upper nibble }
         if omit_rexw then
           begin
@@ -3580,7 +3586,7 @@ implementation
       begin
 {$ifdef i8086}
         if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-          Message(asmw_e_instruction_not_supported_by_cpu);
+          compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
         objdata.writebytes(b66,1);
       end;
@@ -3592,7 +3598,7 @@ implementation
       begin
 {$ifdef i8086}
         if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-          Message(asmw_e_instruction_not_supported_by_cpu);
+          compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
         objdata.writebytes(b67,1);
       end;
@@ -3792,7 +3798,7 @@ implementation
                   currabsreloc32:=RELOC_ABSOLUTE32;
                 end;
               else
-                Message(asmw_e_immediate_or_reference_expected);
+                compiler.verbose.Message(asmw_e_immediate_or_reference_expected);
             end;
           end;
 
@@ -3906,48 +3912,48 @@ implementation
             else if IF_186 in insentry^.flags then
               begin
                 if objdata.CPUType<cpu_186 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_286 in insentry^.flags then
               begin
                 if objdata.CPUType<cpu_286 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_386 in insentry^.flags then
               begin
                 if objdata.CPUType<cpu_386 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_486 in insentry^.flags then
               begin
                 if objdata.CPUType<cpu_486 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_PENT in insentry^.flags then
               begin
                 if objdata.CPUType<cpu_Pentium then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_P6 in insentry^.flags then
               begin
                 if objdata.CPUType<cpu_Pentium2 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_KATMAI in insentry^.flags then
               begin
                 if objdata.CPUType<cpu_Pentium3 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if insentry^.flags*[IF_WILLAMETTE,IF_PRESCOTT]<>[] then
               begin
                 if objdata.CPUType<cpu_Pentium4 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_NEC in insentry^.flags then
               begin
               { the NEC V20/V30 extensions are incompatible with 386+, due to overlapping opcodes }
                 if objdata.CPUType>=cpu_386 then
-                  Message(asmw_e_instruction_not_supported_by_cpu);
+                  compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
               end
             else if IF_SANDYBRIDGE in insentry^.flags then
               begin
@@ -4610,7 +4616,7 @@ implementation
                     write0x66prefix(objdata);
 {$ifndef x86_64}
                   OT_BITS64 :
-                      Message(asmw_e_64bit_not_supported);
+                      compiler.verbose.Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
                 end;
               end;
@@ -4633,7 +4639,7 @@ implementation
             &326 :
               begin
 {$ifndef x86_64}
-                Message(asmw_e_64bit_not_supported);
+                compiler.verbose.Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
               end;
             &333 :
@@ -4721,7 +4727,7 @@ implementation
 {$else x86_64}
                    if not process_ea(oper[opidx]^,ea_data,rfield, EVEXTupleState = etsNotTuple) then
 {$endif x86_64}
-                    Message(asmw_e_invalid_effective_address);
+                    compiler.verbose.Message(asmw_e_invalid_effective_address);
 
 
                    pb:=@bytes[0];

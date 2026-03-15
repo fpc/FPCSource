@@ -2115,10 +2115,10 @@ implementation
                  vecbase:=tarraydef(def).lowrange;
                end
              else
-               Message(parser_e_packed_dynamic_open_array);
+               compiler.verbose.Message(parser_e_packed_dynamic_open_array);
            end;
          else
-           Message(parser_e_illegal_expression);
+           compiler.verbose.Message(parser_e_illegal_expression);
        end;
        { Prevent overflow }
        v:=index-vecbase;

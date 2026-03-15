@@ -545,7 +545,7 @@ implementation
       begin
         { load the table's flags }
         if ppufile.readentry<>ibsymtableoptions then
-          Message(unit_f_ppu_read_error);
+          compiler.verbose.Message(unit_f_ppu_read_error);
         ppufile.getset(tppuset1(tableoptions));
 
         { load definitions }
@@ -583,7 +583,7 @@ implementation
       begin
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartdefs then
-           Message(unit_f_ppu_read_error);
+           compiler.verbose.Message(unit_f_ppu_read_error);
          { read definitions }
          repeat
            b:=ppufile.readentry;
@@ -610,7 +610,7 @@ implementation
              ibvariantdef : def:=cvariantdef.ppuload(ppufile,compiler);
              ibundefineddef : def:=cundefineddef.ppuload(ppufile,compiler);
              ibenddefs : break;
-             ibend : Message(unit_f_ppu_read_error);
+             ibend : compiler.verbose.Message(unit_f_ppu_read_error);
            else
              compiler.verbose.Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
@@ -628,7 +628,7 @@ implementation
       begin
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartsyms then
-          Message(unit_f_ppu_read_error);
+          compiler.verbose.Message(unit_f_ppu_read_error);
          { now read the symbols }
          repeat
            sym:=nil;
@@ -650,7 +650,7 @@ implementation
                ibmacrosym : sym:=tmacro.ppuload(ppufile);
            ibnamespacesym : sym:=cnamespacesym.ppuload(ppufile);
                 ibendsyms : break;
-                    ibend : Message(unit_f_ppu_read_error);
+                    ibend : compiler.verbose.Message(unit_f_ppu_read_error);
            else
              compiler.verbose.Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
@@ -1244,7 +1244,7 @@ implementation
     procedure tabstractrecordsymtable.ppuload(ppufile:tcompilerppufile);
       begin
         if ppufile.readentry<>ibrecsymtableoptions then
-          Message(unit_f_ppu_read_error);
+          compiler.verbose.Message(unit_f_ppu_read_error);
         recordalignment:=shortint(ppufile.getbyte);
         explicitrecordalignment:=shortint(ppufile.getbyte);
         usefieldalignment:=shortint(ppufile.getbyte);
@@ -1361,7 +1361,7 @@ implementation
                   databitsize:=_datasize*8;
                   sym.fieldoffset:=databitsize;
                   if (l>high(asizeint) div 8) then
-                    Message(sym_e_segment_too_large);
+                    compiler.verbose.Message(sym_e_segment_too_large);
                   l:=l*8;
                 end;
               if varalign=0 then
@@ -1372,7 +1372,7 @@ implementation
               { arithmetic in offset calculations                 }
               if int64(l)>high(asizeint)-sym.fieldoffset then
                 begin
-                  Message(sym_e_segment_too_large);
+                  compiler.verbose.Message(sym_e_segment_too_large);
                   _datasize:=high(asizeint);
                   databitsize:=high(asizeint);
                 end
@@ -1389,7 +1389,7 @@ implementation
               sym.fieldoffset:=getfieldoffset(sym,_datasize,fieldalignment);
               if l>high(asizeint)-sym.fieldoffset then
                 begin
-                  Message(sym_e_segment_too_large);
+                  compiler.verbose.Message(sym_e_segment_too_large);
                   _datasize:=high(asizeint);
                 end
               else
@@ -1952,12 +1952,12 @@ implementation
                   begin
                     bitsize:=tfieldvarsym(sym).getsize;
                     if (bitsize>high(asizeint) div 8) then
-                      Message(sym_e_segment_too_large);
+                      compiler.verbose.Message(sym_e_segment_too_large);
                     bitsize:=bitsize*8;
                   end;
                 if bitsize>high(asizeint)-databitsize then
                   begin
-                    Message(sym_e_segment_too_large);
+                    compiler.verbose.Message(sym_e_segment_too_large);
                     _datasize:=high(asizeint);
                     databitsize:=high(asizeint);
                   end
@@ -1973,7 +1973,7 @@ implementation
               begin
                 if tfieldvarsym(sym).getsize>high(asizeint)-_datasize then
                   begin
-                    Message(sym_e_segment_too_large);
+                    compiler.verbose.Message(sym_e_segment_too_large);
                     _datasize:=high(asizeint);
                   end
                 else
@@ -3138,9 +3138,11 @@ implementation
       end;
 
     procedure check_systemunit_loaded; inline;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if systemunit=nil then
-       Message(sym_f_systemunitnotloaded);
+       compiler.verbose.Message(sym_f_systemunitnotloaded);
     end;
 
     procedure write_system_parameter_lists(const name:string);

@@ -1111,11 +1111,13 @@ implementation
 
 
     procedure TObjSection.SectionTooLargeError;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if oso_executable in SecOptions then
-          Message(asmw_f_code_segment_too_large)
+          compiler.verbose.Message(asmw_f_code_segment_too_large)
         else
-          Message(asmw_f_data_segment_too_large);
+          compiler.verbose.Message(asmw_f_data_segment_too_large);
       end;
 
 

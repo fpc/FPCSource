@@ -79,7 +79,7 @@ Interface
               Begin
                 if hasimm or (regs>1) then
                  Begin
-                   Message(asmr_e_invalid_reference_syntax);
+                   compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                    RecoverConsume(true);
                    break;
                  End;
@@ -104,7 +104,7 @@ Interface
                   end
                 else
                   begin
-                    Message(asmr_e_invalid_reference_syntax);
+                    compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                     RecoverConsume(true);
                     break;
                   end;
@@ -120,14 +120,14 @@ Interface
             AS_RBRACKET:
               begin
                 if (regs=0) and (not hasimm) then
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_RBRACKET);
                 break;
               end;
 
             else
               Begin
-                Message(asmr_e_invalid_reference_syntax);
+                compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 RecoverConsume(false);
                 break;
               end;
@@ -166,7 +166,7 @@ Interface
            actrel:=addr_gdop_lox22
 {$endif SPARC64}
          else
-           Message(asmr_e_invalid_register);
+           compiler.verbose.Message(asmr_e_invalid_register);
          if (actrel<>addr_no) then
            actasmtoken:=AS_RELTYPE;
       end;
@@ -213,7 +213,7 @@ Interface
                     BuildRecordOffsetSize(expr,toffset,tsize,mangledname,false);
                     if (oper.opr.typ<>OPR_CONSTANT) and
                        (mangledname<>'') then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     inc(l,toffset);
                     oper.SetSize(tsize,true);
                   end;
@@ -234,7 +234,7 @@ Interface
                 if (mangledname<>'') then
                   begin
                     if (oper.opr.val<>0) then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
                     oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname,AT_FUNCTION);
                   end
@@ -243,7 +243,7 @@ Interface
               OPR_REFERENCE :
                 inc(oper.opr.ref.offset,l);
               OPR_SYMBOL:
-                Message(asmr_e_invalid_symbol_ref);
+                compiler.verbose.Message(asmr_e_invalid_symbol_ref);
               else
                 internalerror(200309221);
             end;
@@ -280,7 +280,7 @@ Interface
             AS_MOD:
               Begin
                 if not gotplus then
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 l:=BuildConstExpression(True,False);
                 if negative then
                   l:=-l;
@@ -313,7 +313,7 @@ Interface
                 if not assigned(oper.opr.ref.symbol) then
                   oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp)
                 else
-                  Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                  compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                 case oper.opr.typ of
                   OPR_CONSTANT :
                     inc(oper.opr.val,l);
@@ -352,7 +352,7 @@ Interface
                    if SearchIConstant(actasmpattern,l) then
                     Begin
                       if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-                       Message(asmr_e_invalid_operand_type);
+                       compiler.verbose.Message(asmr_e_invalid_operand_type);
                       BuildConstantOperand(oper);
                     end
                    else
@@ -433,12 +433,12 @@ Interface
                       if oper.opr.ref.index<>NR_NO then
                         oper.opr.ref.index:=tempreg
                     else
-                      Message(asmr_e_multiple_index);
+                      compiler.verbose.Message(asmr_e_multiple_index);
                   end
                 else
                   begin
                     if (oper.opr.typ<>OPR_NONE) then
-                      Message(asmr_e_invalid_operand_type);
+                      compiler.verbose.Message(asmr_e_invalid_operand_type);
                     oper.opr.typ:=OPR_REGISTER;
                     oper.opr.reg:=tempreg;
                   end;
@@ -451,7 +451,7 @@ Interface
               break;
           else
             Begin
-              Message(asmr_e_syn_operand);
+              compiler.verbose.Message(asmr_e_syn_operand);
               Consume(actasmtoken);
             end;
           end; { end case }
@@ -470,7 +470,7 @@ Interface
         { opcode }
         if (actasmtoken<>AS_OPCODE) then
          Begin
-           Message(asmr_e_invalid_or_missing_opcode);
+           compiler.verbose.Message(asmr_e_invalid_or_missing_opcode);
            RecoverConsume(true);
            exit;
          end;
@@ -509,7 +509,7 @@ Interface
             AS_COMMA: { Operand delimiter }
               Begin
                 if operandnum>Max_Operands then
-                  Message(asmr_e_too_many_operands)
+                  compiler.verbose.Message(asmr_e_too_many_operands)
                 else
                   begin
                     { condition operands doesn't set the operand but write to the
@@ -599,7 +599,7 @@ Interface
               if (instr.Operands[1].opr.ref.base<>NR_NO) or
                 (instr.Operands[1].opr.ref.index<>NR_NO) or
                 (instr.Operands[1].opr.ref.refaddr<>addr_full) then
-                Message(asmr_e_syn_operand);
+                compiler.verbose.Message(asmr_e_syn_operand);
               instr.Operands[1].opr:=newopr;
             end;
       end;

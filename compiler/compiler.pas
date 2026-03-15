@@ -579,9 +579,9 @@ begin
             suppress this exception
           }
           if assigned(m) then
-            Message(general_f_compilation_aborted)
+            verbose.Message(general_f_compilation_aborted)
           else
-            Message(general_f_compiler_aborted);
+            verbose.Message(general_f_compiler_aborted);
         except
           on ECompilerAbort do
             ;
@@ -597,7 +597,7 @@ begin
 {$ifdef DUMP_EXCEPTION_BACKTRACE}
           DumpExceptionBackTrace(stderr);
 {$endif DUMP_EXCEPTION_BACKTRACE}
-          Message(general_f_compilation_aborted);
+          verbose.Message(general_f_compilation_aborted);
         except
           on ECompilerAbort do
             ;
@@ -611,7 +611,7 @@ begin
     on EOutOfMemory do
       begin
         try
-          Message(general_f_no_memory_left);
+          verbose.Message(general_f_no_memory_left);
         except
           on ECompilerAbort do
             ;
@@ -621,7 +621,7 @@ begin
     on e : EInOutError do
       begin
         try
-          verbose.Message1(general_f_ioerror,e.message);
+          verbose.Message1(general_f_ioerror,e.Message);
         except
           on ECompilerAbort do
             ;
@@ -631,7 +631,7 @@ begin
     on e : EOSError do
       begin
         try
-          verbose.Message1(general_f_oserror,e.message);
+          verbose.Message1(general_f_oserror,e.Message);
         except
           on ECompilerAbort do
             ;
@@ -648,10 +648,10 @@ begin
           if not exception_raised then
             begin
               exception_raised:=true;
-              Message(general_e_exception_raised);
+              verbose.Message(general_e_exception_raised);
             end
           else
-            Message(general_f_compilation_aborted);
+            verbose.Message(general_f_compilation_aborted);
         except
           on ECompilerAbort do
             ;

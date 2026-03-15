@@ -92,7 +92,7 @@ unit racpu;
             PF_SH:
               result:=OS_S16;
             else
-              Message(asmr_e_invalid_opcode_and_operand)
+              compiler.verbose.Message(asmr_e_invalid_opcode_and_operand)
           end;
       end;
 

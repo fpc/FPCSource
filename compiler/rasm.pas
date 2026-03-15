@@ -190,7 +190,7 @@ unit rasm;
            not is_implicit_pointer_object_type(sym.vardef) then
           exit;
 
-        Message(asmr_e_cannot_access_field_directly_for_parameters);
+        compiler.verbose.Message(asmr_e_cannot_access_field_directly_for_parameters);
       end;
 
 end.

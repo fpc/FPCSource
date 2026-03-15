@@ -71,7 +71,7 @@ interface
         procedure GenerateError;
         procedure Comment(l:longint;s:ansistring);
         function  MessageStr(w:longint):TMsgStr;
-        //TODO: procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
+        procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
         procedure Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
         procedure Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
         procedure Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
@@ -95,8 +95,6 @@ interface
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
-
-    procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
 
     procedure FlushOutput;
 
@@ -803,7 +801,7 @@ implementation
       end;
 
 
-    procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
+    procedure TVerbose.Message(w:longint;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[]),w,onqueue);
@@ -912,7 +910,7 @@ implementation
          if not(codegenerror) then
            begin
               olderrorcount:=compiler.verbose.Errorcount;
-              verbose.Message(t);
+              compiler.verbose.Message(t);
               codegenerror:=olderrorcount<>compiler.verbose.Errorcount;
            end;
       end;

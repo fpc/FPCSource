@@ -636,7 +636,7 @@ unit raatt;
                          break;
                        end;
                      #10,#13:
-                       Message(scan_f_string_exceeds_line);
+                       compiler.verbose.Message(scan_f_string_exceeds_line);
                      else
                        actasmpattern:=actasmpattern+c;
                    end;
@@ -665,7 +665,7 @@ unit raatt;
                          break;
                        end;
                      #10,#13:
-                       Message(scan_f_string_exceeds_line);
+                       compiler.verbose.Message(scan_f_string_exceeds_line);
                      else
                        actasmpattern:=actasmpattern+c;
                    end;
@@ -952,14 +952,14 @@ unit raatt;
               Begin
                 expr:=actasmpattern;
                 if length(expr) > 1 then
-                 Message(asmr_e_string_not_allowed_as_const);
+                 compiler.verbose.Message(asmr_e_string_not_allowed_as_const);
                 Consume(AS_STRING);
                 Case actasmtoken of
                   AS_COMMA: Consume(AS_COMMA);
                   AS_END,
                   AS_SEPARATOR: ;
                 else
-                  Message(asmr_e_invalid_string_expression);
+                  compiler.verbose.Message(asmr_e_invalid_string_expression);
                 end; { end case }
                 ConcatString(curlist,expr);
               end;
@@ -977,7 +977,7 @@ unit raatt;
                 if asmsym<>'' then
                  begin
                    if constsize<>sizeof(pint) then
-                    Message(asmr_w_32bit_const_for_address);
+                    compiler.verbose.Message(asmr_w_32bit_const_for_address);
                    ConcatConstSymbol(curlist,asmsym,'',asmsymtyp,value,constsize,true)
                  end
                 else
@@ -990,7 +990,7 @@ unit raatt;
               break;
             else
               begin
-                Message(asmr_e_syn_constant);
+                compiler.verbose.Message(asmr_e_syn_constant);
                 RecoverConsume(false);
               end
          end; { end case }
@@ -1029,7 +1029,7 @@ unit raatt;
                 if code<>0 then
                  Begin
                    r:=0;
-                   Message(asmr_e_invalid_float_expr);
+                   compiler.verbose.Message(asmr_e_invalid_float_expr);
                  End;
                 ConcatRealConstant(curlist,r,typ);
               end;
@@ -1048,7 +1048,7 @@ unit raatt;
                 if code<>0 then
                  Begin
                    r:=0;
-                   Message(asmr_e_invalid_float_expr);
+                   compiler.verbose.Message(asmr_e_invalid_float_expr);
                  End;
                 ConcatRealConstant(curlist,r,typ);
               end;
@@ -1065,7 +1065,7 @@ unit raatt;
            Begin
              Consume(actasmtoken);
              if not errorflag then
-              Message(asmr_e_invalid_float_expr);
+              compiler.verbose.Message(asmr_e_invalid_float_expr);
              errorflag:=TRUE;
            end;
          end;
@@ -1102,7 +1102,7 @@ unit raatt;
            Begin
              Consume(actasmtoken);
              if not errorflag then
-              Message(asmr_e_invalid_string_expression);
+              compiler.verbose.Message(asmr_e_invalid_string_expression);
              errorflag:=TRUE;
            end;
          end;
@@ -1273,7 +1273,7 @@ unit raatt;
                  else
                    l1:=1;
                ConcatAlign(curlist,l1);
-               Message(asmr_n_align_is_target_specific);
+               compiler.verbose.Message(asmr_n_align_is_target_specific);
                if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
              end;
@@ -1301,13 +1301,13 @@ unit raatt;
                      begin
                        l3:=BuildConstExpression(false,false);
                        if (l3<0) or (l3>255) then
-                         Message(asmr_e_invalid_constant_expression);
+                         compiler.verbose.Message(asmr_e_invalid_constant_expression);
                        if actasmtoken=AS_COMMA then
                          begin
                            Consume(AS_COMMA);
                            l4:=BuildConstExpression(false,false);
                            if (l4<0) or (l4>l1) then
-                             Message(asmr_e_invalid_constant_expression);
+                             compiler.verbose.Message(asmr_e_invalid_constant_expression);
                            curlist.concat(Tai_align.create_op_max(l1,l3,l4));
                          end
                      end
@@ -1316,7 +1316,7 @@ unit raatt;
                        Consume(AS_COMMA);
                        l4:=BuildConstExpression(false,false);
                        if (l4<0) or (l4>l1) then
-                         Message(asmr_e_invalid_constant_expression);
+                         compiler.verbose.Message(asmr_e_invalid_constant_expression);
                        curlist.concat(Tai_align.create_max(l1,l4));
                      end
                  end
@@ -1425,7 +1425,7 @@ unit raatt;
                            'x':
                              Include(secflags,SF_X);
                            else
-                             Message(asmr_e_syntax_error);
+                             compiler.verbose.Message(asmr_e_syntax_error);
                          end;
                        Consume(AS_STRING);
                        if actasmtoken=AS_COMMA then
@@ -1444,19 +1444,19 @@ unit raatt;
                                      'NOTE':
                                        secprogbits:=SPB_NOTE;
                                      else
-                                       Message(asmr_e_syntax_error);
+                                       compiler.verbose.Message(asmr_e_syntax_error);
                                    end;
                                    Consume(AS_ID);
                                  end
                                else
-                                 Message(asmr_e_syntax_error);
+                                 compiler.verbose.Message(asmr_e_syntax_error);
                              end
                            else
-                             Message(asmr_e_syntax_error);
+                             compiler.verbose.Message(asmr_e_syntax_error);
                          end;
                      end
                    else
-                     Message(asmr_e_syntax_error);
+                     compiler.verbose.Message(asmr_e_syntax_error);
                  end;
 
                //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
@@ -1475,7 +1475,7 @@ unit raatt;
 
            else
              Begin
-               Message(asmr_e_syntax_error);
+               compiler.verbose.Message(asmr_e_syntax_error);
                RecoverConsume(false);
              end;
          end;
@@ -1485,7 +1485,7 @@ unit raatt;
        { are we back in the code section? }
        if lasTSec<>sec_code then
         begin
-          Message(asmr_w_assembler_code_not_returned_to_text);
+          compiler.verbose.Message(asmr_w_assembler_code_not_returned_to_text);
           new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
         end;
        { Return the list in an asmnode }
@@ -1527,7 +1527,7 @@ unit raatt;
             end;
          end;
         if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs,hastypecast) then
-         Message(asmr_e_building_record_offset);
+         compiler.verbose.Message(asmr_e_building_record_offset);
       end;
 
 
@@ -1567,7 +1567,7 @@ unit raatt;
                   break;
                 { write error only once. }
                 if not errorflag then
-                  Message(asmr_e_invalid_constant_expression);
+                  compiler.verbose.Message(asmr_e_invalid_constant_expression);
                 { consume tokens until we find COMMA or SEPARATOR }
                 Consume(actasmtoken);
                 errorflag:=TRUE;
@@ -1645,7 +1645,7 @@ unit raatt;
               begin
                 Consume(AS_DOLLAR);
                 if actasmtoken<>AS_ID then
-                 Message(asmr_e_dollar_without_identifier);
+                 compiler.verbose.Message(asmr_e_dollar_without_identifier);
               end;
             AS_STRING:
               Begin
@@ -1679,7 +1679,7 @@ unit raatt;
                 l:=0;
                 Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
-                 Message(asmr_e_type_without_identifier)
+                 compiler.verbose.Message(asmr_e_type_without_identifier)
                 else
                  begin
                    tempstr:=actasmpattern;
@@ -1688,7 +1688,7 @@ unit raatt;
                     begin
                       BuildRecordOffsetSize(tempstr,k,l,mangledname,false);
                       if mangledname<>'' then
-                        Message(asmr_e_wrong_sym_type);
+                        compiler.verbose.Message(asmr_e_wrong_sym_type);
                     end
                    else
                     begin
@@ -1703,7 +1703,7 @@ unit raatt;
                            typesym :
                              l:=ttypesym(sym).typedef.size;
                            else
-                             Message(asmr_e_wrong_sym_type);
+                             compiler.verbose.Message(asmr_e_wrong_sym_type);
                          end;
                        end
                       else
@@ -1717,14 +1717,14 @@ unit raatt;
               begin
                 Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
-                  Message(asmr_e_type_without_identifier)
+                  compiler.verbose.Message(asmr_e_type_without_identifier)
                 else
                   begin
                     tempstr:=actasmpattern;
                     consume(AS_ID);
                     BuildRecordOffsetSize(tempstr,k,l,mangledname,true);
                     if (mangledname <> '') then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     str(k,tempstr);
                     expr := expr + tempstr;
                   end
@@ -1776,21 +1776,21 @@ unit raatt;
                              end;
                            localvarsym,
                            paravarsym :
-                             Message(asmr_e_no_local_or_para_allowed);
+                             compiler.verbose.Message(asmr_e_no_local_or_para_allowed);
                            procsym :
                              begin
                                if Tprocsym(sym).ProcdefList.Count>1 then
-                                Message(asmr_w_calling_overload_func);
+                                compiler.verbose.Message(asmr_w_calling_overload_func);
                                hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
                                hssymtyp:=AT_FUNCTION;
                              end;
                            typesym :
                              begin
                                if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
-                                Message(asmr_e_wrong_sym_type);
+                                compiler.verbose.Message(asmr_e_wrong_sym_type);
                              end;
                            else
-                             Message(asmr_e_wrong_sym_type);
+                             compiler.verbose.Message(asmr_e_wrong_sym_type);
                          end;
                        end
                       else
@@ -1800,14 +1800,14 @@ unit raatt;
                    if hs<>'' then
                     begin
                       if needofs and (prevtok<>AS_DOLLAR) then
-                       Message(asmr_e_need_dollar);
+                       compiler.verbose.Message(asmr_e_need_dollar);
                       if asmsym='' then
                         begin
                           asmsym:=hs;
                           asmsymtyp:=hssymtyp;
                         end
                       else
-                        Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                        compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                       if (expr='') or (expr[length(expr)]='+') then
                        begin
                          { don't remove the + if there could be a record field }
@@ -1815,7 +1815,7 @@ unit raatt;
                           delete(expr,length(expr),1);
                        end
                       else
-                       Message(asmr_e_only_add_relocatable_symbol);
+                       compiler.verbose.Message(asmr_e_only_add_relocatable_symbol);
                     end;
                    if actasmtoken=AS_DOT then
                     begin
@@ -1838,7 +1838,7 @@ unit raatt;
                 if (hs<>'') and
                    not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,
                                        AS_LPAREN,AS_RPAREN,AS_RBRACKET,AS_END]) then
-                 Message(asmr_e_only_add_relocatable_symbol);
+                 compiler.verbose.Message(asmr_e_only_add_relocatable_symbol);
               end;
             AS_END,
             AS_SEPARATOR,
@@ -1848,7 +1848,7 @@ unit raatt;
             Begin
               { write error only once. }
               if not errorflag then
-                Message(asmr_e_invalid_constant_expression);
+                compiler.verbose.Message(asmr_e_invalid_constant_expression);
               { consume tokens until we find COMMA or SEPARATOR }
               Consume(actasmtoken);
               errorflag:=TRUE;
@@ -1871,7 +1871,7 @@ unit raatt;
       begin
         BuildConstSymbolExpression(allowref,betweenbracket,false,l,hs,hssymtyp);
         if hs<>'' then
-         Message(asmr_e_relocatable_symbol_not_allowed);
+         compiler.verbose.Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
       end;
 
@@ -1924,7 +1924,7 @@ unit raatt;
                    curlist.concat(ai);
                  end
                 else
-                 Message(asmr_e_invalid_symbol_ref);
+                 compiler.verbose.Message(asmr_e_invalid_symbol_ref);
               end;
             AS_COMMA:
               Consume(AS_COMMA);
@@ -1933,7 +1933,7 @@ unit raatt;
               break;
             else
               begin
-                Message(asmr_e_syn_constant);
+                compiler.verbose.Message(asmr_e_syn_constant);
                 RecoverConsume(false);
               end
           end; { end case }

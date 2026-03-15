@@ -153,9 +153,9 @@ implementation
             if section<>'' then
               begin
                 if (sym.varoptions *[vo_is_external,vo_is_weak_external])<>[] then
-                  Message(parser_e_externals_no_section);
+                  compiler.verbose.Message(parser_e_externals_no_section);
                 if sym.typ<>staticvarsym then
-                  Message(parser_e_section_no_locals);
+                  compiler.verbose.Message(parser_e_section_no_locals);
                 tstaticvarsym(sym).section:=section;
                 include(sym.varoptions, vo_has_section);
               end;

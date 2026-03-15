@@ -343,7 +343,7 @@ unit scandir;
     procedure dir_appid;
       begin
         if compiler.target.info.system<>system_m68k_palmos then
-          Message(scan_w_appid_not_support);
+          compiler.verbose.Message(scan_w_appid_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
         current_scanner.skipspace;
@@ -353,7 +353,7 @@ unit scandir;
     procedure dir_appname;
       begin
         if compiler.target.info.system<>system_m68k_palmos then
-          Message(scan_w_appname_not_support);
+          compiler.verbose.Message(scan_w_appname_not_support);
         { change description global var in all cases }
         { it not used but in win32 and os2 }
         current_scanner.skipspace;
@@ -374,14 +374,14 @@ unit scandir;
                                        systems_nativent) then
           begin
             if m_delphi in current_settings.modeswitches then
-              Message(scan_n_app_type_not_support)
+              compiler.verbose.Message(scan_n_app_type_not_support)
             else
-              Message(scan_w_app_type_not_support);
+              compiler.verbose.Message(scan_w_app_type_not_support);
           end
         else
           begin
             if not current_module.in_global then
-              Message(scan_w_switch_is_global)
+              compiler.verbose.Message(scan_w_switch_is_global)
             else
               begin
                  current_scanner.skipspace;
@@ -414,12 +414,14 @@ unit scandir;
 
     procedure dir_calling;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          hs : string;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
         if (hs='') then
-          Message(parser_e_proc_directive_expected)
+          compiler.verbose.Message(parser_e_proc_directive_expected)
         else
           recordpendingcallingswitch(hs);
       end;
@@ -506,7 +508,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
                  system_i386_netware,system_i386_wdosx,system_i386_netwlibc,system_i8086_win16]) then
-          Message(scan_w_description_not_support);
+          compiler.verbose.Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
         current_scanner.skipspace;
@@ -519,7 +521,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
-          {Message(scan_w_description_not_support);}
+          {compiler.verbose.Message(scan_w_description_not_support);}
           compiler.verbose.comment (V_Warning,'Screenname only supported for target netware');
         current_scanner.skipspace;
         nwscreenname:=current_scanner.readcomment;
@@ -530,7 +532,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
-          {Message(scan_w_description_not_support);}
+          {compiler.verbose.Message(scan_w_description_not_support);}
           compiler.verbose.comment (V_Warning,'Threadname only supported for target netware');
         current_scanner.skipspace;
         nwthreadname:=current_scanner.readcomment;
@@ -541,7 +543,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in [system_i386_netware,system_i386_netwlibc]) then
-          {Message(scan_w_description_not_support);}
+          {compiler.verbose.Message(scan_w_description_not_support);}
           compiler.verbose.comment (V_Warning,'Copyright only supported for target netware');
         current_scanner.skipspace;
         nwcopyright:=current_scanner.readcomment;
@@ -604,10 +606,10 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not current_module.in_global then
-         Message(scan_w_switch_is_global)
+         compiler.verbose.Message(scan_w_switch_is_global)
         else if not(compiler.target.info.system in systems_darwin) then
           begin
-            Message(scan_w_frameworks_darwin_only);
+            compiler.verbose.Message(scan_w_frameworks_darwin_only);
             current_scanner.skipspace;
             current_scanner.readcomment
           end
@@ -638,7 +640,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
-          Message(scan_w_imagebase_not_support);
+          compiler.verbose.Message(scan_w_imagebase_not_support);
         current_scanner.skipspace;
         imagebase:=current_scanner.readval;
         ImageBaseSetExplicity:=true
@@ -661,7 +663,7 @@ unit scandir;
         path : string;
       begin
         if not current_module.in_global then
-         Message(scan_w_switch_is_global)
+         compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
@@ -683,6 +685,8 @@ unit scandir;
 
     procedure dir_interfaces;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
       begin
         {corba/com/default}
@@ -698,7 +702,7 @@ unit scandir;
              if (hs='DEFAULT') then
           current_settings.interfacetype:=init_settings.interfacetype
         else
-          Message(scan_e_invalid_interface_type);
+          compiler.verbose.Message(scan_e_invalid_interface_type);
       end;
 
     procedure dir_iochecks;
@@ -718,7 +722,7 @@ unit scandir;
         path : string;
       begin
         if not current_module.in_global then
-         Message(scan_w_switch_is_global)
+         compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
@@ -766,7 +770,7 @@ unit scandir;
         if (compiler.target.info.system in systems_darwin) then
           current_module.linkotherframeworks.add(s,link_always)
         else
-          Message(scan_w_frameworks_darwin_only);
+          compiler.verbose.Message(scan_w_frameworks_darwin_only);
       end;
 
     procedure dir_linklib;
@@ -880,6 +884,8 @@ unit scandir;
 
     procedure dir_maxfpuregisters;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          l  : integer;
          hs : string;
       begin
@@ -890,7 +896,7 @@ unit scandir;
               if (hs='NORMAL') or (hs='DEFAULT') then
                 current_settings.maxfpuregisters:=-1
               else
-                Message(scan_e_invalid_maxfpureg_value);
+                compiler.verbose.Message(scan_e_invalid_maxfpureg_value);
            end
          else
            begin
@@ -899,7 +905,7 @@ unit scandir;
                  0..8:
                    current_settings.maxfpuregisters:=l;
                  else
-                   Message(scan_e_invalid_maxfpureg_value);
+                   compiler.verbose.Message(scan_e_invalid_maxfpureg_value);
               end;
            end;
       end;
@@ -909,13 +915,15 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
-          Message(scan_w_maxstacksize_not_support);
+          compiler.verbose.Message(scan_w_maxstacksize_not_support);
         current_scanner.skipspace;
         maxstacksize:=current_scanner.readval;
         MaxStackSizeSetExplicity:=true;
       end;
 
     procedure dir_memory;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         l : int64;
         heapsize_limit: int64;
@@ -959,7 +967,7 @@ unit scandir;
         then
           stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif})
         else
-          Message(scan_w_invalid_stacksize);
+          compiler.verbose.Message(scan_w_invalid_stacksize);
         if current_scanner.c=',' then
           begin
             current_scanner.readchar;
@@ -975,7 +983,7 @@ unit scandir;
                 if l>=heapsize then
                   maxheapsize:=min(l,maxheapsize_limit)
                 else
-                  Message(scan_w_heapmax_lessthan_heapmin);
+                  compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
               end;
           end;
       end;
@@ -1037,7 +1045,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
-          Message(scan_w_minstacksize_not_support);
+          compiler.verbose.Message(scan_w_minstacksize_not_support);
         current_scanner.skipspace;
         minstacksize:=current_scanner.readval;
         MinStackSizeSetExplicity:=true;
@@ -1050,7 +1058,7 @@ unit scandir;
 
     begin
       if not current_module.in_global then
-        Message(scan_w_switch_is_global)
+        compiler.verbose.Message(scan_w_switch_is_global)
       else
         begin
           current_scanner.skipspace;
@@ -1085,7 +1093,7 @@ unit scandir;
         else if (s='SOURCE') then
           current_settings.lineendingtype:=le_source
         else
-          Message(scan_e_unknown_lineending_type);
+          compiler.verbose.Message(scan_e_unknown_lineending_type);
       end;
 
     procedure dir_textblock;
@@ -1107,7 +1115,7 @@ unit scandir;
         else if (s='NATIVE') then
           current_settings.lineendingtype:=le_platform
         else
-          Message(scan_e_unknown_lineending_type);
+          compiler.verbose.Message(scan_e_unknown_lineending_type);
       end;
 
     procedure dir_multilinestringtrimleft;
@@ -1124,7 +1132,7 @@ unit scandir;
           begin
             count:=current_scanner.readval;
             if (count<0) or (count>high(word)) then
-              Message(scan_e_trimcount_out_of_range)
+              compiler.verbose.Message(scan_e_trimcount_out_of_range)
             else
               begin
                 current_settings.whitespacetrimcount:=count;
@@ -1159,7 +1167,7 @@ unit scandir;
         s : string;
       begin
         if not current_module.in_global then
-          Message(scan_w_switch_is_global)
+          compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
@@ -1176,6 +1184,8 @@ unit scandir;
 
 
     procedure dir_namespaces;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     { add namespaces to the local namespace list }
       var
@@ -1183,7 +1193,7 @@ unit scandir;
 
     begin
       if not current_module.in_global then
-        Message(scan_w_switch_is_global)
+        compiler.verbose.Message(scan_w_switch_is_global)
       else
         begin
           current_scanner.skipspace;
@@ -1210,12 +1220,14 @@ unit scandir;
 
     procedure dir_namespace;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         { used to define Java package names for all types declared in the
           current unit }
         if not current_module.in_global then
-          Message(scan_w_switch_is_global)
+          compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
@@ -1259,7 +1271,7 @@ unit scandir;
         path : string;
       begin
         if not current_module.in_global then
-         Message(scan_w_switch_is_global)
+         compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
@@ -1378,6 +1390,8 @@ unit scandir;
 
     procedure dir_packset;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hs : string;
         v : longint;
       begin
@@ -1388,7 +1402,7 @@ unit scandir;
            if (hs='FIXED') or (hs='DEFAULT') OR (hs='NORMAL') then
             recordpendingsetalloc(0) {Fixed mode, sets are 4 or 32 bytes}
            else
-            Message(scan_e_only_packset);
+            compiler.verbose.Message(scan_e_only_packset);
          end
         else
          begin
@@ -1396,7 +1410,7 @@ unit scandir;
            case v of
             1,2,4,8 : recordpendingsetalloc(v);
            else
-            Message(scan_e_only_packset);
+            compiler.verbose.Message(scan_e_only_packset);
            end;
          end;
       end;
@@ -1408,16 +1422,18 @@ unit scandir;
       begin
         { windows doesn't need/support pic }
         if tf_no_pic_supported in compiler.target.info.flags then
-          message(scan_w_pic_ignored)
+          compiler.verbose.Message(scan_w_pic_ignored)
         else
           do_moduleswitch(cs_create_pic);
       end;
 
     procedure dir_pop;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     begin
       if switchesstatestackpos < 1 then
-        Message(scan_e_too_many_pop)
+        compiler.verbose.Message(scan_e_too_many_pop)
       else
         begin
           Dec(switchesstatestackpos);
@@ -1456,10 +1472,12 @@ unit scandir;
       end;
 
     procedure dir_push;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     begin
       if switchesstatestackpos > switchesstatestackmax then
-        Message(scan_e_too_many_push);
+        compiler.verbose.Message(scan_e_too_many_push);
 
       { do not flush here as we might have read directives which shall not be active yet,
         see e.g. tests/webtbs/tw22744b.pp }
@@ -1548,12 +1566,12 @@ unit scandir;
             include(current_module.moduleflags,mf_has_resourcefiles);
             if (res_single_file in compiler.target.res.resflags) and
                                    not (Current_module.ResourceFiles.Empty) then
-              Message(scan_w_only_one_resourcefile_supported)
+              compiler.verbose.Message(scan_w_only_one_resourcefile_supported)
             else
               current_module.resourcefiles.insert(FixFileName(s));
           end
         else
-          Message(scan_e_resourcefiles_not_supported);
+          compiler.verbose.Message(scan_e_resourcefiles_not_supported);
       end;
 
     procedure dir_rtti;
@@ -1587,7 +1605,7 @@ unit scandir;
         { the system unit has not yet loaded which means the directive is misplaced}
         if systemunit=nil then
           begin
-            Message(scan_e_misplaced_rtti_directive);
+            compiler.verbose.Message(scan_e_misplaced_rtti_directive);
             exit;
           end;
 
@@ -1606,7 +1624,7 @@ unit scandir;
           'EXPLICIT':
             dir.clause:=rtc_explicit;
           otherwise
-            Message(scan_e_invalid_rtti_clause);
+            compiler.verbose.Message(scan_e_invalid_rtti_clause);
         end;
 
         { read the visibility options}
@@ -1614,7 +1632,7 @@ unit scandir;
         current_scanner.readid;
         { the inherit clause doesn't require any options but explicit does }
         if (current_scanner.pattern='') and (dir.clause=rtc_explicit) then
-          Message(scan_e_incomplete_rtti_clause);
+          compiler.verbose.Message(scan_e_incomplete_rtti_clause);
         while current_scanner.pattern<>'' do
           begin
             case current_scanner.pattern of
@@ -1678,7 +1696,7 @@ unit scandir;
               else
                 result:=tconstsym(srsym).value.valueord.uvalue
           else
-            message(error)
+            compiler.verbose.Message(error)
         else
           compiler.verbose.Message1(sym_e_id_not_found,ident);
       end;
@@ -1690,11 +1708,11 @@ unit scandir;
         flags : int64;
       begin
         if not (compiler.target.info.system in (systems_all_windows)) then
-          Message(scan_w_setpeflags_not_support);
+          compiler.verbose.Message(scan_w_setpeflags_not_support);
         if current_scanner.readpreprocint(flags,'SETPEFLAGS') then
           begin
             if flags>$ffff then
-              message(scan_e_illegal_peflag);
+              compiler.verbose.Message(scan_e_illegal_peflag);
             peflags:=peflags or uint16(flags);
           end;
         SetPEFlagsSetExplicity:=true;
@@ -1707,11 +1725,11 @@ unit scandir;
         flags : int64;
       begin
         if not (compiler.target.info.system in (systems_all_windows)) then
-          Message(scan_w_setpeoptflags_not_support);
+          compiler.verbose.Message(scan_w_setpeoptflags_not_support);
         if current_scanner.readpreprocint(flags,'SETPEOPTFLAGS') then
           begin
             if flags>$ffff then
-              message(scan_e_illegal_peoptflag);
+              compiler.verbose.Message(scan_e_illegal_peoptflag);
             peoptflags:=peoptflags or uint16(flags);
           end;
         SetPEOptFlagsSetExplicity:=true;
@@ -1725,9 +1743,9 @@ unit scandir;
         dummyrev : word;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
-          Message(scan_w_setpeuserversion_not_support);
+          compiler.verbose.Message(scan_w_setpeuserversion_not_support);
         if (not current_module.is_initial) then
-          Message(scan_n_only_exe_version)
+          compiler.verbose.Message(scan_n_only_exe_version)
         else
           do_version(peuserversionmajor,peuserversionminor,dummyrev,dummystr,false,SetPEUserVersionSetExplicitely);
       end;
@@ -1740,9 +1758,9 @@ unit scandir;
         dummyrev : word;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
-          Message(scan_w_setpeosversion_not_support);
+          compiler.verbose.Message(scan_w_setpeosversion_not_support);
         if (not current_module.is_initial) then
-          Message(scan_n_only_exe_version)
+          compiler.verbose.Message(scan_n_only_exe_version)
         else
           do_version(peosversionmajor,peosversionminor,dummyrev,dummystr,false,SetPEOSVersionSetExplicitely);
       end;
@@ -1755,9 +1773,9 @@ unit scandir;
         dummyrev : word;
       begin
         if not (compiler.target.info.system in systems_all_windows) then
-          Message(scan_w_setpesubsysversion_not_support);
+          compiler.verbose.Message(scan_w_setpesubsysversion_not_support);
         if (not current_module.is_initial) then
-          Message(scan_n_only_exe_version)
+          compiler.verbose.Message(scan_n_only_exe_version)
         else
           do_version(pesubsysversionmajor,pesubsysversionminor,dummyrev,dummystr,false,SetPESubSysVersionSetExplicitely);
       end;
@@ -1773,7 +1791,7 @@ unit scandir;
             (cs_create_smart in current_settings.moduleswitches) and
             not (af_outputbinary in compiler.target._asm.flags) then
         begin
-          Message(option_dwarf_smart_linking);
+          compiler.verbose.Message(option_dwarf_smart_linking);
           Exclude(current_settings.moduleswitches,cs_create_smart);
         end;
         { Also create a smartlinked version, on an assembler that
@@ -1786,7 +1804,7 @@ unit scandir;
           not (cs_link_extern in current_settings.globalswitches) then
          begin
            DoneLinker;
-           Message(option_smart_link_requires_external_linker);
+           compiler.verbose.Message(option_smart_link_requires_external_linker);
            include(current_settings.globalswitches,cs_link_extern);
            InitLinker;
          end
@@ -1822,12 +1840,12 @@ unit scandir;
         if assigned(syscall) then
           begin
             if not (compiler.target.info.system in syscall^.validon) then
-              Message(scan_w_syscall_convention_not_useable_on_target)
+              compiler.verbose.Message(scan_w_syscall_convention_not_useable_on_target)
             else
               set_default_syscall(syscall^.procoption);
             exit;
           end;
-        Message(scan_w_syscall_convention_invalid);
+        compiler.verbose.Message(scan_w_syscall_convention_invalid);
       end;
 
     procedure dir_targetswitch;
@@ -1870,7 +1888,7 @@ unit scandir;
         unitpath: TPathStr;
       begin
         if not current_module.in_global then
-         Message(scan_w_switch_is_global)
+         compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;
@@ -1916,11 +1934,11 @@ unit scandir;
                  system_i386_netware,system_i386_wdosx,
                  system_i386_netwlibc]) then
           begin
-            Message(scan_n_version_not_support);
+            compiler.verbose.Message(scan_n_version_not_support);
             exit;
           end;
         if (not current_module.is_initial) then
-          Message(scan_n_only_exe_version)
+          compiler.verbose.Message(scan_n_only_exe_version)
         else
           begin
             { change description global var in all cases }
@@ -1977,12 +1995,14 @@ unit scandir;
 
     procedure dir_wait;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         had_info : boolean;
       begin
         had_info:=(status.verbosity and V_Info)<>0;
         { this message should always appear !! }
         status.verbosity:=status.verbosity or V_Info;
-        Message(scan_i_press_enter);
+        compiler.verbose.Message(scan_i_press_enter);
         readln;
         If not(had_info) then
           status.verbosity:=status.verbosity and (not V_Info);
@@ -2205,7 +2225,7 @@ unit scandir;
                recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
              end;
           else
-            Message(scan_e_illegal_hugepointernormalization);
+            compiler.verbose.Message(scan_e_illegal_hugepointernormalization);
         end;
       end;
 
@@ -2235,12 +2255,14 @@ unit scandir;
 
     procedure dir_codealign;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s : string;
       begin
         current_scanner.skipspace;
         s:=current_scanner.readcomment;
         if not(UpdateAlignmentStr(s,current_settings.alignment)) then
-          message(scanner_e_illegal_alignment_directive);
+          compiler.verbose.Message(scanner_e_illegal_alignment_directive);
       end;
 
     procedure dir_codepage;
@@ -2250,7 +2272,7 @@ unit scandir;
          s : string;
       begin
         if not current_module.in_global then
-          Message(scan_w_switch_is_global)
+          compiler.verbose.Message(scan_w_switch_is_global)
         else
           begin
             current_scanner.skipspace;

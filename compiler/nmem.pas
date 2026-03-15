@@ -243,7 +243,7 @@ implementation
                               compiler.verbose.CGMessage(parser_e_cant_create_generics_of_this_type);
                         end
                       else
-                        message(parser_e_cant_create_generics_of_this_type);
+                        compiler.verbose.Message(parser_e_cant_create_generics_of_this_type);
                       if defaultresultdef then
                         resultdef:=cclassrefdef.create(left.resultdef,compiler);
                     end

@@ -221,14 +221,14 @@ implementation
                end
             else
               begin
-                Message(parser_e_illegal_expression);
+                compiler.verbose.Message(parser_e_illegal_expression);
                 len:=0;
                 { avoid crash later on }
                 ch[0]:=#0;
                 ca:=@ch;
               end;
             if len>(def.highrange-def.lowrange+1) then
-              Message(parser_e_string_larger_array);
+              compiler.verbose.Message(parser_e_string_larger_array);
             for i:=0 to def.highrange-def.lowrange do
               begin
                 if i<len then

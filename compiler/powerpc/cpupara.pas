@@ -701,10 +701,10 @@ unit cpupara;
                      { single register }
                      offset_lo:=parse68kregname(1);
                      if offset_lo<0 then
-                       message(parser_e_illegal_explicit_paraloc);
+                       compiler.verbose.Message(parser_e_illegal_explicit_paraloc);
 
                      if tcgsize2size[paracgsize]>4 then
-                       message(parser_e_location_size_too_small);
+                       compiler.verbose.Message(parser_e_location_size_too_small);
 
                      paraloc^.loc:=LOC_REFERENCE;
                      paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
@@ -717,19 +717,19 @@ unit cpupara;
 
                      if (not (s[3] in [':','-'])) or
                         (offset_lo<0) or (offset_hi<0) then
-                       message(parser_e_illegal_explicit_paraloc);
+                       compiler.verbose.Message(parser_e_illegal_explicit_paraloc);
 
                      if offset_lo>=(8*sizeof(pint)) then
-                       message(parser_e_location_regpair_only_data);
+                       compiler.verbose.Message(parser_e_location_regpair_only_data);
 
                      if (offset_lo-offset_hi)<>4 then
-                       message(parser_e_location_regpair_only_consecutive);
+                       compiler.verbose.Message(parser_e_location_regpair_only_consecutive);
 
                      if tcgsize2size[paracgsize]<=4 then
-                       message(parser_e_location_size_too_large);
+                       compiler.verbose.Message(parser_e_location_size_too_large);
 
                      if tcgsize2size[paracgsize]>8 then
-                       message(parser_e_location_size_too_small);
+                       compiler.verbose.Message(parser_e_location_size_too_small);
 
                      paraloc^.loc:=LOC_REFERENCE;
                      paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);

@@ -159,17 +159,17 @@ implementation
                             end;
                         end
                       else
-                        Message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                     end
                   else
-                    Message(parser_e_illegal_expression);
+                    compiler.verbose.Message(parser_e_illegal_expression);
                 end;
               end;
         end;
 
       begin
         if compiler.target.info.system in systems_managed_vm then
-          message(parser_e_feature_unsupported_for_vm);
+          compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
         parser.pbase.consume(_LKLAMMER);
         p:=parser.pexpr.comp_expr([ef_accept_equal]);
         { calc return type }
@@ -226,7 +226,7 @@ implementation
                 if is_new then
                   begin
                     if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
-                      Message(parser_e_expr_have_to_be_constructor_call);
+                      compiler.verbose.Message(parser_e_expr_have_to_be_constructor_call);
                     p2.resultdef:=p.resultdef;
                     p2:=compiler.cassignmentnode(p,p2);
                     typecheckpass(p2);
@@ -235,7 +235,7 @@ implementation
                   begin
                    { Free is not a destructor
                     if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
-                      Message(parser_e_expr_have_to_be_destructor_call);
+                      compiler.verbose.Message(parser_e_expr_have_to_be_destructor_call);
                    }
                   end
               end
@@ -279,7 +279,7 @@ implementation
             { first parameter must be an object or class }
             if tpointerdef(p.resultdef).pointeddef.typ<>objectdef then
               begin
-                 Message(parser_e_pointer_to_class_expected);
+                 compiler.verbose.Message(parser_e_pointer_to_class_expected);
                  p.free;
                  p := nil;
                  new_dispose_statement:=parser.pexpr.factor(false,[]);
@@ -291,7 +291,7 @@ implementation
             classh:=tobjectdef(tpointerdef(p.resultdef).pointeddef);
             if is_class(classh) then
               begin
-                 Message(parser_e_no_new_or_dispose_for_classes);
+                 compiler.verbose.Message(parser_e_no_new_or_dispose_for_classes);
                  new_dispose_statement:=parser.pexpr.factor(false,[]);
                  parser.pbase.consume_all_until(_RKLAMMER);
                  parser.pbase.consume(_RKLAMMER);
@@ -308,9 +308,9 @@ implementation
             if (not assigned(sym)) or (sym.typ<>procsym) then
               begin
                  if is_new then
-                  Message(parser_e_expr_have_to_be_constructor_call)
+                  compiler.verbose.Message(parser_e_expr_have_to_be_constructor_call)
                  else
-                  Message(parser_e_expr_have_to_be_destructor_call);
+                  compiler.verbose.Message(parser_e_expr_have_to_be_destructor_call);
                  p.free;
                  p := nil;
                  new_dispose_statement:=compiler.cerrornode;
@@ -345,7 +345,7 @@ implementation
                           begin
                             if not parser.pbase.try_to_consume(_RKLAMMER) then
                               begin
-                                Message(parser_e_no_paras_for_destructor);
+                                compiler.verbose.Message(parser_e_no_paras_for_destructor);
                                 parser.pbase.consume_all_until(_RKLAMMER);
                                 parser.pbase.consume(_RKLAMMER);
                               end;
@@ -362,14 +362,14 @@ implementation
                     if is_new then
                      begin
                        if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
-                         Message(parser_e_expr_have_to_be_constructor_call);
+                         compiler.verbose.Message(parser_e_expr_have_to_be_constructor_call);
                        p2.resultdef:=p.resultdef;
                        p2:=compiler.cassignmentnode(p,p2);
                      end
                     else
                      begin
                        if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
-                         Message(parser_e_expr_have_to_be_destructor_call);
+                         compiler.verbose.Message(parser_e_expr_have_to_be_destructor_call);
                      end;
                   end
                 else
@@ -405,15 +405,15 @@ implementation
                begin
                   if (tpointerdef(p.resultdef).pointeddef.typ=objectdef) and
                      (oo_has_vmt in tobjectdef(tpointerdef(p.resultdef).pointeddef).objectoptions) then
-                    Message(parser_w_use_extended_syntax_for_objects);
+                    compiler.verbose.Message(parser_w_use_extended_syntax_for_objects);
                   if (tpointerdef(p.resultdef).pointeddef.typ=orddef) and
                      (torddef(tpointerdef(p.resultdef).pointeddef).ordtype=uvoid) then
                     begin
                       if (m_tp7 in current_settings.modeswitches) or
                          (m_delphi in current_settings.modeswitches) then
-                       Message(parser_w_no_new_dispose_on_void_pointers)
+                       compiler.verbose.Message(parser_w_no_new_dispose_on_void_pointers)
                       else
-                       Message(parser_e_no_new_dispose_on_void_pointers);
+                       compiler.verbose.Message(parser_e_no_new_dispose_on_void_pointers);
                     end;
 
                   { create statements with call to getmem+initialize or
@@ -489,12 +489,12 @@ implementation
         again  : boolean; { dummy for do_proc_call }
       begin
         if compiler.target.info.system in systems_managed_vm then
-          message(parser_e_feature_unsupported_for_vm);
+          compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
         parser.pbase.consume(_LKLAMMER);
         p1:=parser.pexpr.factor(false,[]);
         if p1.nodetype<>typen then
          begin
-           Message(type_e_type_id_expected);
+           compiler.verbose.Message(type_e_type_id_expected);
            parser.pbase.consume_all_until(_RKLAMMER);
            parser.pbase.consume(_RKLAMMER);
            p1.free;
@@ -518,7 +518,7 @@ implementation
           begin
             if (tpointerdef(p1.resultdef).pointeddef.typ=objectdef) and
                (oo_has_vmt in tobjectdef(tpointerdef(p1.resultdef).pointeddef).objectoptions)  then
-              Message(parser_w_use_extended_syntax_for_objects);
+              compiler.verbose.Message(parser_w_use_extended_syntax_for_objects);
 
             if p1.nodetype=typen then
               ttypenode(p1).allowed:=true;
@@ -530,7 +530,7 @@ implementation
             parser.pbase.consume(_COMMA);
             if tpointerdef(p1.resultdef).pointeddef.typ<>objectdef then
              begin
-               Message(parser_e_pointer_to_class_expected);
+               compiler.verbose.Message(parser_e_pointer_to_class_expected);
                parser.pbase.consume_all_until(_RKLAMMER);
                parser.pbase.consume(_RKLAMMER);
                p1.free;
@@ -556,7 +556,7 @@ implementation
                    assigned(tcallnode(p1).procdefinition) and
                    (tcallnode(p1).procdefinition.proctypeoption=potype_constructor)
                   ) then
-              Message(parser_e_expr_have_to_be_constructor_call);
+              compiler.verbose.Message(parser_e_expr_have_to_be_constructor_call);
             { constructors return boolean, update resultdef to return
               the pointer to the object }
             p1.resultdef:=p2.resultdef;

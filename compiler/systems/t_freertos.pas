@@ -1136,7 +1136,7 @@ begin
   cmdstr:='-C -P -x c -E -o '+memory_filename+' -I $OUTPUT ';
   binstr:='gcc';
   if current_settings.controllertype = ct_none then
-    Message(exec_f_controllertype_expected)
+    compiler.verbose.Message(exec_f_controllertype_expected)
   else if current_settings.controllertype = ct_esp32 then
     begin
       if idf_version>=40400 then
@@ -1442,7 +1442,7 @@ begin
   cmdstr:='-C -P -x c -E -o '+memory_filename+' -I $OUTPUT ';
   binstr:='gcc';
   if current_settings.controllertype = ct_none then
-    Message(exec_f_controllertype_expected)
+    compiler.verbose.Message(exec_f_controllertype_expected)
   else if current_settings.controllertype = ct_esp32c3 then
     begin
       if idf_version>=40400 then

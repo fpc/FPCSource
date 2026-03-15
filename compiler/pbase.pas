@@ -125,7 +125,7 @@ implementation
          if not(m_class in current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
             (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
-           Message(parser_f_need_objfpc_or_delphi_mode);
+           compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
        end;
 
 
@@ -205,7 +205,7 @@ implementation
                           tostr(current_scanner.multiline_start_line),
                           tostr(current_scanner.multiline_start_column))
                else
-                 Message(scan_f_end_of_file);
+                 compiler.verbose.Message(scan_f_end_of_file);
                exit;
              end;
           end;
@@ -424,7 +424,7 @@ implementation
                   _STRING:
                     begin
                       if cs_compilesystem in current_settings.moduleswitches then
-                        Message(parser_e_nostringaliasinsystem);
+                        compiler.verbose.Message(parser_e_nostringaliasinsystem);
                       { system.string? }
                       if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
                         begin

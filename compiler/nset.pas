@@ -1384,7 +1384,7 @@ implementation
              else
                begin
                  dispose(hcaselabel);
-                 Message(parser_e_double_caselabel);
+                 compiler.verbose.Message(parser_e_double_caselabel);
                  result:=nil;
                end
           end;
@@ -1423,7 +1423,7 @@ implementation
               FreeAndNil(hcaselabel^._low_str);
               FreeAndNil(hcaselabel^._high_str);
               dispose(hcaselabel);
-              Message(parser_e_double_caselabel);
+              compiler.verbose.Message(parser_e_double_caselabel);
               result:=nil;
             end;
         end;

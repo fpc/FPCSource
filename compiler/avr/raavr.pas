@@ -280,7 +280,7 @@ unit raavr;
           begin
             // check if number of operands fall inside the allowed set
             if ((1 shl taicpu(Result).ops) and AVRInstrConstraint[opcode].numOperands = 0)  then
-              Message(asmr_e_invalid_opcode_and_operand)
+              compiler.verbose.Message(asmr_e_invalid_opcode_and_operand)
             else
               begin
                 for i := 0 to taicpu(Result).ops-1 do
@@ -373,7 +373,7 @@ unit raavr;
                           // Need to check if original value was signed or simply sign overflowed in 16 bit?
                           if ((taicpu(Result).oper[i]^.val > AVRInstrConstraint[opcode].Operands[i].max) or
                               (taicpu(Result).oper[i]^.val < AVRInstrConstraint[opcode].Operands[i].min)) then
-                            Message(asmr_e_constant_out_of_bounds);
+                            compiler.verbose.Message(asmr_e_constant_out_of_bounds);
                         end;
                   end;
               end;

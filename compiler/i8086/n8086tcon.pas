@@ -74,9 +74,9 @@ uses
                     begin
                       pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);
                       if Tprocsym(srsym).ProcdefList.Count>1 then
-                        Message(parser_e_no_overloaded_procvars);
+                        compiler.verbose.Message(parser_e_no_overloaded_procvars);
                       if po_abstractmethod in pd.procoptions then
-                        Message(type_e_cant_take_address_of_abstract_method)
+                        compiler.verbose.Message(type_e_cant_take_address_of_abstract_method)
                       else
                         ftcb.emit_tai(Tai_const.Create_seg_name(pd.mangledname),u16inttype);
                     end;
@@ -85,11 +85,11 @@ uses
                   labelsym :
                     ftcb.emit_tai(Tai_const.Create_seg_name(tlabelsym(srsym).mangledname),u16inttype);
                   else
-                    Message(type_e_variable_id_expected);
+                    compiler.verbose.Message(type_e_variable_id_expected);
                 end;
               end
             else
-              Message(parser_e_illegal_expression);
+              compiler.verbose.Message(parser_e_illegal_expression);
           end
         { support word/smallint constants, initialized with Ofs() or Word(@s) }
         else if (def.ordtype in [u16bit,s16bit]) and (node.nodetype=typeconvn) and
@@ -108,9 +108,9 @@ uses
                     begin
                       pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);
                       if Tprocsym(srsym).ProcdefList.Count>1 then
-                        Message(parser_e_no_overloaded_procvars);
+                        compiler.verbose.Message(parser_e_no_overloaded_procvars);
                       if po_abstractmethod in pd.procoptions then
-                        Message(type_e_cant_take_address_of_abstract_method)
+                        compiler.verbose.Message(type_e_cant_take_address_of_abstract_method)
                       else
                         ftcb.emit_tai(Tai_const.Createname_near(pd.mangledname,0),u16inttype);
                     end;
@@ -119,11 +119,11 @@ uses
                   labelsym :
                     ftcb.emit_tai(Tai_const.Createname_near(tlabelsym(srsym).mangledname,0),u16inttype);
                   else
-                    Message(type_e_variable_id_expected);
+                    compiler.verbose.Message(type_e_variable_id_expected);
                 end;
               end
             else
-              Message(parser_e_illegal_expression);
+              compiler.verbose.Message(parser_e_illegal_expression);
           end
         else
           inherited;

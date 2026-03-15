@@ -799,9 +799,11 @@ implementation
 
 
     procedure tlabelsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          if owner.symtabletype=globalsymtable then
-           Message(sym_e_ill_label_decl)
+           compiler.verbose.Message(sym_e_ill_label_decl)
          else
            begin
               inherited ppuwrite(ppufile);
@@ -1763,6 +1765,8 @@ implementation
 
     procedure tpropertysym.add_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         cpo: tcompare_paras_options;
       begin
         case sym.typ of
@@ -1781,7 +1785,7 @@ implementation
               if not assigned(propaccesslist[getset].procdef) or
                  { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
                  ((sp_static in symoptions)<>tprocdef(propaccesslist[getset].procdef).no_self_node) then
-                Message(parser_e_ill_property_access_sym)
+                compiler.verbose.Message(parser_e_ill_property_access_sym)
               else
                 finalize_getter_or_setter_for_sym(getset,sym,fielddef,accessordef);
             end;
@@ -1798,7 +1802,7 @@ implementation
                    that it isn't allowed, but the compiler accepts it (PFV) }
                  if (ppo_hasparameters in propoptions) or
                     ((sp_static in symoptions) <> (sp_static in sym.symoptions)) then
-                   Message(parser_e_ill_property_access_sym)
+                   compiler.verbose.Message(parser_e_ill_property_access_sym)
                  else
                    finalize_getter_or_setter_for_sym(getset,sym,fielddef,accessordef);
                end
@@ -1806,7 +1810,7 @@ implementation
                IncompatibleTypes(fielddef,propdef);
             end;
           else
-            Message(parser_e_ill_property_access_sym);
+            compiler.verbose.Message(parser_e_ill_property_access_sym);
         end;
       end;
 

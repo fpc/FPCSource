@@ -163,7 +163,7 @@ begin
 { Is the Switch in the letters ? }
   if not ((switch in ['A'..'Z']) and (state in ['-','+'])) then
    begin
-     Message(scan_w_illegal_switch);
+     compiler.verbose.Message(scan_w_illegal_switch);
      exit;
    end;
 
@@ -224,7 +224,7 @@ begin
                 end;
             end
            else
-            Message(scan_w_switch_is_global);
+            compiler.verbose.Message(scan_w_switch_is_global);
          end;
        globalsw :
          begin
@@ -236,7 +236,7 @@ begin
                exclude(current_settings.globalswitches,tglobalswitch(setsw));
             end
            else
-            Message(scan_w_switch_is_global);
+            compiler.verbose.Message(scan_w_switch_is_global);
          end;
        packenumsw:
          begin
@@ -260,6 +260,8 @@ end;
 
 
 function CheckSwitch(switch,state:char):boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
 var
   found : boolean;
@@ -270,7 +272,7 @@ begin
 { Is the Switch in the letters ? }
   if not ((switch in ['A'..'Z']) and (state in ['-','+'])) then
    begin
-     Message(scan_w_illegal_switch);
+     compiler.verbose.Message(scan_w_illegal_switch);
      CheckSwitch:=false;
      exit;
    end;

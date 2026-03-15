@@ -502,7 +502,7 @@ interface
 implementation
 
     uses
-       verbose,entfile,comphook,
+       verbose,entfile,comphook,compiler,
 {$ifdef DEBUG_NODE_XML}
        cutils,
 {$endif DEBUG_NODE_XML}
@@ -624,9 +624,11 @@ implementation
 
 
     function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if ppufile.readentry<>ibnodetree then
-          Message(unit_f_ppu_read_error);
+          compiler.verbose.Message(unit_f_ppu_read_error);
         nodeppuidxcreate;
         result:=ppuloadnode(ppufile);
         nodeppuidxresolve;

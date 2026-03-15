@@ -38,7 +38,7 @@ unit rgobj;
   interface
 
     uses
-      cutils, cpubase,
+      cutils, cpubase, compilerbase,
       aasmtai,aasmdata,aasmsym,aasmcpu,
       cclasses,globtype,cgbase,cgutils;
 
@@ -332,7 +332,7 @@ unit rgobj;
     uses
       sysutils,
       globals,
-      verbose,tgobj,procinfo,cgobj;
+      verbose,tgobj,procinfo,cgobj,compiler;
 
     procedure sort_movelist(ml:Pmovelist);
 
@@ -531,12 +531,14 @@ unit rgobj;
 
     function trgobj.getnewreg(subreg:tsubregister):tsuperregister;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         oldmaxreginfo : tsuperregister;
       begin
         result:=maxreg;
         inc(maxreg);
         if maxreg>=last_reg then
-          Message(parser_f_too_complex_proc);
+          compiler.verbose.Message(parser_f_too_complex_proc);
         if maxreg>=maxreginfo then
           begin
             oldmaxreginfo:=maxreginfo;

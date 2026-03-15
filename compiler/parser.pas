@@ -585,7 +585,7 @@ implementation
                if not exception_raised then
                  begin
                    exception_raised:=true;
-                   Message(general_e_exception_raised);
+                   compiler.verbose.Message(general_e_exception_raised);
                  end;
                raise;
              end;

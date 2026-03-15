@@ -650,7 +650,7 @@ uses
                       not parser.pbase.parse_generic or
                       not defs_belong_to_same_generic(typeparam.resultdef,current_genericdef)
                     ) then
-                  Message(parser_e_no_generics_as_params);
+                  compiler.verbose.Message(parser_e_no_generics_as_params);
                 if assigned(poslist) then
                   begin
                     New(parampos);
@@ -660,7 +660,7 @@ uses
                 if typeparam.resultdef.typ<>errordef then
                   begin
                     if (typeparam.nodetype=typen) and not assigned(typeparam.resultdef.typesym) then
-                      message(type_e_generics_cannot_reference_itself)
+                      compiler.verbose.Message(type_e_generics_cannot_reference_itself)
                     else if (typeparam.resultdef.typ<>errordef) then
                       begin
                         { all non-type nodes are considered const }
@@ -681,7 +681,7 @@ uses
               end
             else
               begin
-                Message(type_e_type_id_expected);
+                compiler.verbose.Message(type_e_type_id_expected);
                 result:=false;
               end;
             typeparam.free;
@@ -1493,7 +1493,7 @@ uses
             { handle "<>" }
             if (current_scanner.token=_GT) or (current_scanner.token=_RSHARPBRACKET) then
               begin
-                Message(type_e_type_id_expected);
+                compiler.verbose.Message(type_e_type_id_expected);
                 if not parser.pbase.try_to_consume(_GT) then
                   parser.pbase.try_to_consume(_RSHARPBRACKET);
                 result:=generrordef;
@@ -2394,7 +2394,7 @@ uses
           else if parser.pbase.try_to_consume(_COLON) then
             begin
               if not allowconstraints then
-                Message(parser_e_generic_constraints_not_allowed_here);
+                compiler.verbose.Message(parser_e_generic_constraints_not_allowed_here);
               { construct a name which can be used for a type specification }
               constraintdata:=tgenericconstraintdata.create;
               constraintdata.fileinfo:=fileinfo;
@@ -2412,24 +2412,24 @@ uses
                   _CONSTRUCTOR:
                     begin
                       if not allowconstructor or (gcf_constructor in constraintdata.flags) then
-                        Message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                       include(constraintdata.flags,gcf_constructor);
                       allowconstructor:=false;
                     end;
                   _CLASS:
                     begin
                       if gcf_class in constraintdata.flags then
-                        Message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                       if basedef=generrordef then
                         include(constraintdata.flags,gcf_class)
                       else
-                        Message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                     end;
                   _RECORD:
                     begin
                       if ([gcf_constructor,gcf_class]*constraintdata.flags<>[])
                           or (constraintdata.interfaces.count>0) then
-                        Message(parser_e_illegal_expression)
+                        compiler.verbose.Message(parser_e_illegal_expression)
                       else
                         begin
                           srsymtable:=trecordsymtable.create(defname,0,1,compiler);
@@ -2445,7 +2445,7 @@ uses
                       doconsume:=false;
                       { def is already set to a class or record }
                       if gcf_record in constraintdata.flags then
-                        Message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                       parser.ptype.single_type(def, [stoAllowSpecialization]);
                       { only types that are inheritable are allowed }
                       if (def.typ<>objectdef) or
@@ -2458,11 +2458,11 @@ uses
                             begin
                               if gcf_class in constraintdata.flags then
                                 { "class" + concrete class is not allowed }
-                                Message(parser_e_illegal_expression)
+                                compiler.verbose.Message(parser_e_illegal_expression)
                               else
                                 { do we already have a concrete class? }
                                 if basedef<>generrordef then
-                                  Message(parser_e_illegal_expression)
+                                  compiler.verbose.Message(parser_e_illegal_expression)
                                 else
                                   basedef:=def;
                             end;
@@ -2641,7 +2641,7 @@ uses
               end;
 
             if not fwdok then
-              Message(parser_e_forward_mismatch);
+              compiler.verbose.Message(parser_e_forward_mismatch);
 
             exit;
           end;

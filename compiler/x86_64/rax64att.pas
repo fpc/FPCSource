@@ -92,7 +92,7 @@ Unit rax64att;
         { allow SEH directives only in pure assember routines }
         if result and not (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            Message(asmr_e_seh_in_pure_asm_only);
+            compiler.verbose.Message(asmr_e_seh_in_pure_asm_only);
             result:=false;
           end;
       end;
@@ -149,7 +149,7 @@ Unit rax64att;
                     err:=true;
                   if err then
                     begin
-                      Message(asmr_e_syntax_error);
+                      compiler.verbose.Message(asmr_e_syntax_error);
                       RecoverConsume(false);
                       exit;
                     end;

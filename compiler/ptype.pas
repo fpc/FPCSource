@@ -338,7 +338,7 @@ implementation
                          ) then
                        begin
                          if not allowspecialization then
-                           Message(parser_e_no_local_para_def);
+                           compiler.verbose.Message(parser_e_no_local_para_def);
                          parser.pgenutil.generate_specialization(t2,isunitspecific,false,'',srsym.name,srsymtable);
                        end;
                      def:=t2;
@@ -474,14 +474,14 @@ implementation
          { type sym ? }
          if not_a_type or (srsym.typ<>typesym) then
           begin
-            Message(type_e_type_id_expected);
+            compiler.verbose.Message(type_e_type_id_expected);
             def:=generrordef;
             exit;
           end;
          { Give an error when referring to an errordef }
          if (ttypesym(srsym).typedef.typ=errordef) then
           begin
-            Message(sym_e_error_in_type_def);
+            compiler.verbose.Message(sym_e_error_in_type_def);
             def:=generrordef;
             exit;
           end;
@@ -514,7 +514,7 @@ implementation
              result:=ttypesym(sym).typedef
            else
              begin
-               Message(parser_e_no_generics_as_types);
+               compiler.verbose.Message(parser_e_no_generics_as_types);
                result:=generrordef;
              end;
          end;
@@ -544,11 +544,11 @@ implementation
                     if (current_scanner.token=_OF) then
                       begin
                          if not(stoAllowTypeDef in options) then
-                           Message(parser_e_no_local_para_def);
+                           compiler.verbose.Message(parser_e_no_local_para_def);
                          parser.pbase.consume(_OF);
                          single_type(t2,[stoAllowTypeDef]);
                          if is_managed_type(t2) then
-                           Message(parser_e_no_refcounted_typed_file);
+                           compiler.verbose.Message(parser_e_no_refcounted_typed_file);
                          def:=cfiledef.createtyped(t2,compiler);
                       end
                     else
@@ -561,7 +561,7 @@ implementation
                      begin
                        if ([stoAllowSpecialization,stoAllowTypeDef] * options = []) then
                          begin
-                           Message(parser_e_no_local_para_def);
+                           compiler.verbose.Message(parser_e_no_local_para_def);
 
                            { try to recover }
                            while current_scanner.token<>_SEMICOLON do
@@ -587,7 +587,7 @@ implementation
 
                else
                  begin
-                   message(type_e_type_id_expected);
+                   compiler.verbose.Message(type_e_type_id_expected);
                    def:=generrordef;
                  end;
             end;
@@ -703,7 +703,7 @@ implementation
             else if is_classhelper(def) and
                 not (stoParseClassParent in options) then
               begin
-                Message(parser_e_no_category_as_types);
+                compiler.verbose.Message(parser_e_no_category_as_types);
                 def:=generrordef
               end
           end;
@@ -715,7 +715,7 @@ implementation
         single_type(result,options);
         { file types cannot be function results }
         if result.typ=filedef then
-          message(parser_e_illegal_function_result);
+          compiler.verbose.Message(parser_e_illegal_function_result);
       end;
 
     procedure TTypesParser.parse_record_members(recsym:tsym);
@@ -768,7 +768,7 @@ implementation
 
                 { local and anonymous records can not have inner types. skip top record symtable }
                 if IsAnonOrLocal then
-                  Message(parser_e_no_types_in_local_anonymous_records);
+                  compiler.verbose.Message(parser_e_no_types_in_local_anonymous_records);
               end;
             _VAR :
               begin
@@ -785,7 +785,7 @@ implementation
                 check_unbound_attributes;
                 if not is_classdef then
                   begin
-                    message(parser_e_threadvar_must_be_class);
+                    compiler.verbose.Message(parser_e_threadvar_must_be_class);
                     { for error recovery we enforce class fields }
                     is_classdef:=true;
                   end;
@@ -804,7 +804,7 @@ implementation
 
                 { local and anonymous records can not have constants. skip top record symtable }
                 if IsAnonOrLocal then
-                  Message(parser_e_no_consts_in_local_anonymous_records);
+                  compiler.verbose.Message(parser_e_no_consts_in_local_anonymous_records);
               end;
             _ID, _CASE, _OPERATOR :
               begin
@@ -848,7 +848,7 @@ implementation
                    _PUBLISHED :
                      begin
                        check_unbound_attributes;
-                       Message(parser_e_no_record_published);
+                       compiler.verbose.Message(parser_e_no_record_published);
                        parser.pbase.consume(_PUBLISHED);
                        current_structdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
@@ -878,11 +878,11 @@ implementation
                                   include(current_structdef.objectoptions,oo_has_strictprotected);
                                 end;
                               else
-                                message(parser_e_protected_or_private_expected);
+                                compiler.verbose.Message(parser_e_protected_or_private_expected);
                             end;
                           end
                         else
-                          message(parser_e_protected_or_private_expected);
+                          compiler.verbose.Message(parser_e_protected_or_private_expected);
                         fields_allowed:=true;
                         is_classdef:=false;
                         classfields:=false;
@@ -906,16 +906,16 @@ implementation
                                 not fields_allowed then
                               begin
                                 if hadgeneric then
-                                  Message(parser_e_procedure_or_function_expected);
+                                  compiler.verbose.Message(parser_e_procedure_or_function_expected);
                                 parser.pbase.consume(_ID);
                                 hadgeneric:=true;
                                 if not (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS]) then
-                                  Message(parser_e_procedure_or_function_expected);
+                                  compiler.verbose.Message(parser_e_procedure_or_function_expected);
                               end
                             else
                               begin
                                 if (not fields_allowed)and(current_scanner.idtoken<>_CASE) then
-                                  Message(parser_e_field_not_allowed_here);
+                                  compiler.verbose.Message(parser_e_field_not_allowed_here);
                                 vdoptions:=[vd_record];
                                 if classfields then
                                   include(vdoptions,vd_class);
@@ -962,7 +962,7 @@ implementation
             _PROPERTY :
               begin
                 if IsAnonOrLocal then
-                  Message(parser_e_no_properties_in_local_anonymous_records);
+                  compiler.verbose.Message(parser_e_no_properties_in_local_anonymous_records);
                 parser.pdecobj.struct_property_dec(is_classdef, rtti_attrs_def);
                 fields_allowed:=false;
                 is_classdef:=false;
@@ -978,10 +978,10 @@ implementation
                 if (hadgeneric and not (current_scanner.token in [_FUNCTION,_PROCEDURE])) or
                     (not hadgeneric and (not ((current_scanner.token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_OPERATOR,_THREADVAR]) or (current_scanner.token=_CONSTRUCTOR)) and
                    not((current_scanner.token=_ID) and (current_scanner.idtoken=_OPERATOR)))) then
-                  Message(parser_e_procedure_or_function_expected);
+                  compiler.verbose.Message(parser_e_procedure_or_function_expected);
 
                 if IsAnonOrLocal then
-                  Message(parser_e_no_class_in_local_anonymous_records);
+                  compiler.verbose.Message(parser_e_no_class_in_local_anonymous_records);
 
                 is_classdef:=true;
               end;
@@ -989,7 +989,7 @@ implementation
             _FUNCTION:
               begin
                 if IsAnonOrLocal then
-                  Message(parser_e_no_methods_in_local_anonymous_records);
+                  compiler.verbose.Message(parser_e_no_methods_in_local_anonymous_records);
                 pd:=parser.pdecsub.parse_record_method_dec(current_structdef,is_classdef,hadgeneric);
                 if assigned(rtti_attrs_def) then
                   begin
@@ -1004,9 +1004,9 @@ implementation
               begin
                 check_unbound_attributes;
                 if IsAnonOrLocal then
-                  Message(parser_e_no_methods_in_local_anonymous_records);
+                  compiler.verbose.Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef and (current_structdef.symtable.currentvisibility <> vis_public) then
-                  Message(parser_w_constructor_should_be_public);
+                  compiler.verbose.Message(parser_w_constructor_should_be_public);
 
                 { only 1 class constructor is allowed }
                 if is_classdef and (oo_has_class_constructor in current_structdef.objectoptions) then
@@ -1031,9 +1031,9 @@ implementation
               begin
                 check_unbound_attributes;
                 if IsAnonOrLocal then
-                  Message(parser_e_no_methods_in_local_anonymous_records);
+                  compiler.verbose.Message(parser_e_no_methods_in_local_anonymous_records);
                 if not is_classdef then
-                  Message(parser_e_no_destructor_in_records);
+                  compiler.verbose.Message(parser_e_no_destructor_in_records);
 
                 { only 1 class destructor is allowed }
                 if is_classdef and (oo_has_class_destructor in current_structdef.objectoptions) then
@@ -1200,7 +1200,7 @@ implementation
              { "(alignment and not $7F) = 0" means it's between 0 and 127, and
                PopCnt = 1 for powers of 2 }
              if ((alignment and not $7F) <> 0) or (PopCnt(Byte(alignment))<>1) then
-               message(scanner_e_illegal_alignment_directive)
+               compiler.verbose.Message(scanner_e_illegal_alignment_directive)
              else
                begin
                  recst.recordalignment:=shortint(alignment);
@@ -1217,7 +1217,7 @@ implementation
          { restore symtable stack }
          compiler.symtablestack.pop(recst);
          if trecorddef(current_structdef).is_packed and is_managed_type(current_structdef) then
-           Message(type_e_no_packed_inittable);
+           compiler.verbose.Message(type_e_no_packed_inittable);
          { restore old state }
          parser.pbase.parse_generic:=old_parse_generic;
          current_structdef:=old_current_structdef;
@@ -1278,9 +1278,9 @@ implementation
                    hv:=tordconstnode(pt2).value;
                    { Check bounds }
                    if hv<lv then
-                     message(parser_e_upper_lower_than_lower)
+                     compiler.verbose.Message(parser_e_upper_lower_than_lower)
                    else if (lv.signed and (lv.svalue<0)) and (not hv.signed and (hv.uvalue>qword(high(int64)))) then
-                     message(type_e_cant_eval_constant_expr)
+                     compiler.verbose.Message(type_e_cant_eval_constant_expr)
                    else
                      begin
                        { All checks passed, create the new def }
@@ -1305,7 +1305,7 @@ implementation
                      end;
                  end
                else
-                 Message(sym_e_error_in_type_def);
+                 compiler.verbose.Message(sym_e_error_in_type_def);
                pt2.free;
                pt2 := nil;
              end
@@ -1416,19 +1416,19 @@ implementation
                              def:=ttypesym(sym).typedef
                            else
                              begin
-                               Message(parser_e_no_generics_as_types);
+                               compiler.verbose.Message(parser_e_no_generics_as_types);
                                def:=generrordef;
                              end;
                          end
                        else if is_classhelper(def) then
                          begin
-                           Message(parser_e_no_category_as_types);
+                           compiler.verbose.Message(parser_e_no_category_as_types);
                            def:=generrordef
                          end
                      end;
                  end
                else
-                 Message(sym_e_error_in_type_def);
+                 compiler.verbose.Message(sym_e_error_in_type_def);
              end;
            pt1.free;
            pt1 := nil;
@@ -1451,34 +1451,34 @@ implementation
                   // !! def:=csetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max),true)
                   def:=csetdef.create(tt2,tenumdef(tt2).min,tenumdef(tt2).max,true,compiler)
                  else
-                  Message(sym_e_ill_type_decl_set);
+                  compiler.verbose.Message(sym_e_ill_type_decl_set);
                orddef :
                  begin
                    if (torddef(tt2).ordtype=uwidechar) then
                      begin
                      if (m_default_unicodestring in current_settings.modeswitches) then
                        begin
-                         Message(parser_w_widechar_set_reduced);
+                         compiler.verbose.Message(parser_w_widechar_set_reduced);
                          def:=csetdef.create(cansichartype,torddef(cansichartype).low.svalue,torddef(cansichartype).high.svalue,true,compiler);
                        end
                      else
-                       Message(sym_e_ill_type_decl_set);
+                       compiler.verbose.Message(sym_e_ill_type_decl_set);
                      end
                    else if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).low>=0) then
                      // !! def:=csetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high),true)
                      if Torddef(tt2).high>int64(high(byte)) then
-                       message(sym_e_ill_type_decl_set)
+                       compiler.verbose.Message(sym_e_ill_type_decl_set)
                      else
                        def:=csetdef.create(tt2,torddef(tt2).low.svalue,torddef(tt2).high.svalue,true,compiler)
                    else
-                     Message(sym_e_ill_type_decl_set);
+                     compiler.verbose.Message(sym_e_ill_type_decl_set);
                  end;
                { generic parameter? }
                undefineddef:
                 ;
                else
-                 Message(sym_e_ill_type_decl_set);
+                 compiler.verbose.Message(sym_e_ill_type_decl_set);
              end;
            end
           else
@@ -1507,7 +1507,7 @@ implementation
                   (sym.typ=typesym) then
                 tt2:=ttypesym(sym).typedef
               else
-                Message(parser_e_no_generics_as_types);
+                compiler.verbose.Message(parser_e_no_generics_as_types);
             end;
           { don't use cpointerdef.getreusable() here, since this is a type
             declaration (-> must create new typedef) }
@@ -1535,7 +1535,7 @@ implementation
                   highval:=tenumdef(def).max;
                   if (m_fpc in current_settings.modeswitches) and
                      (tenumdef(def).has_jumps) then
-                   Message(type_e_array_index_enums_with_assign_not_possible);
+                   compiler.verbose.Message(type_e_array_index_enums_with_assign_not_possible);
                   indexdef:=def;
                 end;
               orddef :
@@ -1569,7 +1569,7 @@ implementation
                   isgeneric:=true;
                 end;
               else
-                Message(sym_e_error_in_type_def);
+                compiler.verbose.Message(sym_e_error_in_type_def);
             end;
           end;
 
@@ -1657,13 +1657,13 @@ implementation
                                   begin
                                     { ignore error if node is generic param }
                                     if not (nf_generic_para in pt.flags) then
-                                      Message(parser_e_array_lower_less_than_upper_bound);
+                                      compiler.verbose.Message(parser_e_array_lower_less_than_upper_bound);
                                     highval:=lowval;
                                   end
                                  else if (lowval<int64(low(asizeint))) or
                                          (highval>high(asizeint)) then
                                    begin
-                                     Message(parser_e_array_range_out_of_bounds);
+                                     compiler.verbose.Message(parser_e_array_range_out_of_bounds);
                                      lowval :=0;
                                      highval:=0;
                                    end;
@@ -1674,13 +1674,13 @@ implementation
                                end
                              else
                                if not parser.pbase.parse_generic then
-                                 Message(type_e_cant_eval_constant_expr)
+                                 compiler.verbose.Message(type_e_cant_eval_constant_expr)
                                else
                                  { we need a valid range for debug information }
                                  range_to_type(lowval,highval,indexdef);
                            end
                          else
-                           Message(sym_e_error_in_type_def)
+                           compiler.verbose.Message(sym_e_error_in_type_def)
                        end;
                      pt.free;
                      pt := nil;
@@ -1723,7 +1723,7 @@ implementation
            else
              begin
                 if is_packed then
-                  Message(parser_e_packed_dynamic_open_array);
+                  compiler.verbose.Message(parser_e_packed_dynamic_open_array);
                 arrdef.lowrange:=0;
                 arrdef.highrange:=-1;
                 arrdef.rangedef:=sizesinttype;
@@ -1739,7 +1739,7 @@ implementation
                arrdef.elementdef:=tt2;
                if is_packed and
                   is_managed_type(tt2) then
-                 Message(type_e_no_packed_inittable);
+                 compiler.verbose.Message(type_e_no_packed_inittable);
              end;
            { restore old state }
            parser.pbase.parse_generic:=old_parse_generic;
@@ -1948,14 +1948,14 @@ implementation
                            IncompatibleTypes(p.resultdef,s32inttype);
                         end
                        else
-                        Message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                        p.free;
                        p := nil;
                        { please leave that a note, allows type save }
                        { declarations in the win32 units ! }
                        if (not first) and (v<=l) and (not enumdupmsg) then
                         begin
-                          Message(parser_n_duplicate_enum);
+                          compiler.verbose.Message(parser_n_duplicate_enum);
                           enumdupmsg:=true;
                         end;
                        l:=v;
@@ -1970,9 +1970,9 @@ implementation
                       current_tokenpos:=defpos;
                       if (l.svalue<low(longint)) or (l.svalue>high(longint)) then
                         if m_delphi in current_settings.modeswitches then
-                          Message(parser_w_enumeration_out_of_range)
+                          compiler.verbose.Message(parser_w_enumeration_out_of_range)
                         else
-                          Message(parser_e_enumeration_out_of_range);
+                          compiler.verbose.Message(parser_e_enumeration_out_of_range);
                       tenumsymtable(aktenumdef.symtable).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       if not (cs_scopedenums in current_settings.localswitches) or
                           { also provide the global symbol for anonymous enums }
@@ -2049,7 +2049,7 @@ implementation
                 { need extra check here since interface is a keyword
                   in all pascal modes }
                 if not(m_class in current_settings.modeswitches) then
-                  Message(parser_f_need_objfpc_or_delphi_mode);
+                  compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
                 parser.pbase.consume(current_scanner.token);
                 def:=parser.pdecobj.object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
               end;
@@ -2095,7 +2095,7 @@ implementation
             _OBJCCLASS :
               begin
                 if not(m_objectivec1 in current_settings.modeswitches) then
-                  Message(parser_f_need_objc);
+                  compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
                 def:=parser.pdecobj.object_dec(odt_objcclass,name,newsym,genericdef,genericlist,nil,ht_none);
@@ -2105,7 +2105,7 @@ implementation
                 { need extra check here since interface is a keyword
                   in all pascal modes }
                 if not(m_class in current_settings.modeswitches) then
-                  Message(parser_f_need_objfpc_or_delphi_mode);
+                  compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
                 parser.pbase.consume(current_scanner.token);
                 case current_settings.interfacetype of
                   it_interfacecom:
@@ -2119,7 +2119,7 @@ implementation
             _OBJCPROTOCOL :
                begin
                 if not(m_objectivec1 in current_settings.modeswitches) then
-                  Message(parser_f_need_objc);
+                  compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
                 def:=parser.pdecobj.object_dec(odt_objcprotocol,name,newsym,genericdef,genericlist,nil,ht_none);
@@ -2127,7 +2127,7 @@ implementation
             _OBJCCATEGORY :
                begin
                 if not(m_objectivec1 in current_settings.modeswitches) then
-                  Message(parser_f_need_objc);
+                  compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
                 def:=parser.pdecobj.object_dec(odt_objccategory,name,newsym,genericdef,genericlist,nil,ht_none);

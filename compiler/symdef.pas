@@ -2338,7 +2338,7 @@ implementation
 
     function tstoreddef.getcopy : tstoreddef;
       begin
-        Message(sym_e_cant_create_unique_type);
+        compiler.verbose.Message(sym_e_cant_create_unique_type);
         getcopy:=cerrordef.create(compiler);
       end;
 
@@ -4729,7 +4729,7 @@ implementation
                (highrange<lowrange)
 	      ) and
            (size=-1) then
-          Message(sym_e_segment_too_large);
+          compiler.verbose.Message(sym_e_segment_too_large);
       end;
 
 

@@ -471,7 +471,7 @@ Unit rawasmtext;
                       break;
                     end;
                   #10,#13:
-                    Message(scan_f_string_exceeds_line);
+                    compiler.verbose.Message(scan_f_string_exceeds_line);
                   #0..#9,#11,#12,#14..#31,#127:
                     current_scanner.illegal_char(c);
                   else
@@ -1025,7 +1025,7 @@ Unit rawasmtext;
                               procsym:
                                 begin
                                   if Tprocsym(srsym).ProcdefList.Count>1 then
-                                    Message(asmr_w_calling_overload_func);
+                                    compiler.verbose.Message(asmr_w_calling_overload_func);
 
                                   result.ops:=2;
                                   result.operands[1].opr.typ:=OPR_SYMBOL;
@@ -1037,7 +1037,7 @@ Unit rawasmtext;
                                   Consume(AS_ID);
                                 end;
                               else
-                                Message(asmr_e_wrong_sym_type);
+                                compiler.verbose.Message(asmr_e_wrong_sym_type);
                             end;
                           end
                         else
@@ -1114,7 +1114,7 @@ Unit rawasmtext;
             else
               begin
                 Consume(actasmtoken);
-                //Message(asmr_e_syntax_error);
+                //compiler.verbose.Message(asmr_e_syntax_error);
                 //RecoverConsume(false);
               end;
           end;

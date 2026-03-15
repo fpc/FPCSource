@@ -541,9 +541,9 @@ const
           { Warn on Length < 0 and Length >= 0. }
           if not (tnf_pass1_done in L.transientflags) then { ...Only once. }
             if op=gten then
-              Message(type_w_comparison_always_true)
+              compiler.verbose.Message(type_w_comparison_always_true)
             else
-              Message(type_w_comparison_always_false);
+              compiler.verbose.Message(type_w_comparison_always_false);
 
           { Length < 0 is always false, Length >= 0 is always true. }
           if not might_have_sideeffects(tinlinenode(L).left) then { Could somehow remove the check but keep the F() even in Length(F()) >= 0... }
@@ -759,7 +759,7 @@ const
             if floating_point_range_check_error then
                begin
                  result:=compiler.crealconstnode(1,pbestrealtype^);
-                 Message(parser_e_division_by_zero);
+                 compiler.verbose.Message(parser_e_division_by_zero);
                  exit;
                end;
           end;
@@ -813,7 +813,7 @@ const
                    v:=lv+rv;
                    if v.overflow then
                      begin
-                       Message(parser_e_arithmetic_operation_overflow);
+                       compiler.verbose.Message(parser_e_arithmetic_operation_overflow);
                        { Recover }
                        t:=genintconstnode(0,compiler)
                      end
@@ -830,7 +830,7 @@ const
                    v:=lv-rv;
                    if v.overflow then
                      begin
-                       Message(parser_e_arithmetic_operation_overflow);
+                       compiler.verbose.Message(parser_e_arithmetic_operation_overflow);
                        { Recover }
                        t:=genintconstnode(0,compiler)
                      end
@@ -857,7 +857,7 @@ const
                    v:=lv*rv;
                    if v.overflow then
                      begin
-                       message(parser_e_arithmetic_operation_overflow);
+                       compiler.verbose.Message(parser_e_arithmetic_operation_overflow);
                        { Recover }
                        t:=genintconstnode(0,compiler)
                      end
@@ -1058,7 +1058,7 @@ const
                   begin
                     if lvd<0 then
                      begin
-                       Message(parser_e_invalid_float_operation);
+                       compiler.verbose.Message(parser_e_invalid_float_operation);
                        t:=compiler.crealconstnode(0,resultrealdef);
                      end
                     else if lvd=0 then
@@ -2401,7 +2401,7 @@ const
                 end;
             if current_settings.fputype=fpu_none then
               begin
-                Message(parser_e_unsupported_real);
+                compiler.verbose.Message(parser_e_unsupported_real);
                 result:=compiler.cerrornode;
                 exit;
               end

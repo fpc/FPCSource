@@ -498,7 +498,7 @@ Unit raz80asm;
                           break;
                         end;
                       #10,#13:
-                        Message(scan_f_string_exceeds_line);
+                        compiler.verbose.Message(scan_f_string_exceeds_line);
                       else
                         actasmpattern:=actasmpattern+c;
                     end;
@@ -527,7 +527,7 @@ Unit raz80asm;
                           break;
                         end;
                       #10,#13:
-                        Message(scan_f_string_exceeds_line);
+                        compiler.verbose.Message(scan_f_string_exceeds_line);
                       else
                         actasmpattern:=actasmpattern+c;
                     end;
@@ -795,7 +795,7 @@ Unit raz80asm;
               Inc(dest.opr.ref.scalefactor,scalefactor);
               exit;
             end;
-          Message(asmr_e_multiple_index);
+          compiler.verbose.Message(asmr_e_multiple_index);
         end;
 
       var
@@ -818,13 +818,13 @@ Unit raz80asm;
                     if assigned(src.opr.ref.symbol) then
                       begin
                         if assigned(dest.opr.ref.symbol) then
-                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                          compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                         dest.opr.ref.symbol:=src.opr.ref.symbol;
                       end;
                     if assigned(src.opr.ref.relsymbol) then
                       begin
                         if assigned(dest.opr.ref.relsymbol) then
-                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                          compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                         dest.opr.ref.relsymbol:=src.opr.ref.relsymbol;
                       end;
                     if dest.opr.ref.refaddr=addr_no then
@@ -843,7 +843,7 @@ Unit raz80asm;
                         else if tmplocal.localindexreg=dest.opr.ref.base then
                           tmplocal.localscale:=Min(tmplocal.localscale,1)+1
                         else
-                          Message(asmr_e_multiple_index);
+                          compiler.verbose.Message(asmr_e_multiple_index);
                       end;
                     if dest.opr.ref.index<>NR_NO then
                       begin
@@ -855,7 +855,7 @@ Unit raz80asm;
                         else if tmplocal.localindexreg=dest.opr.ref.index then
                           tmplocal.localscale:=Min(tmplocal.localscale,1)+Min(dest.opr.ref.scalefactor,1)
                         else
-                          Message(asmr_e_multiple_index);
+                          compiler.verbose.Message(asmr_e_multiple_index);
                       end;
                     Inc(tmplocal.localconstoffset,dest.opr.constoffset);
                     Inc(tmplocal.localsymofs,dest.opr.ref.offset);
@@ -880,7 +880,7 @@ Unit raz80asm;
                         else if dest.opr.localindexreg=src.opr.ref.base then
                           dest.opr.localscale:=Min(dest.opr.localscale,1)+1
                         else
-                          Message(asmr_e_multiple_index);
+                          compiler.verbose.Message(asmr_e_multiple_index);
                       end;
                     if src.opr.ref.index<>NR_NO then
                       begin
@@ -892,13 +892,13 @@ Unit raz80asm;
                         else if dest.opr.localindexreg=src.opr.ref.index then
                           dest.opr.localscale:=Min(dest.opr.localscale,1)+Min(src.opr.ref.scalefactor,1)
                         else
-                          Message(asmr_e_multiple_index);
+                          compiler.verbose.Message(asmr_e_multiple_index);
                       end;
                     Inc(dest.opr.localconstoffset,src.opr.constoffset);
                     Inc(dest.opr.localsymofs,src.opr.ref.offset);
                   end;
                 OPR_LOCAL:
-                  Message(asmr_e_no_local_or_para_allowed);
+                  compiler.verbose.Message(asmr_e_no_local_or_para_allowed);
                 else
                   internalerror(2018030713);
               end;
@@ -1009,7 +1009,7 @@ Unit raz80asm;
             end;
          end;
         if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs,hastypecast) then
-          Message(asmr_e_building_record_offset);
+          compiler.verbose.Message(asmr_e_building_record_offset);
       end;
 
     procedure tz80reader.BuildConstSymbolExpression(
@@ -1155,7 +1155,7 @@ Unit raz80asm;
                 include(out_flags,cseof_isseg);
                 Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
-                 Message(asmr_e_seg_without_identifier);
+                 compiler.verbose.Message(asmr_e_seg_without_identifier);
               end;
 {$endif i8086}
             AS_VMTOFFSET,
@@ -1170,7 +1170,7 @@ Unit raz80asm;
                   needvmtofs:=true;
                 Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
-                 Message(asmr_e_offset_without_identifier);
+                 compiler.verbose.Message(asmr_e_offset_without_identifier);
               end;
             AS_SIZEOF,
             AS_TYPE:
@@ -1184,7 +1184,7 @@ Unit raz80asm;
                     Consume(AS_LPAREN);
                   end;
                 if actasmtoken<>AS_ID then
-                 Message(asmr_e_type_without_identifier)
+                 compiler.verbose.Message(asmr_e_type_without_identifier)
                 else
                  begin
                    tempstr:=actasmpattern;
@@ -1194,7 +1194,7 @@ Unit raz80asm;
                        BuildRecordOffsetSize(tempstr,k,l,mangledname,false,hastypecast);
                        if mangledname<>'' then
                          { procsym }
-                         Message(asmr_e_wrong_sym_type);
+                         compiler.verbose.Message(asmr_e_wrong_sym_type);
                        if hastypecast then
 
                      end
@@ -1211,7 +1211,7 @@ Unit raz80asm;
                            typesym :
                              l:=ttypesym(sym).typedef.size;
                            else
-                             Message(asmr_e_wrong_sym_type);
+                             compiler.verbose.Message(asmr_e_wrong_sym_type);
                          end;
                        end
                       else
@@ -1270,7 +1270,7 @@ Unit raz80asm;
                        asmsymtyp:=AT_SECTION;
                      end
                    else
-                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                    compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end
                 else if SearchIConstant(tempstr,l) then
                  begin
@@ -1305,12 +1305,12 @@ Unit raz80asm;
                            localvarsym,
                            paravarsym :
                              begin
-                               Message(asmr_e_no_local_or_para_allowed);
+                               compiler.verbose.Message(asmr_e_no_local_or_para_allowed);
                              end;
                            procsym :
                              begin
                                if Tprocsym(sym).ProcdefList.Count>1 then
-                                Message(asmr_w_calling_overload_func);
+                                compiler.verbose.Message(asmr_w_calling_overload_func);
                                hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
 {$ifdef i8086}
                                if is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
@@ -1324,7 +1324,7 @@ Unit raz80asm;
                            typesym :
                              begin
                                if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
-                                Message(asmr_e_wrong_sym_type);
+                                compiler.verbose.Message(asmr_e_wrong_sym_type);
                                size:=ttypesym(sym).typedef.size;
                              end;
                            fieldvarsym :
@@ -1332,7 +1332,7 @@ Unit raz80asm;
                                tempstr:=upper(tdef(sym.owner.defowner).GetTypeName)+'.'+tempstr;
                              end;
                            else
-                             Message(asmr_e_wrong_sym_type);
+                             compiler.verbose.Message(asmr_e_wrong_sym_type);
                          end;
                        end
                       else
@@ -1347,7 +1347,7 @@ Unit raz80asm;
                           asmsymtyp:=hssymtyp;
                         end
                       else
-                       Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                       compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                       if (expr='') or (expr[length(expr)]='+') then
                        begin
                          { don't remove the + if there could be a record field }
@@ -1357,10 +1357,10 @@ Unit raz80asm;
                       else if (cseif_needofs in in_flags) then
                         begin
                           if (prevtok<>AS_OFFSET) then
-                            Message(asmr_e_need_offset);
+                            compiler.verbose.Message(asmr_e_need_offset);
                         end
                       else
-                        Message(asmr_e_only_add_relocatable_symbol);
+                        compiler.verbose.Message(asmr_e_only_add_relocatable_symbol);
                     end;
                    if (actasmtoken=AS_DOT) or
                       (assigned(sym) and
@@ -1397,7 +1397,7 @@ Unit raz80asm;
                        l:=BuildConstExpression;
                        if l<tarraydef(def).lowrange then
                          begin
-                           Message(asmr_e_constant_out_of_bounds);
+                           compiler.verbose.Message(asmr_e_constant_out_of_bounds);
                            l:=0;
                          end
                        else
@@ -1409,7 +1409,7 @@ Unit raz80asm;
                  end;
                 { check if there are wrong operator used like / or mod etc. }
                 if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
-                 Message(asmr_e_only_add_relocatable_symbol);
+                 compiler.verbose.Message(asmr_e_only_add_relocatable_symbol);
               end;
             //AS_ALIGN,
             AS_DEFB,
@@ -1424,7 +1424,7 @@ Unit raz80asm;
             begin
               { write error only once. }
               if not errorflag then
-                Message(asmr_e_invalid_constant_expression);
+                compiler.verbose.Message(asmr_e_invalid_constant_expression);
               { consume tokens until we find COMMA or SEPARATOR }
               Consume(actasmtoken);
               errorflag:=TRUE;
@@ -1450,7 +1450,7 @@ Unit raz80asm;
       begin
         BuildConstSymbolExpression([],l,hs,hssymtyp,size,out_flags);
         if hs<>'' then
-         Message(asmr_e_relocatable_symbol_not_allowed);
+         compiler.verbose.Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
       end;
 
@@ -1469,7 +1469,7 @@ Unit raz80asm;
           include(in_flags,cseif_startingminus);
         BuildConstSymbolExpression(in_flags,l,hs,hssymtyp,size,out_flags);
         if hs<>'' then
-         Message(asmr_e_relocatable_symbol_not_allowed);
+         compiler.verbose.Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
       end;
 
@@ -1482,7 +1482,7 @@ Unit raz80asm;
         cse_out_flags : tconstsymbolexpressionoutputflags;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-          Message(asmr_e_invalid_operand_type);
+          compiler.verbose.Message(asmr_e_invalid_operand_type);
         BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,cse_out_flags);
         if tempstr<>'' then
           begin
@@ -1535,14 +1535,14 @@ Unit raz80asm;
         Scale:=0;
         repeat
           if GotOffset and (actasmtoken<>AS_ID) then
-            Message(asmr_e_invalid_reference_syntax);
+            compiler.verbose.Message(asmr_e_invalid_reference_syntax);
 
           Case actasmtoken of
             AS_ID, { Constant reference expression OR variable reference expression }
             AS_VMTOFFSET:
               Begin
                 if not GotPlus then
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 GotStar:=false;
                 GotPlus:=false;
                 if (actasmtoken = AS_VMTOFFSET) or
@@ -1559,7 +1559,7 @@ Unit raz80asm;
                      OPR_LOCAL :
                        begin
                          if GotStar then
-                           Message(asmr_e_invalid_reference_syntax);
+                           compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                          Inc(oper.opr.localsymofs,l);
                        end;
                      OPR_REFERENCE :
@@ -1576,10 +1576,10 @@ Unit raz80asm;
                 else
                  Begin
                    if negative and not oper.hasvar then
-                     Message(asmr_e_only_add_relocatable_symbol)
+                     compiler.verbose.Message(asmr_e_only_add_relocatable_symbol)
                    else if oper.hasvar and not GotOffset and
                            (not negative or assigned(oper.opr.ref.relsymbol)) then
-                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                     compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                    HadVar:=oper.hasvar and GotOffset;
                    tempstr:=actasmpattern;
                    Consume(AS_ID);
@@ -1630,14 +1630,14 @@ Unit raz80asm;
                                    if (oper.opr.ref.base<>NR_NO) or
                                       (oper.opr.ref.index<>NR_NO) or
                                       (oper.opr.ref.offset<>0) then
-                                     Message(asmr_e_wrong_gotpcrel_intel_syntax);
+                                     compiler.verbose.Message(asmr_e_wrong_gotpcrel_intel_syntax);
                                    if tf_no_pic_supported in compiler.target.info.flags then
-                                     Message(asmr_e_no_gotpcrel_support);
+                                     compiler.verbose.Message(asmr_e_no_gotpcrel_support);
                                    oper.opr.ref.refaddr:=addr_pic;
                                    oper.opr.ref.base:=NR_RIP;
                                  end
                                else
-                                 message(asmr_e_invalid_reference_syntax);
+                                 compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                              end;
 {$endif x86_64}
                          end;
@@ -1649,7 +1649,7 @@ Unit raz80asm;
                     begin
                       BuildRecordOffsetSize(tempstr,l,k,hs,false,hastypecast);
                       if (hs<>'') then
-                        Message(asmr_e_invalid_symbol_ref);
+                        compiler.verbose.Message(asmr_e_invalid_symbol_ref);
                       case oper.opr.typ of
                         OPR_LOCAL :
                           inc(oper.opr.localsymofs,l);
@@ -1673,7 +1673,7 @@ Unit raz80asm;
                       else
                        begin
                          if oper.hasvar and hadvar then
-                          Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                          compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                          { should we allow ?? }
                        end;
                     end;
@@ -1736,10 +1736,10 @@ Unit raz80asm;
                                     scale:=0;
                                   end
                                 else
-                                 Message(asmr_e_wrong_scale_factor);
+                                 compiler.verbose.Message(asmr_e_wrong_scale_factor);
                               end
                             else
-                              Message(asmr_e_invalid_reference_syntax);
+                              compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                           end;
                         OPR_LOCAL :
                           begin
@@ -1751,17 +1751,17 @@ Unit raz80asm;
                                     scale:=0;
                                   end
                                 else
-                                 Message(asmr_e_wrong_scale_factor);
+                                 compiler.verbose.Message(asmr_e_wrong_scale_factor);
                               end
                             else
-                              Message(asmr_e_invalid_reference_syntax);
+                              compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                           end;
                         else
                           internalerror(2019050719);
                       end;
                     end;
                   else
-                    Message(asmr_e_invalid_reference_syntax);
+                    compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 end;
                 if actasmtoken<>AS_REGISTER then
                   begin
@@ -1776,7 +1776,7 @@ Unit raz80asm;
                         internalerror(2019050717);
                     end;
                     if l>9 then
-                      Message(asmr_e_wrong_scale_factor);
+                      compiler.verbose.Message(asmr_e_wrong_scale_factor);
                   end;
                 GotPlus:=false;
                 GotStar:=false;
@@ -1790,7 +1790,7 @@ Unit raz80asm;
 
                 if not((GotPlus and (not Negative)) or
                        GotStar) then
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 { this register will be the index:
                    1. just read a *
                    2. next token is a *
@@ -1799,7 +1799,7 @@ Unit raz80asm;
                   OPR_LOCAL :
                     begin
                       if (oper.opr.localindexreg<>NR_NO) then
-                        Message(asmr_e_multiple_index);
+                        compiler.verbose.Message(asmr_e_multiple_index);
                       oper.opr.localindexreg:=hreg;
                       if scale<>0 then
                         begin
@@ -1814,7 +1814,7 @@ Unit raz80asm;
                          (oper.opr.ref.base<>NR_NO) then
                        begin
                          if (oper.opr.ref.index<>NR_NO) then
-                          Message(asmr_e_multiple_index);
+                          compiler.verbose.Message(asmr_e_multiple_index);
                          oper.opr.ref.index:=hreg;
                          if scale<>0 then
                            begin
@@ -1853,7 +1853,7 @@ Unit raz80asm;
             AS_LPAREN : { Constant reference expression }
               begin
                 if not GotPlus and not GotStar then
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 cse_in_flags:=[cseif_needofs,cseif_isref];
                 if GotPlus and negative then
                   include(cse_in_flags,cseif_startingminus);
@@ -1866,7 +1866,7 @@ Unit raz80asm;
                 if tempstr<>'' then
                  begin
                    if GotStar then
-                    Message(asmr_e_only_add_relocatable_symbol);
+                    compiler.verbose.Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
                      begin
                        oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
@@ -1881,7 +1881,7 @@ Unit raz80asm;
 {$endif i8086}
                      end
                    else
-                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                    compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end;
                 case oper.opr.typ of
                   OPR_REFERENCE :
@@ -1928,7 +1928,7 @@ Unit raz80asm;
             //AS_LBRACKET :
             //  begin
             //    if (GotPlus and Negative) or GotStar then
-            //      Message(asmr_e_invalid_reference_syntax);
+            //      compiler.verbose.Message(asmr_e_invalid_reference_syntax);
             //    tmpoper:=Tz80Operand.create;
             //    BuildReference(tmpoper);
             //    AddReferences(oper,tmpoper);
@@ -1940,7 +1940,7 @@ Unit raz80asm;
             AS_RPAREN :
               begin
                 if GotPlus or GotStar or BracketlessReference then
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
 
                 Consume(AS_RPAREN);
 
@@ -1962,7 +1962,7 @@ Unit raz80asm;
               begin
                 if not BracketlessReference then
                   begin
-                    Message(asmr_e_invalid_reference_syntax);
+                    compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                     RecoverConsume(true);
                   end;
                 break;
@@ -1970,7 +1970,7 @@ Unit raz80asm;
 
             else
               Begin
-                Message(asmr_e_invalid_reference_syntax);
+                compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 RecoverConsume(true);
                 break;
               end;
@@ -2036,7 +2036,7 @@ Unit raz80asm;
                   OPR_CONSTANT :
                     BuildConstantOperand(oper);
                   else
-                    Message(asmr_e_invalid_operand_type);
+                    compiler.verbose.Message(asmr_e_invalid_operand_type);
                 end;
               end;
 
@@ -2059,7 +2059,7 @@ Unit raz80asm;
                    else
                     if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
                      begin
-                       Message(asmr_w_CODE_and_DATA_not_supported);
+                       compiler.verbose.Message(asmr_w_CODE_and_DATA_not_supported);
                        Consume(AS_ID);
                      end
                    else
@@ -2107,7 +2107,7 @@ Unit raz80asm;
                         OPR_CONSTANT :
                           BuildConstantOperand(oper);
                         else
-                          Message(asmr_e_invalid_operand_type);
+                          compiler.verbose.Message(asmr_e_invalid_operand_type);
                       end;
                     end
                    else
@@ -2187,7 +2187,7 @@ Unit raz80asm;
 
                 { Simple register }
                 if (oper.opr.typ <> OPR_NONE) then
-                  Message(asmr_e_syn_operand);
+                  compiler.verbose.Message(asmr_e_syn_operand);
                 oper.opr.typ:=OPR_REGISTER;
                 oper.opr.reg:=actasmregister;
                 oper.SetSize(tcgsize2size[reg_cgsize(oper.opr.reg)],true);
@@ -2202,7 +2202,7 @@ Unit raz80asm;
 
             else
               begin
-                Message(asmr_e_syn_operand);
+                compiler.verbose.Message(asmr_e_syn_operand);
                 RecoverConsume(true);
                 break;
               end;
@@ -2244,9 +2244,9 @@ Unit raz80asm;
               begin
                 { should have something before the comma }
                 if instr.operands[operandnum].opr.typ=OPR_NONE then
-                  Message(asmr_e_syntax_error);
+                  compiler.verbose.Message(asmr_e_syntax_error);
                 if operandnum >= max_operands then
-                  Message(asmr_e_too_many_operands)
+                  compiler.verbose.Message(asmr_e_too_many_operands)
                 else
                   Inc(operandnum);
                 Consume(AS_COMMA);
@@ -2274,14 +2274,14 @@ Unit raz80asm;
               Begin
                 expr:=actasmpattern;
                 if length(expr) > 1 then
-                 Message(asmr_e_string_not_allowed_as_const);
+                 compiler.verbose.Message(asmr_e_string_not_allowed_as_const);
                 Consume(AS_STRING);
                 case actasmtoken of
                   AS_COMMA: Consume(AS_COMMA);
                   AS_END,
                   AS_SEPARATOR: ;
                 else
-                  Message(asmr_e_invalid_string_expression);
+                  compiler.verbose.Message(asmr_e_invalid_string_expression);
                 end; { end case }
                 ConcatString(curlist,expr);
               end;
@@ -2300,7 +2300,7 @@ Unit raz80asm;
                 if asmsym<>'' then
                   begin
                     if constsize<>sizeof(pint) then
-                      Message(asmr_w_32bit_const_for_address);
+                      compiler.verbose.Message(asmr_w_32bit_const_for_address);
                      ConcatConstSymbol(curlist,asmsym,'',asmsymtyp,value,constsize,true)
                   end
                 else
@@ -2313,7 +2313,7 @@ Unit raz80asm;
               break;
             else
               begin
-                Message(asmr_e_syn_constant);
+                compiler.verbose.Message(asmr_e_syn_constant);
                 RecoverConsume(false);
               end
           end; { end case }
@@ -2349,7 +2349,7 @@ Unit raz80asm;
             newopr.symofs:=instr.Operands[1].opr.ref.offset;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
               (instr.Operands[1].opr.ref.index<>NR_NO) then
-              Message(asmr_e_syn_operand);
+              compiler.verbose.Message(asmr_e_syn_operand);
             instr.Operands[1].opr:=newopr;
           end;
       end;
@@ -2450,7 +2450,7 @@ Unit raz80asm;
                           '':
                             ;
                           else
-                            Message(asmr_e_syntax_error);
+                            compiler.verbose.Message(asmr_e_syntax_error);
                         end;
                         Consume(AS_STRING);
                         if actasmtoken=AS_COMMA then
@@ -2469,19 +2469,19 @@ Unit raz80asm;
                                       'NOTE':
                                         secprogbits:=SPB_NOTE;
                                       else
-                                        Message(asmr_e_syntax_error);
+                                        compiler.verbose.Message(asmr_e_syntax_error);
                                     end;
                                     Consume(AS_ID);
                                   end
                                 else
-                                  Message(asmr_e_syntax_error);
+                                  compiler.verbose.Message(asmr_e_syntax_error);
                               end
                             else
-                              Message(asmr_e_syntax_error);
+                              compiler.verbose.Message(asmr_e_syntax_error);
                           end;
                       end
                     else
-                      Message(asmr_e_syntax_error);
+                      compiler.verbose.Message(asmr_e_syntax_error);
                   end;}
 
                 //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
@@ -2498,7 +2498,7 @@ Unit raz80asm;
 
             else
               begin
-                Message(asmr_e_syntax_error);
+                compiler.verbose.Message(asmr_e_syntax_error);
                 RecoverConsume(false);
               end;
           end;
@@ -2506,7 +2506,7 @@ Unit raz80asm;
         { are we back in the code section? }
         if lastsectype<>sec_code then
           begin
-            //Message(asmr_w_assembler_code_not_returned_to_text);
+            //compiler.verbose.Message(asmr_w_assembler_code_not_returned_to_text);
             new_section(curList,sec_code,lower(current_procinfo.procdef.mangledname),0);
           end;
         { check that all referenced local labels are defined }

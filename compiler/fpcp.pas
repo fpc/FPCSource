@@ -91,7 +91,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Message(package_u_pcp_file_too_short);
+         compiler.verbose.Message(package_u_pcp_file_too_short);
          exit;
        end;
     { check for a valid PPU file }
@@ -99,7 +99,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Message(package_u_pcp_invalid_header);
+         compiler.verbose.Message(package_u_pcp_invalid_header);
          exit;
        end;
     { check for allowed PCP versions }
@@ -115,7 +115,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Message(package_u_pcp_invalid_processor);
+         compiler.verbose.Message(package_u_pcp_invalid_processor);
          exit;
        end;
     { check target }
@@ -123,7 +123,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Message(package_u_pcp_invalid_target);
+         compiler.verbose.Message(package_u_pcp_invalid_target);
          exit;
        end;
   {$ifdef cpufpemu}
@@ -134,7 +134,7 @@ implementation
        begin
          pcpfile.free;
          pcpfile:=nil;
-         Message(package_u_pcp_invalid_fpumode);
+         compiler.verbose.Message(package_u_pcp_invalid_fpumode);
          exit;
        end;
   {$endif cpufpemu}
@@ -328,7 +328,7 @@ implementation
     begin
       if pcpfile.readentry<>ibpackagefiles then
         begin
-          message(package_f_pcp_read_error);
+          compiler.verbose.Message(package_f_pcp_read_error);
           internalerror(2020100818);
         end;
       pplfilename:=pcpfile.getstring;
@@ -344,13 +344,13 @@ implementation
     begin
       if pcpfile.readentry<>ibstartcontained then
         begin
-          message(package_f_pcp_read_error);
+          compiler.verbose.Message(package_f_pcp_read_error);
           internalerror(2020100819);
         end;
       cnt:=pcpfile.getlongint;
       if pcpfile.readentry<>ibendcontained then
         begin
-          message(package_f_pcp_read_error);
+          compiler.verbose.Message(package_f_pcp_read_error);
           internalerror(2020100820);
         end;
       for i:=0 to cnt-1 do
@@ -374,13 +374,13 @@ implementation
     begin
       if pcpfile.readentry<>ibstartrequireds then
         begin
-          message(package_f_pcp_read_error);
+          compiler.verbose.Message(package_f_pcp_read_error);
           internalerror(2014110901);
         end;
       cnt:=pcpfile.getlongint;
       if pcpfile.readentry<>ibendrequireds then
         begin
-          message(package_f_pcp_read_error);
+          compiler.verbose.Message(package_f_pcp_read_error);
           internalerror(2014110902);
         end;
       for i:=0 to cnt-1 do
@@ -398,7 +398,7 @@ implementation
     begin
       if pcpfile.readentry<>ibpputable then
         begin
-          message(package_f_pcp_read_error);
+          compiler.verbose.Message(package_f_pcp_read_error);
           internalerror(2015103001);
         end;
       for i:=0 to containedmodules.count-1 do

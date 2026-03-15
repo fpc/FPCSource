@@ -27,7 +27,7 @@ interface
 
 uses
   globtype,cclasses,
-  symtype,
+  symtype,compilerbase,
   wpobase;
 
 type
@@ -72,6 +72,7 @@ implementation
     globals,
     symdef,
     verbose,
+    compiler,
     entfile;
 
   procedure tunitwpoinfo.clearderefinfo;
@@ -122,11 +123,13 @@ implementation
 
   constructor tunitwpoinfo.ppuload(ppufile:tcompilerppufile);
     var
+      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       i, len: longint;
     begin
       { load start of definition section, which holds the amount of defs }
       if ppufile.readentry<>ibcreatedobjtypes then
-        message(unit_f_ppu_read_error);
+        _compiler.verbose.Message(unit_f_ppu_read_error);
 
       { don't load the wpo info from the units if we are not generating
         a wpo feedback file (that would just take time and memory)

@@ -85,7 +85,7 @@ implementation
            in_riscv_pause:
              begin
                if not(CPURV_HAS_ZIHINTPAUSE in cpu_capabilities[current_settings.cputype]) then
-                 Message(cg_e_intrinsic_not_supported_by_instruction_set);
+                 compiler.verbose.Message(cg_e_intrinsic_not_supported_by_instruction_set);
                resultdef:=voidtype;
              end;
            else

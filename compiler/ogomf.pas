@@ -3325,7 +3325,7 @@ implementation
         FillHeaderData;
         if Length(Header.Relocations)>0 then
           begin
-            Message(link_e_com_program_uses_segment_relocations);
+            compiler.verbose.Message(link_e_com_program_uses_segment_relocations);
             exit(False);
           end;
         ExeSec:=MZFlatContentSection;

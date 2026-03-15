@@ -303,9 +303,9 @@ implementation
                  compiler.verbose.Message1(type_e_invalid_default_value,FullTypeName(hdef,nil));
                vs:=tparavarsym(sc[0]);
                if sc.count>1 then
-                 Message(parser_e_default_value_only_one_para);
+                 compiler.verbose.Message(parser_e_default_value_only_one_para);
                if not(vs.varspez in [vs_value,vs_const,vs_constref]) then
-                 Message(parser_e_default_value_val_const);
+                 compiler.verbose.Message(parser_e_default_value_val_const);
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }
@@ -518,7 +518,7 @@ implementation
                     else
                       begin
                         if explicit_paraloc then
-                          Message(parser_e_paraloc_all_paras);
+                          compiler.verbose.Message(parser_e_paraloc_all_paras);
                         locationstr:='';
                       end;
                   end
@@ -565,21 +565,21 @@ implementation
                   if locationstr<>'' then
                     begin
                       if sc.count>1 then
-                        Message(parser_e_paraloc_only_one_para);
+                        compiler.verbose.Message(parser_e_paraloc_only_one_para);
                       if (paranr>1) and not(explicit_paraloc) then
-                        Message(parser_e_paraloc_all_paras);
+                        compiler.verbose.Message(parser_e_paraloc_all_paras);
                       explicit_paraloc:=true;
                       include(vs.varoptions,vo_has_explicit_paraloc);
                       if not(paramanager.parseparaloc(vs,locationstr)) then
-                        message(parser_e_illegal_explicit_paraloc);
+                        compiler.verbose.Message(parser_e_illegal_explicit_paraloc);
                     end
                   else
                     if explicit_paraloc then
-                      Message(parser_e_paraloc_all_paras);
+                      compiler.verbose.Message(parser_e_paraloc_all_paras);
                 end;
 {$ifdef wasm}
               if (vs.varspez in [vs_var,vs_constref,vs_out]) and is_wasm_reference_type(vs.vardef) then
-                Message(parser_e_wasm_ref_types_can_only_be_passed_by_value);
+                compiler.verbose.Message(parser_e_wasm_ref_types_can_only_be_passed_by_value);
 {$endif wasm}
             end;
         until not parser.pbase.try_to_consume(_SEMICOLON);
@@ -737,7 +737,7 @@ implementation
                   begin
                     parser.pbase.consume(current_scanner.token);
                     if current_scanner.token in [_GT,_RSHARPBRACKET] then
-                      message(type_e_type_id_expected)
+                      compiler.verbose.Message(type_e_type_id_expected)
                     else
                       begin
                         genericparams:=parser.pgenutil.parse_generic_parameters(true);
@@ -808,7 +808,7 @@ implementation
                   end;
                 if typesrsym.typ<>typesym then
                   begin
-                    message(type_e_type_id_expected);
+                    compiler.verbose.Message(type_e_type_id_expected);
                     error:=true;
                     continue;
                   end;
@@ -976,7 +976,7 @@ implementation
                  ImplIntf:=find_implemented_interface(tobjectdef(astruct),tobjectdef(ttypesym(srsym).typedef));
                if ImplIntf=nil then
                  begin
-                   Message(parser_e_interface_id_expected);
+                   compiler.verbose.Message(parser_e_interface_id_expected);
                    { error recovery }
                    parser.pbase.consume(_ID);
                    if parser.pbase.try_to_consume(_EQ) then
@@ -1005,7 +1005,7 @@ implementation
              end;
 
             if assigned(genericparams) and assigned(current_genericdef) then
-              Message(parser_f_no_generic_inside_generic);
+              compiler.verbose.Message(parser_f_no_generic_inside_generic);
 
             { method  ? }
             srsym:=nil;
@@ -1067,7 +1067,7 @@ implementation
                            if (m_fpc in current_settings.modeswitches) then
                              compiler.verbose.Message1(parser_e_overloaded_no_procedure,srsym.realname)
                            else
-                             Message(parser_e_methode_id_expected);
+                             compiler.verbose.Message(parser_e_methode_id_expected);
                            { rename the name to an unique name to avoid an
                              error when inserting the symbol in the symtable }
                            orgsp:=orgsp+'$'+tostr(current_filepos.line);
@@ -1091,7 +1091,7 @@ implementation
                   ((potype in [potype_constructor,potype_destructor,
                                potype_class_constructor,potype_class_destructor]) or
                    ((potype=potype_operator) and (m_delphi in current_settings.modeswitches))) then
-                 Message(parser_e_only_methods_allowed);
+                 compiler.verbose.Message(parser_e_only_methods_allowed);
 
                repeat
                  { only 1 class constructor and destructor is allowed in the class and
@@ -1244,7 +1244,7 @@ implementation
           begin
             if potype=potype_constructor then
               begin
-                Message(parser_e_constructors_cannot_take_type_parameters);
+                compiler.verbose.Message(parser_e_constructors_cannot_take_type_parameters);
                 genericparams.free;
                 genericparams:=nil;
               end
@@ -1364,7 +1364,7 @@ implementation
                       internalerror(200512115);
                   end
                 else
-                  Message(parser_e_explicit_method_implementation_for_specializations_not_allowed);
+                  compiler.verbose.Message(parser_e_explicit_method_implementation_for_specializations_not_allowed);
               end;
           end;
 
@@ -1557,7 +1557,7 @@ implementation
                       end
                      else
                       { I guess this needs a new message... (KB) }
-                      Message(parser_e_paraloc_all_paras);
+                      compiler.verbose.Message(parser_e_paraloc_all_paras);
                     end
                    else
                     begin
@@ -1623,7 +1623,7 @@ implementation
               include(pd.procoptions,po_overload);
               pd.procsym.owner.includeoption(sto_has_operator);
               if pd.parast.symtablelevel>normal_function_level then
-                Message(parser_e_no_local_operator);
+                compiler.verbose.Message(parser_e_no_local_operator);
               if ppf_classmethod in flags then
                 begin
                   include(pd.procoptions,po_classmethod);
@@ -1650,7 +1650,7 @@ implementation
                       (tparavarsym(pd.parast.SymList[0]).vardef<>pd.struct) or
                       (tparavarsym(pd.parast.SymList[0]).varspez<>vs_var)
                      ) then
-                    Message(parser_e_overload_impossible)
+                    compiler.verbose.Message(parser_e_overload_impossible)
                   { constref (source) and var (dest) parameter to point the records }
                   else if (parser.pbase.optoken=_OP_COPY) and
                      (
@@ -1660,7 +1660,7 @@ implementation
                       (tparavarsym(pd.parast.SymList[1]).vardef<>pd.struct) or
                       (tparavarsym(pd.parast.SymList[1]).varspez<>vs_var)
                      ) then
-                    Message(parser_e_overload_impossible);
+                    compiler.verbose.Message(parser_e_overload_impossible);
 
                   trecordsymtable(pd.procsym.Owner).includemanagementoperator(
                     token2managementoperator(parser.pbase.optoken));
@@ -1699,9 +1699,9 @@ implementation
                        if (parser.pbase.optoken in [_ASSIGNMENT,_OP_EXPLICIT]) and
                           equal_defs(compiler.symtablestack,pd.returndef,tparavarsym(pd.parast.SymList[0]).vardef) and
                           (pd.returndef.typ<>undefineddef) and (tparavarsym(pd.parast.SymList[0]).vardef.typ<>undefineddef) then
-                         message(parser_e_no_such_assignment)
+                         compiler.verbose.Message(parser_e_no_such_assignment)
                        else if not isoperatoracceptable(pd,parser.pbase.optoken) then
-                         Message(parser_e_overload_impossible);
+                         compiler.verbose.Message(parser_e_overload_impossible);
                      end;
                  end;
             end;
@@ -1721,7 +1721,7 @@ implementation
           begin
             if (current_scanner.token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
               begin
-                message(parser_e_field_not_allowed_here);
+                compiler.verbose.Message(parser_e_field_not_allowed_here);
                 parser.pbase.consume_all_until(_SEMICOLON);
               end;
             if not (ppf_anonymous in flags) then
@@ -1732,7 +1732,7 @@ implementation
          begin
            if not(paramanager.parsefuncretloc(pd,upper(locationstr))) then
              { I guess this needs a new message... (KB) }
-             message(parser_e_illegal_explicit_paraloc);
+             compiler.verbose.Message(parser_e_illegal_explicit_paraloc);
          end;
       end;
 
@@ -1746,7 +1746,7 @@ implementation
           begin
             if current_scanner.token=_COLON then
               begin
-                message(parser_e_field_not_allowed_here);
+                compiler.verbose.Message(parser_e_field_not_allowed_here);
                 parser.pbase.consume_all_until(_SEMICOLON);
               end;
             parser.pbase.consume(_SEMICOLON);
@@ -1841,7 +1841,7 @@ implementation
           begin
             if (current_scanner.token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
               begin
-                message(parser_e_field_not_allowed_here);
+                compiler.verbose.Message(parser_e_field_not_allowed_here);
                 parser.pbase.consume_all_until(_SEMICOLON);
               end;
             if not (ppf_anonymous in flags) then
@@ -1940,9 +1940,9 @@ begin
   if pd.typ<>procdef then
     internalerror(200304264);
   if assigned(tprocdef(pd).struct) then
-    Message(parser_e_methods_dont_be_export);
+    compiler.verbose.Message(parser_e_methods_dont_be_export);
   if pd.parast.symtablelevel>normal_function_level then
-    Message(parser_e_dont_nest_export);
+    compiler.verbose.Message(parser_e_dont_nest_export);
 end;
 
 procedure TSubroutineDeclarationParser.pd_forward(pd:tabstractprocdef);
@@ -2030,7 +2030,7 @@ end;
 procedure TSubroutineDeclarationParser.pd_interrupt(pd:tabstractprocdef);
 begin
   if pd.parast.symtablelevel>normal_function_level then
-    Message(parser_e_dont_nest_interrupt);
+    compiler.verbose.Message(parser_e_dont_nest_interrupt);
 end;
 
 procedure TSubroutineDeclarationParser.pd_abstract(pd:tabstractprocdef);
@@ -2041,7 +2041,7 @@ begin
     compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_ABSTRACT].str);
   if assigned(tprocdef(pd).struct) and
     (oo_is_sealed in tprocdef(pd).struct.objectoptions) then
-    Message(parser_e_sealed_class_cannot_have_abstract_methods)
+    compiler.verbose.Message(parser_e_sealed_class_cannot_have_abstract_methods)
   else if (po_virtualmethod in pd.procoptions) then
     begin
       include(pd.procoptions,po_abstractmethod);
@@ -2049,7 +2049,7 @@ begin
       inc(tobjectdef(pd.owner.defowner).abstractcnt);
     end
   else
-    Message(parser_e_only_virtual_methods_abstract);
+    compiler.verbose.Message(parser_e_only_virtual_methods_abstract);
   { the method is defined }
   tprocdef(pd).forwarddef:=false;
 end;
@@ -2066,7 +2066,7 @@ begin
       (po_classmethod in pd.procoptions)) then
     include(pd.procoptions,po_finalmethod)
   else
-    Message(parser_e_only_virtual_methods_final);
+    compiler.verbose.Message(parser_e_only_virtual_methods_final);
 end;
 
 procedure TSubroutineDeclarationParser.pd_enumerator(pd:tabstractprocdef);
@@ -2078,7 +2078,7 @@ begin
     if current_scanner.pattern='MOVENEXT' then
     begin
       if oo_has_enumerator_movenext in tprocdef(pd).struct.objectoptions then
-        message(parser_e_only_one_enumerator_movenext);
+        compiler.verbose.Message(parser_e_only_one_enumerator_movenext);
       pd.calcparas;
       if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) and
          (pd.minparacount = 0) then
@@ -2087,14 +2087,14 @@ begin
         include(pd.procoptions,po_enumerator_movenext);
       end
       else
-        Message(parser_e_enumerator_movenext_is_not_valid)
+        compiler.verbose.Message(parser_e_enumerator_movenext_is_not_valid)
     end
     else
       compiler.verbose.Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
     parser.pbase.consume(current_scanner.token);
   end
   else
-    Message(parser_e_enumerator_identifier_required);
+    compiler.verbose.Message(parser_e_enumerator_identifier_required);
 end;
 
 procedure TSubroutineDeclarationParser.pd_virtual(pd:tabstractprocdef);
@@ -2113,9 +2113,9 @@ begin
     internalerror(2003042610);
   if (pd.proctypeoption=potype_constructor) and
      is_object(tprocdef(pd).struct) then
-    Message(parser_e_constructor_cannot_be_not_virtual);
+    compiler.verbose.Message(parser_e_constructor_cannot_be_not_virtual);
   if pd.is_generic then
-    message(parser_e_genfuncs_cannot_be_virtual);
+    compiler.verbose.Message(parser_e_genfuncs_cannot_be_virtual);
   if is_objectpascal_helper(tprocdef(pd).struct) and
       (m_objfpc in current_settings.modeswitches) then
     compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_VIRTUAL].str);
@@ -2131,7 +2131,7 @@ begin
            pd.messageinf.i:=pt.value;
          end
        else
-         Message(parser_e_ill_msg_expr);
+         compiler.verbose.Message(parser_e_ill_msg_expr);
        disposetree(pt);
     end;
 {$endif WITHDMT}
@@ -2152,7 +2152,7 @@ begin
     else
       Tprocdef(pd).dispid:=Tordconstnode(pt).value.svalue
   else
-    message(parser_e_dispid_must_be_ord_const);
+    compiler.verbose.Message(parser_e_dispid_must_be_ord_const);
   pt.free;
   pt := nil;
 end;
@@ -2186,9 +2186,9 @@ begin
         compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_OVERRIDE].str)
     end
   else if not(is_class_or_interface_or_objc_or_java(tprocdef(pd).struct)) then
-    Message(parser_e_no_object_override)
+    compiler.verbose.Message(parser_e_no_object_override)
   else if is_objccategory(tprocdef(pd).struct) then
-    Message(parser_e_no_category_override)
+    compiler.verbose.Message(parser_e_no_category_override)
   else if (po_external in pd.procoptions) and
           not is_objc_class_or_protocol(tprocdef(pd).struct) and
           not is_cppclass(tprocdef(pd).struct) and
@@ -2218,9 +2218,9 @@ begin
   else
     if not is_class(tprocdef(pd).struct) and
        not is_objc_class_or_protocol(tprocdef(pd).struct) then
-      Message(parser_e_msg_only_for_classes);
+      compiler.verbose.Message(parser_e_msg_only_for_classes);
   if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
-    Message(parser_e_multiple_messages);
+    compiler.verbose.Message(parser_e_multiple_messages);
   { check parameter type }
   if not is_objc_class_or_protocol(tprocdef(pd).struct) then
     begin
@@ -2229,7 +2229,7 @@ begin
       paracnt:=0;
       pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
       if paracnt<>1 then
-        Message(parser_e_ill_msg_param);
+        compiler.verbose.Message(parser_e_ill_msg_param);
     end;
   pt:=parser.pexpr.comp_expr([ef_accept_equal]);
   { message is 1-character long }
@@ -2242,7 +2242,7 @@ begin
     begin
       include(pd.procoptions,po_msgstr);
       if (tstringconstnode(pt).len>255) then
-        Message(parser_e_message_string_too_long);
+        compiler.verbose.Message(parser_e_message_string_too_long);
       tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).asconstpchar);
     end
   else
@@ -2258,7 +2258,7 @@ begin
         Tprocdef(pd).messageinf.i:=tordconstnode(pt).value.svalue;
     end
   else
-    Message(parser_e_ill_msg_expr);
+    compiler.verbose.Message(parser_e_ill_msg_expr);
   { check whether the selector name is valid in case of Objective-C }
   if (po_msgstr in pd.procoptions) and
      is_objc_class_or_protocol(tprocdef(pd).struct) and
@@ -2282,7 +2282,7 @@ begin
     if not(is_class_or_interface_or_object(tprocdef(pd).struct)) and
        not(is_objccategory(tprocdef(pd).struct)) and
        not(is_javaclass(tprocdef(pd).struct)) then
-      Message(parser_e_no_object_reintroduce);
+      compiler.verbose.Message(parser_e_no_object_reintroduce);
 end;
 
 
@@ -2318,7 +2318,7 @@ procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
                   include(pd.procoptions,get_default_syscall);
               end;
           else
-            Message(parser_e_syscall_format_not_support);
+            compiler.verbose.Message(parser_e_syscall_format_not_support);
         end;
       end;
 
@@ -2379,13 +2379,13 @@ begin
       v:=parser.pexpr.get_intconst;
       tprocdef(pd).extnumber:=longint(v.svalue);
       if ((v<0) or (v>high(word))) then
-        message(parser_e_range_check_error);
+        compiler.verbose.Message(parser_e_range_check_error);
 
       if parser.pbase.try_to_consume(_COMMA) then
         begin
           v:=parser.pexpr.get_intconst;
           if ((v<0) or (v>high(word))) then
-            message(parser_e_range_check_error);
+            compiler.verbose.Message(parser_e_range_check_error);
           tprocdef(pd).import_nr:=longint(v.svalue);
           include(pd.procoptions,po_syscall_has_importnr);
         end;
@@ -2396,13 +2396,13 @@ begin
     begin
       v:=parser.pexpr.get_intconst;
       if ((v<0) or (v>15)) then
-        message(parser_e_range_check_error)
+        compiler.verbose.Message(parser_e_range_check_error)
       else
         tprocdef(pd).extnumber:=longint(v.svalue);
 
       v:=parser.pexpr.get_intconst;
       if ((v<0) or (v>high(smallint))) then
-        message(parser_e_range_check_error)
+        compiler.verbose.Message(parser_e_range_check_error)
       else
         tprocdef(pd).import_nr:=longint(v.svalue);
 
@@ -2413,7 +2413,7 @@ begin
     begin
       v:=parser.pexpr.get_intconst;
       if ((v<$ff00) or (v>high(word))) then
-        message(parser_e_range_check_error)
+        compiler.verbose.Message(parser_e_range_check_error)
       else
         tprocdef(pd).extnumber:=longint(v.svalue);
 
@@ -2438,7 +2438,7 @@ begin
         pd.parast.insertsym(vs);
       end
     else
-      Message(parser_e_32bitint_or_pointer_variable_expected);
+      compiler.verbose.Message(parser_e_32bitint_or_pointer_variable_expected);
 
   paramanager.create_funcretloc_info(pd,calleeside);
   paramanager.create_funcretloc_info(pd,callerside);
@@ -2486,7 +2486,7 @@ begin
       forwarddef:=false;
       { forbid local external procedures }
       if parast.symtablelevel>normal_function_level then
-        Message(parser_e_no_local_proc_external);
+        compiler.verbose.Message(parser_e_no_local_proc_external);
       { If the procedure should be imported from a DLL, a constant string follows.
         This isn't really correct, an contant string expression follows
         so we check if an semicolon follows, else a string constant have to
@@ -2511,7 +2511,7 @@ begin
              import_name:=stringdup(parser.pexpr.get_stringconst);
              include(procoptions,po_has_importname);
              if import_name^='' then
-               message(parser_e_empty_import_name);
+               compiler.verbose.Message(parser_e_empty_import_name);
            end;
           if (current_scanner.idtoken=_INDEX) then
            begin
@@ -2519,7 +2519,7 @@ begin
              parser.pbase.consume(_INDEX);
              v:=parser.pexpr.get_intconst;
              if (v<int64(low(import_nr))) or (v>int64(high(import_nr))) then
-               message(parser_e_range_check_error)
+               compiler.verbose.Message(parser_e_range_check_error)
              else
                import_nr:=longint(v.svalue);
            end;
@@ -2540,7 +2540,7 @@ begin
               end
              else
               begin
-                message(parser_e_suspending_externals_not_supported_on_current_platform);
+                compiler.verbose.Message(parser_e_suspending_externals_not_supported_on_current_platform);
                 parser.pbase.consume(_SUSPENDING);
                 if current_scanner.idtoken=_FIRST then
                   parser.pbase.consume(_FIRST)
@@ -2564,7 +2564,7 @@ begin
              import_name:=stringdup(parser.pexpr.get_stringconst);
              include(procoptions,po_has_importname);
              if import_name^='' then
-               message(parser_e_empty_import_name);
+               compiler.verbose.Message(parser_e_empty_import_name);
            end;
         end;
     end;
@@ -2574,7 +2574,7 @@ end;
 procedure TSubroutineDeclarationParser.pd_weakexternal(pd:tabstractprocdef);
 begin
   if not(compiler.target.info.system in systems_weak_linking) then
-    message(parser_e_weak_external_not_supported)
+    compiler.verbose.Message(parser_e_weak_external_not_supported)
   else
     pd_external(pd);
 end;
@@ -2597,7 +2597,7 @@ begin
     (current_settings.fputype=fpu_soft) or
 {$endif defined(arm)}
     (cs_fp_emulation in current_settings.moduleswitches) then
-    message(parser_e_cannot_use_hardfloat_in_a_softfloat_environment);
+    compiler.verbose.Message(parser_e_cannot_use_hardfloat_in_a_softfloat_environment);
 end;
 
 procedure TSubroutineDeclarationParser.pd_section(pd:tabstractprocdef);
@@ -2605,7 +2605,7 @@ begin
   if pd.typ<>procdef then
     internalerror(2021032801);
   if not (compiler.target.info.system in systems_allow_section) then
-    Message(parser_e_section_directive_not_allowed_for_target);
+    compiler.verbose.Message(parser_e_section_directive_not_allowed_for_target);
 {$ifdef symansistr}
   tprocdef(pd).section:=parser.pexpr.get_stringconst;
 {$else symansistr}
@@ -3612,7 +3612,7 @@ const
                     begin
                       if (current_scanner.token=_COLON) then
                         begin
-                          Message(parser_e_field_not_allowed_here);
+                          compiler.verbose.Message(parser_e_field_not_allowed_here);
                           parser.pbase.consume_all_until(_SEMICOLON);
                         end;
                       parser.pbase.consume(_SEMICOLON)
@@ -3636,7 +3636,7 @@ const
          if (po_nostackframe in pd.procoptions) and
             not (po_assembler in pd.procoptions) and
             ((pd.typ<>procdef) or not tprocdef(pd).forwarddef) then
-           message(parser_e_nostackframe_without_assembler);
+           compiler.verbose.Message(parser_e_nostackframe_without_assembler);
       end;
 
 

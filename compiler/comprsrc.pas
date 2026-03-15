@@ -216,7 +216,7 @@ begin
        if RequotedExecuteProcess(resbin,s) <> 0 then
        begin
          if not (cs_link_nolink in current_settings.globalswitches) then
-           Message(exec_e_error_while_compiling_resources);
+           compiler.verbose.Message(exec_e_error_while_compiling_resources);
          current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
          Result:=false;
        end;
@@ -495,7 +495,7 @@ begin
   while res<>nil do
     begin
       if compiler.target.info.res=res_none then
-        Message(scan_e_resourcefiles_not_supported);
+        compiler.verbose.Message(scan_e_resourcefiles_not_supported);
       s:=res.FPStr;
       if not path_absolute(s) then
         s:=p+s;

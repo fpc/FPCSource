@@ -634,9 +634,9 @@ implementation
                 { Give an error if inline is not supported by the compiler mode,
                   otherwise only give a hint that this procedure will not be inlined }
                 if not(m_default_inline in current_settings.modeswitches) then
-                  Message(parser_e_proc_inline_not_supported)
+                  compiler.verbose.Message(parser_e_proc_inline_not_supported)
                 else
-                  Message(parser_h_inlining_disabled);
+                  compiler.verbose.Message(parser_h_inlining_disabled);
                 exclude(pd.procoptions,po_inline);
               end;
 
@@ -656,7 +656,7 @@ implementation
                            class may be external.  }
                          is_objc_class_or_protocol(tprocdef(pd).struct)) and
                      not(pd.proccalloption in (cdecl_pocalls + [pocall_stdcall])) then
-                    Message(parser_e_varargs_need_cdecl_and_external);
+                    compiler.verbose.Message(parser_e_varargs_need_cdecl_and_external);
                 end
                else
                 begin
@@ -664,7 +664,7 @@ implementation
                   if not((po_external in pd.procoptions) or
                          (pd.typ=procvardef)) or
                      not(pd.proccalloption in cstylearrayofconst) then
-                    Message(parser_e_varargs_need_cdecl_and_external);
+                    compiler.verbose.Message(parser_e_varargs_need_cdecl_and_external);
                 end;
              end;
           end;

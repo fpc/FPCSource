@@ -164,7 +164,7 @@ implementation
           end;
         pd.calcparas;
         if (pd.maxparacount>0) then
-          Message(parser_e_no_paras_for_class_constructor);
+          compiler.verbose.Message(parser_e_no_paras_for_class_constructor);
         parser.pbase.consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_constructor);
         include(current_module.moduleflags,mf_classinits);
@@ -189,7 +189,7 @@ implementation
           end;
         if (cs_constructor_name in current_settings.globalswitches) and
            (pd.procsym.name<>'INIT') then
-          Message(parser_e_constructorname_must_be_init);
+          compiler.verbose.Message(parser_e_constructorname_must_be_init);
         parser.pbase.consume(_SEMICOLON);
         include(current_structdef.objectoptions,oo_has_constructor);
         { Set return type, class and record constructors return the
@@ -223,21 +223,21 @@ implementation
         if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef) or
                 is_objectpascal_helper(current_structdef) or is_java_class_or_interface(current_structdef)) or
                (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
-          Message(parser_e_syntax_error);
+          compiler.verbose.Message(parser_e_syntax_error);
         parser.pbase.consume(_PROPERTY);
         p:=parser.pdecvar.read_property_dec(is_classproperty,current_structdef);
         parser.pbase.consume(_SEMICOLON);
         if parser.pbase.try_to_consume(_DEFAULT) then
           begin
             if oo_has_default_property in current_structdef.objectoptions then
-              message(parser_e_only_one_default_property);
+              compiler.verbose.Message(parser_e_only_one_default_property);
             include(current_structdef.objectoptions,oo_has_default_property);
             include(p.propoptions,ppo_defaultproperty);
             if not(ppo_hasparameters in p.propoptions) then
-              message(parser_e_property_need_paras);
+              compiler.verbose.Message(parser_e_property_need_paras);
             if (current_scanner.token=_COLON) then
               begin
-                Message(parser_e_field_not_allowed_here);
+                compiler.verbose.Message(parser_e_field_not_allowed_here);
                 parser.pbase.consume_all_until(_SEMICOLON);
               end;
             parser.pbase.consume(_SEMICOLON);
@@ -250,21 +250,21 @@ implementation
               if current_scanner.pattern='CURRENT' then
               begin
                 if oo_has_enumerator_current in current_structdef.objectoptions then
-                  message(parser_e_only_one_enumerator_current);
+                  compiler.verbose.Message(parser_e_only_one_enumerator_current);
                 if not p.propaccesslist[palt_read].empty then
                 begin
                   include(current_structdef.objectoptions,oo_has_enumerator_current);
                   include(p.propoptions,ppo_enumerator_current);
                 end
                 else
-                  Message(parser_e_enumerator_current_is_not_valid) // property has no reader
+                  compiler.verbose.Message(parser_e_enumerator_current_is_not_valid) // property has no reader
               end
               else
                 compiler.verbose.Message1(parser_e_invalid_enumerator_identifier, current_scanner.pattern);
               parser.pbase.consume(current_scanner.token);
             end
             else
-              Message(parser_e_enumerator_identifier_required);
+              compiler.verbose.Message(parser_e_enumerator_identifier_required);
             parser.pbase.consume(_SEMICOLON);
           end;
         { in case of a previous error, p might not be assigned }
@@ -303,7 +303,7 @@ implementation
           end;
         pd.calcparas;
         if (pd.maxparacount>0) then
-          Message(parser_e_no_paras_for_class_destructor);
+          compiler.verbose.Message(parser_e_no_paras_for_class_destructor);
         parser.pbase.consume(_SEMICOLON);
         include(astruct.objectoptions,oo_has_class_destructor);
         include(current_module.moduleflags,mf_classinits);
@@ -327,11 +327,11 @@ implementation
           end;
         if (cs_constructor_name in current_settings.globalswitches) and
            (pd.procsym.name<>'DONE') then
-          Message(parser_e_destructorname_must_be_done);
+          compiler.verbose.Message(parser_e_destructorname_must_be_done);
         pd.calcparas;
         if not(pd.maxparacount=0) and
            (m_fpc in current_settings.modeswitches) then
-          Message(parser_e_no_paras_for_destructor);
+          compiler.verbose.Message(parser_e_no_paras_for_destructor);
         parser.pbase.consume(_SEMICOLON);
         include(current_structdef.objectoptions,oo_has_destructor);
         include(current_structdef.objectoptions,oo_has_new_destructor);
@@ -468,11 +468,11 @@ implementation
             valid:=string2guid(current_objectdef.iidstr^,current_objectdef.iidguid^);
             if (current_objectdef.objecttype in [odt_interfacecom,odt_dispinterface]) and
                not valid then
-              Message(parser_e_improper_guid_syntax);
+              compiler.verbose.Message(parser_e_improper_guid_syntax);
             include(current_structdef.objectoptions,oo_has_valid_guid);
           end
         else
-          Message(parser_e_illegal_expression);
+          compiler.verbose.Message(parser_e_illegal_expression);
         p.free;
         p := nil;
       end;
@@ -571,7 +571,7 @@ implementation
               { don't use <=, because there's a bug in the 2.6.0 SPARC code
                 generator regarding handling this expression }
               if ([oo_is_abstract, oo_is_sealed] * current_structdef.objectoptions) = [oo_is_abstract, oo_is_sealed] then
-                Message(parser_e_abstract_and_sealed_conflict);
+                compiler.verbose.Message(parser_e_abstract_and_sealed_conflict);
               { set default external name in case of no external directive }
               if (current_objectdef.objecttype=odt_javaclass) and
                  not gotexternal then
@@ -613,7 +613,7 @@ implementation
                   compiler.verbose.Message1(type_e_class_type_expected,hdef.typename)
                 else if is_objccategory(current_structdef) then
                   { a category must specify the class to extend }
-                  Message(type_e_objcclass_type_expected);
+                  compiler.verbose.Message(type_e_objcclass_type_expected);
               end
             else
               begin
@@ -637,7 +637,7 @@ implementation
                                childof:=class_tobject;
                             end
                           else
-                            Message(parser_e_mix_of_classes_and_objects);
+                            compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
                        end
                      else
                        if oo_is_sealed in childof.objectoptions then
@@ -648,12 +648,12 @@ implementation
                    odt_interfacecom:
                      begin
                        if not(is_interface(childof)) then
-                         Message(parser_e_mix_of_classes_and_objects);
+                         compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
                        current_objectdef.objecttype:=childof.objecttype;
                      end;
                    odt_cppclass:
                      if not(is_cppclass(childof)) then
-                       Message(parser_e_mix_of_classes_and_objects);
+                       compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
                    odt_objcclass:
                      if not(is_objcclass(childof) or
                         is_objccategory(childof)) then
@@ -671,36 +671,36 @@ implementation
                                compiler.verbose.CGMessage(type_e_objcclass_type_expected);
                            end
                          else
-                           Message(parser_e_mix_of_classes_and_objects);
+                           compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
                        end
                      else
                        childof:=compiler.symtablestack.find_real_class_definition(childof,true);
                    odt_objcprotocol:
                      begin
                        if not(is_objcprotocol(childof)) then
-                         Message(parser_e_mix_of_classes_and_objects);
+                         compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
                        intfchildof:=childof;
                        childof:=nil;
                      end;
                    odt_interfacejava:
                      begin
                        if not(is_javainterface(childof)) then
-                         Message(parser_e_mix_of_classes_and_objects);
+                         compiler.verbose.Message(parser_e_mix_of_classes_and_objects);
                        intfchildof:=compiler.symtablestack.find_real_class_definition(childof,true);
                        childof:=nil;
                      end;
                    odt_object:
                      if not(is_object(childof)) then
-                       Message(parser_e_mix_of_classes_and_objects)
+                       compiler.verbose.Message(parser_e_mix_of_classes_and_objects)
                      else
                        if oo_is_sealed in childof.objectoptions then
                          compiler.verbose.Message1(parser_e_sealed_descendant,childof.typename);
                    odt_dispinterface:
-                     Message(parser_e_dispinterface_cant_have_parent);
+                     compiler.verbose.Message(parser_e_dispinterface_cant_have_parent);
                    odt_helper:
                      if not is_objectpascal_helper(childof) then
                        begin
-                         Message(type_e_helper_type_expected);
+                         compiler.verbose.Message(type_e_helper_type_expected);
                          childof:=nil;
                        end;
                    else
@@ -833,7 +833,7 @@ implementation
               ht_class:
                 compiler.verbose.Message1(type_e_class_type_expected,hdef.typename);
               ht_record:
-                Message(type_e_record_type_expected);
+                compiler.verbose.Message(type_e_record_type_expected);
               ht_type:
                 compiler.verbose.Message1(type_e_type_id_expected,hdef.typename);
               else
@@ -902,7 +902,7 @@ implementation
             parser.pbase.consume(_RECKKLAMMER);
           end
         else if (current_objectdef.objecttype=odt_dispinterface) then
-          message(parser_e_dispinterface_needs_a_guid);
+          compiler.verbose.Message(parser_e_dispinterface_needs_a_guid);
       end;
 
 
@@ -944,7 +944,7 @@ implementation
                   else if [po_virtualmethod,po_classmethod]<=pd.procoptions then
                     begin
                       if po_staticmethod in pd.procoptions then
-                        Message(type_e_java_class_method_not_static_virtual);
+                        compiler.verbose.Message(type_e_java_class_method_not_static_virtual);
                     end;
                 end;
             end;
@@ -967,7 +967,7 @@ implementation
             begin
               if (astruct.symtable.currentvisibility=vis_published) and
                  not(oo_can_have_published in astruct.objectoptions) then
-                Message(parser_e_cant_have_published);
+                compiler.verbose.Message(parser_e_cant_have_published);
 
               oldparse_only:=parser.pbase.parse_only;
               parser.pbase.parse_only:=true;
@@ -1037,22 +1037,22 @@ implementation
             begin
               if (astruct.symtable.currentvisibility=vis_published) and
                 not(oo_can_have_published in astruct.objectoptions) then
-                Message(parser_e_cant_have_published);
+                compiler.verbose.Message(parser_e_cant_have_published);
 
               if not is_classdef and not(astruct.symtable.currentvisibility in [vis_public,vis_published]) then
-                Message(parser_w_constructor_should_be_public);
+                compiler.verbose.Message(parser_w_constructor_should_be_public);
 
               if is_interface(astruct) then
-                Message(parser_e_no_con_des_in_interfaces);
+                compiler.verbose.Message(parser_e_no_con_des_in_interfaces);
 
               { Objective-C does not know the concept of a constructor }
               if is_objc_class_or_protocol(astruct) then
-                Message(parser_e_objc_no_constructor_destructor);
+                compiler.verbose.Message(parser_e_objc_no_constructor_destructor);
 
               if is_objectpascal_helper(astruct) then
                 if is_classdef then
                   { class constructors are not allowed in class helpers }
-                  Message(parser_e_no_class_constructor_in_helpers);
+                  compiler.verbose.Message(parser_e_no_class_constructor_in_helpers);
 
               { only 1 class constructor is allowed }
               if is_classdef and (oo_has_class_constructor in astruct.objectoptions) then
@@ -1081,25 +1081,25 @@ implementation
             begin
               if (astruct.symtable.currentvisibility=vis_published) and
                  not(oo_can_have_published in astruct.objectoptions) then
-                Message(parser_e_cant_have_published);
+                compiler.verbose.Message(parser_e_cant_have_published);
 
               if not is_classdef then
                 if (oo_has_new_destructor in astruct.objectoptions) then
-                  Message(parser_n_only_one_destructor);
+                  compiler.verbose.Message(parser_n_only_one_destructor);
 
               if is_interface(astruct) then
-                Message(parser_e_no_con_des_in_interfaces);
+                compiler.verbose.Message(parser_e_no_con_des_in_interfaces);
 
               { (class) destructors are not allowed in class helpers }
               if is_objectpascal_helper(astruct) then
-                Message(parser_e_no_destructor_in_records);
+                compiler.verbose.Message(parser_e_no_destructor_in_records);
 
               if not is_classdef and (astruct.symtable.currentvisibility<>vis_public) then
-                Message(parser_w_destructor_should_be_public);
+                compiler.verbose.Message(parser_w_destructor_should_be_public);
 
               { Objective-C does not know the concept of a destructor }
               if is_objc_class_or_protocol(astruct) then
-                Message(parser_e_objc_no_constructor_destructor);
+                compiler.verbose.Message(parser_e_objc_no_constructor_destructor);
 
               { only 1 class destructor is allowed }
               if is_classdef and (oo_has_class_destructor in astruct.objectoptions) then
@@ -1148,7 +1148,7 @@ implementation
       procedure parse_const;
         begin
           if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
-            Message(parser_e_type_var_const_only_in_records_and_classes);
+            compiler.verbose.Message(parser_e_type_var_const_only_in_records_and_classes);
           parser.pbase.consume(_CONST);
           object_member_blocktype:=bt_const;
           final_fields:=is_final;
@@ -1162,7 +1162,7 @@ implementation
              { Java interfaces can contain static final class vars }
              not((current_objectdef.objecttype=odt_interfacejava) and
                  is_final and is_classdef) then
-            Message(parser_e_type_var_const_only_in_records_and_classes);
+            compiler.verbose.Message(parser_e_type_var_const_only_in_records_and_classes);
           if isthreadvar then
             parser.pbase.consume(_THREADVAR)
           else
@@ -1185,7 +1185,7 @@ implementation
           { class modifier is only allowed for procedures, functions, }
           { constructors, destructors, fields and properties          }
           if not((current_scanner.token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_DESTRUCTOR,_THREADVAR]) or (current_scanner.token=_CONSTRUCTOR)) then
-            Message(parser_e_procedure_or_function_expected);
+            compiler.verbose.Message(parser_e_procedure_or_function_expected);
 
           { class properties currently can't have attributes }
           if not(current_scanner.token in [_FUNCTION,_PROCEDURE]) then
@@ -1196,7 +1196,7 @@ implementation
              (is_javainterface(current_structdef) and
               (not(is_final) or
                (current_scanner.token<>_VAR))) then
-            Message(parser_e_no_static_method_in_interfaces)
+            compiler.verbose.Message(parser_e_no_static_method_in_interfaces)
           else
             { class methods are also allowed for Objective-C protocols }
             is_classdef:=true;
@@ -1210,11 +1210,11 @@ implementation
           if (vis=vis_published) and
              (is_objc_class_or_protocol(current_structdef) or
               is_java_class_or_interface(current_structdef)) then
-             Message(parser_e_no_objc_published)
+             compiler.verbose.Message(parser_e_no_objc_published)
           else if is_interface(current_structdef) or
              is_objc_protocol_or_category(current_structdef) or
              is_javainterface(current_structdef) then
-            Message(parser_e_no_access_specifier_in_interfaces);
+            compiler.verbose.Message(parser_e_no_access_specifier_in_interfaces);
           current_structdef.symtable.currentvisibility:=vis;
           parser.pbase.consume(current_scanner.token);
           if (oo<>oo_none) then
@@ -1255,7 +1255,7 @@ implementation
               begin
                 check_unbound_attributes;
                 if not(current_objectdef.objecttype in [odt_class,odt_object,odt_helper,odt_javaclass,odt_interfacejava]) then
-                  Message(parser_e_type_var_const_only_in_records_and_classes);
+                  compiler.verbose.Message(parser_e_type_var_const_only_in_records_and_classes);
                 parser.pbase.consume(_TYPE);
                 object_member_blocktype:=bt_type;
 
@@ -1292,7 +1292,7 @@ implementation
                 check_unbound_attributes;
                 if not is_classdef then
                   begin
-                    Message(parser_e_threadvar_must_be_class);
+                    compiler.verbose.Message(parser_e_threadvar_must_be_class);
                     { for error recovery we enforce class fields }
                     is_classdef:=true;
                   end;
@@ -1332,7 +1332,7 @@ implementation
                        if is_interface(current_structdef) or
                           is_objc_protocol_or_category(current_structdef) or
                           is_javainterface(current_structdef) then
-                         Message(parser_e_no_access_specifier_in_interfaces);
+                         compiler.verbose.Message(parser_e_no_access_specifier_in_interfaces);
                          parser.pbase.consume(_STRICT);
                         if current_scanner.token=_ID then
                           begin
@@ -1350,11 +1350,11 @@ implementation
                                   include(current_structdef.objectoptions,oo_has_strictprotected);
                                 end;
                               else
-                                message(parser_e_protected_or_private_expected);
+                                compiler.verbose.Message(parser_e_protected_or_private_expected);
                             end;
                           end
                         else
-                          message(parser_e_protected_or_private_expected);
+                          compiler.verbose.Message(parser_e_protected_or_private_expected);
                         fields_allowed:=true;
                         is_classdef:=false;
                         class_fields:=false;
@@ -1371,13 +1371,13 @@ implementation
                           requires fully working DFA otherwise }
                         if (current_structdef.typ<>objectdef) or
                            not(oo_is_external in tobjectdef(current_structdef).objectoptions) then
-                          Message(parser_e_final_only_external);
+                          compiler.verbose.Message(parser_e_final_only_external);
                         parser.pbase.consume(_final);
                         is_final:=true;
                         if current_scanner.token=_CLASS then
                           parse_class;
                         if not(current_scanner.token in [_CONST,_VAR]) then
-                          message(parser_e_final_only_const_var);
+                          compiler.verbose.Message(parser_e_final_only_const_var);
                       end
                     else
                       begin
@@ -1391,11 +1391,11 @@ implementation
                                 ) then
                               begin
                                 if hadgeneric then
-                                  Message(parser_e_procedure_or_function_expected);
+                                  compiler.verbose.Message(parser_e_procedure_or_function_expected);
                                 parser.pbase.consume(_ID);
                                 hadgeneric:=true;
                                 if not (current_scanner.token in [_PROCEDURE,_FUNCTION,_CLASS]) then
-                                  Message(parser_e_procedure_or_function_expected);
+                                  compiler.verbose.Message(parser_e_procedure_or_function_expected);
                               end
                             else
                               begin
@@ -1407,13 +1407,13 @@ implementation
                                    ) or
                                    (is_javainterface(current_structdef) and
                                     not(class_fields and final_fields)) then
-                                  Message(parser_e_no_vars_in_interfaces);
+                                  compiler.verbose.Message(parser_e_no_vars_in_interfaces);
 
                                 if (current_structdef.symtable.currentvisibility=vis_published) and
                                    not(oo_can_have_published in current_structdef.objectoptions) then
-                                  Message(parser_e_cant_have_published);
+                                  compiler.verbose.Message(parser_e_cant_have_published);
                                 if (not fields_allowed) then
-                                  Message(parser_e_field_not_allowed_here);
+                                  compiler.verbose.Message(parser_e_field_not_allowed_here);
 
                                 vdoptions:=[vd_object];
                                 if not (m_delphi in current_settings.modeswitches) then
@@ -1557,14 +1557,14 @@ implementation
         { objects and class types can't be declared local }
         if not(compiler.symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]) and
            not assigned(genericlist) then
-          Message(parser_e_no_local_objects);
+          compiler.verbose.Message(parser_e_no_local_objects);
 
         { reuse forward objectdef? }
         if assigned(fd) then
           begin
             if (fd.objecttype<>objecttype) or ((fd.is_generic or fd.is_specialization) xor assigned(genericlist)) then
               begin
-                Message(parser_e_forward_mismatch);
+                compiler.verbose.Message(parser_e_forward_mismatch);
                 { recover }
                 current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);
                 include(current_structdef.objectoptions,oo_is_forward);
@@ -1576,7 +1576,7 @@ implementation
           begin
             { anonym objects aren't allow (o : object a : longint; end;) }
             if n='' then
-              Message(parser_f_no_anonym_objects);
+              compiler.verbose.Message(parser_f_no_anonym_objects);
 
             { create new class }
             current_structdef:=cobjectdef.create(objecttype,n,nil,true,compiler);

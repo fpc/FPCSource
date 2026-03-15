@@ -131,7 +131,7 @@ Unit raavrgas;
          begin
            BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
            if (mangledname<>'') then
-             Message(asmr_e_invalid_reference_syntax);
+             compiler.verbose.Message(asmr_e_invalid_reference_syntax);
            inc(oper.opr.ref.offset,l);
          end;
       end;
@@ -143,7 +143,7 @@ Unit raavrgas;
         begin
           if actasmtoken<>AS_RPAREN then
            Begin
-             Message(asmr_e_invalid_reference_syntax);
+             compiler.verbose.Message(asmr_e_invalid_reference_syntax);
              RecoverConsume(true);
            end
           else
@@ -151,7 +151,7 @@ Unit raavrgas;
              Consume(AS_RPAREN);
              if not (actasmtoken in [AS_COMMA,AS_SEPARATOR,AS_END]) then
               Begin
-                Message(asmr_e_invalid_reference_syntax);
+                compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 RecoverConsume(true);
               end;
            end;
@@ -195,7 +195,7 @@ Unit raavrgas;
           end {end case }
         else
           Begin
-            Message(asmr_e_invalid_reference_syntax);
+            compiler.verbose.Message(asmr_e_invalid_reference_syntax);
             RecoverConsume(false);
           end;
       end;
@@ -243,7 +243,7 @@ Unit raavrgas;
                     BuildRecordOffsetSize(expr,toffset,tsize,mangledname,false);
                     if (oper.opr.typ<>OPR_CONSTANT) and
                        (mangledname<>'') then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     inc(l,toffset);
                     oper.SetSize(tsize,true);
                   end;
@@ -266,14 +266,14 @@ Unit raavrgas;
                 if (mangledname<>'') then
                   begin
                     if (oper.opr.val<>0) then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
                     oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname,AT_FUNCTION);
                   end
                 else
                   inc(oper.opr.val,l);
               OPR_SYMBOL:
-                Message(asmr_e_invalid_symbol_ref);
+                compiler.verbose.Message(asmr_e_invalid_symbol_ref);
               else
                 internalerror(200309221);
             end;
@@ -297,7 +297,7 @@ Unit raavrgas;
                     AS_COMMA:
                       exit;
                     else
-                      Message(asmr_e_invalid_reference_syntax)
+                      compiler.verbose.Message(asmr_e_invalid_reference_syntax)
                   end;
                 end;
               AS_LPAREN:
@@ -313,7 +313,7 @@ Unit raavrgas;
                       BuildReference(oper);
                   else
                     Begin
-                      Message(asmr_e_invalid_reference_syntax);
+                      compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                       Consume(actasmtoken);
                     end;
                   end; {end case }
@@ -360,7 +360,7 @@ Unit raavrgas;
                     end
                   else
                     begin
-                      Message(asmr_e_invalid_reference_syntax);
+                      compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                       RecoverConsume(false);
                     end;
                 end
@@ -376,7 +376,7 @@ Unit raavrgas;
                      ((actopcode = A_STS) and (actasmtoken <> AS_COMMA)) then
                     begin
                       if not(MaybeBuildReference) then
-                        Message(asmr_e_invalid_reference_syntax);
+                        compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                     end
                   else
                     begin
@@ -404,7 +404,7 @@ Unit raavrgas;
                   if not assigned(oper.opr.ref.symbol) then
                     oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp)
                   else
-                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                    compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                   case oper.opr.typ of
                     OPR_CONSTANT :
                       inc(oper.opr.val,l);
@@ -438,7 +438,7 @@ Unit raavrgas;
                  if SearchIConstant(actasmpattern,l) then
                   Begin
                     if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-                     Message(asmr_e_invalid_operand_type);
+                     compiler.verbose.Message(asmr_e_invalid_operand_type);
                     BuildConstantOperand(oper);
                   end
                  else
@@ -534,12 +534,12 @@ Unit raavrgas;
               else if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
                 Begin
                   if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
-                    Message(asmr_e_invalid_operand_type);
+                    compiler.verbose.Message(asmr_e_invalid_operand_type);
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
               else
-                Message(asmr_e_syn_operand);
+                compiler.verbose.Message(asmr_e_syn_operand);
             end;
 
           AS_END,
@@ -547,7 +547,7 @@ Unit raavrgas;
           AS_COMMA: ;
         else
           Begin
-            Message(asmr_e_syn_operand);
+            compiler.verbose.Message(asmr_e_syn_operand);
             Consume(actasmtoken);
           end;
         end; { end case }
@@ -565,7 +565,7 @@ Unit raavrgas;
         { opcode }
         if (actasmtoken<>AS_OPCODE) then
          Begin
-           Message(asmr_e_invalid_or_missing_opcode);
+           compiler.verbose.Message(asmr_e_invalid_or_missing_opcode);
            RecoverConsume(true);
            exit;
          end;
@@ -591,7 +591,7 @@ Unit raavrgas;
             AS_COMMA: { Operand delimiter }
               Begin
                 if operandnum>Max_Operands then
-                  Message(asmr_e_too_many_operands)
+                  compiler.verbose.Message(asmr_e_too_many_operands)
                 else
                   Inc(operandnum);
                 Consume(AS_COMMA);
@@ -693,7 +693,7 @@ Unit raavrgas;
             newopr.symofs:=instr.Operands[1].opr.ref.offset;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
               (instr.Operands[1].opr.ref.index<>NR_NO) then
-              Message(asmr_e_syn_operand);
+              compiler.verbose.Message(asmr_e_syn_operand);
             instr.Operands[1].opr:=newopr;
           end;
       end;

@@ -206,7 +206,7 @@ implementation
                    compiler.verbose.Message1(parser_e_interface_has_no_guid,tobjectdef(p.resultdef).objrealname^);
                 end
                else
-                Message(parser_e_illegal_expression);
+                compiler.verbose.Message(parser_e_illegal_expression);
              end;
            inlinen:
              begin
@@ -215,7 +215,7 @@ implementation
                  information about the final type yet, we need to use safe
                  values (mostly 0, except for (Bit)SizeOf()) }
                if not parser.pbase.parse_generic then
-                 Message(parser_e_cannot_evaluate_expression_at_compile_time);
+                 compiler.verbose.Message(parser_e_cannot_evaluate_expression_at_compile_time);
                case tinlinenode(p).inlinenumber of
                  in_sizeof_x:
                    begin
@@ -227,7 +227,7 @@ implementation
                    end;
                  { add other cases here if necessary }
                  else
-                   Message(parser_e_illegal_expression);
+                   compiler.verbose.Message(parser_e_illegal_expression);
                end;
              end;
            else
@@ -238,7 +238,7 @@ implementation
                if nf_generic_para in p.flags then
                  hp:=cconstsym.create_ord(orgname,constnil,0,p.resultdef)
                else
-                 Message(parser_e_illegal_expression);
+                 compiler.verbose.Message(parser_e_illegal_expression);
              end;
         end;
         { transfer generic param flag from node to symbol }
@@ -324,7 +324,7 @@ implementation
                 begin
                    if not allow_typed_const then
                      begin
-                       Message(parser_e_no_typed_const);
+                       compiler.verbose.Message(parser_e_no_typed_const);
                        parser.pbase.consume_all_until(_SEMICOLON);
                      end;
                    { set the blocktype first so a consume also supports a
@@ -380,7 +380,7 @@ implementation
                         parser.pdecsub.parse_proctype_directives(hdef)
                       else if expect_directive then
                        begin
-                         Message(parser_e_proc_directive_expected);
+                         compiler.verbose.Message(parser_e_proc_directive_expected);
                          skip_initialiser:=true;
                        end;
                       { add default calling convention }
@@ -426,7 +426,7 @@ implementation
       begin
          parser.pbase.consume(_LABEL);
          if not(cs_support_goto in current_settings.moduleswitches) then
-           Message(sym_e_goto_and_label_not_supported);
+           compiler.verbose.Message(sym_e_goto_and_label_not_supported);
          repeat
            if not(current_scanner.token in [_ID,_INTCONST]) then
              parser.pbase.consume(_ID)
@@ -603,14 +603,14 @@ implementation
               else begin
                 { provide *some* error in case there hasn't been one }
                 if compiler.verbose.errorcount=ecnt then
-                  message(parser_e_illegal_expression);
+                  compiler.verbose.Message(parser_e_illegal_expression);
                 pcalln.free;
                 pcalln := nil;
               end;
             end
           else
             begin
-              Message(type_e_type_id_expected);
+              compiler.verbose.Message(type_e_type_id_expected);
               { try to recover by nevertheless reading the parameters (if any) }
               read_attr_paras.free; // no nil needed
             end;
@@ -810,7 +810,7 @@ implementation
            if isgeneric then
              begin
                if assigned(current_genericdef) then
-                 Message(parser_f_no_generic_inside_generic);
+                 compiler.verbose.Message(parser_f_no_generic_inside_generic);
 
                parser.pbase.consume(_LSHARPBRACKET);
                generictypelist:=parser.pgenutil.parse_generic_parameters(true);
@@ -955,7 +955,7 @@ implementation
                     begin
                       if is_objc_class_or_protocol(hdef) or
                          is_java_class_or_interface(hdef) then
-                        Message(parser_e_unique_unsupported);
+                        compiler.verbose.Message(parser_e_unique_unsupported);
 
                       if is_object(hdef) or
                          is_class_or_interface_or_dispinterface(hdef) then
@@ -979,14 +979,14 @@ implementation
                               parser.pbase.consume(_RKLAMMER);
                               if not is_constintnode(p) then
                                 begin
-                                  Message(parser_e_illegal_expression);
+                                  compiler.verbose.Message(parser_e_illegal_expression);
                                   { error recovery }
                                 end
                               else
                                 begin
                                   if (tordconstnode(p).value<0) or (tordconstnode(p).value>65535) then
                                     begin
-                                      Message(parser_e_invalid_codepage);
+                                      compiler.verbose.Message(parser_e_invalid_codepage);
                                       tordconstnode(p).value:=0;
                                     end;
                                   tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
@@ -1093,7 +1093,7 @@ implementation
                                'FS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_fs;
                                'GS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_gs;
                                else
-                                 Message(asmr_e_invalid_register);
+                                 compiler.verbose.Message(asmr_e_invalid_register);
                              end;
                            end
                          else
@@ -1151,7 +1151,7 @@ implementation
                          begin
                            if (po_is_block in tprocvardef(hdef).procoptions) and
                               not (tprocvardef(hdef).proccalloption in [pocall_cdecl,pocall_mwpascal]) then
-                             message(type_e_cblock_callconv);
+                             compiler.verbose.Message(type_e_cblock_callconv);
                          end;
                        if parser.pbase.try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
                          parser.pbase.consume(_SEMICOLON);
@@ -1237,7 +1237,7 @@ implementation
                or is_objectpascal_helper(hdef)) then
              begin
                newtype.typedef:=generrordef;
-               message(parser_e_cant_create_generics_of_this_type);
+               compiler.verbose.Message(parser_e_cant_create_generics_of_this_type);
              end;
 
            { Stop recording a generic template }
@@ -1323,7 +1323,7 @@ implementation
       begin
          parser.pbase.consume(_PROPERTY);
          if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
-           message(parser_e_property_only_sgr);
+           compiler.verbose.Message(parser_e_property_only_sgr);
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
@@ -1340,7 +1340,7 @@ implementation
       begin
         parser.pbase.consume(_THREADVAR);
         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
-          message(parser_e_threadvars_only_sg);
+          compiler.verbose.Message(parser_e_threadvars_only_sg);
         if f_threading in features then
           parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
@@ -1367,10 +1367,10 @@ implementation
 
       begin
          if compiler.target.info.system in systems_managed_vm then
-           message(parser_e_feature_unsupported_for_vm);
+           compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
          parser.pbase.consume(_RESOURCESTRING);
          if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
-           message(parser_e_resourcestring_only_sg);
+           compiler.verbose.Message(parser_e_resourcestring_only_sg);
          first:=true;
          had_generic:=false;
          old_block_type:=block_type;
@@ -1409,7 +1409,7 @@ implementation
                                   end;
                              end
                            else
-                             Message(parser_e_illegal_expression);
+                             compiler.verbose.Message(parser_e_illegal_expression);
                         end;
                       stringconstn:
                         with Tstringconstnode(p) do
@@ -1435,7 +1435,7 @@ implementation
                                end;
                           end;
                       else
-                        Message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                    end;
                    current_tokenpos:=storetokenpos;
                    { Support hint directives }

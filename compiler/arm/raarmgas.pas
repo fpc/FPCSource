@@ -188,7 +188,7 @@ Unit raarmgas;
           begin
             BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
             if (mangledname<>'') then
-              Message(asmr_e_invalid_reference_syntax);
+              compiler.verbose.Message(asmr_e_invalid_reference_syntax);
             inc(oper.opr.ref.offset,l);
           end;
       end;
@@ -198,7 +198,7 @@ Unit raarmgas;
 
       procedure do_error;
         begin
-          Message(asmr_e_invalid_reference_syntax);
+          compiler.verbose.Message(asmr_e_invalid_reference_syntax);
           RecoverConsume(false);
         end;
 
@@ -354,7 +354,7 @@ Unit raarmgas;
                 o_int := BuildConstExpression(false,true);
                 if (o_int>4095) or (o_int<-4095) then
                   begin
-                    Message(asmr_e_constant_out_of_bounds);
+                    compiler.verbose.Message(asmr_e_constant_out_of_bounds);
                     RecoverConsume(false);
                     exit;
                   end
@@ -372,7 +372,7 @@ Unit raarmgas;
                 BuildRecordOffsetSize(recname,o_int,s_int,recname,false);
                 if (o_int>4095)or(o_int<-4095) then
                   begin
-                    Message(asmr_e_constant_out_of_bounds);
+                    compiler.verbose.Message(asmr_e_constant_out_of_bounds);
                     RecoverConsume(false);
                     exit;
                   end
@@ -479,7 +479,7 @@ Unit raarmgas;
                 end;
               else
                 begin
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                   RecoverConsume(false);
                 end;
             end;
@@ -510,14 +510,14 @@ Unit raarmgas;
                   else
                     begin
                       // TODO: Stackpointer implied,
-                      Message(asmr_e_invalid_reference_syntax);
+                      compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                       RecoverConsume(false);
                       exit;
                     end;
                 end;
               else
                 begin // else case
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                   RecoverConsume(false);
                   exit;
                 end;
@@ -548,7 +548,7 @@ Unit raarmgas;
                     oper.opr.shifterop.shiftimm:=BuildConstExpression(false,false);
                   end;
                 else
-                  Message(asmr_e_illegal_shifterop_syntax);
+                  compiler.verbose.Message(asmr_e_illegal_shifterop_syntax);
               end;
             end;
         end;
@@ -623,7 +623,7 @@ Unit raarmgas;
                     BuildRecordOffsetSize(expr,toffset,tsize,mangledname,false);
                     if (oper.opr.typ<>OPR_CONSTANT) and
                        (mangledname<>'') then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     inc(l,toffset);
                     oper.SetSize(tsize,true);
                   end;
@@ -646,14 +646,14 @@ Unit raarmgas;
                 if (mangledname<>'') then
                   begin
                     if (oper.opr.val<>0) then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
                     oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname,AT_FUNCTION);
                   end
                 else
                   inc(oper.opr.val,l);
               OPR_SYMBOL:
-                Message(asmr_e_invalid_symbol_ref);
+                compiler.verbose.Message(asmr_e_invalid_symbol_ref);
               else
                 internalerror(200309221);
             end;
@@ -672,7 +672,7 @@ Unit raarmgas;
                 Begin
                   oper.opr.ref.offset:=BuildConstExpression(True,False);
                   if actasmtoken<>AS_LPAREN then
-                    Message(asmr_e_invalid_reference_syntax)
+                    compiler.verbose.Message(asmr_e_invalid_reference_syntax)
                   else
                     BuildReference(oper);
                 end;
@@ -689,7 +689,7 @@ Unit raarmgas;
                       BuildReference(oper);
                   else
                     Begin
-                      Message(asmr_e_invalid_reference_syntax);
+                      compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                       Consume(actasmtoken);
                     end;
                   end; {end case }
@@ -872,7 +872,7 @@ Unit raarmgas;
                     BuildDirectRef;
                   end;
               else
-                Message(asmr_e_invalid_opcode_and_operand);
+                compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
               end;
             end;
 
@@ -930,7 +930,7 @@ Unit raarmgas;
                  if SearchIConstant(actasmpattern,l) then
                   Begin
                     if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-                     Message(asmr_e_invalid_operand_type);
+                     compiler.verbose.Message(asmr_e_invalid_operand_type);
                     BuildConstantOperand(oper);
                   end
                  else
@@ -1007,7 +1007,7 @@ Unit raarmgas;
               if (actasmtoken in [AS_end,AS_SEPARATOR,AS_COMMA]) then
                 Begin
                   if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
-                    Message(asmr_e_invalid_operand_type);
+                    compiler.verbose.Message(asmr_e_invalid_operand_type);
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
@@ -1019,7 +1019,7 @@ Unit raarmgas;
                   oper.opr.ref.index:=tempreg;
                 end
               else
-                Message(asmr_e_syn_operand);
+                compiler.verbose.Message(asmr_e_syn_operand);
             end;
 
           { Registerset }
@@ -1038,7 +1038,7 @@ Unit raarmgas;
                         begin
                           if (getregtype(actasmregister)<>regtype) or
                              (getsubreg(actasmregister)<>subreg) then
-                            Message(asmr_e_mixing_regtypes);
+                            compiler.verbose.Message(asmr_e_mixing_regtypes);
                         end
                       else
                         begin
@@ -1075,14 +1075,14 @@ Unit raarmgas;
               else
                 oper.opr.usermode:=false;
               if (registerset=[]) then
-                Message(asmr_e_empty_regset);
+                compiler.verbose.Message(asmr_e_empty_regset);
             end;
           AS_end,
           AS_SEPARATOR,
           AS_COMMA: ;
         else
           Begin
-            Message(asmr_e_syn_operand);
+            compiler.verbose.Message(asmr_e_syn_operand);
             Consume(actasmtoken);
           end;
         end; { end case }
@@ -1114,14 +1114,14 @@ Unit raarmgas;
                   delete(hs, 1, t);
 
                   if length(hs) < 1 then
-                    Message(asmr_e_invalid_operand_type);
+                    compiler.verbose.Message(asmr_e_invalid_operand_type);
 
                   if reg = 'cpsr' then
                     hreg:=NR_CPSR
                   else if reg='spsr' then
                     hreg:=NR_SPSR
                   else
-                    Message(asmr_e_invalid_register);
+                    compiler.verbose.Message(asmr_e_invalid_register);
 
                   flags:=[];
                   for i := 1 to length(hs) do
@@ -1136,7 +1136,7 @@ Unit raarmgas;
                       else if ch='s' then
                         include(flags, srS)
                       else
-                        message(asmr_e_invalid_operand_type);
+                        compiler.verbose.Message(asmr_e_invalid_operand_type);
                     end;
 
                   oper.opr.typ:=OPR_SPECIALREG;
@@ -1146,10 +1146,10 @@ Unit raarmgas;
                   consume(AS_ID);
                 end
               else
-                Message(asmr_e_invalid_operand_type); // Otherwise it would have been seen as a AS_REGISTER
+                compiler.verbose.Message(asmr_e_invalid_operand_type); // Otherwise it would have been seen as a AS_REGISTER
             end;
           else
-            Message(asmr_e_invalid_operand_type);
+            compiler.verbose.Message(asmr_e_invalid_operand_type);
         end;
       end;
 
@@ -1165,7 +1165,7 @@ Unit raarmgas;
         { opcode }
         if (actasmtoken<>AS_OPCODE) then
          Begin
-           Message(asmr_e_invalid_or_missing_opcode);
+           compiler.verbose.Message(asmr_e_invalid_or_missing_opcode);
            RecoverConsume(true);
            exit;
          end;
@@ -1208,13 +1208,13 @@ Unit raarmgas;
                   begin
                     Consume(AS_COMMA);
                     if not(TryBuildShifterOp(instr.Operands[operandnum+1] as tarmoperand)) then
-                      Message(asmr_e_illegal_shifterop_syntax);
+                      compiler.verbose.Message(asmr_e_illegal_shifterop_syntax);
                     Inc(operandnum);
                   end
                 else
                   begin
                     if operandnum>Max_Operands then
-                      Message(asmr_e_too_many_operands)
+                      compiler.verbose.Message(asmr_e_too_many_operands)
                     else
                       Inc(operandnum);
                     Consume(AS_COMMA);
@@ -1430,7 +1430,7 @@ Unit raarmgas;
             newopr.symofs:=instr.Operands[1].opr.ref.offset;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
               (instr.Operands[1].opr.ref.index<>NR_NO) then
-              Message(asmr_e_syn_operand);
+              compiler.verbose.Message(asmr_e_syn_operand);
             instr.Operands[1].opr:=newopr;
           end;
       end;
@@ -1458,7 +1458,7 @@ Unit raarmgas;
               consume(AS_TARGET_DIRECTIVE);
               val:=BuildConstExpression(false,false);
               if not(val in [16,32]) then
-                Message(asmr_e_invalid_code_value);
+                compiler.verbose.Message(asmr_e_invalid_code_value);
               curList.concat(tai_directive.create(asd_code,tostr(val)));
             end;
           '.thumb_func':

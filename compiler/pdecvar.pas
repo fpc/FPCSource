@@ -131,7 +131,7 @@ implementation
                 begin
                   if assigned(astruct) and
                      not is_visible_for_object(sym,astruct) then
-                    Message(parser_e_cant_access_private_member);
+                    compiler.verbose.Message(parser_e_cant_access_private_member);
                   case sym.typ of
                     fieldvarsym :
                       begin
@@ -169,7 +169,7 @@ implementation
                    _POINT :
                      begin
                        if not is_object(def) and not is_record(def) then
-                         message(sym_e_type_must_be_rec_or_object);
+                         compiler.verbose.Message(sym_e_type_must_be_rec_or_object);
                        parser.pbase.consume(_POINT);
                        if assigned(def) then
                         begin
@@ -200,13 +200,13 @@ implementation
                            end
                           else
                            begin
-                             Message(parser_e_invalid_qualifier);
+                             compiler.verbose.Message(parser_e_invalid_qualifier);
                              result:=false;
                            end;
                         end
                        else
                         begin
-                          Message(parser_e_invalid_qualifier);
+                          compiler.verbose.Message(parser_e_invalid_qualifier);
                           result:=false;
                         end;
                        parser.pbase.consume(_ID);
@@ -227,12 +227,12 @@ implementation
                                    inserttypeconv(p,tarraydef(def).rangedef,compiler);
                                    if (Tordconstnode(p).value<int64(low(longint))) or
                                       (Tordconstnode(p).value>int64(high(longint))) then
-                                     message(parser_e_array_range_out_of_bounds)
+                                     compiler.verbose.Message(parser_e_array_range_out_of_bounds)
                                    else
                                      idx:=Tordconstnode(p).value.svalue
                                  end
                                else
-                                Message(type_e_ordinal_expr_expected)
+                                compiler.verbose.Message(type_e_ordinal_expr_expected)
                              end;
                             pl.addconst(sl_vec,idx,p.resultdef);
                             p.free;
@@ -241,7 +241,7 @@ implementation
                           end
                          else
                           begin
-                            Message(parser_e_invalid_qualifier);
+                            compiler.verbose.Message(parser_e_invalid_qualifier);
                             result:=false;
                           end;
                        until not parser.pbase.try_to_consume(_COMMA);
@@ -249,7 +249,7 @@ implementation
                      end;
                    else
                      begin
-                       Message(parser_e_ill_property_access_sym);
+                       compiler.verbose.Message(parser_e_ill_property_access_sym);
                        result:=false;
                        break;
                      end;
@@ -258,7 +258,7 @@ implementation
              end
             else
              begin
-               Message(parser_e_ill_property_access_sym);
+               compiler.verbose.Message(parser_e_ill_property_access_sym);
                result:=false;
              end;
           end;
@@ -341,7 +341,7 @@ implementation
                     else
                       hdispid:=Tordconstnode(pt).value.svalue
                   else
-                    Message(parser_e_dispid_must_be_ord_const);
+                    compiler.verbose.Message(parser_e_dispid_must_be_ord_const);
                   pt.free;
                   pt := nil;
                 end
@@ -430,7 +430,7 @@ implementation
               { Published indexed properties are allowed in Delphi in interfaces compiled with $M+. }
               if (p.visibility=vis_published) and
                 not((m_delphi in current_settings.modeswitches) and is_interfacecom_or_dispinterface(astruct)) then
-                Message(parser_e_cant_publish_that_property);
+                compiler.verbose.Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               p.parast:=tparasymtable.create(nil,0,compiler);
               compiler.symtablestack.push(p.parast);
@@ -525,7 +525,7 @@ implementation
                      end
                    else
                      begin
-                       Message(parser_e_invalid_property_index_value);
+                       compiler.verbose.Message(parser_e_invalid_property_index_value);
                        p.index:=0;
                      end;
                    p.indexdef:=pt.resultdef;
@@ -553,7 +553,7 @@ implementation
               else
                 begin
                   p.propdef:=generrordef;
-                  message(parser_e_no_property_found_to_override);
+                  compiler.verbose.Message(parser_e_no_property_found_to_override);
                 end;
            end;
          if ((p.visibility=vis_published) or is_dispinterface(astruct))
@@ -564,13 +564,13 @@ implementation
                Interface has always only public section (fix for problem in tb0631.pp) }
              if (sp_static in p.symoptions) or ((p.propdef.is_publishable=pp_error) and not is_interface(astruct)) then
                begin
-                 Message(parser_e_cant_publish_that_property);
+                 compiler.verbose.Message(parser_e_cant_publish_that_property);
                  p.visibility:=vis_public;
                end
              else
              if (p.propdef.is_publishable=pp_ignore) and not is_interface(astruct) then
                begin
-                 Message(parser_w_ignoring_published_property);
+                 compiler.verbose.Message(parser_w_ignoring_published_property);
                  p.visibility:=vis_public;
                end;
            end;
@@ -677,7 +677,7 @@ implementation
                          begin
                             addsymref(sym);
                             if not is_boolean(tconstsym(sym).constdef) then
-                              Message(parser_e_stored_property_must_be_boolean)
+                              compiler.verbose.Message(parser_e_stored_property_must_be_boolean)
                             else if (tconstsym(sym).value.valueord=0) then
                               { same as for _FALSE }
                               exclude(p.propoptions,ppo_stored)
@@ -714,7 +714,7 @@ implementation
                                    parser.pparautl.handle_calling_convention(storedprocdef,hcc_default_actions_intf_struct);
                                  p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
                                  if not assigned(p.propaccesslist[palt_stored].procdef) then
-                                   message(parser_e_ill_property_storage_sym);
+                                   compiler.verbose.Message(parser_e_ill_property_storage_sym);
                                  { Not needed anymore }
                                  storedprocdef.owner.deletedef(storedprocdef);
                               end;
@@ -724,10 +724,10 @@ implementation
                                   internalerror(200310073);
                                 if (ppo_hasparameters in p.propoptions) or
                                    not(is_boolean(def)) then
-                                 Message(parser_e_stored_property_must_be_boolean);
+                                 compiler.verbose.Message(parser_e_stored_property_must_be_boolean);
                               end;
                             else
-                              Message(parser_e_ill_property_access_sym);
+                              compiler.verbose.Message(parser_e_ill_property_access_sym);
                           end;
                         end;
                      end;
@@ -742,7 +742,7 @@ implementation
            begin
               if not allow_default_property(p) then
                 begin
-                  Message(parser_e_property_cant_have_a_default_value);
+                  compiler.verbose.Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
                   pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                   pt.free;
@@ -761,7 +761,7 @@ implementation
                     end;
                   inserttypeconv(pt,p.propdef,compiler);
                   if not(is_constnode(pt)) then
-                    Message(parser_e_property_default_value_must_const);
+                    compiler.verbose.Message(parser_e_property_default_value_must_const);
                   { Set default value }
                   case pt.nodetype of
                     setconstn :
@@ -799,7 +799,7 @@ implementation
              parser.ptype.single_type(def,[]);
 
              if not(is_interface(def)) then
-               message(parser_e_class_implements_must_be_interface);
+               compiler.verbose.Message(parser_e_class_implements_must_be_interface);
 
              if is_interface(p.propdef) then
                begin
@@ -829,27 +829,27 @@ implementation
                end
              else
                begin
-                 message(parser_e_implements_must_be_class_or_interface);
+                 compiler.verbose.Message(parser_e_implements_must_be_class_or_interface);
                  exit;
                end;
 
 
              if not assigned(p.propaccesslist[palt_read].firstsym) then
                begin
-                 message(parser_e_implements_must_read_specifier);
+                 compiler.verbose.Message(parser_e_implements_must_read_specifier);
                  exit;
                end;
              if assigned(p.propaccesslist[palt_read].procdef) and
                 (tprocdef(p.propaccesslist[palt_read].procdef).proccalloption<>pocall_default) then
-               message(parser_e_implements_getter_not_default_cc);
+               compiler.verbose.Message(parser_e_implements_getter_not_default_cc);
              if assigned(p.propaccesslist[palt_write].firstsym) then
                begin
-                 message(parser_e_implements_must_not_have_write_specifier);
+                 compiler.verbose.Message(parser_e_implements_must_not_have_write_specifier);
                  exit;
                end;
              if assigned(p.propaccesslist[palt_stored].firstsym) then
                begin
-                 message(parser_e_implements_must_not_have_stored_specifier);
+                 compiler.verbose.Message(parser_e_implements_must_not_have_stored_specifier);
                  exit;
                end;
              found:=false;
@@ -988,7 +988,7 @@ implementation
       { only allow external and public on global symbols }
       if vs.typ<>staticvarsym then
         begin
-          Message(parser_e_no_local_var_external);
+          compiler.verbose.Message(parser_e_no_local_var_external);
           exit;
         end;
       { defaults }
@@ -1054,7 +1054,7 @@ implementation
         begin
           parser.pbase.consume(_ID);
           if is_external_var then
-            Message(parser_e_not_external_and_export)
+            compiler.verbose.Message(parser_e_not_external_and_export)
           else
             is_public_var:=true;
           if parser.pbase.try_to_consume(_NAME) then
@@ -1101,14 +1101,14 @@ implementation
       if is_external_var then
         begin
           if vo_is_typed_const in vs.varoptions then
-            Message(parser_e_initialized_not_for_external);
+            compiler.verbose.Message(parser_e_initialized_not_for_external);
           include(vs.varoptions,vo_is_external);
           if is_far then
             include(vs.varoptions,vo_is_far);
           if (is_weak_external) then
             begin
               if not(compiler.target.info.system in systems_weak_linking) then
-                message(parser_e_weak_external_not_supported);
+                compiler.verbose.Message(parser_e_weak_external_not_supported);
               include(vs.varoptions,vo_is_weak_external);
             end;
           vs.varregable := vr_none;
@@ -1178,9 +1178,9 @@ implementation
         begin
           vs:=tabstractnormalvarsym(sc[0]);
           if sc.count>1 then
-            Message(parser_e_initialized_only_one_var);
+            compiler.verbose.Message(parser_e_initialized_only_one_var);
           if vo_is_thread_var in vs.varoptions then
-            Message(parser_e_initialized_not_for_threadvar);
+            compiler.verbose.Message(parser_e_initialized_not_for_threadvar);
           parser.pbase.consume(_EQ);
           case vs.typ of
             localvarsym :
@@ -1223,14 +1223,14 @@ implementation
           C_Name:=get_stringconst;
           vs:=tabstractnormalvarsym(sc[0]);
           if sc.count>1 then
-            Message(parser_e_directive_only_one_var,'ABSOLUTE');
+            compiler.verbose.Message(parser_e_directive_only_one_var,'ABSOLUTE');
           if vs.typ=staticvarsym then
             begin
               tstaticvarsym(vs).set_mangledname(C_Name);
               include(vs.varoptions,vo_is_external);
             end
           else
-            Message(parser_e_no_local_var_external);
+            compiler.verbose.Message(parser_e_no_local_var_external);
         end;
 {$endif}
 
@@ -1250,7 +1250,7 @@ implementation
           if sc.count>1 then
             compiler.verbose.Message1(parser_e_directive_only_one_var,'ABSOLUTE');
           if vo_is_typed_const in vs.varoptions then
-            Message(parser_e_initialized_not_for_external);
+            compiler.verbose.Message(parser_e_initialized_not_for_external);
           { parse the rest }
           pt:=parser.pexpr.expr(true);
           { check allowed absolute types }
@@ -1310,7 +1310,7 @@ implementation
                       tcpuabsolutevarsym(abssym).absseg:=true;
                     end
                   else
-                    Message(type_e_ordinal_expr_expected);
+                    compiler.verbose.Message(type_e_ordinal_expr_expected);
                 end;
 {$endif i386 or i8086}
             end
@@ -1359,9 +1359,9 @@ implementation
                 begin
                   { we should check the result type of loadn }
                   if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym,absolutevarsym]) then
-                    Message(parser_e_absolute_only_to_var_or_const);
+                    compiler.verbose.Message(parser_e_absolute_only_to_var_or_const);
                   if vs=tloadnode(hp).symtableentry then
-                    Message(parser_e_absolute_sym_cannot_reference_itself)
+                    compiler.verbose.Message(parser_e_absolute_sym_cannot_reference_itself)
                   else
                     begin
                       abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
@@ -1384,7 +1384,7 @@ implementation
                     make_not_regable(pt,[ra_addr_regable]);
                 end
               else
-                Message(parser_e_absolute_only_to_var_or_const);
+                compiler.verbose.Message(parser_e_absolute_only_to_var_or_const);
             end;
           pt.free;
           pt := nil;
@@ -1660,9 +1660,9 @@ implementation
                        begin
                          vs:=tabstractvarsym(sc[i]);
                          if (vs.varoptions *[vo_is_external,vo_is_weak_external])<>[] then
-                           Message(parser_e_externals_no_section);
+                           compiler.verbose.Message(parser_e_externals_no_section);
                          if vs.typ<>staticvarsym then
-                           Message(parser_e_section_no_locals);
+                           compiler.verbose.Message(parser_e_section_no_locals);
                          tstaticvarsym(vs).section:=sectionname;
                          include(vs.varoptions, vo_has_section);
                        end;
@@ -1909,7 +1909,7 @@ implementation
                classes are allowed }
              if (variantrecordlevel>0) then
                if is_managed_type(hdef) then
-                 Message(parser_e_cant_use_inittable_here);
+                 compiler.verbose.Message(parser_e_cant_use_inittable_here);
 
              { try to parse the hint directives }
              hintsymoptions:=[];
@@ -2081,7 +2081,7 @@ implementation
                  or is_64bitint(casetype)
 {$endif cpu64bitaddr}
                  then
-                Message(type_e_ordinal_expr_expected);
+                compiler.verbose.Message(type_e_ordinal_expr_expected);
               parser.pbase.consume(_OF);
 
               UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
@@ -2101,7 +2101,7 @@ implementation
                 repeat
                   pt:=parser.pexpr.comp_expr([ef_accept_equal]);
                   if not(pt.nodetype=ordconstn) then
-                    Message(parser_e_illegal_expression);
+                    compiler.verbose.Message(parser_e_illegal_expression);
                   inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
                   if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and parser.pbase.try_to_consume(_POINTPOINT) then

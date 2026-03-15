@@ -615,23 +615,29 @@ Implementation
 
 
     function TLinker.MakeExecutable:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MakeExecutable:=false;
-        Message(exec_e_exe_not_supported);
+        compiler.verbose.Message(exec_e_exe_not_supported);
       end;
 
 
     Function TLinker.MakeSharedLibrary:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MakeSharedLibrary:=false;
-        Message(exec_e_dll_not_supported);
+        compiler.verbose.Message(exec_e_dll_not_supported);
       end;
 
 
     Function TLinker.MakeStaticLibrary:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MakeStaticLibrary:=false;
-        Message(exec_e_static_lib_not_supported);
+        compiler.verbose.Message(exec_e_static_lib_not_supported);
       end;
 
 
@@ -943,7 +949,7 @@ Implementation
              end;
            if (exitcode<>0) then
              begin
-               Message(exec_e_error_while_linking);
+               compiler.verbose.Message(exec_e_error_while_linking);
                current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
                DoExec:=false;
              end;

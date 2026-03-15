@@ -111,13 +111,13 @@ unit racpugas;
                   oper.opr.reg:=tempreg;
                 end
               else
-                Message(asmr_e_syn_operand);
+                compiler.verbose.Message(asmr_e_syn_operand);
             end;
           AS_MOD:
             begin
               Consume(AS_MOD);
               if actasmtoken<>AS_ID then
-                Message(asmr_e_syntax_error);
+                compiler.verbose.Message(asmr_e_syntax_error);
               if lower(actasmpattern)='b16' then
                 refaddr:=addr_b16
               else if lower(actasmpattern)='b21' then
@@ -143,14 +143,14 @@ unit racpugas;
               else if lower(actasmpattern)='got_pc_lo12' then
                 refaddr:=addr_got_pc_lo12
               else
-                Message(asmr_e_syntax_error);
+                compiler.verbose.Message(asmr_e_syntax_error);
               Consume(AS_ID);
               if actasmtoken<>AS_LPAREN then
-                Message(asmr_e_syntax_error);
+                compiler.verbose.Message(asmr_e_syntax_error);
               Consume(AS_LPAREN);
               BuildSymLA(oper,false);
               if actasmtoken<>AS_RPAREN then
-                Message(asmr_e_syntax_error);
+                compiler.verbose.Message(asmr_e_syntax_error);
               Consume(AS_RPAREN);
             end;
           AS_DOT, AS_ID:
@@ -202,7 +202,7 @@ unit racpugas;
         { opcode }
         if (actasmtoken<>AS_OPCODE) then
          begin
-           Message(asmr_e_invalid_or_missing_opcode);
+           compiler.verbose.Message(asmr_e_invalid_or_missing_opcode);
            RecoverConsume(true);
            exit;
          end;
@@ -228,7 +228,7 @@ unit racpugas;
             AS_COMMA: { Operand delimiter }
               begin
                 if operandnum>Max_Operands then
-                  Message(asmr_e_too_many_operands)
+                  compiler.verbose.Message(asmr_e_too_many_operands)
                 else
                   begin
                     { condition operands doesn't set the operand but write to the
@@ -539,12 +539,12 @@ unit racpugas;
                 Consume(AS_LPAREN);
                 l:=BuildConstLA(false,false);
                 if actasmtoken<>AS_RPAREN then
-                  Message(asmr_e_syntax_error);
+                  compiler.verbose.Message(asmr_e_syntax_error);
                 Consume(AS_RPAREN);
                 result:=l;
               end;
           else
-            Message(asmr_e_syntax_error);
+            compiler.verbose.Message(asmr_e_syntax_error);
           end;
         end;
 
@@ -653,7 +653,7 @@ unit racpugas;
                 result:=LDIV;
               end;
           else
-            Message(asmr_e_syntax_error);
+            compiler.verbose.Message(asmr_e_syntax_error);
           end;
         end;
 
@@ -677,7 +677,7 @@ unit racpugas;
                 Consume(AS_LPAREN);
                 l:=BuildConstLA(false,false);
                 if actasmtoken<>AS_RPAREN then
-                  Message(asmr_e_syntax_error);
+                  compiler.verbose.Message(asmr_e_syntax_error);
                 Consume(AS_RPAREN);
               end;
             AS_QUESTION:
@@ -693,7 +693,7 @@ unit racpugas;
             AS_COLON:
               begin
                 if not from_question then
-                  Message(asmr_e_syntax_error);
+                  compiler.verbose.Message(asmr_e_syntax_error);
                 Consume(AS_COLON);
                 if nr=0 then
                   l:=firstnum
@@ -756,7 +756,7 @@ unit racpugas;
                     mangledname:='';
                     BuildRecordOffsetSize(expr, toffset, tsize, mangledname, false);
                     if mangledname <> '' then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_CONSTANT;
                     oper.opr.val:=toffset;
                     Result:=False;
@@ -776,7 +776,7 @@ unit racpugas;
           end
         else
           begin
-            Message(asmr_e_syntax_error);
+            compiler.verbose.Message(asmr_e_syntax_error);
             internalerror(2022082501);
           end;
 

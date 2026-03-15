@@ -901,10 +901,10 @@ implementation
          else
            begin
               if (block_type<>bt_except) then
-                Message(parser_e_no_reraise_possible);
+                compiler.verbose.Message(parser_e_no_reraise_possible);
            end;
          if (po_noreturn in current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
-           Message(parser_e_raise_with_noreturn_not_allowed);
+           compiler.verbose.Message(parser_e_raise_with_noreturn_not_allowed);
          p:=compiler.craisenode(pobj,paddr,pframe);
          raise_statement:=p;
       end;
@@ -1031,7 +1031,7 @@ implementation
                                  end
                                else
                                  begin
-                                   Message(type_e_type_id_expected);
+                                   compiler.verbose.Message(type_e_type_id_expected);
                                    ot:=generrordef;
                                  end;
 
@@ -1139,7 +1139,7 @@ implementation
              asmreader := nil;
            end
          else
-           Message(parser_f_assembler_reader_not_supported);
+           compiler.verbose.Message(parser_f_assembler_reader_not_supported);
 
          { Mark procedure that it has assembler blocks }
          include(current_procinfo.flags,pi_has_assembler_block);
@@ -1164,7 +1164,7 @@ implementation
              if current_scanner.token<>_RECKKLAMMER then
               begin
                 if po_assembler in current_procinfo.procdef.procoptions then
-                  Message(parser_w_register_list_ignored);
+                  compiler.verbose.Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
                   if current_scanner.token=_CSTRING then
@@ -1188,7 +1188,7 @@ implementation
                         end;
                     end
                   else
-                    Message(asmr_e_invalid_register);
+                    compiler.verbose.Message(asmr_e_invalid_register);
                   if current_scanner.token=_CCHAR then
                     parser.pbase.consume(_CCHAR)
                   else
@@ -1334,7 +1334,7 @@ implementation
                     else
                       begin
                         parser.pbase.consume(_ID);
-                        Message(asmr_e_wrong_sym_type);
+                        compiler.verbose.Message(asmr_e_wrong_sym_type);
                       end;
                 end;
             end;
@@ -1396,11 +1396,11 @@ implementation
            _GOTO :
              begin
                 if not(cs_support_goto in current_settings.moduleswitches) then
-                  Message(sym_e_goto_and_label_not_supported);
+                  compiler.verbose.Message(sym_e_goto_and_label_not_supported);
                 parser.pbase.consume(_GOTO);
                 if (current_scanner.token<>_INTCONST) and (current_scanner.token<>_ID) then
                   begin
-                    Message(sym_e_label_not_found);
+                    compiler.verbose.Message(sym_e_label_not_found);
                     code:=compiler.cerrornode;
                   end
                 else
@@ -1429,7 +1429,7 @@ implementation
 
                      if srsym.typ<>labelsym then
                        begin
-                          Message(sym_e_id_is_no_label_id);
+                          compiler.verbose.Message(sym_e_id_is_no_label_id);
                           code:=compiler.cerrornode;
                        end
                      else
@@ -1439,7 +1439,7 @@ implementation
                            begin
                              { allowed? }
                              if not(m_non_local_goto in current_settings.modeswitches) then
-                               Message(parser_e_goto_outside_proc);
+                               compiler.verbose.Message(parser_e_goto_outside_proc);
                              include(current_procinfo.flags,pi_has_global_goto);
                              if is_nested_pd(current_procinfo.procdef) then
                                current_procinfo.set_needs_parentfp(srsym.owner.symtablelevel);
@@ -1481,19 +1481,19 @@ implementation
            _FAIL :
              begin
                 if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
-                  Message(parser_e_fail_only_in_constructor);
+                  compiler.verbose.Message(parser_e_fail_only_in_constructor);
                 parser.pbase.consume(_FAIL);
                 code:=compiler.nodeutils.call_fail_node;
              end;
            _ASM :
              begin
                if parser.pbase.parse_generic then
-                 Message(parser_e_no_assembler_in_generic);
+                 compiler.verbose.Message(parser_e_no_assembler_in_generic);
                code:=_asm_statement;
              end;
            _PLUS:
              begin
-               Message(parser_e_syntax_error);
+               compiler.verbose.Message(parser_e_syntax_error);
                parser.pbase.consume(_PLUS);
              end;
            _INLINE:
@@ -1506,7 +1506,7 @@ implementation
                         tostr(current_scanner.multiline_start_line),
                         tostr(current_scanner.multiline_start_column))
              else
-               Message(scan_f_end_of_file);
+               compiler.verbose.Message(scan_f_end_of_file);
          else
            begin
              { don't typecheck yet, because that will also simplify, which may
@@ -1537,12 +1537,12 @@ implementation
                    (srsym.typ=labelsym) then
                  begin
                    if tlabelsym(srsym).defined then
-                     Message(sym_e_label_already_defined);
+                     compiler.verbose.Message(sym_e_label_already_defined);
                    if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                      begin
                        include(current_procinfo.flags,pi_has_interproclabel);
                        if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-                         Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
+                         compiler.verbose.Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                      end;
 
                    tlabelsym(srsym).defined:=true;
@@ -1586,7 +1586,7 @@ implementation
                 ((p.nodetype=calln) and
                  (assigned(tcallnode(p).procdefinition)) and
                  (tcallnode(p).procdefinition.proctypeoption=potype_operator)) then
-               Message(parser_e_illegal_expression);
+               compiler.verbose.Message(parser_e_illegal_expression);
 
              if not assigned(p.resultdef) then
                do_typecheckpass(p);
@@ -1613,7 +1613,7 @@ implementation
                       assigned(tcallnode(p).methodpointer) and
                       (tnode(tcallnode(p).methodpointer).resultdef.typ=objectdef)
                     ) then
-                   Message(parser_e_illegal_expression);
+                   compiler.verbose.Message(parser_e_illegal_expression);
                end;
 
              code:=p;
@@ -1688,7 +1688,7 @@ implementation
         srsym : tsym;
       begin
          if parser.pbase.parse_generic then
-           message(parser_e_no_assembler_in_generic);
+           compiler.verbose.Message(parser_e_no_assembler_in_generic);
 
          { Rename the funcret so that recursive calls are possible }
          if not is_void(current_procinfo.procdef.returndef) then

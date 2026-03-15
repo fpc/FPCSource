@@ -3070,7 +3070,7 @@ implementation
             SM_LSL: begin typ:=0; shift:=oper[op]^.shifterop^.shiftimm; end;
             SM_LSR: begin typ:=1; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
             SM_ASR: begin typ:=2; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
-            SM_ROR: begin typ:=3; shift:=oper[op]^.shifterop^.shiftimm; if shift=0 then message(asmw_e_invalid_opcode_and_operands); end;
+            SM_ROR: begin typ:=3; shift:=oper[op]^.shifterop^.shiftimm; if shift=0 then compiler.verbose.Message(asmw_e_invalid_opcode_and_operands); end;
             SM_RRX: begin typ:=3; shift:=0; end;
           end;
 
@@ -3204,7 +3204,7 @@ implementation
                     bytes:=bytes or (1 shl 22);
                   end;
               else
-                Message(asmw_e_invalid_opcode_and_operands);
+                compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
               end;
             end;
           #$12,#$13: // MSR
@@ -3666,7 +3666,7 @@ implementation
                               // Valid exception return
                             end
                           else
-                            Message(asmw_e_invalid_opcode_and_operands);
+                            compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                         end;
 
                       bytes:=bytes or (1 shl 22);
@@ -3997,7 +3997,7 @@ implementation
                             Rd:=getmmreg(oper[2]^.reg);
                           end
                         else
-                          message(asmw_e_invalid_opcode_and_operands);
+                          compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
 
                         bytes:=bytes or (((Rd and $1E) shr 1) shl 0);
                         bytes:=bytes or ((Rd and $1) shl 5);
@@ -4022,7 +4022,7 @@ implementation
                             Rd:=getmmreg(oper[2]^.reg);
                           end
                         else
-                          message(asmw_e_invalid_opcode_and_operands);
+                          compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
 
                         bytes:=bytes or ((Rd and $F) shl 0);
                         bytes:=bytes or ((Rd and $10) shl 1);
@@ -4045,7 +4045,7 @@ implementation
                             Rd:=getmmreg(oper[1]^.reg);
                           end
                         else
-                          message(asmw_e_invalid_opcode_and_operands);
+                          compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
 
                         bytes:=bytes or (((Rd and $1E) shr 1) shl 16);
                         bytes:=bytes or ((Rd and $1) shl 7);
@@ -4056,13 +4056,13 @@ implementation
                 PF_F32:
                   begin
                     if (getregtype(oper[0]^.reg)<>R_MMREGISTER) then
-                      Message(asmw_e_invalid_opcode_and_operands);
+                      compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
 
                     case oper[1]^.typ of
                       top_realconst:
                         begin
                           if not(IsVFPFloatImmediate(s32real,oper[1]^.val_real)) then
-                            Message(asmw_e_invalid_opcode_and_operands);
+                            compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                           singlerec.value:=oper[1]^.val_real;
                           singlerec:=tcompsinglerec(NtoLE(DWord(singlerec)));
 
@@ -4072,13 +4072,13 @@ implementation
                       top_reg:
                         begin
                           if getregtype(oper[1]^.reg)<>R_MMREGISTER then
-                            Message(asmw_e_invalid_opcode_and_operands);
+                            compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                           Rm:=getmmreg(oper[1]^.reg);
                           bytes:=bytes or (((Rm and $1E) shr 1) shl 0);
                           bytes:=bytes or ((Rm and $1) shl 5);
                         end;
                       else
-                        Message(asmw_e_invalid_opcode_and_operands);
+                        compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                     end;
                     Rd:=getmmreg(oper[0]^.reg);
 
@@ -4089,13 +4089,13 @@ implementation
                 PF_F64:
                   begin
                     if (getregtype(oper[0]^.reg)<>R_MMREGISTER) then
-                      Message(asmw_e_invalid_opcode_and_operands);
+                      compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
 
                     case oper[1]^.typ of
                       top_realconst:
                         begin
                           if not(IsVFPFloatImmediate(s64real,oper[1]^.val_real)) then
-                            Message(asmw_e_invalid_opcode_and_operands);
+                            compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                           doublerec.value:=oper[1]^.val_real;
                           doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
 
@@ -4108,13 +4108,13 @@ implementation
                       top_reg:
                         begin
                           if getregtype(oper[1]^.reg)<>R_MMREGISTER then
-                            Message(asmw_e_invalid_opcode_and_operands);
+                            compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                           Rm:=getmmreg(oper[1]^.reg);
                           bytes:=bytes or (Rm and $F);
                           bytes:=bytes or ((Rm and $10) shl 1);
                         end;
                       else
-                        Message(asmw_e_invalid_opcode_and_operands);
+                        compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                     end;
                     Rd:=getmmreg(oper[0]^.reg);
 
@@ -4124,7 +4124,7 @@ implementation
                     bytes:=bytes or (((Rd and $10) shr 4) shl 22);
                   end;
                 else
-                  Message(asmw_e_invalid_opcode_and_operands);
+                  compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
               end;
             end;
           #$41,#$91: // VMRS/VMSR
@@ -4146,7 +4146,7 @@ implementation
                     NR_FPEXC: Rn:=$8;
                   else
                     Rn:=0;
-                    message(asmw_e_invalid_opcode_and_operands);
+                    compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                   end;
 
                   bytes:=bytes or (Rn shl 16);
@@ -4164,7 +4164,7 @@ implementation
                     NR_FPEXC: Rn:=$8;
                   else
                     Rn:=0;
-                    message(asmw_e_invalid_opcode_and_operands);
+                    compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                   end;
 
                   bytes:=bytes or (Rn shl 16);
@@ -4383,7 +4383,7 @@ implementation
               else
                 begin
                   if rd<>rm then
-                    message(asmw_e_invalid_opcode_and_operands);
+                    compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
 
                   case oppostfix of
                     PF_S32F32,PF_U32F32,
@@ -4409,7 +4409,7 @@ implementation
                       end;
                     else
                       Rn:=0;
-                      message(asmw_e_invalid_opcode_and_operands);
+                      compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                   end;
 
                   case oppostfix of
@@ -4626,7 +4626,7 @@ implementation
                     end;
                 end
               else
-                message(asmw_e_invalid_opcode_and_operands);
+                compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
             end;
           #$46: { System instructions }
             begin
@@ -5408,7 +5408,7 @@ implementation
                 end
               else
                 begin
-                  message(asmw_e_invalid_opcode_and_operands);
+                  compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                 end;
               { set W bit }
               if oper[2]^.ref^.addressmode<>AM_OFFSET then
@@ -5444,12 +5444,12 @@ implementation
                         end
                       else
                         begin
-                          message(asmw_e_invalid_opcode_and_operands);
+                          compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                         end;
                     end
                   else
                     begin
-                      message(asmw_e_invalid_opcode_and_operands);
+                      compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                     end;
                 end
               else if (ops=2) then
@@ -5489,12 +5489,12 @@ implementation
                         end
                       else
                         begin
-                          message(asmw_e_invalid_opcode_and_operands);
+                          compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                         end;
                     end
                   else
                     begin
-                      message(asmw_e_invalid_opcode_and_operands);
+                      compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                     end;
                 end
               else if (ops=3) then
@@ -5576,7 +5576,7 @@ implementation
               bytes:=bytes or getsupreg(oper[0]^.ref^.base) shl 16;
 
               if getregtype(oper[0]^.ref^.index)=R_INVALIDREGISTER then
-                message(asmw_e_invalid_effective_address)
+                compiler.verbose.Message(asmw_e_invalid_effective_address)
               else
                 begin
                   bytes:=bytes or getsupreg(oper[0]^.ref^.index);
@@ -5584,7 +5584,7 @@ implementation
                   if (opcode=A_TBH) and
                      (oper[0]^.ref^.shiftmode<>SM_LSL) and
                      (oper[0]^.ref^.shiftimm<>1) then
-                    message(asmw_e_invalid_effective_address);
+                    compiler.verbose.Message(asmw_e_invalid_effective_address);
                 end;
             end;
           #$8F: { Thumb-2: CPSxx }
@@ -5634,7 +5634,7 @@ implementation
                     NR_FAULTMASK: bytes:=bytes or $13;
                     NR_CONTROL: bytes:=bytes or $14;
                   else
-                    Message(asmw_e_invalid_opcode_and_operands);
+                    compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                   end;
                 end
               else
@@ -5657,7 +5657,7 @@ implementation
                     NR_FAULTMASK: bytes:=bytes or $13;
                     NR_CONTROL: bytes:=bytes or $14;
                   else
-                    Message(asmw_e_invalid_opcode_and_operands);
+                    compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                   end;
                 end;
             end;
@@ -5741,7 +5741,7 @@ implementation
                       //0.5: bytes:=bytes or $E;
                       10: bytes:=bytes or $F;
                     else
-                      Message(asmw_e_invalid_opcode_and_operands);
+                      compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                     end;
                 end
               else
@@ -5760,7 +5760,7 @@ implementation
                       //0.5: bytes:=bytes or $E;
                       10: bytes:=bytes or $F;
                     else
-                      Message(asmw_e_invalid_opcode_and_operands);
+                      compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                     end;
                 end;
 
@@ -5840,7 +5840,7 @@ implementation
                         //0.5: bytes:=bytes or $E;
                         10: bytes:=bytes or $F;
                       else
-                        Message(asmw_e_invalid_opcode_and_operands);
+                        compiler.verbose.Message(asmw_e_invalid_opcode_and_operands);
                       end;
                   end;
                 else

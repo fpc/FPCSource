@@ -492,7 +492,7 @@ implementation
           begin
             if (pos and not $ff)<>0 then
               begin
-                Message(parser_e_illegal_set_expr);
+                compiler.verbose.Message(parser_e_illegal_set_expr);
                 exit;
               end;
             if pos>constsethi then
@@ -500,7 +500,7 @@ implementation
             if pos<constsetlo then
              constsetlo:=pos;
             if pos in constset^ then
-              Message(parser_e_illegal_set_expr);
+              compiler.verbose.Message(parser_e_illegal_set_expr);
             include(constset^,pos);
           end;
 
@@ -1305,7 +1305,7 @@ implementation
                         begin
                           if tordconstnode(left).value.uvalue>127 then
                             begin
-                              Message(type_w_unicode_data_loss);
+                              compiler.verbose.Message(type_w_unicode_data_loss);
                               // compiler has different codepage than a system running an application
                               // to prevent wrong codepage and data loss we are converting unicode char
                               // using a helper routine. This is not delphi compatible behavior.
@@ -1492,7 +1492,7 @@ implementation
                 (current_settings.sourcecodepage<>CP_UTF8) then
               begin
                 if tordconstnode(left).value.uvalue>127 then
-                  Message(type_w_unicode_data_loss);
+                  compiler.verbose.Message(type_w_unicode_data_loss);
                 hp:=compiler.cordconstnode(
                       ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue))),
                       cansichartype,true);
@@ -1672,7 +1672,7 @@ implementation
              { comp is handled by the fpu but not a floating type point }
              if is_fpucomp(resultdef) and not(is_fpucomp(left.resultdef)) and
                not (nf_explicit in flags) then
-               Message(type_w_convert_real_2_comp);
+               compiler.verbose.Message(type_w_convert_real_2_comp);
            end
          else
            include(flags,nf_is_currency);
@@ -1782,7 +1782,7 @@ implementation
         if (left.nodetype=setconstn) then
          begin
            if (cs_check_range in current_settings.localswitches) and (tsetconstnode(left).elements>0) and ((tsetconstnode(left).low<tsetdef(resultdef).setlow) or (tsetconstnode(left).high>tsetdef(resultdef).setmax)) then
-             Message(parser_e_range_check_error);
+             compiler.verbose.Message(parser_e_range_check_error);
 
            left.resultdef:=resultdef;
            result:=left;
@@ -3695,7 +3695,7 @@ implementation
                 begin
                    if (compiler.target.info.system in systems_managed_vm) and
                       (tordconstnode(left).value<>0) then
-                     message(parser_e_feature_unsupported_for_vm);
+                     compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                    hp:=compiler.cpointerconstnode(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(hp.flags, nf_explicit);

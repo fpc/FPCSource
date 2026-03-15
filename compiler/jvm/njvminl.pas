@@ -309,7 +309,7 @@ implementation
              begin
                { can't get the size of the data of a class/object }
                if left.resultdef.typ in [objectdef,classrefdef] then
-                 Message(parser_e_illegal_expression);
+                 compiler.verbose.Message(parser_e_illegal_expression);
              end;
            else
              ;

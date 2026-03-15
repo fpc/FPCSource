@@ -1131,7 +1131,7 @@ begin
          begin
            if not NoPressEnter then
             begin
-              Message(option_help_press_enter);
+              compiler.verbose.Message(option_help_press_enter);
               readln(input);
               if upper(input)='Q' then
                StopOptions(0);
@@ -1150,7 +1150,7 @@ end;
 procedure TOption.IllegalPara(const opt: TCmdStr);
 begin
   compiler.verbose.Message1(option_illegal_para,opt);
-  Message(option_help_pages_para);
+  compiler.verbose.Message(option_help_pages_para);
   StopOptions(1);
 end;
 
@@ -1665,7 +1665,7 @@ begin
 
     '@' :
       begin
-        Message(option_no_nested_response_file);
+        compiler.verbose.Message(option_no_nested_response_file);
         StopOptions(1);
       end;
 
@@ -1724,7 +1724,7 @@ begin
   Inc(FileLevel);
   Option_read:=false;
   If FileLevel>MaxLevel then
-   Message(option_too_many_cfg_files);
+   compiler.verbose.Message(option_too_many_cfg_files);
   if not ParaIncludeCfgPath.FindFile(fileName,true,ConfigFile) then
     ConfigFile := ExpandFileName(filename);
 { Maybe It's Directory ?}   //Jaro Change:
@@ -1884,7 +1884,7 @@ begin
       end;
    end;
   if Level>0 then
-   Message(option_too_less_endif);
+   compiler.verbose.Message(option_too_less_endif);
   if Not Option_read then
     compiler.verbose.Message1(option_no_option_found,filename)
   else
@@ -2261,7 +2261,7 @@ begin
       Ord(ts_wasm_native_legacy_exceptions in init_settings.targetswitches)+
       Ord(ts_wasm_bf_exceptions in init_settings.targetswitches))>1 then
     begin
-      Message(option_too_many_exception_modes);
+      compiler.verbose.Message(option_too_many_exception_modes);
       StopOptions(1);
     end;
 {$endif}
@@ -2269,7 +2269,7 @@ begin
 {$ifdef i8086}
   if (apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
     begin
-      Message(option_com_files_require_tiny_model);
+      compiler.verbose.Message(option_com_files_require_tiny_model);
       StopOptions(1);
     end;
   if (compiler.target.info.system = system_i8086_win16) and
@@ -2278,7 +2278,7 @@ begin
       if MemoryModelSetExplicitly then
         compiler.verbose.Message1(option_e_win16_unsupported_memory_model,x86memorymodelstr[init_settings.x86memorymodel])
       else
-        Message(option_n_win16_set_default_large_memory_model);
+        compiler.verbose.Message(option_n_win16_set_default_large_memory_model);
       undef_system_macro('FPC_MM_'+x86memorymodelstr[init_settings.x86memorymodel]);
       init_settings.x86memorymodel:=mm_large;
     end;
@@ -2289,7 +2289,7 @@ begin
      (compiler.target.info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
      not (cs_link_extern in init_settings.globalswitches) then
     begin
-      Message(option_debug_info_requires_external_linker);
+      compiler.verbose.Message(option_debug_info_requires_external_linker);
       include(init_settings.globalswitches,cs_link_extern);
     end;
 {$endif i8086_link_intern_debuginfo}
@@ -2302,14 +2302,14 @@ begin
       if (cs_create_smart in init_settings.moduleswitches) and
          not (af_outputbinary in compiler.target._asm.flags) then
         begin
-          Message(option_dwarf_smartlink_creation);
+          compiler.verbose.Message(option_dwarf_smartlink_creation);
           exclude(init_settings.moduleswitches,cs_create_smart);
         end;
 
       { smart linking does not yet work with DWARF debug info on most targets }
       if (cs_link_smart in init_settings.globalswitches) then
         begin
-          Message(option_dwarf_smart_linking);
+          compiler.verbose.Message(option_dwarf_smart_linking);
           ForceStaticLinking;
         end;
     end;
@@ -2319,7 +2319,7 @@ begin
      (cs_link_separate_dbg_file in init_settings.globalswitches) and
      not(paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
-      Message(option_debug_external_unsupported);
+      compiler.verbose.Message(option_debug_external_unsupported);
       exclude(init_settings.globalswitches,cs_link_separate_dbg_file);
     end;
   { Also create a smartlinked version, on an assembler that
@@ -2333,7 +2333,7 @@ begin
      (compiler.target.info.link<>ld_none) and
       not (cs_link_nolink in init_settings.globalswitches) then
     begin
-      Message(option_smart_link_requires_external_linker);
+      compiler.verbose.Message(option_smart_link_requires_external_linker);
       include(init_settings.globalswitches,cs_link_extern);
     end;
 end;
@@ -2589,7 +2589,7 @@ begin
               begin
                 { consume a possible '-' coming after it }
                 UnsetBool(More, j, opt, false);
-                message(scan_w_pic_ignored);
+                compiler.verbose.Message(scan_w_pic_ignored);
               end
             else if UnsetBool(More, j, opt, false) then
               exclude(init_settings.moduleswitches,cs_create_pic)
@@ -2617,7 +2617,7 @@ begin
                   IllegalPara(opt)
                 else if (maxheapsize<heapsize) then
                   begin
-                    message(scan_w_heapmax_lessthan_heapmin);
+                    compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
                     maxheapsize:=heapsize;
                   end;
               end;
@@ -3064,7 +3064,7 @@ begin
   if more='PIC' then
     begin
       if tf_no_pic_supported in compiler.target.info.flags then
-        message(scan_w_pic_ignored)
+        compiler.verbose.Message(scan_w_pic_ignored)
       else
         include(init_settings.moduleswitches,cs_create_pic)
     end
@@ -3204,7 +3204,7 @@ begin
     't' :
       begin
         AllowedFilenameTransFormations:=[ftNone,ftLowerCase];
-        Message(general_i_reduced_filesearch);
+        compiler.verbose.Message(general_i_reduced_filesearch);
       end;
     'u' :
       begin
@@ -3273,7 +3273,7 @@ begin
             else if (compiler.target.info.system in systems_support_checkpointer) then
               begin
                 if do_release then
-                  Message(option_gc_incompatible_with_release_flag)
+                  compiler.verbose.Message(option_gc_incompatible_with_release_flag)
                 else
                   include(init_settings.localswitches,cs_checkpointer);
               end
@@ -3686,7 +3686,7 @@ begin
           'f' :
             begin
               if not(cs_compilesystem in init_settings.moduleswitches) then
-                Message(option_features_only_for_system_unit);
+                compiler.verbose.Message(option_features_only_for_system_unit);
               inc(j);
               if more[j]='-' then
                 begin
@@ -3870,7 +3870,7 @@ begin
            do_release:=true;
            if (cs_checkpointer in init_settings.localswitches) then
              begin
-               Message(option_gc_incompatible_with_release_flag);
+               compiler.verbose.Message(option_gc_incompatible_with_release_flag);
                exclude(init_settings.localswitches,cs_checkpointer);
              end;
          end;
@@ -4120,7 +4120,7 @@ begin
                  begin
                    if init_settings.cputype<>embedded_controllers[init_settings.controllertype].cputype then
                    begin
-                     Message(scan_n_changecputype);
+                     compiler.verbose.Message(scan_n_changecputype);
                      init_settings.cputype:=embedded_controllers[init_settings.controllertype].cputype;
                    end;
                  end;
@@ -5153,7 +5153,7 @@ begin
 { Check file to compile }
   if param_file='' then
    begin
-     Message(option_no_source_found);
+     compiler.verbose.Message(option_no_source_found);
      StopOptions(1);
    end;
 {$ifndef Unix}
@@ -5328,7 +5328,7 @@ begin
   { maybe override debug info format }
   if (option.paratargetdbg<>dbg_none) then
     if not compiler.target.set_target_dbg(option.paratargetdbg) then
-      Message(option_w_unsupported_debug_format);
+      compiler.verbose.Message(option_w_unsupported_debug_format);
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (af_outputbinary in compiler.target._asm.flags) and
@@ -5340,10 +5340,10 @@ begin
      if ((option.paratargetasm=as_none) and (compiler.target.info.endian<>source_info.endian)) then
        begin
          if not ((compiler.target.info.assem = compiler.target.info.assemextern) or (compiler.target.info.assem = as_none)) then
-           Message(option_switch_bin_to_src_assembler_cross_endian);
+           compiler.verbose.Message(option_switch_bin_to_src_assembler_cross_endian);
        end
      else
-       Message(option_switch_bin_to_src_assembler);
+       compiler.verbose.Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
      if not(compiler.target.info.system in systems_darwin) then
        compiler.target.set_target_asm(as_clang_llvm)
@@ -5520,7 +5520,7 @@ begin
             if (not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]))
               or (compiler.target.info.system = system_arm_ios) then
               begin
-                Message(option_illegal_fpu_eabihf);
+                compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
               end;
           end;
@@ -5593,7 +5593,7 @@ begin
           begin
             if not (init_settings.fputype in [fpu_fd]) then
               begin
-                Message(option_illegal_fpu_eabihf);
+                compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
               end;
           end;
@@ -5612,7 +5612,7 @@ begin
           begin
             if not (init_settings.fputype in [fpu_fd]) then
               begin
-                Message(option_illegal_fpu_eabihf);
+                compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
               end;
           end;
@@ -5633,7 +5633,7 @@ begin
           begin
             if not (init_settings.fputype in [fpu_fd]) then
               begin
-                Message(option_illegal_fpu_eabihf);
+                compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
               end;
           end;
@@ -5652,7 +5652,7 @@ begin
           begin
             if not (init_settings.fputype in [fpu_fd]) then
               begin
-                Message(option_illegal_fpu_eabihf);
+                compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
               end;
           end;
@@ -5671,7 +5671,7 @@ begin
           begin
             if not (init_settings.fputype in [fpu_fd]) then
               begin
-                Message(option_illegal_fpu_eabihf);
+                compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
               end;
           end;
@@ -5979,7 +5979,7 @@ begin
   if source_info.endian<>compiler.target.info.endian then
     begin
       if option.LinkInternSetExplicitly then
-        Message(link_w_unsupported_cross_endian_internal_linker)
+        compiler.verbose.Message(link_w_unsupported_cross_endian_internal_linker)
       else
         include(init_settings.globalswitches,cs_link_extern);
     end;

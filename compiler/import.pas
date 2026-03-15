@@ -77,11 +77,13 @@ end;
 
 
 procedure timportlib.NotSupported;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   { show the message only once }
   if not notsupmsg then
    begin
-     Message(exec_e_dll_not_supported);
+     compiler.verbose.Message(exec_e_dll_not_supported);
      notsupmsg:=true;
    end;
 end;

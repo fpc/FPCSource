@@ -300,7 +300,7 @@ const
       { Are we trying to create an identifier with }
       { an at-sign...?                             }
       if forcelabel then
-       Message(asmr_e_none_label_contain_at);
+       compiler.verbose.Message(asmr_e_none_label_contain_at);
 
       If is_asmopcode(actasmpattern) then
        exit;
@@ -373,7 +373,7 @@ const
                               c:=current_scanner.asmgetchar;
                               if c=#10 then
                               begin
-                                 Message(scan_f_string_exceeds_line);
+                                 compiler.verbose.Message(scan_f_string_exceeds_line);
                                  break;
                               end;
                               repeat
@@ -386,7 +386,7 @@ const
                                                c:=current_scanner.asmgetchar;
                                                if c=#10 then
                                                begin
-                                                    Message(scan_f_string_exceeds_line);
+                                                    compiler.verbose.Message(scan_f_string_exceeds_line);
                                                     break;
                                                end;
                                         end
@@ -398,7 +398,7 @@ const
                                           c:=current_scanner.asmgetchar;
                                           if c=#10 then
                                             begin
-                                               Message(scan_f_string_exceeds_line);
+                                               compiler.verbose.Message(scan_f_string_exceeds_line);
                                                break
                                             end;
                                    end;
@@ -481,7 +481,7 @@ const
                    c := current_scanner.asmgetchar;
                    { invalid characters }
                    if c <> '<' then
-                    Message(asmr_e_invalid_char_smaller);
+                    compiler.verbose.Message(asmr_e_invalid_char_smaller);
                    { still assume << }
                    actasmtoken := AS_SHL;
                    c := current_scanner.asmgetchar;
@@ -491,7 +491,7 @@ const
                    c := current_scanner.asmgetchar;
                    { invalid characters }
                    if c <> '>' then
-                    Message(asmr_e_invalid_char_greater);
+                    compiler.verbose.Message(asmr_e_invalid_char_greater);
                    { still assume << }
                    actasmtoken := AS_SHR;
                    c := current_scanner.asmgetchar;
@@ -715,7 +715,7 @@ const
                   End else
                   if not allow_symbol then
                   begin
-                    Message(asmr_e_syn_constant);
+                    compiler.verbose.Message(asmr_e_syn_constant);
                     l := 0;
                     Consume(AS_ID);
                   End else
@@ -725,7 +725,7 @@ const
                       Delete(expr,Length(expr),1)
                     else if expr<>'' then
                       begin
-                        Message(asmr_e_invalid_constant_expression);
+                        compiler.verbose.Message(asmr_e_invalid_constant_expression);
                         break;
                       End;
                     tempstr:=actasmpattern;
@@ -746,7 +746,7 @@ const
                              paravarsym,
                              localvarsym :
                                begin
-                                 Message(asmr_e_no_local_or_para_allowed);
+                                 compiler.verbose.Message(asmr_e_no_local_or_para_allowed);
                                  hs:=tabstractvarsym(sym).mangledname;
                                end;
                              staticvarsym :
@@ -754,16 +754,16 @@ const
                              procsym :
                                begin
                                  if tprocsym(sym).procdeflist.count>1 then
-                                      Message(asmr_w_calling_overload_func);
+                                      compiler.verbose.Message(asmr_w_calling_overload_func);
                                  hs:=tprocdef(tprocsym(sym).procdeflist[0]).mangledname;
                                end;
                              typesym :
                                begin
                                  if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
-                                      Message(asmr_e_wrong_sym_type);
+                                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                                end;
                              else
-                               Message(asmr_e_wrong_sym_type);
+                               compiler.verbose.Message(asmr_e_wrong_sym_type);
                            end;
                         end
                         else
@@ -775,7 +775,7 @@ const
                         if asmsym^='' then
                          asmsym^:=hs
                         else
-                         Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                         compiler.verbose.Message(asmr_e_cant_have_multiple_relocatable_symbols);
                       end;
                   end;
                 end;
@@ -786,7 +786,7 @@ const
       AS_BINNUM:  begin
                       tempstr := tostr(ParseVal(actasmpattern,2));
                       if tempstr = '' then
-                       Message(asmr_e_error_converting_binary);
+                       compiler.verbose.Message(asmr_e_error_converting_binary);
                       expr:=expr+tempstr;
                       Consume(AS_BINNUM);
                   end;
@@ -794,14 +794,14 @@ const
       AS_HEXNUM: begin
                     tempstr := tostr(ParseVal(actasmpattern,16));
                     if tempstr = '' then
-                     Message(asmr_e_error_converting_hexadecimal);
+                     compiler.verbose.Message(asmr_e_error_converting_hexadecimal);
                     expr:=expr+tempstr;
                     Consume(AS_HEXNUM);
                 end;
       AS_OCTALNUM: begin
                     tempstr := tostr(ParseVal(actasmpattern,8));
                     if tempstr = '' then
-                     Message(asmr_e_error_converting_octal);
+                     compiler.verbose.Message(asmr_e_error_converting_octal);
                     expr:=expr+tempstr;
                     Consume(AS_OCTALNUM);
                   end;
@@ -825,7 +825,7 @@ const
         begin
           { only write error once. }
           if not errorflag then
-           Message(asmr_e_invalid_constant_expression);
+           compiler.verbose.Message(asmr_e_invalid_constant_expression);
           { consume tokens until we find COMMA or SEPARATOR }
           Consume(actasmtoken);
           errorflag := TRUE;
@@ -882,7 +882,7 @@ const
       AS_BINNUM:  begin
                       { checking for real constants with this should use  }
                       { real DECODING otherwise the compiler will crash!  }
-                      Message(asmr_e_invalid_float_expr);
+                      compiler.verbose.Message(asmr_e_invalid_float_expr);
                       expr:='0.0';
                       Consume(AS_BINNUM);
                  end;
@@ -890,7 +890,7 @@ const
       AS_HEXNUM: begin
                       { checking for real constants with this should use  }
                       { real DECODING otherwise the compiler will crash!  }
-                    Message(asmr_e_invalid_float_expr);
+                    compiler.verbose.Message(asmr_e_invalid_float_expr);
                     expr:='0.0';
                     Consume(AS_HEXNUM);
                 end;
@@ -901,7 +901,7 @@ const
                       { problem is that these will crash the m68k compiler  }
                       { when compiling -- because of lack of good fpu       }
                       { support.                                           }
-                    Message(asmr_e_invalid_float_expr);
+                    compiler.verbose.Message(asmr_e_invalid_float_expr);
                     expr:='0.0';
                     Consume(AS_OCTALNUM);
                   end;
@@ -909,7 +909,7 @@ const
            begin
              { only write error once. }
              if not errorflag then
-              Message(asmr_e_invalid_float_expr);
+              compiler.verbose.Message(asmr_e_invalid_float_expr);
              { consume tokens until we find COMMA or SEPARATOR }
              Consume(actasmtoken);
              errorflag := TRUE;
@@ -924,7 +924,7 @@ const
           if code<>0 then
             begin
                r:=0;
-               Message(asmr_e_invalid_float_expr);
+               compiler.verbose.Message(asmr_e_invalid_float_expr);
                ConcatRealConstant(curlist,r,typ);
             End
           else
@@ -933,7 +933,7 @@ const
             End;
         end
       else
-        Message(asmr_e_invalid_float_expr);
+        compiler.verbose.Message(asmr_e_invalid_float_expr);
     Until actasmtoken=AS_SEPARATOR;
   end;
 
@@ -958,10 +958,10 @@ const
               expr:=actasmpattern;
               Consume(AS_STRING);
               if (constsize <> 1) or (length(expr) > 1) then
-                Message(asmr_e_string_not_allowed_as_const);
+                compiler.verbose.Message(asmr_e_string_not_allowed_as_const);
 
               if not (actasmtoken in [AS_COMMA, AS_SEPARATOR]) then
-                Message(asmr_e_invalid_string_expression);
+                compiler.verbose.Message(asmr_e_invalid_string_expression);
 
               ConcatString(curlist,expr);
             end;
@@ -981,7 +981,7 @@ const
         AS_SEPARATOR: ;
       else
         begin
-          Message(asmr_e_syntax_error);
+          compiler.verbose.Message(asmr_e_syntax_error);
           Consume(actasmtoken);
         end;
       end; { end case }
@@ -1004,30 +1004,30 @@ const
      Consume(AS_STAR);
      if (oper.opr.ref.scalefactor <> 0)
      and (oper.opr.ref.scalefactor <> 1) then
-      Message(asmr_e_wrong_base_index);
+      compiler.verbose.Message(asmr_e_wrong_base_index);
      case actasmtoken of
         AS_INTNUM: str := actasmpattern;
         AS_HEXNUM: str := Tostr(ParseVal(actasmpattern,16));
         AS_BINNUM: str := Tostr(ParseVal(actasmpattern,2));
         AS_OCTALNUM: str := Tostr(ParseVal(actasmpattern,8));
      else
-        Message(asmr_e_syntax_error);
+        compiler.verbose.Message(asmr_e_syntax_error);
      end;
      val(str, l, code);
      if code <> 0 then
-      Message(asmr_e_wrong_scale_factor);
+      compiler.verbose.Message(asmr_e_wrong_scale_factor);
      if ((l = 2) or (l = 4) or (l = 8) or (l = 1)) and (code = 0) then
      begin
         oper.opr.ref.scalefactor := l;
      end
      else
      begin
-        Message(asmr_e_wrong_scale_factor);
+        compiler.verbose.Message(asmr_e_wrong_scale_factor);
         oper.opr.ref.scalefactor := 0;
      end;
      if oper.opr.ref.index = NR_NO then
      begin
-        Message(asmr_e_wrong_base_index);
+        compiler.verbose.Message(asmr_e_wrong_base_index);
         oper.opr.ref.scalefactor := 0;
      end;
     { Consume the scaling number }
@@ -1035,13 +1035,13 @@ const
     if actasmtoken = AS_RPAREN then
         Consume(AS_RPAREN)
     else
-       Message(asmr_e_wrong_scale_factor);
+       compiler.verbose.Message(asmr_e_wrong_scale_factor);
     { // .Field.Field ... or separator/comma // }
     if actasmtoken in [AS_COMMA,AS_SEPARATOR] then
     begin
     end
     else
-     Message(asmr_e_syntax_error);
+     compiler.verbose.Message(asmr_e_syntax_error);
   end;
 
 
@@ -1073,7 +1073,7 @@ const
       tempstr := '';
       case actasmtoken of
         AS_RPAREN:
-            Message(asmr_e_syntax_error);
+            compiler.verbose.Message(asmr_e_syntax_error);
         AS_SHL:
             tempstr := '<';
         AS_SHR:
@@ -1109,7 +1109,7 @@ const
             begin
               if not SearchIConstant(actasmpattern,l) then
                 begin
-                  Message(asmr_e_syn_constant);
+                  compiler.verbose.Message(asmr_e_syn_constant);
                   l := 0;
                 end;
               str(l, tempstr);
@@ -1120,19 +1120,19 @@ const
             begin
               tempstr := Tostr(ParseVal(actasmpattern,2));
               if tempstr = '' then
-                Message(asmr_e_error_converting_binary);
+                compiler.verbose.Message(asmr_e_error_converting_binary);
             end;
         AS_HEXNUM:
             begin
               tempstr := Tostr(ParseVal(actasmpattern,16));
               if tempstr = '' then
-                Message(asmr_e_error_converting_hexadecimal);
+                compiler.verbose.Message(asmr_e_error_converting_hexadecimal);
             end;
         AS_OCTALNUM:
             begin
               tempstr := Tostr(ParseVal(actasmpattern,8));
               if tempstr = '' then
-                Message(asmr_e_error_converting_octal);
+                compiler.verbose.Message(asmr_e_error_converting_octal);
             end;
         else
           begin
@@ -1146,7 +1146,7 @@ const
 
             { write error only once. }
             if not errorflag then
-              Message(asmr_e_invalid_constant_expression);
+              compiler.verbose.Message(asmr_e_invalid_constant_expression);
             { consume tokens until we find COMMA or SEPARATOR }
             errorflag := true;
         end;
@@ -1191,14 +1191,14 @@ const
                  if actasmtoken = AS_PLUS then
                  begin
                    if (oper.opr.ref.direction <> dir_none) then
-                    Message(asmr_e_no_inc_and_dec_together)
+                    compiler.verbose.Message(asmr_e_no_inc_and_dec_together)
                    else
                      oper.opr.ref.direction := dir_inc;
                    Consume(AS_PLUS);
                  end;
                  if not (actasmtoken in [AS_COMMA,AS_SEPARATOR]) then
                    begin
-                     Message(asmr_e_invalid_reference_syntax);
+                     compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                      { error recovery ... }
                      while actasmtoken <> AS_SEPARATOR do
                         Consume(actasmtoken);
@@ -1220,7 +1220,7 @@ const
                          if not (actasmtoken in [AS_COMMA,AS_SEPARATOR]) then
                          begin
                            { error recovery ... }
-                           Message(asmr_e_invalid_reference_syntax);
+                           compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                            while actasmtoken <> AS_SEPARATOR do
                              Consume(actasmtoken);
                          end;
@@ -1232,7 +1232,7 @@ const
                        end;
                     else
                       begin
-                        Message(asmr_e_invalid_reference_syntax);
+                        compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                         while (actasmtoken <> AS_SEPARATOR) do
                           Consume(actasmtoken);
                       end;
@@ -1240,7 +1240,7 @@ const
                 end
               else
                 begin
-                   Message(asmr_e_invalid_reference_syntax);
+                   compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                   while (actasmtoken <> AS_SEPARATOR) do
                       Consume(actasmtoken);
                 end;
@@ -1254,19 +1254,19 @@ const
                AS_BINNUM: str := Tostr(ParseVal(actasmpattern,2));
                AS_OCTALNUM: str := Tostr(ParseVal(actasmpattern,8));
               else
-                Message(asmr_e_syntax_error);
+                compiler.verbose.Message(asmr_e_syntax_error);
              end;
              Consume(actasmtoken);
              val(str, l, code);
              if code <> 0 then
-               Message(asmr_e_invalid_reference_syntax)
+               compiler.verbose.Message(asmr_e_invalid_reference_syntax)
              else
                oper.opr.ref.offset := l;
              Consume(AS_RPAREN);
              if not (actasmtoken in [AS_COMMA,AS_SEPARATOR]) then
              begin
                { error recovery ... }
-               Message(asmr_e_invalid_reference_syntax);
+               compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                while actasmtoken <> AS_SEPARATOR do
                  Consume(actasmtoken);
              end;
@@ -1274,7 +1274,7 @@ const
            end;
          else
            begin
-             Message(asmr_e_invalid_reference_syntax);
+             compiler.verbose.Message(asmr_e_invalid_reference_syntax);
              while (actasmtoken <> AS_SEPARATOR) do
                Consume(actasmtoken);
            end;
@@ -1357,7 +1357,7 @@ const
 
     if errorflag then
       begin
-        Message(asmr_e_invalid_reg_list_in_movem_or_fmovem);
+        compiler.verbose.Message(asmr_e_invalid_reg_list_in_movem_or_fmovem);
         consume_all_until([AS_SEPARATOR,AS_COMMA]);
       end
     else
@@ -1381,7 +1381,7 @@ const
     Consume(AS_COLON);
     if not try_to_consume(AS_REGISTER) then
       begin
-        Message(asmr_e_invalid_reg_list_for_opcode);
+        compiler.verbose.Message(asmr_e_invalid_reg_list_for_opcode);
         consume_all_until([AS_SEPARATOR,AS_COMMA]);
       end
     else
@@ -1413,7 +1413,7 @@ const
      AS_APPT:  begin
                       Consume(AS_APPT);
                       if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-                         Message(asmr_e_invalid_operand_type);
+                         compiler.verbose.Message(asmr_e_invalid_operand_type);
                       { identifiers are handled by BuildExpression }
                       oper.opr.typ := OPR_CONSTANT;
                       l:=BuildExpression(true,@tempstr);
@@ -1447,12 +1447,12 @@ const
                     oper.SetUpSelf
                  else
                  if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
-                    Message(asmr_w_CODE_and_DATA_not_supported)
+                    compiler.verbose.Message(asmr_w_CODE_and_DATA_not_supported)
                  else
                   begin
                     delete(actasmpattern,1,1);
                     if actasmpattern = '' then
-                     Message(asmr_e_null_label_ref_not_allowed);
+                     compiler.verbose.Message(asmr_e_null_label_ref_not_allowed);
                     CreateLocalLabel(actasmpattern,lab,false);
                     oper.opr.typ := OPR_SYMBOL;
                     oper.opr.symbol := lab;
@@ -1460,7 +1460,7 @@ const
                   end;
                 Consume(AS_ID);
                 if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
-                  Message(asmr_e_syntax_error);
+                  compiler.verbose.Message(asmr_e_syntax_error);
               end
               { probably a variable or normal expression }
               { or a procedure (such as in CALL ID)      }
@@ -1486,7 +1486,7 @@ const
                          oper.opr.symofs := 0;
                          Consume(AS_ID);
                          if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
-                          Message(asmr_e_syntax_error);
+                          compiler.verbose.Message(asmr_e_syntax_error);
 
                        end
                       else begin
@@ -1540,7 +1540,7 @@ const
                          AS_SEPARATOR,AS_COMMA: begin
                          end;
                        else
-                         Message(asmr_e_syntax_error);
+                         compiler.verbose.Message(asmr_e_syntax_error);
                        end;
 
                    end;
@@ -1567,7 +1567,7 @@ const
                    end
                    else
                    begin
-                    Message(asmr_e_syntax_error);
+                    compiler.verbose.Message(asmr_e_syntax_error);
                     while not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
                        Consume(actasmtoken);
                    end;
@@ -1580,7 +1580,7 @@ const
                        begin
                          { // Simple register // }
                          if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
-                           Message(asmr_e_invalid_operand_type);
+                           compiler.verbose.Message(asmr_e_invalid_operand_type);
                          oper.opr.typ := OPR_REGISTER;
                          oper.opr.reg := actasmregister;
                        end;
@@ -1591,13 +1591,13 @@ const
                        { // Register pair // }
                        BuildRegPair(oper);
                      else
-                       Message(asmr_e_invalid_register);
+                       compiler.verbose.Message(asmr_e_invalid_register);
                    end;
                  end;
      AS_SEPARATOR, AS_COMMA: ;
     else
      begin
-      Message(asmr_e_invalid_opcode_and_operand);
+      compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
       Consume(actasmtoken);
      end;
   end; { end case }
@@ -1623,7 +1623,7 @@ const
       Consume(AS_SEPARATOR);
     if (actasmtoken <> AS_OPCODE) then
     begin
-      Message(asmr_e_invalid_or_missing_opcode);
+      compiler.verbose.Message(asmr_e_invalid_or_missing_opcode);
       { error recovery }
       While not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
          Consume(actasmtoken);
@@ -1646,7 +1646,7 @@ const
          { //  Operand delimiter // }
          AS_COMMA: begin
                   if operandnum > Max_Operands then
-                    Message(asmr_e_too_many_operands)
+                    compiler.verbose.Message(asmr_e_too_many_operands)
                   else
                     Inc(operandnum);
                   Consume(AS_COMMA);
@@ -1668,7 +1668,7 @@ const
         hl: tasmlabel;
         instr : TM68kInstruction;
       begin
-        //Message(asmr_d_start_reading);
+        //compiler.verbose.Message(asmr_d_start_reading);
         firsttoken := TRUE;
         operandnum := 0;
         { sets up all opcode and register tables in uppercase }
@@ -1724,7 +1724,7 @@ const
                 end;
               AS_ALIGN:
                 begin
-                  Message(asmr_w_align_not_supported);
+                  compiler.verbose.Message(asmr_w_align_not_supported);
                   while actasmtoken <> AS_SEPARATOR do
                    Consume(actasmtoken);
                 end;
@@ -1754,7 +1754,7 @@ const
                 ;
               else
                 begin
-                  Message(asmr_e_syntax_error);
+                  compiler.verbose.Message(asmr_e_syntax_error);
                   { error recovery }
                   Consume(actasmtoken);
                 end;
@@ -1765,7 +1765,7 @@ const
         checklocallabels;
 
         assemble:=curlist;
-        //Message(asmr_d_finish_reading);
+        //compiler.verbose.Message(asmr_d_finish_reading);
       end;
 
 

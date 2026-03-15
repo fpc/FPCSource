@@ -117,7 +117,7 @@ unit rarvgas;
          begin
            BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
            if (mangledname<>'') then
-             Message(asmr_e_invalid_reference_syntax);
+             compiler.verbose.Message(asmr_e_invalid_reference_syntax);
            inc(oper.opr.ref.offset,l);
          end;
       end;
@@ -130,7 +130,7 @@ unit rarvgas;
           begin
             if (oper.opr.ref.symbol=nil) and
                (oper.opr.ref.offset = 0) then
-              Message(asmr_e_invalid_reference_syntax);
+              compiler.verbose.Message(asmr_e_invalid_reference_syntax);
             Consume(AS_AT);
             if actasmtoken=AS_ID then
               begin
@@ -141,11 +141,11 @@ unit rarvgas;
                 else if upper(actasmpattern)='HA' then
                   oper.opr.ref.refaddr:=addr_higha
                 else}
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_ID);
               end
             else
-              Message(asmr_e_invalid_reference_syntax);
+              compiler.verbose.Message(asmr_e_invalid_reference_syntax);
           end;
       end;
 
@@ -156,7 +156,7 @@ unit rarvgas;
         begin
           if actasmtoken <> AS_RPAREN then
            Begin
-             Message(asmr_e_invalid_reference_syntax);
+             compiler.verbose.Message(asmr_e_invalid_reference_syntax);
              RecoverConsume(true);
            end
           else
@@ -164,7 +164,7 @@ unit rarvgas;
              Consume(AS_RPAREN);
              if not (actasmtoken in [AS_COMMA,AS_SEPARATOR,AS_END]) then
               Begin
-                Message(asmr_e_invalid_reference_syntax);
+                compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 RecoverConsume(true);
               end;
            end;
@@ -186,7 +186,7 @@ unit rarvgas;
               { offset(offset) is invalid }
               If oper.opr.Ref.Offset <> 0 Then
                Begin
-                 Message(asmr_e_invalid_reference_syntax);
+                 compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                  RecoverConsume(true);
                End
               Else
@@ -202,7 +202,7 @@ unit rarvgas;
             Begin
               if ((oper.opr.typ=OPR_REFERENCE) and (oper.opr.ref.base<>NR_NO)) or
                  ((oper.opr.typ=OPR_LOCAL) and (oper.opr.localsym.localloc.loc<>LOC_REGISTER)) then
-                message(asmr_e_cannot_index_relative_var);
+                compiler.verbose.Message(asmr_e_cannot_index_relative_var);
               oper.opr.ref.base:=actasmregister;
               Consume(AS_REGISTER);
               Consume_RParen;
@@ -236,7 +236,7 @@ unit rarvgas;
                           oper.opr.ref.relsymbol:=current_asmdata.RefAsmSymbol(relsym,AT_DATA)
                         else
                           begin
-                            Message(asmr_e_invalid_reference_syntax);
+                            compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                             RecoverConsume(false);
                           end
                       end
@@ -274,13 +274,13 @@ unit rarvgas;
                 end
               else
                 begin
-                  Message(asmr_e_invalid_reference_syntax);
+                  compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                   RecoverConsume(false);
                 end;
             end;
         else
           Begin
-            Message(asmr_e_invalid_reference_syntax);
+            compiler.verbose.Message(asmr_e_invalid_reference_syntax);
             RecoverConsume(false);
           end;
         end;
@@ -328,7 +328,7 @@ unit rarvgas;
                     BuildRecordOffsetSize(expr,toffset,tsize,mangledname,false);
                     if (oper.opr.typ<>OPR_CONSTANT) and
                        (mangledname<>'') then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     inc(l,toffset);
                     oper.SetSize(tsize,true);
                   end;
@@ -344,14 +344,14 @@ unit rarvgas;
                      (not oper.hastype) and
                      (tabstractvarsym(oper.opr.localsym).owner.symtabletype=parasymtable) and
                      (current_procinfo.procdef.proccalloption<>pocall_register) then
-                    Message(asmr_e_cannot_access_field_directly_for_parameters);
+                    compiler.verbose.Message(asmr_e_cannot_access_field_directly_for_parameters);
                   inc(oper.opr.localsymofs,l)
                 end;
               OPR_CONSTANT :
                 if (mangledname<>'') then
                   begin
                     if (oper.opr.val<>0) then
-                      Message(asmr_e_wrong_sym_type);
+                      compiler.verbose.Message(asmr_e_wrong_sym_type);
                     oper.opr.typ:=OPR_SYMBOL;
                     oper.opr.symbol:=current_asmdata.DefineAsmSymbol(mangledname,AB_EXTERNAL,AT_FUNCTION,voidcodepointertype);
                   end
@@ -360,7 +360,7 @@ unit rarvgas;
               OPR_REFERENCE :
                 inc(oper.opr.ref.offset,l);
               OPR_SYMBOL:
-                Message(asmr_e_invalid_symbol_ref);
+                compiler.verbose.Message(asmr_e_invalid_symbol_ref);
               else
                 internalerror(200309221);
             end;
@@ -379,7 +379,7 @@ unit rarvgas;
                 Begin
                   oper.opr.ref.offset:=BuildConstExpression(True,False);
                   if actasmtoken<>AS_LPAREN then
-                    Message(asmr_e_invalid_reference_syntax)
+                    compiler.verbose.Message(asmr_e_invalid_reference_syntax)
                   else
                     BuildReference(oper);
                 end;
@@ -396,7 +396,7 @@ unit rarvgas;
                       BuildReference(oper);
                   else
                     Begin
-                      Message(asmr_e_invalid_reference_syntax);
+                      compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                       Consume(actasmtoken);
                     end;
                   end; {end case }
@@ -458,7 +458,7 @@ unit rarvgas;
 
             if actasmtoken<>AS_ID then
               begin
-                Message(asmr_e_invalid_reference_syntax);
+                compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                 RecoverConsume(false);
               end
             else
@@ -473,7 +473,7 @@ unit rarvgas;
                   refaddr:=addr_lo12
                 else
                   begin
-                    Message(asmr_e_invalid_reference_syntax);
+                    compiler.verbose.Message(asmr_e_invalid_reference_syntax);
                     RecoverConsume(false);
                   end;
 
@@ -538,7 +538,7 @@ unit rarvgas;
                  if SearchIConstant(actasmpattern,l) then
                   Begin
                     if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
-                     Message(asmr_e_invalid_operand_type);
+                     compiler.verbose.Message(asmr_e_invalid_operand_type);
                     BuildConstantOperand(oper);
                   end
                  else
@@ -618,19 +618,19 @@ unit rarvgas;
               if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
                   begin
                     if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
-                      Message(asmr_e_invalid_operand_type);
+                      compiler.verbose.Message(asmr_e_invalid_operand_type);
                     oper.opr.typ:=OPR_REGISTER;
                     oper.opr.reg:=tempreg;
                   end
               else
-                Message(asmr_e_syn_operand);
+                compiler.verbose.Message(asmr_e_syn_operand);
             end;
           AS_END,
           AS_SEPARATOR,
           AS_COMMA: ;
         else
           Begin
-            Message(asmr_e_syn_operand);
+            compiler.verbose.Message(asmr_e_syn_operand);
             Consume(actasmtoken);
           end;
         end; { end case }
@@ -661,7 +661,7 @@ unit rarvgas;
         { opcode }
         if (actasmtoken<>AS_OPCODE) then
          Begin
-           Message(asmr_e_invalid_or_missing_opcode);
+           compiler.verbose.Message(asmr_e_invalid_or_missing_opcode);
            RecoverConsume(true);
            exit;
          end;
@@ -688,7 +688,7 @@ unit rarvgas;
             AS_COMMA: { Operand delimiter }
               Begin
                 if operandnum>Max_Operands then
-                  Message(asmr_e_too_many_operands)
+                  compiler.verbose.Message(asmr_e_too_many_operands)
                 else
                   begin
                     { condition operands doesn't set the operand but write to the

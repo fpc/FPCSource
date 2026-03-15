@@ -308,7 +308,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                  compiler.parser.pbase.consume_all_until(_SEMICOLON);
             end;
           else
-            Message(parser_e_type_const_not_possible);
+            compiler.verbose.Message(parser_e_type_const_not_possible);
         end;
         block_type:=old_block_type;
         current_old_block_type:=prev_old_block_type;
@@ -570,7 +570,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end
         else
           begin
-            Message(parser_e_illegal_expression);
+            compiler.verbose.Message(parser_e_illegal_expression);
             strlength:=-1;
           end;
         if strlength>=0 then
@@ -658,7 +658,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           if is_constnode(node) then
             IncompatibleTypes(node.resultdef, def)
           else if not(compiler.parser.pbase.parse_generic) then
-            Message(parser_e_illegal_expression);
+            compiler.verbose.Message(parser_e_illegal_expression);
         end;
 
       begin
@@ -747,7 +747,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         else if is_constnode(node) then
           IncompatibleTypes(node.resultdef, def)
         else
-          Message(parser_e_illegal_expression);
+          compiler.verbose.Message(parser_e_illegal_expression);
 
         case def.floattype of
            s32real :
@@ -788,7 +788,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            else if is_constnode(node) then
              IncompatibleTypes(node.resultdef, def)
            else
-             Message(parser_e_illegal_expression);
+             compiler.verbose.Message(parser_e_illegal_expression);
         end;
       end;
 
@@ -908,7 +908,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 end
               else
                 begin
-                  Message(parser_e_illegal_expression);
+                  compiler.verbose.Message(parser_e_illegal_expression);
                   datadef:=carraydef.getreusable(cansichartype,1,compiler);
                 end;
               ftcb.finish_internal_data_builder(datatcb,ll,datadef,varalign);
@@ -957,7 +957,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    end;
                 end
               else
-                Message(parser_e_illegal_expression);
+                compiler.verbose.Message(parser_e_illegal_expression);
           end
         else
           if (node.nodetype in [addrn,addn,subn]) or
@@ -984,7 +984,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                is_pointer(taddnode(hp).left.resultdef) then
                                ftcb.queue_pointeraddn(tpointerdef(taddnode(hp).left.resultdef),get_ordinal_value(taddnode(hp).right))
                              else
-                               Message(parser_e_illegal_expression);
+                               compiler.verbose.Message(parser_e_illegal_expression);
                            end;
                          subn :
                            begin
@@ -995,7 +995,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                is_pointer(taddnode(hp).left.resultdef) then
                                ftcb.queue_pointersubn(tpointerdef(taddnode(hp).left.resultdef),get_ordinal_value(taddnode(hp).right))
                              else
-                               Message(parser_e_illegal_expression);
+                               compiler.verbose.Message(parser_e_illegal_expression);
                            end;
                          vecn :
                            begin
@@ -1006,21 +1006,21 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                 not is_implicit_array_pointer(tvecnode(hp).left.resultdef) then
                                ftcb.queue_vecn(tvecnode(hp).left.resultdef,get_ordinal_value(tvecnode(hp).right))
                              else
-                               Message(parser_e_illegal_expression);
+                               compiler.verbose.Message(parser_e_illegal_expression);
                            end;
                          subscriptn :
                            ftcb.queue_subscriptn(tabstractrecorddef(tsubscriptnode(hp).left.resultdef),tsubscriptnode(hp).vs);
                          typeconvn :
                            begin
                              if not(ttypeconvnode(hp).convtype in [tc_equal,tc_proc_2_procvar]) then
-                               Message(parser_e_illegal_expression)
+                               compiler.verbose.Message(parser_e_illegal_expression)
                              else
                                ftcb.queue_typeconvn(ttypeconvnode(hp).left.resultdef,hp.resultdef);
                            end;
                          addrn :
                            { nothing, is implicit };
                          else
-                           Message(parser_e_illegal_expression);
+                           compiler.verbose.Message(parser_e_illegal_expression);
                        end;
                        hp:=tunarynode(hp).left;
                     end;
@@ -1030,9 +1030,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);
                         if Tprocsym(srsym).ProcdefList.Count>1 then
-                          Message(parser_e_no_overloaded_procvars);
+                          compiler.verbose.Message(parser_e_no_overloaded_procvars);
                         if po_abstractmethod in pd.procoptions then
-                          Message(type_e_cant_take_address_of_abstract_method)
+                          compiler.verbose.Message(type_e_cant_take_address_of_abstract_method)
                         else
                           ftcb.queue_emit_proc(pd);
                       end;
@@ -1044,13 +1044,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       if tconstsym(srsym).consttyp in [constresourcestring,constwresourcestring] then
                         ftcb.queue_emit_const(tconstsym(srsym))
                       else
-                        Message(type_e_constant_expr_expected);
+                        compiler.verbose.Message(type_e_constant_expr_expected);
                     else
-                      Message(type_e_constant_expr_expected);
+                      compiler.verbose.Message(type_e_constant_expr_expected);
                   end;
                 end
               else
-                Message(parser_e_illegal_expression);
+                compiler.verbose.Message(parser_e_illegal_expression);
             end
         else
         { allow typeof(Object type)}
@@ -1065,10 +1065,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     voidpointertype);
                 end
               else
-                Message(parser_e_illegal_expression);
+                compiler.verbose.Message(parser_e_illegal_expression);
             end
         else
-          Message(parser_e_illegal_expression);
+          compiler.verbose.Message(parser_e_illegal_expression);
       end;
 
 
@@ -1088,7 +1088,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             { we only allow const sets }
             if (node.nodetype<>setconstn) or
                assigned(tsetconstnode(node).left) then
-              Message(parser_e_illegal_expression)
+              compiler.verbose.Message(parser_e_illegal_expression)
             else
               begin
                 ftcb.maybe_begin_aggregate(def);
@@ -1146,7 +1146,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               end;
           end
         else
-          Message(parser_e_illegal_expression);
+          compiler.verbose.Message(parser_e_illegal_expression);
       end;
 
 
@@ -1177,7 +1177,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               IncompatibleTypes(node.resultdef,def);
           end
         else
-          Message(parser_e_illegal_expression);
+          compiler.verbose.Message(parser_e_illegal_expression);
       end;
 
 
@@ -1455,14 +1455,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 end
              else
                begin
-                 Message(parser_e_illegal_expression);
+                 compiler.verbose.Message(parser_e_illegal_expression);
                  len:=0;
                  { avoid crash later on }
                  dummy:=0;
                  ca:=@dummy;
                end;
              if len>(def.highrange-def.lowrange+1) then
-               Message(parser_e_string_larger_array);
+               compiler.verbose.Message(parser_e_string_larger_array);
              for i:=0 to def.highrange-def.lowrange do
                begin
                  if i<len then
@@ -1603,7 +1603,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       voidpointertype);
                   end
                 else
-                  Message(parser_e_no_procvarobj_const);
+                  compiler.verbose.Message(parser_e_no_procvarobj_const);
               end
             { nested procvar typed consts can only be initialised with nil
               (checked above) or with a global procedure (checked here),
@@ -1612,7 +1612,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 if haveblock or
                    is_nested_pd(pd) then
-                  Message(parser_e_no_procvarnested_const);
+                  compiler.verbose.Message(parser_e_no_procvarnested_const);
                 ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
               end;
           end
@@ -1629,7 +1629,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
           end
         else
-          Message(parser_e_illegal_expression);
+          compiler.verbose.Message(parser_e_illegal_expression);
         ftcb.maybe_end_aggregate(def);
         n.free;
         n := nil;
@@ -1661,7 +1661,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           if string2guid(hs,tmpguid) then
             ftcb.emit_guid_const(tmpguid)
           else
-            Message(parser_e_improper_guid_syntax);
+            compiler.verbose.Message(parser_e_improper_guid_syntax);
         end;
 
       var
@@ -1680,7 +1680,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if n.nodetype=guidconstn then
                   ftcb.emit_guid_const(tguidconstnode(n).value)
                 else
-                  Message(parser_e_illegal_expression);
+                  compiler.verbose.Message(parser_e_illegal_expression);
               end;
             n.free;
             n := nil;
@@ -1693,7 +1693,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             if n.nodetype=stringconstn then
               handle_stringconstn
             else
-              Message(parser_e_illegal_expression);
+              compiler.verbose.Message(parser_e_illegal_expression);
             n.free;
             n := nil;
             exit;
@@ -1752,7 +1752,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { going backwards isn't allowed in any mode }
                 else if (tfieldvarsym(recsym).fieldoffset<recoffset) then
                   begin
-                    Message(parser_e_invalid_record_const);
+                    compiler.verbose.Message(parser_e_invalid_record_const);
                     error := true;
                   end
                 { Delphi allows you to skip fields }
@@ -1875,7 +1875,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { no support for packed object }
         if is_packed_record_or_object(def) then
           begin
-            Message(type_e_no_const_packed_record);
+            compiler.verbose.Message(type_e_no_const_packed_record);
             exit;
           end;
 
@@ -1885,7 +1885,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
             if n.nodetype<>niln then
               begin
-                Message(parser_e_type_const_not_possible);
+                compiler.verbose.Message(parser_e_type_const_not_possible);
                 compiler.parser.pbase.consume_all_until(_SEMICOLON);
               end
             else
@@ -1899,7 +1899,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (oo_has_vmt in def.objectoptions) and
            (m_fpc in current_settings.modeswitches) then
           begin
-            Message(parser_e_type_object_constants);
+            compiler.verbose.Message(parser_e_type_object_constants);
             exit;
           end;
 
@@ -1944,7 +1944,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   { check position }
                   if fieldoffset<objoffset then
-                    message(parser_e_invalid_record_const);
+                    compiler.verbose.Message(parser_e_invalid_record_const);
 
                   { check in VMT needs to be added for TP mode }
                   if not(vmtwritten) and
@@ -2090,7 +2090,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     handle_stringconstn;
                   end
                 else
-                  Message(parser_e_illegal_expression);
+                  compiler.verbose.Message(parser_e_illegal_expression);
               end;
             n.free;
             n := nil;
@@ -2103,7 +2103,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             if n.nodetype=stringconstn then
               handle_stringconstn
             else
-              Message(parser_e_illegal_expression);
+              compiler.verbose.Message(parser_e_illegal_expression);
             n.free;
             n := nil;
             exit;
@@ -2159,7 +2159,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { going backwards isn't allowed in any mode }
                 else if (tfieldvarsym(recsym).fieldoffset<recoffset) then
                   begin
-                    Message(parser_e_invalid_record_const);
+                    compiler.verbose.Message(parser_e_invalid_record_const);
                     error := true;
                   end
                 { Delphi allows you to skip fields }
@@ -2239,7 +2239,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { no support for packed object }
         if is_packed_record_or_object(def) then
           begin
-            Message(type_e_no_const_packed_record);
+            compiler.verbose.Message(type_e_no_const_packed_record);
             exit;
           end;
 
@@ -2249,7 +2249,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
             if n.nodetype<>niln then
               begin
-                Message(parser_e_type_const_not_possible);
+                compiler.verbose.Message(parser_e_type_const_not_possible);
                 compiler.parser.pbase.consume_all_until(_SEMICOLON);
               end
             else
@@ -2267,7 +2267,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (oo_has_vmt in def.objectoptions) and
            (m_fpc in current_settings.modeswitches) then
           begin
-            Message(parser_e_type_object_constants);
+            compiler.verbose.Message(parser_e_type_object_constants);
             exit;
           end;
 
@@ -2310,7 +2310,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   { check position }
                   if fieldoffset<objoffset then
-                    message(parser_e_invalid_record_const);
+                    compiler.verbose.Message(parser_e_invalid_record_const);
 
                   { new position }
                   objoffset:=fieldoffset+vardef.size;

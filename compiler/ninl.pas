@@ -597,11 +597,11 @@ implementation
                       an object contains unsupported types }
                     if not (m_delphi in current_settings.modeswitches) and
                         not is_valid_for_default(def) then
-                      Message(type_e_type_not_allowed_for_default);
+                      compiler.verbose.Message(type_e_type_not_allowed_for_default);
                     result:=getdefaultvarsym(def);
                   end
                 else
-                  Message(type_e_type_not_allowed_for_default);
+                  compiler.verbose.Message(type_e_type_not_allowed_for_default);
             end;
           variantdef,
           recorddef:
@@ -610,7 +610,7 @@ implementation
                 contains unsupported types }
               if (def.typ=recorddef) and not (m_delphi in current_settings.modeswitches) and
                   not is_valid_for_default(def) then
-                Message(type_e_type_not_allowed_for_default);
+                compiler.verbose.Message(type_e_type_not_allowed_for_default);
               result:=getdefaultvarsym(def);
             end;
           setdef:
@@ -635,14 +635,14 @@ implementation
                 begin
                   { this matches the error messages that are printed
                     in case of non-Delphi modes }
-                  Message(parser_e_no_generics_as_types);
-                  Message(type_e_type_id_expected);
+                  compiler.verbose.Message(parser_e_no_generics_as_types);
+                  compiler.verbose.Message(type_e_type_id_expected);
                 end
               else
                 result:=compiler.cpointerconstnode(0,def);
             end;
           else
-            Message(type_e_type_not_allowed_for_default);
+            compiler.verbose.Message(type_e_type_not_allowed_for_default);
         end;
         if not assigned(result) then
           result:=compiler.cerrornode;
@@ -3475,12 +3475,12 @@ implementation
               in_typeof_x:
                 begin
                   if compiler.target.info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
+                    compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                   typecheckpass(left);
                   set_varstate(left,vs_read,[]);
                   if (left.resultdef.typ=objectdef) and
                     not(oo_has_vmt in tobjectdef(left.resultdef).objectoptions) then
-                      message(type_e_typeof_requires_vmt);
+                      compiler.verbose.Message(type_e_typeof_requires_vmt);
                   resultdef:=voidpointertype;
                 end;
 
@@ -3608,7 +3608,7 @@ implementation
               in_typeinfo_x:
                 begin
                   if compiler.target.info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
+                    compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                    if (left.resultdef.typ=enumdef) and
                       (tenumdef(left.resultdef).has_jumps) and
                       (
@@ -3623,7 +3623,7 @@ implementation
               in_gettypekind_x:
                 begin
                   if compiler.target.info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
+                    compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=typekindtype;
                 end;
@@ -3631,7 +3631,7 @@ implementation
               in_ismanagedtype_x:
                 begin
                   if compiler.target.info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
+                    compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=pasbool1type;
                 end;
@@ -3869,7 +3869,7 @@ implementation
               in_settextbuf_file_x :
                 begin
                   if compiler.target.info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
+                    compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                   resultdef:=voidtype;
                   { now we know the type of buffer }
                   hp:=compiler.ccallparanode(compiler.cordconstnode(
@@ -3927,7 +3927,7 @@ implementation
               in_slice_x:
                 begin
                   if compiler.target.info.system in systems_managed_vm then
-                    message(parser_e_feature_unsupported_for_vm);
+                    compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
                   result:=nil;
                   resultdef:=tcallparanode(left).left.resultdef;
                   if (resultdef.typ <> arraydef) then
@@ -5543,7 +5543,7 @@ implementation
      function tinlinenode.typecheck_seg: tnode;
        begin
          if compiler.target.info.system in systems_managed_vm then
-           message(parser_e_feature_unsupported_for_vm);
+           compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
          set_varstate(left,vs_read,[]);
          result:=compiler.cordconstnode(0,s32inttype,false);
        end;

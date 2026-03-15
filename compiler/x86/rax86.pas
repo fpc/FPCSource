@@ -179,7 +179,7 @@ Begin
     A_MOVS,A_XLAT,A_CMPS:
       Begin
         CheckOverride := TRUE;
-        Message(assem_e_segment_override_not_supported);
+        compiler.verbose.Message(assem_e_segment_override_not_supported);
       end
   end }
 end;
@@ -190,7 +190,7 @@ var
   compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if (compiler.target.info.system=system_i386_GO32V2) and (cs_fp_emulation in current_settings.moduleswitches) then
-   Message(asmr_w_fwait_emu_prob);
+   compiler.verbose.Message(asmr_w_fwait_emu_prob);
 end;
 
 {*****************************************************************************
@@ -368,7 +368,7 @@ begin
             begin
               if (opr.ref.symbol.name <> '_GLOBAL_OFFSET_TABLE_') then
                 begin
-                  message(asmr_e_need_pic_ref);
+                  compiler.verbose.Message(asmr_e_need_pic_ref);
                   result:=false;
                 end
               else
@@ -382,10 +382,10 @@ begin
                 tested/debugged }
               if (opr.ref.symbol.bind in [AB_LOCAL,AB_PRIVATE_EXTERN]) and
                  (opr.ref.refaddr=addr_pic) then
-                message(asmr_w_useless_got_for_local)
+                compiler.verbose.Message(asmr_w_useless_got_for_local)
               else if (opr.ref.symbol.bind in [AB_GLOBAL,AB_EXTERNAL,AB_COMMON,AB_WEAK_EXTERNAL]) and
                  (opr.ref.refaddr=addr_pic_no_got) then
-                message(asmr_w_global_access_without_got);
+                compiler.verbose.Message(asmr_w_global_access_without_got);
 {$endif x86_64}
             end;
         end;
@@ -402,7 +402,7 @@ begin
   opr.symseg:=true;
   opr.sym_farproc_entry:=false;
 {$else i8086}
-  Message(asmr_w_CODE_and_DATA_not_supported);
+  compiler.verbose.Message(asmr_w_CODE_and_DATA_not_supported);
 {$endif i8086}
 end;
 
@@ -416,7 +416,7 @@ begin
   else
     opr.ref.refaddr:=addr_dgroup;
 {$else i8086}
-  Message(asmr_w_CODE_and_DATA_not_supported);
+  compiler.verbose.Message(asmr_w_CODE_and_DATA_not_supported);
 {$endif i8086}
 end;
 
@@ -561,7 +561,7 @@ begin
                     case getsubreg(operands[j].opr.reg) of
                       R_SUBMMX: memrefsize := 16;
                       R_SUBMMY: memrefsize := 32;
-                      else Message(asmr_e_unable_to_determine_reference_size);
+                      else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                     end;
                   end;
                 end;
@@ -576,7 +576,7 @@ begin
                       R_SUBMMX: memrefsize := 16;
                       R_SUBMMY: memrefsize := 32;
                       R_SUBMMZ: memrefsize := 64;
-                      else Message(asmr_e_unable_to_determine_reference_size);
+                      else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                     end;
                   end;
                 end;
@@ -590,7 +590,7 @@ begin
                     case getsubreg(operands[j].opr.reg) of
                       R_SUBMMX: memrefsize := 32;
                       R_SUBMMY: memrefsize := 64;
-                      else Message(asmr_e_unable_to_determine_reference_size);
+                      else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                     end;
                   end;
                 end;
@@ -605,7 +605,7 @@ begin
                       R_SUBMMX: memrefsize := 32;
                       R_SUBMMY: memrefsize := 64;
                       R_SUBMMZ: memrefsize := 128;
-                      else Message(asmr_e_unable_to_determine_reference_size);
+                      else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                     end;
                   end;
                 end;
@@ -619,7 +619,7 @@ begin
                     case getsubreg(operands[j].opr.reg) of
                       R_SUBMMX: memrefsize := 64;
                       R_SUBMMY: memrefsize := 128;
-                      else Message(asmr_e_unable_to_determine_reference_size);
+                      else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                     end;
                   end;
                 end;
@@ -633,7 +633,7 @@ begin
                     case getsubreg(operands[j].opr.reg) of
                       R_SUBMMX: memrefsize := 64;
                       R_SUBMMY: memrefsize := 256;
-                      else Message(asmr_e_unable_to_determine_reference_size);
+                      else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                     end;
                   end;
                 end;
@@ -649,7 +649,7 @@ begin
                         R_SUBMMX: memrefsize := 64;
                         R_SUBMMY: memrefsize := 128;
                         R_SUBMMZ: memrefsize := 256;
-                        else Message(asmr_e_unable_to_determine_reference_size);
+                        else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                       end;
                     end;
                   end;
@@ -666,7 +666,7 @@ begin
                         R_SUBMMX: memrefsize := 64;
                         R_SUBMMY: memrefsize := 256;
                         R_SUBMMZ: memrefsize := 512;
-                        else Message(asmr_e_unable_to_determine_reference_size);
+                        else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                       end;
                     end;
                   end;
@@ -1032,7 +1032,7 @@ begin
                                        tx86operand(operands[i]).size   := tx86operand(operands[j]).size;
                                        break;
                                      end
-                                     else Message(asmr_e_unable_to_determine_reference_size);
+                                     else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                    end;
                                  end;
                                end;
@@ -1053,7 +1053,7 @@ begin
                                                    tx86operand(operands[i]).size   := OS_M32;
                                                    break;
                                                  end;
-                                            else Message(asmr_e_unable_to_determine_reference_size);
+                                            else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end;
@@ -1080,7 +1080,7 @@ begin
                                                    tx86operand(operands[i]).size   := OS_M64;
                                                    break;
                                                  end;
-                                            else Message(asmr_e_unable_to_determine_reference_size);
+                                            else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end;
@@ -1102,7 +1102,7 @@ begin
                                                    tx86operand(operands[i]).size   := OS_M64;
                                                    break;
                                                  end;
-                                            else Message(asmr_e_unable_to_determine_reference_size);
+                                            else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end;
@@ -1128,7 +1128,7 @@ begin
                                                  tx86operand(operands[i]).size   := OS_M128;
                                                  break;
                                                end;
-                                          else Message(asmr_e_unable_to_determine_reference_size);
+                                          else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                    end;
                                  end;
                                end;
@@ -1149,7 +1149,7 @@ begin
                                                    tx86operand(operands[i]).size   := OS_M128;
                                                    break;
                                                  end;
-                                            else Message(asmr_e_unable_to_determine_reference_size);
+                                            else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end;
@@ -1177,7 +1177,7 @@ begin
                                                    break;
                                                  end;
 
-                                            else Message(asmr_e_unable_to_determine_reference_size);
+                                            else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end;
@@ -1199,7 +1199,7 @@ begin
                                                    tx86operand(operands[i]).size   := OS_M256;
                                                    break;
                                                  end;
-                                            else Message(asmr_e_unable_to_determine_reference_size);
+                                            else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end;
@@ -1226,7 +1226,7 @@ begin
                                                    tx86operand(operands[i]).size   := OS_M512;
                                                    break;
                                                  end;
-                                            else Message(asmr_e_unable_to_determine_reference_size);
+                                            else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end;
@@ -1259,7 +1259,7 @@ begin
                                          tx86operand(operands[i]).size   := tx86operand(operands[j]).size;
                                          break;
                                        end
-                                       else Message(asmr_e_unable_to_determine_reference_size);
+                                       else compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                                      end;
                                    end;
                                  end
@@ -1300,7 +1300,7 @@ begin
                    msiVMemRegSize: ;  // ignore
                    msiUnknown,
                    msiUnsupported,
-                   msiMultiple: Message(asmr_e_unable_to_determine_reference_size); // TODO individual message
+                   msiMultiple: compiler.verbose.Message(asmr_e_unable_to_determine_reference_size); // TODO individual message
                   else
                     Internalerror(2019081008);
                 end;
@@ -1396,9 +1396,9 @@ begin
                         else
                          begin
                            if (m_delphi in current_settings.modeswitches) then
-                             Message(asmr_w_unable_to_determine_reference_size_using_dword)
+                             compiler.verbose.Message(asmr_w_unable_to_determine_reference_size_using_dword)
                            else
-                             Message(asmr_e_unable_to_determine_reference_size);
+                             compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                            { recovery }
                            tx86operand(operands[i]).opsize:=S_L;
                          end;
@@ -1412,9 +1412,9 @@ begin
                        (opcode=A_JMP) or (opcode=A_JCC) or (opcode=A_CALL) or (opcode=A_LCALL) or (opcode=A_LJMP)) then
                        begin
                          if (m_delphi in current_settings.modeswitches) then
-                           Message(asmr_w_unable_to_determine_reference_size_using_dword)
+                           compiler.verbose.Message(asmr_w_unable_to_determine_reference_size_using_dword)
                          else
-                           Message(asmr_e_unable_to_determine_reference_size);
+                           compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                          { recovery }
                          tx86operand(operands[i]).opsize:=S_L;
                        end;
@@ -1666,9 +1666,9 @@ begin
                   begin
                     tx86operand(operands[1]).opsize:=S_B;
                     if (m_delphi in current_settings.modeswitches) then
-                      Message(asmr_w_unable_to_determine_reference_size_using_byte)
+                      compiler.verbose.Message(asmr_w_unable_to_determine_reference_size_using_byte)
                     else
-                      Message(asmr_e_unable_to_determine_reference_size);
+                      compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
                   end;
                 case tx86operand(operands[1]).opsize of
                   S_W :
@@ -1783,9 +1783,9 @@ begin
      { if range checks are on then generate an error }
      if (cs_compilesystem in current_settings.moduleswitches) or
         not (cs_check_range in current_settings.localswitches) then
-       Message(asmr_w_size_suffix_and_dest_dont_match)
+       compiler.verbose.Message(asmr_w_size_suffix_and_dest_dont_match)
      else
-       Message(asmr_e_size_suffix_and_dest_dont_match);
+       compiler.verbose.Message(asmr_e_size_suffix_and_dest_dont_match);
    end;
 end;
 
@@ -1938,19 +1938,19 @@ begin
           if (tx86operand(operands[1]).opr.val>=-128) and (tx86operand(operands[1]).opr.val<=127) then
             begin
               siz:=S_B;
-              message(asmr_w_unable_to_determine_constant_size_using_byte);
+              compiler.verbose.Message(asmr_w_unable_to_determine_constant_size_using_byte);
             end
           else
             begin
               siz:=S_W;
-              message(asmr_w_unable_to_determine_constant_size_using_word);
+              compiler.verbose.Message(asmr_w_unable_to_determine_constant_size_using_word);
             end;
 {$else i8086}
           { We are a 32 compiler, assume 32-bit by default. This is Delphi
             compatible but bad coding practise.}
 
           siz:=S_L;
-          message(asmr_w_unable_to_determine_reference_size_using_dword);
+          compiler.verbose.Message(asmr_w_unable_to_determine_reference_size_using_dword);
 {$endif i8086}
         end;
       if (opcode=A_JMP) or (opcode=A_JCC) or (opcode=A_CALL) then
@@ -2033,11 +2033,11 @@ begin
 {$ifdef i8086}
      { On i8086 we print only a warning, because 'POP CS' works on 8086 and 8088
        CPUs, but isn't supported on any later CPU }
-     Message(asmr_w_pop_cs_not_portable);
+     compiler.verbose.Message(asmr_w_pop_cs_not_portable);
 {$else i8086}
      { On the i386 and x86_64 targets, we print out an error, because no CPU,
        supported by these targets support 'POP CS' }
-     Message(asmr_e_pop_cs_not_valid);
+     compiler.verbose.Message(asmr_e_pop_cs_not_valid);
 {$endif i8086}
 
    { I tried to convince Linus Torvalds to add
@@ -2050,7 +2050,7 @@ begin
      FPC itself does not use it at all PM }
    if (opcode=A_ENTER) and
       (compiler.target.info.system in [system_i386_linux,system_i386_FreeBSD,system_i386_android]) then
-     Message(asmr_w_enter_not_supported_by_linux);
+     compiler.verbose.Message(asmr_w_enter_not_supported_by_linux);
 
   ai:=taicpu.op_none(opcode,siz);
   ai.fileinfo:=filepos;
@@ -2178,7 +2178,7 @@ begin
   if assigned(ai) then
     p.concat(ai)
   else
-   Message(asmr_e_invalid_opcode_and_operand);
+   compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
   result:=ai;
 end;
 

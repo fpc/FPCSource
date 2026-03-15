@@ -251,6 +251,8 @@ end;
 
 
 Procedure TExprParse.RPNPush(Num : tcgint);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Add an operand to the top of the RPN stack }
 begin
   if RPNTop < RPNMax then
@@ -259,11 +261,13 @@ begin
      RPNStack[RPNTop]:=Num;
    end
   else
-   Message(asmr_e_expr_illegal);
+   compiler.verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Function TExprParse.RPNPop : tcgint;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Get the operand at the top of the RPN stack }
 begin
   RPNPop:=0;
@@ -273,11 +277,13 @@ begin
      Dec(RPNTop);
    end
   else
-   Message(asmr_e_expr_illegal);
+   compiler.verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Procedure TExprParse.RPNCalc(const Token : String; prefix:boolean);                       { RPN Calculator }
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   Temp  : tcgint;
   n1,n2 : tcgint;
@@ -335,7 +341,7 @@ begin
          RPNPush(RPNPop mod Temp)
         else
          begin
-           Message(asmr_e_expr_zero_divide);
+           compiler.verbose.Message(asmr_e_expr_zero_divide);
            { push 1 for error recovery }
            RPNPush(1);
          end;
@@ -348,7 +354,7 @@ begin
          RPNPush(RPNPop div Temp)
         else
          begin
-           Message(asmr_e_expr_zero_divide);
+           compiler.verbose.Message(asmr_e_expr_zero_divide);
            { push 1 for error recovery }
            RPNPush(1);
          end;
@@ -362,7 +368,7 @@ begin
       RPNPush(Temp)
      else
       begin
-        Message(asmr_e_expr_illegal);
+        compiler.verbose.Message(asmr_e_expr_illegal);
         { push 1 for error recovery }
         RPNPush(1);
       end;
@@ -371,6 +377,8 @@ end;
 
 
 Procedure TExprParse.OpPush(_Operator : char;prefix: boolean);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Add an operator onto top of the stack }
 begin
   if OpTop < OpMax then
@@ -380,11 +388,13 @@ begin
      OpStack[OpTop].is_prefix:=prefix;
    end
   else
-   Message(asmr_e_expr_illegal);
+   compiler.verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Procedure TExprParse.OpPop(var _Operator:TExprOperator);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Get operator at the top of the stack }
 begin
   if OpTop > 0 then
@@ -393,11 +403,13 @@ begin
      Dec(OpTop);
    end
   else
-   Message(asmr_e_expr_illegal);
+   compiler.verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Function TExprParse.Priority(_Operator : Char) : aint;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Return priority of operator }
 { The greater the priority, the higher the precedence }
 begin
@@ -414,12 +426,14 @@ begin
     '*', '/','%','<','>' :   // the highest priority: *, /, MOD, SHL, SHR
       Priority:=3;
     else
-      Message(asmr_e_expr_illegal);
+      compiler.verbose.Message(asmr_e_expr_illegal);
   end;
 end;
 
 
 Function TExprParse.Evaluate(Expr : String):tcgint;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   I     : longint;
   Token : String;
@@ -504,7 +518,7 @@ begin
          end; { Case }
        end
      else
-      Message(asmr_e_expr_illegal);  { Handle bad input error }
+      compiler.verbose.Message(asmr_e_expr_illegal);  { Handle bad input error }
    end;
 
 { Pop off the remaining operators }
@@ -728,13 +742,13 @@ begin
           (po_assembler in procoptions) and
           (not paramanager.ret_in_param(returndef,current_procinfo.procdef)) then
           begin
-            message(asmr_e_cannot_use_RESULT_here);
+            compiler.verbose.Message(asmr_e_cannot_use_RESULT_here);
             exit;
           end;
         SetupResult:=setupvar('result',false)
       end
     else
-      message(asmr_e_void_function);
+      compiler.verbose.Message(asmr_e_void_function);
 end;
 
 
@@ -744,7 +758,7 @@ Begin
   if assigned(current_structdef) then
     SetupSelf:=setupvar('self',false)
   else
-    Message(asmr_e_cannot_use_SELF_outside_a_method);
+    compiler.verbose.Message(asmr_e_cannot_use_SELF_outside_a_method);
 end;
 
 
@@ -754,7 +768,7 @@ Begin
   if current_procinfo.procdef.parast.symtablelevel>normal_function_level then
     SetupOldEBP:=setupvar('parentframe',false)
   else
-    Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
+    compiler.verbose.Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
 end;
 
 
@@ -793,7 +807,7 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
       OPR_LOCAL :
         inc(opr.localsymofs,l);
       else
-        Message(asmr_e_invalid_operand_type);
+        compiler.verbose.Message(asmr_e_invalid_operand_type);
     end;
   end;
 
@@ -909,12 +923,12 @@ Begin
                           harrdef:=tarraydef(harrdef.elementdef)
                         else
                           begin
-                            Message(asmr_e_unsupported_symbol_type);
+                            compiler.verbose.Message(asmr_e_unsupported_symbol_type);
                             exit;
                           end;
                         if is_special_array(harrdef) then
                           begin
-                            Message(asmr_e_unsupported_symbol_type);
+                            compiler.verbose.Message(asmr_e_unsupported_symbol_type);
                             exit;
                           end;
                         if not is_packed_array(harrdef) then
@@ -922,18 +936,18 @@ Begin
                         else if (Int64(plist^.value-harrdef.lowrange)*harrdef.elepackedbitsize mod 8)=0 then
                           Inc(absoffset,asizeint(Int64(plist^.value-harrdef.lowrange)*harrdef.elepackedbitsize div 8))
                         else
-                          Message(asmr_e_packed_element);
+                          compiler.verbose.Message(asmr_e_packed_element);
                       end
                     else
                       begin
-                        Message(asmr_e_unsupported_symbol_type);
+                        compiler.verbose.Message(asmr_e_unsupported_symbol_type);
                         exit;
                       end;
                   end;
               end
             else
               begin
-                Message(asmr_e_unsupported_symbol_type);
+                compiler.verbose.Message(asmr_e_unsupported_symbol_type);
                 exit;
               end;
           end;
@@ -949,7 +963,7 @@ Begin
           end;
         else
           begin
-            Message(asmr_e_unsupported_symbol_type);
+            compiler.verbose.Message(asmr_e_unsupported_symbol_type);
             exit;
           end;
       end;
@@ -962,7 +976,7 @@ Begin
         else if tfieldvarsym(sym).fieldoffset mod 8 = 0 then
           setconst(absoffset+tfieldvarsym(sym).fieldoffset div 8)
         else
-          Message(asmr_e_packed_element);
+          compiler.verbose.Message(asmr_e_packed_element);
         if not size_set_from_absolute then
           setvarsize(tabstractvarsym(sym));
         hasvar:=true;
@@ -1012,7 +1026,7 @@ Begin
                       if indexreg=NR_NO then
                         indexreg:=opr.ref.index
                       else
-                        Message(asmr_e_multiple_index);
+                        compiler.verbose.Message(asmr_e_multiple_index);
                     end;
                 end
               else
@@ -1071,7 +1085,7 @@ Begin
     procsym :
       begin
         if Tprocsym(sym).ProcdefList.Count>1 then
-          Message(asmr_w_calling_overload_func);
+          compiler.verbose.Message(asmr_w_calling_overload_func);
         case opr.typ of
           OPR_REFERENCE:
             begin
@@ -1093,7 +1107,7 @@ Begin
               opr.symofs:=absoffset;
             end;
         else
-          Message(asmr_e_invalid_operand_type);
+          compiler.verbose.Message(asmr_e_invalid_operand_type);
         end;
         hasproc:=true;
         hasvar:=true;
@@ -1113,7 +1127,7 @@ Begin
             end;
           else
             begin
-              Message(asmr_e_unsupported_symbol_type);
+              compiler.verbose.Message(asmr_e_unsupported_symbol_type);
               exit;
             end;
         end;
@@ -1125,7 +1139,7 @@ Begin
 {$endif i8086}
     else
       begin
-        Message(asmr_e_unsupported_symbol_type);
+        compiler.verbose.Message(asmr_e_unsupported_symbol_type);
         exit;
       end;
   end;
@@ -1244,7 +1258,7 @@ end;
 
 procedure TOperand.InitRefError;
 begin
-  Message(asmr_e_invalid_operand_type);
+  compiler.verbose.Message(asmr_e_invalid_operand_type);
   { Recover }
   opr.typ:=OPR_REFERENCE;
   opr.varsize:=0;
@@ -1380,7 +1394,7 @@ end;
       if assigned(ai) then
          p.concat(ai)
       else
-       Message(asmr_e_invalid_opcode_and_operand);
+       compiler.verbose.Message(asmr_e_invalid_opcode_and_operand);
       result:=ai;
     end;
 
@@ -1701,7 +1715,7 @@ Begin
      sym:=search_struct_member(tabstractrecorddef(st.defowner),base);
      if not assigned(sym) then
       begin
-        Message(asmr_e_unknown_field);
+        compiler.verbose.Message(asmr_e_unknown_field);
         GetRecordOffsetSize:=false;
         exit;
       end;
@@ -1715,7 +1729,7 @@ Begin
              else if tfieldvarsym(sym).fieldoffset mod 8 = 0 then
                inc(Offset,fieldoffset div 8)
              else
-               Message(asmr_e_packed_element);
+               compiler.verbose.Message(asmr_e_packed_element);
              size:=getsize;
              case vardef.typ of
                arraydef :
@@ -1731,7 +1745,7 @@ Begin
                    else
                      begin
                        if (harrdef.elepackedbitsize mod 8) <> 0 then
-                         Message(asmr_e_packed_element);
+                         compiler.verbose.Message(asmr_e_packed_element);
                        size := (harrdef.elepackedbitsize + 7) div 8;
                      end;
                  end;
@@ -1747,7 +1761,7 @@ Begin
          begin
            st:=nil;
            if Tprocsym(sym).ProcdefList.Count>1 then
-             Message(asmr_w_calling_overload_func);
+             compiler.verbose.Message(asmr_w_calling_overload_func);
            procdef:=tprocdef(tprocsym(sym).ProcdefList[0]);
            if (not needvmtofs) then
              begin
@@ -1827,7 +1841,7 @@ Begin
         if emit then
           begin
             if tlabelsym(sym).defined then
-              Message(sym_e_label_already_defined);
+              compiler.verbose.Message(sym_e_label_already_defined);
             tlabelsym(sym).defined:=true;
             hl.defined_in_asmstatement:=true
           end
@@ -1858,6 +1872,8 @@ end;
 
 
 Procedure ConcatConstant(p: TAsmList; value: tcgint; constsize:byte);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {*********************************************************************}
 {  Description: This routine adds the value constant to the current   }
 {  instruction linked list.                                           }
@@ -1896,7 +1912,7 @@ Begin
   { check for out of bounds }
   if (rangelo<>0) and
      ((value>rangehi) or (value<rangelo)) then
-    Message(asmr_e_constant_out_of_bounds);
+    compiler.verbose.Message(asmr_e_constant_out_of_bounds);
 end;
 
 

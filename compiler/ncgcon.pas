@@ -170,7 +170,7 @@ implementation
                     { the round is necessary for native compilers where comp isn't a float }
                     aitrealconst_s64comp :
                       if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
-                        message(parser_e_range_check_error)
+                        compiler.verbose.Message(parser_e_range_check_error)
                       else
                         current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64compreal(round(value_real)));
 {$ifndef cpufloat128}

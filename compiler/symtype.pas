@@ -242,7 +242,8 @@ implementation
     uses
        crefs,
        verbose,
-       fmodule
+       fmodule,
+       compiler
        ;
 
 {****************************************************************************
@@ -1059,7 +1060,7 @@ implementation
     procedure tcompilerppufile.checkerror;
       begin
         if error then
-         Message(unit_f_ppu_read_error);
+         compiler.verbose.Message(unit_f_ppu_read_error);
       end;
 
     procedure tcompilerppufile.RaiseAssertion(Code: Longint);

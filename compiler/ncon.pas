@@ -266,6 +266,8 @@ implementation
 
 
     function get_ordinal_value(p : tnode) : TConstExprInt;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         get_ordinal_value:=0;
         if is_constnode(p) then
@@ -273,10 +275,10 @@ implementation
             if p.nodetype=ordconstn then
               get_ordinal_value:=tordconstnode(p).value
             else
-              Message(type_e_ordinal_expr_expected);
+              compiler.verbose.Message(type_e_ordinal_expr_expected);
           end
         else
-          Message(type_e_constant_expr_expected);
+          compiler.verbose.Message(type_e_constant_expr_expected);
       end;
 
     function get_string_value(p: tnode; def: tstringdef; compiler: TCompilerBase): tstringconstnode;
@@ -301,7 +303,7 @@ implementation
           result:=tstringconstnode(p.getcopy)
         else
           begin
-            Message(type_e_string_expr_expected);
+            compiler.verbose.Message(type_e_string_expr_expected);
             stringVal:='';
             result:=compiler.cstringconstnode_str(stringVal);
           end;
@@ -346,7 +348,7 @@ implementation
               len:=p.value.len;
               if not(cs_refcountedstrings in current_settings.localswitches) and (len>255) then
                 begin
-                  message(parser_e_string_const_too_long);
+                  compiler.verbose.Message(parser_e_string_const_too_long);
                   len:=255;
                 end;
               getmem(pc,len+1);
@@ -1038,7 +1040,7 @@ implementation
          pc:=nil;
          getmem(pc,len+1);
          if pc=nil then
-           Message(general_f_no_memory_left);
+           compiler.verbose.Message(general_f_no_memory_left);
          pc[len]:=#0;
          if len>0 then
            move(valueas[0],pc^,len);

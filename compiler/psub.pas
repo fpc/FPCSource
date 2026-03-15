@@ -223,7 +223,7 @@ implementation
         begin
           include(procdef.implprocoptions,pio_inline_not_possible);
           compiler.verbose.Message1(parser_n_not_supported_for_inline,reason);
-          Message(parser_h_inlining_disabled);
+          compiler.verbose.Message(parser_h_inlining_disabled);
         end;
 
       var
@@ -541,7 +541,7 @@ implementation
                             nil));
                       end
                     else
-                      Message(parser_e_no_suitable_newinstance_method_found);
+                      compiler.verbose.Message(parser_e_no_suitable_newinstance_method_found);
                   end
                 else
                   if is_object(current_structdef) then
@@ -2520,7 +2520,7 @@ implementation
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
-           Message(parser_e_too_much_lexlevel);
+           compiler.verbose.Message(parser_e_too_much_lexlevel);
          block_type:=bt_body;
 
     {$ifdef state_tracking}
@@ -2569,7 +2569,7 @@ implementation
                st:=st.defowner.owner;
              if (pi_uses_static_symtable in flags) and
                 (st.symtabletype<>staticsymtable) then
-               Message(parser_e_global_generic_references_static);
+               compiler.verbose.Message(parser_e_global_generic_references_static);
            end;
 
          { save exit info }
@@ -3130,7 +3130,7 @@ implementation
           begin
             if hadgeneric then
               begin
-                Message(parser_e_procedure_or_function_expected);
+                compiler.verbose.Message(parser_e_procedure_or_function_expected);
                 hadgeneric:=false;
               end;
           end;
@@ -3179,10 +3179,10 @@ implementation
                      { constructors, destructors                                 }
                      if not((current_scanner.token in [_FUNCTION,_PROCEDURE,_DESTRUCTOR,_OPERATOR]) or (current_scanner.token=_CONSTRUCTOR)) and
                         not((current_scanner.token=_ID) and (current_scanner.idtoken=_OPERATOR)) then
-                       Message(parser_e_procedure_or_function_expected);
+                       compiler.verbose.Message(parser_e_procedure_or_function_expected);
 
                      if is_interface(current_structdef) then
-                       Message(parser_e_no_static_method_in_interfaces)
+                       compiler.verbose.Message(parser_e_no_static_method_in_interfaces)
                      else
                        { class methods are also allowed for Objective-C protocols }
                        is_classdef:=true;
@@ -3196,7 +3196,7 @@ implementation
                 begin
                   if hadgeneric and not (current_scanner.token in [_PROCEDURE,_FUNCTION]) then
                     begin
-                      Message(parser_e_procedure_or_function_expected);
+                      compiler.verbose.Message(parser_e_procedure_or_function_expected);
                       hadgeneric:=false;
                     end;
                   flags:=[];
@@ -3213,7 +3213,7 @@ implementation
                    handle_unexpected_had_generic;
                    if (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
                      begin
-                        Message(parser_e_syntax_error);
+                        compiler.verbose.Message(parser_e_syntax_error);
                         parser.pbase.consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
@@ -3221,7 +3221,7 @@ implementation
                      parser.pexports.read_exports
                    else
                      begin
-                        Message(parser_w_unsupported_feature);
+                        compiler.verbose.Message(parser_w_unsupported_feature);
                         parser.pbase.consume(_BEGIN);
                      end;
                 end;
@@ -3303,7 +3303,7 @@ implementation
           begin
             if hadgeneric then
               begin
-                Message(parser_e_procedure_or_function_expected);
+                compiler.verbose.Message(parser_e_procedure_or_function_expected);
                 hadgeneric:=false;
               end;
           end;
@@ -3340,7 +3340,7 @@ implementation
                begin
                  if hadgeneric and not (current_scanner.token in [_FUNCTION, _PROCEDURE]) then
                    begin
-                     message(parser_e_procedure_or_function_expected);
+                     compiler.verbose.Message(parser_e_procedure_or_function_expected);
                      hadgeneric:=false;
                    end;
                  flags:=[];

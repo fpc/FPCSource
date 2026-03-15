@@ -544,7 +544,7 @@ implementation
               begin
                 if not assigned(tlabelsym(symtableentry).asmblocklabel) and
                    not assigned(tlabelsym(symtableentry).code) then
-                  Message(parser_e_label_outside_proc);
+                  compiler.verbose.Message(parser_e_label_outside_proc);
               end
             else
               internalerror(200104143);

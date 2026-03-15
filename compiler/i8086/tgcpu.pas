@@ -54,7 +54,7 @@ procedure ttgi8086.alloctemp(list: TAsmList; size: asizeint; alignment: shortint
     inherited;
     ref.segment:=NR_SS;
     if abs(ref.offset) > globals.StackSize then
-      message(cg_e_localsize_too_big);
+      compiler.verbose.Message(cg_e_localsize_too_big);
   end;
 
 begin

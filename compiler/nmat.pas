@@ -172,7 +172,7 @@ implementation
                 { if the node is derived from a generic const parameter
                   then don't issue an error }
                 if not (nf_generic_para in flags) then
-                  Message(parser_e_division_by_zero);
+                  compiler.verbose.Message(parser_e_division_by_zero);
                 { recover }
                 tordconstnode(right).value := 1;
               end;
@@ -189,7 +189,7 @@ implementation
             if (mdnf_isomod in moddivnodeflags) and
               (rv<=0) then
                begin
-                 Message(cg_e_mod_only_defined_for_pos_quotient);
+                 compiler.verbose.Message(cg_e_mod_only_defined_for_pos_quotient);
                  { recover }
                  tordconstnode(right).value := 1;
                end

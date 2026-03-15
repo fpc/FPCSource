@@ -1070,7 +1070,7 @@ implementation
                   pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
                 if not assigned(pd) then
                   begin
-                    Message(sym_e_no_matching_inherited_parameterless_constructor);
+                    compiler.verbose.Message(sym_e_no_matching_inherited_parameterless_constructor);
                     exit
                   end;
               end;

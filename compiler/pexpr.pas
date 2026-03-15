@@ -168,12 +168,12 @@ implementation
          if current_scanner.token=_LECKKLAMMER then
            begin
              if not(allowtypedef) then
-               Message(parser_e_no_local_para_def);
+               compiler.verbose.Message(parser_e_no_local_para_def);
              parser.pbase.consume(_LECKKLAMMER);
              p:=comp_expr([ef_accept_equal]);
              if not is_constintnode(p) then
                begin
-                 Message(parser_e_illegal_expression);
+                 compiler.verbose.Message(parser_e_illegal_expression);
                  { error recovery }
                  parser.pbase.consume(_RECKKLAMMER);
                end
@@ -186,14 +186,14 @@ implementation
                   tordconstnode(p).value:=255;
                 if tordconstnode(p).value<=0 then
                   begin
-                     Message(parser_e_invalid_string_size);
+                     compiler.verbose.Message(parser_e_invalid_string_size);
                      tordconstnode(p).value:=255;
                   end;
                 if tordconstnode(p).value>255 then
                   begin
                     { longstring is currently unsupported (CEC)! }
 {                    t:=cstringdef.createlong(tordconstnode(p).value))}
-                    Message(parser_e_invalid_string_size);
+                    compiler.verbose.Message(parser_e_invalid_string_size);
                     tordconstnode(p).value:=255;
                     def:=cstringdef.createshort(int64(tordconstnode(p).value),true,compiler);
                   end
@@ -209,7 +209,7 @@ implementation
             begin
              // string[x] is allowed in system unit since it is a shortstring.
              if cs_compilesystem in current_settings.moduleswitches then
-               Message(parser_e_nostringaliasinsystem);
+               compiler.verbose.Message(parser_e_nostringaliasinsystem);
               if cs_refcountedstrings in current_settings.localswitches then
                 begin
                   if m_default_unicodestring in current_settings.modeswitches then
@@ -302,7 +302,7 @@ implementation
            be different from the read }
          if (nf_isproperty in p1.flags) then
            begin
-             Message(type_e_variable_id_expected);
+             compiler.verbose.Message(type_e_variable_id_expected);
              { We can continue with the loading,
                it'll not create errors. Only the expected
                result can be wrong }
@@ -378,7 +378,7 @@ implementation
                              (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
                              is_void(current_procinfo.procdef.returndef) then
                             begin
-                              Message(parser_e_void_function);
+                              compiler.verbose.Message(parser_e_void_function);
                               { recovery }
                               p1.free;
                               p1:=nil;
@@ -423,7 +423,7 @@ implementation
                               tgotonode(statement_syssym).labelsym:=exit_procinfo.nestedexitlabel;
                             end
                           else
-                            Message(parser_e_macpas_exit_wrong_param);
+                            compiler.verbose.Message(parser_e_macpas_exit_wrong_param);
                         end;
                       parser.pbase.consume(_ID);
                       parser.pbase.consume(_RKLAMMER);
@@ -488,7 +488,7 @@ implementation
                statement_syssym:=geninlinenode(in_typeof_x,false,p1,compiler)
               else
                begin
-                 Message(parser_e_class_id_expected);
+                 compiler.verbose.Message(parser_e_class_id_expected);
                  p1.free;
                  p1 := nil;
                  statement_syssym:=compiler.cerrornode;
@@ -530,7 +530,7 @@ implementation
                    compiler.verbose.Message1(type_e_type_is_not_completly_defined,tforwarddef(p1.resultdef).tosymname^);
 {$ifdef wasm}
                  if is_wasm_reference_type(p1.resultdef) then
-                   Message(type_e_cannot_determine_size_of_wasm_reference_type);
+                   compiler.verbose.Message(type_e_cannot_determine_size_of_wasm_reference_type);
 {$endif wasm}
                  if (l = in_sizeof_x) or
                     (not((p1.nodetype = vecn) and
@@ -584,7 +584,7 @@ implementation
                     begin
                        p1.free;
                        p1:=compiler.cerrornode;
-                       Message(parser_e_illegal_parameter_list);
+                       compiler.verbose.Message(parser_e_illegal_parameter_list);
                     end;}
                   parser.pbase.consume(_RKLAMMER);
                   p2:=geninlinenode(l,false,p1,compiler);
@@ -646,19 +646,19 @@ implementation
                    objectdef :
                      if not is_implicit_pointer_object_type(p1.resultdef) then
                        begin
-                         Message(parser_e_illegal_parameter_list);
+                         compiler.verbose.Message(parser_e_illegal_parameter_list);
                          err:=true;
                        end;
                    arraydef :
                      if not is_dynamic_array(p1.resultdef) then
                        begin
-                         Message(parser_e_illegal_parameter_list);
+                         compiler.verbose.Message(parser_e_illegal_parameter_list);
                          err:=true;
                        end;
                    else
                      if p1.resultdef.typ<>undefineddef then
                        begin
-                         Message(parser_e_illegal_parameter_list);
+                         compiler.verbose.Message(parser_e_illegal_parameter_list);
                          err:=true;
                        end;
                  end;
@@ -713,7 +713,7 @@ implementation
           in_ofs_x :
             begin
               if compiler.target.info.system in systems_managed_vm then
-                message(parser_e_feature_unsupported_for_vm);
+                compiler.verbose.Message(parser_e_feature_unsupported_for_vm);
               parser.pbase.consume(_LKLAMMER);
               got_addrn:=true;
               p1:=factor(true,[]);
@@ -784,7 +784,7 @@ implementation
             begin
               if not(in_args) then
                 begin
-                  message(parser_e_illegal_slice);
+                  compiler.verbose.Message(parser_e_illegal_slice);
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
                   comp_expr([ef_accept_equal]).free; // no nil needed
@@ -1460,14 +1460,14 @@ implementation
                     else
                       begin
                         p1:=compiler.cerrornode;
-                        Message(parser_e_no_procedure_to_access_property);
+                        compiler.verbose.Message(parser_e_no_procedure_to_access_property);
                       end;
                   end;
                 end
               else
                 begin
                    p1:=compiler.cerrornode;
-                   Message(parser_e_no_procedure_to_access_property);
+                   compiler.verbose.Message(parser_e_no_procedure_to_access_property);
                 end;
            end
          else
@@ -1500,7 +1500,7 @@ implementation
                      else
                        begin
                           p1:=compiler.cerrornode;
-                          Message(type_e_mismatch);
+                          compiler.verbose.Message(type_e_mismatch);
                        end;
                   end;
                 end
@@ -1508,7 +1508,7 @@ implementation
                 begin
                    { error, no function to read property }
                    p1:=compiler.cerrornode;
-                   Message(parser_e_no_procedure_to_access_property);
+                   compiler.verbose.Message(parser_e_no_procedure_to_access_property);
                 end;
            end;
         { release paras if not used }
@@ -1588,7 +1588,7 @@ implementation
                                { or a class/metaclass type, or a class reference }
                                (tloadnode(p1).left.resultdef.typ=classrefdef)
                              ) then
-                           Message(parser_e_only_class_members_via_class_ref);
+                           compiler.verbose.Message(parser_e_only_class_members_via_class_ref);
                        end
                       { calling using classref? }
                       else if (
@@ -1607,7 +1607,7 @@ implementation
                             begin
                               if not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
                                  not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
-                                Message(parser_e_only_class_members_via_class_ref);
+                                compiler.verbose.Message(parser_e_only_class_members_via_class_ref);
                             end
                           else
                             begin
@@ -1637,7 +1637,7 @@ implementation
                                 begin
                                   p1.free;
                                   p1:=compiler.cerrornode;
-                                  Message(parser_e_only_static_members_via_object_type);
+                                  compiler.verbose.Message(parser_e_only_static_members_via_object_type);
                                   exit;
                                 end;
                             end;
@@ -1647,7 +1647,7 @@ implementation
                           if is_javaclass(structh) and
                              (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
                              (tcallnode(p1).procdefinition.owner.defowner<>compiler.symtablestack.find_real_class_definition(tobjectdef(structh),false)) then
-                            Message(parser_e_java_no_inherited_constructor);
+                            compiler.verbose.Message(parser_e_java_no_inherited_constructor);
                           { Provide a warning if we try to create an instance of a
                             abstract class using the type name of that class. We
                             must not provide a warning if we use a "class of"
@@ -1672,16 +1672,16 @@ implementation
                                 is_self_node(p1) or
                                 (assigned(current_procinfo) and (current_procinfo.get_normal_proc.procdef.no_self_node) and
                                 (current_procinfo.procdef.struct=structh))) then
-                              Message(parser_e_only_class_members)
+                              compiler.verbose.Message(parser_e_only_class_members)
                             else
-                              Message(parser_e_only_class_members_via_class_ref);
+                              compiler.verbose.Message(parser_e_only_class_members_via_class_ref);
                           p1:=compiler.csubscriptnode(sym,p1);
                         end;
                    end;
                  propertysym:
                    begin
                       if isclassref and not (sp_static in sym.symoptions) then
-                        Message(parser_e_only_class_members_via_class_ref);
+                        compiler.verbose.Message(parser_e_only_class_members_via_class_ref);
                       handle_propertysym(tpropertysym(sym),sym.owner,p1);
                    end;
                  typesym:
@@ -1740,7 +1740,7 @@ implementation
           compiler.verbose.Message1(sym_e_id_no_member,current_scanner.orgpattern)
         else
           if not (srsym.typ in [typesym,procsym]) then
-            message(type_e_type_id_expected)
+            compiler.verbose.Message(type_e_type_id_expected)
           else
             begin
               if srsym.typ=typesym then
@@ -1761,7 +1761,7 @@ implementation
                   begin
                     if block_type<>bt_body then
                       begin
-                        message(parser_e_illegal_expression);
+                        compiler.verbose.Message(parser_e_illegal_expression);
                         spezcontext.free;
                         spezcontext:=nil;
                         srsym:=generrorsym;
@@ -1818,7 +1818,7 @@ implementation
             parser.pbase.consume(_RKLAMMER);
             { type casts to class helpers aren't allowed }
             if is_objectpascal_helper(hdef) then
-              Message(parser_e_no_category_as_types)
+              compiler.verbose.Message(parser_e_no_category_as_types)
               { recovery by not creating a conversion node }
             else
               result:=compiler.ctypeconvnode_explicit(result,hdef);
@@ -1843,7 +1843,7 @@ implementation
                    begin
                      parser.pbase.consume(_ID);
                      if current_scanner.token<>_ID then
-                       message(type_e_type_id_expected);
+                       compiler.verbose.Message(type_e_type_id_expected);
                      isspecialize:=true;
                    end
                  else
@@ -1886,7 +1886,7 @@ implementation
                   begin
                     parser.pbase.consume(_ID);
                     if current_scanner.token<>_ID then
-                      message(type_e_type_id_expected);
+                      compiler.verbose.Message(type_e_type_id_expected);
                     isspecialize:=true;
                   end
                 else
@@ -2007,12 +2007,12 @@ implementation
         val(s,d,code);
         if code<>0 then
          begin
-           Message(parser_e_error_in_real);
+           compiler.verbose.Message(parser_e_error_in_real);
            d:=1.0;
          end;
         if current_settings.fputype=fpu_none then
           begin
-            Message(parser_e_unsupported_real);
+            compiler.verbose.Message(parser_e_unsupported_real);
             result:=compiler.cerrornode;
             exit;
           end;
@@ -2350,7 +2350,7 @@ implementation
                  begin
                     { ^ as binary operator is a problem!!!! (FK) }
                     again:=false;
-                    Message(parser_e_invalid_qualifier);
+                    compiler.verbose.Message(parser_e_invalid_qualifier);
                     recoverconsume_postfixops;
                     p1.free;
                     p1:=compiler.cerrornode;
@@ -2384,7 +2384,7 @@ implementation
                         p1.free;
                         p1:=compiler.cerrornode;
                         again:=false;
-                        message(parser_e_no_default_property_available);
+                        compiler.verbose.Message(parser_e_no_default_property_available);
                      end
                    else
                      begin
@@ -2491,7 +2491,7 @@ implementation
                        else
                          begin
                            if p1.resultdef.typ<>undefineddef then
-                             Message(parser_e_invalid_qualifier);
+                             compiler.verbose.Message(parser_e_invalid_qualifier);
                            p1.free;
                            p1:=compiler.cerrornode;
                            comp_expr([ef_accept_equal]);
@@ -2598,7 +2598,7 @@ implementation
                          valstr:=valstr+expstr;
                        if haderror then
                          begin
-                           Message(parser_e_error_in_real);
+                           compiler.verbose.Message(parser_e_error_in_real);
                            p2:=compiler.cerrornode;
                          end
                        else
@@ -2760,7 +2760,7 @@ implementation
                                    end
                                  else
                                    begin
-                                     Message(parser_e_invalid_qualifier);
+                                     compiler.verbose.Message(parser_e_invalid_qualifier);
                                      p1.free;
                                      p1:=compiler.cerrornode;
                                      parser.pbase.consume(_ID);
@@ -2769,7 +2769,7 @@ implementation
                            end
                          else
                            begin
-                             Message(parser_e_invalid_qualifier);
+                             compiler.verbose.Message(parser_e_invalid_qualifier);
                              p1.free;
                              p1:=compiler.cerrornode;
                              parser.pbase.consume(_ID);
@@ -2778,7 +2778,7 @@ implementation
                      else
                        if (current_scanner.token<>_ID) or not try_type_helper(p1,nil) then
                          begin
-                           Message(parser_e_invalid_qualifier);
+                           compiler.verbose.Message(parser_e_invalid_qualifier);
                            p1.free;
                            p1:=compiler.cerrornode;
                            parser.pbase.consume(_ID);
@@ -2960,16 +2960,16 @@ implementation
                           else
                             begin
                               parser.pbase.consume(_ID);
-                              Message(parser_e_methode_id_expected);
+                              compiler.verbose.Message(parser_e_methode_id_expected);
                             end;
                         end
                       else
                         begin
                           if not try_type_helper(p1,nil) then
                             begin
-                              Message(parser_e_invalid_qualifier);
+                              compiler.verbose.Message(parser_e_invalid_qualifier);
                               if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
-                                Message(parser_h_maybe_deref_caret_missing);
+                                compiler.verbose.Message(parser_h_maybe_deref_caret_missing);
                             end;
                         end
                     end;
@@ -2992,7 +2992,7 @@ implementation
                       if not found then
                         begin
                           if p1.resultdef.typ<>undefineddef then
-                            Message(parser_e_invalid_qualifier);
+                            compiler.verbose.Message(parser_e_invalid_qualifier);
                           p1.free;
                           p1:=compiler.cerrornode;
                           { Error }
@@ -3048,7 +3048,7 @@ implementation
                           { proc():= is never possible }
                           if current_scanner.token=_ASSIGNMENT then
                             begin
-                              Message(parser_e_illegal_expression);
+                              compiler.verbose.Message(parser_e_illegal_expression);
                               p1.free;
                               p1:=compiler.cerrornode;
                               again:=false;
@@ -3351,12 +3351,12 @@ implementation
                 begin
                   parser.pbase.consume(_COLON);
                   if tlabelsym(srsym).defined then
-                    Message(sym_e_label_already_defined);
+                    compiler.verbose.Message(sym_e_label_already_defined);
                   if compiler.symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                     begin
                       include(current_procinfo.flags,pi_has_interproclabel);
                       if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-                        Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
+                        compiler.verbose.Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                     end;
                   tlabelsym(srsym).defined:=true;
                   result:=compiler.clabelnode(nil,tlabelsym(srsym));
@@ -3386,7 +3386,7 @@ implementation
           else
             begin
               result:=compiler.cerrornode;
-              Message(parser_e_illegal_expression);
+              compiler.verbose.Message(parser_e_illegal_expression);
             end;
         end; { end case }
       end;
@@ -3593,7 +3593,7 @@ implementation
                              if hdef.typ=procdef then
                                begin
                                  if not(block_type in inline_specialization_block_types) then
-                                   message(parser_e_illegal_expression);
+                                   compiler.verbose.Message(parser_e_illegal_expression);
                                  srsym:=tprocdef(hdef).procsym;
                                  if assigned(spezcontext.symtable) then
                                    srsymtable:=spezcontext.symtable
@@ -3729,7 +3729,7 @@ implementation
                 srsym:=tprocdef(hdef).procsym
               else
                 begin
-                  Message(parser_e_illegal_expression);
+                  compiler.verbose.Message(parser_e_illegal_expression);
                   srsym:=generrorsym;
                 end;
               srsymtable:=srsym.owner;
@@ -3912,7 +3912,7 @@ implementation
                          (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
                          is_void(current_procinfo.procdef.returndef) then
                         begin
-                          Message(parser_e_void_function);
+                          compiler.verbose.Message(parser_e_void_function);
                           { recovery }
                           p1.free;
                           p1:=nil;
@@ -3935,7 +3935,7 @@ implementation
                     if is_objectpascal_helper(current_structdef) and
                         (m_delphi in current_settings.modeswitches) and
                         (tobjectdef(current_structdef).helpertype=ht_record) then
-                      Message(parser_e_inherited_not_in_record);
+                      compiler.verbose.Message(parser_e_inherited_not_in_record);
                     if (current_structdef.typ=objectdef) then
                       begin
                         hclassdef:=tobjectdef(current_structdef).childof;
@@ -3983,7 +3983,7 @@ implementation
                          begin
                            parser.pbase.consume(_ID);
                            if current_scanner.token<>_ID then
-                             message(parser_e_methode_id_expected);
+                             compiler.verbose.Message(parser_e_methode_id_expected);
                            isspecialize:=true;
                          end
                        else
@@ -4018,7 +4018,7 @@ implementation
                                with a potential generic }
                              if (srsym.typ=typesym) and not mightbegeneric then
                                begin
-                                 Message(parser_e_methode_id_expected);
+                                 compiler.verbose.Message(parser_e_methode_id_expected);
                                  p1:=compiler.cerrornode;
                                end
                              else
@@ -4068,7 +4068,7 @@ implementation
                            ;
                          else
                            begin
-                             Message(parser_e_methode_id_expected);
+                             compiler.verbose.Message(parser_e_methode_id_expected);
                              p1:=compiler.cerrornode;
                            end;
                        end;
@@ -4128,9 +4128,9 @@ implementation
                      { in case of records we use a more clear error message }
                      if assigned(current_structdef) and
                          (current_structdef.typ=recorddef) then
-                       Message(parser_e_inherited_not_in_record)
+                       compiler.verbose.Message(parser_e_inherited_not_in_record)
                      else
-                       Message(parser_e_generic_methods_only_in_methods);
+                       compiler.verbose.Message(parser_e_generic_methods_only_in_methods);
                      again:=false;
                      p1:=compiler.cerrornode;
                    end;
@@ -4165,7 +4165,7 @@ implementation
                      val(current_scanner.pattern,d,code);
                      if code<>0 then
                        begin
-                          Message(parser_e_invalid_integer);
+                          compiler.verbose.Message(parser_e_invalid_integer);
                           parser.pbase.consume(_INTCONST);
                           l:=1;
                           p1:=compiler.cordconstnode(l,sinttype,true);
@@ -4200,7 +4200,7 @@ implementation
              _STRING :
                begin
                  if cs_compilesystem in current_settings.moduleswitches then
-                   Message(parser_e_nostringaliasinsystem);
+                   compiler.verbose.Message(parser_e_nostringaliasinsystem);
                  string_dec(hdef,true);
                  { STRING can be also a type cast }
                  if parser.pbase.try_to_consume(_LKLAMMER) then
@@ -4467,7 +4467,7 @@ implementation
                    end
                  else
                    begin
-                     Message(parser_e_illegal_expression);
+                     compiler.verbose.Message(parser_e_illegal_expression);
                      p1:=compiler.cerrornode;
                      { recover }
                      parser.pbase.consume(current_scanner.token);
@@ -4476,7 +4476,7 @@ implementation
 
              else
                begin
-                 Message(parser_e_illegal_expression);
+                 compiler.verbose.Message(parser_e_illegal_expression);
                  p1:=compiler.cerrornode;
                  { recover }
                  parser.pbase.consume(current_scanner.token);
@@ -4655,7 +4655,7 @@ implementation
               begin
                 if not (block_type in [bt_body,bt_except]) then
                   begin
-                    message(parser_e_illegal_expression);
+                    compiler.verbose.Message(parser_e_illegal_expression);
                     gensym:=generrorsym;
                   end
                 else
@@ -5047,7 +5047,7 @@ implementation
                 {factornode:=p1;
                 goto SubExprStart;}
               end else
-                message(parser_e_illegal_expression);
+                compiler.verbose.Message(parser_e_illegal_expression);
           end;
         sub_expr:=p1;
       end;
@@ -5115,7 +5115,7 @@ implementation
            _PLUSASN :
              begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
-                 Message(parser_e_coperators_off);
+                 compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_PLUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(addn,p1,p2);
@@ -5123,7 +5123,7 @@ implementation
           _MINUSASN :
             begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
-                 Message(parser_e_coperators_off);
+                 compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_MINUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(subn,p1,p2);
@@ -5131,7 +5131,7 @@ implementation
           _STARASN :
             begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
-                 Message(parser_e_coperators_off);
+                 compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_STARASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(muln,p1,p2);
@@ -5139,7 +5139,7 @@ implementation
           _SLASHASN :
             begin
                if not(cs_support_c_operators in current_settings.moduleswitches) then
-                 Message(parser_e_coperators_off);
+                 compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_SLASHASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(slashn,p1,p2);
@@ -5173,7 +5173,7 @@ implementation
        begin
          if (p.nodetype<>ordconstn) or
             not(is_integer(p.resultdef)) then
-          Message(parser_e_illegal_expression)
+          compiler.verbose.Message(parser_e_illegal_expression)
          else
           result:=tordconstnode(p).value;
        end;
@@ -5201,7 +5201,7 @@ implementation
           if (p.nodetype=ordconstn) and is_char(p.resultdef) then
             get_stringconst:=char(tordconstnode(p).value.svalue)
           else
-            Message(parser_e_illegal_expression);
+            compiler.verbose.Message(parser_e_illegal_expression);
         end
       else if (tstringconstnode(p).cst_type in [cst_unicodestring,cst_widestring]) then
          begin

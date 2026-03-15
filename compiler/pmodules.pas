@@ -313,7 +313,7 @@ implementation
             hp:=tmodule(hp.next);
           end;
         { Variants unit is not loaded yet, load it now }
-        Message(parser_w_implicit_uses_of_variants_unit);
+        compiler.verbose.Message(parser_w_implicit_uses_of_variants_unit);
         addsystemnamespace:=namespacelist.Find('System')=Nil;
         if addsystemnamespace then
           namespacelist.concat('System');
@@ -598,7 +598,7 @@ implementation
               else if idf_version>=50200 then
                 CheckAddUnit('espidf_50200')
               else
-                Message(unit_w_unsupported_esp_idf_version);
+                compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
             end
           else if (current_settings.controllertype=ct_esp8266) then
             begin
@@ -607,7 +607,7 @@ implementation
               else if idf_version>=30400 then
                 CheckAddUnit('esp8266rtos_30400')
               else
-                Message(unit_w_unsupported_esp_idf_version);
+                compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
             end;
 {$endif XTENSA}
 {$ifdef RISCV32}
@@ -634,7 +634,7 @@ implementation
               else if idf_version>=40400 then
                 CheckAddUnit('esp32c3idf_40400')
               else
-                Message(unit_w_unsupported_esp_idf_version);
+                compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
             end;
           if (current_settings.controllertype=ct_esp32c6) then
             begin
@@ -709,14 +709,14 @@ implementation
           { Give a warning if lineinfo is loaded }
           if s='LINEINFO' then
             begin
-              Message(parser_w_no_lineinfo_use_switch);
+              compiler.verbose.Message(parser_w_no_lineinfo_use_switch);
               if (compiler.target.dbg.id in [dbg_dwarf2, dbg_dwarf3]) then
                s := 'LNFODWRF';
              sorg := s;
             end;
           { Give a warning if objpas is loaded }
           if s='OBJPAS' then
-           Message(parser_w_no_objpas_use_mode);
+           compiler.verbose.Message(parser_w_no_objpas_use_mode);
           { Using the unit itself is not possible }
           if (s<>curr.modulename^) then
            begin
@@ -2014,7 +2014,7 @@ type
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
-                  Message(parser_w_parser_win32_debug_needs_WN);
+                  compiler.verbose.Message(parser_w_parser_win32_debug_needs_WN);
                   exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;
            end;
@@ -3002,7 +3002,7 @@ type
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
-                  Message(parser_w_parser_win32_debug_needs_WN);
+                  compiler.verbose.Message(parser_w_parser_win32_debug_needs_WN);
                   exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;
            end;

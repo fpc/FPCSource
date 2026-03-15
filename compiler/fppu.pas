@@ -290,7 +290,7 @@ var
         if not ppufile.openfile then
          begin
            discardppu;
-           Message(unit_u_ppu_file_too_short);
+           compiler.verbose.Message(unit_u_ppu_file_too_short);
            exit;
          end;
         result:=openppu(ppufiletime);
@@ -306,7 +306,7 @@ var
         if not ppufile.openstream(strm) then
          begin
            discardppu;
-           Message(unit_u_ppu_file_too_short);
+           compiler.verbose.Message(unit_u_ppu_file_too_short);
            exit;
          end;
         result:=openppu(-1);
@@ -324,7 +324,7 @@ var
           { check for a valid PPU file }
             if not ppufile.CheckPPUId then
              begin
-               Message(unit_u_ppu_invalid_header);
+               compiler.verbose.Message(unit_u_ppu_invalid_header);
                exit;
              end;
           { check for allowed PPU versions }
@@ -356,7 +356,7 @@ var
           if ((ppufile.header.common.flags and uf_fpu_emulation)<>0) <>
              (cs_fp_emulation in current_settings.moduleswitches) then
             begin
-              Message(unit_u_ppu_invalid_fpumode,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_invalid_fpumode,@queuecomment);
               exit;
             end;
 {$endif cpufpemu}
@@ -368,14 +368,14 @@ var
           result:=false;
           if ppufile.readentry<>ibextraheader then
             begin
-              Message(unit_u_ppu_invalid_header);
+              compiler.verbose.Message(unit_u_ppu_invalid_header);
               exit;
             end;
           readextraheader;
           if (longversion<>CurrentPPULongVersion) or
              not ppufile.EndOfEntry then
             begin
-              Message(unit_u_ppu_invalid_header);
+              compiler.verbose.Message(unit_u_ppu_invalid_header);
               exit;
             end;
 {$ifdef i8086}
@@ -383,31 +383,31 @@ var
           if (mf_i8086_far_code in moduleflags) <>
              (current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge]) then
             begin
-              Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_far_data in moduleflags) <>
              (current_settings.x86memorymodel in [mm_compact,mm_large]) then
             begin
-              Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_huge_data in moduleflags) <>
              (current_settings.x86memorymodel=mm_huge) then
             begin
-              Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_cs_equals_ds in moduleflags) <>
              (current_settings.x86memorymodel=mm_tiny) then
             begin
-              Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_ss_equals_ds in moduleflags) <>
              (current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium]) then
             begin
-              Message(unit_u_ppu_invalid_memory_model,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
 {$endif i8086}
@@ -422,24 +422,24 @@ var
              ((mf_wasm_native_exceptions in moduleflags) <>
               (ts_wasm_native_legacy_exceptions in current_settings.targetswitches)) then
             begin
-              Message(unit_u_ppu_invalid_wasm_exceptions_mode,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_invalid_wasm_exceptions_mode,@queuecomment);
               exit;
             end;
           if (mf_wasm_threads in moduleflags) <>
              (ts_wasm_threads in current_settings.targetswitches) then
             begin
-              Message(unit_u_ppu_wasm_threads_mismatch,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_wasm_threads_mismatch,@queuecomment);
               exit;
             end;
 {$endif}
           if {$ifdef symansistr}not{$endif}(mf_symansistr in moduleflags) then
             begin
-              Message(unit_u_ppu_symansistr_mismatch,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_symansistr_mismatch,@queuecomment);
               exit;
             end;
           if {$ifdef llvm}not{$endif}(mf_llvm in moduleflags) then
             begin
-              Message(unit_u_ppu_llvm_mismatch,@queuecomment);
+              compiler.verbose.Message(unit_u_ppu_llvm_mismatch,@queuecomment);
               exit;
             end;
           result:=true;
@@ -1690,7 +1690,7 @@ var
          { create new ppufile }
          ppufile:=tcompilerppufile.create(ppufilename,compiler);
          if not ppufile.createfile then
-          Message(unit_f_ppu_cannot_write);
+          compiler.verbose.Message(unit_f_ppu_cannot_write);
 
 {$ifdef Test_Double_checksum_write}
          { Re-use the values collected in .INT part }
@@ -1911,7 +1911,7 @@ var
          ppufile:=tcompilerppufile.create(ppufilename,compiler);
          ppufile.crc_only:=true;
          if not ppufile.createfile then
-           Message(unit_f_ppu_cannot_write);
+           compiler.verbose.Message(unit_f_ppu_cannot_write);
 
 {$ifdef DEBUG_GENERATE_INTERFACE_PPU}
         if ppufile.writing_interface_ppu then
@@ -2048,7 +2048,7 @@ var
           tstoredsymtable(globalsymtable).ppuload(ppufile);
 
           if ppufile.readentry<>ibexportedmacros then
-            Message(unit_f_ppu_read_error);
+            compiler.verbose.Message(unit_f_ppu_read_error);
           if boolean(ppufile.getbyte) then
             begin
               globalmacrosymtable:=tmacrosymtable.Create(true,compiler);
@@ -2616,7 +2616,7 @@ var
         {$IFDEF DEBUG_PPU_CYCLES}
         writeln('PPUALGO tppumodule.reload ',modulename^,' ',statestr,' RELOADING');
         {$ENDIF}
-        Message(unit_u_forced_reload);
+        compiler.verbose.Message(unit_u_forced_reload);
         do_reload:=false;
         set_current_module(self);
         re_resolve(loadedfrommodule);

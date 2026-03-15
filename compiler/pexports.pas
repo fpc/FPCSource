@@ -143,17 +143,17 @@ implementation
                          (po_kylixlocal in pd.procoptions) or
                          ((tf_need_export in compiler.target.info.flags) and
                           not(po_exports in pd.procoptions)) then
-                        Message(parser_e_illegal_symbol_exported)
+                        compiler.verbose.Message(parser_e_illegal_symbol_exported)
                       else
                         InternalProcName:=pd.mangledname;
                     end;
                   typesym :
                     begin
                       if not is_objcclass(ttypesym(srsym).typedef) then
-                        Message(parser_e_illegal_symbol_exported)
+                        compiler.verbose.Message(parser_e_illegal_symbol_exported)
                     end;
                   else
-                    Message(parser_e_illegal_symbol_exported)
+                    compiler.verbose.Message(parser_e_illegal_symbol_exported)
                 end;
                 if (srsym.typ<>typesym) then
                   begin
@@ -165,11 +165,11 @@ implementation
                          delete(InternalProcName,1,1)
                        else if (compiler.target.info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince]) and UseDeffileForExports then
                          begin
-                           Message(parser_e_dlltool_unit_var_problem);
-                           Message(parser_e_dlltool_unit_var_problem2);
+                           compiler.verbose.Message(parser_e_dlltool_unit_var_problem);
+                           compiler.verbose.Message(parser_e_dlltool_unit_var_problem2);
                          end;
                        if length(InternalProcName)<2 then
-                        Message(parser_e_procname_to_short_for_export);
+                        compiler.verbose.Message(parser_e_procname_to_short_for_export);
                        DefString:=srsym.realname+'='+InternalProcName;
                      end;
                     if parser.pbase.try_to_consume(_INDEX) then
@@ -187,7 +187,7 @@ implementation
                        else
                         begin
                           index:=0;
-                          message(type_e_ordinal_expr_expected);
+                          compiler.verbose.Message(type_e_ordinal_expr_expected);
                         end;
                        include(options,eo_index);
                        pt.free;
@@ -205,7 +205,7 @@ implementation
                        else if is_constcharnode(pt) then
                          hpname:=chr(tordconstnode(pt).value.svalue and $ff)
                        else
-                         message(type_e_string_expr_expected);
+                         compiler.verbose.Message(type_e_string_expr_expected);
                        include(options,eo_name);
                        pt.free;
                        pt := nil;
@@ -229,7 +229,7 @@ implementation
                          end
                        else
                          begin
-                           Message(parser_e_promising_exports_not_supported_on_current_platform);
+                           compiler.verbose.Message(parser_e_promising_exports_not_supported_on_current_platform);
                            if not parser.pbase.try_to_consume(_FIRST) then
                              parser.pbase.try_to_consume(_LAST);
                          end;

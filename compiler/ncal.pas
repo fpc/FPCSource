@@ -3128,7 +3128,7 @@ implementation
         msgsendname   : string;
       begin
         if not(m_objectivec1 in current_settings.modeswitches) then
-          Message(parser_f_modeswitch_objc_required);
+          compiler.verbose.Message(parser_f_modeswitch_objc_required);
         { typecheck pass must already have run on the call node,
           because pass1 calls this method
         }

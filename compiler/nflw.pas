@@ -889,7 +889,7 @@ implementation
                else
                  begin
                    enum_current:=compiler.cerrornode;
-                   Message(type_e_mismatch);
+                   compiler.verbose.Message(type_e_mismatch);
                  end;
             end;
           end
@@ -2484,7 +2484,7 @@ implementation
                       begin
                         if ((cs_implicit_exceptions in current_settings.moduleswitches) and ((p2.flags*[pi_needs_implicit_finally,pi_has_implicit_finally])<>[])) or
                         ((p2.flags*[pi_uses_exceptions])<>[]) then
-                          Message(cg_e_goto_across_procedures_with_exceptions_not_allowed);
+                          compiler.verbose.Message(cg_e_goto_across_procedures_with_exceptions_not_allowed);
                         if labelsym.owner=p2.procdef.localst then
                           break;
                         p2:=p2.parent
