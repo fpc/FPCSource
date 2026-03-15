@@ -539,7 +539,7 @@ implementation
           { File types are only allowed for var and out parameters }
           if (hdef.typ=filedef) and
              not(varspez in [vs_out,vs_var]) then
-            CGMessage(cg_e_file_must_call_by_reference);
+            compiler.verbose.CGMessage(cg_e_file_must_call_by_reference);
 
           { Dispinterfaces are restricted to using only automatable types }
           if (pd.typ=procdef) and is_dispinterface(tprocdef(pd).struct) and

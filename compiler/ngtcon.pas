@@ -542,7 +542,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 { it's possible that the type conversion could not be
                   evaluated at compile-time }
                 if not codegenerror then
-                  CGMessage(parser_e_widestring_to_ansi_compile_time);
+                  compiler.verbose.CGMessage(parser_e_widestring_to_ansi_compile_time);
               end;
           end
         else if is_constresourcestringnode(node) then

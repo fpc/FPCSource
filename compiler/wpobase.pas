@@ -355,6 +355,7 @@ implementation
     sysutils,
     symconst,symdef,
     procinfo,
+    compiler,
     verbose;
 
 
@@ -665,13 +666,15 @@ implementation
 
   procedure twpoinfomanagerbase.parseandcheckwpoinfo;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       i: longint;
     begin
       { error if we don't have to optimize yet have an input feedback file }
       if (init_settings.dowpoptimizerswitches=[]) and
          assigned(freader) then
         begin
-          cgmessage(wpo_input_without_info_use);
+          compiler.verbose.CGMessage(wpo_input_without_info_use);
           exit;
         end;
 
@@ -679,7 +682,7 @@ implementation
       if (init_settings.dowpoptimizerswitches<>[]) and
          not assigned(freader) then
         begin
-          cgmessage(wpo_no_input_specified);
+          compiler.verbose.CGMessage(wpo_no_input_specified);
           exit;
         end;
 
@@ -689,14 +692,14 @@ implementation
       if (init_settings.genwpoptimizerswitches<>[]) and
          not assigned(fwriter) then
         begin
-          cgmessage(wpo_no_output_specified);
+          compiler.verbose.CGMessage(wpo_no_output_specified);
           exit;
         end;
 
       if (init_settings.genwpoptimizerswitches=[]) and
          assigned(fwriter) then
         begin
-          cgmessage(wpo_output_without_info_gen);
+          compiler.verbose.CGMessage(wpo_output_without_info_gen);
           exit;
         end;
 

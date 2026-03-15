@@ -2209,7 +2209,7 @@ unit cgcpu;
               end
             else
               begin
-                CGmessage(cg_d_stackframe_omited);
+                compiler.verbose.CGMessage(cg_d_stackframe_omited);
               end;
 
             { allocate stackframe space }

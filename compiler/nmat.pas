@@ -426,7 +426,7 @@ implementation
              (is_nativeuint(ld) and
               is_signed(rd)) then
            begin
-              CGMessage(type_h_mixed_signed_unsigned);
+              compiler.verbose.CGMessage(type_h_mixed_signed_unsigned);
               { get a signed int, larger than the native int }
               nd:=get_common_intdef(torddef(sinttype),torddef(uinttype),false);
               if (ld.ordtype<>nd.ordtype) then
@@ -1158,7 +1158,7 @@ implementation
                if (cs_mmx_saturation in current_settings.localswitches^) and
                  (torddef(tarraydef(resultdef).definition).typ in
                  [s32bit,u32bit]) then
-                 CGMessage(type_e_mismatch);
+                 compiler.verbose.CGMessage(type_e_mismatch);
                }
              end
 {$endif SUPPORT_MMX}
@@ -1189,7 +1189,7 @@ implementation
                   exit;
                end;
 
-             CGMessage(type_e_mismatch);
+             compiler.verbose.CGMessage(type_e_mismatch);
            end;
       end;
 
@@ -1321,7 +1321,7 @@ implementation
                 exit;
              end;
 
-             CGMessage(type_e_mismatch);
+             compiler.verbose.CGMessage(type_e_mismatch);
            end;
       end;
 
@@ -1379,7 +1379,7 @@ implementation
              v:=tordconstnode(left).value;
              def:=left.resultdef;
              if not calc_not_ordvalue(v,def) then
-               CGMessage(type_e_mismatch);
+               compiler.verbose.CGMessage(type_e_mismatch);
              { not-nodes are not range checked by the code generator -> also
                don't range check while inlining; the resultdef is a bit tricky
                though: the node's resultdef gets changed in most cases compared
@@ -1458,7 +1458,7 @@ implementation
                   exit;
                end;
 
-             CGMessage(type_e_mismatch);
+             compiler.verbose.CGMessage(type_e_mismatch);
            end;
       end;
 

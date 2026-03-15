@@ -81,15 +81,15 @@ interface
         procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
         procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
         procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
+
+        { message calls with codegenerror support }
+        procedure CGMessage(t : longint);
       end;
 
     procedure Internalerror(i:longint);noreturn;
     procedure Internalerror(i:longint; const s : ansistring);noreturn;
 
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
-
-    { message calls with codegenerror support }
-    procedure cgmessage(t : longint);
     procedure cgmessage1(t : longint;const s : TMsgStr);
     procedure cgmessage2(t : longint;const s1,s2 : TMsgStr);
     procedure cgmessage3(t : longint;const s1,s2,s3 : TMsgStr);
@@ -903,7 +903,7 @@ implementation
             override the message calls to set codegenerror
 *****************************************************************************}
 
-    procedure cgmessage(t : longint);
+    procedure TVerbose.CGMessage(t : longint);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var

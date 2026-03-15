@@ -676,7 +676,7 @@ implementation
                      end;
                   end;
                 else
-                  CGMessage(type_e_ordinal_expr_expected);
+                  compiler.verbose.CGMessage(type_e_ordinal_expr_expected);
               end;
               { insert the set creation tree }
               if assigned(p4) then
@@ -969,7 +969,7 @@ implementation
           (with the / operator) to an integer type will fail. Give a hint
           to use the div operator.}
          if (node.nodetype=slashn) and (def.typ=orddef) and not(is_currency(def)) then
-           cgmessage(type_h_use_div_for_int);
+           compiler.verbose.CGMessage(type_h_use_div_for_int);
          {In expressions like int64:=longint+longint, an integer overflow could be avoided
           by simply converting the operands to int64 first. Give a hint to do this.}
          if (node.nodetype in [addn,subn,muln]) and
@@ -1119,11 +1119,11 @@ implementation
               {$if sizeof(TConstPtrUInt) = 4}
                   if (tordconstnode(left).value < int64(low(longint))) or
                      (tordconstnode(left).value > int64(high(cardinal))) then
-                  CGMessage(parser_e_range_check_error);
+                  compiler.verbose.CGMessage(parser_e_range_check_error);
               {$else} {$if sizeof(TConstPtrUInt) = 8}
                   if (tordconstnode(left).value < int64(low(int64))) or
                      (tordconstnode(left).value > int64(high(qword))) then
-                  CGMessage(parser_e_range_check_error);
+                  compiler.verbose.CGMessage(parser_e_range_check_error);
               {$else}
                 internalerror(2001020801);
               {$endif} {$endif}
@@ -1131,7 +1131,7 @@ implementation
 
             if not(nf_explicit in flags) then
               if (tordconstnode(left).value.svalue=0) then
-                CGMessage(type_w_zero_to_nil)
+                compiler.verbose.CGMessage(type_w_zero_to_nil)
               else
                 { in Delphi mode, these aren't caught in compare_defs_ext }
                 IncompatibleTypes(left.resultdef,resultdef);
@@ -1856,7 +1856,7 @@ implementation
     function ttypeconvnode.typecheck_dynarray_to_openarray : tnode;
       begin
         if (actualtargetnode(@left)^.nodetype in [pointerconstn,niln]) then
-          CGMessage(type_e_no_addr_of_constant);
+          compiler.verbose.CGMessage(type_e_no_addr_of_constant);
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
         result:=compiler.ctypeconvnode_internal(left,cpointerdef.getreusable(resultdef,compiler));
@@ -3252,9 +3252,9 @@ implementation
             warn_pointer_to_signed:=(resultdef.typ=orddef) and (Torddef(resultdef).ordtype in [s8bit,s16bit,s32bit,s64bit]);
             { Give a warning when sizes don't match, because then info will be lost }
             if left.resultdef.size=resultdef.size then
-              CGMessage(type_h_pointer_to_longint_conv_not_portable)
+              compiler.verbose.CGMessage(type_h_pointer_to_longint_conv_not_portable)
             else
-              CGMessage(type_w_pointer_to_longint_conv_not_portable);
+              compiler.verbose.CGMessage(type_w_pointer_to_longint_conv_not_portable);
           end;
 
         { tc_cord_2_pointer still requires a type check, which
@@ -4635,7 +4635,7 @@ implementation
     function ttypeconvnode.pass_1 : tnode;
       begin
         if warn_pointer_to_signed then
-          cgmessage(type_w_pointer_to_signed);
+          compiler.verbose.CGMessage(type_w_pointer_to_signed);
         result:=nil;
         firstpass(left);
         if codegenerror then

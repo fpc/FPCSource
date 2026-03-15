@@ -216,7 +216,7 @@ unit cgcpu;
             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
               begin
                 push_regs;
-                CGmessage(cg_d_stackframe_omited);
+                compiler.verbose.CGMessage(cg_d_stackframe_omited);
               end
             else
               begin

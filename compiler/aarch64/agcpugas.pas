@@ -445,7 +445,7 @@ unit agcpugas;
                         if not assigned(lastsym) then
                           internalerror(2020041303);
                         if inprologue then
-                          cgmessage(asmw_e_missing_endprologue);
+                          compiler.verbose.CGMessage(asmw_e_missing_endprologue);
 
                         { only generate xdata and pdata if we have any
                           prologue or a handler is set }
@@ -485,7 +485,7 @@ unit agcpugas;
                             {$endif EXTDEBUG}
 
                             if datacount mod 4<>0 then
-                              cgmessage(asmw_e_seh_invalid_data_size);
+                              compiler.verbose.CGMessage(asmw_e_seh_invalid_data_size);
 
                             totalcount:=datacount div 4+instrcount;
 
@@ -563,7 +563,7 @@ unit agcpugas;
                     ash_handlerdata:
                       begin
                         if handlername='' then
-                          cgmessage(asmw_e_handlerdata_no_handler);
+                          compiler.verbose.CGMessage(asmw_e_handlerdata_no_handler);
                         hpdata:=tai(hp.next);
                         if not assigned(hpdata) or (hpdata.typ<>ait_const) or (tai_const(hpdata).consttype<>aitconst_32bit) then
                           internalerror(2020041215);

@@ -1909,7 +1909,7 @@ implementation
             if df_generic in current_procinfo.procdef.defoptions then
               result:=internalstatements(compiler,newstatement)
             else
-              CGMessage(type_e_mismatch);
+              compiler.verbose.CGMessage(type_e_mismatch);
             exit;
           end;
 
@@ -1917,7 +1917,7 @@ implementation
         if (dims>1) then
          begin
            if (not isarray) then
-            CGMessage(type_e_mismatch)
+            compiler.verbose.CGMessage(type_e_mismatch)
            else
             begin
               { check if the amount of dimensions is valid }
@@ -2156,7 +2156,7 @@ implementation
             if floating_point_range_check_error then
                begin
                  result:=compiler.crealconstnode(0,pbestrealtype^);
-                 CGMessage(type_e_wrong_math_argument)
+                 compiler.verbose.CGMessage(type_e_wrong_math_argument)
                end
             else
               begin
@@ -2176,7 +2176,7 @@ implementation
             if floating_point_range_check_error then
                begin
                  result:=compiler.crealconstnode(0,pbestrealtype^);
-                 CGMessage(type_e_wrong_math_argument)
+                 compiler.verbose.CGMessage(type_e_wrong_math_argument)
                end
             else
               result:=compiler.crealconstnode(MathQNaN.Value,pbestrealtype^)
@@ -2478,7 +2478,7 @@ implementation
                    begin
                      {Don't construct pointers from negative values.}
                      if (vl.signed and (vl.svalue<0)) or (vl2.signed and (vl2.svalue<0)) then
-                       cgmessage(parser_e_range_check_error);
+                       compiler.verbose.CGMessage(parser_e_range_check_error);
 {$if defined(i8086)}
                      hp:=compiler.cpointerconstnode((vl2.uvalue shl 16)+vl.uvalue,voidfarpointertype);
 {$elseif defined(i386)}
@@ -2800,7 +2800,7 @@ implementation
                          floating_point_range_check_error then
                         begin
                           result:=compiler.crealconstnode(0,pbestrealtype^);
-                          CGMessage(parser_e_range_check_error);
+                          compiler.verbose.CGMessage(parser_e_range_check_error);
                         end;
                     end
                 end;
@@ -3402,7 +3402,7 @@ implementation
                   if (inlinenumber in [in_lo_long,in_hi_long,in_lo_qword,in_hi_qword]) and
                      ((m_tp7 in current_settings.modeswitches) or
                       (m_delphi in current_settings.modeswitches)) then
-                    CGMessage(type_w_maybe_wrong_hi_lo);
+                    compiler.verbose.CGMessage(type_w_maybe_wrong_hi_lo);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   if not is_integer(left.resultdef) then
                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
@@ -3545,7 +3545,7 @@ implementation
                         { will be handled in simplify }
                         if not is_char(left.resultdef) and
                            not is_widechar(left.resultdef) then
-                          CGMessage(type_e_mismatch);
+                          compiler.verbose.CGMessage(type_e_mismatch);
                       end;
                     pointerdef :
                       begin
@@ -3568,7 +3568,7 @@ implementation
                             exit;
                          end
                         else
-                         CGMessage(type_e_mismatch);
+                         compiler.verbose.CGMessage(type_e_mismatch);
                       end;
                     arraydef :
                       begin
@@ -3590,11 +3590,11 @@ implementation
                     undefineddef :
                       begin
                         if not (df_generic in current_procinfo.procdef.defoptions) then
-                          CGMessage(type_e_mismatch);
+                          compiler.verbose.CGMessage(type_e_mismatch);
                         { otherwise nothing }
                       end;
                     else
-                      CGMessage(type_e_mismatch);
+                      compiler.verbose.CGMessage(type_e_mismatch);
                   end;
 
                   { shortstring return an 8 bit value as the length
@@ -3615,7 +3615,7 @@ implementation
                         (left.nodetype<>typen) or
                         not (sp_generic_para in ttypenode(left).typesym.symoptions)
                       ) then
-                     CGMessage(type_e_no_type_info);
+                     compiler.verbose.CGMessage(type_e_no_type_info);
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    resultdef:=voidpointertype;
                 end;
@@ -3680,10 +3680,10 @@ implementation
                           (tenumdef(resultdef).has_jumps) and
                           not(m_delphi in current_settings.modeswitches) and
                           not(nf_internal in flags) then
-                         CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
+                         compiler.verbose.CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end
                    else
-                     CGMessage(type_e_ordinal_expr_expected)
+                     compiler.verbose.CGMessage(type_e_ordinal_expr_expected)
                 end;
 
               in_copy_x:
@@ -3916,7 +3916,7 @@ implementation
                         tsetdef(left.resultdef).elementdef,compiler);
                     end
                   else if left.resultdef.typ<>undefineddef then
-                    CGMessage(type_e_mismatch);
+                    compiler.verbose.CGMessage(type_e_mismatch);
                 end;
               in_pack_x_y_z,
               in_unpack_x_y_z :
@@ -3996,7 +3996,7 @@ implementation
                          end;
                      end;
                     else
-                      CGMessage(type_e_mismatch);
+                      compiler.verbose.CGMessage(type_e_mismatch);
                   end;
                 end;
 
@@ -4118,7 +4118,7 @@ implementation
                          CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
                     end
                   else
-                    CGMessage(type_e_mismatch);
+                    compiler.verbose.CGMessage(type_e_mismatch);
 
                   if (cs_do_assertion in current_settings.localswitches) then
                     include(current_procinfo.flags,pi_do_call);

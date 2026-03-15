@@ -188,7 +188,7 @@ implementation
          if (not assigned(casedef)) or
             ( not(is_ordinal(casedef)) and (not caseofstring) ) then
           begin
-            CGMessage(type_e_ordinal_or_string_expr_expected);
+            compiler.verbose.CGMessage(type_e_ordinal_or_string_expr_expected);
             { create a correct tree }
             caseexpr.free;
             caseexpr:=compiler.cordconstnode(0,u32inttype,false);
@@ -252,7 +252,7 @@ implementation
                    sl1 := get_string_value(trangenode(p).left, tstringdef(casedef), compiler);
                    sl2 := get_string_value(trangenode(p).right, tstringdef(casedef), compiler);
                    if sl1.fullcompare(sl2) > 0 then
-                     CGMessage(parser_e_case_lower_less_than_upper_bound);
+                     compiler.verbose.CGMessage(parser_e_case_lower_less_than_upper_bound);
                  end
                  { type checking for ordinal case statements }
                  else if (not caseofstring) and
@@ -262,7 +262,7 @@ implementation
                      hl1:=get_ordinal_value(trangenode(p).left);
                      hl2:=get_ordinal_value(trangenode(p).right);
                      if hl1>hl2 then
-                       CGMessage(parser_e_case_lower_less_than_upper_bound);
+                       compiler.verbose.CGMessage(parser_e_case_lower_less_than_upper_bound);
                      if not casedeferror then
                        begin
                          adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
@@ -270,7 +270,7 @@ implementation
                        end;
                    end
                  else
-                   CGMessage(parser_e_case_mismatch);
+                   compiler.verbose.CGMessage(parser_e_case_mismatch);
 
                  if caseofstring then
                    casenode.addlabel(blockid,sl1,sl2)
@@ -283,7 +283,7 @@ implementation
                  if (caseofstring and (not is_conststring_or_constcharnode(p))) or
                  { type checking for ordinal case statements }
                    ((not caseofstring) and (not is_subequal(casedef, p.resultdef))) then
-                   CGMessage(parser_e_case_mismatch);
+                   compiler.verbose.CGMessage(parser_e_case_mismatch);
 
                  if caseofstring then
                    begin
@@ -669,7 +669,7 @@ implementation
 
          if (p.nodetype=vecn) and
             (vnf_memseg in tvecnode(p).vecnodeflags) then
-           CGMessage(parser_e_no_with_for_variable_in_other_segments);
+           compiler.verbose.CGMessage(parser_e_no_with_for_variable_in_other_segments);
 
          { "with procvar" can never mean anything, so always try
            to call it in case it returns a record/object/... }

@@ -3344,7 +3344,7 @@ implementation
               if getaddr then
                 begin
                   if srsym.owner<>current_procinfo.procdef.localst then
-                    CGMessage(parser_e_label_outside_proc);
+                    compiler.verbose.CGMessage(parser_e_label_outside_proc);
                   result:=compiler.cloadnode(srsym,srsym.owner)
                 end
               else

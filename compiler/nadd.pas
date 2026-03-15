@@ -2695,7 +2695,7 @@ const
                     ) then
                    begin
                      if nodetype<>subn then
-                       CGMessage(type_h_mixed_signed_unsigned);
+                       compiler.verbose.CGMessage(type_h_mixed_signed_unsigned);
                      { mark as internal in case added for a subn, so }
                      { ttypeconvnode.simplify can remove the larger  }
                      { typecast again if semantically correct. Even  }
@@ -2758,11 +2758,11 @@ const
          else if (ld.typ=setdef) then
           begin
              if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
-              CGMessage(type_e_set_operation_unknown);
+              compiler.verbose.CGMessage(type_e_set_operation_unknown);
              { right must either be a set or a set element }
              if (rd.typ<>setdef) and
                 (rt<>setelementn) then
-               CGMessage(type_e_mismatch)
+               compiler.verbose.CGMessage(type_e_mismatch)
              { Make operands the same setdef. If one's elementtype fits   }
              { entirely inside the other's, pick the one with the largest }
              { range.  Otherwise create a new setdef with a range which   }
@@ -3347,9 +3347,9 @@ const
          if cmp_of_disjunct_ranges(res) and not(nf_internal in flags) then
            begin
              if res then
-               CGMessage(type_w_comparison_always_true)
+               compiler.verbose.CGMessage(type_w_comparison_always_true)
              else
-               CGMessage(type_w_comparison_always_false);
+               compiler.verbose.CGMessage(type_w_comparison_always_false);
            end;
 
          { set resultdef if not already done }

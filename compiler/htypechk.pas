@@ -791,7 +791,7 @@ implementation
           begin
             if not (ocf_check_only in ocf) then
               begin
-                CGMessage(parser_e_operator_not_overloaded);
+                compiler.verbose.CGMessage(parser_e_operator_not_overloaded);
                 t:=compiler.cnothingnode;
               end;
             exit;
@@ -847,7 +847,7 @@ implementation
         { Multiple candidates left? }
         if (cand_cnt>1) and not (ocf_check_only in ocf) then
           begin
-            CGMessage(type_e_cant_choose_overload_function);
+            compiler.verbose.CGMessage(type_e_cant_choose_overload_function);
 {$ifdef EXTDEBUG}
             candidates.dump_info(V_Hint);
 {$else EXTDEBUG}
@@ -923,7 +923,7 @@ implementation
             result:=candidates.count;
             if (result=0) and generror then
               begin
-                CGMessage(parser_e_operator_not_overloaded);
+                compiler.verbose.CGMessage(parser_e_operator_not_overloaded);
                 candidates.done;
                 ppn.free;
                 ppn:=nil;
@@ -954,7 +954,7 @@ implementation
             { Multiple candidates left? }
             if result>1 then
               begin
-                CGMessage(type_e_cant_choose_overload_function);
+                compiler.verbose.CGMessage(type_e_cant_choose_overload_function);
     {$ifdef EXTDEBUG}
                 candidates.dump_info(V_Hint);
     {$else EXTDEBUG}
@@ -995,7 +995,7 @@ implementation
           begin
             if not (ocf_check_only in ocf) then
               begin
-                CGMessage(parser_e_operator_not_overloaded);
+                compiler.verbose.CGMessage(parser_e_operator_not_overloaded);
                 t:=compiler.cnothingnode;
               end;
             exit;
@@ -1167,13 +1167,15 @@ implementation
 
     { local routines can't be assigned to procvars }
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          if not(m_nested_procvars in current_settings.modeswitches) and
             (from_def.parast.symtablelevel>normal_function_level) and
             not (po_anonymous in from_def.procoptions) and
             (to_def.typ=procvardef) and
             (tprocvardef(to_def).parast.symtablelevel <= normal_function_level) then
-           CGMessage(type_e_cannot_local_proc_to_procvar);
+           compiler.verbose.CGMessage(type_e_cannot_local_proc_to_procvar);
       end;
 
 

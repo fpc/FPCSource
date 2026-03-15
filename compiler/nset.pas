@@ -286,7 +286,7 @@ implementation
            end;
 
          if right.resultdef.typ<>setdef then
-           CGMessage(sym_e_set_expected);
+           compiler.verbose.CGMessage(sym_e_set_expected);
 
          if codegenerror then
            exit;
@@ -306,7 +306,7 @@ implementation
                    (tenumdef(left.resultdef).maxval > 255)
                  )
                then
-                 CGMessage(type_h_in_range_check);
+                 compiler.verbose.CGMessage(type_h_in_range_check);
 
              { type conversion/check }
              if assigned(tsetdef(right.resultdef).elementdef) then
@@ -314,7 +314,7 @@ implementation
            end
          else if not is_ordinal(left.resultdef) or (left.resultdef.size > u32inttype.size) then
            begin
-             CGMessage(type_h_in_range_check);
+             compiler.verbose.CGMessage(type_h_in_range_check);
              if is_signed(left.resultdef) then
                inserttypeconv(left,s32inttype,compiler)
              else
@@ -468,7 +468,7 @@ implementation
             { upper limit must be greater or equal than lower limit }
             if (tordconstnode(left).value>tordconstnode(right).value) and
                ((tordconstnode(left).value<0) or (tordconstnode(right).value>=0)) then
-              CGMessage(parser_e_upper_lower_than_lower);
+              compiler.verbose.CGMessage(parser_e_upper_lower_than_lower);
           end;
         resultdef:=left.resultdef;
       end;
@@ -1048,7 +1048,7 @@ implementation
                 if ([m_iso,m_extpas]*current_settings.modeswitches)<>[] then
                   cgmessage1(cg_e_case_missing_value,tostr(tordconstnode(left).value))
                 else
-                  cgmessage(cg_w_case_incomplete);
+                  compiler.verbose.CGMessage(cg_w_case_incomplete);
                 { no else block, so there is no code to execute at all }
                 result:=compiler.cnothingnode;
               end;
@@ -1325,7 +1325,7 @@ implementation
                (labelcoverage<typcount) then
               begin
                 { labels for some values of the operand are missing, and no else block is present }
-                cgmessage(cg_w_case_incomplete);
+                compiler.verbose.CGMessage(cg_w_case_incomplete);
                 { in Standard/Extended Pascal, this is a dynamic violation error if it actually happens }
                 if ([m_extpas,m_iso]*current_settings.modeswitches)<>[] then
                   begin

@@ -421,7 +421,7 @@ implementation
          { goto is allowed if it stays inside the finally block,
            this is checked using the exception block number }
          if (flowcontrol-[fc_gotolabel])<>[fc_inflowcontrol] then
-           CGMessage(cg_e_control_flow_outside_finally);
+           compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
          if codegenerror then
            begin
              if assigned(begintrylabel) then

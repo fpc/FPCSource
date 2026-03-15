@@ -1250,7 +1250,7 @@ implementation
                 { typecasting from a child to a parent type on the assignment side
                   will (rightly) mess up the type safety verification of the JVM }
                 else if assignment_side then
-                  CGMessage(type_e_no_managed_assign_generic_typecast);
+                  compiler.verbose.CGMessage(type_e_no_managed_assign_generic_typecast);
               end;
             result:=true;
             exit;

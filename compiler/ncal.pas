@@ -3070,7 +3070,7 @@ implementation
       begin
         if not assigned(call_self_node) then
           begin
-            CGMessage(parser_e_illegal_expression);
+            compiler.verbose.CGMessage(parser_e_illegal_expression);
             call_self_node:=compiler.cerrornode;
           end;
         result:=call_self_node;
@@ -4264,7 +4264,7 @@ implementation
 
                       if not ignoregenericparacall then
                         begin
-                          CGMessage(type_e_cant_choose_overload_function);
+                          compiler.verbose.CGMessage(type_e_cant_choose_overload_function);
 {$ifdef EXTDEBUG}
                           candidates.dump_info(V_Hint);
 {$else EXTDEBUG}
@@ -4463,12 +4463,12 @@ implementation
                if (m_delphi in current_settings.modeswitches) and
                  (cnf_anon_inherited in callnodeflags) then
                  begin
-                   CGMessage(cg_h_inherited_ignored);
+                   compiler.verbose.CGMessage(cg_h_inherited_ignored);
                    result:=compiler.cnothingnode;
                    exit;
                  end
                else
-                 CGMessage(cg_e_cant_call_abstract_method);
+                 compiler.verbose.CGMessage(cg_e_cant_call_abstract_method);
              end;
 
            { directly calling an interface/protocol/category/class helper
@@ -4490,7 +4490,7 @@ implementation
               (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
               is_object(methodpointer.resultdef) and
               not(current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) then
-            CGMessage(cg_w_member_cd_call_from_method);
+            compiler.verbose.CGMessage(cg_w_member_cd_call_from_method);
 
            if methodpointer.nodetype<>typen then
             begin
@@ -4506,13 +4506,13 @@ implementation
                   not (po_classmethod in procdefinition.procoptions) and
                   not (po_staticmethod in procdefinition.procoptions) then
                  { error: we are calling instance method from the class method/static method }
-                 CGMessage(parser_e_only_class_members);
+                 compiler.verbose.CGMessage(parser_e_only_class_members);
 
               if (procdefinition.proctypeoption=potype_constructor) and
                  assigned(symtableproc) and
                  (symtableproc.symtabletype=withsymtable) and
                  (tnode(twithsymtable(symtableproc).withrefnode).nodetype=temprefn) then
-                CGmessage(cg_e_cannot_call_cons_dest_inside_with);
+                compiler.verbose.CGMessage(cg_e_cannot_call_cons_dest_inside_with);
 
               { skip (absolute and other simple) type conversions -- only now,
                 because the checks above have to take type conversions into
@@ -4934,7 +4934,7 @@ implementation
              is_objectpascal_helper(ttypenode(methodpointer).typedef) and
              not ttypenode(methodpointer).helperallowed then
            begin
-             CGMessage(parser_e_no_category_as_types);
+             compiler.verbose.CGMessage(parser_e_no_category_as_types);
              { we get an internal error when trying to insert the hidden
                parameters in this case }
              exit;

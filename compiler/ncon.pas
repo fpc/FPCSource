@@ -506,7 +506,7 @@ implementation
         if floating_point_range_check_error or
            (tfloatdef(resultdef).floattype in [s64comp,s64currency]) then
           begin
-            { use CGMessage so that the resultdef will get set to errordef
+            { use compiler.verbose.CGMessage so that the resultdef will get set to errordef
               by pass1.typecheckpass_internal if a range error was triggered,
               which in turn will prevent any potential parent type conversion
               node from creating a new realconstnode with this exact same value
@@ -515,30 +515,30 @@ implementation
               s32real :
                 begin
                   if ts32real(value_real)=MathInf.Value then
-                    CGMessage(parser_e_range_check_error);
+                    compiler.verbose.CGMessage(parser_e_range_check_error);
                 end;
               s64real:
                 begin
                   if ts64real(value_real)=MathInf.Value then
-                    CGMessage(parser_e_range_check_error);
+                    compiler.verbose.CGMessage(parser_e_range_check_error);
                 end;
               s80real,
               sc80real:
                 begin
                   if ts80real(value_real)=MathInf.Value then
-                    CGMessage(parser_e_range_check_error);
+                    compiler.verbose.CGMessage(parser_e_range_check_error);
                 end;
               s64comp,
               s64currency:
                 begin
                   if (value_real>9223372036854775807.0) or
                      (value_real<-9223372036854775808.0) then
-                    CGMessage(parser_e_range_check_error)
+                    compiler.verbose.CGMessage(parser_e_range_check_error)
                 end;
               s128real:
                 begin
                   if ts128real(value_real)=MathInf.Value then
-                    CGMessage(parser_e_range_check_error);
+                    compiler.verbose.CGMessage(parser_e_range_check_error);
                 end;
             end;
           end;

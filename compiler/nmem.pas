@@ -240,7 +240,7 @@ implementation
                                 defaultresultdef:=false;
                               end
                             else
-                              CGMessage(parser_e_cant_create_generics_of_this_type);
+                              compiler.verbose.CGMessage(parser_e_cant_create_generics_of_this_type);
                         end
                       else
                         message(parser_e_cant_create_generics_of_this_type);
@@ -251,10 +251,10 @@ implementation
                     resultdef:=cclassrefdef.create(left.resultdef,compiler);
                 end
               else
-                CGMessage(parser_e_pointer_to_class_expected);
+                compiler.verbose.CGMessage(parser_e_pointer_to_class_expected);
             end
           else
-            CGMessage(parser_e_pointer_to_class_expected);
+            compiler.verbose.CGMessage(parser_e_pointer_to_class_expected);
         end;
       end;
 
@@ -643,7 +643,7 @@ implementation
                         left:=nil;
                       end
                     else
-                      CGMessage(type_e_variable_id_expected);
+                      compiler.verbose.CGMessage(type_e_variable_id_expected);
                   end;
               end
             else
@@ -668,7 +668,7 @@ implementation
                   exit;
               end
             else
-              CGMessage(type_e_variable_id_expected);
+              compiler.verbose.CGMessage(type_e_variable_id_expected);
           end;
 
         check_mark_read_written;
@@ -904,7 +904,7 @@ implementation
          else if left.resultdef.typ=undefineddef then
            resultdef:=cundefineddef.create(true,compiler)
          else
-           CGMessage(parser_e_invalid_qualifier);
+           compiler.verbose.CGMessage(parser_e_invalid_qualifier);
       end;
 
     procedure Tderefnode.mark_write;
@@ -1340,7 +1340,7 @@ implementation
                     resultdef:=tarraydef(htype).elementdef;
                 end
                else
-                CGMessage(type_e_array_required);
+                compiler.verbose.CGMessage(type_e_array_required);
              end;
            stringdef :
              begin
@@ -1372,14 +1372,14 @@ implementation
                       (Tordconstnode(right).value.svalue=0) and
                       not is_shortstring(left.resultdef) and
                       not(cs_zerobasedstrings in current_settings.localswitches) then
-                     CGMessage(cg_e_can_access_element_zero);
+                     compiler.verbose.CGMessage(cg_e_can_access_element_zero);
                    resultdef:=elementdef;
                  end;
              end;
            variantdef :
              resultdef:=cvarianttype;
            else
-             CGMessage(type_e_array_required);
+             compiler.verbose.CGMessage(type_e_array_required);
         end;
       end;
 

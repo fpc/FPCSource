@@ -2472,7 +2472,7 @@ implementation
                   begin
                     { don't mess with the exception blocks, global gotos in/out side exception blocks are not allowed }
                     if exceptionblock>0 then
-                      CGMessage(cg_e_goto_inout_of_exception_block);
+                      compiler.verbose.CGMessage(cg_e_goto_inout_of_exception_block);
 
                     { goto across procedures using exception?
                       this is not allowed because we cannot
@@ -2510,7 +2510,7 @@ implementation
         { check if we don't mess with exception blocks }
         if assigned(labelnode) and
            (exceptionblock<>labelnode.exceptionblock) then
-          CGMessage(cg_e_goto_inout_of_exception_block);
+          compiler.verbose.CGMessage(cg_e_goto_inout_of_exception_block);
       end;
 
 
@@ -2631,7 +2631,7 @@ implementation
             { the owner can be Nil for internal labels }
             assigned(labsym.owner) and
           (current_procinfo.procdef.parast.symtablelevel<>labsym.owner.symtablelevel) then
-          CGMessage(cg_e_labels_cannot_defined_outside_declaration_scope)
+          compiler.verbose.CGMessage(cg_e_labels_cannot_defined_outside_declaration_scope)
       end;
 
 

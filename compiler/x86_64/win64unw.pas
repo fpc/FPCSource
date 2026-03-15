@@ -26,7 +26,7 @@ unit win64unw;
 interface
 
 uses
-  cclasses,globtype,aasmbase,aasmdata,aasmtai,cgbase,ogbase;
+  cclasses,globtype,aasmbase,aasmdata,aasmtai,cgbase,ogbase,compilerbase;
 
 type
   TWin64CFI=class
@@ -63,7 +63,7 @@ type
 implementation
 
 uses
-  cutils,globals,verbose,cpubase;
+  cutils,globals,verbose,cpubase,compiler;
 
 const
   UWOP_PUSH_NONVOL     = 0;  { info = register number }
@@ -179,6 +179,8 @@ end;
   handler data may continue }
 procedure TWin64CFI.generate_prologue_data(objdata:TObjData);
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   hp: TPrologueElement;
   uwcode: array [0..1] of byte;
   uwdata: array [0..3] of byte;
@@ -187,9 +189,9 @@ begin
   if FCount>255 then
     InternalError(2011072301);
   if not FPrologueEndSeen then
-    CGMessage(asmw_e_missing_endprologue);
+    compiler.verbose.CGMessage(asmw_e_missing_endprologue);
   if (FPrologueEndPos-FFrameStartSym.address) > 255 then
-    CGMessage(asmw_e_prologue_too_large);
+    compiler.verbose.CGMessage(asmw_e_prologue_too_large);
   if codegenerror then
     exit;
 
@@ -261,12 +263,14 @@ begin
 end;
 
 procedure TWin64CFI.switch_to_handlerdata(objdata:TObjData);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if not assigned(FName) then
     internalerror(2011072310);
 
   if FHandler=nil then
-    CGMessage(asmw_e_handlerdata_no_handler);
+    compiler.verbose.CGMessage(asmw_e_handlerdata_no_handler);
 
   if FXdataSec=nil then
     generate_prologue_data(objdata)

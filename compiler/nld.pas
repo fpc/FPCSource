@@ -239,7 +239,7 @@ implementation
         else
           begin
             result:=compiler.cerrornode;
-            CGMessage(parser_e_illegal_expression);
+            compiler.verbose.CGMessage(parser_e_illegal_expression);
           end;
       end;
 
@@ -441,7 +441,7 @@ implementation
                if not assigned(fprocdef) then
                  fprocdef:=tprocdef(tprocsym(symtableentry).ProcdefList[0])
                else if po_kylixlocal in fprocdef.procoptions then
-                 CGMessage(type_e_cant_take_address_of_local_subroutine);
+                 compiler.verbose.CGMessage(type_e_cant_take_address_of_local_subroutine);
 
                { the result is a fprocdef, addrn and proc_to_procvar
                  typeconvn need this as resultdef so they know
@@ -596,7 +596,7 @@ implementation
            ) then
           begin
             if not(m_nested_procvars in current_settings.modeswitches) then
-              CGMessage(type_e_cant_take_address_of_local_subroutine)
+              compiler.verbose.CGMessage(type_e_cant_take_address_of_local_subroutine)
             else
               begin
                 { parent frame pointer pointer as "self" }
@@ -748,13 +748,13 @@ implementation
         { assignments to formaldefs and open arrays aren't allowed }
         if is_open_array(left.resultdef) or is_array_of_const(left.resultdef) then
           begin
-            CGMessage(type_e_assignment_not_allowed);
+            compiler.verbose.CGMessage(type_e_assignment_not_allowed);
             result:=compiler.cerrornode;
             exit;
           end
         else if (left.resultdef.typ=formaldef) then
           if not(compiler.target.info.system in systems_managed_vm) then
-            CGMessage(type_e_assignment_not_allowed)
+            compiler.verbose.CGMessage(type_e_assignment_not_allowed)
           else
             begin
               { on managed platforms, assigning to formaldefs is allowed (but
@@ -823,7 +823,7 @@ implementation
                   { of the string is less  < 255 characters }
                   if not is_open_string(left.resultdef) and
                      (tstringconstnode(right).len > tstringdef(left.resultdef).len) then
-                     cgmessage(type_w_string_too_long);
+                     compiler.verbose.CGMessage(type_w_string_too_long);
                   inserttypeconv(right,left.resultdef,compiler);
                   if (right.nodetype=stringconstn) and
                      (tstringconstnode(right).len=0) then
@@ -882,7 +882,7 @@ implementation
             if (left.resultdef.typ<>procvardef) and
                 not is_invokable(left.resultdef) and
               (right.nodetype=calln) and is_void(right.resultdef) then
-              CGMessage(type_e_procedures_return_no_value)
+              compiler.verbose.CGMessage(type_e_procedures_return_no_value)
             else if nf_internal in flags then
               inserttypeconv_internal(right,left.resultdef,compiler)
             else
@@ -1196,7 +1196,7 @@ implementation
     function tarrayconstructorrangenode.pass_1 : tnode;
       begin
         result:=nil;
-        CGMessage(parser_e_illegal_expression);
+        compiler.verbose.CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -1527,7 +1527,7 @@ implementation
         resultdef:=typedef;
         { check if it's valid }
         if typedef.typ = errordef then
-          CGMessage(parser_e_illegal_expression);
+          compiler.verbose.CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -1540,9 +1540,9 @@ implementation
            Only when the allowed flag is set we don't generate
            an error }
          if not allowed then
-           CGMessage(parser_e_no_type_not_allowed_here);
+           compiler.verbose.CGMessage(parser_e_no_type_not_allowed_here);
          if not helperallowed and is_objectpascal_helper(typedef) then
-           CGMessage(parser_e_no_category_as_types);
+           compiler.verbose.CGMessage(parser_e_no_category_as_types);
       end;
 
 

@@ -90,7 +90,7 @@ implementation
           be done depends on whether it's a pointer to an implicit pointer type
           or not }
         if is_voidpointer(left.resultdef) then
-          CGMessage(parser_e_illegal_expression);
+          compiler.verbose.CGMessage(parser_e_illegal_expression);
       end;
 
 
@@ -220,7 +220,7 @@ implementation
                   procvardef (don't allow for non-object procvars, as they
                   aren't implicitpointerdefs) }
                 if not jvmimplicitpointertype(taddrnode(left).left.resultdef) then
-                  CGMessage(parser_e_illegal_expression)
+                  compiler.verbose.CGMessage(parser_e_illegal_expression)
                 else
                   begin
                     { an internal address node will observe "normal" address
@@ -278,7 +278,7 @@ implementation
                    not isarrayele0load and
                    not isdererence then
                   begin
-                    CGMessage(parser_e_illegal_expression);
+                    compiler.verbose.CGMessage(parser_e_illegal_expression);
                     exit
                   end;
               end;

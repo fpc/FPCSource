@@ -183,7 +183,7 @@ implementation
                          left:=nil;
                        end
                      else
-                       CGMessage(type_e_variable_id_expected);
+                       compiler.verbose.CGMessage(type_e_variable_id_expected);
                    end;
                end;
 (*             else
@@ -210,7 +210,7 @@ implementation
          if left.resultdef.typ=procvardef then
            begin
              if left.resultdef.size<>4 then
-               CGMessage(type_e_seg_procvardef_wrong_memory_model);
+               compiler.verbose.CGMessage(type_e_seg_procvardef_wrong_memory_model);
              case left.location.loc of
                LOC_REGISTER,LOC_CREGISTER:
                  begin

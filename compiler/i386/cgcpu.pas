@@ -426,7 +426,7 @@ unit cgcpu;
          begin
            { parameters are limited to 65535 bytes because ret allows only imm16 }
            if (parasize>65535) then
-             CGMessage(cg_e_parasize_too_big);
+             compiler.verbose.CGMessage(cg_e_parasize_too_big);
 
            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
              list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));

@@ -529,7 +529,7 @@ implementation
          (procdefinition.proctypeoption=potype_constructor) and
          (po_virtualmethod in procdefinition.procoptions) and
          (cnf_member_call in callnodeflags) then
-        CGMessage(parser_e_jvm_invalid_virtual_constructor_call);
+        compiler.verbose.CGMessage(parser_e_jvm_invalid_virtual_constructor_call);
     end;
 
 

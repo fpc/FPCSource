@@ -664,11 +664,11 @@ implementation
                                begin
                                  intfchildof:=childof;
                                  childof:=nil;
-                                 CGMessage(parser_h_no_objc_parent);
+                                 compiler.verbose.CGMessage(parser_h_no_objc_parent);
                                end
                              else
                                { a category must specify the class to extend }
-                               CGMessage(type_e_objcclass_type_expected);
+                               compiler.verbose.CGMessage(type_e_objcclass_type_expected);
                            end
                          else
                            Message(parser_e_mix_of_classes_and_objects);
@@ -723,7 +723,7 @@ implementation
               odt_dispinterface:
                 childof:=interface_idispatch;
               odt_objcclass:
-                CGMessage(parser_h_no_objc_parent);
+                compiler.verbose.CGMessage(parser_h_no_objc_parent);
               odt_javaclass:
                 { inherit from TObject by default for compatibility }
                 if current_objectdef<>java_jlobject then

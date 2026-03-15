@@ -1257,7 +1257,7 @@ unit cgx86;
                 else
                   a_load_reg_reg(list,OS_16,OS_16,segment,GetNextReg(r));
 {$else i8086}
-                cgmessage(cg_e_cant_use_far_pointer_there);
+                compiler.verbose.CGMessage(cg_e_cant_use_far_pointer_there);
 {$endif i8086}
               end;
           end;
@@ -3582,7 +3582,7 @@ unit cgx86;
                 if (not paramanager.use_fixed_stack) then
                   push_regs;
 {$endif i386}
-                CGmessage(cg_d_stackframe_omited);
+                compiler.verbose.CGMessage(cg_d_stackframe_omited);
               end
             else
               begin

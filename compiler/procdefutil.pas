@@ -283,7 +283,7 @@ implementation
         "is_nested" is allowed }
       if is_nested_pd(tprocvardef(def)) or
          is_methodpointer(def) then
-        cgmessage(type_e_function_reference_kind);
+        compiler.verbose.CGMessage(type_e_function_reference_kind);
       if not (po_is_block in tprocvardef(def).procoptions) then
         begin
           if assigned(dummysym) then

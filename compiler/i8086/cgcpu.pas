@@ -2497,7 +2497,7 @@ unit cgcpu;
          begin
            { parameters are limited to 65535 bytes because ret allows only imm16 }
            if (parasize>65535) then
-             CGMessage(cg_e_parasize_too_big);
+             compiler.verbose.CGMessage(cg_e_parasize_too_big);
            list.concat(Taicpu.Op_const(ret_instr,S_W,parasize));
          end;
       end;

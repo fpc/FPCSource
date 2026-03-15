@@ -375,9 +375,9 @@ implementation
                 else
                   begin
                     if is_new then
-                      CGMessage(parser_e_expr_have_to_be_constructor_call)
+                      compiler.verbose.CGMessage(parser_e_expr_have_to_be_constructor_call)
                     else
-                      CGMessage(parser_e_expr_have_to_be_destructor_call);
+                      compiler.verbose.CGMessage(parser_e_expr_have_to_be_destructor_call);
                   end;
 
                 result:=p2;

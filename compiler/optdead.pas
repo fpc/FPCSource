@@ -138,20 +138,22 @@ unit optdead;
 
 
   class procedure twpodeadcodeinfo.checkoptions;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { we don't have access to the symbol info if the linking
         hasn't happened
       }
       if (([cs_link_on_target,cs_link_nolink] * init_settings.globalswitches) <> []) then
         begin
-          cgmessage(wpo_cannot_extract_live_symbol_info_no_link);
+          compiler.verbose.CGMessage(wpo_cannot_extract_live_symbol_info_no_link);
           exit;
         end;
 
       { without dead code stripping/smart linking, this doesn't make sense }
       if not(cs_link_smart in init_settings.globalswitches) then
         begin
-          cgmessage(wpo_symbol_live_info_needs_smart_linking);
+          compiler.verbose.CGMessage(wpo_symbol_live_info_needs_smart_linking);
           exit;
         end;
     end;
@@ -205,13 +207,15 @@ const
   objdumpsearchstr=' '+objdumpcheckstr;
 
   class procedure twpodeadcodeinfofromexternallinker.checkoptions;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       inherited checkoptions;
 
       { we need symbol information }
       if (cs_link_strip in init_settings.globalswitches) then
         begin
-          cgmessage(wpo_cannot_extract_live_symbol_info_strip);
+          compiler.verbose.CGMessage(wpo_cannot_extract_live_symbol_info_strip);
           exit;
         end;
     end;

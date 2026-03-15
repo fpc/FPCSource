@@ -34,7 +34,7 @@ unit tgobj;
   interface
 
     uses
-      globals,globtype,
+      globals,globtype,compilerbase,
       symconst,symdef,symtype,symtable,
       cpubase,cgbase,cgutils,
       aasmtai,aasmdata;
@@ -142,6 +142,7 @@ implementation
     uses
        cutils,
        verbose,
+       compiler,
        procinfo;
 
 
@@ -251,6 +252,8 @@ implementation
 
     procedure ttgobj.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def :tdef; fini: boolean; out ref: treference);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          tl,htl,
          bestslot,bestprev,
          hprev,hp : ptemprecord;
@@ -279,7 +282,7 @@ implementation
            internalerror(200208201);
          if size>MaxLocalsSize then
             begin
-              CGMessage(cg_e_localsize_too_big);
+              compiler.verbose.CGMessage(cg_e_localsize_too_big);
               size:=0;  // Prevent further range check errors
             end;
          size:=align(size,alignment);
@@ -430,7 +433,7 @@ implementation
               begin
                 if Int64(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>MaxLocalsSize then
                   begin
-                    CGMessage(cg_e_localsize_too_big);
+                    compiler.verbose.CGMessage(cg_e_localsize_too_big);
                     size:=0;  // Prevent further range check errors
                   end;
                 lasttemp:=(-align(-lasttemp-alignmismatch,alignment))-size-alignmismatch;
@@ -441,7 +444,7 @@ implementation
                 tl^.pos:=align(lasttemp+alignmismatch,alignment)-alignmismatch;
                 if Int64(tl^.pos)+size>MaxLocalsSize then
                   begin
-                    CGMessage(cg_e_localsize_too_big);
+                    compiler.verbose.CGMessage(cg_e_localsize_too_big);
                     size:=0;  // Prevent further range check errors
                   end;
                 lasttemp:=tl^.pos+size;
