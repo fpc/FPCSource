@@ -211,7 +211,7 @@ interface
         procedure finish_entry;
         procedure finish_lineinfo;
       public
-        constructor Create;override;
+        constructor Create(ACompiler: TCompilerBase);override;
         destructor Destroy;override;
         procedure insertmoduleinfo;override;
         procedure inserttypeinfo;override;
@@ -629,8 +629,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.set_use_64bit_headers(state: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          _use_64bit_headers:=state;
          if not(state) then
@@ -656,8 +654,6 @@ implementation
 
 
     function TDebugInfoDwarf.get_def_dwarf_labs(def:tdef): PDwarfHashSetItem;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         needstructdeflab: boolean;
       begin
@@ -754,9 +750,9 @@ implementation
         result:=get_def_dwarf_labs(def)^.ref_lab;
       end;
 
-    constructor TDebugInfoDwarf.Create;
+    constructor TDebugInfoDwarf.Create(ACompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         { 64bit headers are only supported for dwarf3 and up, so default off }
         use_64bit_headers := false;
         { we haven't generated any lineinfo yet }
@@ -1019,8 +1015,6 @@ implementation
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         AddConstToAbbrev(ord(attr));
         if not(tf_dwarf_only_local_labels in compiler.target.info.flags) then
@@ -1159,8 +1153,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         {
           used for writing dwarf lineptr, loclistptr, macptr and rangelistptr classes as FORM_dataN
@@ -1450,8 +1442,6 @@ implementation
       end;
 
     procedure TDebugInfoDwarf.appenddef_float(list:TAsmList;def:tfloatdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case def.floattype of
           s32real,
@@ -1709,8 +1699,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.appenddef_string(list:TAsmList;def:tstringdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure addnormalstringdef(const name: shortstring; lendef: tdef; maxlen: asizeuint);
         var
@@ -1825,8 +1813,6 @@ implementation
       end;
 
     procedure TDebugInfoDwarf.appenddef_procvar(list:TAsmList;def:tprocvardef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure doappend;
         var
@@ -2020,8 +2006,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendprocdef(list:TAsmList; def:tprocdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function dwarf_calling_convention(def: tprocdef): Tdwarf_calling_convention;
         begin
@@ -2366,8 +2350,6 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; const flags: tdwarfvarsymflags);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         templist : TAsmList;
         blocksize,size_of_int : longint;
         tag : tdwarf_tag;
@@ -2700,8 +2682,6 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         bitoffset,
         fieldoffset,
         fieldnatsize: asizeint;
@@ -2769,8 +2749,6 @@ implementation
     end;
 
     procedure TDebugInfoDwarf.appendsym_const_member(list:TAsmList;sym:tconstsym;ismember:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,
         size: aint;
@@ -3075,8 +3053,6 @@ implementation
 
     procedure TDebugInfoDwarf.insertmoduleinfo;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         templist: TAsmList;
         linelist: TAsmList;
         lbl   : tasmlabel;
@@ -3263,8 +3239,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.inserttypeinfo;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         storefilepos  : tfileposinfo;
         lenstartlabel,arangestartlabel: tasmlabel;
@@ -3513,8 +3487,6 @@ implementation
 
     procedure TDebugInfoDwarf.referencesections(list:TAsmList);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hp : tmodule;
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
@@ -3594,8 +3566,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.insertlineinfo(list:TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
@@ -3879,8 +3849,6 @@ implementation
       end;
 
     procedure TDebugInfoDwarf2.append_object_struct(def: tobjectdef; const createlabel: boolean; const objectname: PShortString);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if createlabel then
           begin
@@ -3990,8 +3958,6 @@ implementation
       end;
 
     procedure TDebugInfoDwarf2.appenddef_set_intern(list:TAsmList;def: tsetdef; force_tag_set: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         lab: tasmlabel;
       begin
@@ -4150,8 +4116,6 @@ implementation
 
 
     procedure tdebuginfodwarf3.appenddef_string(list: tasmlist; def: tstringdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure addstringdef(const name: shortstring; chardef: tdef; deref: boolean; lensize: aint);
         var
@@ -4325,8 +4289,6 @@ implementation
       end;
 
     procedure TDebugInfoDwarf3.appenddef_object(list:TAsmList;def: tobjectdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure dostruct(tag: tdwarf_tag);
         begin

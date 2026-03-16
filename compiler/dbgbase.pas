@@ -35,6 +35,8 @@ interface
 
     type
       TDebugInfo=class
+      private
+        FCompiler: TCompilerBase;
       protected
         { definitions }
         { collect all defs in one list so we can reset them easily }
@@ -81,8 +83,9 @@ interface
         procedure write_symtable_procdefs(list:TAsmList;st:TSymtable);
         procedure reset_unit_type_info;
         procedure write_used_unit_type_info(list:TAsmList;hp:tmodule);
+        property Compiler: TCompilerBase read FCompiler;
       public
-        constructor Create;virtual;
+        constructor Create(ACompiler: TCompilerBase);virtual;
         procedure inserttypeinfo;virtual;
         procedure insertmoduleinfo;virtual;
         procedure insertlineinfo(list:TAsmList);virtual;
@@ -109,8 +112,9 @@ implementation
       cgbase;
 
 
-    constructor TDebugInfo.Create;
+    constructor TDebugInfo.Create(ACompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
       end;
 
 
@@ -636,12 +640,12 @@ implementation
             exit;
           end;
 {$ifndef llvm}
-        hp.DebugInfo:=CDebugInfo[compiler.target.dbg.id].Create;
+        hp.DebugInfo:=CDebugInfo[compiler.target.dbg.id].Create(compiler);
 {$else}
         { we can't override the assignment of compiler.target.dbg with the LLVM class,
           because we still need to know whether to tell LLVM to generate
           DWARFv2/3/4/5/... }
-        hp.DebugInfo:=CDebugInfo[dbg_llvm].Create;
+        hp.DebugInfo:=CDebugInfo[dbg_llvm].Create(compiler);
 {$endif}
         if restore_current_debuginfo then
           begin
