@@ -408,7 +408,7 @@ type
     procedure DrawPixel(const x, y: integer; const newcolor: TFPColor);
     procedure GradientFill(const ARect: TRect; AStartColor, AEndColor: TFPColor; ADirection: TFPGradientDirection); virtual;
     // coordinate transformation
-    property Matrix: TFPCanvasMatrix read FMatrix write FMatrix;
+    property TransformMatrix: TFPCanvasMatrix read FMatrix write FMatrix;
     procedure Translate(DX, DY: Double);
     procedure Scale(SX, SY: Double);
     procedure Rotate(ARadians: Double);
