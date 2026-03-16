@@ -227,16 +227,21 @@ begin
   lPos:=1;
   for lChar in S do
     begin
+    lCharLen:=0;
     Case lChar of
       '<' : lRepl:='&lt;';
       '>' : lRepl:='&gt;';
       '"' : lRepl:='&quot;';
       '&' : lRepl:='&amp;';
     else
-      lRepl:=lChar;
+      Result[lPos]:=lChar;
+      lCharLen:=1;
     end;
-    lCharlen:=Length(lRepl);
-    Move(lRepl[1],Result[lPos],lCharLen);
+    if lCharLen=0 then
+      begin
+      lCharlen:=Length(lRepl);
+      Move(lRepl[1],Result[lPos],lCharLen);
+      end;
     Inc(lPos,lCharLen);
     end;
 end;
