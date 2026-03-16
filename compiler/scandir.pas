@@ -1806,7 +1806,7 @@ unit scandir;
            DoneLinker;
            compiler.verbose.Message(option_smart_link_requires_external_linker);
            include(current_settings.globalswitches,cs_link_extern);
-           InitLinker;
+           InitLinker(compiler);
          end
       end;
 

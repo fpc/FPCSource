@@ -466,7 +466,7 @@ begin
   FParser:=TParser.Create(self);
   InitImport;
   InitExport;
-  InitLinker;
+  InitLinker(Self);
   InitAsm;
   InitWpo;
 

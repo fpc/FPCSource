@@ -165,7 +165,7 @@ interface
 
     procedure RegisterLinker(id:tlink;c:TLinkerClass);
 
-    procedure InitLinker;
+    procedure InitLinker(compiler: TCompilerBase);
     procedure DoneLinker;
 
 
@@ -2304,9 +2304,7 @@ Implementation
       end;
 
 
-    procedure InitLinker;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure InitLinker(compiler: TCompilerBase);
       begin
         if (cs_link_extern in current_settings.globalswitches) and
            assigned(CLinker[compiler.target.info.linkextern]) then
