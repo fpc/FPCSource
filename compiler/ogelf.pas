@@ -784,6 +784,8 @@ implementation
 
     procedure TElfSymtab.writeInternalSymbol(avalue:aword;astridx:longword;ainfo:byte;ashndx:word);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         elfsym:TElfSymbol;
       begin
         fillchar(elfsym,sizeof(elfsym),0);
@@ -793,11 +795,13 @@ implementation
         elfsym.st_shndx:=ashndx;
         inc(symidx);
         inc(shinfo);
-        MaybeSwapElfSymbol(elfsym);
+        MaybeSwapElfSymbol(compiler.target.info.endian,elfsym);
         write(elfsym,sizeof(elfsym));
       end;
 
     procedure TElfSymtab.writeSymbol(objsym:TObjSymbol;nameidx:longword);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         elfsym:TElfSymbol;
       begin
@@ -885,7 +889,7 @@ implementation
               end;
           end;
         inc(symidx);
-        MaybeSwapElfSymbol(elfsym);
+        MaybeSwapElfSymbol(compiler.target.info.endian,elfsym);
         write(elfsym,sizeof(TElfSymbol));
       end;
 
@@ -943,7 +947,7 @@ implementation
 
             { write reloc }
             { ElfXX_Rel is essentially ElfXX_Rela without the addend field. }
-            MaybeSwapElfReloc(rel);
+            MaybeSwapElfReloc(compiler.target.info.endian,rel);
             relocsect.write(rel,relocsect.shentsize);
           end;
       end;
@@ -1035,7 +1039,7 @@ implementation
         sechdr.sh_info:=s.shinfo;
         sechdr.sh_addralign:=s.secalign;
         sechdr.sh_entsize:=s.shentsize;
-        MaybeSwapSecHeader(sechdr);
+        MaybeSwapSecHeader(compiler.target.info.endian,sechdr);
         writer.write(sechdr,sizeof(sechdr));
       end;
 
@@ -1133,7 +1137,7 @@ implementation
            header.e_shentsize:=sizeof(telfsechdr);
            if assigned(ElfTarget.encodeflags) then
              header.e_flags:=ElfTarget.encodeflags();
-           MaybeSwapHeader(header);
+           MaybeSwapHeader(compiler.target.info.endian,header);
            writer.write(header,sizeof(header));
            writer.writezeros($40-sizeof(header)); { align }
            { Sections }
@@ -1203,7 +1207,7 @@ implementation
         for i:=0 to secrec.relocs-1 do
           begin
             FReader.Read(rel,secrec.relentsize);
-            MaybeSwapElfReloc(rel);
+            MaybeSwapElfReloc(compiler.target.info.endian,rel);
             reltyp:=rel.info and $FF;
 {$ifdef cpu64bitaddr}
             relsym:=rel.info shr 32;
@@ -1246,7 +1250,7 @@ implementation
         for i:=1 to count-1 do
           begin
             FReader.Read(sym,sizeof(TElfSymbol));
-            MaybeSwapElfSymbol(sym);
+            MaybeSwapElfSymbol(compiler.target.info.endian,sym);
             if sym.st_name>=strtablen then
               InternalError(2012060205);
 
@@ -1436,7 +1440,7 @@ implementation
 
                 FReader.Seek(symtaboffset+shdr.sh_info*sizeof(TElfSymbol));
                 FReader.Read(sym,sizeof(TElfSymbol));
-                MaybeSwapElfSymbol(sym);
+                MaybeSwapElfSymbol(compiler.target.info.endian,sym);
                 if sym.st_name>=strtablen then
                   InternalError(2012110705);
                 if (sym.st_shndx=index) and (sym.st_info=((STB_LOCAL shl 4) or STT_SECTION)) then
@@ -1499,7 +1503,7 @@ implementation
             InputError('ELF endianness does not match target');
             exit;
           end;
-        MaybeSwapHeader(header);
+        MaybeSwapHeader(compiler.target.info.endian,header);
         if (header.e_version<>1) then
           begin
             InputError('Unknown ELF data version');
@@ -1550,7 +1554,7 @@ implementation
         for i:=0 to (shdr.sh_size div shdr.sh_entsize)-1 do
           begin
             FReader.Read(dt,sizeof(TElfDyn));
-            MaybeSwapElfDyn(dt);
+            MaybeSwapElfDyn(compiler.target.info.endian,dt);
             case dt.d_tag of
               DT_NULL:
                 break;
@@ -1595,7 +1599,7 @@ implementation
           end;
         if source_info.endian<>compiler.target.info.endian then
           for i:=0 to nsects-1 do
-            MaybeSwapSecHeader(shdrs[i]);
+            MaybeSwapSecHeader(compiler.target.info.endian,shdrs[i]);
 
         { First, load the .shstrtab section }
         if shstrndx>=nsects then
@@ -1693,7 +1697,7 @@ implementation
                         begin
                           FReader.seek(vdoffset);
                           FReader.Read(vd,sizeof(TElfverdef));
-                          MaybeSwapElfverdef(vd);
+                          MaybeSwapElfverdef(compiler.target.info.endian,vd);
                           if vd.vd_version<>VER_DEF_CURRENT then
                             InternalError(2012120502);
                           FReader.seek(vdoffset+vd.vd_aux);
@@ -1702,7 +1706,7 @@ implementation
                             subsequent one(s) point to parent(s). For our purposes, version hierarchy
                             looks irrelevant. }
                           FReader.Read(vda,sizeof(TElfverdaux));
-                          MaybeSwapElfverdaux(vda);
+                          MaybeSwapElfverdaux(compiler.target.info.endian,vda);
                           if vda.vda_name>=strtablen then
                             InternalError(2012120503);
                           if (vd.vd_flags and VER_FLG_BASE)<>0 then
@@ -1918,7 +1922,7 @@ implementation
           header.e_entry:=EntrySym.Address;
         header.e_shentsize:=sizeof(telfsechdr);
         header.e_phentsize:=sizeof(telfproghdr);
-        MaybeSwapHeader(header);
+        MaybeSwapHeader(compiler.target.info.endian,header);
         FWriter.Write(header,sizeof(header));
       end;
 
@@ -1944,7 +1948,7 @@ implementation
         shdr.sh_info:=exesec.shinfo;
         shdr.sh_addralign:=exesec.SecAlign;
         shdr.sh_entsize:=exesec.shentsize;
-        MaybeSwapSecHeader(shdr);
+        MaybeSwapSecHeader(compiler.target.info.endian,shdr);
         FWriter.Write(shdr,sizeof(shdr));
       end;
 
@@ -1964,7 +1968,7 @@ implementation
         phdr.p_vaddr:=seg.MemPos;
         phdr.p_paddr:=seg.MemPos;
 
-        MaybeSwapHeader(phdr);
+        MaybeSwapHeader(compiler.target.info.endian,phdr);
         FWriter.Write(phdr,sizeof(phdr));
       end;
 
@@ -2981,7 +2985,7 @@ implementation
             vn.vn_file:=dynobj.soname_strofs;
             vn.vn_aux:=sizeof(TElfverneed);
             vn.vn_next:=ord(idx<verneedcount)*(sizeof(TElfverneed)+vn.vn_cnt*sizeof(TElfvernaux));
-            MaybeSwapElfverneed(vn);
+            MaybeSwapElfverneed(compiler.target.info.endian,vn);
             verneedsec.write(vn,sizeof(TElfverneed));
 
             auxidx:=0;
@@ -2996,7 +3000,7 @@ implementation
                 vna.vna_other:=ver.index;
                 vna.vna_name:=dynsymtable.fstrsec.writestr(ver.name);
                 vna.vna_next:=ord(auxidx<dynobj.vernaux_count)*sizeof(TElfvernaux);
-                MaybeSwapElfvernaux(vna);
+                MaybeSwapElfvernaux(compiler.target.info.endian,vna);
                 verneedsec.write(vna,sizeof(TElfvernaux));
               end;
           end;
@@ -3023,7 +3027,7 @@ implementation
 {$push}{$r-}
         rel.addend:=addend;
 {$pop}
-        MaybeSwapElfReloc(rel);
+        MaybeSwapElfReloc(compiler.target.info.endian,rel);
         dynrelocsec.write(rel,dynrelocsec.shentsize);
       end;
 
@@ -3034,7 +3038,7 @@ implementation
       begin
         d.d_tag:=aTag;
         d.d_val:=aValue;
-        MaybeSwapElfDyn(d);
+        MaybeSwapElfDyn(compiler.target.info.endian,d);
         dynamicsec.write(d,sizeof(TElfDyn));
       end;
 

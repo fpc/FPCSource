@@ -26,7 +26,7 @@ unit elfbase;
 interface
 
   uses
-    compilerbase;
+    systems;
 
   const
     EI_MAG0    = 0;
@@ -427,36 +427,31 @@ interface
     VER_FLG_WEAK = 2;
     VER_FLG_INFO = 4;
 
-    procedure MayBeSwapHeader(var h : telf32header);
-    procedure MayBeSwapHeader(var h : telf64header);
-    procedure MayBeSwapHeader(var h : telf32proghdr);
-    procedure MayBeSwapHeader(var h : telf64proghdr);
-    procedure MaybeSwapSecHeader(var h : telf32sechdr);
-    procedure MaybeSwapSecHeader(var h : telf64sechdr);
-    procedure MaybeSwapElfSymbol(var h : telf32symbol);
-    procedure MaybeSwapElfSymbol(var h : telf64symbol);
-    procedure MaybeSwapElfReloc(var h : telf32reloc);
-    procedure MaybeSwapElfReloc(var h : telf64reloc);
-    procedure MaybeSwapElfDyn(var h : telf32dyn);
-    procedure MaybeSwapElfDyn(var h : telf64dyn);
-    procedure MaybeSwapElfverdef(var h: TElfverdef);
-    procedure MaybeSwapElfverdaux(var h: TElfverdaux);
-    procedure MaybeSwapElfverneed(var h: TElfverneed);
-    procedure MaybeSwapElfvernaux(var h: TElfvernaux);
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf32header);
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf64header);
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf32proghdr);
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf64proghdr);
+    procedure MaybeSwapSecHeader(target_endian:tendian;var h : telf32sechdr);
+    procedure MaybeSwapSecHeader(target_endian:tendian;var h : telf64sechdr);
+    procedure MaybeSwapElfSymbol(target_endian:tendian;var h : telf32symbol);
+    procedure MaybeSwapElfSymbol(target_endian:tendian;var h : telf64symbol);
+    procedure MaybeSwapElfReloc(target_endian:tendian;var h : telf32reloc);
+    procedure MaybeSwapElfReloc(target_endian:tendian;var h : telf64reloc);
+    procedure MaybeSwapElfDyn(target_endian:tendian;var h : telf32dyn);
+    procedure MaybeSwapElfDyn(target_endian:tendian;var h : telf64dyn);
+    procedure MaybeSwapElfverdef(target_endian:tendian;var h: TElfverdef);
+    procedure MaybeSwapElfverdaux(target_endian:tendian;var h: TElfverdaux);
+    procedure MaybeSwapElfverneed(target_endian:tendian;var h: TElfverneed);
+    procedure MaybeSwapElfvernaux(target_endian:tendian;var h: TElfvernaux);
 
     function GetElfSymbolVisibility(other: byte): byte; inline;
     procedure SetElfSymbolVisibility(var other: byte; vis: byte); inline;
 
 implementation
 
-    uses
-      systems,compiler;
-
-    procedure MayBeSwapHeader(var h : telf32header);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf32header);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               e_type:=swapendian(e_type);
@@ -476,11 +471,9 @@ implementation
       end;
 
 
-    procedure MayBeSwapHeader(var h : telf64header);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf64header);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               e_type:=swapendian(e_type);
@@ -500,11 +493,9 @@ implementation
       end;
 
 
-    procedure MayBeSwapHeader(var h : telf32proghdr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf32proghdr);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               p_align:=swapendian(p_align);
@@ -519,11 +510,9 @@ implementation
       end;
 
 
-    procedure MayBeSwapHeader(var h : telf64proghdr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MayBeSwapHeader(target_endian:tendian;var h : telf64proghdr);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               p_align:=swapendian(p_align);
@@ -538,11 +527,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapSecHeader(var h : telf32sechdr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapSecHeader(target_endian:tendian;var h : telf32sechdr);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               sh_name:=swapendian(sh_name);
@@ -559,11 +546,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapSecHeader(var h : telf64sechdr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapSecHeader(target_endian:tendian;var h : telf64sechdr);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               sh_name:=swapendian(sh_name);
@@ -580,11 +565,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfSymbol(var h : telf32symbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfSymbol(target_endian:tendian;var h : telf32symbol);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               st_name:=swapendian(st_name);
@@ -595,11 +578,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfSymbol(var h : telf64symbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfSymbol(target_endian:tendian;var h : telf64symbol);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               st_name:=swapendian(st_name);
@@ -610,11 +591,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfReloc(var h : telf32reloc);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfReloc(target_endian:tendian;var h : telf32reloc);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               address:=swapendian(address);
@@ -624,11 +603,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfReloc(var h : telf64reloc);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfReloc(target_endian:tendian;var h : telf64reloc);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               address:=swapendian(address);
@@ -638,11 +615,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfDyn(var h : telf32dyn);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfDyn(target_endian:tendian;var h : telf32dyn);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               d_tag:=swapendian(d_tag);
@@ -651,11 +626,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfDyn(var h : telf64dyn);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfDyn(target_endian:tendian;var h : telf64dyn);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               d_tag:=swapendian(d_tag);
@@ -664,11 +637,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfverdef(var h: TElfverdef);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfverdef(target_endian:tendian;var h: TElfverdef);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               vd_version:=swapendian(vd_version);
@@ -682,11 +653,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfverdaux(var h: TElfverdaux);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfverdaux(target_endian:tendian;var h: TElfverdaux);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               vda_name:=swapendian(vda_name);
@@ -695,11 +664,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfverneed(var h: TElfverneed);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfverneed(target_endian:tendian;var h: TElfverneed);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               vn_version:=swapendian(vn_version);
@@ -711,11 +678,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapElfvernaux(var h: TElfvernaux);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapElfvernaux(target_endian:tendian;var h: TElfvernaux);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           with h do
             begin
               vna_hash:=swapendian(vna_hash);
