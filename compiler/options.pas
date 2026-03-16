@@ -163,6 +163,7 @@ Type
     fpcdir,
     ppccfg,
     param_file    : string;   { file to compile specified on the commandline }
+    function check_configfile(fn:string; var foundfn:string):boolean;
     procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -4489,9 +4490,7 @@ end;
                               Callable Routines
 ****************************************************************************}
 
-function check_configfile(fn:string; var foundfn:string):boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function TOptions.check_configfile(fn:string; var foundfn:string):boolean;
 
   function CfgFileExists(const fn:string):boolean;
   begin
