@@ -1218,8 +1218,6 @@ Implementation
 
 
       function MayBeSwapHeader(h : telf32header) : telf32header;
-        var
-          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
           if source_info.endian<>compiler.target.info.endian then
@@ -1243,8 +1241,6 @@ Implementation
 
 
       function MayBeSwapHeader(h : telf64header) : telf64header;
-        var
-          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
           if source_info.endian<>compiler.target.info.endian then
@@ -1268,8 +1264,6 @@ Implementation
 
 
       function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
-        var
-          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
           if source_info.endian<>compiler.target.info.endian then
@@ -1290,8 +1284,6 @@ Implementation
 
 
       function MaybeSwapSecHeader(h : telf64sechdr) : telf64sechdr;
-        var
-          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         begin
           result:=h;
           if source_info.endian<>compiler.target.info.endian then
