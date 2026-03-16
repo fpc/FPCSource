@@ -35,6 +35,7 @@ Type
   private
     FCompiler: TCompilerBase;
     FOptions: TOptions;
+    procedure set_endianess_macros;
     procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
   public
@@ -233,9 +234,7 @@ begin
 {$endif}
 end;
 
-procedure set_endianess_macros;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure TOption.set_endianess_macros;
   begin
     { endian define }
     case compiler.target.info.endian of
@@ -5032,7 +5031,7 @@ begin
 
   { make cpu makros available when reading the config files the second time }
   def_cpu_macros;
-  set_endianess_macros;
+  option.set_endianess_macros;
 
   if tf_cld in compiler.target.info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
@@ -5824,7 +5823,7 @@ begin
 
   { now we can define cpu and fpu type }
   def_cpu_macros;
-  set_endianess_macros;
+  option.set_endianess_macros;
 
   { Use init_settings cpu type for asm cpu type,
     if asmcputype is cpu_none,
