@@ -1803,10 +1803,10 @@ unit scandir;
           not (af_smartlink_sections in compiler.target._asm.flags) and
           not (cs_link_extern in current_settings.globalswitches) then
          begin
-           DoneLinker;
+           tcompiler(compiler).DoneLinker;
            compiler.verbose.Message(option_smart_link_requires_external_linker);
            include(current_settings.globalswitches,cs_link_extern);
-           InitLinker(compiler);
+           tcompiler(compiler).InitLinker;
          end
       end;
 

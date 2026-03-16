@@ -191,7 +191,7 @@ implementation
          begin
            GenerateAsm(true);
            if (af_needar in compiler.target._asm.flags) then
-             Linker.MakeStaticLibrary;
+             compiler.Linker.MakeStaticLibrary;
          end;
 
         { resource files }
@@ -2390,7 +2390,7 @@ type
                     { only link in those units which should become part of this
                       package }
                     if not assigned(hp.package) then
-                      linker.AddModuleFiles(hp);
+                      compiler.linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
                     if (hp<>curr) and
                        (not needsymbolinfo) then
@@ -2402,9 +2402,9 @@ type
                     hp:=hp2;
                   end;
                  { add the library of directly used packages }
-                 compiler.pkgutil.add_package_libs(linker);
+                 compiler.pkgutil.add_package_libs(compiler.linker);
                  { and now link the package library }
-                 linker.MakeSharedLibrary
+                 compiler.linker.MakeSharedLibrary
                end;
 
              { Give Fatal with error count for linker errors }
@@ -2436,7 +2436,7 @@ type
             { link SysInit (if any) first, to have behavior consistent with
               assembler startup files }
             if assigned(sysinitmod) then
-              linker.AddModuleFiles(sysinitmod);
+              compiler.linker.AddModuleFiles(sysinitmod);
             { Does any unit use checkpointer function }
             program_uses_checkpointer:=false;
             { before freeing modules, free used_units }
@@ -2450,7 +2450,7 @@ type
              begin
                if (hp<>sysinitmod) and not assigned(hp.package) then
                  begin
-                   linker.AddModuleFiles(hp);
+                   compiler.linker.AddModuleFiles(hp);
                    if mf_checkpointer_called in hp.moduleflags then
                      program_uses_checkpointer:=true;
                  end;
@@ -2474,12 +2474,12 @@ type
               compiler.verbose.Message1(link_w_program_uses_checkpointer,curr.modulename^);
 
             { add all directly used packages as libraries }
-            compiler.pkgutil.add_package_libs(linker);
+            compiler.pkgutil.add_package_libs(compiler.linker);
             { finally we can create an executable }
             if curr.islibrary then
-              linker.MakeSharedLibrary
+              compiler.linker.MakeSharedLibrary
             else
-              linker.MakeExecutable;
+              compiler.linker.MakeExecutable;
 
             { collect all necessary information for whole-program optimization }
             wpoinfomanager.extractwpoinfofromprogram;
@@ -2549,11 +2549,11 @@ type
           support. If not, remove the unit. }
         resources_used:=MaybeRemoveResUnit(curr);
 
-        linker.initsysinitunitname;
+        compiler.linker.initsysinitunitname;
         if compiler.target.info.system in systems_internal_sysinit then
         begin
           { add start/halt unit }
-          sysinitmod:=AddUnit(curr,linker.sysinitunit);
+          sysinitmod:=AddUnit(curr,compiler.linker.sysinitunit);
         end
         else
           sysinitmod:=nil;

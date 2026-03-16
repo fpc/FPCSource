@@ -114,6 +114,8 @@ const
       end;
 
     procedure texportlibandroid.exportprocedure(hp: texported_item);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         {
           Android versions prior to 4.1 do not support recursive dlopen() calls.
@@ -131,7 +133,7 @@ const
            (hp.name^ = SJNI_OnLoad) and (tprocsym(hp.sym).procdeflist.count = 1) then
           begin
             // Save the JNI_OnLoad procdef
-            tlinkerandroid(Linker).FJNIOnLoadName:=tprocdef(tprocsym(hp.sym).procdeflist[0]).mangledname;
+            tlinkerandroid(compiler.Linker).FJNIOnLoadName:=tprocdef(tprocsym(hp.sym).procdeflist[0]).mangledname;
             hp.Free;
             exit;
           end;
@@ -139,9 +141,11 @@ const
       end;
 
     procedure texportlibandroid.generatelib;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited generatelib;
-        if tlinkerandroid(Linker).FJNIOnLoadName = '' then
+        if tlinkerandroid(compiler.Linker).FJNIOnLoadName = '' then
           exit;
         // If JNI_OnLoad is exported, export a system proxy function instead
         create_hlcodegen;

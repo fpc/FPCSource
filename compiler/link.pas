@@ -161,17 +161,13 @@ interface
 
       TLinkerClass = class of Tlinker;
 
-    var
-      Linker  : TLinker;
-
     function FindObjectFile(s : TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
     function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
     function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
 
     procedure RegisterLinker(id:tlink;c:TLinkerClass);
 
-    procedure InitLinker(compiler: TCompilerBase);
-    procedure DoneLinker;
+    function CreateLinker(compiler: TCompilerBase): TLinker;
 
 
 Implementation
@@ -2254,28 +2250,20 @@ Implementation
       end;
 
 
-    procedure InitLinker(compiler: TCompilerBase);
+    function CreateLinker(compiler: TCompilerBase): TLinker;
       begin
         if (cs_link_extern in current_settings.globalswitches) and
            assigned(CLinker[compiler.target.info.linkextern]) then
           begin
-            linker:=CLinker[compiler.target.info.linkextern].Create(compiler);
+            result:=CLinker[compiler.target.info.linkextern].Create(compiler);
           end
         else
           if assigned(CLinker[compiler.target.info.link]) then
             begin
-              linker:=CLinker[compiler.target.info.link].Create(compiler);
+              result:=CLinker[compiler.target.info.link].Create(compiler);
             end
         else
-          linker:=Tlinker.Create(compiler);
-      end;
-
-
-    procedure DoneLinker;
-      begin
-        if assigned(linker) then
-         Linker.Free;
-         Linker := nil;
+          result:=Tlinker.Create(compiler);
       end;
 
 

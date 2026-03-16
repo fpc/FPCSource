@@ -167,6 +167,9 @@ type
 {****************************************************************************
                                 TCompiler
 ****************************************************************************}
+
+  { TCompiler }
+
   TCompiler = class(TCompilerBase)
   private
     FTarget: TCompilerTarget;
@@ -184,6 +187,7 @@ type
     FObjCUtil: TObjectiveCUtils;
     FOptions: TOptions;
     FRTTIWriter : TRTTIWriter;
+    FLinker: TLinker;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
                                           given on the command line. Is common
@@ -202,6 +206,9 @@ type
   public
     function Compile(const cmd:TCmdStr):longint;
 
+    procedure InitLinker;
+    procedure DoneLinker;
+
     property Target: TCompilerTarget read FTarget;
     property Time: TCompilerTime read FTime;
     property Verbose: TVerbose read FVerbose;
@@ -216,6 +223,7 @@ type
     property ObjCUtil: TObjectiveCUtils read FObjCUtil;
     property Options: TOptions read FOptions;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
+    property Linker: TLinker read FLinker;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
     property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
@@ -230,6 +238,7 @@ type
     function GetBlockUtl: TBlockUtils; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
+    function GetLinker: TLinker; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
     function GetObjCUtil: TObjectiveCUtils; inline;
@@ -364,6 +373,7 @@ type
     property ProcDefUtil: TProcDefUtils read GetProcDefUtil;
     property ObjCUtil: TObjectiveCUtils read GetObjCUtil;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
+    property Linker: TLinker read GetLinker;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
     property symtablestack: TSymtablestack read Getsymtablestack;
@@ -466,7 +476,7 @@ begin
   FParser:=TParser.Create(self);
   InitImport;
   InitExport;
-  InitLinker(Self);
+  InitLinker;
   InitAsm;
   InitWpo;
 
@@ -683,6 +693,17 @@ begin
     result:=1;
 end;
 
+procedure TCompiler.InitLinker;
+begin
+  FreeAndNil(FLinker);
+  FLinker:=CreateLinker(Self);
+end;
+
+procedure TCompiler.DoneLinker;
+begin
+  FreeAndNil(FLinker);
+end;
+
 { TCompilerHelper }
 
 function TCompilerHelper.Getaktassignmentnode: tassignmentnode; inline;
@@ -703,6 +724,11 @@ end;
 function TCompilerHelper.Getinitialmacrosymtable: TSymtable; inline;
 begin
   Result := TCompiler(Self).initialmacrosymtable;
+end;
+
+function TCompilerHelper.GetLinker: TLinker;
+begin
+  Result := TCompiler(Self).Linker;
 end;
 
 function TCompilerHelper.Getmacrosymtablestack: TSymtablestack;
