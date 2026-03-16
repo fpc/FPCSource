@@ -26,76 +26,74 @@ unit triplet;
 interface
 
 uses
-  globtype,compilerbase;
+  globtype,systems;
 
-function targettriplet(tripletstyle: ttripletstyle): ansistring;
+function targettriplet(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
-  globals,systems,compiler,
+  globals,
   cpuinfo,tripletcpu;
 
-  function targettriplet(tripletstyle: ttripletstyle): ansistring;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  function targettriplet(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
     begin
       { architecture }
       result:=tripletcpustr(tripletstyle);
       { vendor and/or OS }
-      if compiler.target.info.system in systems_darwin then
+      if target.info.system in systems_darwin then
         begin
           result:=result+'-apple';
-          if compiler.target.info.system in systems_macosx then
+          if target.info.system in systems_macosx then
             result:=result+'-macosx'+MacOSXVersionMin.str
-          else if compiler.target.info.system = system_aarch64_iphonesim then
+          else if target.info.system = system_aarch64_iphonesim then
             result:=result+'-ios-simulator'+iPhoneOSVersionMin.str
           else
             result:=result+'-ios'+iPhoneOSVersionMin.str;
         end
-      else if compiler.target.info.system in (systems_linux+systems_android) then
+      else if target.info.system in (systems_linux+systems_android) then
         result:=result+'-unknown-linux'
-      else if compiler.target.info.system in systems_all_windows then
+      else if target.info.system in systems_all_windows then
         begin
           { WinCE isn't supported (yet) by llvm, but if/when added this is
             presumably how they will differentiate it }
-          if compiler.target.info.system in systems_windows then
+          if target.info.system in systems_windows then
             result:=result+'-pc';
           result:=result+'-windows-msvc19'
         end
-      else if compiler.target.info.system in systems_freebsd then
+      else if target.info.system in systems_freebsd then
         result:=result+'-unknown-freebsd'
-      else if compiler.target.info.system in systems_openbsd then
+      else if target.info.system in systems_openbsd then
         result:=result+'-unknown-openbsd'
-      else if compiler.target.info.system in systems_netbsd then
+      else if target.info.system in systems_netbsd then
         result:=result+'-unknown-netbsd'
-      else if compiler.target.info.system in systems_solaris then
+      else if target.info.system in systems_solaris then
         result:=result+'-sun-solaris2'
-      else if compiler.target.info.system in systems_aix then
+      else if target.info.system in systems_aix then
         result:=result+'-ibm-aix53'
-      else if compiler.target.info.system in [system_i386_haiku] then
+      else if target.info.system in [system_i386_haiku] then
         result:=result+'-unknown-haiku'
-      else if compiler.target.info.system in systems_embedded then
+      else if target.info.system in systems_embedded then
         result:=result+'-none'
       else
         result:=result+'-unknown';
 
       { environment/ABI }
-      if compiler.target.info.system in systems_android then
+      if target.info.system in systems_android then
         result:=result+'-android'
       else
 {$ifdef arm}
-      if compiler.target.info.abi=abi_eabihf then
+      if target.info.abi=abi_eabihf then
         result:=result+'-gnueabihf'
-      else if compiler.target.info.system in systems_embedded then
+      else if target.info.system in systems_embedded then
         result:=result+'-eabi'
-      else if compiler.target.info.abi=abi_eabi then
+      else if target.info.abi=abi_eabi then
         result:=result+'-gnueabi'
       else
 {$endif}
-      if compiler.target.info.system in systems_embedded then
+      if target.info.system in systems_embedded then
         result:=result+'-elf'
-      else if compiler.target.info.system in systems_linux then
+      else if target.info.system in systems_linux then
         result:=result+'-gnu';
     end;
 

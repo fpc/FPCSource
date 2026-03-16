@@ -865,7 +865,7 @@ implementation
         writer.AsmWrite(compiler.target.info.llvmdatalayout);
         writer.AsmWriteln('"');
         writer.AsmWrite('target triple = "');
-        writer.AsmWrite(targettriplet(triplet_llvm));
+        writer.AsmWrite(targettriplet(compiler.target,triplet_llvm));
         writer.AsmWriteln('"');
       end;
 
