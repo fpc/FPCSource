@@ -311,7 +311,7 @@ interface
          procedure WriteDynTag(aTag:longword;aSection:TObjSection;aOffs:aword=0);
          procedure Do_Mempos;virtual;
        public
-         constructor Create;override;
+         constructor Create(ACompiler: TCompilerBase);override;
          destructor Destroy;override;
          procedure Load_Start;override;
          procedure Load_DynamicObject(ObjData:TObjData;asneeded:boolean);override;
@@ -1829,9 +1829,9 @@ implementation
                                   TElfExeOutput
 *****************************************************************************}
 
-    constructor TElfExeOutput.Create;
+    constructor TElfExeOutput.Create(ACompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         CObjData:=TElfObjData;
         CExeSection:=TElfExeSection;
 {$ifdef cpu64}
@@ -1884,8 +1884,6 @@ implementation
 
 
     procedure TElfExeOutput.WriteHeader;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         header: TElfHeader;
       begin
@@ -2174,8 +2172,6 @@ implementation
 
     procedure TElfExeOutput.Load_DynamicObject(objdata:TObjData;asneeded:boolean);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         i: longint;
         exesym: TExeSymbol;
         objsym: TObjSymbol;
@@ -2227,8 +2223,6 @@ implementation
 
 
     procedure TElfExeOutput.Order_end;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure set_oso_keep(const s:string;out firstsec:TObjSection);
         var
@@ -2283,8 +2277,6 @@ implementation
 
 
     procedure TElfExeOutput.OrderOrphanSections;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,j:longint;
         objdata:TObjData;
@@ -2372,8 +2364,6 @@ implementation
 
 
     procedure TElfExeOutput.AfterUnusedSectionRemoval;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i:longint;
         exesym:TExeSymbol;
@@ -2893,8 +2883,6 @@ implementation
 
     procedure TElfExeOutput.WriteDynamicSymbolsHash;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         nchains,nbuckets: longint;
         i,j: longint;
         hashdata: plongint;
@@ -2935,8 +2923,6 @@ implementation
 
 
     procedure TElfExeOutput.WriteVersionSections;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,j: longint;
         idx,auxidx: longword;
@@ -3060,8 +3046,6 @@ implementation
 
 
     procedure TElfExeOutput.WriteDynTag(aTag:longword;aSection:TObjSection;aOffs:aword);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         d: TElfDyn;
       begin
@@ -3288,8 +3272,6 @@ implementation
 
 
     procedure TElfExeOutput.ReportNonDSOReloc(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { TODO: include objsec properties into message }
         compiler.verbose.Comment(v_error,'Relocation '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+''' cannot be used when linking a shared object; recompile with -Cg');
@@ -3297,8 +3279,6 @@ implementation
 
 
     procedure TElfExeOutput.ReportRelocOverflow(reltyp:byte;objsec:TObjSection;ObjReloc:TObjRelocation);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { TODO: include objsec properties into message }
         compiler.verbose.Comment(v_error,'Relocation truncated to fit: '+ElfTarget.RelocName(reltyp)+' against '''+objreloc.TargetName+'''');

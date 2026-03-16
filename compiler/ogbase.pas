@@ -665,6 +665,7 @@ interface
 
       TExeOutput = class
       private
+        FCompiler: TCompilerBase;
         { ExeSectionList }
         FCObjSymbol       : TObjSymbolClass;
         FCObjData         : TObjDataClass;
@@ -710,12 +711,13 @@ interface
         function MemAlign(exesec: TExeSection): longword;
         function DataAlign(exesec: TExeSection): longword;
         procedure ReplaceExeSectionList(newlist: TFPList);
+        property Compiler: TCompilerBase read FCompiler;
       public
         CurrDataPos  : aword;
         MaxMemPos    : qword;
         IsSharedLibrary : boolean;
         ExecStack    : boolean;
-        constructor create;virtual;
+        constructor create(ACompiler: TCompilerBase);virtual;
         destructor  destroy;override;
         function  FindExeSection(const aname:string):TExeSection;
         procedure AddObjData(ObjData:TObjData);
@@ -2391,8 +2393,9 @@ implementation
                                 TExeOutput
 ****************************************************************************}
 
-    constructor TExeOutput.create;
+    constructor TExeOutput.create(ACompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
         { init writer }
         FWriter:=TObjectwriter.create;
         FExeWriteMode:=ewm_exefull;
@@ -2471,8 +2474,6 @@ implementation
 
 
     function TExeOutput.WriteExeFile(const fn:string):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=false;
         if FWriter.createfile(fn) then
@@ -2502,8 +2503,6 @@ implementation
 
 
     procedure TExeOutput.AddObjData(ObjData:TObjData);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if ObjData.classtype<>FCObjData then
           compiler.verbose.Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
@@ -2537,8 +2536,6 @@ implementation
 
 
     procedure TExeOutput.Load_ImageBase(const avalue:string);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         code : integer;
         objsec : TObjSection;
@@ -2679,8 +2676,6 @@ implementation
 
     procedure TExeOutput.Order_Align(const avalue:string);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         code     : integer;
         alignval : shortint;
         objsec   : TObjSection;
@@ -2698,8 +2693,6 @@ implementation
 
 
     procedure TExeOutput.Order_Zeros(const avalue:string);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         zeros : array[0..1023] of byte;
         code  : integer;
@@ -2721,8 +2714,6 @@ implementation
       end;
 
     procedure TExeOutput.Order_Values(bytesize : aword; const avalue:string);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         MAXVAL = 128;
       var
@@ -2980,8 +2971,6 @@ implementation
 
     procedure TExeOutput.PackUnresolvedExeSymbols(const s:string);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         i : longint;
         exesym : TExeSymbol;
       begin
@@ -2998,8 +2987,6 @@ implementation
 
 
     procedure TExeOutput.ResolveSymbols(StaticLibraryList:TFPObjectList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         ObjData   : TObjData;
         exesym    : TExeSymbol;
@@ -3383,8 +3370,6 @@ implementation
 
     procedure TExeOutput.GenerateDebugLink(const dbgname:string;dbgcrc:cardinal);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         debuglink : array[0..1023] of byte;
         len   : longint;
         objsec : TObjSection;
@@ -3517,8 +3502,6 @@ implementation
 
 
     procedure TExeOutput.FixupSymbols;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
         procedure UpdateSymbol(objsym:TObjSymbol);
         begin
@@ -3768,8 +3751,6 @@ implementation
 
 
     procedure TExeOutput.MarkEmptySections;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i, j   : longint;
         exesec : TExeSection;
@@ -4098,8 +4079,6 @@ implementation
 
 
     procedure TExeOutput.SetCurrMemPos(const AValue: qword);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if AValue>MaxMemPos then
           compiler.verbose.Message1(link_f_executable_too_big, compiler.target.os_string);

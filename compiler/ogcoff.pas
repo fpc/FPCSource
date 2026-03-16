@@ -224,14 +224,14 @@ interface
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
          procedure DoRelocationFixup(objsec:TObjSection);override;
        public
-         constructor createcoff(awin32:boolean);
+         constructor createcoff(awin32:boolean;ACompiler: TCompilerBase);
          procedure MemPos_Header;override;
          procedure DataPos_Header;override;
          procedure DataPos_Symbols;override;
        end;
 
        TDJCoffexeoutput = class(TCoffexeoutput)
-         constructor create;override;
+         constructor create(ACompiler: TCompilerBase);override;
          procedure MemPos_Header;override;
        end;
 
@@ -247,7 +247,7 @@ interface
          FRelocsGenerated : boolean;
          procedure GenerateRelocs;
        public
-         constructor create;override;
+         constructor create(ACompiler: TCompilerBase);override;
          procedure MarkTargetSpecificSections(WorkList:TFPObjectList);override;
          procedure AfterUnusedSectionRemoval;override;
          procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
@@ -1381,8 +1381,6 @@ const pemagic : array[0..3] of byte = (
 {$q-}
 
     procedure TCoffExeOutput.DoRelocationFixup(objsec:TObjSection);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,zero,address_size : longint;
         objreloc : TObjRelocation;
@@ -2942,11 +2940,9 @@ const pemagic : array[0..3] of byte = (
                               TCoffexeoutput
 ****************************************************************************}
 
-    constructor TCoffexeoutput.createcoff(awin32:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    constructor TCoffexeoutput.createcoff(awin32:boolean;ACompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited create(ACompiler);
         win32:=awin32;
         if compiler.target.info.system in [system_x86_64_win64,system_aarch64_win64] then
           MaxMemPos:=$FFFFFFFF
@@ -3021,8 +3017,6 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TCoffexeoutput.ExeSectionList_write_header(p:TObject;arg:pointer);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         sechdr   : tcoffsechdr;
         s        : string;
@@ -3144,8 +3138,6 @@ const pemagic : array[0..3] of byte = (
 
 
     function TCoffexeoutput.writedata:boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i           : longword;
         header      : tcoffheader;
@@ -3481,9 +3473,9 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    constructor TDJCoffexeoutput.create;
+    constructor TDJCoffexeoutput.create(ACompiler: TCompilerBase);
       begin
-        inherited createcoff(false);
+        inherited createcoff(false,ACompiler);
         datapos_offset:=sizeof(go32v2stub);
         CExeSection:=TExeSection;
         CObjData:=TDJCoffObjData;
@@ -3496,17 +3488,15 @@ const pemagic : array[0..3] of byte = (
         CurrMemPos:=$1000;
       end;
 
-    constructor TPECoffexeoutput.create;
+    constructor TPECoffexeoutput.create(ACompiler: TCompilerBase);
       begin
-        inherited createcoff(true);
+        inherited createcoff(true,ACompiler);
         CExeSection:=TExeSection;
         CObjData:=TPECoffObjData;
       end;
 
 
     procedure TPECoffexeoutput.MarkTargetSpecificSections(WorkList:TFPObjectList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         exesec:TExeSection;
         objsec,textsec:TObjSection;
@@ -3553,8 +3543,6 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TPECoffexeoutput.AfterUnusedSectionRemoval;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         basedllname : string;
 
@@ -3764,8 +3752,6 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TPECoffexeoutput.GenerateRelocs;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         pgaddr, hdrpos : longword;
 
