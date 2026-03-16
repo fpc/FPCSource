@@ -117,6 +117,7 @@ interface
          FStaticLibraryList : TFPObjectList;
          FImportLibraryList : TFPHashObjectList;
          FGroupStack : TFPObjectList;
+         function GetFileCRC(const fn:TPathStr):cardinal;
          procedure Load_ReadObject(const para:TCmdStr);
          procedure Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean=false);
          procedure Load_Group;
@@ -191,9 +192,7 @@ Implementation
                                    Helpers
 *****************************************************************************}
 
-    function GetFileCRC(const fn:TPathStr):cardinal;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TInternalLinker.GetFileCRC(const fn:TPathStr):cardinal;
       var
         fs : TCStream;
         bufcount,
