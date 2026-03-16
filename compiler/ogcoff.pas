@@ -193,17 +193,17 @@ interface
          procedure read_symbols(objdata:TObjData);
          procedure ObjSections_read_relocs(p:TObject;arg:pointer);
        public
-         constructor createcoff(awin32:boolean);
+         constructor createcoff(awin32:boolean;ACompiler: TCompilerBase);
          destructor destroy;override;
          function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
        end;
 
        TDJCoffObjInput = class(TCoffObjInput)
-         constructor create;override;
+         constructor create(ACompiler: TCompilerBase);override;
        end;
 
        TPECoffObjInput = class(TCoffObjInput)
-         constructor create;override;
+         constructor create(ACompiler: TCompilerBase);override;
        end;
 
        TCoffexeoutput = class(texeoutput)
@@ -2300,9 +2300,9 @@ const pemagic : array[0..3] of byte = (
                                 TCoffObjInput
 ****************************************************************************}
 
-    constructor TCoffObjInput.createcoff(awin32:boolean);
+    constructor TCoffObjInput.createcoff(awin32:boolean;ACompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited create(ACompiler);
         win32:=awin32;
         bigobj:=false;
         FSymTbl:=nil;
@@ -2461,8 +2461,6 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TCoffObjInput.read_symbols(objdata:TObjData);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         size,
         address,
@@ -2718,8 +2716,6 @@ const pemagic : array[0..3] of byte = (
 
     function  TCoffObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         secalign : longint;
         secofs,
         strpos,
@@ -2922,16 +2918,16 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    constructor TDJCoffObjInput.create;
+    constructor TDJCoffObjInput.create(ACompiler: TCompilerBase);
       begin
-        inherited createcoff(false);
+        inherited createcoff(false,ACompiler);
         cobjdata:=TDJCoffObjData;
       end;
 
 
-    constructor TPECoffObjInput.create;
+    constructor TPECoffObjInput.create(ACompiler: TCompilerBase);
       begin
-        inherited createcoff(true);
+        inherited createcoff(true,ACompiler);
         cobjdata:=TPECoffObjData;
       end;
 

@@ -522,6 +522,7 @@ interface
 
       TObjInput = class
       private
+        FCompiler: TCompilerBase;
         FCObjData : TObjDataClass;
       protected
         { reader }
@@ -529,8 +530,9 @@ interface
         InputFileName : string;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
         procedure ReadSectionContent(Data:TObjData);
+        property Compiler: TCompilerBase read FCompiler;
       public
-        constructor create;virtual;
+        constructor create(ACompiler: TCompilerBase);virtual;
         function  ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;virtual;abstract;
         class function CanReadObjData(AReader:TObjectreader):boolean;virtual;
         procedure inputerror(const s : string);
@@ -3230,7 +3232,7 @@ implementation
                                     {exesym.ObjSymbol.ObjSection.FullName+}
                                     '('+exesym.Name+')');
                                 end;
-                              objinput:=lib.ObjInputClass.Create;
+                              objinput:=lib.ObjInputClass.Create(compiler);
                               objinput.ReadObjData(lib.ArReader,objdata);
                               objinput.free;
                               objinput := nil;
@@ -4148,14 +4150,13 @@ implementation
                                 TObjInput
 ****************************************************************************}
 
-    constructor TObjInput.create;
+    constructor TObjInput.create(ACompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
       end;
 
 
     procedure TObjInput.inputerror(const s : string);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         compiler.verbose.Comment(V_Error,s+' while reading '+InputFileName);
       end;

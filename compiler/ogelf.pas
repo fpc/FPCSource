@@ -145,7 +145,7 @@ interface
          procedure LoadSymbols(objdata:TObjData;count,locals:longword);
          procedure LoadDynamic(const shdr:TElfsechdr;objdata:TObjData);
        public
-         constructor Create;override;
+         constructor Create(ACompiler: TCompilerBase);override;
          destructor Destroy;override;
          function  ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
          class function CanReadObjData(AReader:TObjectreader):boolean;override;
@@ -1167,9 +1167,9 @@ implementation
                                TELFObjectInput
 ****************************************************************************}
 
-    constructor TElfObjInput.Create;
+    constructor TElfObjInput.Create(ACompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         CObjData:=TElfObjData;
         CObjSymbol:=TObjSymbol;
       end;
@@ -1472,8 +1472,6 @@ implementation
 
     function TElfObjInput.LoadHeader(out objdata:TObjData):boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         header:TElfHeader;
       begin
         result:=false;
@@ -1568,8 +1566,6 @@ implementation
 
 
     function TElfObjInput.ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i,j,strndx,dynndx,
         versymndx,verdefndx,verneedndx: longint;
