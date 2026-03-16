@@ -423,7 +423,7 @@ resourcestring  sVideoFailed='Video initialization failed.';
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
 {***************************************************************************}
-{$ifdef windows}
+{$ifdef OS_WINDOWS}
 Const
    fvConsoleMode =(ENABLE_MOUSE_INPUT or
                    ENABLE_WINDOW_INPUT or
@@ -433,7 +433,7 @@ Const
                     ENABLE_ECHO_INPUT or
                     ENABLE_INSERT_MODE or
                     ENABLE_QUICK_EDIT_MODE);
-{$endif windows}
+{$endif OS_WINDOWS}
 
 {***************************************************************************}
 {                      PRIVATE UNINITIALIZED VARIABLES                      }
@@ -1150,9 +1150,9 @@ BEGIN
    { init mouse and cursor }
    {$IFDEF FPC_DOTTEDUNITS}System.Console.{$ENDIF}Video.SetCursorType(crHidden);
    SetMouseXY(0,0);    { mouse is zero based, set to left upper corner }
-   {$ifdef windows}
+   {$ifdef OS_WINDOWS}
    SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
-   {$endif windows}
+   {$endif OS_WINDOWS}
 {$ifdef go32v2}
    Ctrl_c_state:=djgpp_set_ctrl_c(false);
 {$endif go32v2}
@@ -1177,9 +1177,9 @@ BEGIN
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
 {   DoneResource;}
-   {$ifdef windows}
+   {$ifdef OS_WINDOWS}
    SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
-   {$endif windows}
+   {$endif OS_WINDOWS}
 {$ifdef go32v2}
    djgpp_set_ctrl_c(Ctrl_c_state);
 {$endif go32v2}
@@ -1219,9 +1219,9 @@ BEGIN                                                 { Compatibility only }
 {$ifdef go32v2}
    djgpp_set_ctrl_c(Ctrl_c_state);
 {$endif go32v2}
-  {$ifdef windows}
+  {$ifdef OS_WINDOWS}
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
-  {$endif windows}
+  {$endif OS_WINDOWS}
   DoneSysError;
   DoneEvents;
 {$ifdef FV_UNICODE}
@@ -1257,9 +1257,9 @@ BEGIN                                                 { Compatibility only }
   InitScreen;
   InitEvents;
   InitSysError;
-  {$ifdef windows}
+  {$ifdef OS_WINDOWS}
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),fvConsoleMode);
-  {$endif windows}
+  {$endif OS_WINDOWS}
 {$ifdef go32v2}
   Ctrl_c_state:=djgpp_set_ctrl_c(false);
 {$endif go32v2}

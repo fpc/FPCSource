@@ -514,7 +514,7 @@ type
   end;
 
   TCSSResValueKind = (
-    rvkNone,
+    rvkNone, // end of value
     rvkInvalid,
     rvkSymbol,
     rvkFloat,
@@ -567,7 +567,7 @@ type
     procedure InitParseAttr(const Value: TCSSString); virtual;
     // check whole attribute, skipping invalid values, emit warnings:
     function CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
-    function CheckAttribute_CommaList_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
+    function CheckAttribute_Keyword_List(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     function CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension): boolean; virtual;
     function CheckAttribute_Color(const AllowedKeywordIDs: TCSSNumericalIDArray): boolean; virtual;
     // parse whole attribute, skipping invalid values:
@@ -1594,11 +1594,7 @@ begin
   CurComp:=Default(TCSSResCompValue);
   CurComp.EndP:=PCSSChar(CurValue);
   if not ReadNext then
-  begin
-    if CurAttrData<>nil then
-      CurAttrData.Invalid:=true;
     exit;
-  end;
   if (CurAttrData<>nil) and (CurComp.Kind=rvkKeyword)
       and IsBaseKeyword(CurComp.KeywordID) then
   begin
@@ -1625,17 +1621,21 @@ end;
 
 function TCSSBaseResolver.CheckAttribute_Keyword(const AllowedKeywordIDs: TCSSNumericalIDArray
   ): boolean;
+var
+  Invalid: Boolean;
 begin
-  Result:=ReadAttribute_Keyword(CurAttrData.Invalid,AllowedKeywordIDs);
+  if CurAttrData<>nil then
+    Result:=ReadAttribute_Keyword(CurAttrData.Invalid,AllowedKeywordIDs)
+  else
+    Result:=ReadAttribute_Keyword(Invalid,AllowedKeywordIDs);
 end;
 
-function TCSSBaseResolver.CheckAttribute_CommaList_Keyword(
+function TCSSBaseResolver.CheckAttribute_Keyword_List(
   const AllowedKeywordIDs: TCSSNumericalIDArray): boolean;
 var
   i: Integer;
   Fits: Boolean;
 begin
-  CurAttrData.Invalid:=true;
   repeat
     Fits:=false;
     case CurComp.Kind of
@@ -1652,30 +1652,32 @@ begin
         Fits:=true;
       end;
     end;
-    if not Fits then exit;
-
-    if not ReadNext then
-    begin
-      // ok
-      CurAttrData.Invalid:=false;
-      exit(true);
-    end;
-    if (CurComp.Kind<>rvkSymbol) or (CurComp.Symbol=ctkCOMMA) then
-      exit;
+    if not Fits then
+      exit(false);
   until not ReadNext;
-  Result:=false;
+  Result:=CurComp.Kind=rvkNone;
 end;
 
 function TCSSBaseResolver.CheckAttribute_Dimension(const Params: TCSSCheckAttrParams_Dimension
   ): boolean;
+var
+  Invalid: boolean;
 begin
-  Result:=ReadAttribute_Dimension(CurAttrData.Invalid,Params);
+  if CurAttrData<>nil then
+    Result:=ReadAttribute_Dimension(CurAttrData.Invalid,Params)
+  else
+    Result:=ReadAttribute_Dimension(Invalid,Params);
 end;
 
 function TCSSBaseResolver.CheckAttribute_Color(const AllowedKeywordIDs: TCSSNumericalIDArray
   ): boolean;
+var
+  Invalid: boolean;
 begin
-  Result:=ReadAttribute_Color(CurAttrData.Invalid,AllowedKeywordIDs);
+  if CurAttrData<>nil then
+    Result:=ReadAttribute_Color(CurAttrData.Invalid,AllowedKeywordIDs)
+  else
+    Result:=ReadAttribute_Color(Invalid,AllowedKeywordIDs);
 end;
 
 function TCSSBaseResolver.ReadNext: boolean;

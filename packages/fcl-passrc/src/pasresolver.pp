@@ -15037,6 +15037,7 @@ begin
     RaiseNotYetImplemented(20160928174124,Params);
     end;
   DeclEl:=Ref.Declaration;
+  {$IFDEF FPC}
   // Variant dispatch: v.Foo(args) where DeclEl = the variant variable
   if (DeclEl is TPasVariable) then
     begin
@@ -15050,6 +15051,7 @@ begin
       exit;
       end;
     end;
+  {$ENDIF}
   if DeclEl.ClassType=TPasUnresolvedSymbolRef then
     begin
     if DeclEl.CustomData.ClassType=TResElDataBuiltInProc then
@@ -25980,8 +25982,10 @@ begin
     else if LeftResolved.BaseType in btAllStrings then
       // simple type check is enough
       // ToDo: warn if unicode to non-utf8
+    {$IFDEF FPC}
     else if LeftResolved.BaseType=btVariant then
       // variant accepts any value
+    {$ENDIF}
     else if LeftResolved.BaseType=btContext then
       // simple type check is enough
     else if LeftResolved.BaseType=btRange then

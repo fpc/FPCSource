@@ -1971,6 +1971,14 @@ var
   ifile: sizeint;
 begin
   DisposeBrowserCol;
+
+  if (cs_browser in current_settings.moduleswitches) then
+    if not assigned(current_module.arraydefs) then
+      { Need this to get variable size in memory (MemInfo.Size).
+        Units always fall in this branch, because
+        their "arraydefs" is destroyed as soon they are compiled. }
+      current_module.arraydefs:=THashSet.Create(64,true,false);
+
   if (cs_browser in current_settings.moduleswitches) then
     NewBrowserCol;
 
