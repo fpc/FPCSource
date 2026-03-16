@@ -18049,8 +18049,6 @@ unit aoptx86;
 
     function TX86AsmOptimizer.PostPeepholeOptCall(var p : tai) : Boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hp1,hp3 : tai;
 {$ifndef x86_64}
         hp2 : taicpu;

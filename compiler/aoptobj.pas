@@ -38,7 +38,7 @@ Unit AoptObj;
   Interface
 
     uses
-      sysutils,globtype,
+      sysutils,globtype,compilerbase,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       cclasses,
       cgbase,cgutils,
@@ -246,6 +246,11 @@ Unit AoptObj;
       { TAOptObj }
 
       TAOptObj = class(TAoptBaseCpu)
+      private
+        FCompiler: TCompilerBase;
+      protected
+        property Compiler: TCompilerBase read FCompiler;
+      public
         { the PAasmOutput list this optimizer instance works on }
         AsmL: TAsmList;
 
@@ -267,7 +272,7 @@ Unit AoptObj;
         { that has to be optimized and _LabelInfo a pointer to a       }
         { TLabelInfo record                                            }
         Constructor create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
-                           _LabelInfo: PLabelInfo); virtual; reintroduce;
+                           _LabelInfo: PLabelInfo; _Compiler: TCompilerBase); virtual; reintroduce;
         Destructor Destroy;override;
 
         { processor independent methods }
@@ -972,8 +977,9 @@ Unit AoptObj;
       { ************************************************************************* }
 
       Constructor TAoptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
-                                  _LabelInfo: PLabelInfo);
+                                  _LabelInfo: PLabelInfo; _Compiler: TCompilerBase);
       Begin
+        FCompiler := _Compiler;
         AsmL := _AsmL;
         BlockStart := _BlockStart;
         BlockEnd := _BlockEnd;

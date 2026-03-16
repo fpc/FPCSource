@@ -31,6 +31,7 @@ Unit aopt;
   Interface
 
     Uses
+      compilerbase,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       aoptobj;
 
@@ -41,7 +42,7 @@ Unit aopt;
         TmpUsedRegs: TAllUsedRegs;
 
         { _AsmL is the PAasmOutput list that has to be optimized }
-        Constructor create(_AsmL: TAsmList); virtual; reintroduce;
+        Constructor create(_AsmL: TAsmList; _Compiler: TCompilerBase); virtual; reintroduce;
 
         { call the necessary optimizer procedures }
         Procedure Optimize;virtual;
@@ -61,7 +62,7 @@ Unit aopt;
 
       TAsmScheduler = class(TAoptObj)
         { _AsmL is the PAasmOutput list that has to be re-scheduled }
-        Constructor Create(_AsmL: TAsmList); virtual; reintroduce;
+        Constructor Create(_AsmL: TAsmList; _Compiler: TCompilerBase); virtual; reintroduce;
         Procedure Optimize;
         function SchedulerPass1Cpu(var p: tai): boolean; virtual; abstract;
         procedure SchedulerPass1;
@@ -86,9 +87,9 @@ Unit aopt;
       cgbase,
       aoptcpu;
 
-    Constructor TAsmOptimizer.create(_AsmL: TAsmList);
+    Constructor TAsmOptimizer.create(_AsmL: TAsmList; _Compiler: TCompilerBase);
       Begin
-        inherited create(_asml,nil,nil,nil);
+        inherited create(_asml,nil,nil,nil,_compiler);
         { setup labeltable, always necessary }
         New(LabelInfo);
         CreateUsedRegs(TmpUsedRegs);
@@ -316,9 +317,9 @@ Unit aopt;
       End;
 
 
-    constructor TAsmScheduler.Create(_AsmL: TAsmList);
+    constructor TAsmScheduler.Create(_AsmL: TAsmList; _Compiler: TCompilerBase);
       begin
-        inherited create(_asml,nil,nil,nil);
+        inherited create(_asml,nil,nil,nil,_compiler);
       end;
 
 
@@ -370,10 +371,12 @@ Unit aopt;
 
     procedure Optimize(AsmL:TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         p : TAsmOptimizer;
       begin
         ResumeTimer(ct_aopt);
-        p:=casmoptimizer.Create(AsmL);
+        p:=casmoptimizer.Create(AsmL,compiler);
         p.Optimize;
 {$ifdef DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
         p.Debug_InsertInstrRegisterDependencyInfo;
@@ -386,9 +389,11 @@ Unit aopt;
 
     procedure PreRegallocSchedule(AsmL:TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         p : TAsmScheduler;
       begin
-        p:=cpreregallocscheduler.Create(AsmL);
+        p:=cpreregallocscheduler.Create(AsmL,compiler);
         p.Optimize;
         p.free;
         p := nil;
