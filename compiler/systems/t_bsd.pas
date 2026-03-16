@@ -58,7 +58,7 @@ implementation
       linklibc : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-      constructor Create;override;
+      constructor Create(ACompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
@@ -113,11 +113,9 @@ end;
                                   TLINKERBSD
 *****************************************************************************}
 
-Constructor TLinkerBSD.Create;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Constructor TLinkerBSD.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   if not Dontlinkstdlibpath Then
    if compiler.target.info.system in systems_openbsd then
      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
@@ -127,8 +125,6 @@ end;
 
 
 procedure TLinkerBSD.SetDefaultInfo;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {
   This will also detect which libc version will be used
 }
@@ -177,8 +173,6 @@ begin
 end;
 
 procedure TLinkerBSD.LoadPredefinedLibraryOrder;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 // put your linkorder/linkalias overrides here.
 // Note: assumes only called when reordering/aliasing is used.
 Begin
@@ -198,8 +192,6 @@ End;
 
 
 procedure TLinkerBSD.InitSysInitUnitName;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   cprtobj,
   gprtobj,
@@ -254,8 +246,6 @@ end;
 
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -451,8 +441,6 @@ end;
 
 function TLinkerBSD.MakeExecutable:boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   binstr,
   cmdstr,
   mapstr,
@@ -601,8 +589,6 @@ end;
 
 
 Function TLinkerBSD.MakeSharedLibrary:boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   InitStr,
   FiniStr,

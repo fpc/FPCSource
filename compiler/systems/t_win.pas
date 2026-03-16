@@ -65,7 +65,7 @@ interface
       end;
 
       TInternalLinkerWin = class(tinternallinker)
-        constructor create;override;
+        constructor create(ACompiler: TCompilerBase);override;
         procedure DefaultLinkScript;override;
         procedure InitSysInitUnitName;override;
         procedure ConcatEntryName; virtual;
@@ -76,7 +76,7 @@ interface
          Function  WriteResponseFile(isdll:boolean) : Boolean;
          Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
       public
-         Constructor Create;override;
+         Constructor Create(ACompiler: TCompilerBase);override;
          Procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
          function  MakeSharedLibrary:boolean;override;
@@ -963,9 +963,9 @@ implementation
                             TInternalLinkerWin
 ****************************************************************************}
 
-    constructor TInternalLinkerWin.Create;
+    constructor TInternalLinkerWin.Create(ACompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         CArObjectReader:=TArObjectReader;
         CExeoutput:=TPECoffexeoutput;
         CObjInput:=TPECoffObjInput;
@@ -973,8 +973,6 @@ implementation
 
 
     procedure TInternalLinkerWin.DefaultLinkScript;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         ScriptAddSourceStatements(true);
         with LinkScript do
@@ -1142,9 +1140,9 @@ implementation
                               TExternalLinkerWin
 ****************************************************************************}
 
-    Constructor TExternalLinkerWin.Create;
+    Constructor TExternalLinkerWin.Create(ACompiler: TCompilerBase);
       begin
-        Inherited Create;
+        Inherited;
         { allow duplicated libs (PM) }
         SharedLibFiles.doubles:=true;
         StaticLibFiles.doubles:=true;
@@ -1184,8 +1182,6 @@ implementation
 
 
     Function TExternalLinkerWin.WriteResponseFile(isdll:boolean) : Boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       Var
         linkres : TLinkRes;
         HPath   : TCmdStrListItem;
@@ -1422,8 +1418,6 @@ implementation
 
     function TExternalLinkerWin.MakeExecutable:boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         MapStr,
         binstr,
         cmdstr  : TCmdStr;
@@ -1532,8 +1526,6 @@ implementation
 
     Function TExternalLinkerWin.MakeSharedLibrary:boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         MapStr,
         binstr,
         cmdstr  : TCmdStr;
@@ -1638,8 +1630,6 @@ implementation
 
 
     function TExternalLinkerWin.postprocessexecutable(const fn : string;isdll:boolean):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         tdosheader = packed record
            e_magic : word;

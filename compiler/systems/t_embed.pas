@@ -46,7 +46,7 @@ implementation
           Function  WriteResponseFile: Boolean;
           Function  GenerateUF2(binFile,uf2File : string;baseAddress : longWord):boolean;
        public
-          constructor Create; override;
+          constructor Create(ACompiler: TCompilerBase); override;
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
           function postprocessexecutable(const fn : string;isdll:boolean):boolean;
@@ -68,7 +68,7 @@ implementation
 
        TLinkerEmbedded_Wasm=class(texternallinker)
        public
-         constructor Create;override;
+         constructor Create(ACompiler: TCompilerBase);override;
          procedure SetDefaultInfo;override;
 
          //function  MakeExecutable:boolean;override;
@@ -81,9 +81,9 @@ implementation
                                   TlinkerEmbedded
 *****************************************************************************}
 
-Constructor TlinkerEmbedded.Create;
+Constructor TlinkerEmbedded.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
 end;
@@ -120,8 +120,6 @@ end;
 
 
 Function TlinkerEmbedded.WriteResponseFile: Boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres  : TLinkRes;
   i        : longint;
@@ -1782,8 +1780,6 @@ end;
 
 function TlinkerEmbedded.MakeExecutable:boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   binstr,
   cmdstr,
   mapstr: TCmdStr;
@@ -1988,8 +1984,6 @@ end;
 *****************************************************************************}
 
 function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   Var
     linkres  : TLinkRes;
     //i        : longint;
@@ -2156,8 +2150,6 @@ procedure TlinkerEmbedded_SdccSdld.SetDefaultInfo;
 
 function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
   var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-  var
     binstr,
     cmdstr,
     mapstr: TCmdStr;
@@ -2237,9 +2229,9 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
                               TlinkerEmbedded_Wasm
 *****************************************************************************}
 
-constructor TLinkerEmbedded_Wasm.Create;
+constructor TLinkerEmbedded_Wasm.Create(ACompiler: TCompilerBase);
   begin
-    inherited Create;
+    inherited;
   end;
 
 procedure TLinkerEmbedded_Wasm.SetDefaultInfo;
@@ -2249,8 +2241,6 @@ procedure TLinkerEmbedded_Wasm.SetDefaultInfo;
   end;
 
 function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   var
     GCSectionsStr  : ansistring;
     binstr, cmdstr : Tcmdstr;

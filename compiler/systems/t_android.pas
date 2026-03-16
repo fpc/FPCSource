@@ -56,7 +56,7 @@ interface
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function DoLink(IsSharedLib: boolean): boolean;
     public
-      constructor Create;override;
+      constructor Create(ACompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       procedure InitSysInitUnitName;override;
       function  MakeExecutable:boolean;override;
@@ -155,9 +155,9 @@ const
                                   TLINKERANDROID
 *****************************************************************************}
 
-Constructor TLinkerAndroid.Create;
+Constructor TLinkerAndroid.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
 end;
 
 
@@ -208,8 +208,6 @@ begin
 end;
 
 Function TLinkerAndroid.WriteResponseFile(isdll:boolean) : Boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -381,8 +379,6 @@ begin
 end;
 
 function tlinkerandroid.DoLink(IsSharedLib: boolean): boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   i: longint;
   binstr, cmdstr: TCmdStr;

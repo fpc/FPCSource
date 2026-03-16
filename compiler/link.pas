@@ -51,6 +51,10 @@ interface
       end;
 
       TLinker = class(TObject)
+      private
+         FCompiler: TCompilerBase;
+      protected
+         property Compiler: TCompilerBase read FCompiler;
       public
          HasResources,
          HasExports      : boolean;
@@ -60,7 +64,7 @@ interface
          StaticLibFiles,
          FrameworkFiles,
          OrderedSymbols: TCmdStrList;
-         Constructor Create;virtual;
+         Constructor Create(ACompiler: TCompilerBase);virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
          Procedure AddObject(const S,unitpath : TPathStr;isunit:boolean);
@@ -87,7 +91,7 @@ interface
          Function AddSanitizerLibrariesAndGetSearchDir(const platformname: TCmdStr; out sanitizerlibrarydir: TCmdStr): boolean;
       public
          Info : TLinkerInfo;
-         Constructor Create;override;
+         Constructor Create(ACompiler: TCompilerBase);override;
          Destructor Destroy;override;
          Function  FindUtil(const s:TCmdStr;throwerror: boolean=true):TCmdStr;
          Function  CatFileContent(para:TCmdStr):TCmdStr;
@@ -147,7 +151,7 @@ interface
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
-         Constructor Create;override;
+         Constructor Create(ACompiler: TCompilerBase);override;
          Destructor Destroy;override;
          Function  MakeExecutable:boolean;override;
          Function  MakeSharedLibrary:boolean;override;
@@ -371,9 +375,10 @@ Implementation
                                    TLINKER
 *****************************************************************************}
 
-    Constructor TLinker.Create;
+    Constructor TLinker.Create(ACompiler: TCompilerBase);
       begin
         Inherited Create;
+        FCompiler:=ACompiler;
         ObjectFiles:=TCmdStrList.Create_no_double;
         SharedLibFiles:=TCmdStrList.Create_no_double;
         StaticLibFiles:=TCmdStrList.Create_no_double;
@@ -529,8 +534,6 @@ Implementation
 
 
     Procedure TLinker.AddSharedLibrary(S:TCmdStr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if s='' then
           exit;
@@ -547,8 +550,6 @@ Implementation
 
     Procedure TLinker.AddStaticLibrary(const S:TCmdStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         ns : TCmdStr;
         found : boolean;
       begin
@@ -562,8 +563,6 @@ Implementation
 
 
     Procedure TLinker.AddSharedCLibrary(S:TCmdStr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if s='' then
           exit;
@@ -595,8 +594,6 @@ Implementation
 
     Procedure TLinker.AddStaticCLibrary(const S:TCmdStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         ns : TCmdStr;
         found : boolean;
       begin
@@ -615,8 +612,6 @@ Implementation
 
 
     function TLinker.MakeExecutable:boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MakeExecutable:=false;
         compiler.verbose.Message(exec_e_exe_not_supported);
@@ -624,8 +619,6 @@ Implementation
 
 
     Function TLinker.MakeSharedLibrary:boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MakeSharedLibrary:=false;
         compiler.verbose.Message(exec_e_dll_not_supported);
@@ -633,8 +626,6 @@ Implementation
 
 
     Function TLinker.MakeStaticLibrary:boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MakeStaticLibrary:=false;
         compiler.verbose.Message(exec_e_static_lib_not_supported);
@@ -687,8 +678,6 @@ Implementation
 
     Function TExternalLinker.WriteSymbolOrderFile: TCmdStr;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         item: TCmdStrListItem;
         symfile: TScript;
       begin
@@ -713,8 +702,6 @@ Implementation
 
 
     Function TExternalLinker.GetSanitizerLibName(const basename: TCmdStr; withArch: boolean): TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=compiler.target.info.sharedClibprefix+'clang_rt.'+basename;
         if compiler.target.info.system in systems_darwin then
@@ -745,8 +732,6 @@ Implementation
 
 
     function TExternalLinker.AddSanitizerLibrariesAndGetSearchDir(const platformname: TCmdStr; out sanitizerlibrarydir: TCmdStr): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         clang,
         clangsearchdirs,
@@ -810,11 +795,9 @@ Implementation
       end;
 
 
-    Constructor TExternalLinker.Create;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    Constructor TExternalLinker.Create(ACompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited Create(ACompiler);
         { set generic defaults }
         FillChar(Info,sizeof(Info),0);
         if cs_link_on_target in current_settings.globalswitches then
@@ -852,8 +835,6 @@ Implementation
 
 
     Function TExternalLinker.FindUtil(const s:TCmdStr;throwerror: boolean=true):TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         Found    : boolean;
         FoundBin : TCmdStr;
@@ -895,8 +876,6 @@ Implementation
 
     Function TExternalLinker.CatFileContent(para : TCmdStr) : TCmdStr;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         filecontent : TCmdStr;
         f : text;
         st : TCmdStr;
@@ -930,8 +909,6 @@ Implementation
       end;
 
     Function TExternalLinker.DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         exitcode: longint;
       begin
@@ -975,8 +952,6 @@ Implementation
 
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       var
         total_size, power : longint;
@@ -1169,8 +1144,6 @@ Implementation
 
 
     function TExternalLinker.PostProcessELFExecutable(const fn : string;isdll:boolean):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         TElf32header=packed record
           magic0123         : array[0..3] of char;
@@ -1473,8 +1446,6 @@ Implementation
 
 
     function TExternalLinker.PostProcessMachExecutable(const fn : string;isdll:boolean):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         TMachHeader=record
           magic       : longword;
@@ -1583,9 +1554,9 @@ Implementation
                               TINTERNALLINKER
 *****************************************************************************}
 
-    Constructor TInternalLinker.Create;
+    Constructor TInternalLinker.Create(ACompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited Create(ACompiler);
         linkscript:=TCmdStrList.Create;
         FStaticLibraryList:=TFPObjectList.Create(true);
         FImportLibraryList:=TFPHashObjectList.Create(true);
@@ -1643,8 +1614,6 @@ Implementation
 
 
     procedure TInternalLinker.ScriptAddSourceStatements(AddSharedAsStatic:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s,s2: TCmdStr;
       begin
@@ -1759,8 +1728,6 @@ Implementation
 
     procedure TInternalLinker.Load_ReadObject(const para:TCmdStr);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         objdata   : TObjData;
         objinput  : TObjinput;
         objreader : TObjectReader;
@@ -1784,8 +1751,6 @@ Implementation
 
 
     procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         objreader : TObjectReader;
         objinput: TObjInput;
@@ -1850,8 +1815,6 @@ Implementation
 
     procedure TInternalLinker.ParseScript_Handle;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s{, para}, keyword : String;
         hp : TCmdStrListItem;
         i : longint;
@@ -1901,8 +1864,6 @@ Implementation
       end;
 
     procedure TInternalLinker.ParseScript_PostCheck;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : TCmdStrListItem;
         i : longint;
@@ -2140,8 +2101,6 @@ Implementation
 
 
     function TInternalLinker.RunLinkScript(const outputname:TCmdStr):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       label
         myexit;
       var
@@ -2309,15 +2268,15 @@ Implementation
         if (cs_link_extern in current_settings.globalswitches) and
            assigned(CLinker[compiler.target.info.linkextern]) then
           begin
-            linker:=CLinker[compiler.target.info.linkextern].Create;
+            linker:=CLinker[compiler.target.info.linkextern].Create(compiler);
           end
         else
           if assigned(CLinker[compiler.target.info.link]) then
             begin
-              linker:=CLinker[compiler.target.info.link].Create;
+              linker:=CLinker[compiler.target.info.link].Create(compiler);
             end
         else
-          linker:=Tlinker.Create;
+          linker:=Tlinker.Create(compiler);
       end;
 
 

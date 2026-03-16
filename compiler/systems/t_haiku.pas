@@ -47,7 +47,7 @@ interface
     private
       Function  WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
     public
-      constructor Create;override;
+      constructor Create(ACompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       procedure InitSysInitUnitName;override;
       function  MakeExecutable:boolean;override;
@@ -174,7 +174,7 @@ end;
                                   TLINKERHAIKU
 *****************************************************************************}
 
-Constructor TLinkerHaiku.Create;
+Constructor TLinkerHaiku.Create(ACompiler: TCompilerBase);
 const
   HomeNonPackagedDevLib = '=/boot/home/config/non-packaged/develop/lib';
   HomeDevLib = '=/boot/home/config/develop/lib';
@@ -185,7 +185,7 @@ var
   s : string;
   i : integer;
 begin
-  Inherited Create;
+  Inherited;
   s:=GetEnvironmentVariable('BELIBRARIES');
   { convert to correct format in case under unix system }
   for i:=1 to length(s) do
@@ -238,8 +238,6 @@ end;
 
 
 function TLinkerHaiku.WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres  : TLinkRes;
   i        : integer;
@@ -406,8 +404,6 @@ end;
 
 function TLinkerHaiku.MakeExecutable:boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   binstr,
   cmdstr : TCmdStr;
   success,
@@ -469,8 +465,6 @@ end;
 
 
 Function TLinkerHaiku.MakeSharedLibrary:boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   binstr,
   cmdstr,

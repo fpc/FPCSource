@@ -60,7 +60,7 @@ implementation
       linkres : TLinkRes;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-      constructor Create;override;
+      constructor Create(ACompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
@@ -105,9 +105,9 @@ const
   gnu_emul = '-m elf64_sparc_sol2';
 {$endif}
 
-Constructor TLinkersolaris.Create;
+Constructor TLinkersolaris.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   if cs_link_native in init_settings.globalswitches then
     use_gnu_ld:=false
   else
@@ -172,8 +172,6 @@ end;
 
 
 Function TLinkersolaris.WriteResponseFile(isdll:boolean) : Boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   i            : longint;
 {  cprtobj,
@@ -466,8 +464,6 @@ end;
 
 function TLinkersolaris.MakeExecutable:boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   binstr,
   s, linkstr,
   cmdstr  : TCmdStr;
@@ -556,8 +552,6 @@ end;
 
 
 Function TLinkersolaris.MakeSharedLibrary:boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   InitFiniStr : string;
   binstr, RedirectStr,

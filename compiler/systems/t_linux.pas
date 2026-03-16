@@ -51,7 +51,7 @@ interface
       Function  WriteResponseFile(isdll:boolean) : Boolean;
       function postprocessexecutable(const fn: string; isdll: boolean): boolean;
     public
-      constructor Create;override;
+      constructor Create(ACompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       procedure InitSysInitUnitName;override;
       function  MakeExecutable:boolean;override;
@@ -67,7 +67,7 @@ interface
       prtobj: string[20];
       dynlinker: string[100];
     public
-      constructor Create;override;
+      constructor Create(ACompiler: TCompilerBase);override;
       procedure DefaultLinkScript;override;
       procedure InitSysInitUnitName;override;
     end;
@@ -399,9 +399,9 @@ begin
     end;
 end;
 
-Constructor TLinkerLinux.Create;
+Constructor TLinkerLinux.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   SetupLibrarySearchPath;
 end;
 
@@ -586,8 +586,6 @@ begin
 end;
 
 Function TLinkerLinux.WriteResponseFile(isdll:boolean) : Boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -853,8 +851,6 @@ end;
 
 function TLinkerLinux.MakeExecutable:boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   i : longint;
   binstr,
   cmdstr,
@@ -981,8 +977,6 @@ end;
 
 Function TLinkerLinux.MakeSharedLibrary:boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   InitStr,
   FiniStr,
   GCSectionsStr,
@@ -1073,9 +1067,9 @@ function TLinkerLinux.postprocessexecutable(const fn : string;isdll:boolean):boo
                               TINTERNALLINKERLINUX
 *****************************************************************************}
 
-constructor TInternalLinkerLinux.Create;
+constructor TInternalLinkerLinux.Create(ACompiler: TCompilerBase);
 begin
-  inherited Create;
+  inherited;
   SetupLibrarySearchPath;
   SetupDynlinker(dynlinker,libctype);
 
@@ -1110,8 +1104,6 @@ const
   relsec_prefix:array[boolean] of TCmdStr = ('rel','rela');
 
 procedure TInternalLinkerLinux.DefaultLinkScript;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   s,s1,s2,relprefix:TCmdStr;
   found1,found2:boolean;

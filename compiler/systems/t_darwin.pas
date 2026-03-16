@@ -65,7 +65,7 @@ implementation
       function GetLibraries: TCmdStr;
 
     public
-      constructor Create;override;
+      constructor Create(ACompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
@@ -105,7 +105,7 @@ implementation
                                   TLINKERBSD
 *****************************************************************************}
 
-    constructor tlinkerdarwin.Create;
+    constructor tlinkerdarwin.Create(ACompiler: TCompilerBase);
       begin
         inherited;
         if not Dontlinkstdlibpath Then
@@ -171,8 +171,6 @@ implementation
 
 
     function tlinkerdarwin.GetDarwinCrt1ObjName(isdll: boolean): TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not isdll then
           begin
@@ -336,8 +334,6 @@ implementation
 
 
     function tlinkerdarwin.GetLinkArch: TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case compiler.target.info.system of
           system_powerpc_darwin:
@@ -365,8 +361,6 @@ implementation
 
 
     function tlinkerdarwin.GetLinkVersion: TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if MacOSXVersionMin.isvalid then
           begin
@@ -439,8 +433,6 @@ implementation
 
     function tlinkerdarwin.GetLibraries: TCmdStr;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         s: TCmdStr;
         i: longint;
       begin
@@ -470,8 +462,6 @@ implementation
 
 
     function tlinkerdarwin.WriteFileList: TCmdStr;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     Var
       FilesList    : TScript;
       s            : TCmdStr;
@@ -503,8 +493,6 @@ implementation
 
 
     function tlinkerdarwin.MakeExecutable:boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       binstr,
       cmdstr,
@@ -628,8 +616,6 @@ implementation
 
 
   function tlinkerdarwin.MakeSharedLibrary: boolean;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       InitStr,
       FiniStr,

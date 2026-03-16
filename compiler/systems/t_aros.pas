@@ -43,7 +43,7 @@ type
       function WriteResponseFile(isdll: boolean): boolean;
       function MakeAROSExe: boolean;
     public
-      constructor Create; override;
+      constructor Create(ACompiler: TCompilerBase); override;
       procedure SetDefaultInfo; override;
       procedure InitSysInitUnitName; override;
       function  MakeExecutable: boolean; override;
@@ -76,9 +76,9 @@ end;
 
 
 
-constructor TLinkeraros.Create;
+constructor TLinkeraros.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -105,8 +105,6 @@ end;
 
 
 function TLinkeraros.WriteResponseFile(isdll: boolean): boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   linkres  : TLinkRes;
   i        : longint;
@@ -217,8 +215,6 @@ end;
 
 function TLinkeraros.MakeAROSExe: boolean;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   BinStr,
   CmdStr  : TCmdStr;
   EntryStr: string;
@@ -257,8 +253,6 @@ end;
 
 
 function TLinkeraros.MakeExecutable:boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   success : boolean;
 begin
