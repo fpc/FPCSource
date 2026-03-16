@@ -78,6 +78,7 @@ interface
 
       TExternalAssemblerOutputFile=class
       private
+        FCompiler: TCompilerBase;
         fdecorator: IExternalAssemblerOutputFileDecorator;
       protected
         owner: TExternalAssembler;
@@ -95,6 +96,7 @@ interface
         Procedure MaybeAddLinePostfix;
 
         Procedure AsmWriteAnsiStringUnfiltered(const s: ansistring);
+        property Compiler: TCompilerBase read FCompiler;
       public
         Constructor Create(_owner: TExternalAssembler);
 
@@ -501,6 +503,7 @@ Implementation
     constructor TExternalAssemblerOutputFile.Create(_owner: TExternalAssembler);
       begin
         owner:=_owner;
+        FCompiler:=_owner.compiler;
         linestart:=true;
       end;
 
@@ -598,8 +601,6 @@ Implementation
 
     Procedure TExternalAssemblerOutputFile.AsmLn;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         newline: pshortstring;
         newlineres: shortstring;
         index: longint;
@@ -627,8 +628,6 @@ Implementation
 
 
     procedure TExternalAssemblerOutputFile.AsmCreate(Aplace:tcutplace);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {$ifdef hasamiga}
       var
         tempFileName: TPathStr;
@@ -689,8 +688,6 @@ Implementation
 
 
     procedure TExternalAssemblerOutputFile.AsmClose;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         f : file;
         FileAge : longint;
