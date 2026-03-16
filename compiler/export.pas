@@ -55,6 +55,7 @@ type
 
    texportlib=class
    private
+      FCompiler: TCompilerBase;
       notsupmsg : boolean;
       fignoreduplicates : boolean;
       finitname,
@@ -62,8 +63,9 @@ type
       procedure NotSupported;
    protected
       procedure duplicatesymbol(const s:string);
+      property Compiler: TCompilerBase read FCompiler;
    public
-      constructor Create;virtual;
+      constructor Create(ACompiler: TCompilerBase);virtual;
       destructor Destroy;override;
       procedure preparelib(const s : string);virtual;
       procedure exportprocedure(hp : texported_item);virtual;
@@ -192,8 +194,9 @@ end;
                               TExportLib
 ****************************************************************************}
 
-constructor texportlib.Create;
+constructor texportlib.Create(ACompiler: TCompilerBase);
 begin
+  FCompiler:=ACompiler;
   notsupmsg:=false;
   fignoreduplicates:=false;
 end;
@@ -205,8 +208,6 @@ end;
 
 
 procedure texportlib.NotSupported;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   { show the message only once }
   if not notsupmsg then
@@ -218,8 +219,6 @@ end;
 
 
 procedure texportlib.duplicatesymbol(const s: string);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   { only generate an error if the caller is not aware that it could generate
     duplicates (e.g. exporting from a package) }
@@ -278,9 +277,9 @@ var
   compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if assigned(CExportLib[compiler.target.info.system]) then
-   exportlib:=CExportLib[compiler.target.info.system].Create
+   exportlib:=CExportLib[compiler.target.info.system].Create(compiler)
   else
-   exportlib:=TExportLib.Create;
+   exportlib:=TExportLib.Create(compiler);
 end;
 
 

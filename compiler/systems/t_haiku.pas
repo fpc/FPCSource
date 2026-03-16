@@ -92,8 +92,6 @@ end;
 
 procedure texportlibhaiku.exportprocedure(hp : texported_item);
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   hp2 : texported_item;
 begin
   { first test the index value }
@@ -137,8 +135,6 @@ end;
 
 
 procedure texportlibhaiku.generatelib;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   hp2 : texported_item;
   pd  : tprocdef;

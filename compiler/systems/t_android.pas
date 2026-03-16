@@ -114,8 +114,6 @@ const
       end;
 
     procedure texportlibandroid.exportprocedure(hp: texported_item);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         {
           Android versions prior to 4.1 do not support recursive dlopen() calls.
@@ -141,8 +139,6 @@ const
       end;
 
     procedure texportlibandroid.generatelib;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited generatelib;
         if tlinkerandroid(compiler.Linker).FJNIOnLoadName = '' then

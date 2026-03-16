@@ -673,8 +673,6 @@ implementation
 
 
     procedure TExportLibWin.exportprocedure(hp : texported_item);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
           begin
@@ -715,8 +713,6 @@ implementation
 
 
     procedure TExportLibWin.generatelib;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          ordinal_base,ordinal_max,ordinal_min : longint;
          current_index : longint;

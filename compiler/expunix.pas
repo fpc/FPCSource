@@ -38,7 +38,7 @@ type
    private
      fexportedsymnames: TCmdStrList;
    public
-    constructor Create; override;
+    constructor Create(ACompiler: TCompilerBase); override;
     destructor destroy; override;
     procedure preparelib(const s : string);override;
     procedure exportprocedure(hp : texported_item);override;
@@ -66,9 +66,9 @@ uses
   verbose;
 
 
-constructor texportlibunix.create;
+constructor texportlibunix.create(ACompiler: TCompilerBase);
 begin
-  inherited create;
+  inherited;
   fexportedsymnames:=tcmdstrlist.create_no_double;
 end;
 
@@ -87,8 +87,6 @@ end;
 
 
 procedure texportlibunix.exportprocedure(hp : texported_item);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   hp2 : texported_item;
 {$ifdef cpuhighleveltarget}
@@ -170,8 +168,6 @@ end;
 
 
 procedure texportlibunix.generatelib;  // straight t_linux copy for now.
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   hp2 : texported_item;
   pd  : tprocdef;
