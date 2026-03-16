@@ -168,8 +168,12 @@ interface
       end;
 
       TAsmCFI=class
+      private
+        FCompiler: TCompilerBase;
+      protected
+        property Compiler: TCompilerBase read FCompiler;
       public
-        constructor create;virtual;
+        constructor create(acompiler: TCompilerBase);virtual;
         destructor destroy;override;
         procedure generate_code(list:TAsmList);virtual;
         procedure start_frame(list:TAsmList);virtual;
@@ -287,8 +291,9 @@ implementation
                                  TAsmCFI
 *****************************************************************************}
 
-    constructor TAsmCFI.create;
+    constructor TAsmCFI.create(acompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
       end;
 
 
@@ -546,7 +551,7 @@ implementation
         WideInits :=TAsmList.create;
         ResStrInits:=TAsmList.create;
         { CFI }
-        FAsmCFI:=CAsmCFI.Create;
+        FAsmCFI:=CAsmCFI.Create(compiler);
       end;
 
 

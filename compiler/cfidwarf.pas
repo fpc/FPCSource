@@ -71,7 +71,7 @@ interface
         );
       public
         datatype : TDataType;
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
       end;
 
       TDwarfAsmCFILowLevel=class(TDwarfAsmCFI)
@@ -87,7 +87,7 @@ interface
         data_alignment_factor : shortint;
         property DwarfList:TlinkedList read FDwarfList;
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
         destructor destroy;override;
         procedure generate_code(list:TAsmList);override;
 
@@ -235,9 +235,7 @@ implementation
                                  TDwarfAsmCFI
 ****************************************************************************}
 
-    constructor TDwarfAsmCFI.create;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    constructor TDwarfAsmCFI.create(acompiler: TCompilerBase);
       begin
         inherited;
         if tf_use_psabieh in compiler.target.info.flags then
@@ -254,9 +252,9 @@ implementation
                              TDwarfAsmCFILowLevel
 ****************************************************************************}
 
-    constructor TDwarfAsmCFILowLevel.create;
+    constructor TDwarfAsmCFILowLevel.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         FFrameStartLabel:=nil;
         FFrameEndLabel:=nil;
         FLastLocLabel:=nil;
@@ -339,8 +337,6 @@ implementation
 {$endif i386}
 
     procedure TDwarfAsmCFILowLevel.generate_code(list:TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : tdwarfitem;
         CurrentLSDALabel,
@@ -688,8 +684,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.generate_code(list: TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -700,8 +694,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.start_frame(list: TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -715,8 +707,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.end_frame(list: TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -730,8 +720,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.outmost_frame(list: TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -745,8 +733,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_offset(list: TAsmList; reg: tregister; ofs: longint);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -760,8 +746,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_restore(list: TAsmList; reg: tregister);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -775,8 +759,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_def_cfa(list: TAsmList; reg: tregister; ofs: longint);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -790,8 +772,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_def_cfa_register(list: TAsmList; reg: tregister);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
@@ -805,8 +785,6 @@ implementation
 
 
     procedure TDwarfAsmCFIHighLevel.cfa_def_cfa_offset(list: TAsmList; ofs: longint);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not(tf_use_hlcfi in compiler.target.info.flags) then
           begin
