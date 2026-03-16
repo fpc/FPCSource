@@ -502,6 +502,7 @@ interface
 
      TObjOutput = class
       private
+        FCompiler: TCompilerBase;
         FCObjData : TObjDataClass;
       protected
         { writer }
@@ -509,8 +510,9 @@ interface
         function  writeData(Data:TObjData):boolean;virtual;abstract;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
         procedure WriteSectionContent(Data:TObjData);
+        property Compiler: TCompilerBase read FCompiler;
       public
-        constructor create(AWriter:TObjectWriter);virtual;
+        constructor create(AWriter:TObjectWriter;ACompiler: TCompilerBase);virtual;
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
         function  startObjectfile(const fn:string):boolean;
@@ -2062,8 +2064,9 @@ implementation
                                 TObjOutput
 ****************************************************************************}
 
-    constructor TObjOutput.create(AWriter:TObjectWriter);
+    constructor TObjOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
         FWriter:=AWriter;
         CObjData:=TObjData;
       end;
@@ -2085,8 +2088,6 @@ implementation
 
 
     function TObjOutput.startObjectfile(const fn:string):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=false;
         { start the writer already, so the .a generation can initialize
@@ -2098,8 +2099,6 @@ implementation
 
 
     function TObjOutput.writeobjectfile(Data:TObjData):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.verbose.errorcount=0 then
          result:=writeData(Data)

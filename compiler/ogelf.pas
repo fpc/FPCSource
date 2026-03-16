@@ -100,7 +100,7 @@ interface
        protected
          function writedata(data:TObjData):boolean;override;
        public
-         constructor Create(AWriter:TObjectWriter);override;
+         constructor Create(AWriter:TObjectWriter;ACompiler: TCompilerBase);override;
        end;
 
        TElfAssembler = class(tinternalassembler)
@@ -893,9 +893,9 @@ implementation
                             TElfObjectOutput
 ****************************************************************************}
 
-    constructor TElfObjectOutput.create(AWriter:TObjectWriter);
+    constructor TElfObjectOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
       begin
-        inherited Create(AWriter);
+        inherited;
         CObjData:=TElfObjData;
       end;
 
@@ -1061,8 +1061,6 @@ implementation
 
 
     function TElfObjectOutput.writedata(data:TObjData):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         header : telfheader;
         shoffset,

@@ -163,16 +163,16 @@ interface
        protected
          function writedata(data:TObjData):boolean;override;
        public
-         constructor createcoff(AWriter:TObjectWriter;awin32:boolean);
+         constructor createcoff(AWriter:TObjectWriter;awin32:boolean;ACompiler: TCompilerBase);
          destructor destroy;override;
        end;
 
        TDJCoffObjOutput = class(TCoffObjOutput)
-         constructor create(AWriter:TObjectWriter);override;
+         constructor create(AWriter:TObjectWriter;ACompiler: TCompilerBase);override;
        end;
 
        TPECoffObjOutput = class(TCoffObjOutput)
-         constructor create(AWriter:TObjectWriter);override;
+         constructor create(AWriter:TObjectWriter;ACompiler: TCompilerBase);override;
        end;
 
        TCoffObjInput = class(tObjInput)
@@ -1822,9 +1822,9 @@ const pemagic : array[0..3] of byte = (
                                 TCoffObjOutput
 ****************************************************************************}
 
-    constructor TCoffObjOutput.createcoff(AWriter:TObjectWriter;awin32:boolean);
+    constructor TCoffObjOutput.createcoff(AWriter:TObjectWriter;awin32:boolean;ACompiler: TCompilerBase);
       begin
-        inherited create(AWriter);
+        inherited create(AWriter,ACompiler);
         win32:=awin32;
       end;
 
@@ -2117,8 +2117,6 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TCoffObjOutput.section_set_reloc_datapos(p:TCoffObjSection;var datapos:aword);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         p.coffrelocpos:=datapos;
         inc(datapos,sizeof(coffreloc)*p.ObjRelocations.count);
@@ -2189,8 +2187,6 @@ const pemagic : array[0..3] of byte = (
 
 
     function TCoffObjOutput.writedata(data:TObjData):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         datapos,
         sympos   : aword;
@@ -2282,16 +2278,16 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    constructor TDJCoffObjOutput.create(AWriter:TObjectWriter);
+    constructor TDJCoffObjOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
       begin
-        inherited createcoff(AWriter,false);
+        inherited createcoff(AWriter,false,ACompiler);
         cobjdata:=TDJCoffObjData;
       end;
 
 
-    constructor TPECoffObjOutput.create(AWriter:TObjectWriter);
+    constructor TPECoffObjOutput.create(AWriter:TObjectWriter;ACompiler: TCompilerBase);
       begin
-        inherited createcoff(AWriter,true);
+        inherited createcoff(AWriter,true,ACompiler);
         cobjdata:=TPECoffObjData;
       end;
 
