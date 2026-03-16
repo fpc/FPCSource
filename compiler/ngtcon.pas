@@ -83,6 +83,7 @@ interface
         fsym: tstaticvarsym;
         curoffset: asizeint;
 
+        procedure bitpackval(value: aword; var bp: tbitpackedval);
         function parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
         procedure flush_packed_value(var bp: tbitpackedval);
        protected
@@ -364,9 +365,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     { stores the spillover if any into "nextval". It also updates            }
     { curbitoffset to reflect how many bits of currval are now used (can be  }
     { > AIntBits in case of spillover)                                       }
-    procedure bitpackval(value: aword; var bp: tbitpackedval);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure tasmlisttypedconstbuilder.bitpackval(value: aword; var bp: tbitpackedval);
       var
         shiftcount: longint;
       begin
