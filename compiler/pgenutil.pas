@@ -55,6 +55,7 @@ type
     property Compiler: TCompilerBase read FCompiler;
     procedure make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
     function get_generic_param_def(sym:tsym):tdef;
+    function compare_generic_params(param1,param2:tdef;constparamsym:tconstsym):boolean;
     function create_generic_constsym(fromdef:tdef;node:tnode;out prettyname:string):tconstsym;
     function parse_generic_specialization_types_internal(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring;parsedtype:tdef;parsedpos:tfileposinfo):boolean;
     procedure process_procdef(def:tprocdef;hmodule:tmodule);
@@ -178,9 +179,7 @@ uses
           result:=true;
       end;
 
-    function compare_generic_params(param1,param2:tdef;constparamsym:tconstsym):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TGenericsParseUtils.compare_generic_params(param1,param2:tdef;constparamsym:tconstsym):boolean;
       begin
         if (param1.typ=orddef) and (param2.typ=orddef) then
           begin
