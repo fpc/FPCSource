@@ -34,16 +34,16 @@ interface
 
     type
       Tx86ATTAssembler=class(TGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
       Tx86AppleGNUAssembler=class(TAppleGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       end;
 
       Tx86AoutGNUAssembler=class(TAoutGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       end;
 
 
@@ -77,15 +77,13 @@ interface
                             Tx86ATTAssembler
  ****************************************************************************}
 
-    constructor Tx86ATTAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor Tx86ATTAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := Tx86InstrWriter.create(self);
       end;
 
     function TX86ATTAssembler.MakeCmdLine: TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         FormatName : string;
       begin
@@ -129,7 +127,7 @@ interface
                           Tx86AppleGNUAssembler
  ****************************************************************************}
 
-    constructor Tx86AppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor Tx86AppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := Tx86InstrWriter.create(self);
@@ -143,7 +141,7 @@ interface
                           Tx86AoutGNUAssembler
  ****************************************************************************}
 
-    constructor Tx86AoutGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor Tx86AoutGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := Tx86InstrWriter.create(self);

@@ -215,8 +215,6 @@ implementation
       end;
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -426,8 +424,6 @@ implementation
       end;
 
     function TGNUAssembler.sectionattrs(atype:TAsmSectiontype):string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:='';
         if (compiler.target.info.system in [system_i386_win32,system_x86_64_win64,system_aarch64_win64]) then
@@ -437,8 +433,6 @@ implementation
       end;
 
     function TGNUAssembler.sectionattrs_coff(atype:TAsmSectiontype):string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case atype of
           sec_code, sec_init, sec_fini, sec_stub:
@@ -515,8 +509,6 @@ implementation
 
 
     procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
         usesectionprogbits,
@@ -758,8 +750,6 @@ implementation
 
 
     procedure TGNUAssembler.WriteTree(p:TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function needsObject(hp : tai_symbol) : boolean;
         begin
@@ -1842,8 +1832,6 @@ implementation
 
 
     procedure TGNUAssembler.WriteHiddenSymbol(sym: TAsmSymbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { on Windows/(PE)COFF, global symbols are hidden by default: global
           symbols that are not explicitly exported from an executable/library,
@@ -1942,8 +1930,6 @@ implementation
 
     procedure TGNUAssembler.WriteAixIntConst(hp: tai_const);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         pos, size: longint;
       begin
         { only big endian AIX supported for now }
@@ -1971,8 +1957,6 @@ implementation
       end;
 
     procedure TGNUAssembler.WriteUnalignedIntConst(hp: tai_const);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         pos, size: longint;
       begin
@@ -2023,8 +2007,6 @@ implementation
 
 
     procedure TGNUAssembler.WriteAsmList;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       n : string;
       hal : tasmlisttype;
@@ -2091,8 +2073,6 @@ implementation
 {****************************************************************************}
 
     function TAppleGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (compiler.target.info.system in systems_darwin) then
           case atype of

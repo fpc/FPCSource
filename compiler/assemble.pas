@@ -44,6 +44,10 @@ interface
 
     type
       TAssembler=class(TObject)
+      private
+        FCompiler: TCompilerBase;
+      protected
+        property Compiler: TCompilerBase read FCompiler;
       public
       {assembler info}
         asminfo     : pasminfo;
@@ -57,7 +61,7 @@ interface
         SmartAsm     : boolean;
         SmartFilesCount,
         SmartHeaderCount : longint;
-        Constructor Create(info: pasminfo; smart:boolean);virtual;
+        Constructor Create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);virtual;
         Destructor Destroy;override;
         procedure NextSmartName(place:tcutplace);
         procedure MakeObject;virtual;abstract;
@@ -196,8 +200,8 @@ interface
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; virtual;
       public
-        Constructor Create(info: pasminfo; smart: boolean); override; final;
-        Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); virtual;
+        Constructor Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase); override; final;
+        Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); virtual;
         procedure MakeObject;override;
         destructor Destroy; override;
 
@@ -235,7 +239,7 @@ interface
         property CObjOutput:TObjOutputclass read FCObjOutput write FCObjOutput;
         property CInternalAr : TObjectWriterClass read FCInternalAr write FCInternalAr;
       public
-        constructor Create(info: pasminfo; smart: boolean);override;
+        constructor Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase);override;
         destructor  destroy;override;
         procedure MakeObject;override;
       end;
@@ -305,8 +309,9 @@ Implementation
                                    TAssembler
 *****************************************************************************}
 
-    Constructor TAssembler.Create(info: pasminfo; smart: boolean);
+    Constructor TAssembler.Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
         asminfo:=info;
       { load start values }
         AsmFileName:=current_module.AsmFilename;
@@ -331,8 +336,6 @@ Implementation
 
 
     procedure TAssembler.NextSmartName(place:tcutplace);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s : string;
       begin
@@ -808,17 +811,15 @@ Implementation
       end;
 
 
-    Constructor TExternalAssembler.Create(info: pasminfo; smart: boolean);
+    Constructor TExternalAssembler.Create(info: pasminfo; smart: boolean; ACompiler: TCompilerBase);
       begin
-        CreateWithWriter(info,CreateNewAsmWriter,true,smart);
+        CreateWithWriter(info,CreateNewAsmWriter,true,smart,acompiler);
       end;
 
 
-    constructor TExternalAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter,smart: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    constructor TExternalAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter,smart: boolean; acompiler: TCompilerBase);
       begin
-        inherited Create(info,smart);
+        inherited Create(info,smart,acompiler);
         fwriter:=wr;
         ffreewriter:=freewriter;
         if SmartAsm then
@@ -830,8 +831,6 @@ Implementation
 
 
     procedure TExternalAssembler.CreateSmartLinkPath(const s:TPathStr);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
         procedure DeleteFilesWithExt(const AExt:string);
         var
@@ -874,8 +873,6 @@ Implementation
       LastASBin : TCmdStr;
     Function TExternalAssembler.FindAssembler:string;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         asfound : boolean;
         UtilExe  : string;
         asmbin : TCmdStr;
@@ -914,8 +911,6 @@ Implementation
 
     Function TExternalAssembler.CallAssembler(const command:string; const para:TCmdStr):Boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         DosExitCode : Integer;
       begin
         result:=true;
@@ -946,8 +941,6 @@ Implementation
 
 
     Function TExternalAssembler.DoAssemble:boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=true;
         if DoPipe then
@@ -974,8 +967,6 @@ Implementation
 
 
     function TExternalAssembler.MakeCmdLine: TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function section_high_bound:longint;
         var
@@ -1142,8 +1133,6 @@ Implementation
 
 
     procedure TExternalAssembler.WriteRealConstAsBytes(hp: tai_realconst; const dbdir: string; do_line: boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         pdata: pbyte;
         index, step, swapmask, real_byte_count: longint;
@@ -1435,7 +1424,7 @@ Implementation
                                   TInternalAssembler
 *****************************************************************************}
 
-    constructor TInternalAssembler.Create(info: pasminfo; smart: boolean);
+    constructor TInternalAssembler.Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         ObjOutput:=nil;
@@ -1990,8 +1979,6 @@ Implementation
 
     function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         objsym,
         objsymend : TObjSymbol;
         cpu: tcputype;
@@ -2188,8 +2175,6 @@ Implementation
 
 
     function TInternalAssembler.TreePass2(hp:Tai):Tai;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         fillbuffer : tfillbuffer;
         leblen : byte;
@@ -2716,8 +2701,6 @@ Implementation
 
 
     procedure TInternalAssembler.writetree;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       label
         doexit;
       var
@@ -2802,8 +2785,6 @@ Implementation
 
 
     procedure TInternalAssembler.writetreesmart;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : Tai;
         startsectype : TAsmSectiontype;
@@ -2920,8 +2901,6 @@ Implementation
 
 
     procedure TInternalAssembler.MakeObject;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     var to_do:set of TasmlistType;
         i:TasmlistType;
@@ -2962,7 +2941,7 @@ Implementation
       begin
         if not assigned(CAssembler[compiler.target._asm.id]) then
           compiler.verbose.Message(asmw_f_assembler_output_not_supported);
-        a:=CAssembler[compiler.target._asm.id].Create(@compiler.target._asm,smart);
+        a:=CAssembler[compiler.target._asm.id].Create(@compiler.target._asm,smart,compiler);
         a.MakeObject;
         a.Free;
         a := nil;
@@ -2979,7 +2958,7 @@ Implementation
           if assigned(asminfos[asmkind]) and
              (compiler.target.info.system in asminfos[asmkind]^.supported_targets) then
             begin
-              result:=TExternalAssemblerClass(CAssembler[asmkind]).CreateWithWriter(asminfos[asmkind],wr,false,false);
+              result:=TExternalAssemblerClass(CAssembler[asmkind]).CreateWithWriter(asminfos[asmkind],wr,false,false,compiler);
               exit;
             end;
         Internalerror(2015090604);

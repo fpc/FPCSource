@@ -104,7 +104,7 @@ interface
        end;
 
        TElfAssembler = class(tinternalassembler)
-         constructor create(info: pasminfo; smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);override;
        end;
 
        PSectionRec=^TSectionRec;
@@ -1157,7 +1157,7 @@ implementation
                                TELFAssembler
 ****************************************************************************}
 
-    constructor TElfAssembler.Create(info: pasminfo; smart:boolean);
+    constructor TElfAssembler.Create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);
       begin
         inherited;
         CObjOutput:=TElfObjectOutput;

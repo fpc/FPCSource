@@ -536,8 +536,6 @@ interface
 
     procedure TX86NasmAssembler.WriteSection(atype : TAsmSectiontype;
       const aname : string; alignment : longint);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -664,8 +662,6 @@ interface
       end;
 
     procedure TX86NasmAssembler.WriteHiddenSymbolAttribute(sym: TAsmSymbol);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.target.info.system in systems_windows then
           exit;
@@ -732,8 +728,6 @@ interface
       end;
 
     procedure TX86NasmAssembler.WriteTree(p:TAsmList);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {$ifdef cpuextended}
     type
       t80bitarray = array[0..9] of byte;
@@ -1432,8 +1426,6 @@ interface
    end;
 
     function TX86NasmAssembler.MakeCmdLine: TCmdStr;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         FormatName : string;
       begin

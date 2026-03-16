@@ -256,11 +256,11 @@ interface
        end;
 
        TDJCoffAssembler = class(tinternalassembler)
-         constructor create(info: pasminfo; smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);override;
        end;
 
        TPECoffassembler = class(tinternalassembler)
-         constructor create(info: pasminfo; smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);override;
        end;
 
 
@@ -3856,7 +3856,7 @@ const pemagic : array[0..3] of byte = (
                                  TDJCoffAssembler
 ****************************************************************************}
 
-    constructor TDJCoffAssembler.Create(info: pasminfo; smart:boolean);
+    constructor TDJCoffAssembler.Create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);
       begin
         inherited;
         CObjOutput:=TDJCoffObjOutput;
@@ -3868,7 +3868,7 @@ const pemagic : array[0..3] of byte = (
                                TPECoffAssembler
 ****************************************************************************}
 
-    constructor TPECoffAssembler.Create(info: pasminfo; smart:boolean);
+    constructor TPECoffAssembler.Create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);
       begin
         inherited;
         CObjOutput:=TPECoffObjOutput;

@@ -511,8 +511,6 @@ implementation
 
     procedure tx86IntelAssembler.WriteTree(p:TAsmList);
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       s,
       prefix,
       suffix   : string;
