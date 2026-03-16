@@ -30,10 +30,13 @@ uses
 type
    timportlib=class
    private
+      FCompiler: TCompilerBase;
       notsupmsg : boolean;
       procedure NotSupported;
+   protected
+      property Compiler: TCompilerBase read FCompiler;
    public
-      constructor Create;virtual;
+      constructor Create(ACompiler: TCompilerBase);virtual;
       destructor Destroy;override;
       procedure generatelib;virtual;
    end;
@@ -65,8 +68,9 @@ uses
                               TImportLib
 ****************************************************************************}
 
-constructor timportlib.Create;
+constructor timportlib.Create(ACompiler: TCompilerBase);
 begin
+  FCompiler:=ACompiler;
   notsupmsg:=false;
 end;
 
@@ -77,8 +81,6 @@ end;
 
 
 procedure timportlib.NotSupported;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   { show the message only once }
   if not notsupmsg then
@@ -116,9 +118,9 @@ var
   compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if assigned(CImportLib[compiler.target.info.system]) then
-   importlib:=CImportLib[compiler.target.info.system].Create
+   importlib:=CImportLib[compiler.target.info.system].Create(compiler)
   else
-   importlib:=TImportLib.Create;
+   importlib:=TImportLib.Create(compiler);
 end;
 
 

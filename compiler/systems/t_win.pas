@@ -165,8 +165,6 @@ implementation
 
     procedure TImportLibWin.generateimportlib;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         ObjWriter        : tarobjectwriter;
         ObjOutput        : TPECoffObjOutput;
         basedllname      : string;
@@ -430,8 +428,6 @@ implementation
 
 
     procedure TImportLibWin.generateidatasection;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          templab,
          l1,l2,l3,l4 {$ifdef ARM} ,l5 {$endif ARM} : tasmlabel;
