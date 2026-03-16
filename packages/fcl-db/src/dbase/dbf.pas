@@ -720,14 +720,16 @@ var
   I: Integer;
 begin
   inherited Destroy;
-
+  FreeAndNil(FUserStream);
+  FreeAndNil(FUserIndexStream);
+  FreeAndNil(FUserMemoStream);
   if FIndexDefs <> nil then
   begin
     for I := FIndexDefs.Count - 1 downto 0 do
       TDbfIndexDef(FIndexDefs.Items[I]).Free;
-    FIndexDefs.Free;
+    FreeAndNil(FIndexDefs);
   end;
-  FMasterLink.Free;
+  FreeAndNil(FMasterLink);
 end;
 
 function TDbf.AllocRecordBuffer: TRecordBuffer; {override virtual abstract from TDataset}
