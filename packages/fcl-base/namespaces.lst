@@ -47,3 +47,4 @@ src/syncobjs.pp=namespaced/System.SyncObjs.pp
 src/avl_tree.pp=namespaced/Fcl.AVLTree.pp
 src/cachecls.pp=namespaced/Fcl.CacheCls.pp
 src/fptimer.pp=namespaced/Fcl.Timer.pp
+src/fppromise.pp=namespaced/Fcl.Promise.pp

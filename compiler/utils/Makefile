@@ -1071,6 +1071,357 @@ endif
 ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 override CLEAN_UNITS+=ppu crc
 endif
+ifeq ($(CPU_OS_TARGET),i386-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-go32v2)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-win32)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-os2)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-freebsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-beos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-haiku)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-netbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-solaris)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-qnx)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-netware)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-openbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-wdosx)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-darwin)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-emx)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-watcom)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-netwlibc)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-wince)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-symbian)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-nativent)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-iphonesim)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-android)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i386-aros)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-netbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-amiga)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-atari)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-palmos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),m68k-human68k)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-amiga)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-darwin)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-morphos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-wii)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc-aix)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),sparc-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),sparc-netbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),sparc-solaris)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),sparc-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-haiku)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-solaris)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-darwin)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-win64)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-android)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-aros)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-netbsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-palmos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-wince)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-gba)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-nds)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-symbian)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-android)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-aros)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-freertos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),arm-ios)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc64-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc64-freebsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),powerpc64-aix)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),avr-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),armeb-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),armeb-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),mips-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),mipsel-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),mipsel-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),mipsel-android)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),mipsel-ps1)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),mips64-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),mips64el-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),jvm-java)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),jvm-android)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i8086-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i8086-msdos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),i8086-win16)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-darwin)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-win64)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-android)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),aarch64-ios)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),sparc64-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),riscv32-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),riscv32-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),riscv32-freertos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),riscv64-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),riscv64-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),xtensa-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),xtensa-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),xtensa-freertos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),z80-embedded)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),z80-msxdos)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
+ifeq ($(CPU_OS_TARGET),loongarch64-linux)
+override CLEAN_PROGRAMS+=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
+endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(CPU_OS_TARGET),i386-linux)
 override COMPILER_UNITDIR+=..

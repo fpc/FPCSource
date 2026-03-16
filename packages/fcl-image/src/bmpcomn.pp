@@ -42,7 +42,7 @@ type
       bfSize:longint;
 {06+04 : Reserved}
       bfReserved:longint;
-{10+04 : Offset of image data : size if the file hieder + the info header + palette}
+{10+04 : Offset of image data : size of the file header + the info header + palette}
       bfOffset:longint;
    end;
    PBitMapFileHeader = ^TBitMapFileHeader;

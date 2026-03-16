@@ -216,7 +216,7 @@ begin
 end;
 
 procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);
-// NOTE: Assumes that BMP header already has been read
+// NOTE: Assumes that BMP header & Info Header already has been read in InternalCheck
 Var
   Row, i, pallen : Integer;
   BadCompression : boolean;
@@ -225,12 +225,6 @@ begin
   continue:=true;
   Progress(psStarting,0,false,Rect,'',continue);
   if not continue then exit;
-  // InternalCheck does not rewind - seek to info header position
-  Stream.Position := SizeOf(TBitMapFileHeader);
-  Stream.Read(BFI,SizeOf(BFI));
-  {$IFDEF ENDIAN_BIG}
-  SwapBMPInfoHeader(BFI);
-  {$ENDIF}
   { This will move past any junk after the BFI header }
   Stream.Position:=Stream.Position-SizeOf(BFI)+BFI.Size;
   with BFI do
@@ -504,11 +498,10 @@ begin
 end;
 
 function  TFPReaderBMP.InternalCheck (Stream:TStream) : boolean;
-// NOTE: Does not rewind the stream!
+// Reads bitmap file header and bitmap info header
 var
   lBFH:TBitMapFileHeader;
-  lBFI:TBitMapInfoHeader;
-  n: Int64;
+  lPos,n: Int64;
 begin
   Result:=False;
   if Stream=nil then
@@ -523,17 +516,17 @@ begin
     exit;
   if lBFH.bfReserved<>0 then
     exit;
-  n:=SizeOf(lBFI);
-  if Stream.Read(lBFI,n)<>n then
+  n:=SizeOf(BFI);
+  if Stream.Read(BFI,n)<>n then
     exit;
   {$IFDEF ENDIAN_BIG}
-  SwapBMPInfoHeader(lBFI);
+  SwapBMPInfoHeader(BFI);
   {$ENDIF}
-  if not (lBFI.Size in [12, 40, 52, 56, 108, 124]) then
+  if not (BFI.Size in [12, 40, 52, 56, 108, 124]) then
     exit;
-  if not (lBFI.BitCount in [1, 4, 8, 16, 24, 32]) then
+  if not (BFI.BitCount in [1, 4, 8, 16, 24, 32]) then
     exit;
-  if not (lBFI.Compression in [BI_RGB..BI_ALPHABITFIELDS]) then
+  if not (BFI.Compression in [BI_RGB..BI_ALPHABITFIELDS]) then
     exit;
   Result:=True;
 end;

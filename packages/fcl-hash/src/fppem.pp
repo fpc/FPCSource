@@ -94,7 +94,7 @@ begin
   if Length(SPrivateKey)>=SizeOf(PrivateKey) then
     BytesToVar(SPrivateKey,Privatekey,SizeOf(Privatekey))
   else
-    Raise Exception.CreateFmt('Wrong private key length, got %d, expected %d',[Length(SPrivateKey),SizeOf(TPrivateKey)]);
+    Raise EHashUtil.CreateFmt('Wrong private key length, got %d, expected %d',[Length(SPrivateKey),SizeOf(TPrivateKey)]);
   SPublicKeyHexa := List.Strings[6]; // 132 chars
   if Length(SPublicKeyHexa) = 2+2*(2*ECC_BYTES) then
     Delete(SPublicKeyHexa,1,2); // skip the leading $04 for uncompressed publickey
@@ -357,7 +357,7 @@ begin
     begin
       Line:=sl[i];
       if not PemLineIsBase64(Line) then
-        raise Exception.Create('20220428220523');
+        raise EHashUtil.Create('20220428220523');
       TxtBase64:=TxtBase64+Line;
     end;
     Result:={$ifdef FPC_DOTTEDUNITS}Fcl.{$ENDIF}basenenc.Base64.Decode(TxtBase64,True);

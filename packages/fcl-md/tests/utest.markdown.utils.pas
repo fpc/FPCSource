@@ -51,7 +51,6 @@ type
     procedure TestUrlEscape;
     procedure TestParseEntityString;
     procedure TestCheckForEntity;
-    procedure TestIsRegexMatch;
     procedure TestIsUnicodePunctuation;
     procedure TestCountStartChars;
     procedure TestToUnicodeChars;
@@ -241,14 +240,6 @@ begin
   AssertEquals('Check for test&amp without ;', 5, CheckForTrailingEntity('test&amp;'));
   AssertEquals('Check for &amp with ;', 5, CheckForTrailingEntity('&amp;')); // Semicolon is not alphanumeric, so it fails
   AssertEquals('Check with space', 5, CheckForTrailingEntity('test &amp;')); // Space fails the check
-end;
-
-procedure TTestMarkdownUtils.TestIsRegexMatch;
-begin
-  AssertTrue('Substring match', isRegexMatch('content', 'ont'));
-  AssertTrue('Start anchor match', isRegexMatch('content', '^con'));
-  AssertFalse('Start anchor fail', isRegexMatch('content', '^ont'));
-  AssertFalse('Empty content never matches', isRegexMatch('', 'a'));
 end;
 
 procedure TTestMarkdownUtils.TestIsUnicodePunctuation;

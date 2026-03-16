@@ -36,6 +36,22 @@ type
   TFPBrushException = class (TFPCanvasException);
   TFPFontException = class (TFPCanvasException);
 
+  TFPCanvasPointArray = array of TPoint;
+
+  { TFPCanvasMatrix }
+
+  TFPCanvasMatrix = object
+    _00, _01, _10, _11: Double;  // 2x2 linear part (rotation, scale, skew)
+    _20, _21: Double;            // translation
+    function Transform(const APoint: TPoint): TPoint; overload;
+    function Transform(X, Y: Integer): TPoint; overload;
+    class function Identity: TFPCanvasMatrix; static;
+    class function CreateTranslation(DX, DY: Double): TFPCanvasMatrix; static;
+    class function CreateScale(SX, SY: Double): TFPCanvasMatrix; static;
+    class function CreateRotation(ARadians: Double): TFPCanvasMatrix; static;
+    function Multiply(const Other: TFPCanvasMatrix): TFPCanvasMatrix;
+  end;
+
   TFPCustomCanvas = class;
 
   { TFPCanvasHelper }
@@ -248,6 +264,7 @@ type
 
   TFPCustomCanvas = class(TPersistent)
   private
+    FMatrix: TFPCanvasMatrix;
     FClipping,
     FManageResources: boolean;
     FRemovingHelpers : boolean;
@@ -325,6 +342,10 @@ type
                            Continuous: boolean = False); virtual;
     procedure CheckHelper (AHelper:TFPCanvasHelper); virtual;
     procedure AddHelper (AHelper:TFPCanvasHelper);
+    function TransformPoint(X, Y: Integer): TPoint;
+    function TransformRect(const R: TRect): TRect;
+    function TransformPoints(const Points: array of TPoint): TFPCanvasPointArray;
+    function HasRotation: Boolean;
   public
     constructor create;
     destructor destroy; override;
@@ -386,6 +407,13 @@ type
     procedure Erase;virtual;
     procedure DrawPixel(const x, y: integer; const newcolor: TFPColor);
     procedure GradientFill(const ARect: TRect; AStartColor, AEndColor: TFPColor; ADirection: TFPGradientDirection); virtual;
+    // coordinate transformation
+    property TransformMatrix: TFPCanvasMatrix read FMatrix write FMatrix;
+    procedure Translate(DX, DY: Double);
+    procedure Scale(SX, SY: Double);
+    procedure Rotate(ARadians: Double);
+    procedure ResetTransform;
+    function HasTransform: Boolean;
     // properties
     property LockCount: Integer read FLocks;
     property Font : TFPCustomFont read GetFont write SetFont;
@@ -527,6 +555,7 @@ begin
     (AY >= Rect.Top) and (AY <= Rect.Bottom);
 end;
 
+{$i fpmatrix.inc}
 {$i FPHelper.inc}
 {$i FPFont.inc}
 {$i FPPen.inc}

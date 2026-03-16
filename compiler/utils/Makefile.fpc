@@ -8,6 +8,7 @@ rst=fpcsubst
 
 [clean]
 units=ppu crc
+programs=fpc ppufiles ppudump ppumove mka64ins mkarmins mkx86ins msg2inc mkx86inl mkz80ins gppc386 vppcx64
 
 [compiler]
 unitdir=..

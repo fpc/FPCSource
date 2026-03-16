@@ -1157,14 +1157,14 @@ begin
     // _XString(S, @PublicKey, SizeOf(PublicKey));
     Buf:=HexStrToBytes(Hexa);
     if Length(Buf)<SizeOf(PublicKey) then
-      raise Exception.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [Length(buf)]);
+      raise EHashUtil.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [Length(buf)]);
     Move(Buf[0],PublicKey,Sizeof(PublicKey)) // Compressed public key
   end else
   begin // uncompressed public key as stored in PEM ASN.1
     if hLength = 2+2*(2*ECC_BYTES) then
       SHexa:=Copy(Hexa, 3, ECC_BYTES*2) // skip the leading $04 for uncompressed publickey
     else if hLength <> 2*(2*ECC_BYTES) then
-      raise Exception.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [hLength])
+      raise EHashUtil.CreateFmt('EccPublicKeyFromHexa - Invalid length: %d', [hLength])
     else
       SHexa:=Hexa;
     Buf:=HexStrToBytes(SHexa);

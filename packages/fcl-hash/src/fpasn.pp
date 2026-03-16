@@ -247,14 +247,14 @@ var
   Len: Integer;
 begin
   if Buffer>BufferEnd then
-    raise Exception.Create('20220428135218');
+    raise EHashUtil.Create('20220428135218');
   Result := Buffer^;
   Inc(Buffer);
   if Result < $80 then
     Exit;
   Len := Result and $7F;
   if (Len>4) or (BufferEnd-Buffer < Len) then
-    raise Exception.Create('20220428135333');
+    raise EHashUtil.Create('20220428135333');
   Result := 0;
   while Len > 0 do
   begin
@@ -342,7 +342,7 @@ var
 begin
   EndIndex:=length(Value);
   if EndIndex=0 then
-    raise Exception.Create('20220501115642');
+    raise EHashUtil.Create('20220501115642');
   StartIndex:=0;
   while (StartIndex<EndIndex) and (Value[StartIndex]=0) do
     inc(StartIndex);
@@ -530,7 +530,7 @@ begin
   for I := 1 to ASNSize do
   begin
     if Buffer>=BufferEnd then
-      raise Exception.Create('20220428134948');
+      raise EHashUtil.Create('20220428134948');
     X := Buffer^;
     if (I = 1) and (X > $7F) then
       Negative := True;
@@ -538,7 +538,7 @@ begin
       X := not X;
     Result := Result*256 + X;
     if Result>high(longint) then
-      raise Exception.Create('20220428135614');
+      raise EHashUtil.Create('20220428135614');
     Inc(Buffer);
   end;
   if Negative then
@@ -553,10 +553,10 @@ begin
   for I := 1 to ASNSize do
   begin
     if Buffer>=BufferEnd then
-      raise Exception.Create('20220428135002');
+      raise EHashUtil.Create('20220428135002');
     Result := Result*256 + Buffer^;
     if Result>high(dword) then
-      raise Exception.Create('20220428135614');
+      raise EHashUtil.Create('20220428135614');
     Inc(Buffer);
   end;
 end;
@@ -736,7 +736,7 @@ begin
   begin
     x := ASNDecodeOID(Buffer, BufferEnd);
     if x<0 then
-      raise Exception.Create('20220427114808');
+      raise EHashUtil.Create('20220427114808');
     if Result='' then
     begin
       Result:=IntToStr(x div 40);
@@ -802,9 +802,9 @@ end;
 procedure ASNParseAdd(List: TStrings; const S: String; const ASNType, ASNSize: Integer);
 begin
   if ASNSize>high(word) then
-    raise Exception.Create('20220428160845');
+    raise EHashUtil.Create('20220428160845');
   if ASNType>high(word) then
-    raise Exception.Create('20220428160853');
+    raise EHashUtil.Create('20220428160853');
   List.AddObject(S, TObject(PtrInt (ASNType shl 16) or (ASNSize)));
 end;
 
@@ -1049,7 +1049,7 @@ var
 begin
   ASNParse_GetItem(List,ListIndex,ASNType,ASNSize);
   if ASNType<>ASN1_INT then
-    raise Exception.Create(IntToStr(Id));
+    raise EHashUtil.Create(IntToStr(Id));
   if ASNSize<8 then
   begin
     SetLength(Result{%H-},ASNSize);
@@ -1062,7 +1062,7 @@ begin
   end else
     Result:=HexStrToBytes(List[ListIndex]);
   if length(Result)<1 then
-    raise Exception.Create(IntToStr(Id));
+    raise EHashUtil.Create(IntToStr(Id));
 end;
 
 end.

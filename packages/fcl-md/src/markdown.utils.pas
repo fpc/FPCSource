@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit MarkDown.Utils;
+unit Markdown.Utils;
 
 {$mode ObjFPC}{$H+}
 
@@ -20,9 +20,9 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.Contnrs, System.Regexpr;
+  System.Classes, System.SysUtils, System.Contnrs;
 {$ELSE}
-  Classes, SysUtils, Contnrs, RegExpr;
+  Classes, SysUtils, Contnrs;
 {$ENDIF}
 
 const
@@ -90,7 +90,7 @@ function CopyMatching(const S : String; aMatches : TSysCharSet) : String;
 
 function StartsWithWhitespace(const S : String; aMatch : AnsiChar; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
 function StartsWithWhitespace(const S : String; aMatch : TSysCharSet; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
-function StartsWithWhitespace(const S : String; aMatch : String; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
+function StartsWithWhitespace(const S : String; const aMatch : String; out aLength : integer; aWSLen : integer = 3) : boolean; overload;
 // Returns the number of space characters. Tab is a tabulator of 4
 function LeadingWhitespace(const S : String) : integer; inline;
 // Returns the number of space characters. Tab is a tabulator of 4.
@@ -114,13 +114,11 @@ function UrlEscape(const S : String) : String; overload;
 // Is the string S an absolute URI ?
 function isAbsoluteUri(const S : String) : boolean;
 // Is S a valid email address
-function IsValidEmail(const S : String) : boolean;
+function IsEmailLike(const S : String) : boolean;
 // Parse entity string
 function ParseEntityString(aEntities : TFPStringHashTable; const aEntity : String): String;
 // Check if S ends on an entity start character, and if so, return the length of the entity
 function CheckForTrailingEntity(Const S : String) : integer;
-// Return true if aContent is a match for regular expression aRegex
-function IsRegexMatch(const aContent, aRegex: String): boolean;
 // Is aChar a Unicode punctuation character ?
 function IsUnicodePunctuation(aChar : UnicodeChar) : boolean;
 // Count the number of characters aChar at the start of aLine
@@ -203,12 +201,49 @@ end;
 function HtmlEscape(const S: String): String;
 
 var
-  C : char;
+  lPos,
+  lTotalLen,
+  lCharLen : Integer;
+  lChar : char;
+  lRepl : String[6];
 
 begin
   Result:='';
-  for C in S do
-    Result:=Result+HtmlEscape(C);
+  lTotalLen:=0;
+  lCharLen:=0;
+  for lChar in S do
+    begin
+    Case lChar of
+      '<',
+      '>' : lCharLen:=4;
+      '"' : lCharLen:=6;
+      '&' : lCharLen:=5;
+    else
+      lCharLen:=1;
+    end;
+    Inc(lTotalLen,lCharLen);
+    end;
+  SetLength(Result,lTotalLen);
+  lPos:=1;
+  for lChar in S do
+    begin
+    lCharLen:=0;
+    Case lChar of
+      '<' : lRepl:='&lt;';
+      '>' : lRepl:='&gt;';
+      '"' : lRepl:='&quot;';
+      '&' : lRepl:='&amp;';
+    else
+      Result[lPos]:=lChar;
+      lCharLen:=1;
+    end;
+    if lCharLen=0 then
+      begin
+      lCharlen:=Length(lRepl);
+      Move(lRepl[1],Result[lPos],lCharLen);
+      end;
+    Inc(lPos,lCharLen);
+    end;
 end;
 
 
@@ -320,7 +355,7 @@ begin
     Dec(aLength);
 end;
 
-function StartsWithWhitespace(const S: String; aMatch: String; out aLength: integer; aWSLen: integer): boolean;
+function StartsWithWhitespace(const S: String; const aMatch: String; out aLength: integer; aWSLen: integer): boolean;
 
 var
   Len, I : integer;
@@ -559,23 +594,6 @@ begin
    exit(Length(tmp)+2);
 end;
 
-function IsRegexMatch(const aContent, aRegex: String): boolean;
-
-var
-  lRegex : TRegExpr;
-
-begin
-  Result:=False;
-  if aContent = '' then
-    Exit;
-  lRegex:=TRegExpr.create(aRegex);
-  try
-    Result:=lRegex.exec(aContent);
-  finally
-    lRegex.Free;
-  end;
-end;
-
 function TransformTabs(const aLine: string): string;
 
 var
@@ -687,14 +705,14 @@ begin
   Result:=true;
 end;
 
-function IsValidEmail(const S : String) : boolean;
+function IsEmailLike(const S : String) : boolean;
 
 type
   TState = (sNeutral,sUser,sHost,sDomain);
 
 var
   lState : TState;
-  c : char;
+  c,prev : char;
 
 begin
   Result:=False;
@@ -702,6 +720,7 @@ begin
     Exit;
   lState:=sNeutral;
   for c in s do
+    begin
     Case lState of
     sNeutral:
       if c='@' then
@@ -713,10 +732,17 @@ begin
         lState:=sHost;
     else
       if c='.' then
-        lState:=sDomain
+        if prev='@' then
+          exit
+        else  
+          lState:=sDomain
       else if c='+' then
         Exit;
     end;
+    prev:=c;    
+    end;
+  if prev in ['@','.'] then
+    exit;
   Result:=lState=sDomain;
 end;
 

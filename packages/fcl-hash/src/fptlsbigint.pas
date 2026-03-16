@@ -19,9 +19,9 @@ unit fpTLSBigInt;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils;
+uses System.SysUtils, System.Hash.Utils;
 {$ELSE FPC_DOTTEDUNITS}
-uses SysUtils;
+uses SysUtils, fphashutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {off $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
@@ -156,12 +156,12 @@ begin
   if BI.References <= 0 then
   begin
     writeln('BICheck - Zero or negative References in TBigInt');
-    raise Exception.Create('20220428201452');
+    raise EHashUtil.Create('20220428201452');
   end;
   if BI.Next <> nil then
   begin
     writeln('BICheck - Attempt to use a TBigInt from the free list');
-    raise Exception.Create('20220428201508');
+    raise EHashUtil.Create('20220428201508');
   end;
   {$ENDIF}
   Result:=True;
@@ -194,7 +194,7 @@ begin
   begin
     Result := Context.FreeList;
     if Result^.References <> 0 then
-      raise Exception.Create('20220428200026');
+      raise EHashUtil.Create('20220428200026');
     Context.FreeList := Result^.Next;
     Dec(Context.FreeCount);
     BIResizeComponents(Result, Size);
@@ -546,7 +546,7 @@ begin
   if not BICheck(BI^) then
     Exit;
   if BI^.References <> 1 then
-    raise Exception.Create('20220428195735');
+    raise EHashUtil.Create('20220428195735');
   BI^.References := BIGINT_PERMANENT;
 end;
 
@@ -556,7 +556,7 @@ begin
   if not BICheck(BI^) then
     Exit;
   if BI^.References <> BIGINT_PERMANENT then
-    raise Exception.Create('20220428203636');
+    raise EHashUtil.Create('20220428203636');
   BI^.References := 1;
 end;
 
@@ -576,7 +576,7 @@ begin
   Dec(Context.ActiveCount);
   {$IFDEF BIGINT_DEBUG}
   if Context.ActiveCount < 0 then
-    raise Exception.Create('20220428203546');
+    raise EHashUtil.Create('20220428203546');
   {$ENDIF}
 end;
 

@@ -19,7 +19,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.Options.Add('-S2h');
+    P.Options.Add('-S2hc');
     D:=P.Dependencies.Add('fcl-base');
 
     P.Author := 'Michael Van Canneyt';

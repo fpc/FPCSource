@@ -431,6 +431,7 @@ begin
         start_arg^.ExitCode:=High(Cardinal);
       end;
   end;
+  DoneThread;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('FPCWasmThreadStartPascal: Signaling end of thread');{$ENDIF}
   WasiRTLEventSetEvent(start_arg^.DoneEvent);
 end;
