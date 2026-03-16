@@ -164,7 +164,7 @@ begin
       { vlink doesn't use SEARCH_DIR for object files }
       if not(cs_link_on_target in current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
-      if (idf_version>=50200) then
+      if (compiler.globals.idf_version>=50200) then
         LinkRes.AddFileName(ExtractFileName(maybequoted(s)))
       else
         LinkRes.AddFileName((maybequoted(s)));
@@ -179,7 +179,7 @@ begin
       while not StaticLibFiles.Empty do
         begin
           S:=StaticLibFiles.GetFirst;
-          if (idf_version>=50200) then
+          if (compiler.globals.idf_version>=50200) then
             LinkRes.AddFileName(ExtractFileName(maybequoted(s)))
           else
             LinkRes.AddFileName((maybequoted(s)));
@@ -962,7 +962,7 @@ begin
       writeln(t,'#define APP_OFFSET 0x10000');
       writeln(t,'#define APP_SIZE 0xf0000');
       { Include build version of sdkconfig.h for custom configuration, if available }
-      S:=idfpath+'/libs/sdkconfig.h';
+      S:=compiler.globals.idfpath+'/libs/sdkconfig.h';
       if SysUtils.FileExists(S) then
         writeln(t,'#include "'+S+'"')
       else
@@ -1081,13 +1081,13 @@ begin
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "Kconfig.projbuild",');
       writeln(t,'    "IDF_CMAKE": "y",');
       writeln(t,'    "IDF_TARGET": "esp32",');
-      writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
+      writeln(t,'    "IDF_PATH": "'+TargetFixPath(compiler.globals.idfpath,false)+'",');
       writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs.in",');
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs_projbuild.in"');
     end
   else
     begin
-      writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
+      writeln(t,'    "IDF_PATH": "'+TargetFixPath(compiler.globals.idfpath,false)+'",');
       writeln(t,'    "IDF_TARGET": "esp8266",');
       writeln(t,'    "IDF_CMAKE": "n"');
     end;
@@ -1139,20 +1139,20 @@ begin
     compiler.verbose.Message(exec_f_controllertype_expected)
   else if current_settings.controllertype = ct_esp32 then
     begin
-      if idf_version>=40400 then
+      if compiler.globals.idf_version>=40400 then
         cmdstr:=cmdstr+'-I $IDF_PATH/components/esp_system/ld $IDF_PATH/components/esp_system/ld/esp32/memory.ld.in'
       else
         cmdstr:=cmdstr+'$IDF_PATH/components/esp32/ld/esp32.ld';
     end
   else
     cmdstr:=cmdstr+'$IDF_PATH/components/esp8266/ld/esp8266.ld';
-  Replace(cmdstr,'$IDF_PATH',idfpath);
+  Replace(cmdstr,'$IDF_PATH',compiler.globals.idfpath);
   Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
 {$ifdef UNIX}
-  binstr:=TargetFixPath(idfpath,false)+'/tools/ldgen/ldgen.py';
+  binstr:=TargetFixPath(compiler.globals.idfpath,false)+'/tools/ldgen/ldgen.py';
 {$else}
   binstr:='python';
 {$endif UNIX}
@@ -1166,7 +1166,7 @@ begin
 
   { Pick corresponding linker fragments list for SDK version }
   if (current_settings.controllertype = ct_esp32) then
-    if idf_version>=40400 then
+    if compiler.globals.idf_version>=40400 then
       idf_index:=esp32_v4_4
     else
       idf_index:=esp32_v4_2
@@ -1178,7 +1178,7 @@ begin
 
   if (current_settings.controllertype = ct_esp32) then
     begin
-     if idf_version>=40400 then
+     if compiler.globals.idf_version>=40400 then
        cmdstr:=cmdstr+' --input $IDF_PATH/components/esp_system/ld/esp32/sections.ld.in'
      else
        cmdstr:=cmdstr+' --input $IDF_PATH/components/esp32/ld/esp32.project.ld.in';
@@ -1201,7 +1201,7 @@ begin
           ' --libraries-file $OUTPUT/ldgen_libraries'+
           ' --objdump '+S;
 
-  Replace(cmdstr,'$IDF_PATH',idfpath);
+  Replace(cmdstr,'$IDF_PATH',compiler.globals.idfpath);
   Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   if success then
     success:=DoExec(binstr,cmdstr,true,false);
@@ -1393,7 +1393,7 @@ begin
       writeln(t,'    "IDF_CMAKE": "y",');
       writeln(t,'    "IDF_TARGET": "esp32c3",');
       writeln(t,'    "IDF_ENV_FPGA": "",');
-      writeln(t,'    "IDF_PATH": "'+TargetFixPath(idfpath,false)+'",');
+      writeln(t,'    "IDF_PATH": "'+TargetFixPath(compiler.globals.idfpath,false)+'",');
       writeln(t,'    "COMPONENT_KCONFIGS_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs.in",');
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD_SOURCE_FILE": "'+compiler.globals.outputexedir+'/kconfigs_projbuild.in"');
     end;
@@ -1445,18 +1445,18 @@ begin
     compiler.verbose.Message(exec_f_controllertype_expected)
   else if current_settings.controllertype = ct_esp32c3 then
     begin
-      if idf_version>=40400 then
+      if compiler.globals.idf_version>=40400 then
         cmdstr:=cmdstr+'-I $IDF_PATH/components/esp_system/ld $IDF_PATH/components/esp_system/ld/esp32c3/memory.ld.in'
       else
         cmdstr:=cmdstr+'$IDF_PATH/components/esp32c3/ld/esp32c3.ld';
     end;
-  Replace(cmdstr,'$IDF_PATH',idfpath);
+  Replace(cmdstr,'$IDF_PATH',compiler.globals.idfpath);
   Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
 {$ifdef UNIX}
-  binstr:=TargetFixPath(idfpath,false)+'/tools/ldgen/ldgen.py';
+  binstr:=TargetFixPath(compiler.globals.idfpath,false)+'/tools/ldgen/ldgen.py';
 {$else}
   binstr:='python';
 {$endif UNIX}
@@ -1476,7 +1476,7 @@ begin
 
   if (current_settings.controllertype = ct_esp32c3) then
     begin
-     if idf_version>=40400 then
+     if compiler.globals.idf_version>=40400 then
        cmdstr:=cmdstr+' --input $IDF_PATH/components/esp_system/ld/esp32c3/sections.ld.in'
      else
        cmdstr:=cmdstr+' --input $IDF_PATH/components/esp32/ld/esp32c3.project.ld.in';
@@ -1490,7 +1490,7 @@ begin
           ' --libraries-file $OUTPUT/ldgen_libraries'+
           ' --objdump '+S;
 
-  Replace(cmdstr,'$IDF_PATH',idfpath);
+  Replace(cmdstr,'$IDF_PATH',compiler.globals.idfpath);
   Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
   if success then
     success:=DoExec(binstr,cmdstr,true,false);
@@ -1527,9 +1527,9 @@ begin
 
 {$if defined(XTENSA) or defined(RISCV32)}
   { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
-  if idfpath='' then
-    idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
-  idfpath:=ExcludeTrailingBackslash(idfpath);
+  if compiler.globals.idfpath='' then
+    compiler.globals.idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
+  compiler.globals.idfpath:=ExcludeTrailingBackslash(idfpath);
 
 {$ifdef XTENSA}
   case current_settings.controllertype of
@@ -1558,7 +1558,7 @@ begin
 
   { Locate linker scripts.  If not found, generate defaults. }
   { Cater for different script names in different esp-idf versions }
-  if idf_version >= 40400 then
+  if compiler.globals.idf_version >= 40400 then
     begin
       memory_script := 'memory.ld';
       sections_script := 'sections.ld';
@@ -1586,7 +1586,7 @@ begin
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -u call_user_start_cpu0 -u ld_include_panic_highint_hdl -u esp_app_desc -u vfs_include_syscalls_impl -u pthread_include_pthread_impl -u pthread_include_pthread_cond_impl -u pthread_include_pthread_local_storage_impl -u newlib_include_locks_impl '+
        '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
        '-L $IDF_PATH/components/esp_rom/'+cntrlr+'/ld ';
-      if idf_version<40400 then
+      if compiler.globals.idf_version<40400 then
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/'+cntrlr+'/ld'
       else
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/'+cntrlr+'/ld';
@@ -1595,35 +1595,35 @@ begin
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.ld -T '+cntrlr+'.rom.api.ld';
 {$ifdef XTENSA}
       if current_settings.controllertype = ct_esp32 then
-        if idf_version>=50200 then
+        if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld'
-        else if idf_version>=50000 then
+        else if compiler.globals.idf_version>=50000 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld'
-        else if idf_version>=40400 then
+        else if compiler.globals.idf_version>=40400 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-time.ld'
-        else if idf_version>=40300 then
+        else if compiler.globals.idf_version>=40300 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-time.ld'
         else
           begin
             //Currently not supported
           end;
       if current_settings.controllertype = ct_esp32s2 then
-        if idf_version>=50200 then
+        if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.spiflash.ld'
-        else if idf_version>=50000 then
+        else if compiler.globals.idf_version>=50000 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.spiflash.ld'
-        else if idf_version>=40400 then
+        else if compiler.globals.idf_version>=40400 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.spiflash.ld -T '+cntrlr+'.rom.newlib-time.ld'
         else
           begin
             //Currently not supported
           end;
       if current_settings.controllertype = ct_esp32s3 then
-        if idf_version>=50200 then
+        if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld'
-        else if idf_version>=50000 then
+        else if compiler.globals.idf_version>=50000 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld'
-        else if idf_version>=40400 then
+        else if compiler.globals.idf_version>=40400 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-time.ld'
         else
           begin
@@ -1631,16 +1631,16 @@ begin
           end;
   {$endif XTENSA}
   {$ifdef RISCV32}
-      if idf_version>=50300 then
+      if compiler.globals.idf_version>=50300 then
         begin
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/riscv/ld';
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+'rom.api.ld';
        end;
 
       if current_settings.controllertype=ct_esp32c2 then
-        if idf_version>=50200 then
+        if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
-        else if idf_version>=50000 then
+        else if compiler.globals.idf_version>=50000 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-time.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
         else
           compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
@@ -1648,28 +1648,28 @@ begin
       if current_settings.controllertype=ct_esp32c3 then
         begin
          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.eco3.ld';
-         if idf_version<50000 then
+         if compiler.globals.idf_version<50000 then
            Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.newlib-time.ld';
-         if idf_version>=50000 then
+         if compiler.globals.idf_version>=50000 then
            Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.eco3_bt_funcs.ld';
-         if idf_version>=50300 then
+         if compiler.globals.idf_version>=50300 then
            Info.ExeCmd[1]:=Info.ExeCmd[1]+' --allow-multiple -T'+cntrlr+'.rom.bt_funcs.ld -T '+cntrlr+'.rom.ble_master.ld -T '+cntrlr+'.rom.ble_50.ld -T '+cntrlr+'.rom.ble_smp.ld -T '+
              cntrlr+'.rom.ble_dtm.ld -T '+cntrlr+'.rom.ble_test.ld -T '+cntrlr+'.rom.ble_scan.ld';
-         if idf_version>=50500 then
+         if compiler.globals.idf_version>=50500 then
            Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libc.ld';
         end
         else
           compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
 
       if current_settings.controllertype=ct_esp32c6 then
-        if idf_version>=50200 then
+        if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.phy.ld -T '+cntrlr+'.rom.coexist.ld -T '+cntrlr+'.rom.net80211.ld -T '+cntrlr+'.rom.pp.ld -T '+cntrlr+'.rom.wdt.ld -T '+cntrlr+'.rom.systimer.ld -T '+cntrlr+'.rom.newlib-normal.ld -T '+cntrlr+'.rom.heap.ld'
         else
          compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
   {$endif RISCV32}
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.peripherals.ld'
     end;
-  Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);
+  Replace(Info.ExeCmd[1],'$IDF_PATH',compiler.globals.idfpath);
 {$endif defined(XTENSA) or defined(RISCV32)}
 
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
@@ -1733,13 +1733,13 @@ begin
     begin
 {$if defined(DARWIN)}
       success:=FindFileInExeLocations('python',true,binstr);
-      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+      cmdstr:=compiler.globals.idfpath+'/components/esptool_py/esptool/esptool.py ';
 {$elseif defined(UNIX)}
-      binstr:=TargetFixPath(idfpath,false)+'/components/esptool_py/esptool/esptool.py';
+      binstr:=TargetFixPath(compiler.globals.idfpath,false)+'/components/esptool_py/esptool/esptool.py';
       cmdstr:='';
 {$else}
       binstr:='python';
-      cmdstr:=idfpath+'/components/esptool_py/esptool/esptool.py ';
+      cmdstr:=compiler.globals.idfpath+'/components/esptool_py/esptool/esptool.py ';
 {$endif UNIX}
 
 {$ifdef XTENSA}

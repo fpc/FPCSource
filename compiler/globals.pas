@@ -301,12 +301,6 @@ Const
 
 
     var
-{$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
-       { specified with -Ff }
-       idfpath           : TPathStr;
-       { specified with }
-       idf_version       : longint;
-{$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
        { external assembler extra option }
        asmextraopt       : string;
 
@@ -725,6 +719,12 @@ Const
         { specified with -FW and -Fw }
         wpofeedbackinput,
         wpofeedbackoutput : TPathStr;
+{$if defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        { specified with -Ff }
+        idfpath           : TPathStr;
+        { specified with }
+        idf_version       : longint;
+{$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1123,16 +1123,16 @@ implementation
          Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
 {$endif openbsd}
 {$ifdef xtensa}
-         if idf_version > 0 then
+         if compiler.globals.idf_version > 0 then
            Replace(s,'$IDF_VERSION',idfversionstring(idf_version));
-         if idfpath <> '' then
-           Replace(s,'$IDFPATH',idfpath);
+         if compiler.globals.idfpath <> '' then
+           Replace(s,'$IDFPATH',compiler.globals.idfpath);
 {$endif xtensa}
 {$ifdef riscv32}
-         if idf_version > 0 then
+         if compiler.globals.idf_version > 0 then
            Replace(s,'$IDF_VERSION',idfversionstring(idf_version));
-         if idfpath <> '' then
-           Replace(s,'$IDFPATH',idfpath);
+         if compiler.globals.idfpath <> '' then
+           Replace(s,'$IDFPATH',compiler.globals.idfpath);
 {$endif riscv32}
 
          if not substitute_env_variables then
@@ -1776,7 +1776,7 @@ implementation
         rlinkpath:='';
         sysrootpath:='';
 {$if defined(XTENSA) or defined(RISCV32)}
-        idfpath:='';
+        compiler.globals.idfpath:='';
 {$endif defined(XTENSA) or defined(RISCV32)}
 
         { Search Paths }

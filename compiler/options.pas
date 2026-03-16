@@ -1377,7 +1377,7 @@ function TOption.ParseVersionStr(out ver: longint;
       begin
         compvarvalue:=compvarvalue+'00';
       end;
-    val(compvarvalue,idf_version,i);
+    val(compvarvalue,compiler.globals.idf_version,i);
     if i=0 then
       begin
         set_system_compvar(compvarname,compvarvalue);
@@ -1521,40 +1521,40 @@ begin
     ct_esp8266:
       begin
         set_system_compvar('IDF_VERSION','30300');
-        idf_version:=30300;
+        compiler.globals.idf_version:=30300;
       end;
     ct_esp32:
       begin
         set_system_compvar('IDF_VERSION','40200');
-        idf_version:=40200;
+        compiler.globals.idf_version:=40200;
       end;
     ct_esp32s2,ct_esp32s3:
       begin
         set_system_compvar('IDF_VERSION','50006');
-        idf_version:=40400;
+        compiler.globals.idf_version:=40400;
       end;
 {$endif}
 {$ifdef RISCV32}
     ct_esp32c2:
       begin
         set_system_compvar('IDF_VERSION','50006');
-        idf_version:=40400;
+        compiler.globals.idf_version:=40400;
       end;
     ct_esp32c3:
       begin
         set_system_compvar('IDF_VERSION','50006');
-        idf_version:=40400;
+        compiler.globals.idf_version:=40400;
       end;
     ct_esp32c6:
       begin
         set_system_compvar('IDF_VERSION','50201');
-        idf_version:=50200;
+        compiler.globals.idf_version:=50200;
       end;
 {$endif RISCV32}
     else
       begin
         set_system_compvar('IDF_VERSION','00000');
-        idf_version:=0;
+        compiler.globals.idf_version:=0;
       end;
   end;
 end;
@@ -3125,7 +3125,7 @@ begin
             frameworksearchpath.AddPath(More,true)
 {$if defined(XTENSA) or defined(RISCV32)}
         else if (compiler.target.info.system in [system_xtensa_freertos,system_riscv32_freertos]) then
-          idfpath:=FixPath(More,true)
+          compiler.globals.idfpath:=FixPath(More,true)
 {$endif defined(XTENSA) or defined(RISCV32)}
         else
           IllegalPara(opt);

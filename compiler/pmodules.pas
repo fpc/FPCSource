@@ -576,35 +576,35 @@ implementation
         if not(curr.is_unit) and (compiler.target.info.system=system_xtensa_freertos) then
           if (current_settings.controllertype=ct_esp32) then
             begin
-              if (idf_version>=40100) and (idf_version<40200) then
+              if (compiler.globals.idf_version>=40100) and (compiler.globals.idf_version<40200) then
                 CheckAddUnit('espidf_40100')
-              else if (idf_version>=40200) and (idf_version<40400) then
+              else if (compiler.globals.idf_version>=40200) and (compiler.globals.idf_version<40400) then
                 CheckAddUnit('espidf_40200')
-              else if (idf_version>=40400) and (idf_version<50000) then
+              else if (compiler.globals.idf_version>=40400) and (compiler.globals.idf_version<50000) then
                 CheckAddUnit('espidf_40400')
-              else if (idf_version>=50000) and (idf_version<50200) then
+              else if (compiler.globals.idf_version>=50000) and (compiler.globals.idf_version<50200) then
                 CheckAddUnit('espidf_50000')
-              else if idf_version>=50200 then
+              else if compiler.globals.idf_version>=50200 then
                 CheckAddUnit('espidf_50200')
               else
                 compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
             end
           else if (current_settings.controllertype=ct_esp32s2) or (current_settings.controllertype=ct_esp32s3) then
             begin
-              if (idf_version>=40400) and (idf_version<50000) then
+              if (compiler.globals.idf_version>=40400) and (compiler.globals.idf_version<50000) then
                 CheckAddUnit('espidf_40400')
-              else if (idf_version>=50000) and (idf_version<50200) then
+              else if (compiler.globals.idf_version>=50000) and (compiler.globals.idf_version<50200) then
                 CheckAddUnit('espidf_50000')
-              else if idf_version>=50200 then
+              else if compiler.globals.idf_version>=50200 then
                 CheckAddUnit('espidf_50200')
               else
                 compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
             end
           else if (current_settings.controllertype=ct_esp8266) then
             begin
-              if (idf_version>=30300) and (idf_version<30400) then
+              if (compiler.globals.idf_version>=30300) and (compiler.globals.idf_version<30400) then
                 CheckAddUnit('esp8266rtos_30300')
-              else if idf_version>=30400 then
+              else if compiler.globals.idf_version>=30400 then
                 CheckAddUnit('esp8266rtos_30400')
               else
                 compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
@@ -614,31 +614,31 @@ implementation
         if not(curr.is_unit) and (compiler.target.info.system=system_riscv32_freertos) then
           if (current_settings.controllertype=ct_esp32c2) then
             begin
-              if idf_version>=50200 then
+              if compiler.globals.idf_version>=50200 then
                 CheckAddUnit('esp32c2idf_50200')
-              else if idf_version>=50000 then
+              else if compiler.globals.idf_version>=50000 then
                 CheckAddUnit('esp32c2idf_50000')
-              else if idf_version>=40400 then
+              else if compiler.globals.idf_version>=40400 then
                 CheckAddUnit('esp32c2idf_40400')
               else
                 compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
             end;
           if (current_settings.controllertype=ct_esp32c3) then
             begin
-              if idf_version>=50300 then
+              if compiler.globals.idf_version>=50300 then
                 CheckAddUnit('esp32c3idf_50300')
-              else if idf_version>=50200 then
+              else if compiler.globals.idf_version>=50200 then
                 CheckAddUnit('esp32c3idf_50200')
-              else if idf_version>=50000 then
+              else if compiler.globals.idf_version>=50000 then
                 CheckAddUnit('esp32c3idf_50000')
-              else if idf_version>=40400 then
+              else if compiler.globals.idf_version>=40400 then
                 CheckAddUnit('esp32c3idf_40400')
               else
                 compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
             end;
           if (current_settings.controllertype=ct_esp32c6) then
             begin
-              if idf_version>=50200 then
+              if compiler.globals.idf_version>=50200 then
                 CheckAddUnit('esp32c6idf_50200')
               else
                 compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
