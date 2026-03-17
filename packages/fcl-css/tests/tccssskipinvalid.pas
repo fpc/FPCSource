@@ -15,7 +15,9 @@ type
   protected
     procedure SetUp; override;
     procedure ParseInline_FirstValidDecl(aSource, aKey: string);
+    procedure ParseRules_FirstValidRule(aSource, aName: string);
   published
+    // skip invalid inline
     procedure TestSkipInline_AttrMissingColon;
     procedure TestSkipInline_AttrCommaMissingKey;
     procedure TestSkipInline_AttrMissingCloseParenthesis;
@@ -31,6 +33,11 @@ type
     procedure TestSkipInline_InvalidFloatUnit;
     procedure TestSkipInline_InvalidFloatValue;
     procedure TestSkipInline_InvalidFloatValue2;
+
+    // skip invalid rules
+    procedure TestSkipRule_AtEOF;
+    procedure TestSkipRule_AtCurlyEOF;
+    procedure TestSkipRule_AtNameCurlyEOF;
   end;
 
 
@@ -49,12 +56,20 @@ var
   Decl: TCSSDeclarationElement;
   ID: TCSSIdentifierElement;
 begin
-  SkipInvalid:=true;
   ParseInline(aSource);
   Decl:=FirstInlineDeclaration;
   AssertEquals('Key count', 1, Decl.KeyCount);
   ID:=TCSSIdentifierElement(CheckClass('key 0', TCSSIdentifierElement,Decl.Keys[0]));
   AssertEquals('Key 0  name',aKey,ID.Value);
+end;
+
+procedure TTestCSSSkipInline.ParseRules_FirstValidRule(aSource, aName: string);
+var
+  aRule: TCSSRuleElement;
+begin
+  Parse(aSource);
+  aRule:=FirstRule;
+  CheckSelector(aRule,0,aName);
 end;
 
 procedure TTestCSSSkipInline.TestSkipInline_AttrMissingColon;
@@ -130,6 +145,21 @@ end;
 procedure TTestCSSSkipInline.TestSkipInline_InvalidFloatValue2;
 begin
   ParseInline_FirstValidDecl('a: 1234567890123456789; color: red;','a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtEOF;
+begin
+  Parse('@');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtCurlyEOF;
+begin
+  Parse('@{');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtNameCurlyEOF;
+begin
+  Parse('@a{');
 end;
 
 initialization

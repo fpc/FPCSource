@@ -410,11 +410,14 @@ begin
     aRule.AddSelector(GetAppendElement(aList));
     aList:=nil;
     aLast:=CurrentToken;
-    if (aLast<>ctkSEMICOLON) then
+    if (aLast=ctkLBRACE) then
       begin
       Consume(ctkLBRACE);
       aRule.AddChild(ParseRuleList(ctkRBRACE));
-      Consume(ctkRBRACE);
+      if CurrentToken=ctkRBRACE then
+        Consume(ctkRBRACE)
+      else
+        DoWarnExpectedButGot('}');
       end;
     Result:=aRule;
     aRule:=nil;
