@@ -274,7 +274,7 @@ Implementation
         if (not found) then
          found:=objectsearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
-         found:=FindFile(s,exepath,false,foundfile);
+         found:=FindFile(s,compiler.globals.exepath,false,foundfile);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
          compiler.verbose.Message1(exec_w_objfile_not_found,s);
 
@@ -321,6 +321,8 @@ Implementation
     { searches an library file }
     function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         found : boolean;
         paths : TCmdStr;
       begin
@@ -359,7 +361,7 @@ Implementation
         if (not found) then
          found:=librarysearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
-         found:=FindFile(s,exepath,false,foundfile);
+         found:=FindFile(s,compiler.globals.exepath,false,foundfile);
         foundfile:=ScriptFixFileName(foundfile);
         findlibraryfile:=found;
       end;

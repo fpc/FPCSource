@@ -301,8 +301,6 @@ Const
 
 
     var
-       { Path to ppc }
-       exepath       : TPathStr;
        { Path to unicode charmap/collation binaries }
        unicodepath   : TPathStr;
        { path for searching units, different paths can be separated by ; }
@@ -725,6 +723,8 @@ Const
 
         timestr,
         datestr : string;
+        { Path to ppc }
+        exepath       : TPathStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1094,7 +1094,7 @@ implementation
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCCPU',compiler.target.cpu_string);
          Replace(s,'$FPCOS',compiler.target.os_string);
-         Replace(s,'$FPCBINDIR',exepath);
+         Replace(s,'$FPCBINDIR',compiler.globals.exepath);
          if (tf_use_8_3 in Source_Info.Flags) or
             (tf_use_8_3 in compiler.target.info.Flags) then
            Replace(s,'$FPCTARGET',compiler.target.os_string)
@@ -1641,6 +1641,8 @@ implementation
 
    procedure get_exepath;
      var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+     var
        localExepath : TCmdStr;
        exeName:TCmdStr;
 {$ifdef need_path_search}
@@ -1667,7 +1669,7 @@ implementation
           localExepath:=ExtractFilePath(localExepath);
         end;
 {$endif need_path_search}
-       exepath:=FixPath(localExepath,false);
+       compiler.globals.exepath:=FixPath(localExepath,false);
      end;
 
 

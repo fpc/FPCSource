@@ -1041,7 +1041,7 @@ implementation
 {$ifndef EXTERN_MSG}
         msg^.LoadIntern(@msgtxt,msgtxtsize,msgtxt_codepage);
 {$else EXTERN_MSG}
-        LoadMsgFile(exepath+'errore.msg');
+        LoadMsgFile(compiler.globals.exepath+'errore.msg');
 {$endif EXTERN_MSG}
         FillChar(Status,sizeof(TCompilerStatus),0);
         status.verbosity:=V_Default;

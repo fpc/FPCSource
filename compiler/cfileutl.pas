@@ -1216,10 +1216,12 @@ end;
 
   function  FindFileInExeLocations(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       Path : TCmdStr;
       found : boolean;
     begin
-       found:=FindFile(FixFileName(bin),exepath,allowcache,foundfile);
+       found:=FindFile(FixFileName(bin),compiler.globals.exepath,allowcache,foundfile);
       if not found then
        begin
 {$ifdef macos}

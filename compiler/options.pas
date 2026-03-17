@@ -3044,7 +3044,7 @@ end;
 procedure TOption.Interpret_E_l(opt, more: TCmdStr);
 
 begin
-  exepath:=FixPath(More,true);
+  compiler.globals.exepath:=FixPath(More,true);
 end;
 
 
@@ -4510,7 +4510,7 @@ begin
   configpath:=FixPath(GetEnvironmentVariable('PPC_CONFIG_PATH'),false);
 {$ifdef Unix}
   if configpath='' then
-   configpath:=ExpandFileName(FixPath(exepath+'../etc/',false));
+   configpath:=ExpandFileName(FixPath(compiler.globals.exepath+'../etc/',false));
 {$endif}
   {
     Order to read configuration file :
@@ -4539,8 +4539,8 @@ begin
      else
 {$endif WINDOWS}
 {$ifndef Unix}
-      if CfgFileExists(exepath+fn) then
-       foundfn:=exepath+fn
+      if CfgFileExists(compiler.globals.exepath+fn) then
+       foundfn:=compiler.globals.exepath+fn
      else
 {$else}
       if CfgFileExists('/etc/'+fn) then
@@ -5242,7 +5242,7 @@ begin
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
   if fpcdir='' then
     begin
-      fpcdir:=ExePath+'../';
+      fpcdir:=compiler.globals.ExePath+'../';
       if not(PathExists(fpcdir+'units',true)) and
          not(PathExists(fpcdir+'rtl',true)) then
         fpcdir:=fpcdir+'../';
@@ -5267,9 +5267,9 @@ begin
   { Add exepath if the exe is not in the current dir, because that is always searched already.
     Do not add it when linking on the target because then we can maybe already find
     .o files that are not for the target }
-  if (ExePath<>cfileutl.GetCurrentDir) and
+  if (compiler.globals.ExePath<>cfileutl.GetCurrentDir) and
      not(cs_link_on_target in init_settings.globalswitches) then
-   UnitSearchPath.AddPath(ExePath,false);
+   UnitSearchPath.AddPath(compiler.globals.ExePath,false);
   { Add unit dir to the object and library path }
   objectsearchpath.AddList(unitsearchpath,false);
   librarysearchpath.AddList(unitsearchpath,false);
