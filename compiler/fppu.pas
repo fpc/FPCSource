@@ -724,8 +724,8 @@ var
              // current_namespacelist is set to the current module's namespacelist.
              if (fnd=[]) and assigned(current_namespacelist) and (current_namespacelist.count>0) then
                fnd:=SearchNameSpaceList(current_namespacelist);
-             if (fnd=[]) and (namespacelist.count>0) then
-               fnd:=SearchNameSpaceList(namespacelist);
+             if (fnd=[]) and (compiler.globals.namespacelist.count>0) then
+               fnd:=SearchNameSpaceList(compiler.globals.namespacelist);
            end;
          search_unit:=fnd;
       end;

@@ -321,13 +321,13 @@ implementation
         tokentoconsume:=_ID;
         is_specialize:=false;
 
-        if not assigned(srsym) and (current_scanner.pattern<>'') and (namespacelist.count>0) then
+        if not assigned(srsym) and (current_scanner.pattern<>'') and (compiler.globals.namespacelist.count>0) then
           begin
             hmodule:=get_module(current_filepos.moduleindex);
             if not assigned(hmodule) then
               internalerror(2018050301);
 
-            nsitem:=TCmdStrListItem(namespacelist.first);
+            nsitem:=TCmdStrListItem(compiler.globals.namespacelist.first);
             while assigned(nsitem) do
               begin
                 ns:=upper(nsitem.str)+'.'+sympattern;
@@ -361,9 +361,9 @@ implementation
                     ns:=srsym.name;
                     nssym:=srsym;
                     consume_namespace;
-                    if not assigned(srsym) and (namespacelist.count>0) then
+                    if not assigned(srsym) and (compiler.globals.namespacelist.count>0) then
                       begin
-                        nsitem:=TCmdStrListItem(namespacelist.first);
+                        nsitem:=TCmdStrListItem(compiler.globals.namespacelist.first);
                         while assigned(nsitem) do
                           begin
                             ns:=upper(nsitem.str)+'.'+nssym.name;

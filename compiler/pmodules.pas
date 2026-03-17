@@ -314,12 +314,12 @@ implementation
           end;
         { Variants unit is not loaded yet, load it now }
         compiler.verbose.Message(parser_w_implicit_uses_of_variants_unit);
-        addsystemnamespace:=namespacelist.Find('System')=Nil;
+        addsystemnamespace:=compiler.globals.namespacelist.Find('System')=Nil;
         if addsystemnamespace then
-          namespacelist.concat('System');
+          compiler.globals.namespacelist.concat('System');
         result:=AddUnit(curr,'variants').state in [ms_compiled,ms_processed];
         if addsystemnamespace then
-          namespacelist.Remove('System');
+          compiler.globals.namespacelist.Remove('System');
       end;
 
 

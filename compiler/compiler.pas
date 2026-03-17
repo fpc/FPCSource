@@ -555,7 +555,7 @@ begin
        WriteCmdStrList(general_t_includepath,globals.includesearchpath);
        WriteCmdStrList(general_t_librarypath,globals.librarysearchpath);
        WriteCmdStrList(general_t_objectpath,globals.objectsearchpath);
-       WriteCmdStrList(general_t_unitscope,namespacelist);
+       WriteCmdStrList(general_t_unitscope,globals.namespacelist);
 
        { Compile the program }
   {$ifdef PREPROCWRITE}

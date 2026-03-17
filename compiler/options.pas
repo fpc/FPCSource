@@ -5210,7 +5210,7 @@ begin
       tmpcmditem:=TCmdStrListItem(tmplist.First);
       while assigned(tmpcmditem) do
         begin
-          namespacelist.insert(tmpcmditem.Str);
+          compiler.globals.namespacelist.insert(tmpcmditem.Str);
           tmpcmditem:=TCmdStrListItem(tmpcmditem.Next);
         end;
       tmplist.clear;

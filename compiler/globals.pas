@@ -301,9 +301,6 @@ Const
 
 
     var
-
-       { list of default namespaces }
-       namespacelist : TCmdStrList;
        // During scanning/parsing, a module may not yet be available.
        // Scanner checks first current_namespacelist, then local_namespacelist
        premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
@@ -725,6 +722,9 @@ Const
         includesearchpath,
         frameworksearchpath  : TSearchPathList;
         packagesearchpath     : TSearchPathList;
+
+        { list of default namespaces }
+        namespacelist : TCmdStrList;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1744,8 +1744,8 @@ implementation
        LinkLibraryOrder := nil;
        compiler.globals.packagesearchpath.Free;
        compiler.globals.packagesearchpath := nil;
-       namespacelist.Free;
-       namespacelist := nil;
+       compiler.globals.namespacelist.Free;
+       compiler.globals.namespacelist := nil;
        premodule_namespacelist.Free;
        premodule_namespacelist := nil;
        current_namespacelist:=Nil;
@@ -1791,7 +1791,7 @@ implementation
         compiler.globals.objectsearchpath:=TSearchPathList.Create;
         compiler.globals.frameworksearchpath:=TSearchPathList.Create;
         compiler.globals.packagesearchpath:=TSearchPathList.Create;
-        namespacelist:=TCmdStrList.Create;
+        compiler.globals.namespacelist:=TCmdStrList.Create;
         premodule_namespacelist:=TCmdStrList.Create;
         current_namespacelist:=Nil;
         { Def file }
