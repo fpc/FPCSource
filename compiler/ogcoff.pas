@@ -3326,7 +3326,7 @@ const pemagic : array[0..3] of byte = (
                 peoptheader.MajorOperatingSystemVersion:=4;
                 peoptheader.MinorOperatingSystemVersion:=0;
               end;
-            if SetPEUserVersionSetExplicitely then
+            if compiler.globals.SetPEUserVersionSetExplicitely then
               begin
                 peoptheader.MajorImageVersion:=peuserversionmajor;
                 peoptheader.MinorImageVersion:=peuserversionminor;
