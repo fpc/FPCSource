@@ -16,15 +16,19 @@ type
     procedure SetUp; override;
     procedure ParseInline_FirstValidDecl(aSource, aKey: string);
   published
-    // ToDo: invalid keyword in attribute value is skipped
-    // ToDo: invalid keyword in attribute value is skipped
-    // test skip invalid value  color: 3 red;
-    // test skip invalid attribute  color: 3;
     procedure TestSkipInline_AttrMissingColon;
     procedure TestSkipInline_AttrCommaMissingKey;
     procedure TestSkipInline_AttrMissingCloseParenthesis;
     procedure TestSkipInline_AttrMissingCloseParenthesis2;
+    procedure TestSkipInline_AttrMissingCloseParenthesis3;
+    procedure TestSkipInline_AttrMissingCloseParenthesis4;
     procedure TestSkipInline_AttrMissingCloseBracket;
+    procedure TestSkipInline_AttrMissingCloseBracket2;
+    procedure TestSkipInline_AttrMissingCloseBracket3;
+    procedure TestSkipInline_AttrMissingStringEnd;
+    procedure TestSkipInline_AttrMissingFuncArg;
+    procedure TestSkipInline_AttrMissingFuncArg2;
+    procedure TestSkipInline_InvalidFloatUnit;
   end;
 
 
@@ -68,12 +72,52 @@ end;
 
 procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseParenthesis2;
 begin
+  ParseInline_FirstValidDecl('a: b(c ; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseParenthesis3;
+begin
   ParseInline_FirstValidDecl('a: ( ; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseParenthesis4;
+begin
+  ParseInline_FirstValidDecl('a: (b ; color: red;','color');
 end;
 
 procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseBracket;
 begin
   ParseInline_FirstValidDecl('a: [ ; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseBracket2;
+begin
+  ParseInline_FirstValidDecl('a: b[ ; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseBracket3;
+begin
+  ParseInline_FirstValidDecl('a: b[c ; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingStringEnd;
+begin
+  ParseInline('a: " ; color: red;');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingFuncArg;
+begin
+  ParseInline_FirstValidDecl('a: b() ; color: red;','a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingFuncArg2;
+begin
+  ParseInline_FirstValidDecl('a: b(,) ; color: red;','a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_InvalidFloatUnit;
+begin
+  ParseInline_FirstValidDecl('a: 1foo ; color: red;','a');
 end;
 
 initialization
