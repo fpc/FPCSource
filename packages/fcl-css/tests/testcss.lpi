@@ -34,9 +34,9 @@
         <UnitName Value="tcCSSResolver"/>
       </Unit>
       <Unit>
-        <Filename Value="tccssskipinline.pas"/>
+        <Filename Value="tccssskipinvalid.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcCSSSkipInline"/>
+        <UnitName Value="tcCSSSkipInvalid"/>
       </Unit>
     </Units>
   </ProjectOptions>

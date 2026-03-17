@@ -1,4 +1,4 @@
-unit tcCSSSkipInline;
+unit tcCSSSkipInvalid;
 
 {$mode ObjFPC}{$H+}
 
