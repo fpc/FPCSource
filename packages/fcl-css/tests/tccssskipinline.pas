@@ -19,7 +19,8 @@ type
     // ToDo: invalid keyword in attribute value is skipped
     // test skip invalid value  color: 3 red;
     // test skip invalid attribute  color: 3;
-    procedure TestSkipInline_Attr;
+    procedure TestSkipInline_AttrMissingColon;
+    procedure TestSkipInline_AttrCommaMissingKey;
   end;
 
 
@@ -40,9 +41,14 @@ begin
   AssertEquals('Key 0  name',aKey,ID.Value);
 end;
 
-procedure TTestCSSSkipInline.TestSkipInline_Attr;
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingColon;
 begin
   ParseInline_FirstValidDecl('a; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrCommaMissingKey;
+begin
+  ParseInline_FirstValidDecl('a,; color: red;','color');
 end;
 
 initialization

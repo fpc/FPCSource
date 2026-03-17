@@ -982,7 +982,10 @@ begin
     begin
     aDecl:=ParseDeclaration(aIsAt);
     if aDecl<>nil then
-      aRule.AddChild(aDecl);
+      aRule.AddChild(aDecl)
+    else
+      while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
+        GetNextToken;
     end;
   While Not (CurrentToken in [ctkEOF,ctkRBRACE]) do
     begin
@@ -995,7 +998,10 @@ begin
       else
         aDecl:=ParseDeclaration(aIsAt);
       if aDecl<>nil then
-        aRule.AddChild(aDecl);
+        aRule.AddChild(aDecl)
+      else
+        while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
+          GetNextToken;
       end;
     end;
   Result:=aRule.ChildCount;
