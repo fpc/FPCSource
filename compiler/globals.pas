@@ -301,7 +301,6 @@ Const
 
 
     var
-       SetPEOSVersionSetExplicitely,
        SetPESubSysVersionSetExplicitely,
        SetPEUserVersionSetExplicitely,
        ImageBaseSetExplicity,
@@ -724,7 +723,8 @@ Const
         usewindowapi  : boolean;
         description   : string;
         SetPEFlagsSetExplicity,
-        SetPEOptFlagsSetExplicity : boolean;
+        SetPEOptFlagsSetExplicity,
+        SetPEOSVersionSetExplicitely : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1800,7 +1800,7 @@ implementation
         DescriptionSetExplicity:=false;
         compiler.globals.SetPEFlagsSetExplicity:=false;
         compiler.globals.SetPEOptFlagsSetExplicity:=false;
-        SetPEOSVersionSetExplicitely:=false;
+        compiler.globals.SetPEOSVersionSetExplicitely:=false;
         SetPESubSysVersionSetExplicitely:=false;
         SetPEUserVersionSetExplicitely:=false;
         ImageBaseSetExplicity:=false;

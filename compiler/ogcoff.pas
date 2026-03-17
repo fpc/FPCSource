@@ -3316,7 +3316,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.ImageBase:=ImageBase;
             peoptheader.SectionAlignment:=SectionMemAlign;
             peoptheader.FileAlignment:=SectionDataAlign;
-            if SetPEOSVersionSetExplicitely then
+            if compiler.globals.SetPEOSVersionSetExplicitely then
               begin
                 peoptheader.MajorOperatingSystemVersion:=peosversionmajor;
                 peoptheader.MinorOperatingSystemVersion:=peosversionminor;

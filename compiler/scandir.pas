@@ -1762,7 +1762,7 @@ unit scandir;
         if (not current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
-          do_version(peosversionmajor,peosversionminor,dummyrev,dummystr,false,SetPEOSVersionSetExplicitely);
+          do_version(peosversionmajor,peosversionminor,dummyrev,dummystr,false,compiler.globals.SetPEOSVersionSetExplicitely);
       end;
 
     procedure dir_setpesubsysversion;
