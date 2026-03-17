@@ -301,7 +301,6 @@ Const
 
 
     var
-       SetPESubSysVersionSetExplicitely,
        SetPEUserVersionSetExplicitely,
        ImageBaseSetExplicity,
        MinStackSizeSetExplicity,
@@ -724,7 +723,8 @@ Const
         description   : string;
         SetPEFlagsSetExplicity,
         SetPEOptFlagsSetExplicity,
-        SetPEOSVersionSetExplicitely : boolean;
+        SetPEOSVersionSetExplicitely,
+        SetPESubSysVersionSetExplicitely : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1801,7 +1801,7 @@ implementation
         compiler.globals.SetPEFlagsSetExplicity:=false;
         compiler.globals.SetPEOptFlagsSetExplicity:=false;
         compiler.globals.SetPEOSVersionSetExplicitely:=false;
-        SetPESubSysVersionSetExplicitely:=false;
+        compiler.globals.SetPESubSysVersionSetExplicitely:=false;
         SetPEUserVersionSetExplicitely:=false;
         ImageBaseSetExplicity:=false;
         MinStackSizeSetExplicity:=false;

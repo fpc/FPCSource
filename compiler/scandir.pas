@@ -1777,7 +1777,7 @@ unit scandir;
         if (not current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
-          do_version(pesubsysversionmajor,pesubsysversionminor,dummyrev,dummystr,false,SetPESubSysVersionSetExplicitely);
+          do_version(pesubsysversionmajor,pesubsysversionminor,dummyrev,dummystr,false,compiler.globals.SetPESubSysVersionSetExplicitely);
       end;
 
     procedure dir_smartlink;

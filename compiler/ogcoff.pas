@@ -3336,7 +3336,7 @@ const pemagic : array[0..3] of byte = (
                 peoptheader.MajorImageVersion:=dllmajor;
                 peoptheader.MinorImageVersion:=dllminor;
               end;
-            if SetPESubSysVersionSetExplicitely then
+            if compiler.globals.SetPESubSysVersionSetExplicitely then
               begin
                 peoptheader.MajorSubsystemVersion:=pesubsysversionmajor;
                 peoptheader.MinorSubsystemVersion:=pesubsysversionminor;
