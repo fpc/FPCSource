@@ -114,7 +114,7 @@ end;
 Constructor TLinkerBSD.Create(ACompiler: TCompilerBase);
 begin
   Inherited;
-  if not Dontlinkstdlibpath Then
+  if not compiler.globals.Dontlinkstdlibpath Then
    if compiler.target.info.system in systems_openbsd then
      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
    else

@@ -99,7 +99,7 @@ implementation
 Constructor TLinkerAIX.Create;
 begin
   Inherited Create;
-  if not Dontlinkstdlibpath then
+  if not compiler.globals.Dontlinkstdlibpath then
     if not(cs_profile in current_settings.moduleswitches) then
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib;=/usr/X11R6/lib;=/opt/freeware/lib',true)
     else

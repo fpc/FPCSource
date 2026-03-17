@@ -301,7 +301,6 @@ Const
 
 
     var
-       Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
        rlinkpath      : TCmdStr;        { rpath-link linkdir override}
        sysrootpath    : TCmdStr;        { target system root to search dyn linker }
 
@@ -725,6 +724,7 @@ Const
         llvmutilssuffix     : TCmdStr;
 
         cshared        : boolean;        { pass --shared to ld to link C libs shared}
+        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

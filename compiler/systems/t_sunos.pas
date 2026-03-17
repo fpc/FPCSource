@@ -112,7 +112,7 @@ begin
     use_gnu_ld:=false
   else
     use_gnu_ld:=true;
-  if NOT Dontlinkstdlibpath Then
+  if NOT compiler.globals.Dontlinkstdlibpath Then
 {$ifdef x86_64}
    LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/64;=/usr/lib/64;=/usr/X11R6/lib/64;=/opt/sfw/lib/64',true);
 {$else not x86_64}

@@ -108,7 +108,7 @@ implementation
     constructor tlinkerdarwin.Create(ACompiler: TCompilerBase);
       begin
         inherited;
-        if not Dontlinkstdlibpath Then
+        if not compiler.globals.Dontlinkstdlibpath Then
           LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib',true)
       end;
 

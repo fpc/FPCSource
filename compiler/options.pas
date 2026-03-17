@@ -4281,7 +4281,7 @@ begin
              include(init_settings.globalswitches,cs_large);
          end;
        'c' : compiler.globals.Cshared:=TRUE;
-       'd' : Dontlinkstdlibpath:=TRUE;
+       'd' : compiler.globals.Dontlinkstdlibpath:=TRUE;
        'e' :
          begin
            If UnsetBool(More, j, opt, false) then

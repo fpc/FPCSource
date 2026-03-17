@@ -123,8 +123,10 @@ implementation
 *****************************************************************************}
 
 procedure SetupLibrarySearchPath;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  if not Dontlinkstdlibpath Then
+  if not compiler.globals.Dontlinkstdlibpath Then
     begin
 {$ifdef x86_64}
       { some linuxes might not have the lib64 variants (Arch, LFS }
