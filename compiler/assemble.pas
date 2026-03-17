@@ -890,8 +890,8 @@ Implementation
          begin
            lastas:=ord(asminfo^.id);
            { is an assembler passed ? }
-           if utilsdirectory<>'' then
-             asfound:=FindFile(UtilExe,utilsdirectory,false,LastASBin);
+           if compiler.globals.utilsdirectory<>'' then
+             asfound:=FindFile(UtilExe,compiler.globals.utilsdirectory,false,LastASBin);
            if not AsFound then
              asfound:=FindExe(UtilExe,false,LastASBin);
            if (not asfound) and not(cs_asm_extern in current_settings.globalswitches) then

@@ -642,8 +642,8 @@ implementation
        if jasminjar='' then
          begin
            jasminjarfound:=false;
-           if utilsdirectory<>'' then
-             jasminjarfound:=FindFile(jasminjarname,utilsdirectory,false,jasminjar);
+           if compiler.globals.utilsdirectory<>'' then
+             jasminjarfound:=FindFile(jasminjarname,compiler.globals.utilsdirectory,false,jasminjar);
            if not jasminjarfound then
              jasminjarfound:=FindFileInExeLocations(jasminjarname,false,jasminjar);
            if (not jasminjarfound) and not(cs_asm_extern in current_settings.globalswitches) then

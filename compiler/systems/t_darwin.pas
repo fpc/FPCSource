@@ -535,10 +535,10 @@ implementation
       { add custom LTO library if using custom clang }
       if (cs_lto in current_settings.moduleswitches) and
          not(cs_link_on_target in current_settings.globalswitches) and
-         (utilsdirectory<>'') and
-         FileExists(utilsdirectory+'/../lib/libLTO.dylib',false) then
+         (compiler.globals.utilsdirectory<>'') and
+         FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
-          ltostr:='-lto_library '+maybequoted(utilsdirectory+'/../lib/libLTO.dylib');
+          ltostr:='-lto_library '+maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
         end;
 
       { Write symbol order file }
@@ -652,10 +652,10 @@ implementation
       { add custom LTO library if using custom clang }
       if (cs_lto in current_settings.moduleswitches) and
          not(cs_link_on_target in current_settings.globalswitches) and
-         (utilsdirectory<>'') and
-         FileExists(utilsdirectory+'/../lib/libLTO.dylib',false) then
+         (compiler.globals.utilsdirectory<>'') and
+         FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
-          ltostr:='-lto_library '+maybequoted(utilsdirectory+'/../lib/libLTO.dylib');
+          ltostr:='-lto_library '+maybequoted(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib');
         end;
 
       targetstr:='';

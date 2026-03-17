@@ -427,8 +427,8 @@ function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
     utilexe:=utilsprefix+'ihxutil'+source_info.exeext;
     FoundBin:='';
     Found:=false;
-    if utilsdirectory<>'' then
-      Found:=FindFile(utilexe,utilsdirectory,false,Foundbin);
+    if compiler.globals.utilsdirectory<>'' then
+      Found:=FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
     if (not Found) then
       Found:=FindExe(utilexe,false,Foundbin);
 

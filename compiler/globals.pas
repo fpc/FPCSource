@@ -301,11 +301,6 @@ Const
 
 
     var
-
-       {  typical cross compiling params}
-
-       { directory where the utils can be found (options -FD) }
-       utilsdirectory : TPathStr;
        { targetname specific prefix used by these utils (options -XP<path>) }
        utilsprefix    : TCmdStr;
 
@@ -725,6 +720,11 @@ Const
         parapreprocess    : boolean;
 {$endif PREPROCWRITE}
         printnodefile     : text;
+
+        {  typical cross compiling params}
+
+        { directory where the utils can be found (options -FD) }
+        utilsdirectory : TPathStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1769,7 +1769,7 @@ implementation
         compiler.globals.outputunitdir:='';
 
         { Utils directory }
-        utilsdirectory:='';
+        compiler.globals.utilsdirectory:='';
         utilsprefix:='';
         llvmutilssuffix:='';
         cshared:=false;

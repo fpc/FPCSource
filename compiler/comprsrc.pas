@@ -186,8 +186,8 @@ begin
     exit;
   end;
   resfound:=false;
-  if utilsdirectory<>'' then
-    resfound:=FindFile(utilsprefix+bin+source_info.exeext,utilsdirectory,false,resbin);
+  if compiler.globals.utilsdirectory<>'' then
+    resfound:=FindFile(utilsprefix+bin+source_info.exeext,compiler.globals.utilsdirectory,false,resbin);
   if not resfound then
     begin
       resfound:=FindExe(utilsprefix+bin,false,resbin);

@@ -434,8 +434,8 @@ function TInternalLinkerAmstradCPC.postprocessexecutable(const fn: string): bool
     utilexe:=utilsprefix+'ihxutil';
     FoundBin:='';
     Found:=false;
-    if utilsdirectory<>'' then
-      Found:=FindFile(utilexe,utilsdirectory,false,Foundbin);
+    if compiler.globals.utilsdirectory<>'' then
+      Found:=FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
     if (not Found) then
       Found:=FindExe(utilexe,false,Foundbin);
 

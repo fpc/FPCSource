@@ -896,10 +896,10 @@ begin
   { add custom LTO library if using custom clang }
   if (cs_lto in current_settings.moduleswitches) and
      not(cs_link_on_target in current_settings.globalswitches) and
-     (utilsdirectory<>'') and
-     FileExists(utilsdirectory+'/../lib/LLVMgold.so',true) then
+     (compiler.globals.utilsdirectory<>'') and
+     FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
-      ltostr:='-plugin '+maybequoted(utilsdirectory+'/../lib/LLVMgold.so ');
+      ltostr:='-plugin '+maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
     end;
 
   if AddSanitizerLibrariesAndGetSearchDir('linux',sanitizerLibraryDir) then
@@ -1013,10 +1013,10 @@ begin
   { add custom LTO library if using custom clang }
   if (cs_lto in current_settings.moduleswitches) and
      not(cs_link_on_target in current_settings.globalswitches) and
-     (utilsdirectory<>'') and
-     FileExists(utilsdirectory+'/../lib/LLVMgold.so',true) then
+     (compiler.globals.utilsdirectory<>'') and
+     FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
-      ltostr:='-plugin '+maybequoted(utilsdirectory+'/../lib/LLVMgold.so ');
+      ltostr:='-plugin '+maybequoted(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so ');
     end;
 
   if AddSanitizerLibrariesAndGetSearchDir('linux',sanitizerLibraryDir) then

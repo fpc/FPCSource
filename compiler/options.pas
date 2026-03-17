@@ -3112,7 +3112,7 @@ begin
       else
         init_settings.disabledircache:=true;
     'D' :
-      utilsdirectory:=FixPath(More,true);
+      compiler.globals.utilsdirectory:=FixPath(More,true);
     'e' :
       compiler.verbose.SetRedirectFile(More);
     'E' :

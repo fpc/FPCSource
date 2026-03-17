@@ -853,8 +853,8 @@ Implementation
           UtilExe:=s;
         FoundBin:='';
         Found:=false;
-        if utilsdirectory<>'' then
-         Found:=FindFile(utilexe,utilsdirectory,false,Foundbin);
+        if compiler.globals.utilsdirectory<>'' then
+         Found:=FindFile(utilexe,compiler.globals.utilsdirectory,false,Foundbin);
         if (not Found) then
          Found:=FindExe(utilexe,false,Foundbin);
         if throwerror and (not Found) and not(cs_link_nolink in current_settings.globalswitches) then

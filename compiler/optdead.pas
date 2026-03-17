@@ -302,8 +302,8 @@ const
       begin
         result:=false;
         fullutilname:=utilsprefix+changefileext(utilname,source_info.exeext);
-        if utilsdirectory<>'' then
-          result:=findfile(fullutilname,utilsdirectory,false,fullutilpath);
+        if compiler.globals.utilsdirectory<>'' then
+          result:=findfile(fullutilname,compiler.globals.utilsdirectory,false,fullutilpath);
         if not result then
           result:=findexe(fullutilname,false,fullutilpath);
       end;
