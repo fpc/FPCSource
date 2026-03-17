@@ -48,6 +48,7 @@ Type
     FPeekTokenString : TCSSString;
     FFreeScanner : Boolean;
     FRuleLevel : Integer;
+    FInvalidDeclarationValue : Boolean;
     function GetAtEOF: Boolean;
     function GetCurSource: TCSSString;
     Function GetCurLine : Integer;
@@ -1464,6 +1465,7 @@ Var
 
 begin
   aList:=nil;
+  FInvalidDeclarationValue:=False;
   OldOptions:=Scanner.Options;
   aDecl:=TCSSDeclarationElement(CreateElement(CSSDeclarationElementClass));
   try
@@ -1522,6 +1524,11 @@ begin
         Consume(ctkImportant);
         aDecl.IsImportant:=True;
         end;
+      end;
+    if FInvalidDeclarationValue then
+      begin
+      Result:=nil;
+      exit;
       end;
     aDecl.AddChild(GetAppendElement(aList));
     aList:=nil;
@@ -1601,7 +1608,10 @@ begin
         end;
       end;
     if CurrentToken<>ctkRPARENTHESIS then
-      DoWarn(SErrUnexpectedEndOfFile,[aName])
+      begin
+      FInvalidDeclarationValue:=True;
+      DoWarn(SErrUnexpectedEndOfFile,[aName]);
+      end
     else
       Consume(ctkRPARENTHESIS);
     Result:=aCall;

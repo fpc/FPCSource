@@ -13,6 +13,7 @@ type
 
   TTestCSSSkipInline = class(TTestBaseCSSParser)
   protected
+    procedure SetUp; override;
     procedure ParseInline_FirstValidDecl(aSource, aKey: string);
   published
     // ToDo: invalid keyword in attribute value is skipped
@@ -22,12 +23,19 @@ type
     procedure TestSkipInline_AttrMissingColon;
     procedure TestSkipInline_AttrCommaMissingKey;
     procedure TestSkipInline_AttrMissingCloseParenthesis;
+    procedure TestSkipInline_AttrMissingCloseEdgedBrace;
   end;
 
 
 implementation
 
 { TTestCSSSkipInline }
+
+procedure TTestCSSSkipInline.SetUp;
+begin
+  inherited SetUp;
+  SkipInvalid:=true;
+end;
 
 procedure TTestCSSSkipInline.ParseInline_FirstValidDecl(aSource, aKey: string);
 var
@@ -54,8 +62,12 @@ end;
 
 procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseParenthesis;
 begin
-  SkipInvalid:=true;
-  ParseInline('a: bla( ; color: red;');
+  ParseInline_FirstValidDecl('a: bla( ; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseEdgedBrace;
+begin
+  // ParseInline_FirstValidDecl('a: [ ; color: red;','color');
 end;
 
 initialization
