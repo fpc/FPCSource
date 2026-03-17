@@ -3373,7 +3373,7 @@ const pemagic : array[0..3] of byte = (
             else
               peoptheader.DllCharacteristics:=0;
 
-            if SetPEOptFlagsSetExplicity then
+            if compiler.globals.SetPEOptFlagsSetExplicity then
               peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or peoptflags;
 
             peoptheader.SizeOfStackReserve:=stacksize;

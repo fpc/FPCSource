@@ -1732,7 +1732,7 @@ unit scandir;
               compiler.verbose.Message(scan_e_illegal_peoptflag);
             peoptflags:=peoptflags or uint16(flags);
           end;
-        SetPEOptFlagsSetExplicity:=true;
+        compiler.globals.SetPEOptFlagsSetExplicity:=true;
       end;
 
     procedure dir_setpeuserversion;
