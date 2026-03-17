@@ -120,7 +120,7 @@ unit ag68kvasm;
           end;
         Replace(result,'$ARCH','-m'+GasCpuTypeStr[current_settings.cputype]);
         Replace(result,'$OTYPE',objtype);
-        Replace(result,'$EXTRAOPT',asmextraopt);
+        Replace(result,'$EXTRAOPT',compiler.globals.asmextraopt);
       end;
 
 

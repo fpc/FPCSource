@@ -1029,7 +1029,7 @@ Implementation
          else
            Replace(result,'$BIGOBJ','-mbig-obj');
 
-         Replace(result,'$EXTRAOPT',asmextraopt);
+         Replace(result,'$EXTRAOPT',compiler.globals.asmextraopt);
       end;
 
 

@@ -100,7 +100,7 @@ unit agppcvasm;
             Replace(result,'$OBJ',maybequoted(ScriptFixFileName(ObjFileName)));
           end;
         Replace(result,'$OTYPE',objtype);
-        Replace(result,'$EXTRAOPT',asmextraopt);
+        Replace(result,'$EXTRAOPT',compiler.globals.asmextraopt);
       end;
 
     procedure tppcvasm.WriteExtraHeader;

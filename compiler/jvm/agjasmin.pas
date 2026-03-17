@@ -679,7 +679,7 @@ implementation
          Replace(result,'$JASMINJAR',maybequoted(ScriptFixFileName(jasminjar)))
        else
          Replace(result,'$JASMINJAR',ScriptFixFileName(jasminjar));
-       Replace(result,'$EXTRAOPT',asmextraopt);
+       Replace(result,'$EXTRAOPT',compiler.globals.asmextraopt);
      end;
 
 

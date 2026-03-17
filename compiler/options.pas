@@ -2430,7 +2430,7 @@ begin
          external assembler, it is ignored if internal assembler is used. }
        'o' :
          begin
-           asmextraopt:=copy(more,j+1);
+           compiler.globals.asmextraopt:=copy(more,j+1);
            break;
          end;
        'p' :

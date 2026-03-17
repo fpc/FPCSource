@@ -301,8 +301,6 @@ Const
 
 
     var
-       { external assembler extra option }
-       asmextraopt       : string;
 
        { things specified with parameters }
        paralinkoptions   : TCmdStr;
@@ -725,6 +723,8 @@ Const
         { specified with }
         idf_version       : longint;
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
+        { external assembler extra option }
+        asmextraopt       : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
