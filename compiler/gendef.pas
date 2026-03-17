@@ -119,7 +119,7 @@ begin
     system_i386_Os2, system_i386_emx:
       begin
         write(t,'NAME '+ChangeFileExt(compiler.globals.inputfilename,''));
-        if usewindowapi then
+        if compiler.globals.usewindowapi then
           write(t,' WINDOWAPI');
         writeln(t,'');
         writeln(t,'PROTMODE');

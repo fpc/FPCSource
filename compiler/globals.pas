@@ -301,9 +301,6 @@ Const
 
 
     var
-
-       { linking }
-       usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
        SetPEOptFlagsSetExplicity,
@@ -725,6 +722,9 @@ Const
         { contains tpackageentry entries }
         packagelist : TFPHashList;
         autoloadunits      : string;
+
+        { linking }
+        usewindowapi  : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1795,7 +1795,7 @@ implementation
         compiler.globals.premodule_namespacelist:=TCmdStrList.Create;
         compiler.globals.current_namespacelist:=Nil;
         { Def file }
-        usewindowapi:=false;
+        compiler.globals.usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;

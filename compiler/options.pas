@@ -3026,12 +3026,12 @@ begin
        'w' :
          begin
            include(init_settings.globalswitches,cs_link_deffile);
-           usewindowapi:=true;
+           compiler.globals.usewindowapi:=true;
           end;
        '-' :
          begin
            exclude(init_settings.globalswitches,cs_link_deffile);
-           usewindowapi:=false;
+           compiler.globals.usewindowapi:=false;
          end;
        else
          IllegalPara(opt);

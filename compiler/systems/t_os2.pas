@@ -489,7 +489,7 @@ begin
    MapStr := '-m' + BaseFileName + ' '
   else
    MapStr := '';
-  if (usewindowapi) or (AppType = app_gui) then
+  if (compiler.globals.usewindowapi) or (AppType = app_gui) then
    AppTypeStr := '-p'
   else if AppType = app_fs then
    AppTypeStr := '-f'
