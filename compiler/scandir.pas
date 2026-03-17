@@ -1048,7 +1048,7 @@ unit scandir;
           compiler.verbose.Message(scan_w_minstacksize_not_support);
         current_scanner.skipspace;
         minstacksize:=current_scanner.readval;
-        MinStackSizeSetExplicity:=true;
+        compiler.globals.MinStackSizeSetExplicity:=true;
       end;
 
 

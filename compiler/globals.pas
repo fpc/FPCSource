@@ -301,7 +301,6 @@ Const
 
 
     var
-       MinStackSizeSetExplicity,
        MaxStackSizeSetExplicity,
        DescriptionSetExplicity : boolean;
        dllversion    : string;
@@ -724,7 +723,8 @@ Const
         SetPEOSVersionSetExplicitely,
         SetPESubSysVersionSetExplicitely,
         SetPEUserVersionSetExplicitely,
-        ImageBaseSetExplicity : boolean;
+        ImageBaseSetExplicity,
+        MinStackSizeSetExplicity : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1804,7 +1804,7 @@ implementation
         compiler.globals.SetPESubSysVersionSetExplicitely:=false;
         compiler.globals.SetPEUserVersionSetExplicitely:=false;
         compiler.globals.ImageBaseSetExplicity:=false;
-        MinStackSizeSetExplicity:=false;
+        compiler.globals.MinStackSizeSetExplicity:=false;
         MaxStackSizeSetExplicity:=false;
 
         dllversion:='';

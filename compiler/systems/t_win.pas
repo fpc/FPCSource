@@ -1714,7 +1714,7 @@ implementation
           peoptheader.LoaderFlags:=peflags;
         if compiler.globals.ImageBaseSetExplicity then
           peoptheader.ImageBase:=imagebase;
-        if MinStackSizeSetExplicity then
+        if compiler.globals.MinStackSizeSetExplicity then
           peoptheader.SizeOfStackCommit:=minstacksize;
         if MaxStackSizeSetExplicity then
           peoptheader.SizeOfStackReserve:=maxstacksize;
