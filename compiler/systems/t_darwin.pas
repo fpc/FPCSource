@@ -422,7 +422,7 @@ implementation
            result:=result+' '+maybequoted('-F'+HPath.Str);
            HPath:=TCmdStrListItem(HPath.Next);
          end;
-        HPath:=TCmdStrListItem(FrameworkSearchPath.First);
+        HPath:=TCmdStrListItem(compiler.globals.FrameworkSearchPath.First);
         while assigned(HPath) do
          begin
            result:=result+' '+maybequoted('-F'+HPath.Str);

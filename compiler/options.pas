@@ -3122,7 +3122,7 @@ begin
           if ispara then
             ParaFrameworkPath.AddPath(More,false)
           else
-            frameworksearchpath.AddPath(More,true)
+            compiler.globals.frameworksearchpath.AddPath(More,true)
 {$if defined(XTENSA) or defined(RISCV32)}
         else if (compiler.target.info.system in [system_xtensa_freertos,system_riscv32_freertos]) then
           compiler.globals.idfpath:=FixPath(More,true)
@@ -5184,7 +5184,7 @@ begin
   compiler.globals.ObjectSearchPath.AddList(option.ParaObjectPath,true);
   compiler.globals.IncludeSearchPath.AddList(option.ParaIncludePath,true);
   compiler.globals.LibrarySearchPath.AddList(option.ParaLibraryPath,true);
-  FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
+  compiler.globals.FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
   packagesearchpath.addlist(option.parapackagepath,true);
   for j:=0 to option.parapackages.count-1 do
     compiler.pkgutil.add_package(option.parapackages.NameOfIndex(j),true,true);

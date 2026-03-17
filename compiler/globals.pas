@@ -301,7 +301,6 @@ Const
 
 
     var
-       frameworksearchpath  : TSearchPathList;
        packagesearchpath     : TSearchPathList;
 
        { list of default namespaces }
@@ -724,7 +723,8 @@ Const
         librarysearchpath,
         unitsearchpath,
         objectsearchpath,
-        includesearchpath  : TSearchPathList;
+        includesearchpath,
+        frameworksearchpath  : TSearchPathList;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1736,8 +1736,8 @@ implementation
        compiler.globals.objectsearchpath := nil;
        compiler.globals.includesearchpath.Free;
        compiler.globals.includesearchpath := nil;
-       frameworksearchpath.Free;
-       frameworksearchpath := nil;
+       compiler.globals.frameworksearchpath.Free;
+       compiler.globals.frameworksearchpath := nil;
        LinkLibraryAliases.Free;
        LinkLibraryAliases := nil;
        LinkLibraryOrder.Free;
@@ -1789,7 +1789,7 @@ implementation
         compiler.globals.unitsearchpath:=TSearchPathList.Create;
         compiler.globals.includesearchpath:=TSearchPathList.Create;
         compiler.globals.objectsearchpath:=TSearchPathList.Create;
-        frameworksearchpath:=TSearchPathList.Create;
+        compiler.globals.frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;
         namespacelist:=TCmdStrList.Create;
         premodule_namespacelist:=TCmdStrList.Create;
