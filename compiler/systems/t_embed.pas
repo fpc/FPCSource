@@ -1842,7 +1842,7 @@ begin
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
    end;
-  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -1854,11 +1854,11 @@ begin
 
   if success and (compiler.target.info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
     begin
-      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
+      success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O ihex '+
         FixedExeFileName+' '+
         maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
       if success then
-        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+        success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
           FixedExeFileName+' '+
           maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
         if success and (compiler.target.info.system in systems_support_uf2) and (cs_generate_uf2 in current_settings.globalswitches) then
@@ -1867,7 +1867,7 @@ begin
                                  embedded_controllers[current_settings.controllertype].flashbase);
 {$ifdef ARM}
       if success and (current_settings.controllertype = ct_raspi2) then
-        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+ FixedExeFileName + ' kernel7.img',true,false);
+        success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+ FixedExeFileName + ' kernel7.img',true,false);
 {$endif ARM}
     end;
 
@@ -2201,7 +2201,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
 //      Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
       Replace(cmdstr,'$DYNLINK',DynLinkStr);
      end;
-    success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+    success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -2213,11 +2213,11 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
 
     if success and (compiler.target.info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
       begin
-        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
+        success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O ihex '+
           FixedExeFileName+' '+
           maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
         if success then
-          success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+          success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
             FixedExeFileName+' '+
             maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
       end;*)
@@ -2296,12 +2296,12 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     Replace(cmdstr,'$MAP',mapstr);
     //Replace(cmdstr,'$LTO',ltostr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-    success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+    success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
 
     //SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
     //Replace(cmdstr,'$INPUT',current_module.objfilename );
     //Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-    //DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
+    //DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
 
     MakeSharedLibrary:=success;
   end;

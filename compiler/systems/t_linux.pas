@@ -934,12 +934,12 @@ begin
   if cs_large in current_settings.globalswitches then
     cmdstr:=cmdstr+' --no-relax';
 
-  s:=FindUtil(utilsprefix+BinStr+'.bfd',false);
+  s:=FindUtil(compiler.globals.utilsprefix+BinStr+'.bfd',false);
   if FileExists(s, True) then
     binstr:=s
   else
     { fallback to ld for very old or custom binutils }
-    binstr:=FindUtil(utilsprefix+BinStr);
+    binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
   success:=DoExec(binstr,CmdStr,true,false);
 
@@ -953,7 +953,7 @@ begin
           Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
           Replace(cmdstr,'$DBGX',current_module.dbgfilename);
           Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
-          success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+          success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
           if not success then
             break;
         end;
@@ -1036,7 +1036,7 @@ begin
   Replace(cmdstr,'$LTO',ltostr);
   Replace(cmdstr,'$RPATH',rpathstr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
   if success and (cs_link_strip in current_settings.globalswitches) then
@@ -1045,7 +1045,7 @@ begin
      Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+     success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 
 { Remove ResponseFile }

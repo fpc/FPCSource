@@ -881,11 +881,11 @@ Implementation
         if cs_assemble_on_target in current_settings.globalswitches then
          begin
            { If assembling on target, don't add any path PM }
-           FindAssembler:=utilsprefix+ChangeFileExt(asmbin,compiler.target.info.exeext);
+           FindAssembler:=compiler.globals.utilsprefix+ChangeFileExt(asmbin,compiler.target.info.exeext);
            exit;
          end
         else
-         UtilExe:=utilsprefix+ChangeFileExt(asmbin,source_info.exeext);
+         UtilExe:=compiler.globals.utilsprefix+ChangeFileExt(asmbin,source_info.exeext);
         if lastas<>ord(asminfo^.id) then
          begin
            lastas:=ord(asminfo^.id);

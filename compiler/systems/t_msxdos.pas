@@ -255,7 +255,7 @@ function TLinkerMSXDOS.MakeExecutable_Sdld: boolean;
     //Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
 
-    success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+    success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -296,7 +296,7 @@ function TLinkerMSXDOS.MakeExecutable_Vlink: boolean;
     Replace(cmdstr,'$STARTSYMBOL',StartSymbolStr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
 
-    success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+    success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -325,7 +325,7 @@ end;
 
 function TLinkerMSXDOS.postprocessexecutable(const fn: string; isdll: boolean): boolean;
   begin
-    result:=DoExec(FindUtil(utilsprefix+'ihxutil'),' -t bin '+fn+' '+maybequoted(ScriptFixFileName(current_module.exefilename)),true,false);
+    result:=DoExec(FindUtil(compiler.globals.utilsprefix+'ihxutil'),' -t bin '+fn+' '+maybequoted(ScriptFixFileName(current_module.exefilename)),true,false);
   end;
 
 
@@ -424,7 +424,7 @@ function TInternalLinkerMSXDOS.postprocessexecutable(const fn: string): boolean;
   begin
     result:=false;
 
-    utilexe:=utilsprefix+'ihxutil'+source_info.exeext;
+    utilexe:=compiler.globals.utilsprefix+'ihxutil'+source_info.exeext;
     FoundBin:='';
     Found:=false;
     if compiler.globals.utilsdirectory<>'' then

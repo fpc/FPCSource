@@ -1435,9 +1435,9 @@ implementation
         MapStr:='';
         GCSectionsStr:='';
 {$ifdef AARCH64}
-        AsBinStr:=FindUtil(utilsprefix+'clang');
+        AsBinStr:=FindUtil(compiler.globals.utilsprefix+'clang');
 {$else not AARCH64}
-        AsBinStr:=FindUtil(utilsprefix+'as');
+        AsBinStr:=FindUtil(compiler.globals.utilsprefix+'as');
 {$endif AARCH64}
         if RelocSection then
           RelocStr:='--base-file base.$$$';
@@ -1493,7 +1493,7 @@ implementation
                 end
               else
                 Replace(cmdstr,'$DEF','');
-              success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
+              success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,(i=1),false);
               if not success then
                break;
             end;
@@ -1545,9 +1545,9 @@ implementation
         MapStr:='';
         GCSectionsStr:='';
 {$ifdef AARCH64}
-        AsBinStr:=FindUtil(utilsprefix+'clang');
+        AsBinStr:=FindUtil(compiler.globals.utilsprefix+'clang');
 {$else not AARCH64}
-        AsBinStr:=FindUtil(utilsprefix+'as');
+        AsBinStr:=FindUtil(compiler.globals.utilsprefix+'as');
 {$endif AARCH64}
         if RelocSection then
          RelocStr:='--base-file base.$$$';
@@ -1599,7 +1599,7 @@ implementation
                 end
               else
                 Replace(cmdstr,'$DEF','');
-              success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
+              success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,(i=1),false);
               if not success then
                break;
             end;
@@ -1682,7 +1682,7 @@ implementation
            cmdstr:=cmdstr+' --input '+maybequoted(fn);
            cmdstr:=cmdstr+' --stack '+tostr(stacksize);
            if compiler.target.info.system in [system_i386_win32, system_i386_wdosx] then
-             DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
+             DoExec(FindUtil(compiler.globals.utilsprefix+'postw32'),cmdstr,false,false);
            postprocessexecutable:=true;
            exit;
          end;

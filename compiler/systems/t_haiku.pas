@@ -450,7 +450,7 @@ begin
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   useshell:=not (tf_no_backquote_support in source_info.flags);
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,useshell);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,useshell);
 
 { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
@@ -508,14 +508,14 @@ var
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
 
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,true);
 
 { Strip the library ? }
   if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+     success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 
 { Remove ResponseFile }

@@ -301,7 +301,7 @@ const
     function findutil(const utilname: string; out fullutilname, fullutilpath: tcmdstr): boolean;
       begin
         result:=false;
-        fullutilname:=utilsprefix+changefileext(utilname,source_info.exeext);
+        fullutilname:=compiler.globals.utilsprefix+changefileext(utilname,source_info.exeext);
         if compiler.globals.utilsdirectory<>'' then
           result:=findfile(fullutilname,compiler.globals.utilsdirectory,false,fullutilpath);
         if not result then

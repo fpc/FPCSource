@@ -261,7 +261,7 @@ function TLinkerAmstradCPC.MakeExecutable_Sdld: boolean;
     //Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
 
-    success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+    success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -308,7 +308,7 @@ function TLinkerAmstradCPC.MakeExecutable_Vlink: boolean;
     Replace(cmdstr,'$STARTSYMBOL',StartSymbolStr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
 
-    success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+    success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -337,7 +337,7 @@ end;
 
 function TLinkerAmstradCPC.postprocessexecutable(const fn: string; isdll: boolean): boolean;
   begin
-    result:=DoExec(FindUtil(utilsprefix+'ihxutil'),' '+fn,true,false);
+    result:=DoExec(FindUtil(compiler.globals.utilsprefix+'ihxutil'),' '+fn,true,false);
   end;
 
 
@@ -431,7 +431,7 @@ function TInternalLinkerAmstradCPC.postprocessexecutable(const fn: string): bool
   begin
     result:=false;
 
-    utilexe:=utilsprefix+'ihxutil';
+    utilexe:=compiler.globals.utilsprefix+'ihxutil';
     FoundBin:='';
     Found:=false;
     if compiler.globals.utilsdirectory<>'' then

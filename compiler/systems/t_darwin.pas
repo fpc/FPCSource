@@ -581,7 +581,7 @@ implementation
       Replace(cmdstr,'$LIBSEARCHPATH',GetLibSearchPath);
       Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(linkfiles));
       Replace(cmdstr,'$LIBRARIES',GetLibraries);
-      BinStr:=FindUtil(utilsprefix+BinStr);
+      BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
       { create dsym file? }
       extdbgbinstr:='';
@@ -589,7 +589,7 @@ implementation
       if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
          (cs_link_separate_dbg_file in current_settings.globalswitches) then
         begin
-          extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
+          extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
           extdbgcmdstr:=maybequoted(current_module.exefilename);
         end;
 
@@ -700,7 +700,7 @@ implementation
       Replace(cmdstr,'$LIBSEARCHPATH',GetLibSearchPath);
       Replace(cmdstr,'$FILELIST','-filelist '+maybequoted(linkfiles));
       Replace(cmdstr,'$LIBRARIES',GetLibraries);
-      BinStr:=FindUtil(utilsprefix+BinStr);
+      BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
       { create dsym file? }
       extdbgbinstr:='';
@@ -708,7 +708,7 @@ implementation
       if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
          (cs_link_separate_dbg_file in current_settings.globalswitches) then
         begin
-          extdbgbinstr:=FindUtil(utilsprefix+'dsymutil');
+          extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
           extdbgcmdstr:=maybequoted(current_module.sharedlibfilename);
         end;
 
@@ -736,7 +736,7 @@ implementation
        begin
          SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
          Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-         success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
+         success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
        end;
 
     { Remove temporary files }

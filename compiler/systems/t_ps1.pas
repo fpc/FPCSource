@@ -346,7 +346,7 @@ begin
 
     if cs_link_smart in current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';
 
-    success:= DoExec(FindUtil(utilsprefix + BinStr), cmdstr + ' -o ' + current_module.exefilename + '.elf', true, false);
+    success:= DoExec(FindUtil(compiler.globals.utilsprefix + BinStr), cmdstr + ' -o ' + current_module.exefilename + '.elf', true, false);
     if not success then begin
       result:= false;
       exit;
@@ -364,7 +364,7 @@ begin
     DeleteFile(current_module.exefilename + '.elf');
 
 
-    success:= DoExec(FindUtil(utilsprefix + 'objcopy'), ' -O binary ' + current_module.exefilename +'.bin', true, false);
+    success:= DoExec(FindUtil(compiler.globals.utilsprefix + 'objcopy'), ' -O binary ' + current_module.exefilename +'.bin', true, false);
     if not success then begin
       writeln('OBJDUMP failed!');
       result:= false;

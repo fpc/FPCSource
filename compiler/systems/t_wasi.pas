@@ -201,7 +201,7 @@ begin
   Replace(cmdstr,'$MAP',mapstr);
   //Replace(cmdstr,'$LTO',ltostr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
 
   MakeExecutable:=success;
 end;
@@ -263,7 +263,7 @@ begin
   Replace(cmdstr,'$MAP',mapstr);
   //Replace(cmdstr,'$LTO',ltostr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
 
   MakeSharedLibrary:=success;
 end;

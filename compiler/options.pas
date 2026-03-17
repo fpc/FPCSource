@@ -4407,8 +4407,8 @@ begin
          end;
        'P' :
          begin
-           utilsprefix:=Copy(more,2);
-           DefaultReplacements(utilsprefix);
+           compiler.globals.utilsprefix:=Copy(more,2);
+           DefaultReplacements(compiler.globals.utilsprefix);
            More:='';
          end;
        'L' : begin  // -XLO is link order -XLA is link alias. -XLD avoids load defaults.
@@ -5046,11 +5046,11 @@ begin
   if (source_info.system<>compiler.target.info.system) and (compiler.target.info.system in systems_android) then
     case compiler.target.info.system of
       system_arm_android:
-        utilsprefix:='arm-linux-androideabi-';
+        compiler.globals.utilsprefix:='arm-linux-androideabi-';
       system_i386_android:
-        utilsprefix:='i686-linux-android-';
+        compiler.globals.utilsprefix:='i686-linux-android-';
       else
-        utilsprefix:=compiler.target.cpu_string + '-linux-android-';
+        compiler.globals.utilsprefix:=compiler.target.cpu_string + '-linux-android-';
     end;
 
   { Set up default value for the heap on Amiga-likes (values only apply if the OSHeap allocator is used) }

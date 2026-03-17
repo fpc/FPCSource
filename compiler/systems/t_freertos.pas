@@ -1148,7 +1148,7 @@ begin
     cmdstr:=cmdstr+'$IDF_PATH/components/esp8266/ld/esp8266.ld';
   Replace(cmdstr,'$IDF_PATH',compiler.globals.idfpath);
   Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
 {$ifdef UNIX}
@@ -1194,7 +1194,7 @@ begin
               ' --input $IDF_PATH/components/esp8266/ld/esp8266.project.ld.in';
     end;
 
-  S:=FindUtil(utilsprefix+'objdump');
+  S:=FindUtil(compiler.globals.utilsprefix+'objdump');
   cmdstr:=cmdstr+' --output '+sections_filename+
           ' --kconfig $IDF_PATH/Kconfig'+
           ' --env-file $OUTPUT/config.env'+
@@ -1452,7 +1452,7 @@ begin
     end;
   Replace(cmdstr,'$IDF_PATH',compiler.globals.idfpath);
   Replace(cmdstr,'$OUTPUT',compiler.globals.outputexedir);
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,true);
 
   { generate linker maps }
 {$ifdef UNIX}
@@ -1483,7 +1483,7 @@ begin
     end
   else;
 
-  S:=FindUtil(utilsprefix+'objdump');
+  S:=FindUtil(compiler.globals.utilsprefix+'objdump');
   cmdstr:=cmdstr+' --output '+sections_filename+
           ' --kconfig $IDF_PATH/Kconfig'+
           ' --env-file $OUTPUT/config.env'+
@@ -1718,7 +1718,7 @@ begin
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
    end;
-   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
@@ -1765,7 +1765,7 @@ begin
     end;
 {$else}
   if success then
-    success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+    success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
       FixedExeFileName+' '+
       maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
 {$endif defined(XTENSA) or defined(RISCV32)}

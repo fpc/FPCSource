@@ -440,7 +440,7 @@ begin
     Replace(cmdstr,'$SONAME',ExtractFileName(outname));
 
   { We should use BFD version of LD, since GOLD version does not support INSERT command in linker scripts }
-  s:=utilsprefix+binstr+'.bfd';
+  s:=compiler.globals.utilsprefix+binstr+'.bfd';
   if (source_info.exeext<>'') then
     s:=s+source_info.exeext;
   s:=FindUtil(s,false);
@@ -448,7 +448,7 @@ begin
     binstr:=s
   else
     // fallback to ld for very old or custom binutils
-    binstr:=FindUtil(utilsprefix+BinStr);
+    binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
   success:=DoExec(binstr,CmdStr,true,false);
 
@@ -461,7 +461,7 @@ begin
           Replace(cmdstr,'$EXE',maybequoted(outname));
           Replace(cmdstr,'$DBGFN',maybequoted(extractfilename(current_module.dbgfilename)));
           Replace(cmdstr,'$DBG',maybequoted(current_module.dbgfilename));
-          success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+          success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
           if not success then
             break;
         end;

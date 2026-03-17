@@ -187,11 +187,11 @@ begin
   end;
   resfound:=false;
   if compiler.globals.utilsdirectory<>'' then
-    resfound:=FindFile(utilsprefix+bin+source_info.exeext,compiler.globals.utilsdirectory,false,resbin);
+    resfound:=FindFile(compiler.globals.utilsprefix+bin+source_info.exeext,compiler.globals.utilsdirectory,false,resbin);
   if not resfound then
     begin
-      resfound:=FindExe(utilsprefix+bin,false,resbin);
-      if not resfound and (utilsprefix<>'') and ( (output=roRES) or (Pos('$ARCH', compiler.target.res.rescmd)<>0) ) then
+      resfound:=FindExe(compiler.globals.utilsprefix+bin,false,resbin);
+      if not resfound and (compiler.globals.utilsprefix<>'') and ( (output=roRES) or (Pos('$ARCH', compiler.target.res.rescmd)<>0) ) then
         { Search for resource compiler without utilsprefix, if RC->RES compiler is called }
         { or RES->OBJ compiler supports different architectures. }
         resfound:=FindExe(bin,false,resbin);
@@ -200,7 +200,7 @@ begin
   respath:=ExtractFilePath(resbin);
   if (not resfound) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
-     compiler.verbose.Message1(exec_e_res_not_found, utilsprefix+bin+source_info.exeext);
+     compiler.verbose.Message1(exec_e_res_not_found, compiler.globals.utilsprefix+bin+source_info.exeext);
      current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
      Result:=false;
    end;

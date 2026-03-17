@@ -559,7 +559,7 @@ begin
   Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$TMPOBJ',maybequoted(compiler.globals.outputexedir+tmpLinkFileName));
-  BinStr:=FindUtil(utilsprefix+BinStr);
+  BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(BinStr,CmdStr,true,false);
 
@@ -573,7 +573,7 @@ begin
     NLMConvLinkFile.writetodisk;
     NLMConvLinkFile.Free;
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-    BinStr:=FindUtil(utilsprefix+BinStr);
+    BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
     Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
     compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);

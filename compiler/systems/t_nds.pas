@@ -837,7 +837,7 @@ begin
   Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
 
-  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
@@ -846,7 +846,7 @@ begin
 { Post process }
   if success then
     begin
-      success:=DoExec(FindUtil(utilsprefix + 'objcopy'), '-O binary '+
+      success:=DoExec(FindUtil(compiler.globals.utilsprefix + 'objcopy'), '-O binary '+
         ChangeFileExt(current_module.exefilename, preName) + ' ' +
         ChangeFileExt(current_module.exefilename, preName+compiler.target.info.exeext),
         true,false);

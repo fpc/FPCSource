@@ -266,7 +266,7 @@ begin
     Replace(binstr,'$LDBIN','gld')
   else
     Replace(binstr,'$LDBIN','ld');
-  binstr:=FindUtil(utilsprefix+BinStr);
+  binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   { the native AIX linker does not support linkres files, so we need
@@ -360,7 +360,7 @@ begin
     Replace(binstr,'$LDBIN','gld')
   else
     Replace(binstr,'$LDBIN','ld');
-  binstr:=FindUtil(utilsprefix+BinStr);
+  binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   { on AIX, shared libraries are special object files that are stored inside
     an archive. In that archive, the 32 bit version of the library is called
     shr.o and the 64 bit version shr_64.o }
@@ -394,7 +394,7 @@ begin
   if FileExists(libfn,true) then
     linkscript.AddDeleteCommand(libfn);
   { and create the new one }
-  linkscript.AddLinkCommand(FindUtil(utilsprefix+'ar'),' -X32_64 -q '+libfn+(' '+libobj),'');
+  linkscript.AddLinkCommand(FindUtil(compiler.globals.utilsprefix+'ar'),' -X32_64 -q '+libfn+(' '+libobj),'');
   linkscript.WriteToDisk;
   BinStr:=linkscript.fn;
   if not path_absolute(BinStr) then

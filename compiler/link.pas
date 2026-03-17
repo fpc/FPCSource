@@ -1010,11 +1010,11 @@ Implementation
       { Call AR }
         smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,compiler.target.info.smartext),false);
         SplitBinCmd(compiler.target.ar.arcmd,binstr,cmdstr);
-        binstr := FindUtil(utilsprefix + binstr);
+        binstr := FindUtil(compiler.globals.utilsprefix + binstr);
         if compiler.target.ar.arfirstcmd<>'' then
           begin
             SplitBinCmd(compiler.target.ar.arfirstcmd,firstbinstr,firstcmd);
-            firstbinstr := FindUtil(utilsprefix + firstbinstr);
+            firstbinstr := FindUtil(compiler.globals.utilsprefix + firstbinstr);
           end
         else
           begin
@@ -1098,7 +1098,7 @@ Implementation
         if (compiler.target.ar.arfinishcmd <> '') then
           begin
             SplitBinCmd(compiler.target.ar.arfinishcmd,binstr,cmdstr);
-            binstr := FindUtil(utilsprefix + binstr);
+            binstr := FindUtil(compiler.globals.utilsprefix + binstr);
             Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
             success:=DoExec(binstr,cmdstr,false,true);
           end;

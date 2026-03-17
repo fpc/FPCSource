@@ -537,7 +537,7 @@ begin
   Replace(cmdstr,'$REDIRECT',RedirectStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   if BinStr[1]<>'/' then
-    BinStr:=FindUtil(utilsprefix+BinStr);
+    BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
   { We need shell if output is redirected }
   success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
@@ -645,7 +645,7 @@ begin
   Replace(cmdstr,'$REDIRECT',RedirectStr);
   Replace(cmdstr,'$MAP',MapStr);
   if BinStr[1]<>'/' then
-    BinStr:=FindUtil(utilsprefix+BinStr);
+    BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
   { We need shell if output is redirected }
   success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
 { Strip the library ? }
@@ -653,7 +653,7 @@ begin
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+     success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
    end;
 
 { Remove ResponseFile }

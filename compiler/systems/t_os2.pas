@@ -545,7 +545,7 @@ begin
         Replace(cmdstr,'$OUT',maybequoted(OutName));
         Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
         if i<>3 then
-         success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false)
+         success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,(i=1),false)
         else
          success:=DoExec(binstr,cmdstr,(i=1),true);
       end;

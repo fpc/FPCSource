@@ -197,7 +197,7 @@ begin
   for i:=1 to 2 do
    begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
-     binstr:=FindUtil(utilsprefix+BinStr);
+     binstr:=FindUtil(compiler.globals.utilsprefix+BinStr);
      if binstr<>'' then
       begin
         Replace(cmdstr,'$EXE',MaybeQuoted(current_module.exefilename));

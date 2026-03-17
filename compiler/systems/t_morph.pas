@@ -257,7 +257,7 @@ begin
       Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
       Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName)));
     end;
-  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Stripping Enabled? }
   { For MorphOS ld a separate strip command is needed, to avoid stripping }
@@ -269,7 +269,7 @@ begin
         begin
           SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
           Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-          success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+          success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
         end;
     end;
 

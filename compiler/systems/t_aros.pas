@@ -238,14 +238,14 @@ begin
   { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
     Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));}
 
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+  success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
 
   { Call Strip }
   if success and (cs_link_strip in current_settings.globalswitches) then
     begin
       SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
       Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
-      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+      success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
     end;
 
   MakeAROSExe:=success;

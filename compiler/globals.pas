@@ -301,8 +301,6 @@ Const
 
 
     var
-       { targetname specific prefix used by these utils (options -XP<path>) }
-       utilsprefix    : TCmdStr;
 
        { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
        llvmutilssuffix     : TCmdStr;
@@ -725,6 +723,8 @@ Const
 
         { directory where the utils can be found (options -FD) }
         utilsdirectory : TPathStr;
+        { targetname specific prefix used by these utils (options -XP<path>) }
+        utilsprefix    : TCmdStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1770,7 +1770,7 @@ implementation
 
         { Utils directory }
         compiler.globals.utilsdirectory:='';
-        utilsprefix:='';
+        compiler.globals.utilsprefix:='';
         llvmutilssuffix:='';
         cshared:=false;
         rlinkpath:='';

@@ -548,7 +548,7 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  BinStr:=FindUtil(utilsprefix+BinStr);
+  BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
   if (LdSupportsNoResponseFile) and
      not(cs_link_nolink in current_settings.globalswitches) then
@@ -662,7 +662,7 @@ begin
     Replace(cmdstr,'$ORDERSYMS','--symbol-ordering-file '+maybequoted(ordersymfile))
   else
     Replace(cmdstr,'$ORDERSYMS','');
-  BinStr:=FindUtil(utilsprefix+BinStr);
+  BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
   if (LdSupportsNoResponseFile) and
      not(cs_link_nolink in current_settings.globalswitches) then
@@ -687,7 +687,7 @@ begin
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
+     success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,false,false);
    end;
 
 { Remove ResponseFile }
