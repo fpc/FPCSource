@@ -222,7 +222,7 @@ implementation
          SmartLinkOFiles:=TCmdStrList.Create;
 
          { codegen }
-         if paraprintnodetree<>0 then
+         if compiler.globals.paraprintnodetree<>0 then
            printnode_reset;
 
          { target specific stuff }

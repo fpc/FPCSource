@@ -269,6 +269,8 @@ implementation
 
 
     function TVerbose.SetVerbosity(const s:TCmdStr):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         message_verbosity:array[boolean] of tmsgstate=(ms_off_global,ms_on_global);
       var
@@ -315,9 +317,9 @@ implementation
                          end;
                  'P' : begin
                          if inverse then
-                          paraprintnodetree:=0
+                          compiler.globals.paraprintnodetree:=0
                          else
-                          paraprintnodetree:=1;
+                          compiler.globals.paraprintnodetree:=1;
                        end;
                  'Q' : begin
                           if inverse then

@@ -2056,7 +2056,7 @@ implementation
 {$endif i386 or i8086}
 
         { Print the node to tree.log }
-        if paraprintnodetree <> 0 then
+        if compiler.globals.paraprintnodetree <> 0 then
           printproc( 'after the firstpass');
 
         OptimizeNodeTree;
@@ -2120,7 +2120,7 @@ implementation
             CalcExecutionWeights(code);
 
             { Print the node to tree.log }
-            if paraprintnodetree <> 0 then
+            if compiler.globals.paraprintnodetree <> 0 then
               printproc( 'right before code generation');
 
 {$ifdef DEBUG_NODE_XML}
@@ -2635,7 +2635,7 @@ implementation
            CreateInlineInfo;
 
          { Print the node to tree.log }
-         if paraprintnodetree <> 0 then
+         if compiler.globals.paraprintnodetree <> 0 then
            printproc( 'after parsing');
 
 {$ifdef DEBUG_NODE_XML}
