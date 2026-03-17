@@ -301,8 +301,6 @@ Const
 
 
     var
-
-       cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
        rlinkpath      : TCmdStr;        { rpath-link linkdir override}
        sysrootpath    : TCmdStr;        { target system root to search dyn linker }
@@ -725,6 +723,8 @@ Const
 
         { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
         llvmutilssuffix     : TCmdStr;
+
+        cshared        : boolean;        { pass --shared to ld to link C libs shared}
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1772,7 +1772,7 @@ implementation
         compiler.globals.utilsdirectory:='';
         compiler.globals.utilsprefix:='';
         compiler.globals.llvmutilssuffix:='';
-        cshared:=false;
+        compiler.globals.cshared:=false;
         rlinkpath:='';
         sysrootpath:='';
 {$if defined(XTENSA) or defined(RISCV32)}

@@ -887,7 +887,7 @@ begin
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
      DynLinkStr:='--dynamic-linker='+Info.DynamicLinker;
-     if cshared then
+     if compiler.globals.cshared then
        DynLinkStr:=DynLinkStr+' --shared ';
      if rlinkpath<>'' then
        DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;

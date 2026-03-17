@@ -4280,7 +4280,7 @@ begin
            else
              include(init_settings.globalswitches,cs_large);
          end;
-       'c' : Cshared:=TRUE;
+       'c' : compiler.globals.Cshared:=TRUE;
        'd' : Dontlinkstdlibpath:=TRUE;
        'e' :
          begin

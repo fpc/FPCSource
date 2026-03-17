@@ -390,7 +390,7 @@ begin
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
      DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
-     if cshared Then
+     if compiler.globals.cshared Then
        DynLinkStr:='--shared ' + DynLinkStr;
      if rlinkpath<>'' Then
        DynLinkStr:='--rpath-link '+rlinkpath + ' '+ DynLinkStr;
@@ -447,7 +447,7 @@ var
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
      DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
-     if cshared Then
+     if compiler.globals.cshared Then
        DynLinkStr:='--shared ' + DynLinkStr;
      if rlinkpath<>'' Then
        DynLinkStr:='--rpath-link '+rlinkpath + ' '+ DynLinkStr;

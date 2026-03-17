@@ -409,7 +409,7 @@ begin
   if (cs_link_staticflag in current_settings.globalswitches) then
     opts:=opts + ' -static'
   else
-    if cshared then
+    if compiler.globals.cshared then
       opts:=opts + ' -call_shared';
   if rlinkpath<>'' then
     opts:=opts+' --rpath-link '+rlinkpath;

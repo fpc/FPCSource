@@ -508,7 +508,7 @@ begin
 
   if rlinkpath<>'' then
     DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;
-  if CShared Then
+  if compiler.globals.CShared Then
    begin
       DynLinKStr:=DynLinkStr+' --shared'
    end;
