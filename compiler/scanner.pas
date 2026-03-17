@@ -1638,6 +1638,8 @@ type
 
     function findincludefile(const path,name:TCmdStr;var foundfile:TCmdStr):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         found  : boolean;
         hpath  : TCmdStr;
       begin
@@ -1664,7 +1666,7 @@ type
              if not found then
                found:=current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
              if not found  then
-               found:=includesearchpath.FindFile(path+name,true,foundfile);
+               found:=compiler.globals.includesearchpath.FindFile(path+name,true,foundfile);
            end;
          result:=found;
       end;

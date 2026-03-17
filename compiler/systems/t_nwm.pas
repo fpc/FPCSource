@@ -653,7 +653,7 @@ end;
         begin
           fn := fileName;
           if not sysutils.fileExists(fn) then
-            if not includesearchpath.FindFile(fileName,true,fn) then
+            if not compiler.globals.includesearchpath.FindFile(fileName,true,fn) then
             begin
               compiler.verbose.Comment(v_error,'linker options file "'+fileName+'" not found');
               exit;
@@ -699,7 +699,7 @@ end;
           result := '';
           fn := fileName;
           if not sysutils.fileExists(fn) then
-            if not includesearchpath.FindFile(fileName,true,fn) then
+            if not compiler.globals.includesearchpath.FindFile(fileName,true,fn) then
             begin
               compiler.verbose.Comment(v_error,'linker options file "'+fileName+'" not found');
               exit;

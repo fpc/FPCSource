@@ -301,7 +301,6 @@ Const
 
 
     var
-       includesearchpath,
        frameworksearchpath  : TSearchPathList;
        packagesearchpath     : TSearchPathList;
 
@@ -724,7 +723,8 @@ Const
         { path for searching units, different paths can be separated by ; }
         librarysearchpath,
         unitsearchpath,
-        objectsearchpath  : TSearchPathList;
+        objectsearchpath,
+        includesearchpath  : TSearchPathList;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1734,8 +1734,8 @@ implementation
        compiler.globals.unitsearchpath := nil;
        compiler.globals.objectsearchpath.Free;
        compiler.globals.objectsearchpath := nil;
-       includesearchpath.Free;
-       includesearchpath := nil;
+       compiler.globals.includesearchpath.Free;
+       compiler.globals.includesearchpath := nil;
        frameworksearchpath.Free;
        frameworksearchpath := nil;
        LinkLibraryAliases.Free;
@@ -1787,7 +1787,7 @@ implementation
         compiler.globals.unicodepath:='';
         compiler.globals.librarysearchpath:=TSearchPathList.Create;
         compiler.globals.unitsearchpath:=TSearchPathList.Create;
-        includesearchpath:=TSearchPathList.Create;
+        compiler.globals.includesearchpath:=TSearchPathList.Create;
         compiler.globals.objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;

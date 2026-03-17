@@ -1311,7 +1311,7 @@ var
                       if is_main then
                         found:=compiler.globals.unitsearchpath.FindFile(hs,true,temp_dir)
                       else
-                        found:=includesearchpath.FindFile(hs,true,temp_dir);
+                        found:=compiler.globals.includesearchpath.FindFile(hs,true,temp_dir);
                       if found then
                        begin
                          Source_Time:=GetNamedFileTime(temp_dir);

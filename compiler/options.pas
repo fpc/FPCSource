@@ -3136,7 +3136,7 @@ begin
         if ispara then
           ParaIncludePath.AddPath(More,false)
         else
-          includesearchpath.AddPath(More,true);
+          compiler.globals.includesearchpath.AddPath(More,true);
       end;
     'm' :
       begin
@@ -3408,7 +3408,7 @@ begin
   if ispara then
     ParaIncludePath.AddPath(More,false)
   else
-   includesearchpath.AddPath(More,false);
+   compiler.globals.includesearchpath.AddPath(More,false);
 end;
 
 
@@ -5182,7 +5182,7 @@ begin
   { Add paths specified with parameters to the searchpaths }
   compiler.globals.UnitSearchPath.AddList(option.ParaUnitPath,true);
   compiler.globals.ObjectSearchPath.AddList(option.ParaObjectPath,true);
-  IncludeSearchPath.AddList(option.ParaIncludePath,true);
+  compiler.globals.IncludeSearchPath.AddList(option.ParaIncludePath,true);
   compiler.globals.LibrarySearchPath.AddList(option.ParaLibraryPath,true);
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
   packagesearchpath.addlist(option.parapackagepath,true);
