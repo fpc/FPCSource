@@ -901,11 +901,28 @@ var
   aList: TCSSElement;
 begin
   Consume(ctkLPARENTHESIS);
+  if CurrentToken in [ctkEOF, ctkSEMICOLON, ctkRBRACE] then
+    begin
+    FInvalidDeclarationValue:=True;
+    DoWarn(SErrUnexpectedEndOfFile,['(']);
+    Result:=TCSSElement(CreateElement(TCSSElement));
+    exit;
+    end;
   aList:=ParseComponentValueList;
   try
-    Consume(ctkRPARENTHESIS);
-    Result:=aList;
-    aList:=nil;
+    if CurrentToken<>ctkRPARENTHESIS then
+      begin
+      FInvalidDeclarationValue:=True;
+      DoWarn(SErrUnexpectedEndOfFile,['(']);
+      Result:=aList;
+      aList:=nil;
+      end
+    else
+      begin
+      Consume(ctkRPARENTHESIS);
+      Result:=aList;
+      aList:=nil;
+      end;
   finally
     aList.Free;
   end;
@@ -1800,14 +1817,32 @@ begin
   try
     aArray.Prefix:=aPrefix;
     Consume(ctkLBRACKET);
-    While CurrentToken<>ctkRBRACKET do
+    if CurrentToken in [ctkEOF, ctkSEMICOLON, ctkRBRACE] then
+      begin
+      FInvalidDeclarationValue:=True;
+      DoWarn(SErrUnexpectedEndOfFile,['[']);
+      Result:=aArray;
+      aArray:=nil;
+      exit;
+      end;
+    While not (CurrentToken in [ctkRBRACKET, ctkEOF, ctkSEMICOLON, ctkRBRACE]) do
       begin
       aEl:=ParseComponentValueList(AllowRules);
       aArray.AddChild(aEl);
       end;
-    Consume(ctkRBRACKET);
-    Result:=aArray;
-    aArray:=nil;
+    if CurrentToken<>ctkRBRACKET then
+      begin
+      FInvalidDeclarationValue:=True;
+      DoWarn(SErrUnexpectedEndOfFile,['[']);
+      Result:=aArray;
+      aArray:=nil;
+      end
+    else
+      begin
+      Consume(ctkRBRACKET);
+      Result:=aArray;
+      aArray:=nil;
+      end;
   finally
     aArray.Free;
   end;

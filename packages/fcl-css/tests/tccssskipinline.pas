@@ -23,7 +23,8 @@ type
     procedure TestSkipInline_AttrMissingColon;
     procedure TestSkipInline_AttrCommaMissingKey;
     procedure TestSkipInline_AttrMissingCloseParenthesis;
-    procedure TestSkipInline_AttrMissingCloseEdgedBrace;
+    procedure TestSkipInline_AttrMissingCloseParenthesis2;
+    procedure TestSkipInline_AttrMissingCloseBracket;
   end;
 
 
@@ -65,9 +66,14 @@ begin
   ParseInline_FirstValidDecl('a: bla( ; color: red;','color');
 end;
 
-procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseEdgedBrace;
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseParenthesis2;
 begin
-  // ParseInline_FirstValidDecl('a: [ ; color: red;','color');
+  ParseInline_FirstValidDecl('a: ( ; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseBracket;
+begin
+  ParseInline_FirstValidDecl('a: [ ; color: red;','color');
 end;
 
 initialization
