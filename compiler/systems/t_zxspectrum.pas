@@ -192,7 +192,7 @@ procedure TLinkerZXSpectrum.SetDefaultInfo_Sdld;
   const
     ExeName='sdldz80';
   begin
-    if ImageBaseSetExplicity then
+    if compiler.globals.ImageBaseSetExplicity then
       FOrigin:=ImageBase
     else
       FOrigin:=DefaultOrigin;
@@ -206,7 +206,7 @@ procedure TLinkerZXSpectrum.SetDefaultInfo_Vlink;
   const
     ExeName='vlink';
   begin
-    if ImageBaseSetExplicity then
+    if compiler.globals.ImageBaseSetExplicity then
       FOrigin:=ImageBase
     else
       FOrigin:=DefaultOrigin;
@@ -403,7 +403,7 @@ constructor TInternalLinkerZXSpectrum.create;
     CArObjectReader:=TArObjectReader;
     CExeOutput:=TZXSpectrumIntelHexExeOutput;
     CObjInput:=TRelObjInput;
-    if ImageBaseSetExplicity then
+    if compiler.globals.ImageBaseSetExplicity then
       FOrigin:=ImageBase
     else
       FOrigin:=DefaultOrigin;

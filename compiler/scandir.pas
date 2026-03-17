@@ -643,7 +643,7 @@ unit scandir;
           compiler.verbose.Message(scan_w_imagebase_not_support);
         current_scanner.skipspace;
         imagebase:=current_scanner.readval;
-        ImageBaseSetExplicity:=true
+        compiler.globals.ImageBaseSetExplicity:=true
       end;
 
     procedure dir_implicitexceptions;

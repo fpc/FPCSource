@@ -972,7 +972,7 @@ implementation
             if IsSharedLibrary then
               Concat('ISSHAREDLIBRARY');
             ConcatEntryName;
-            if not ImageBaseSetExplicity then
+            if not compiler.globals.ImageBaseSetExplicity then
               begin
                 if IsSharedLibrary then
                   imagebase:={$ifdef cpu64bitaddr} $110000000 {$else} $10000000 {$endif}
@@ -1454,7 +1454,7 @@ implementation
           EntryStr:='--entry=_WinMainCRTStartup'
         else
           EntryStr:='--entry=_mainCRTStartup';
-        if ImageBaseSetExplicity then
+        if compiler.globals.ImageBaseSetExplicity then
           ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
@@ -1560,7 +1560,7 @@ implementation
           end
         else
           EntryStr:='--entry _DLLMainCRTStartup';
-        if ImageBaseSetExplicity then
+        if compiler.globals.ImageBaseSetExplicity then
           ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
@@ -1712,7 +1712,7 @@ implementation
         peoptheader.SizeOfStackReserve:=stacksize;
         if compiler.globals.SetPEFlagsSetExplicity then
           peoptheader.LoaderFlags:=peflags;
-        if ImageBaseSetExplicity then
+        if compiler.globals.ImageBaseSetExplicity then
           peoptheader.ImageBase:=imagebase;
         if MinStackSizeSetExplicity then
           peoptheader.SizeOfStackCommit:=minstacksize;

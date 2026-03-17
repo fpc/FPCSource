@@ -3952,7 +3952,7 @@ begin
                    val('$'+Copy(More,j+1),imagebase,code);
                    if code<>0 then
                      IllegalPara(opt);
-                   ImageBaseSetExplicity:=true;
+                   compiler.globals.ImageBaseSetExplicity:=true;
                  end
                else
                  begin
