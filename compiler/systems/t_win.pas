@@ -131,11 +131,11 @@ implementation
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);
     var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
+      compiler: TCompilerBase;
       hp           : tmodule;
       linkcygwin : boolean;
     begin
+      compiler:=Linker.compiler;
       if compiler.target.info.system=system_i386_win32 then
         begin
           linkcygwin := false;

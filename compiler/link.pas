@@ -53,8 +53,6 @@ interface
       TLinker = class(TObject)
       private
          FCompiler: TCompilerBase;
-      protected
-         property Compiler: TCompilerBase read FCompiler;
       public
          HasResources,
          HasExports      : boolean;
@@ -82,6 +80,7 @@ interface
          procedure ExpandAndApplyOrder(var Src:TCmdStrList);
          procedure LoadPredefinedLibraryOrder;virtual;
          function  ReOrderEntries : boolean;
+         property Compiler: TCompilerBase read FCompiler;
        end;
 
       TExternalLinker = class(TLinker)
