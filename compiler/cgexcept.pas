@@ -35,9 +35,7 @@ unit cgexcept;
     type
       { Utility class for exception handling state management that is used
         by tryexcept/tryfinally/on nodes (in a separate class so it can both
-        be shared and overridden)
-
-        Never instantiated. }
+        be shared and overridden) }
       tcgexceptionstatehandler = class
        type
         texceptiontemps=record
@@ -83,9 +81,6 @@ unit cgexcept;
         class function use_cleanup(const exceptframekind: texceptframekind): boolean;
       end;
       tcgexceptionstatehandlerclass = class of tcgexceptionstatehandler;
-
-    var
-      cexceptionstatehandler: tcgexceptionstatehandlerclass = tcgexceptionstatehandler;
 
   implementation
 

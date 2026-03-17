@@ -158,7 +158,7 @@ uses
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
   ,hlcgobj
-  ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti
+  ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept
   ,opt,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
@@ -189,6 +189,7 @@ type
     FOptions: TOptions;
     FRTTIWriter : TRTTIWriter;
     FLinker: TLinker;
+    FExceptionStateHandler: tcgexceptionstatehandler;
     Fhlcg: thlcgobj;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -208,6 +209,8 @@ type
   public
     function Compile(const cmd:TCmdStr):longint;
 
+    procedure CreateExceptionStateHandler(eshclass: tcgexceptionstatehandlerclass);
+
     procedure InitLinker;
     procedure DoneLinker;
 
@@ -226,6 +229,7 @@ type
     property Options: TOptions read FOptions;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
     property Linker: TLinker read FLinker;
+    property ExceptionStateHandler: tcgexceptionstatehandler read FExceptionStateHandler;
     {# Main high level code generator class }
     property hlcg: thlcgobj read Fhlcg write Fhlcg;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
@@ -240,6 +244,7 @@ type
   private
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
+    function GetExceptionStateHandler: tcgexceptionstatehandler; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function GetHLCG: thlcgobj; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
@@ -379,6 +384,7 @@ type
     property ObjCUtil: TObjectiveCUtils read GetObjCUtil;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
     property Linker: TLinker read GetLinker;
+    property ExceptionStateHandler: tcgexceptionstatehandler read GetExceptionStateHandler;
     property hlcg: thlcgobj read GetHLCG;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -429,6 +435,7 @@ begin
   DoneFileUtils;
   donetokens;
   DoneTaskHandler(FTaskHandler);
+  FreeAndNil(FExceptionStateHandler);
   FreeAndNil(FTarget);
   FreeAndNil(FOpt);
   FreeAndNil(FOptions);
@@ -458,6 +465,7 @@ begin
   FObjCUtil:=TObjectiveCUtils.Create(Self);
   FOptions:=TOptions.Create(Self);
   FOpt:=TOptimizers.Create(Self);
+  CreateExceptionStateHandler(tcgexceptionstatehandler);
   paramanager:=tcpuparamanager.Create(Self);
 { inits which need to be done before the arguments are parsed }
   FTarget:=TCompilerTarget.Create;
@@ -699,6 +707,12 @@ begin
     result:=1;
 end;
 
+procedure TCompiler.CreateExceptionStateHandler(eshclass: tcgexceptionstatehandlerclass);
+begin
+  FreeAndNil(FExceptionStateHandler);
+  FExceptionStateHandler:=eshclass.create;
+end;
+
 procedure TCompiler.InitLinker;
 begin
   FreeAndNil(FLinker);
@@ -720,6 +734,11 @@ end;
 function TCompilerHelper.GetBlockUtl: TBlockUtils; inline;
 begin
   Result := TCompiler(Self).BlockUtl;
+end;
+
+function TCompilerHelper.GetExceptionStateHandler: tcgexceptionstatehandler; inline;
+begin
+  Result := TCompiler(Self).ExceptionStateHandler;
 end;
 
 function TCompilerHelper.GetGlobals: TCompilerGlobals; inline;

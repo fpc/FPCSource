@@ -421,7 +421,7 @@ implementation
             current_asmdata.getlabel(callsitetableend,alt_data);
 
             callsite_table_data.concat(tai_label.create(callsitetablestart));
-            cexceptionstatehandler:=tpsabiehexceptionstatehandler;
+            tcompiler(compiler).CreateExceptionStateHandler(tpsabiehexceptionstatehandler);
 
             if CreateExceptionTable then
               begin
