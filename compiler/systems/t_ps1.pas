@@ -90,7 +90,7 @@ begin
     LinkRes.Add('ENTRY(_start)');
 
 
-    HPath:= TCmdStrListItem(LibrarySearchPath.First);
+    HPath:= TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
     while assigned(HPath) do begin
       s:= HPath.Str;
 

@@ -360,7 +360,7 @@ begin
      ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');

@@ -232,7 +232,7 @@ begin
          Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
          HPath:=TCmdStrListItem(HPath.Next);
        end;
-      HPath:=TCmdStrListItem(LibrarySearchPath.First);
+      HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
       while assigned(HPath) do
        begin
          Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
@@ -274,7 +274,7 @@ begin
           s:='crtbegin_static.o'
         else
           s:='crtbegin_dynamic.o';
-      librarysearchpath.FindFile(s,false,s1);
+      compiler.globals.librarysearchpath.FindFile(s,false,s1);
       AddFileName(maybequoted(s1));
       { main objectfiles }
       while not ObjectFiles.Empty do
@@ -326,7 +326,7 @@ begin
              if (cs_link_staticflag in current_settings.globalswitches) then
                begin
                  Add('-lgcc');
-                 if librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
+                 if compiler.globals.librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
                    Add('-lgcc_eh');
                end;
              { be sure that libc is the last lib }
@@ -343,7 +343,7 @@ begin
         s:='crtend_so.o'
       else
         s:='crtend_android.o';
-      librarysearchpath.FindFile(s,false,s1);
+      compiler.globals.librarysearchpath.FindFile(s,false,s1);
       AddFileName(maybequoted(s1));
       Add(')');
 

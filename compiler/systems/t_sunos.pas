@@ -114,9 +114,9 @@ begin
     use_gnu_ld:=true;
   if NOT compiler.globals.Dontlinkstdlibpath Then
 {$ifdef x86_64}
-   LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/64;=/usr/lib/64;=/usr/X11R6/lib/64;=/opt/sfw/lib/64',true);
+   compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/64;=/usr/lib/64;=/usr/X11R6/lib/64;=/opt/sfw/lib/64',true);
 {$else not x86_64}
-   LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib;=/opt/sfw/lib',true);
+   compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib;=/opt/sfw/lib',true);
 {$endif not x86_64}
 {$ifdef  LinkTest}
      if (cs_link_staticflag in current_settings.globalswitches) then  WriteLN('ForceLinkStaticFlag');
@@ -221,7 +221,7 @@ begin
      LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
@@ -261,9 +261,9 @@ begin
   { try to add crti and crtbegin if linking to C }
   if linklibc then { Needed in solaris? }
    begin
-{     if librarysearchpath.FindFile('crtbegin.o',s) then
+{     if compiler.globals.librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);}
-     if librarysearchpath.FindFile('crti.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
    end;
   { main objectfiles }
@@ -323,8 +323,8 @@ begin
   { objects which must be at the end }
   if linklibc then {needed in solaris ? }
    begin
-     if {librarysearchpath.FindFile('crtend.o',s1) or}
-        librarysearchpath.FindFile('crtn.o',false,s2) then
+     if {compiler.globals.librarysearchpath.FindFile('crtend.o',s1) or}
+        compiler.globals.librarysearchpath.FindFile('crtn.o',false,s2) then
       begin
         LinkRes.Add('INPUT(');
 {        LinkRes.AddFileName(s1);}
@@ -348,7 +348,7 @@ begin
      LinkRes.Add('-L '+maybequoted(HPath.Str));
      HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('-L '+maybequoted(HPath.Str));
@@ -388,9 +388,9 @@ begin
   { try to add crti and crtbegin if linking to C }
   if linklibc then { Needed in solaris? }
    begin
-{     if librarysearchpath.FindFile('crtbegin.o',s) then
+{     if compiler.globals.librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);}
-     if librarysearchpath.FindFile('crti.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
    end;
   { main objectfiles }
@@ -446,8 +446,8 @@ begin
   { objects which must be at the end }
   if linklibc then {needed in solaris ? }
    begin
-     if {librarysearchpath.FindFile('crtend.o',s1) or}
-        librarysearchpath.FindFile('crtn.o',false,s2) then
+     if {compiler.globals.librarysearchpath.FindFile('crtend.o',s1) or}
+        compiler.globals.librarysearchpath.FindFile('crtn.o',false,s2) then
       begin
 {        LinkRes.AddFileName(s1);}
         LinkRes.AddFileName(s2);

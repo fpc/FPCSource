@@ -116,9 +116,9 @@ begin
   Inherited;
   if not compiler.globals.Dontlinkstdlibpath Then
    if compiler.target.info.system in systems_openbsd then
-     LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
+     compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
    else
-     LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
+     compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 end;
 
 
@@ -276,7 +276,7 @@ begin
        LinkRes.Add('SEARCH_DIR("'+HPath.Str+'")');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      if LdSupportsNoResponseFile then
@@ -317,21 +317,21 @@ begin
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
-     if librarysearchpath.FindFile('crti.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
      if ((cs_create_pic in current_settings.moduleswitches) and
          not (compiler.target.info.system in systems_openbsd)) or
         (current_module.islibrary and
          (compiler.target.info.system in systems_openbsd)) then
        begin
-         if librarysearchpath.FindFile('crtbeginS.o',false,s) then
+         if compiler.globals.librarysearchpath.FindFile('crtbeginS.o',false,s) then
            LinkRes.AddFileName(s);
        end
        else
          if (cs_link_staticflag in current_settings.globalswitches) and
-           librarysearchpath.FindFile('crtbeginT.o',false,s) then
+           compiler.globals.librarysearchpath.FindFile('crtbeginT.o',false,s) then
              LinkRes.AddFileName(s)
-         else if librarysearchpath.FindFile('crtbegin.o',false,s) then
+         else if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
              LinkRes.AddFileName(s);
    end;
 
@@ -415,10 +415,10 @@ begin
          not (compiler.target.info.system in systems_openbsd)) or
         (current_module.islibrary and
          (compiler.target.info.system in systems_openbsd)) then
-       Fl1:=librarysearchpath.FindFile('crtendS.o',false,s1)
+       Fl1:=compiler.globals.librarysearchpath.FindFile('crtendS.o',false,s1)
      else
-       Fl1:=librarysearchpath.FindFile('crtend.o',false,s1);
-     Fl2:=librarysearchpath.FindFile('crtn.o',false,s2);
+       Fl1:=compiler.globals.librarysearchpath.FindFile('crtend.o',false,s1);
+     Fl2:=compiler.globals.librarysearchpath.FindFile('crtn.o',false,s2);
      if Fl1 or Fl2 then
       begin
         LinkRes.Add('INPUT(');

@@ -122,7 +122,7 @@ begin
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
@@ -139,12 +139,12 @@ begin
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
-     if librarysearchpath.FindFile('crti.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
    end;
   if linklibgcc then
    begin
-     if librarysearchpath.FindFile('crtbegin.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
        LinkRes.AddFileName(s);
    end;
   while not ObjectFiles.Empty do
@@ -223,7 +223,7 @@ begin
   { objects which must be at the end }
   if linklibgcc then
    begin
-     found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+     found1:=compiler.globals.librarysearchpath.FindFile('crtend.o',false,s1);
      if found1 then
       begin
         LinkRes.Add('INPUT(');
@@ -234,7 +234,7 @@ begin
    end;
   if linklibc then
    begin
-     found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+     found2:=compiler.globals.librarysearchpath.FindFile('crtn.o',false,s2);
      if found2 then
       begin
         LinkRes.Add('INPUT(');

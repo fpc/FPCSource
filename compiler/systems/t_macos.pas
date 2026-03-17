@@ -88,7 +88,7 @@ implementation
 Constructor TLinkerMPW.Create;
 begin
   Inherited Create;
-  //LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
+  //compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 end;
 
 
@@ -312,7 +312,7 @@ begin
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;

@@ -109,7 +109,7 @@ implementation
       begin
         inherited;
         if not compiler.globals.Dontlinkstdlibpath Then
-          LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true)
+          compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true)
       end;
 
 
@@ -326,7 +326,7 @@ implementation
         startupfile:=GetDarwinCrt1ObjName(isdll);
         if startupfile<>'' then
           begin
-           if not librarysearchpath.FindFile(startupfile,false,result) then
+           if not compiler.globals.librarysearchpath.FindFile(startupfile,false,result) then
              result:='/usr/lib/'+startupfile;
           end;
         result:=maybequoted(result);
@@ -409,7 +409,7 @@ implementation
            result:=result+' '+maybequoted('-L'+HPath.Str);
            HPath:=TCmdStrListItem(HPath.Next);
          end;
-        HPath:=TCmdStrListItem(LibrarySearchPath.First);
+        HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
         while assigned(HPath) do
          begin
            result:=result+' '+maybequoted('-L'+HPath.Str);

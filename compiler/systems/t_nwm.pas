@@ -425,7 +425,7 @@ begin
            if i>0 then
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
-           librarysearchpath.FindFile(S,false,S2);
+           compiler.globals.librarysearchpath.FindFile(S,false,S2);
            {$ifdef netware}
            compiler.verbose.Comment(V_Debug,'IMPORT @'+s2);
            s2 := FExpand (S2);
@@ -458,7 +458,7 @@ begin
            if s[1] = '!' then
            begin  // special, with ! only the imp will be included but no module is autoloaded, needed i.e. for netware.imp
              S := copy(S,2,255) + '.imp';
-             librarysearchpath.FindFile(S,false,S3);
+             compiler.globals.librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
              compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
@@ -468,7 +468,7 @@ begin
            end else
            begin
              S := S + '.imp';
-             librarysearchpath.FindFile(S,false,S3);
+             compiler.globals.librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
              compiler.verbose.Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
@@ -930,7 +930,7 @@ end;
         // add symbols needed by nwpre. We have not loaded the ppu,
         // therefore we do not know the externals so read it from nwpre.imp
         s := ChangeFileExt(prelude,'.imp');  // nwpre.imp
-        if not librarysearchpath.FindFile(s,true,s2) then
+        if not compiler.globals.librarysearchpath.FindFile(s,true,s2) then
           begin
             compiler.verbose.Comment(v_error,s+' not found');
             exit;

@@ -301,8 +301,6 @@ Const
 
 
     var
-       { path for searching units, different paths can be separated by ; }
-       librarysearchpath,
        unitsearchpath,
        objectsearchpath,
        includesearchpath,
@@ -725,6 +723,8 @@ Const
         exepath       : TPathStr;
         { Path to unicode charmap/collation binaries }
         unicodepath   : TPathStr;
+        { path for searching units, different paths can be separated by ; }
+        librarysearchpath  : TSearchPathList;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1724,10 +1724,12 @@ implementation
 
 
    procedure DoneGlobals;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
        calldoneprocs;
-       librarysearchpath.Free;
-       librarysearchpath := nil;
+       compiler.globals.librarysearchpath.Free;
+       compiler.globals.librarysearchpath := nil;
        unitsearchpath.Free;
        unitsearchpath := nil;
        objectsearchpath.Free;
@@ -1783,7 +1785,7 @@ implementation
 
         { Search Paths }
         compiler.globals.unicodepath:='';
-        librarysearchpath:=TSearchPathList.Create;
+        compiler.globals.librarysearchpath:=TSearchPathList.Create;
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;

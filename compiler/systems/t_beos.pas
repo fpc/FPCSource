@@ -183,7 +183,7 @@ begin
   { since that is what the compiler expects.              }
   if pos(';',s) = 0 then
     s:=s+';';
-  LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,s,true); {format:'path1;path2;...'}
+  compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,s,true); {format:'path1;path2;...'}
 end;
 
 
@@ -260,7 +260,7 @@ begin
      LinkRes.Add('-L'+HPath.Str);
      HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('-L'+HPath.Str);
@@ -270,11 +270,11 @@ begin
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
-     if librarysearchpath.FindFile('crti.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
-     if librarysearchpath.FindFile('crtbegin.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
       LinkRes.AddFileName(s);
-{      s:=librarysearchpath.FindFile('start_dyn.o',found)+'start_dyn.o';
+{      s:=compiler.globals.librarysearchpath.FindFile('start_dyn.o',found)+'start_dyn.o';
      if found then LinkRes.AddFileName(s+' \');}
 
      if prtobj<>'' then
@@ -283,7 +283,7 @@ begin
 //     if isdll then
 //      LinkRes.AddFileName(FindObjectFile('func.o','',false));
 
-     if librarysearchpath.FindFile('init_term_dyn.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('init_term_dyn.o',false,s) then
       LinkRes.AddFileName(s);
    end
   else
@@ -344,9 +344,9 @@ begin
   { objects which must be at the end }
   if linklibc then
    begin
-     if librarysearchpath.FindFile('crtend.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crtend.o',false,s) then
       LinkRes.AddFileName(s);
-     if librarysearchpath.FindFile('crtn.o',false,s) then
+     if compiler.globals.librarysearchpath.FindFile('crtn.o',false,s) then
       LinkRes.AddFileName(s);
    end;
 

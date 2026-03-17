@@ -111,7 +111,7 @@ begin
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;

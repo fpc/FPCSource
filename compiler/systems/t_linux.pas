@@ -132,26 +132,26 @@ begin
       { some linuxes might not have the lib64 variants (Arch, LFS }
       { don't use PathExists checks, as we need to take sysroots and
         cross-compiling into account }
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib64',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib64',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
       { /lib64 should be the really first, so add it before everything else }
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
 {$else}
 {$ifdef powerpc64}
       if compiler.target.info.abi<>abi_powerpc_elfv2 then
-        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib64',true)
+        compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib64',true)
       else
-        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/powerpc64le-linux-gnu;=/usr/X11R6/powerpc64le-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
+        compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/powerpc64le-linux-gnu;=/usr/X11R6/powerpc64le-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
       { /lib64 should be the really first, so add it before everything else }
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
 {$else powerpc64}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 {$endif powerpc64}
 {$endif x86_64}
 
@@ -160,60 +160,60 @@ begin
     for other arm flavours, this cannot hurt }
     if compiler.target.info.abi=abi_eabihf then
       begin
-        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/arm-linux-gnueabihf',true);
-        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/arm-linux-gnueabihf',true);
+        compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/arm-linux-gnueabihf',true);
+        compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/arm-linux-gnueabihf',true);
       end;
     if compiler.target.info.abi=abi_eabi then
       begin
-        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/arm-linux-gnueabi',true);
-        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/arm-linux-gnueabi',true);
+        compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/arm-linux-gnueabi',true);
+        compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/arm-linux-gnueabi',true);
       end;
 {$endif arm}
 {$ifdef x86_64}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/x86_64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/x86_64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/x86_64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/x86_64-linux-gnu',true);
 {$endif x86_64}
 {$ifdef i386}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/i386-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/i386-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/i386-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/i386-linux-gnu',true);
 {$endif i386}
 {$ifdef aarch64}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/aarch64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/aarch64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/aarch64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/aarch64-linux-gnu',true);
 {$endif aarch64}
 {$ifdef powerpc}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/powerpc-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/powerpc-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/powerpc-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/powerpc-linux-gnu',true);
 {$endif powerpc}
 {$ifdef m68k}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/m68k-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/m68k-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/m68k-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/m68k-linux-gnu',true);
 {$endif m68k}
 {$ifdef mipsel}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/mipsel-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/mipsel-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/mipsel-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/mipsel-linux-gnu',true);
 {$endif mipsel}
 {$ifdef mips}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/mips-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/mips-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/mips-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/mips-linux-gnu',true);
 {$endif mips}
 {$ifdef sparc64}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/sparc64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/sparc64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/sparc64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/sparc64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
 {$endif sparc64}
 {$ifdef riscv32}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/riscv32-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/riscv32-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/riscv32-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/riscv32-linux-gnu',true);
 {$endif riscv32}
 {$ifdef riscv64}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/riscv64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/riscv64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/riscv64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/riscv64-linux-gnu',true);
 {$endif riscv64}
 {$ifdef loongarch64}
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/loongarch64-linux-gnu',true);
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/loongarch64-linux-gnu',true);
 {$endif loongarch64}
     end;
 end;
@@ -617,7 +617,7 @@ begin
          Add('SEARCH_DIR("'+HPath.Str+'")');
          HPath:=TCmdStrListItem(HPath.Next);
        end;
-      HPath:=TCmdStrListItem(LibrarySearchPath.First);
+      HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
       while assigned(HPath) do
        begin
          Add('SEARCH_DIR("'+HPath.Str+'")');
@@ -655,7 +655,7 @@ begin
       if linklibc and (libctype<>uclibc) then
        begin
          { crti.o must come first }
-         if librarysearchpath.FindFile('crti.o',false,s) then
+         if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
            AddFileName(s)
          else
            compiler.verbose.Message1(exec_w_init_file_not_found,'crti.o');
@@ -669,7 +669,7 @@ begin
 {$endif RISCV}
          then
            begin
-             if librarysearchpath.FindFile('crtbeginS.o',false,s) then
+             if compiler.globals.librarysearchpath.FindFile('crtbeginS.o',false,s) then
                AddFileName(s)
              else
                compiler.verbose.Message1(exec_w_init_file_not_found,'crtbeginS.o');
@@ -677,12 +677,12 @@ begin
          else
            if (cs_link_staticflag in current_settings.globalswitches) then
              begin
-               if librarysearchpath.FindFile('crtbeginT.o',false,s) then
+               if compiler.globals.librarysearchpath.FindFile('crtbeginT.o',false,s) then
                  AddFileName(s)
                else
                  compiler.verbose.Message1(exec_w_init_file_not_found,'crtbeginT.o');
              end
-           else if librarysearchpath.FindFile('crtbegin.o',false,s) then
+           else if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
              AddFileName(s)
            else
              compiler.verbose.Message1(exec_w_init_file_not_found,'crtbegin.o');
@@ -765,7 +765,7 @@ begin
              if (cs_link_staticflag in current_settings.globalswitches) then
                begin
                  Add('-lgcc');
-                 if librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
+                 if compiler.globals.librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
                    Add('-lgcc_eh');
                end;
              { be sure that libc is the last lib }
@@ -786,18 +786,18 @@ begin
 {$endif RISCV}
          then
            begin
-             found1:=librarysearchpath.FindFile('crtendS.o',false,s1);
+             found1:=compiler.globals.librarysearchpath.FindFile('crtendS.o',false,s1);
              if not(found1) then
                compiler.verbose.Message1(exec_w_init_file_not_found,'crtendS.o');
            end
          else
            begin
-             found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+             found1:=compiler.globals.librarysearchpath.FindFile('crtend.o',false,s1);
              if not(found1) then
                compiler.verbose.Message1(exec_w_init_file_not_found,'crtend.o');
            end;
 
-         found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+         found2:=compiler.globals.librarysearchpath.FindFile('crtn.o',false,s2);
          if not(found2) then
            compiler.verbose.Message1(exec_w_init_file_not_found,'crtn.o');
          if found1 or found2 then
@@ -1152,19 +1152,19 @@ begin
   if linklibc and (libctype<>uclibc) then
     begin
       { crti.o must come first }
-      if librarysearchpath.FindFile('crti.o',false,s) then
+      if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
         LinkScript.Concat('READOBJECT '+maybequoted(s));
       { then the crtbegin* }
       if cs_create_pic in current_settings.moduleswitches then
         begin
-          if librarysearchpath.FindFile('crtbeginS.o',false,s) then
+          if compiler.globals.librarysearchpath.FindFile('crtbeginS.o',false,s) then
             LinkScript.Concat('READOBJECT '+maybequoted(s));
         end
       else
         if (cs_link_staticflag in current_settings.globalswitches) and
-          librarysearchpath.FindFile('crtbeginT.o',false,s) then
+          compiler.globals.librarysearchpath.FindFile('crtbeginT.o',false,s) then
           LinkScript.Concat('READOBJECT '+maybequoted(s))
-        else if librarysearchpath.FindFile('crtbegin.o',false,s) then
+        else if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
           LinkScript.Concat('READOBJECT '+maybequoted(s));
     end;
 
@@ -1212,10 +1212,10 @@ begin
   if linklibc and (libctype<>uclibc) then
     begin
       if cs_create_pic in current_settings.moduleswitches then
-        found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
+        found1:=compiler.globals.librarysearchpath.FindFile('crtendS.o',false,s1)
       else
-        found1:=librarysearchpath.FindFile('crtend.o',false,s1);
-      found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+        found1:=compiler.globals.librarysearchpath.FindFile('crtend.o',false,s1);
+      found2:=compiler.globals.librarysearchpath.FindFile('crtn.o',false,s2);
       if found1 then
         LinkScript.Concat('READOBJECT '+maybequoted(s1));
       if found2 then

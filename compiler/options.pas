@@ -3160,7 +3160,7 @@ begin
         if ispara then
           ParaLibraryPath.AddLibraryPath(compiler.globals.sysrootpath,More,false)
         else
-          LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,More,true)
+          compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,More,true)
       end;
     'L' :
       begin
@@ -5183,7 +5183,7 @@ begin
   UnitSearchPath.AddList(option.ParaUnitPath,true);
   ObjectSearchPath.AddList(option.ParaObjectPath,true);
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
-  LibrarySearchPath.AddList(option.ParaLibraryPath,true);
+  compiler.globals.LibrarySearchPath.AddList(option.ParaLibraryPath,true);
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
   packagesearchpath.addlist(option.parapackagepath,true);
   for j:=0 to option.parapackages.count-1 do
@@ -5272,7 +5272,7 @@ begin
    UnitSearchPath.AddPath(compiler.globals.ExePath,false);
   { Add unit dir to the object and library path }
   objectsearchpath.AddList(unitsearchpath,false);
-  librarysearchpath.AddList(unitsearchpath,false);
+  compiler.globals.librarysearchpath.AddList(unitsearchpath,false);
 
 {$ifdef llvm}
   { default to clang }

@@ -101,9 +101,9 @@ begin
   Inherited Create;
   if not compiler.globals.Dontlinkstdlibpath then
     if not(cs_profile in current_settings.moduleswitches) then
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=/usr/X11R6/lib;=/opt/freeware/lib',true)
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=/usr/X11R6/lib;=/opt/freeware/lib',true)
     else
-      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/profiled;=/usr/X11R6/lib;=/opt/freeware/lib',true)
+      compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/profiled;=/usr/X11R6/lib;=/opt/freeware/lib',true)
 end;
 
 
@@ -169,7 +169,7 @@ begin
            Add('-L'+HPath.Str);
          HPath:=TCmdStrListItem(HPath.Next);
        end;
-      HPath:=TCmdStrListItem(LibrarySearchPath.First);
+      HPath:=TCmdStrListItem(compiler.globals.LibrarySearchPath.First);
       while assigned(HPath) do
        begin
          if assumebinutils then
@@ -223,7 +223,7 @@ begin
        if (cs_link_staticflag in current_settings.globalswitches) then
          begin
            Add('-lgcc');
-           if librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
+           if compiler.globals.librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
              Add('-lgcc_eh');
          end;
        if assumebinutils then

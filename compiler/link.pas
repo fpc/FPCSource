@@ -301,7 +301,7 @@ Implementation
           3. windir,windir/system,windir/system32 }
         Found:=FindFile(s,'.'+source_info.DirSep,false,founddll);
         if (not found) then
-         Found:=librarysearchpath.FindFile(s,false,founddll);
+         Found:=compiler.globals.librarysearchpath.FindFile(s,false,founddll);
 
         { when cross compiling, it is pretty useless to search windir etc. for dlls }
         if (not found) and (source_info.system=compiler.target.info.system) then
@@ -359,7 +359,7 @@ Implementation
         if (not found) then
          found:=current_module.locallibrarysearchpath.FindFile(s,false,foundfile);
         if (not found) then
-         found:=librarysearchpath.FindFile(s,false,foundfile);
+         found:=compiler.globals.librarysearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
          found:=FindFile(s,compiler.globals.exepath,false,foundfile);
         foundfile:=ScriptFixFileName(foundfile);
