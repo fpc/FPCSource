@@ -67,9 +67,7 @@ implementation
     end;
 
 
-function ModulesLinkToLibc:boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function ModulesLinkToLibc(compiler: TCompilerBase):boolean;
 var
   hp: tmodule;
 begin
@@ -198,7 +196,7 @@ var
   si_cprt,
   si_gprt : string[80];
 begin
-  linklibc:=ModulesLinkToLibc;
+  linklibc:=ModulesLinkToLibc(compiler);
   if current_module.islibrary and
      (compiler.target.info.system in systems_bsd) then
     begin
