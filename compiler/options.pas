@@ -3416,7 +3416,7 @@ procedure TOption.Interpret_K_l(opt, more: TCmdStr);
 
 begin
   if more<>'' then
-    ParaLinkOptions:=ParaLinkOptions+' '+More
+    compiler.globals.ParaLinkOptions:=compiler.globals.ParaLinkOptions+' '+More
   else
     IllegalPara(opt);
 end;

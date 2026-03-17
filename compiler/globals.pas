@@ -301,9 +301,6 @@ Const
 
 
     var
-
-       { things specified with parameters }
-       paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
 {$ifdef PREPROCWRITE}
@@ -725,6 +722,9 @@ Const
 {$endif defined(XTENSA) or defined(RISCV32) or defined(ARM)}
         { external assembler extra option }
         asmextraopt       : string;
+
+        { things specified with parameters }
+        paralinkoptions   : TCmdStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

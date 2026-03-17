@@ -809,8 +809,8 @@ Implementation
         { Allow Parameter overrides for linker info }
         with Info do
          begin
-           if ParaLinkOptions<>'' then
-            ExtraOptions:=ParaLinkOptions;
+           if compiler.globals.ParaLinkOptions<>'' then
+            ExtraOptions:=compiler.globals.ParaLinkOptions;
            if ParaDynamicLinker<>'' then
             DynamicLinker:=ParaDynamicLinker;
          end;

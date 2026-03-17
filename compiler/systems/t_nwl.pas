@@ -487,7 +487,7 @@ begin
   LinkRes.Free;
 
 { pass options from -k to nlmconv, ; is interpreted as newline }
-  s := ParaLinkOptions;
+  s := compiler.globals.ParaLinkOptions;
   while(Length(s) > 0) and (s[1] = ' ') do
     delete (s,1,1);
   p := pos ('"',s);

@@ -503,7 +503,7 @@ begin
   LinkRes.Free;
 
 { pass options from -k to nlmconv, ; is interpreted as newline }
-  s := ParaLinkOptions;
+  s := compiler.globals.ParaLinkOptions;
   while(Length(s) > 0) and (s[1] = ' ') do
     delete (s,1,1);
   p := pos ('"',s);
@@ -672,7 +672,7 @@ end;
         var
           s,option : string;
         begin
-          s := ParaLinkOptions;
+          s := compiler.globals.ParaLinkOptions;
           option := GetToken(s,';');
           while option <> '' do
           begin
@@ -723,7 +723,7 @@ end;
         var
           s,option,keyword : string;
         begin
-          s := ParaLinkOptions;
+          s := compiler.globals.ParaLinkOptions;
           option := GetToken(s,';');
           while option <> '' do
           begin

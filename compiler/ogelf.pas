@@ -3093,9 +3093,9 @@ implementation
 
         { TODO: we need a dedicated parameter to pass runpath, instead of this hack
           (-Xr is a different thing, it passes "-rpath-link"). }
-        if (ParaLinkOptions<>'') then
+        if (compiler.globals.ParaLinkOptions<>'') then
           begin
-            hs:=ParaLinkOptions;
+            hs:=compiler.globals.ParaLinkOptions;
             while (hs<>'') do
               begin
                 if (GetToken(hs,' ')='-rpath') then
