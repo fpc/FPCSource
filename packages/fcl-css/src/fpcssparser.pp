@@ -992,6 +992,21 @@ end;
 
 function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false): integer;
 
+Const
+  NestedRuleTokens: TCSSTokens = [ctkAND, ctkCLASSNAME, ctkHASH, ctkPSEUDO,
+                                   ctkPSEUDOFUNCTION, ctkLBRACKET, ctkDOUBLECOLON];
+
+  procedure ParseNestedRule;
+  var
+    aEl: TCSSElement;
+  begin
+    aEl:=ParseRule;
+    if aEl is TCSSRuleElement then
+      aRule.AddNestedRule(TCSSRuleElement(aEl))
+    else
+      FreeAndNil(aEl);
+  end;
+
 Var
   aDecl : TCSSElement;
 
@@ -1001,12 +1016,17 @@ begin
     GetNextToken;
   if not (CurrentToken in [ctkRBRACE,ctkSEMICOLON]) then
     begin
-    aDecl:=ParseDeclaration(aIsAt);
-    if aDecl<>nil then
-      aRule.AddChild(aDecl)
+    if CurrentToken in NestedRuleTokens then
+      ParseNestedRule
     else
-      while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
-        GetNextToken;
+      begin
+      aDecl:=ParseDeclaration(aIsAt);
+      if aDecl<>nil then
+        aRule.AddChild(aDecl)
+      else
+        while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
+          GetNextToken;
+      end;
     end;
   While Not (CurrentToken in [ctkEOF,ctkRBRACE]) do
     begin
@@ -1015,14 +1035,22 @@ begin
     if Not (CurrentToken in [ctkEOF,ctkRBRACE]) then
       begin
       if CurrentToken=ctkATKEYWORD then
-        aDecl:=ParseAtUnknownRule
+        begin
+        aDecl:=ParseAtUnknownRule;
+        if aDecl<>nil then
+          aRule.AddChild(aDecl);
+        end
+      else if CurrentToken in NestedRuleTokens then
+        ParseNestedRule
       else
+        begin
         aDecl:=ParseDeclaration(aIsAt);
-      if aDecl<>nil then
-        aRule.AddChild(aDecl)
-      else
-        while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
-          GetNextToken;
+        if aDecl<>nil then
+          aRule.AddChild(aDecl)
+        else
+          while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
+            GetNextToken;
+        end;
       end;
     end;
   Result:=aRule.ChildCount;
@@ -1277,6 +1305,7 @@ function TCSSParser.ParseSelector: TCSSElement;
   begin
     Result:=nil;
     Case CurrentToken of
+      ctkAND,
       ctkSTAR,
       ctkIDENTIFIER : Result:=ParseIdentifier;
       ctkHASH : Result:=ParseHashIdentifier;

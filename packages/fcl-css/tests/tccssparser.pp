@@ -109,6 +109,8 @@ type
     Procedure TestMediaPrint;
     Procedure TestSupportsFunction;
     Procedure TestSkipUnknownFunction;
+    Procedure TestNestedRule;
+    Procedure TestNestedAndRule;
   end;
 
   { TTestCSSFilesParser }
@@ -828,6 +830,16 @@ begin
   ParseRule(':-webkit-any(table, thead, tbody, tfoot, tr) > form:-internal-is-html {'+sLineBreak
     +'  display: none !important;'+sLineBreak
     +'}');
+end;
+
+procedure TTestCSSParser.TestNestedRule;
+begin
+  Parse('.parent { .child { } }');
+end;
+
+procedure TTestCSSParser.TestNestedAndRule;
+begin
+  Parse('.parent { & .child { } }');
 end;
 
 
