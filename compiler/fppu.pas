@@ -1140,7 +1140,7 @@ var
         old_docrc: boolean;
       begin
         { create unit flags }
-        if do_release then
+        if compiler.globals.do_release then
           include(moduleflags,mf_release);
         if assigned(localsymtable) then
           include(moduleflags,mf_local_symtable);
@@ -1364,7 +1364,7 @@ var
          end;
       { check if we want to rebuild every unit, only if the sources are
         available }
-        if do_build and sources_avail then
+        if compiler.globals.do_build and sources_avail then
           begin
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.readsourcefiles do_build ',modulename^,' old=',state,' new=',ms_compile);

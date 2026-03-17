@@ -2491,7 +2491,7 @@ end;
 procedure TOption.Interpret_B_U(opt, more: TCmdStr);
 
 begin
-  do_build:=not UnSetBool(more,0,opt,true);
+  compiler.globals.do_build:=not UnSetBool(more,0,opt,true);
 end;
 
 
@@ -3272,7 +3272,7 @@ begin
               exclude(init_settings.localswitches,cs_checkpointer)
             else if (compiler.target.info.system in systems_support_checkpointer) then
               begin
-                if do_release then
+                if compiler.globals.do_release then
                   compiler.verbose.Message(option_gc_incompatible_with_release_flag)
                 else
                   include(init_settings.localswitches,cs_checkpointer);
@@ -3867,7 +3867,7 @@ begin
           end;
        'r' :
          begin
-           do_release:=true;
+           compiler.globals.do_release:=true;
            if (cs_checkpointer in init_settings.localswitches) then
              begin
                compiler.verbose.Message(option_gc_incompatible_with_release_flag);

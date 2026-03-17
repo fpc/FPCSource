@@ -302,11 +302,6 @@ Const
 
     var
 
-       { some flags for global compiler switches }
-       do_build,
-       do_release,
-       do_make       : boolean;
-
        timestr,
        datestr : string;
        { Path to ppc }
@@ -725,6 +720,11 @@ Const
         Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
         rlinkpath      : TCmdStr;        { rpath-link linkdir override}
         sysrootpath    : TCmdStr;        { target system root to search dyn linker }
+
+        { some flags for global compiler switches }
+        do_build,
+        do_release,
+        do_make       : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1754,9 +1754,9 @@ implementation
         get_exepath;
 
         { reset globals }
-        do_build:=false;
-        do_release:=false;
-        do_make:=true;
+        compiler.globals.do_build:=false;
+        compiler.globals.do_release:=false;
+        compiler.globals.do_make:=true;
         codegenerror:=false;
         global_unit_count:=0;
 
