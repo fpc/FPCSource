@@ -115,6 +115,7 @@ type
     Procedure TestNestedAndPlusRule;
     Procedure TestNestedRule_AndOperator;
     Procedure TestNestedRule_AppendedAndOperator;
+    Procedure TestNestedRule_NestedDeclarations;
   end;
 
   { TTestCSSFilesParser }
@@ -837,8 +838,22 @@ begin
 end;
 
 procedure TTestCSSParser.TestNestedRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aSel: TCSSClassNameElement;
 begin
-  Parse('.parent { .child { } }');
+  aRule:=ParseRule('.parent { .child { } }');
+  AssertEquals('selector count',1,aRule.SelectorCount);
+  aSel:=TCSSClassNameElement(CheckClass('Selector',TCSSClassNameElement,aRule.Selectors[0]));
+  AssertEquals('Sel name','parent',aSel.Value);
+  AssertEquals('No declarations',0,aRule.ChildCount);
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aSel:=TCSSClassNameElement(CheckClass('Nested selector',TCSSClassNameElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested sel name','child',aSel.Value);
+  AssertEquals('No nested declarations',0,aNestedRule.ChildCount);
+  AssertEquals('No nested rules',0,aNestedRule.NestedRuleCount);
 end;
 
 procedure TTestCSSParser.TestNestedAndRule;
@@ -878,6 +893,17 @@ begin
   +'  .bar & {'
   +'    /* .bar .foo styles */'
   +'  }'
+  +'}');
+end;
+
+procedure TTestCSSParser.TestNestedRule_NestedDeclarations;
+begin
+  Parse(
+   'div {'
+  +'  span {'
+  +'    color: red;'
+  +'  }'
+  +'  color: blue;'
   +'}');
 end;
 
