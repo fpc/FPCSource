@@ -62,30 +62,6 @@ end;
 {$ENDIF}
 {$endif}
 
-function IsBinary(const Input: TStream; var Version: TBinaryObjectReader.TBOVersion): Boolean;
-var
-  Position: Integer;
-  Signature: DWord;
-
-begin
-  Position := Input.Position;
-  Result := True;
-  Signature := Input.ReadDWord;
-
-  if Signature = DWord(Unaligned(FilerSignature1)) then
-    Version := TBinaryObjectReader.TBOVersion.boVersion1
-  else if Signature = DWord(Unaligned(FilerSignature)) then
-    Version := TBinaryObjectReader.TBOVersion.boVersion0
-  else
-    Result := False;
-end;
-
-function GetBinaryVersion(const Input: TStream): TBinaryObjectReader.TBOVersion;
-begin
-  if not IsBinary(Input, Result) then
-    raise EReadError.Create(SInvalidImage);
-end;
-
 procedure TAbstractObjectReader.BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
   var CompUnitName, CompClassName, CompName: String);
 begin
@@ -407,8 +383,16 @@ begin
 end;
 
 procedure TBinaryObjectReader.ReadSignature;
+var
+  Signature: LongInt;
 begin
-  FVersion := GetBinaryVersion(FStream);
+  Read(Signature, 4);
+  if Signature = LongInt(unaligned(FilerSignature1)) then
+    FVersion:=TBOVersion.boVersion1
+  else if Signature = LongInt(unaligned(FilerSignature)) then
+    FVersion:=TBOVersion.boVersion0
+  else
+    raise EReadError.Create(SInvalidImage);
 end;
 
 function TBinaryObjectReader.ReadStr: RawByteString;
