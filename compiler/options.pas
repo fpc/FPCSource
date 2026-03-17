@@ -3089,7 +3089,7 @@ begin
   DefaultReplacements(More);
   case c of
     'a' :
-      autoloadunits:=more;
+      compiler.globals.autoloadunits:=more;
     'c' :
       begin
         { if we first specify that the system code page should be

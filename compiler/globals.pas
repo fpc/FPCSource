@@ -301,7 +301,6 @@ Const
 
 
     var
-       autoloadunits      : string;
 
        { linking }
        usewindowapi  : boolean;
@@ -725,6 +724,7 @@ Const
         current_namespacelist : TCmdStrList;        // Set when parsing module to the current module's namespace.
         { contains tpackageentry entries }
         packagelist : TFPHashList;
+        autoloadunits      : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

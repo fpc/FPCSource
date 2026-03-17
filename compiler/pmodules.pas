@@ -666,7 +666,7 @@ implementation
         hs,s : string;
       begin
         Result:=True;
-        hs:=autoloadunits;
+        hs:=compiler.globals.autoloadunits;
         repeat
           s:=GetToken(hs,',');
           if s='' then
