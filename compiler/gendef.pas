@@ -95,8 +95,10 @@ end;
 
 
 function tdeffile.empty : boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
-  empty:=is_empty or DescriptionSetExplicity;
+  empty:=is_empty or compiler.globals.DescriptionSetExplicity;
 end;
 
 

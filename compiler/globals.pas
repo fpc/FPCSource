@@ -301,7 +301,6 @@ Const
 
 
     var
-       DescriptionSetExplicity : boolean;
        dllversion    : string;
        dllmajor,
        dllminor,
@@ -724,7 +723,8 @@ Const
         SetPEUserVersionSetExplicitely,
         ImageBaseSetExplicity,
         MinStackSizeSetExplicity,
-        MaxStackSizeSetExplicity : boolean;
+        MaxStackSizeSetExplicity,
+        DescriptionSetExplicity : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1797,7 +1797,7 @@ implementation
         { Def file }
         compiler.globals.usewindowapi:=false;
         compiler.globals.description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;
-        DescriptionSetExplicity:=false;
+        compiler.globals.DescriptionSetExplicity:=false;
         compiler.globals.SetPEFlagsSetExplicity:=false;
         compiler.globals.SetPEOptFlagsSetExplicity:=false;
         compiler.globals.SetPEOSVersionSetExplicitely:=false;

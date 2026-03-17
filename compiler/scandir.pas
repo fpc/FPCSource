@@ -513,7 +513,7 @@ unit scandir;
         { it not used but in win32, os2 and netware }
         current_scanner.skipspace;
         compiler.globals.description:=current_scanner.readcomment;
-        DescriptionSetExplicity:=true;
+        compiler.globals.DescriptionSetExplicity:=true;
       end;
 
     procedure dir_screenname; {ad}
