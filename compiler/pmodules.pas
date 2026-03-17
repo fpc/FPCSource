@@ -1546,7 +1546,7 @@ type
              if Assigned(curr) then
                curr.Loadlocalnamespacelist
              else
-               current_namespacelist:=Nil;
+               compiler.globals.current_namespacelist:=Nil;
              parseusesclause(curr);
              load_ok:=loadunits(curr,true) and load_ok and not tmodule.ctask_fast_backtrack;
              { has it been compiled at a higher level ?}
@@ -2074,7 +2074,7 @@ type
          if Assigned(curr) then
            curr.Loadlocalnamespacelist
          else
-           current_namespacelist:=Nil;
+           compiler.globals.current_namespacelist:=Nil;
 
          {Read the packages used by the package we compile.}
          if (current_scanner.token=_ID) and (current_scanner.idtoken=_REQUIRES) then
@@ -3090,7 +3090,7 @@ type
              if Assigned(curr) then
                curr.Loadlocalnamespacelist
              else
-               current_namespacelist:=Nil;
+               compiler.globals.current_namespacelist:=Nil;
              parseusesclause(curr);
              load_ok:=loadunits(curr,false) and load_ok;
              curr.consume_semicolon_after_uses:=true;

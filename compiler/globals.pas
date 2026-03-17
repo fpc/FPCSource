@@ -301,10 +301,6 @@ Const
 
 
     var
-       // During scanning/parsing, a module may not yet be available.
-       // Scanner checks first current_namespacelist, then local_namespacelist
-       premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
-       current_namespacelist : TCmdStrList;        // Set when parsing module to the current module's namespace.
        { contains tpackageentry entries }
        packagelist : TFPHashList;
        autoloadunits      : string;
@@ -725,6 +721,10 @@ Const
 
         { list of default namespaces }
         namespacelist : TCmdStrList;
+        // During scanning/parsing, a module may not yet be available.
+        // Scanner checks first current_namespacelist, then local_namespacelist
+        premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
+        current_namespacelist : TCmdStrList;        // Set when parsing module to the current module's namespace.
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1746,9 +1746,9 @@ implementation
        compiler.globals.packagesearchpath := nil;
        compiler.globals.namespacelist.Free;
        compiler.globals.namespacelist := nil;
-       premodule_namespacelist.Free;
-       premodule_namespacelist := nil;
-       current_namespacelist:=Nil;
+       compiler.globals.premodule_namespacelist.Free;
+       compiler.globals.premodule_namespacelist := nil;
+       compiler.globals.current_namespacelist:=Nil;
      end;
 
    procedure InitGlobals;
@@ -1792,8 +1792,8 @@ implementation
         compiler.globals.frameworksearchpath:=TSearchPathList.Create;
         compiler.globals.packagesearchpath:=TSearchPathList.Create;
         compiler.globals.namespacelist:=TCmdStrList.Create;
-        premodule_namespacelist:=TCmdStrList.Create;
-        current_namespacelist:=Nil;
+        compiler.globals.premodule_namespacelist:=TCmdStrList.Create;
+        compiler.globals.current_namespacelist:=Nil;
         { Def file }
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;

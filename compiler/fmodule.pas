@@ -1109,17 +1109,17 @@ implementation
 
       begin
         // Copying local namespace list
-        if premodule_namespacelist.Count>0 then
+        if compiler.globals.premodule_namespacelist.Count>0 then
           begin
-          nsitem:=TCmdStrListItem(premodule_namespacelist.First);
+          nsitem:=TCmdStrListItem(compiler.globals.premodule_namespacelist.First);
           while assigned(nsItem) do
             begin
             localnamespacelist.Concat(nsitem.Str);
             nsItem:=TCmdStrListItem(nsitem.Next);
             end;
-          premodule_namespacelist.Clear;
+          compiler.globals.premodule_namespacelist.Clear;
           end;
-        current_namespacelist:=localnamespacelist;
+        compiler.globals.current_namespacelist:=localnamespacelist;
       end;
 
 

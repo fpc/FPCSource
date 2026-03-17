@@ -722,8 +722,8 @@ var
            begin
              fnd:=SearchSourcePaths('');
              // current_namespacelist is set to the current module's namespacelist.
-             if (fnd=[]) and assigned(current_namespacelist) and (current_namespacelist.count>0) then
-               fnd:=SearchNameSpaceList(current_namespacelist);
+             if (fnd=[]) and assigned(compiler.globals.current_namespacelist) and (compiler.globals.current_namespacelist.count>0) then
+               fnd:=SearchNameSpaceList(compiler.globals.current_namespacelist);
              if (fnd=[]) and (compiler.globals.namespacelist.count>0) then
                fnd:=SearchNameSpaceList(compiler.globals.namespacelist);
            end;

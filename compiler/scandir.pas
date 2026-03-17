@@ -1202,10 +1202,10 @@ unit scandir;
           While (s<>'') do
             begin
               // We may not yet have a correct module namespacelist.
-              if assigned(current_namespacelist) then
-                current_namespacelist.Insert(s)
+              if assigned(compiler.globals.current_namespacelist) then
+                compiler.globals.current_namespacelist.Insert(s)
               else // copied when correct module is activated
-                premodule_namespacelist.Insert(s);
+                compiler.globals.premodule_namespacelist.Insert(s);
               s:='';
               if current_scanner.c=',' then
                 begin
