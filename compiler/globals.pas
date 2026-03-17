@@ -302,9 +302,6 @@ Const
 
     var
 
-       { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
-       llvmutilssuffix     : TCmdStr;
-
        cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
        rlinkpath      : TCmdStr;        { rpath-link linkdir override}
@@ -725,6 +722,9 @@ Const
         utilsdirectory : TPathStr;
         { targetname specific prefix used by these utils (options -XP<path>) }
         utilsprefix    : TCmdStr;
+
+        { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
+        llvmutilssuffix     : TCmdStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1771,7 +1771,7 @@ implementation
         { Utils directory }
         compiler.globals.utilsdirectory:='';
         compiler.globals.utilsprefix:='';
-        llvmutilssuffix:='';
+        compiler.globals.llvmutilssuffix:='';
         cshared:=false;
         rlinkpath:='';
         sysrootpath:='';

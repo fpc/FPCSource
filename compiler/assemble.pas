@@ -877,7 +877,7 @@ Implementation
         asfound:=false;
         asmbin:=asminfo^.asmbin;
         if (af_llvm in asminfo^.flags) then
-          asmbin:=asmbin+llvmutilssuffix;
+          asmbin:=asmbin+compiler.globals.llvmutilssuffix;
         if cs_assemble_on_target in current_settings.globalswitches then
          begin
            { If assembling on target, don't add any path PM }

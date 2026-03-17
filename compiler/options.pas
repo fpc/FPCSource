@@ -4328,7 +4328,7 @@ begin
                 case more[j+1] of
                   'S':
                     begin
-                      llvmutilssuffix:=copy(more,j+2);
+                      compiler.globals.llvmutilssuffix:=copy(more,j+2);
                       j:=length(more);
                     end
                   else

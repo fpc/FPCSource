@@ -744,7 +744,7 @@ Implementation
            not(cs_link_on_target in current_settings.globalswitches) then
           begin
           { ask clang }
-          clang:=FindUtil('clang'+llvmutilssuffix);
+          clang:=FindUtil('clang'+compiler.globals.llvmutilssuffix);
           if clang<>'' then
             begin
               clangsearchdirspath:=compiler.globals.outputexedir+UniqueName('clangsearchdirs');
