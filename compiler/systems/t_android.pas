@@ -411,8 +411,8 @@ begin
   else
     if compiler.globals.cshared then
       opts:=opts + ' -call_shared';
-  if rlinkpath<>'' then
-    opts:=opts+' --rpath-link '+rlinkpath;
+  if compiler.globals.rlinkpath<>'' then
+    opts:=opts+' --rpath-link '+compiler.globals.rlinkpath;
 
   if not IsSharedLib then
     begin

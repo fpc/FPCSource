@@ -498,11 +498,11 @@ begin
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
-  if rlinkpath<>'' then
+  if compiler.globals.rlinkpath<>'' then
     if use_gnu_ld then
-      DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath
+      DynLinkStr:=DynLinkStr+' --rpath-link '+compiler.globals.rlinkpath
     else
-      DynLinkStr:=DynLinkStr+' -R '+rlinkpath;
+      DynLinkStr:=DynLinkStr+' -R '+compiler.globals.rlinkpath;
 
   { solaris sets DynamicLinker, but gld will (hopefully) defaults to -Bdynamic and add the default-linker }
 { Write used files and libraries }

@@ -506,8 +506,8 @@ begin
        (compiler.target.info.system in systems_openbsd))) then
     DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
-  if rlinkpath<>'' then
-    DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;
+  if compiler.globals.rlinkpath<>'' then
+    DynLinkStr:=DynLinkStr+' --rpath-link '+compiler.globals.rlinkpath;
   if compiler.globals.CShared Then
    begin
       DynLinKStr:=DynLinkStr+' --shared'

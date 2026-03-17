@@ -392,8 +392,8 @@ begin
      DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
      if compiler.globals.cshared Then
        DynLinkStr:='--shared ' + DynLinkStr;
-     if rlinkpath<>'' Then
-       DynLinkStr:='--rpath-link '+rlinkpath + ' '+ DynLinkStr;
+     if compiler.globals.rlinkpath<>'' Then
+       DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath + ' '+ DynLinkStr;
    End;
 
 { Write used files and libraries }
@@ -449,8 +449,8 @@ var
      DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
      if compiler.globals.cshared Then
        DynLinkStr:='--shared ' + DynLinkStr;
-     if rlinkpath<>'' Then
-       DynLinkStr:='--rpath-link '+rlinkpath + ' '+ DynLinkStr;
+     if compiler.globals.rlinkpath<>'' Then
+       DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath + ' '+ DynLinkStr;
    End;
 { Write used files and libraries }
   WriteResponseFile(true,true);

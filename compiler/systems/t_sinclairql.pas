@@ -274,8 +274,8 @@ begin
     MapStr:='-M'+maybequoted(ScriptFixFilename(current_module.mapfilename));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
-  if rlinkpath<>'' then
-    DynLinkStr:='--rpath-link '+rlinkpath;
+  if compiler.globals.rlinkpath<>'' then
+    DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
   if UseVLink then
     begin
       if create_smartlink_sections then

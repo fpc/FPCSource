@@ -891,8 +891,8 @@ begin
      DynLinkStr:='--dynamic-linker='+Info.DynamicLinker;
      if compiler.globals.cshared then
        DynLinkStr:=DynLinkStr+' --shared ';
-     if rlinkpath<>'' then
-       DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath;
+     if compiler.globals.rlinkpath<>'' then
+       DynLinkStr:=DynLinkStr+' --rpath-link '+compiler.globals.rlinkpath;
    End;
 
   { add custom LTO library if using custom clang }

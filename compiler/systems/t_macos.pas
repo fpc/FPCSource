@@ -399,8 +399,8 @@ begin
 
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
-  if rlinkpath<>'' then
-    DynLinkStr:='--rpath-link '+rlinkpath;
+  if compiler.globals.rlinkpath<>'' then
+    DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
     if create_smartlink_sections then
       GCSectionsStr:='--gc-sections ';
 

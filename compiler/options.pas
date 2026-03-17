@@ -4349,8 +4349,8 @@ begin
          begin
            if (compiler.target.info.system in suppported_targets_x_smallr) then
              begin
-               rlinkpath:=Copy(more,2);
-               DefaultReplacements(rlinkpath);
+               compiler.globals.rlinkpath:=Copy(more,2);
+               DefaultReplacements(compiler.globals.rlinkpath);
              end
            else
              IgnoredPara('-Xr');

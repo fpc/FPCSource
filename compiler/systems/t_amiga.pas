@@ -363,8 +363,8 @@ begin
     MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath;
+  if compiler.globals.rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
   if UseVLink then
     begin
       if create_smartlink_sections then
@@ -404,8 +404,8 @@ begin
     MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath;
+  if compiler.globals.rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
   if UseVLink then
     begin
       if create_smartlink_sections then
