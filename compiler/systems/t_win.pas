@@ -1677,8 +1677,8 @@ implementation
              else
                ;
            end;
-           if dllversion<>'' then
-             cmdstr:=cmdstr+' --version '+dllversion;
+           if compiler.globals.dllversion<>'' then
+             cmdstr:=cmdstr+' --version '+compiler.globals.dllversion;
            cmdstr:=cmdstr+' --input '+maybequoted(fn);
            cmdstr:=cmdstr+' --stack '+tostr(stacksize);
            if compiler.target.info.system in [system_i386_win32, system_i386_wdosx] then
@@ -1736,7 +1736,7 @@ implementation
             else
               ;
           end;
-        if dllversion<>'' then
+        if compiler.globals.dllversion<>'' then
           begin
            peoptheader.MajorImageVersion:=dllmajor;
            peoptheader.MinorImageVersion:=dllminor;

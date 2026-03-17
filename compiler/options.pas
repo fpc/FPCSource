@@ -2994,13 +2994,13 @@ begin
        'v' :
          begin
            include(init_settings.globalswitches,cs_link_deffile);
-           dllversion:=Copy(more,j+1);
-           l:=pos('.',dllversion);
+           compiler.globals.dllversion:=Copy(more,j+1);
+           l:=pos('.',compiler.globals.dllversion);
            dllminor:=0;
            error:=0;
            if l>0 then
             begin
-              val(copy(dllversion,l+1,255),minor,error);
+              val(copy(compiler.globals.dllversion,l+1,255),minor,error);
               if (error=0) and
                  (minor>=0) and (minor<=$ffff) then
                 dllminor:=minor
@@ -3013,14 +3013,14 @@ begin
            dllmajor:=1;
            major:=0;
            if error=0 then
-             val(copy(dllversion,1,l-1),major,error);
+             val(copy(compiler.globals.dllversion,1,l-1),major,error);
            if (error=0) and (major>=0) and (major<=$ffff) then
              dllmajor:=major
            else
              if error=0 then
                error:=1;
            if error<>0 then
-             compiler.verbose.Message1(scan_w_wrong_version_ignored,dllversion);
+             compiler.verbose.Message1(scan_w_wrong_version_ignored,compiler.globals.dllversion);
            break;
          end;
        'w' :

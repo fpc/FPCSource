@@ -140,8 +140,8 @@ begin
       begin
         if compiler.globals.description<>'' then
           writeln(t,'DESCRIPTION '+''''+compiler.globals.description+'''');
-        if dllversion<>'' then
-          writeln(t,'VERSION '+dllversion);
+        if compiler.globals.dllversion<>'' then
+          writeln(t,'VERSION '+compiler.globals.dllversion);
       end;
     else
       ;

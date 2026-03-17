@@ -301,7 +301,6 @@ Const
 
 
     var
-       dllversion    : string;
        dllmajor,
        dllminor,
        dllrevision   : word;  { revision only for netware }
@@ -725,6 +724,7 @@ Const
         MinStackSizeSetExplicity,
         MaxStackSizeSetExplicity,
         DescriptionSetExplicity : boolean;
+        dllversion    : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1807,7 +1807,7 @@ implementation
         compiler.globals.MinStackSizeSetExplicity:=false;
         compiler.globals.MaxStackSizeSetExplicity:=false;
 
-        dllversion:='';
+        compiler.globals.dllversion:='';
         dllmajor:=1;
         dllminor:=0;
         dllrevision:=0;

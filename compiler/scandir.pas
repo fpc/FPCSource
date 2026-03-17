@@ -1979,17 +1979,17 @@ unit scandir;
                      dllmajor:=word(major);
                      dllminor:=word(minor);
                      dllrevision:=word(revision);
-                     dllversion:=tostr(major)+','+tostr(minor)+','+tostr(revision);
+                     compiler.globals.dllversion:=tostr(major)+','+tostr(minor)+','+tostr(revision);
                   end
                 else
                   begin
                      dllmajor:=word(major);
                      dllminor:=word(minor);
-                     dllversion:=tostr(major)+'.'+tostr(minor);
+                     compiler.globals.dllversion:=tostr(major)+'.'+tostr(minor);
                   end;
               end
             else
-              dllversion:=tostr(major);
+              compiler.globals.dllversion:=tostr(major);
           end;
       end;
 
