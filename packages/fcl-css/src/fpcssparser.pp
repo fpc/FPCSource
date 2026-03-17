@@ -1567,7 +1567,7 @@ begin
       Consume(ctkFUNCTION);
     end;
     // Call argument list can be empty: mask()
-    While not (CurrentToken in [ctkRPARENTHESIS,ctkEOF]) do
+    While not (CurrentToken in [ctkRPARENTHESIS,ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
       begin
       aValue:=ParseComponentValue;
       if aValue=nil then
@@ -1575,7 +1575,7 @@ begin
         aValue:=TCSSElement(CreateElement(TCSSElement));
         GetNextToken;
         end;
-      if (CurrentToken in [ctkCOMMA,ctkRPARENTHESIS,ctkEOF]) then
+      if (CurrentToken in [ctkCOMMA,ctkRPARENTHESIS,ctkEOF,ctkSEMICOLON,ctkRBRACE]) then
         begin
         aCall.AddArg(aValue);
         if CurrentToken=ctkCOMMA then
@@ -1595,14 +1595,15 @@ begin
             GetNextToken;
             end;
           aList.AddChild(aValue);
-        until CurrentToken in [ctkCOMMA,ctkRPARENTHESIS,ctkEOF];
+        until CurrentToken in [ctkCOMMA,ctkRPARENTHESIS,ctkEOF,ctkSEMICOLON,ctkRBRACE];
         if CurrentToken=ctkCOMMA then
           GetNextToken;
         end;
       end;
-    if CurrentToken=ctkEOF then
-      DoError(SErrUnexpectedEndOfFile,[aName]);
-    Consume(ctkRPARENTHESIS);
+    if CurrentToken<>ctkRPARENTHESIS then
+      DoWarn(SErrUnexpectedEndOfFile,[aName])
+    else
+      Consume(ctkRPARENTHESIS);
     Result:=aCall;
     aCall:=nil;
   finally

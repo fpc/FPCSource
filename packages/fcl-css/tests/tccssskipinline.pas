@@ -21,6 +21,7 @@ type
     // test skip invalid attribute  color: 3;
     procedure TestSkipInline_AttrMissingColon;
     procedure TestSkipInline_AttrCommaMissingKey;
+    procedure TestSkipInline_AttrMissingCloseParenthesis;
   end;
 
 
@@ -49,6 +50,12 @@ end;
 procedure TTestCSSSkipInline.TestSkipInline_AttrCommaMissingKey;
 begin
   ParseInline_FirstValidDecl('a,; color: red;','color');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrMissingCloseParenthesis;
+begin
+  SkipInvalid:=true;
+  ParseInline('a: bla( ; color: red;');
 end;
 
 initialization
