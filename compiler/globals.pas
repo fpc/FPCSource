@@ -301,9 +301,6 @@ Const
 
 
     var
-{$ifdef PREPROCWRITE}
-       parapreprocess    : boolean;
-{$endif PREPROCWRITE}
        printnodefile     : text;
 
        {  typical cross compiling params}
@@ -725,6 +722,9 @@ Const
         paralinkoptions   : TCmdStr;
         paradynamiclinker : string;
         paraprintnodetree : byte;
+{$ifdef PREPROCWRITE}
+        parapreprocess    : boolean;
+{$endif PREPROCWRITE}
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
