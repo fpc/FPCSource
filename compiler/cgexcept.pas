@@ -30,13 +30,23 @@ unit cgexcept;
       globtype,compilerbase,
       aasmbase, aasmdata,
       symtype,symdef,
-      cgbase,cgutils,pass_2;
+      cgbase,cgutils,pass_2,hlcgobj;
 
     type
       { Utility class for exception handling state management that is used
         by tryexcept/tryfinally/on nodes (in a separate class so it can both
         be shared and overridden) }
+
+      { tcgexceptionstatehandler }
+
       tcgexceptionstatehandler = class
+      private
+        FCompiler: TCompilerBase;
+        function GetHLCG: thlcgobj; inline;
+      protected
+        property Compiler: TCompilerBase read FCompiler;
+        property hlcg: thlcgobj read GetHLCG;
+      public
        type
         texceptiontemps=record
           jmpbuf,
@@ -56,6 +66,7 @@ unit cgexcept;
 
         texceptframekind = (tek_except, tek_implicitfinally, tek_normalfinally);
 
+        constructor Create(acompiler: TCompilerBase);
         procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); virtual;
         procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); virtual;
         procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); virtual;
@@ -93,16 +104,23 @@ unit cgexcept;
       symconst,symtable,defutil,
       parabase,paramgr,
       procinfo,
-      tgobj,
-      hlcgobj;
+      tgobj;
 
 {*****************************************************************************
                      tcgexceptionstatehandler
 *****************************************************************************}
 
+    constructor tcgexceptionstatehandler.Create(acompiler: TCompilerBase);
+      begin
+        FCompiler:=acompiler;
+      end;
+
+    function tcgexceptionstatehandler.GetHLCG: thlcgobj; inline;
+      begin
+        result:=compiler.hlcg;
+      end;
+
     function tcgexceptionstatehandler.use_cleanup(const exceptframekind: texceptframekind): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { in case of an exception caught by the implicit exception frame of
           a safecall routine, this is not a cleanup frame but one that
@@ -147,14 +165,10 @@ unit cgexcept;
 
     procedure tcgexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
-      var
         paraloc1, paraloc2, paraloc3, pushexceptres, setjmpres: tcgpara;
         pd: tprocdef;
         tmpresloc: tlocation;
       begin
-        hlcg:=compiler.hlcg;
         current_asmdata.getjumplabel(exceptstate.exceptionlabel);
         exceptstate.oldflowcontrol:=flowcontrol;
         exceptstate.finallycodelabel:=nil;
@@ -221,11 +235,7 @@ unit cgexcept;
 
 
     procedure tcgexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
       begin
-        hlcg:=compiler.hlcg;
         hlcg.a_label(list,exceptstate.exceptionlabel);
       end;
 
@@ -239,12 +249,8 @@ unit cgexcept;
 
     procedure tcgexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree: boolean);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
-      var
         reasonreg: tregister;
       begin
-         hlcg:=compiler.hlcg;
          popaddrstack(list);
          if not onlyfree then
           begin
@@ -258,11 +264,7 @@ unit cgexcept;
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
     procedure tcgexceptionstatehandler.cleanupobjectstack(list: TAsmList);
-      var
-         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-         hlcg: thlcgobj;
       begin
-         hlcg:=compiler.hlcg;
          hlcg.g_call_system_proc(list,'fpc_doneexception',[],nil).resetiftemp;
       end;
 
@@ -271,12 +273,8 @@ unit cgexcept;
       control is inside except block }
     procedure tcgexceptionstatehandler.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       var
-         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-         hlcg: thlcgobj;
-      var
          exitlabel: tasmlabel;
       begin
-         hlcg:=compiler.hlcg;
          current_asmdata.getjumplabel(exitlabel);
          { add an catch all action clause, at least psabieh needs this }
          catch_all_add(list);
@@ -294,19 +292,12 @@ unit cgexcept;
 
 
     procedure tcgexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
       begin
-        hlcg:=compiler.hlcg;
         hlcg.g_call_system_proc(list,'fpc_reraise',[],nil).resetiftemp;
       end;
 
 
     procedure tcgexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
       var
         pd: tprocdef;
         href2: treference;
@@ -316,7 +307,6 @@ unit cgexcept;
         indirect: boolean;
         otherunit: boolean;
       begin
-        hlcg:=compiler.hlcg;
         paraloc1.init;
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
@@ -371,11 +361,7 @@ unit cgexcept;
       end;
 
     procedure tcgexceptionstatehandler.popaddrstack(list: TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
       begin
-        hlcg:=compiler.hlcg;
         hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil).resetiftemp;
       end;
 

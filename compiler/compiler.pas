@@ -710,7 +710,7 @@ end;
 procedure TCompiler.CreateExceptionStateHandler(eshclass: tcgexceptionstatehandlerclass);
 begin
   FreeAndNil(FExceptionStateHandler);
-  FExceptionStateHandler:=eshclass.create;
+  FExceptionStateHandler:=eshclass.create(Self);
 end;
 
 procedure TCompiler.InitLinker;
