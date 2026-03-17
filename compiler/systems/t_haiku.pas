@@ -195,13 +195,13 @@ begin
   // Under Haiku with package management, BELIBRARIES is empty by default
   // We have to look at those system paths, in this order.
   // User can still customize BELIBRARIES. That is why it is looked at first.
-  LibrarySearchPath.AddLibraryPath(sysrootpath,s,true); {format:'path1;path2;...'}
+  LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,s,true); {format:'path1;path2;...'}
 
-  LibrarySearchPath.AddLibraryPath(sysrootpath, HomeNonPackagedDevLib, false);
-  LibrarySearchPath.AddLibraryPath(sysrootpath, HomeDevLib, false);
-  LibrarySearchPath.AddLibraryPath(sysrootpath, CommonNonPackagedDevLib, false);
-  LibrarySearchPath.AddLibraryPath(sysrootpath, CommonDevLib, false);
-  LibrarySearchPath.AddLibraryPath(sysrootpath, SystemDevLib, false);
+  LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath, HomeNonPackagedDevLib, false);
+  LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath, HomeDevLib, false);
+  LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath, CommonNonPackagedDevLib, false);
+  LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath, CommonDevLib, false);
+  LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath, SystemDevLib, false);
 end;
 
 

@@ -132,26 +132,26 @@ begin
       { some linuxes might not have the lib64 variants (Arch, LFS }
       { don't use PathExists checks, as we need to take sysroots and
         cross-compiling into account }
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/X11R6/lib',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/X11R6/lib64',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib64',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib64',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
       { /lib64 should be the really first, so add it before everything else }
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
 {$else}
 {$ifdef powerpc64}
       if compiler.target.info.abi<>abi_powerpc_elfv2 then
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/X11R6/lib64',true)
+        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/X11R6/lib64',true)
       else
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/powerpc64le-linux-gnu;=/usr/X11R6/powerpc64le-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib64',true);
+        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/powerpc64le-linux-gnu;=/usr/X11R6/powerpc64le-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
       { /lib64 should be the really first, so add it before everything else }
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
 {$else powerpc64}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 {$endif powerpc64}
 {$endif x86_64}
 
@@ -160,60 +160,60 @@ begin
     for other arm flavours, this cannot hurt }
     if compiler.target.info.abi=abi_eabihf then
       begin
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/arm-linux-gnueabihf',true);
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/arm-linux-gnueabihf',true);
+        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/arm-linux-gnueabihf',true);
+        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/arm-linux-gnueabihf',true);
       end;
     if compiler.target.info.abi=abi_eabi then
       begin
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/arm-linux-gnueabi',true);
-        LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/arm-linux-gnueabi',true);
+        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/arm-linux-gnueabi',true);
+        LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/arm-linux-gnueabi',true);
       end;
 {$endif arm}
 {$ifdef x86_64}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/x86_64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/x86_64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/x86_64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/x86_64-linux-gnu',true);
 {$endif x86_64}
 {$ifdef i386}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/i386-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/i386-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/i386-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/i386-linux-gnu',true);
 {$endif i386}
 {$ifdef aarch64}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib64',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/aarch64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/aarch64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/aarch64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/aarch64-linux-gnu',true);
 {$endif aarch64}
 {$ifdef powerpc}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/powerpc-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/powerpc-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/powerpc-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/powerpc-linux-gnu',true);
 {$endif powerpc}
 {$ifdef m68k}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/m68k-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/m68k-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/m68k-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/m68k-linux-gnu',true);
 {$endif m68k}
 {$ifdef mipsel}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/mipsel-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/mipsel-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/mipsel-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/mipsel-linux-gnu',true);
 {$endif mipsel}
 {$ifdef mips}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/mips-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/mips-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/mips-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/mips-linux-gnu',true);
 {$endif mips}
 {$ifdef sparc64}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/sparc64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/sparc64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib64',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/sparc64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/sparc64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib64',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib64',true);
 {$endif sparc64}
 {$ifdef riscv32}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/riscv32-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/riscv32-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/riscv32-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/riscv32-linux-gnu',true);
 {$endif riscv32}
 {$ifdef riscv64}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/riscv64-linux-gnu',true);
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/riscv64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/riscv64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/riscv64-linux-gnu',true);
 {$endif riscv64}
 {$ifdef loongarch64}
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/loongarch64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/loongarch64-linux-gnu',true);
 {$endif loongarch64}
     end;
 end;
@@ -294,6 +294,8 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
 {$endif loongarch64}
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
 {$ifdef powerpc64}
   if defdynlinker='' then
@@ -339,7 +341,7 @@ begin
     glibc 2.0
     If none is found (e.g. when cross compiling) glibc21 is assumed
   }
-  if fileexists(sysrootpath+defdynlinker,false) then
+  if fileexists(compiler.globals.sysrootpath+defdynlinker,false) then
     begin
       DynamicLinker:=defdynlinker;
 {$ifdef i386}
@@ -348,13 +350,13 @@ begin
       libctype:=glibc2;
 {$endif i386}
     end
-  else if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
+  else if fileexists(compiler.globals.sysrootpath+'/lib/ld-uClibc.so.0',false) then
     begin
       DynamicLinker:='/lib/ld-uClibc.so.0';
       libctype:=uclibc;
     end
 {$ifdef i386}
-  else if FileExists(sysrootpath+'/lib/ld-linux.so.1',false) then
+  else if FileExists(compiler.globals.sysrootpath+'/lib/ld-linux.so.1',false) then
     begin
       DynamicLinker:='/lib/ld-linux.so.1';
       libctype:=glibc2;
@@ -519,7 +521,7 @@ begin
        augment the default linkerscript, which also requires -T (normally that
        option means "completely replace the default linkerscript) }
      if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) or
-       (length(sysrootpath)>0) then
+       (length(compiler.globals.sysrootpath)>0) then
        begin
          ExeCmd[1]:=ExeCmd[1]+' -T';
          DllCmd[1]:=DllCmd[1]+' -T';
@@ -716,7 +718,7 @@ begin
       if isdll and not linklibc then
        begin
          Add('INPUT(');
-         Add(sysrootpath+info.DynamicLinker);
+         Add(compiler.globals.sysrootpath+info.DynamicLinker);
          Add(')');
        end;
       linksToSharedLibFiles := not SharedLibFiles.Empty;
@@ -1174,7 +1176,7 @@ begin
   { See tw9089*.pp: if more than one pure-Pascal shared libs are loaded,
     and none have rtld in their DT_NEEDED, then rtld cannot finalize correctly.  }
   if IsSharedLibrary then
-    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(sysrootpath+dynlinker));
+    LinkScript.Concat('READSTATICLIBRARY '+maybequoted(compiler.globals.sysrootpath+dynlinker));
 
   linkToSharedLibs:=(not SharedLibFiles.Empty);
 

@@ -301,7 +301,6 @@ Const
 
 
     var
-       sysrootpath    : TCmdStr;        { target system root to search dyn linker }
 
        { some flags for global compiler switches }
        do_build,
@@ -725,6 +724,7 @@ Const
         cshared        : boolean;        { pass --shared to ld to link C libs shared}
         Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
         rlinkpath      : TCmdStr;        { rpath-link linkdir override}
+        sysrootpath    : TCmdStr;        { target system root to search dyn linker }
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1774,7 +1774,7 @@ implementation
         compiler.globals.llvmutilssuffix:='';
         compiler.globals.cshared:=false;
         compiler.globals.rlinkpath:='';
-        sysrootpath:='';
+        compiler.globals.sysrootpath:='';
 {$if defined(XTENSA) or defined(RISCV32)}
         compiler.globals.idfpath:='';
 {$endif defined(XTENSA) or defined(RISCV32)}

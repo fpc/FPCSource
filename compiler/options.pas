@@ -3158,9 +3158,9 @@ begin
     'l' :
       begin
         if ispara then
-          ParaLibraryPath.AddLibraryPath(sysrootpath,More,false)
+          ParaLibraryPath.AddLibraryPath(compiler.globals.sysrootpath,More,false)
         else
-          LibrarySearchPath.AddLibraryPath(sysrootpath,More,true)
+          LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,More,true)
       end;
     'L' :
       begin
@@ -4358,8 +4358,8 @@ begin
          end;
        'R' :
          begin
-           sysrootpath:=copy(more,2);
-           defaultreplacements(sysrootpath);
+           compiler.globals.sysrootpath:=copy(more,2);
+           defaultreplacements(compiler.globals.sysrootpath);
            more:='';
          end;
        's' :

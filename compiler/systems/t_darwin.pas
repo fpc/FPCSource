@@ -109,7 +109,7 @@ implementation
       begin
         inherited;
         if not compiler.globals.Dontlinkstdlibpath Then
-          LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib',true)
+          LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib',true)
       end;
 
 
@@ -387,9 +387,9 @@ implementation
 
     function tlinkerdarwin.GetSysroot: TCmdStr;
       begin
-        if sysrootpath<>'' then
+        if compiler.globals.sysrootpath<>'' then
           begin
-            result:='-syslibroot '+maybequoted(sysrootpath);
+            result:='-syslibroot '+maybequoted(compiler.globals.sysrootpath);
           end
         else
           begin

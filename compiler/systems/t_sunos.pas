@@ -114,9 +114,9 @@ begin
     use_gnu_ld:=true;
   if NOT compiler.globals.Dontlinkstdlibpath Then
 {$ifdef x86_64}
-   LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/64;=/usr/lib/64;=/usr/X11R6/lib/64;=/opt/sfw/lib/64',true);
+   LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib/64;=/usr/lib/64;=/usr/X11R6/lib/64;=/opt/sfw/lib/64',true);
 {$else not x86_64}
-   LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib;=/opt/sfw/lib',true);
+   LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib;=/opt/sfw/lib',true);
 {$endif not x86_64}
 {$ifdef  LinkTest}
      if (cs_link_staticflag in current_settings.globalswitches) then  WriteLN('ForceLinkStaticFlag');

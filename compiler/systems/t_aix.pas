@@ -101,9 +101,9 @@ begin
   Inherited Create;
   if not compiler.globals.Dontlinkstdlibpath then
     if not(cs_profile in current_settings.moduleswitches) then
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib;=/usr/X11R6/lib;=/opt/freeware/lib',true)
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=/usr/X11R6/lib;=/opt/freeware/lib',true)
     else
-      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/profiled;=/usr/X11R6/lib;=/opt/freeware/lib',true)
+      LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/profiled;=/usr/X11R6/lib;=/opt/freeware/lib',true)
 end;
 
 
@@ -128,14 +128,14 @@ begin
    end;
 {$if defined(powerpc)}
    if not(cs_profile in current_settings.moduleswitches) then
-     prtobj:=sysrootpath+'/lib/crt0.o'
+     prtobj:=compiler.globals.sysrootpath+'/lib/crt0.o'
    else
-     prtobj:=sysrootpath+'/lib/gcrt0.o';
+     prtobj:=compiler.globals.sysrootpath+'/lib/gcrt0.o';
 {$elseif defined(powerpc64)}
   if not(cs_profile in current_settings.moduleswitches) then
-    prtobj:=sysrootpath+'/lib/crt0_64.o'
+    prtobj:=compiler.globals.sysrootpath+'/lib/crt0_64.o'
   else
-    prtobj:=sysrootpath+'/lib/gcrt0_64.o';
+    prtobj:=compiler.globals.sysrootpath+'/lib/gcrt0_64.o';
 {$else}
 {$error unsupported AIX architecture}
 {$endif}
@@ -286,8 +286,8 @@ begin
     cmdstr:=cmdstr+' -E';
 
   { custom sysroot? (for cross-compiling -> assume gnu ld) }
-  if sysrootpath<>'' then
-    cmdstr:=cmdstr+' --sysroot='+sysrootpath;
+  if compiler.globals.sysrootpath<>'' then
+    cmdstr:=cmdstr+' --sysroot='+compiler.globals.sysrootpath;
 
   if not(cs_link_nolink in current_settings.globalswitches) and
      not(tf_no_backquote_support in source_info.flags) then

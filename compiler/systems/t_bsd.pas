@@ -116,9 +116,9 @@ begin
   Inherited;
   if not compiler.globals.Dontlinkstdlibpath Then
    if compiler.target.info.system in systems_openbsd then
-     LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
+     LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=$OPENBSD_X11BASE/lib;=$OPENBSD_LOCALBASE/lib',true)
    else
-     LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
+     LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 end;
 
 
