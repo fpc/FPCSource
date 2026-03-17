@@ -56,29 +56,29 @@ unit cgexcept;
 
         texceptframekind = (tek_except, tek_implicitfinally, tek_normalfinally);
 
-        class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); virtual;
-        class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); virtual;
-        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); virtual;
+        procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); virtual;
+        procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); virtual;
+        procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); virtual;
         { start of "except/finally" block }
-        class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps); virtual;
+        procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps); virtual;
         { end of a try-block, label comes after the end of try/except or
           try/finally }
-        class procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); virtual;
-        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); virtual;
-        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); virtual;
-        class procedure handle_reraise(list:TAsmList;const t:texceptiontemps;const entrystate: texceptionstate; const exceptframekind: texceptframekind); virtual;
+        procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); virtual;
+        procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); virtual;
+        procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); virtual;
+        procedure handle_reraise(list:TAsmList;const t:texceptiontemps;const entrystate: texceptionstate; const exceptframekind: texceptframekind); virtual;
         { start of an "on" (catch) block }
-        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); virtual;
+        procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); virtual;
         { end of an "on" (catch) block }
-        class procedure end_catch(list: TAsmList); virtual;
+        procedure end_catch(list: TAsmList); virtual;
         { called for a catch all exception }
-        class procedure catch_all_start(list: TAsmList); virtual;
+        procedure catch_all_start(list: TAsmList); virtual;
         { called after the catch all exception has been started with new_exception }
-        class procedure catch_all_add(list: TAsmList); virtual;
-        class procedure catch_all_end(list: TAsmList); virtual;
-        class procedure cleanupobjectstack(list: TAsmList); virtual;
-        class procedure popaddrstack(list: TAsmList); virtual;
-        class function use_cleanup(const exceptframekind: texceptframekind): boolean;
+        procedure catch_all_add(list: TAsmList); virtual;
+        procedure catch_all_end(list: TAsmList); virtual;
+        procedure cleanupobjectstack(list: TAsmList); virtual;
+        procedure popaddrstack(list: TAsmList); virtual;
+        function use_cleanup(const exceptframekind: texceptframekind): boolean;
       end;
       tcgexceptionstatehandlerclass = class of tcgexceptionstatehandler;
 
@@ -100,7 +100,7 @@ unit cgexcept;
                      tcgexceptionstatehandler
 *****************************************************************************}
 
-    class function tcgexceptionstatehandler.use_cleanup(const exceptframekind: texceptframekind): boolean;
+    function tcgexceptionstatehandler.use_cleanup(const exceptframekind: texceptframekind): boolean;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
@@ -127,7 +127,7 @@ unit cgexcept;
        be modified, all temps should be allocated on the heap instead of the
        stack. }
 
-    class procedure tcgexceptionstatehandler.get_exception_temps(list:TAsmList;var t:texceptiontemps);
+    procedure tcgexceptionstatehandler.get_exception_temps(list:TAsmList;var t:texceptiontemps);
       begin
         if not assigned(exceptionreasontype) then
           exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
@@ -137,7 +137,7 @@ unit cgexcept;
       end;
 
 
-    class procedure tcgexceptionstatehandler.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
+    procedure tcgexceptionstatehandler.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
       begin
         tg.Ungettemp(list,t.jmpbuf);
         tg.ungettemp(list,t.envbuf);
@@ -145,7 +145,7 @@ unit cgexcept;
       end;
 
 
-    class procedure tcgexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+    procedure tcgexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
@@ -220,7 +220,7 @@ unit cgexcept;
      end;
 
 
-    class procedure tcgexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps);
+    procedure tcgexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
@@ -230,14 +230,14 @@ unit cgexcept;
       end;
 
 
-    class procedure tcgexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel);
+    procedure tcgexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel);
       begin
          exceptionstate.newflowcontrol:=flowcontrol;
          flowcontrol:=exceptionstate.oldflowcontrol;
       end;
 
 
-    class procedure tcgexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree: boolean);
+    procedure tcgexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree: boolean);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
@@ -257,7 +257,7 @@ unit cgexcept;
 
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
-    class procedure tcgexceptionstatehandler.cleanupobjectstack(list: TAsmList);
+    procedure tcgexceptionstatehandler.cleanupobjectstack(list: TAsmList);
       var
          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
          hlcg: thlcgobj;
@@ -269,7 +269,7 @@ unit cgexcept;
 
     { generates code to be executed when another exeception is raised while
       control is inside except block }
-    class procedure tcgexceptionstatehandler.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+    procedure tcgexceptionstatehandler.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       var
          compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
          hlcg: thlcgobj;
@@ -293,7 +293,7 @@ unit cgexcept;
       end;
 
 
-    class procedure tcgexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
+    procedure tcgexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
@@ -303,7 +303,7 @@ unit cgexcept;
       end;
 
 
-    class procedure tcgexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+    procedure tcgexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
@@ -347,30 +347,30 @@ unit cgexcept;
       end;
 
 
-    class procedure tcgexceptionstatehandler.end_catch(list: TAsmList);
+    procedure tcgexceptionstatehandler.end_catch(list: TAsmList);
       begin
         { nothing to do by default }
       end;
 
 
-    class procedure tcgexceptionstatehandler.catch_all_start(list: TAsmList);
+    procedure tcgexceptionstatehandler.catch_all_start(list: TAsmList);
       begin
         { nothing to do by default }
       end;
 
 
-    class procedure tcgexceptionstatehandler.catch_all_add(list: TAsmList);
+    procedure tcgexceptionstatehandler.catch_all_add(list: TAsmList);
       begin
         { nothing to do by default }
       end;
 
 
-    class procedure tcgexceptionstatehandler.catch_all_end(list: TAsmList);
+    procedure tcgexceptionstatehandler.catch_all_end(list: TAsmList);
       begin
         { nothing to do by default }
       end;
 
-    class procedure tcgexceptionstatehandler.popaddrstack(list: TAsmList);
+    procedure tcgexceptionstatehandler.popaddrstack(list: TAsmList);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;

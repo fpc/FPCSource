@@ -142,30 +142,30 @@ implementation
          Never instantiated. }
        tpsabiehexceptionstatehandler = class(tcgexceptionstatehandler)
        protected
-         class procedure begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out
+         procedure begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out
            exceptlocreg: tregister);
-         class procedure catch_all_start_internal(list: TAsmList; add_catch: boolean);
+         procedure catch_all_start_internal(list: TAsmList; add_catch: boolean);
        public
-         class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
-         class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
-         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+         procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
+         procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
+         procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
          { start of "except/finally" block }
-         class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps); override;
+         procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps); override;
          { end of a try-block, label comes after the end of try/except or
            try/finally }
-         class procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); override;
-         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
-         class procedure handle_reraise(list:TAsmList;const t:texceptiontemps;const entrystate: texceptionstate; const exceptframekind: texceptframekind); override;
+         procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); override;
+         procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+         procedure handle_reraise(list:TAsmList;const t:texceptiontemps;const entrystate: texceptionstate; const exceptframekind: texceptframekind); override;
          { start of an "on" (catch) block }
-         class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+         procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
          { end of an "on" (catch) block }
-         class procedure end_catch(list: TAsmList); override;
+         procedure end_catch(list: TAsmList); override;
          { called for a catch all exception }
-         class procedure catch_all_start(list: TAsmList); override;
-         class procedure catch_all_end(list: TAsmList); override;
-         class procedure catch_all_add(list: TAsmList); override;
-         class procedure cleanupobjectstack(list: TAsmList); override;
-         class procedure popaddrstack(list: TAsmList); override;
+         procedure catch_all_start(list: TAsmList); override;
+         procedure catch_all_end(list: TAsmList); override;
+         procedure catch_all_add(list: TAsmList); override;
+         procedure cleanupobjectstack(list: TAsmList); override;
+         procedure popaddrstack(list: TAsmList); override;
        end;
 
 
@@ -528,7 +528,7 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
+    procedure tpsabiehexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
       begin
         if not assigned(exceptionreasontype) then
           exceptionreasontype:=ossinttype;
@@ -536,14 +536,14 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
+    procedure tpsabiehexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
       begin
         tg.ungettemp(list,t.reasonbuf);
         (current_procinfo as tpsabiehprocinfo).FinalizeAndPopAction((current_procinfo as tpsabiehprocinfo).CurrentAction);
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.new_exception(list: TAsmList; const t: texceptiontemps;
+    procedure tpsabiehexceptionstatehandler.new_exception(list: TAsmList; const t: texceptiontemps;
       const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
@@ -586,7 +586,7 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind;
+    procedure tpsabiehexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind;
       var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
@@ -608,7 +608,7 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps;
+    procedure tpsabiehexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps;
       var exceptionstate: texceptionstate; endlabel: TAsmLabel);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
@@ -632,14 +632,14 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint;
+    procedure tpsabiehexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint;
       endexceptlabel: tasmlabel; onlyfree: boolean);
       begin
         { nothing to do }
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate;
+    procedure tpsabiehexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate;
       const exceptframekind: texceptframekind);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
@@ -707,7 +707,7 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel;
+    procedure tpsabiehexceptionstatehandler.begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel;
       add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
@@ -788,7 +788,7 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.catch_all_start_internal(list: TAsmList; add_catch: boolean);
+    procedure tpsabiehexceptionstatehandler.catch_all_start_internal(list: TAsmList; add_catch: boolean);
       var
         exceptlocdef: tdef;
         exceptlocreg: tregister;
@@ -797,14 +797,14 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out
+    procedure tpsabiehexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out
       exceptlocreg: tregister);
       begin
         begin_catch_internal(list,excepttype,nextonlabel,true,exceptlocdef,exceptlocreg);
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.end_catch(list: TAsmList);
+    procedure tpsabiehexceptionstatehandler.end_catch(list: TAsmList);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
@@ -815,19 +815,19 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.catch_all_start(list: TAsmList);
+    procedure tpsabiehexceptionstatehandler.catch_all_start(list: TAsmList);
       begin
         catch_all_start_internal(list,true);
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.catch_all_add(list: TAsmList);
+    procedure tpsabiehexceptionstatehandler.catch_all_add(list: TAsmList);
       begin
         (current_procinfo as tpsabiehprocinfo).CurrentAction.AddAction(nil);
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.catch_all_end(list: TAsmList);
+    procedure tpsabiehexceptionstatehandler.catch_all_end(list: TAsmList);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
@@ -837,13 +837,13 @@ implementation
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.cleanupobjectstack(list: TAsmList);
+    procedure tpsabiehexceptionstatehandler.cleanupobjectstack(list: TAsmList);
       begin
         { there is nothing to do }
       end;
 
 
-    class procedure tpsabiehexceptionstatehandler.popaddrstack(list: TAsmList);
+    procedure tpsabiehexceptionstatehandler.popaddrstack(list: TAsmList);
       begin
         { there is no addr stack, so do nothing }
       end;
