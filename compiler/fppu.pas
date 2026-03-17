@@ -783,9 +783,9 @@ var
         strm : TCStream;
       begin
         result:=false;
-        for i:=0 to packagelist.count-1 do
+        for i:=0 to compiler.globals.packagelist.count-1 do
           begin
-            pkg:=ppackageentry(packagelist[i]);
+            pkg:=ppackageentry(compiler.globals.packagelist[i]);
             if not assigned(pkg^.package) then
               internalerror(2013053103);
             idx:=pkg^.package.containedmodules.FindIndexOf(modulename^);
@@ -2318,7 +2318,7 @@ var
 
       begin
         { try to load it as a package unit first }
-        Result:=(packagelist.count>0) and loadfrompackage;
+        Result:=(compiler.globals.packagelist.count>0) and loadfrompackage;
         if Result then
           begin
             do_reload:=false;

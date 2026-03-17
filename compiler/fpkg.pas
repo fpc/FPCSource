@@ -69,7 +69,7 @@ interface
 implementation
 
   uses
-    cutils,globals;
+    cutils,globals,compiler;
 
   { tpackage }
 
@@ -102,27 +102,31 @@ implementation
 
 
     procedure packageinit;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        packagelist:=TFPHashList.Create;
+        compiler.globals.packagelist:=TFPHashList.Create;
       end;
 
 
     procedure packagedone;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
         pkgentry : ppackageentry;
       begin
-        if assigned(packagelist) then
+        if assigned(compiler.globals.packagelist) then
           begin
-            for i:=0 to packagelist.count-1 do
+            for i:=0 to compiler.globals.packagelist.count-1 do
               begin
-                pkgentry:=ppackageentry(packagelist[i]);
+                pkgentry:=ppackageentry(compiler.globals.packagelist[i]);
                 FreeAndNil(pkgentry^.package);
                 dispose(pkgentry);
               end;
           end;
-        packagelist.Free;
-        packagelist:=nil;
+        compiler.globals.packagelist.Free;
+        compiler.globals.packagelist:=nil;
       end;
 
 

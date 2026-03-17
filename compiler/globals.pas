@@ -301,8 +301,6 @@ Const
 
 
     var
-       { contains tpackageentry entries }
-       packagelist : TFPHashList;
        autoloadunits      : string;
 
        { linking }
@@ -725,6 +723,8 @@ Const
         // Scanner checks first current_namespacelist, then local_namespacelist
         premodule_namespacelist,                    // always set: used as long as current_namespacelist is not correctly set.
         current_namespacelist : TCmdStrList;        // Set when parsing module to the current module's namespace.
+        { contains tpackageentry entries }
+        packagelist : TFPHashList;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

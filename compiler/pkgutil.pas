@@ -478,9 +478,9 @@ implementation
       if not (tf_supports_packages in compiler.target.info.flags) then
         exit;
       i:=0;
-      while i<packagelist.count do
+      while i<compiler.globals.packagelist.count do
         begin
-          entry:=ppackageentry(packagelist[i]);
+          entry:=ppackageentry(compiler.globals.packagelist[i]);
           if assigned(entry^.package) then
             internalerror(2013053104);
           compiler.verbose.Comment(V_Info,'Loading package: '+entry^.realpkgname);
@@ -488,19 +488,19 @@ implementation
           pcp.loadpcp;
           entry^.package:=pcp;
 
-          { add all required packages that are not yet part of packagelist }
+          { add all required packages that are not yet part of compiler.globals.packagelist }
           for j:=0 to pcp.requiredpackages.count-1 do
             begin
               name:=pcp.requiredpackages.NameOfIndex(j);
               uname:=upper(name);
-              if not assigned(packagelist.Find(uname)) then
+              if not assigned(compiler.globals.packagelist.Find(uname)) then
                 begin
                   New(entryreq);
                   entryreq^.realpkgname:=name;
                   entryreq^.package:=nil;
                   entryreq^.usedunits:=0;
                   entryreq^.direct:=false;
-                  packagelist.add(uname,entryreq);
+                  compiler.globals.packagelist.add(uname,entryreq);
                 end;
             end;
 
@@ -508,16 +508,16 @@ implementation
         end;
 
       { all packages are now loaded, so we can fill in the links of the required packages }
-      for i:=0 to packagelist.count-1 do
+      for i:=0 to compiler.globals.packagelist.count-1 do
         begin
-          entry:=ppackageentry(packagelist[i]);
+          entry:=ppackageentry(compiler.globals.packagelist[i]);
           if not assigned(entry^.package) then
             internalerror(2015111301);
           for j:=0 to entry^.package.requiredpackages.count-1 do
             begin
               if assigned(entry^.package.requiredpackages[j]) then
                 internalerror(2015111303);
-              entryreq:=packagelist.find(upper(entry^.package.requiredpackages.NameOfIndex(j)));
+              entryreq:=compiler.globals.packagelist.find(upper(entry^.package.requiredpackages.NameOfIndex(j)));
               if not assigned(entryreq) then
                 internalerror(2015111302);
               entry^.package.requiredpackages[j]:=entryreq^.package;
@@ -531,9 +531,9 @@ implementation
       entry : ppackageentry;
       i : longint;
     begin
-      for i:=0 to packagelist.count-1 do
+      for i:=0 to compiler.globals.packagelist.count-1 do
         begin
-          if packagelist.nameofindex(i)=name then
+          if compiler.globals.packagelist.nameofindex(i)=name then
             begin
               if not ignoreduplicates then
                 compiler.verbose.Message1(package_e_duplicate_package,name);
@@ -545,7 +545,7 @@ implementation
       entry^.realpkgname:=name;
       entry^.usedunits:=0;
       entry^.direct:=direct;
-      packagelist.add(upper(name),entry);
+      compiler.globals.packagelist.add(upper(name),entry);
     end;
 
 
@@ -553,7 +553,7 @@ implementation
     var
       pkgentry : ppackageentry;
     begin
-      pkgentry:=ppackageentry(packagelist.find(package.packagename^));
+      pkgentry:=ppackageentry(compiler.globals.packagelist.find(package.packagename^));
       if not assigned(pkgentry) then
         internalerror(2015100302);
       inc(pkgentry^.usedunits);
@@ -569,9 +569,9 @@ implementation
       if compiler.target.info.system in systems_indirect_var_imports then
         { we're using import libraries anyway }
         exit;
-      for i:=0 to packagelist.count-1 do
+      for i:=0 to compiler.globals.packagelist.count-1 do
         begin
-          pkgentry:=ppackageentry(packagelist[i]);
+          pkgentry:=ppackageentry(compiler.globals.packagelist[i]);
           if pkgentry^.usedunits>0 then
             begin
               //writeln('package used: ',pkgentry^.realpkgname);
@@ -599,7 +599,7 @@ implementation
         begin
           if assigned(uu.u.package) then
             begin
-              pentry:=ppackageentry(packagelist.find(uu.u.package.packagename^));
+              pentry:=ppackageentry(compiler.globals.packagelist.find(uu.u.package.packagename^));
               if not assigned(pentry) then
                 internalerror(2015112304);
               if not pentry^.direct then
@@ -629,9 +629,9 @@ implementation
           pkgentry : ppackageentry;
           unitentry : pcontainedunit;
         begin
-          for i:=0 to packagelist.count-1 do
+          for i:=0 to compiler.globals.packagelist.count-1 do
             begin
-              pkgentry:=ppackageentry(packagelist[i]);
+              pkgentry:=ppackageentry(compiler.globals.packagelist[i]);
               for j:=0 to pkgentry^.package.containedmodules.count-1 do
                 begin
                   unitentry:=pcontainedunit(pkgentry^.package.containedmodules[j]);
@@ -816,9 +816,9 @@ implementation
               { unit is not part of a package, so no need to handle it }
               continue;
             { loaded by a package? }
-            for j:=0 to packagelist.count-1 do
+            for j:=0 to compiler.globals.packagelist.count-1 do
               begin
-                pkgentry:=ppackageentry(packagelist[j]);
+                pkgentry:=ppackageentry(compiler.globals.packagelist[j]);
                 for k:=0 to pkgentry^.package.containedmodules.count-1 do
                   begin
                     unitentry:=pcontainedunit(pkgentry^.package.containedmodules[k]);

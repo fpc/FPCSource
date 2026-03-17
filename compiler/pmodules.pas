@@ -2068,7 +2068,7 @@ type
          curr.localsymtable:=tstaticsymtable.create(curr.realmodulename^,curr.moduleid,compiler);
 
          { ensure that no packages are picked up from the options }
-         packagelist.clear;
+         compiler.globals.packagelist.clear;
 
          { There should always be a requires, except for the system package. So we load here }
          if Assigned(curr) then
@@ -2109,7 +2109,7 @@ type
            already provided by one of the loaded packages }
          compiler.pkgutil.load_packages;
 
-         if packagelist.Count>0 then
+         if compiler.globals.packagelist.Count>0 then
            begin
              { this means the SYSTEM unit *must* be part of one of the required
                packages, so load it }
@@ -2305,7 +2305,7 @@ type
          exportlib.ignoreduplicates:=false;
 
          { create import libraries for all packages }
-         if packagelist.count>0 then
+         if compiler.globals.packagelist.count>0 then
            compiler.pkgutil.createimportlibfromexternals;
 
          { generate imports }
@@ -2358,7 +2358,7 @@ type
                       end
                     else
                       begin
-                        pentry:=ppackageentry(packagelist.find(hp.package.packagename^));
+                        pentry:=ppackageentry(compiler.globals.packagelist.find(hp.package.packagename^));
                         if not assigned(pentry) then
                           internalerror(2015112301);
                         pkg.add_required_package(hp.package);
@@ -2608,7 +2608,7 @@ type
         create_dwarf_frame;
 
         { create import library for all packages }
-        if packagelist.count>0 then
+        if compiler.globals.packagelist.count>0 then
           compiler.pkgutil.createimportlibfromexternals;
 
         { generate imports }
