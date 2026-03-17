@@ -28,7 +28,7 @@ unit widestr;
   interface
 
     uses
-      charset,globtype;
+      charset,globtype,compilerbase;
 
 
     type
@@ -82,7 +82,7 @@ unit widestr;
       cp8859_1,cp850,cp437,cp1252,cp646,
       cp874, cp856,cp852,cp8859_2,
       cp1250,cp1254,cp1255,cp1256,cp1257,cp1258,
-      globals,cutils;
+      globals,cutils,compiler;
 
 
     procedure initwidestring(out r : tcompilerwidestring);
@@ -297,17 +297,21 @@ unit widestr;
 
 
     function cpavailable(const s: string): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=mappingavailable(lower(s));
         if not result then
-          result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset',lower(s)));
+          result:=(compiler.globals.unicodepath<>'')and(registerbinarymapping(compiler.globals.unicodepath+'charset',lower(s)));
       end;
 
     function cpavailable(cp: word): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=mappingavailable(cp);
         if not result then
-          result:=(unicodepath<>'')and(registerbinarymapping(unicodepath+'charset','cp'+tostr(cp)));
+          result:=(compiler.globals.unicodepath<>'')and(registerbinarymapping(compiler.globals.unicodepath+'charset','cp'+tostr(cp)));
       end;
 
     procedure changecodepage(

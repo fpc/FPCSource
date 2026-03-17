@@ -301,8 +301,6 @@ Const
 
 
     var
-       { Path to unicode charmap/collation binaries }
-       unicodepath   : TPathStr;
        { path for searching units, different paths can be separated by ; }
        librarysearchpath,
        unitsearchpath,
@@ -725,6 +723,8 @@ Const
         datestr : string;
         { Path to ppc }
         exepath       : TPathStr;
+        { Path to unicode charmap/collation binaries }
+        unicodepath   : TPathStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1782,7 +1782,7 @@ implementation
 {$endif defined(XTENSA) or defined(RISCV32)}
 
         { Search Paths }
-        unicodepath:='';
+        compiler.globals.unicodepath:='';
         librarysearchpath:=TSearchPathList.Create;
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;

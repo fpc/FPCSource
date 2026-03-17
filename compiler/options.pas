@@ -3152,7 +3152,7 @@ begin
           IllegalPara(opt);
       end;
     'M' :
-      unicodepath:=FixPath(More,true);
+      compiler.globals.unicodepath:=FixPath(More,true);
     'g' :
       compiler.verbose.Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
     'l' :
