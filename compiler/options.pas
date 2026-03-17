@@ -3165,7 +3165,7 @@ begin
     'L' :
       begin
         if More<>'' then
-          ParaDynamicLinker:=More
+          compiler.globals.ParaDynamicLinker:=More
         else
           IllegalPara(opt);
       end;

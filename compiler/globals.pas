@@ -301,7 +301,6 @@ Const
 
 
     var
-       paradynamiclinker : string;
        paraprintnodetree : byte;
 {$ifdef PREPROCWRITE}
        parapreprocess    : boolean;
@@ -725,6 +724,7 @@ Const
 
         { things specified with parameters }
         paralinkoptions   : TCmdStr;
+        paradynamiclinker : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

@@ -811,8 +811,8 @@ Implementation
          begin
            if compiler.globals.ParaLinkOptions<>'' then
             ExtraOptions:=compiler.globals.ParaLinkOptions;
-           if ParaDynamicLinker<>'' then
-            DynamicLinker:=ParaDynamicLinker;
+           if compiler.globals.ParaDynamicLinker<>'' then
+            DynamicLinker:=compiler.globals.ParaDynamicLinker;
          end;
       end;
 
