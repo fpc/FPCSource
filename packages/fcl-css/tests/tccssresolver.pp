@@ -465,10 +465,6 @@ type
     // skipping for forward compatibility
     // ToDo: invalid token in selector makes selector invalid
     // ToDo: invalid domain in attribute value is skipped
-    // ToDo: invalid keyword in attribute value is skipped
-    // ToDo: invalid keyword in attribute value is skipped
-    // test skip invalid value  color: 3 red;
-    // test skip invalid attribute  color: 3;
 
     // pseudo elements (works like child combinator)
     procedure Test_PseudoElement;

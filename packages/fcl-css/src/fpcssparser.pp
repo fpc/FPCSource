@@ -981,7 +981,8 @@ begin
   if not (CurrentToken in [ctkRBRACE,ctkSEMICOLON]) then
     begin
     aDecl:=ParseDeclaration(aIsAt);
-    aRule.AddChild(aDecl);
+    if aDecl<>nil then
+      aRule.AddChild(aDecl);
     end;
   While Not (CurrentToken in [ctkEOF,ctkRBRACE]) do
     begin
@@ -993,7 +994,8 @@ begin
         aDecl:=ParseAtUnknownRule
       else
         aDecl:=ParseDeclaration(aIsAt);
-      aRule.AddChild(aDecl);
+      if aDecl<>nil then
+        aRule.AddChild(aDecl);
       end;
     end;
   Result:=aRule.ChildCount;
@@ -1475,6 +1477,12 @@ begin
       end;
     if Not aIsAt then
       begin
+      if CurrentToken<>ctkCOLON then
+        begin
+        DoWarnExpectedButGot(':');
+        Result:=nil;
+        exit;
+        end;
       aDecl.Colon:=True;
       Consume(ctkCOLON);
       end

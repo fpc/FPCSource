@@ -33,6 +33,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tcCSSResolver"/>
       </Unit>
+      <Unit>
+        <Filename Value="tccssskipinline.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcCSSSkipInline"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
