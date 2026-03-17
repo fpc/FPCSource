@@ -375,9 +375,7 @@ begin
     end;
 end;
 
-function ModulesLinkToLibc:boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function ModulesLinkToLibc(compiler: TCompilerBase):boolean;
 var
   hp: tmodule;
 begin
@@ -565,7 +563,7 @@ const                     { libc5    glibc2   glibc21   uclibc }
 { uclibc and glibc21 are not available on x86_64! si_g is also absent. }
 Procedure TLinkerLinux.InitSysInitUnitName;
 begin
-  linklibc:=ModulesLinkToLibc;
+  linklibc:=ModulesLinkToLibc(compiler);
   reorder:=linklibc and ReOrderEntries;
   sysinitunit:=defsinames[current_module.islibrary];
   prtobj:=defprtnames[current_module.islibrary];
@@ -1081,7 +1079,7 @@ end;
 
 procedure TInternalLinkerLinux.InitSysInitUnitName;
 begin
-  linklibc:=ModulesLinkToLibc;
+  linklibc:=ModulesLinkToLibc(compiler);
   reorder:=linklibc and ReOrderEntries;
   sysinitunit:=defsinames[current_module.islibrary];
   prtobj:=defprtnames[current_module.islibrary];
