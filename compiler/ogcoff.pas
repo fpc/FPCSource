@@ -3380,7 +3380,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfStackCommit:=$1000;
             if compiler.globals.MinStackSizeSetExplicity then
               peoptheader.SizeOfStackCommit:=minstacksize;
-            if MaxStackSizeSetExplicity then
+            if compiler.globals.MaxStackSizeSetExplicity then
               peoptheader.SizeOfStackReserve:=maxstacksize;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;

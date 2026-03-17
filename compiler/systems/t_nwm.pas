@@ -917,7 +917,7 @@ end;
               if description <> '' then
                 Concat ('DESCRIPTION "'+description+'"');
             if not hasStacksize then
-              if MaxStackSizeSetExplicity then
+              if compiler.globals.MaxStackSizeSetExplicity then
               begin
                 if stacksize < minStackSize then stacksize := minStackSize;
                 Concat ('STACKSIZE '+tostr(stacksize));

@@ -918,7 +918,7 @@ unit scandir;
           compiler.verbose.Message(scan_w_maxstacksize_not_support);
         current_scanner.skipspace;
         maxstacksize:=current_scanner.readval;
-        MaxStackSizeSetExplicity:=true;
+        compiler.globals.MaxStackSizeSetExplicity:=true;
       end;
 
     procedure dir_memory;
