@@ -1075,11 +1075,14 @@ begin
     aRule.AddSelector(GetAppendElement(aList));
     aList:=nil;
     aLast:=CurrentToken;
-    if (aLast<>ctkSEMICOLON) then
+    if (aLast=ctkLBRACE) then
       begin
-      Consume(ctkLBrace);
+      Consume(ctkLBRACE);
       ParseRuleBody(aRule);
-      Consume(ctkRBRACE);
+      if CurrentToken=ctkRBRACE then
+        Consume(ctkRBRACE)
+      else
+        DoWarnExpectedButGot('}');
       end;
     Result:=aRule;
     aRule:=nil;
@@ -1166,11 +1169,17 @@ begin
     else
       aFactor:=ParseComponentValue;
     if aFactor=nil then
-      DoError(SErrUnexpectedToken ,[
+      begin
+      DoWarn(SErrUnexpectedToken ,[
              GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
              CurrentTokenString,
              'value'
              ]);
+      GetNextToken;
+      Result:=GetAppendElement(List);
+      List:=nil;
+      exit;
+      end;
     While Assigned(aFactor) do
       begin
       While CurrentToken in TermSeps do
@@ -1407,6 +1416,13 @@ begin
   try
     Consume(ctkLBRACKET);
     SkipWhiteSpace;
+    if CurrentToken<>ctkIDENTIFIER then
+      begin
+      DoWarnExpectedButGot('identifier');
+      Result:=aArray;
+      aArray:=nil;
+      exit;
+      end;
     aEl:=ParseWQName;
     SkipWhiteSpace;
     aToken:=CurrentToken;
@@ -1454,7 +1470,10 @@ begin
       aArray.AddChild(ParseIdentifier);
       SkipWhiteSpace;
       end;
-    Consume(ctkRBRACKET);
+    if CurrentToken=ctkRBRACKET then
+      Consume(ctkRBRACKET)
+    else
+      DoWarnExpectedButGot(']');
 
     Result:=aArray;
     aArray:=nil;

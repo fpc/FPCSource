@@ -38,6 +38,16 @@ type
     procedure TestSkipRule_AtEOF;
     procedure TestSkipRule_AtCurlyEOF;
     procedure TestSkipRule_AtNameCurlyEOF;
+    procedure TestSkipRule_AtNameCurlyNameEOF;
+    procedure TestSkipRule_AtNameCurlyNameColonEOF;
+    procedure TestSkipRule_NameEOF;
+    procedure TestSkipRule_NameCurlyEOF;
+    procedure TestSkipRule_NameCurlyNameEOF;
+    procedure TestSkipRule_NameCurlyNameColonEOF;
+    procedure TestSkipRule_NameBracketEOF;
+    procedure TestSkipRule_NameBracketsEOF;
+    procedure TestSkipRule_DotEOF;
+    procedure TestSkipRule_HashEOF;
   end;
 
 
@@ -160,6 +170,56 @@ end;
 procedure TTestCSSSkipInline.TestSkipRule_AtNameCurlyEOF;
 begin
   Parse('@a{');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtNameCurlyNameEOF;
+begin
+  Parse('@a{b');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AtNameCurlyNameColonEOF;
+begin
+  Parse('@a{b:');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameEOF;
+begin
+  Parse('a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameCurlyEOF;
+begin
+  Parse('a{');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameCurlyNameEOF;
+begin
+  Parse('a{a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameCurlyNameColonEOF;
+begin
+  Parse('a{a:');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameBracketEOF;
+begin
+  Parse('a[');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_NameBracketsEOF;
+begin
+  Parse('a[]');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_DotEOF;
+begin
+  Parse('.');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_HashEOF;
+begin
+  Parse('#');
 end;
 
 initialization
