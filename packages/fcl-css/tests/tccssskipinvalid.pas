@@ -48,6 +48,10 @@ type
     procedure TestSkipRule_NameBracketsEOF;
     procedure TestSkipRule_DotEOF;
     procedure TestSkipRule_HashEOF;
+    procedure TestSkipInline_AttrUnknownChar;
+    procedure TestSkipRule_BinaryOpMissingRHS;
+    procedure TestSkipRule_AttrSelectorInvalidValue;
+    procedure TestSkipRule_AttrSelectorNoIdent;
   end;
 
 
@@ -220,6 +224,26 @@ end;
 procedure TTestCSSSkipInline.TestSkipRule_HashEOF;
 begin
   Parse('#');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_AttrUnknownChar;
+begin
+  ParseInline_FirstValidDecl('a: ?; color: red;','a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_BinaryOpMissingRHS;
+begin
+  Parse('"a"=');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AttrSelectorInvalidValue;
+begin
+  Parse('a[b=;]');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_AttrSelectorNoIdent;
+begin
+  Parse('a[1=foo]');
 end;
 
 initialization

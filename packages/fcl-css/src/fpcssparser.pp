@@ -1139,7 +1139,7 @@ Const
       Consume(CurrentToken);
       Bin.Right:=ParseComponentValue;
       if Bin.Right=nil then
-        DoError(SErrUnexpectedToken ,[
+        DoWarn(SErrUnexpectedToken ,[
                GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
                CurrentTokenString,
                'value'
@@ -1212,7 +1212,7 @@ begin
   aToken:=CurrentToken;
   if aToken=ctkUNKNOWN then
     begin
-    DoError('invalid');
+    DoWarn('invalid');
     repeat
       GetNextToken;
     until CurrentToken<>ctkUNKNOWN;
@@ -1452,7 +1452,7 @@ begin
       ctkFLOAT:
         Bin.Right:=ParseFloat;
       else
-        DoError(SErrUnexpectedToken ,[
+        DoWarn(SErrUnexpectedToken ,[
                  GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
                  CurrentTokenString,
                  'attribute value'
@@ -1485,11 +1485,15 @@ end;
 function TCSSParser.ParseWQName: TCSSElement;
 begin
   if CurrentToken<>ctkIDENTIFIER then
-    DoError(SErrUnexpectedToken ,[
+    begin
+    DoWarn(SErrUnexpectedToken ,[
              GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
              CurrentTokenString,
              'identifier'
              ]);
+    Result:=nil;
+    exit;
+    end;
   Result:=ParseIdentifier;
   // todo: parse optional ns-prefix
 end;
