@@ -301,9 +301,6 @@ Const
 
 
     var
-
-       timestr,
-       datestr : string;
        { Path to ppc }
        exepath       : TPathStr;
        { Path to unicode charmap/collation binaries }
@@ -725,6 +722,9 @@ Const
         do_build,
         do_release,
         do_make       : boolean;
+
+        timestr,
+        datestr : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

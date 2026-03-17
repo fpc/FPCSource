@@ -2840,13 +2840,13 @@ type
            macroIsString:=true;
            case hs of
              'TIME':
-               if timestr<>'' then
-                 hs:=timestr
+               if compiler.globals.timestr<>'' then
+                 hs:=compiler.globals.timestr
                else
                  hs:=compiler.time.gettimestr;
              'DATE':
-               if datestr<>'' then
-                 hs:=datestr
+               if compiler.globals.datestr<>'' then
+                 hs:=compiler.globals.datestr
                else
                  hs:=compiler.time.getdatestr;
              'DATEYEAR':

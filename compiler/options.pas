@@ -2983,12 +2983,12 @@ begin
          end;
        'D' :
          begin
-           datestr:=Copy(more,j+1);
+           compiler.globals.datestr:=Copy(more,j+1);
            break;
          end;
        'T' :
          begin
-           timestr:=Copy(more,j+1);
+           compiler.globals.timestr:=Copy(more,j+1);
            break;
          end;
        'v' :
