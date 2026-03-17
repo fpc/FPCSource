@@ -26,6 +26,9 @@ unit systems;
 
 interface
 
+     uses
+       compilerbase;
+
 {$i systems.inc}
 
 {*****************************************************************************
@@ -34,7 +37,7 @@ interface
 
      type
        TAbstractResourceFile = class
-         constructor create(const fn : ansistring);virtual;abstract;
+         constructor create(const fn : ansistring;acompiler: TCompilerBase);virtual;abstract;
        end;
        TAbstractResourceFileClass = class of TAbstractResourceFile;
 

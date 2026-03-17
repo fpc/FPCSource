@@ -33,12 +33,14 @@ type
 
    tresourcefile = class(TAbstractResourceFile)
    private
+      FCompiler: TCompilerBase;
       fname : ansistring;
    protected
       function SetupCompilerArguments(output: tresoutput; const OutName :
       ansistring; respath: ansistring; out ObjUsed : boolean) : ansistring; virtual;
+      property Compiler: TCompilerBase read FCompiler;
    public
-      constructor Create(const fn : ansistring);override;
+      constructor Create(const fn : ansistring;acompiler: TCompilerBase);override;
       function Compile(output: tresoutput; const OutName: ansistring) : boolean; virtual;
       procedure PostProcessResourcefile(const s : ansistring);virtual;
       function IsCompiled(const fn : ansistring) : boolean;virtual;
@@ -55,7 +57,7 @@ type
       function SetupCompilerArguments(output: tresoutput; const OutName :
         ansistring; respath: ansistring; out ObjUsed : boolean) : ansistring; override;
    public
-      constructor Create(const fn : ansistring);override;
+      constructor Create(const fn : ansistring;acompiler: TCompilerBase);override;
       destructor Destroy; override;
       function Compile(output: tresoutput; const OutName: ansistring) : boolean; override;
       function IsCompiled(const fn : ansistring) : boolean;override;
@@ -91,8 +93,9 @@ uses
                               TRESOURCEFILE
 ****************************************************************************}
 
-constructor tresourcefile.create(const fn : ansistring);
+constructor tresourcefile.create(const fn : ansistring;acompiler: TCompilerBase);
 begin
+  FCompiler:=acompiler;
   fname:=fn;
 end;
 
@@ -103,15 +106,11 @@ end;
 
 
 function tresourcefile.IsCompiled(const fn: ansistring): boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   Result:=CompareText(ExtractFileExt(fn), compiler.target.info.resobjext) = 0;
 end;
 
 procedure tresourcefile.Collect(const fn: ansistring);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if fn='' then
     exit;
@@ -126,8 +125,6 @@ end;
 
 function tresourcefile.SetupCompilerArguments(output: tresoutput; const OutName
   : ansistring; respath: ansistring; out ObjUsed : boolean) : ansistring;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   s : TCmdStr;
 begin
@@ -153,8 +150,6 @@ end;
 
 function tresourcefile.compile(output: tresoutput; const OutName: ansistring)
   : boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
   Function SelectBin(Const Bin1,Bin2 : String) : String;
   begin
@@ -237,11 +232,9 @@ begin
     current_module.linkunitofiles.add(OutName,link_always);
 end;
 
-constructor TWinLikeResourceFile.Create(const fn : ansistring);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+constructor TWinLikeResourceFile.Create(const fn : ansistring;acompiler: TCompilerBase);
 begin
-  inherited Create(fn);
+  inherited Create(fn,acompiler);
   fResScript:=nil;
   fCollectCount:=0;
   if (tf_use_8_3 in compiler.target.info.flags) then
@@ -260,8 +253,6 @@ end;
 
 function TWinLikeResourceFile.SetupCompilerArguments(output: tresoutput; const
   OutName : ansistring; respath : ansistring; out ObjUsed : boolean) : ansistring;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   srcfilepath,
   preprocessorbin,
@@ -363,8 +354,6 @@ begin
 end;
 
 function TWinLikeResourceFile.IsCompiled(const fn: ansistring): boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 const
   ResSignature : array [1..32] of byte =
   ($00,$00,$00,$00,$20,$00,$00,$00,$FF,$FF,$00,$00,$FF,$FF,$00,$00,
@@ -414,8 +403,6 @@ begin
 end;
 
 procedure TWinLikeResourceFile.EndCollect;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if fResScript<>nil then
   begin
@@ -505,7 +492,7 @@ begin
           Include(current_settings.globalswitches, cs_link_nolink);
           exit;
         end;
-      resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s));
+      resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s,compiler));
       if resourcefile.IsCompiled(s) then
         begin
           resourcefile.free;
@@ -580,7 +567,7 @@ begin
   s:=ChangeFileExt(current_module.ppufilename,compiler.target.info.resobjext);
   if (res_arch_in_file_name in compiler.target.res.resflags) then
     s:=ChangeFileExt(s,'.'+cpu2str[compiler.target.cpu]+compiler.target.info.resobjext);
-  resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s));
+  resourcefile:=TResourceFile(resinfos[compiler.target.info.res]^.resourcefileclass.create(s,compiler));
   hp:=tused_unit(usedunits.first);
   while assigned(hp) do
     begin
