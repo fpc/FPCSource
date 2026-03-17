@@ -301,7 +301,6 @@ Const
 
 
     var
-       objectsearchpath,
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
        packagesearchpath     : TSearchPathList;
@@ -724,7 +723,8 @@ Const
         unicodepath   : TPathStr;
         { path for searching units, different paths can be separated by ; }
         librarysearchpath,
-        unitsearchpath  : TSearchPathList;
+        unitsearchpath,
+        objectsearchpath  : TSearchPathList;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1732,8 +1732,8 @@ implementation
        compiler.globals.librarysearchpath := nil;
        compiler.globals.unitsearchpath.Free;
        compiler.globals.unitsearchpath := nil;
-       objectsearchpath.Free;
-       objectsearchpath := nil;
+       compiler.globals.objectsearchpath.Free;
+       compiler.globals.objectsearchpath := nil;
        includesearchpath.Free;
        includesearchpath := nil;
        frameworksearchpath.Free;
@@ -1788,7 +1788,7 @@ implementation
         compiler.globals.librarysearchpath:=TSearchPathList.Create;
         compiler.globals.unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
-        objectsearchpath:=TSearchPathList.Create;
+        compiler.globals.objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
         packagesearchpath:=TSearchPathList.Create;
         namespacelist:=TCmdStrList.Create;

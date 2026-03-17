@@ -272,7 +272,7 @@ Implementation
         if (not found) then
          found:=current_module.localobjectsearchpath.FindFile(s,false,foundfile);
         if (not found) then
-         found:=objectsearchpath.FindFile(s,false,foundfile);
+         found:=compiler.globals.objectsearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
          found:=FindFile(s,compiler.globals.exepath,false,foundfile);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then

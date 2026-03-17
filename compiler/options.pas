@@ -3181,7 +3181,7 @@ begin
         if ispara then
           ParaObjectPath.AddPath(More,false)
         else
-          ObjectSearchPath.AddPath(More,true);
+          compiler.globals.ObjectSearchPath.AddPath(More,true);
       end;
     'P' :
       begin
@@ -5181,7 +5181,7 @@ begin
 
   { Add paths specified with parameters to the searchpaths }
   compiler.globals.UnitSearchPath.AddList(option.ParaUnitPath,true);
-  ObjectSearchPath.AddList(option.ParaObjectPath,true);
+  compiler.globals.ObjectSearchPath.AddList(option.ParaObjectPath,true);
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   compiler.globals.LibrarySearchPath.AddList(option.ParaLibraryPath,true);
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
@@ -5271,7 +5271,7 @@ begin
      not(cs_link_on_target in init_settings.globalswitches) then
    compiler.globals.UnitSearchPath.AddPath(compiler.globals.ExePath,false);
   { Add unit dir to the object and library path }
-  objectsearchpath.AddList(compiler.globals.unitsearchpath,false);
+  compiler.globals.objectsearchpath.AddList(compiler.globals.unitsearchpath,false);
   compiler.globals.librarysearchpath.AddList(compiler.globals.unitsearchpath,false);
 
 {$ifdef llvm}

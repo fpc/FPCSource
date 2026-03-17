@@ -554,7 +554,7 @@ begin
        WriteCmdStrList(general_t_unitpath,globals.unitsearchpath);
        WriteCmdStrList(general_t_includepath,includesearchpath);
        WriteCmdStrList(general_t_librarypath,globals.librarysearchpath);
-       WriteCmdStrList(general_t_objectpath,objectsearchpath);
+       WriteCmdStrList(general_t_objectpath,globals.objectsearchpath);
        WriteCmdStrList(general_t_unitscope,namespacelist);
 
        { Compile the program }
