@@ -658,7 +658,7 @@ Const
   RuleTokens =
        [ctkIDENTIFIER,ctkCLASSNAME,ctkHASH,ctkINTEGER,
         ctkPSEUDO,ctkPSEUDOFUNCTION,
-        ctkCOLON,ctkDOUBLECOLON,ctkSTAR,ctkTILDE,ctkLBRACKET,ctkDOT];
+        ctkCOLON,ctkDOUBLECOLON,ctkSTAR,ctkTILDE,ctkLBRACKET,ctkDOT,ctkPERCENTAGE];
 
 begin
   if CurrentToken in RuleTokens then
@@ -994,7 +994,8 @@ function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false
 
 Const
   NestedRuleTokens: TCSSTokens = [ctkAND, ctkCLASSNAME, ctkHASH, ctkPSEUDO,
-                                   ctkPSEUDOFUNCTION, ctkLBRACKET, ctkDOUBLECOLON];
+                                   ctkPSEUDOFUNCTION, ctkLBRACKET, ctkDOUBLECOLON,
+                                   ctkPLUS, ctkGT, ctkTILDE];
 
   procedure ParseNestedRule;
   var
@@ -1302,6 +1303,8 @@ function TCSSParser.ParseSelector: TCSSElement;
   end;
 
   function ParseSub: TCSSElement;
+  var
+    Un: TCSSUnaryElement;
   begin
     Result:=nil;
     Case CurrentToken of
@@ -1314,6 +1317,15 @@ function TCSSParser.ParseSelector: TCSSElement;
       ctkPSEUDO: Result:=ParsePseudoClass;
       ctkPSEUDOFUNCTION: Result:=ParseCall('',true);
       ctkDOUBLECOLON: Result:=ParseUnaryPseudoElement;
+      ctkPLUS, ctkGT, ctkTILDE:
+        begin
+        Un:=TCSSUnaryElement(CreateElement(CSSUnaryElementClass));
+        Un.Operation:=TokenToUnaryOperation(CurrentToken);
+        GetNextToken;
+        SkipWhiteSpace;
+        Un.Right:=ParseSub;
+        Result:=Un;
+        end;
     else
       DoWarn(SErrUnexpectedToken ,[
                GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),

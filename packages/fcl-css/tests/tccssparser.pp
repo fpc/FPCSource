@@ -111,6 +111,10 @@ type
     Procedure TestSkipUnknownFunction;
     Procedure TestNestedRule;
     Procedure TestNestedAndRule;
+    Procedure TestNestedPlusRule;
+    Procedure TestNestedAndPlusRule;
+    Procedure TestNestedRule_AndOperator;
+    Procedure TestNestedRule_AppendedAndOperator;
   end;
 
   { TTestCSSFilesParser }
@@ -841,6 +845,42 @@ procedure TTestCSSParser.TestNestedAndRule;
 begin
   Parse('.parent { & .child { } }');
 end;
+
+procedure TTestCSSParser.TestNestedPlusRule;
+begin
+  Parse('h1 { + p { } }');
+end;
+
+procedure TTestCSSParser.TestNestedAndPlusRule;
+begin
+  Parse('h1 { color: red; & + p { } }');
+end;
+
+procedure TTestCSSParser.TestNestedRule_AndOperator;
+begin
+  Parse(
+   '.a {'
+  +'  /* styles for element with class="a" */'
+  +'  .b {'
+  +'    /* styles for element with class="b" which is a descendant of class="a" */'
+  +'  }'
+  +'  &.b {'
+  +'    /* styles for element with class="a b" */'
+  +'  }'
+  +'}');
+end;
+
+procedure TTestCSSParser.TestNestedRule_AppendedAndOperator;
+begin
+  Parse(
+   '.foo {'
+  +'  /* .foo styles */'
+  +'  .bar & {'
+  +'    /* .bar .foo styles */'
+  +'  }'
+  +'}');
+end;
+
 
 
 { TTestBaseCSSParser }
