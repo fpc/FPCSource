@@ -59,6 +59,7 @@ type
     function CheckLiteral(Msg: String; aEl: TCSSelement; aValue: Integer) : TCSSIntegerElement;  overload;
     function CheckLiteral(Msg: String; aEl: TCSSelement; aValue: Integer; AUnits : TCSSUnit) : TCSSIntegerElement;  overload;
     Function GetCalArg(aCall : TCSSCallElement; aIndex : Integer) : TCSSElement;
+    function GetSecondRule: TCSSRuleElement;
   Public
     Property ParseResult : TCSSElement read FParseResult;
     Property FirstRule : TCSSRuleElement Read GetFirstRule;
@@ -1046,6 +1047,18 @@ begin
   AssertTrue('Have argument '+IntToStr(aIndex),aIndex<aCall.ChildCount);
   Result:=aCall.Children[0];
   AssertNotNull('Have call argument',Result);
+end;
+
+function TTestBaseCSSParser.GetSecondRule: TCSSRuleElement;
+var
+  L : TCSSCompoundElement;
+begin
+  L:=TCSSCompoundElement(CheckClass('list',TCSSCompoundElement,ParseResult));
+  AssertTrue('Result has at least 2 children',L.ChildCount>1);
+  if L.Children[1] is TCSSAtRuleElement then
+    Result:=TCSSAtRuleElement(CheckClass('Second element is rule',TCSSAtRuleElement,L.Children[1]))
+  else
+    Result:=TCSSRuleElement(CheckClass('Second element is rule',TCSSRuleElement,L.Children[1]));
 end;
 
 initialization

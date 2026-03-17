@@ -658,7 +658,7 @@ Const
   RuleTokens =
        [ctkIDENTIFIER,ctkCLASSNAME,ctkHASH,ctkINTEGER,
         ctkPSEUDO,ctkPSEUDOFUNCTION,
-        ctkCOLON,ctkDOUBLECOLON,ctkSTAR,ctkTILDE,ctkLBRACKET];
+        ctkCOLON,ctkDOUBLECOLON,ctkSTAR,ctkTILDE,ctkLBRACKET,ctkDOT];
 
 begin
   if CurrentToken in RuleTokens then

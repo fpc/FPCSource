@@ -15,7 +15,8 @@ type
   protected
     procedure SetUp; override;
     procedure ParseInline_FirstValidDecl(aSource, aKey: string);
-    procedure ParseRules_FirstValidRule(aSource, aName: string);
+    procedure ParseRules_FirstRule(aSource, aName: string);
+    procedure ParseRules_SecondRule(aSource, aName: string);
   published
     // skip invalid inline
     procedure TestSkipInline_AttrMissingColon;
@@ -33,6 +34,7 @@ type
     procedure TestSkipInline_InvalidFloatUnit;
     procedure TestSkipInline_InvalidFloatValue;
     procedure TestSkipInline_InvalidFloatValue2;
+    procedure TestSkipInline_AttrUnknownChar;
 
     // skip invalid rules
     procedure TestSkipRule_AtEOF;
@@ -48,10 +50,11 @@ type
     procedure TestSkipRule_NameBracketsEOF;
     procedure TestSkipRule_DotEOF;
     procedure TestSkipRule_HashEOF;
-    procedure TestSkipInline_AttrUnknownChar;
     procedure TestSkipRule_BinaryOpMissingRHS;
     procedure TestSkipRule_AttrSelectorInvalidValue;
     procedure TestSkipRule_AttrSelectorNoIdent;
+    procedure TestSkipRule_InvalidDotRule;
+    procedure TestSkipRule_InvalidHashRule;
   end;
 
 
@@ -77,12 +80,21 @@ begin
   AssertEquals('Key 0  name',aKey,ID.Value);
 end;
 
-procedure TTestCSSSkipInline.ParseRules_FirstValidRule(aSource, aName: string);
+procedure TTestCSSSkipInline.ParseRules_FirstRule(aSource, aName: string);
 var
   aRule: TCSSRuleElement;
 begin
   Parse(aSource);
   aRule:=FirstRule;
+  CheckSelector(aRule,0,aName);
+end;
+
+procedure TTestCSSSkipInline.ParseRules_SecondRule(aSource, aName: string);
+var
+  aRule: TCSSRuleElement;
+begin
+  Parse(aSource);
+  aRule:=GetSecondRule;
   CheckSelector(aRule,0,aName);
 end;
 
@@ -161,6 +173,11 @@ begin
   ParseInline_FirstValidDecl('a: 1234567890123456789; color: red;','a');
 end;
 
+procedure TTestCSSSkipInline.TestSkipInline_AttrUnknownChar;
+begin
+  ParseInline_FirstValidDecl('a: ?; color: red;','a');
+end;
+
 procedure TTestCSSSkipInline.TestSkipRule_AtEOF;
 begin
   Parse('@');
@@ -226,11 +243,6 @@ begin
   Parse('#');
 end;
 
-procedure TTestCSSSkipInline.TestSkipInline_AttrUnknownChar;
-begin
-  ParseInline_FirstValidDecl('a: ?; color: red;','a');
-end;
-
 procedure TTestCSSSkipInline.TestSkipRule_BinaryOpMissingRHS;
 begin
   Parse('"a"=');
@@ -244,6 +256,16 @@ end;
 procedure TTestCSSSkipInline.TestSkipRule_AttrSelectorNoIdent;
 begin
   Parse('a[1=foo]');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_InvalidDotRule;
+begin
+  ParseRules_SecondRule('. {}'+LineEnding+'div{}','div');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_InvalidHashRule;
+begin
+  ParseRules_SecondRule('# {}'+LineEnding+'div{}','div');
 end;
 
 initialization
