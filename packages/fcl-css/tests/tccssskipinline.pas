@@ -29,6 +29,8 @@ type
     procedure TestSkipInline_AttrMissingFuncArg;
     procedure TestSkipInline_AttrMissingFuncArg2;
     procedure TestSkipInline_InvalidFloatUnit;
+    procedure TestSkipInline_InvalidFloatValue;
+    procedure TestSkipInline_InvalidFloatValue2;
   end;
 
 
@@ -118,6 +120,16 @@ end;
 procedure TTestCSSSkipInline.TestSkipInline_InvalidFloatUnit;
 begin
   ParseInline_FirstValidDecl('a: 1foo ; color: red;','a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_InvalidFloatValue;
+begin
+  ParseInline_FirstValidDecl('a: 1E9999999 ; color: red;','a');
+end;
+
+procedure TTestCSSSkipInline.TestSkipInline_InvalidFloatValue2;
+begin
+  ParseInline_FirstValidDecl('a: 1234567890123456789; color: red;','a');
 end;
 
 initialization

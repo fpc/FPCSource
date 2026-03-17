@@ -842,7 +842,7 @@ begin
   Val(CurrentTokenString,aValue,aCode);
   if aCode<>0 then
     begin
-    DoError(SErrInvalidFloat,[CurrentTokenString]);
+    DoWarn(SErrInvalidFloat,[CurrentTokenString]);
     GetNextToken;
     exit(nil);
     end;
@@ -873,7 +873,7 @@ begin
   Val(CurrentTokenString,aValue,aCode);
   if aCode<>0 then
     begin
-    DoError(SErrInvalidFloat,[CurrentTokenString]);
+    DoWarn(SErrInvalidFloat,[CurrentTokenString]);
     GetNextToken;
     exit(nil);
     end;
