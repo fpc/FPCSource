@@ -2978,7 +2978,7 @@ begin
        'd' :
          begin
            include(init_settings.globalswitches,cs_link_deffile);
-           description:=Copy(more,j+1);
+           compiler.globals.description:=Copy(more,j+1);
            break;
          end;
        'D' :

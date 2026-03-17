@@ -512,7 +512,7 @@ unit scandir;
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
         current_scanner.skipspace;
-        description:=current_scanner.readcomment;
+        compiler.globals.description:=current_scanner.readcomment;
         DescriptionSetExplicity:=true;
       end;
 

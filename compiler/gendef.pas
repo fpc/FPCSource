@@ -123,7 +123,7 @@ begin
           write(t,' WINDOWAPI');
         writeln(t,'');
         writeln(t,'PROTMODE');
-        writeln(t,'DESCRIPTION '+''''+description+'''');
+        writeln(t,'DESCRIPTION '+''''+compiler.globals.description+'''');
         writeln(t,'DATA'#9'MULTIPLE');
         writeln(t,'STACKSIZE'#9+tostr(stacksize));
         writeln(t,'HEAPSIZE'#9+tostr(heapsize));
@@ -136,8 +136,8 @@ begin
     system_i386_wince,
     system_i386_wdosx :
       begin
-        if description<>'' then
-          writeln(t,'DESCRIPTION '+''''+description+'''');
+        if compiler.globals.description<>'' then
+          writeln(t,'DESCRIPTION '+''''+compiler.globals.description+'''');
         if dllversion<>'' then
           writeln(t,'VERSION '+dllversion);
       end;
