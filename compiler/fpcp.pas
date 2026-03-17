@@ -200,7 +200,7 @@ implementation
 
     begin
       filename:=realpackagename^;
-      result:=search_path_list(packagesearchpath);
+      result:=search_path_list(compiler.globals.packagesearchpath);
     end;
 
   function tpcppackage.search_package_file: boolean;

@@ -3195,7 +3195,7 @@ begin
         if ispara then
           parapackagepath.AddPath(More,false)
         else
-          packagesearchpath.AddPath(More,true);
+          compiler.globals.packagesearchpath.AddPath(More,true);
       end;
     'r' :
       compiler.verbose.Msgfilename:=More;
@@ -5185,7 +5185,7 @@ begin
   compiler.globals.IncludeSearchPath.AddList(option.ParaIncludePath,true);
   compiler.globals.LibrarySearchPath.AddList(option.ParaLibraryPath,true);
   compiler.globals.FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
-  packagesearchpath.addlist(option.parapackagepath,true);
+  compiler.globals.packagesearchpath.addlist(option.parapackagepath,true);
   for j:=0 to option.parapackages.count-1 do
     compiler.pkgutil.add_package(option.parapackages.NameOfIndex(j),true,true);
 
