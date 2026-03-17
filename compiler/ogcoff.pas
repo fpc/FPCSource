@@ -3290,7 +3290,7 @@ const pemagic : array[0..3] of byte = (
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
             if not hassymbols then
               header.flag:=header.flag or PE_FILE_LOCAL_SYMS_STRIPPED;
-            if SetPEFlagsSetExplicity then
+            if compiler.globals.SetPEFlagsSetExplicity then
               header.flag:=header.flag or peflags;
           end
         else

@@ -1715,7 +1715,7 @@ unit scandir;
               compiler.verbose.Message(scan_e_illegal_peflag);
             peflags:=peflags or uint16(flags);
           end;
-        SetPEFlagsSetExplicity:=true;
+        compiler.globals.SetPEFlagsSetExplicity:=true;
       end;
 
     procedure dir_setpeoptflags;

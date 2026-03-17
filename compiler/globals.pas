@@ -301,7 +301,6 @@ Const
 
 
     var
-       SetPEFlagsSetExplicity,
        SetPEOptFlagsSetExplicity,
        SetPEOSVersionSetExplicitely,
        SetPESubSysVersionSetExplicitely,
@@ -725,6 +724,7 @@ Const
         { linking }
         usewindowapi  : boolean;
         description   : string;
+        SetPEFlagsSetExplicity : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1798,7 +1798,7 @@ implementation
         compiler.globals.usewindowapi:=false;
         compiler.globals.description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;
         DescriptionSetExplicity:=false;
-        SetPEFlagsSetExplicity:=false;
+        compiler.globals.SetPEFlagsSetExplicity:=false;
         SetPEOptFlagsSetExplicity:=false;
         SetPEOSVersionSetExplicitely:=false;
         SetPESubSysVersionSetExplicitely:=false;

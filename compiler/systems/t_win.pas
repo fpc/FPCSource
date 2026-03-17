@@ -1710,7 +1710,7 @@ implementation
         { change stack size (PM) }
         { I am not sure that the default value is adequate !! }
         peoptheader.SizeOfStackReserve:=stacksize;
-        if SetPEFlagsSetExplicity then
+        if compiler.globals.SetPEFlagsSetExplicity then
           peoptheader.LoaderFlags:=peflags;
         if ImageBaseSetExplicity then
           peoptheader.ImageBase:=imagebase;
