@@ -28,11 +28,14 @@ unit psub;
 interface
 
     uses
-      globals,cclasses,compilerbase,
+      globals,cclasses,compilerbase,hlcgobj,
       node,nbas,nutils,aasmdata,
       symdef,procinfo,optdfa;
 
     type
+
+      { tcgprocinfo }
+
       tcgprocinfo = class(tprocinfo)
       private type
         ttempinfo_flags_entry = record
@@ -43,6 +46,7 @@ interface
       private
         tempinfo_flags_map : TFPList;
         tempflags_swapped : boolean;
+        function GetHLCG: thlcgobj; inline;
         procedure swap_tempflags;
         function store_node_tempflags(var n: tnode; arg: pointer): foreachnoderesult;
         procedure CreateInlineInfo;
@@ -61,6 +65,7 @@ interface
         procedure add_label_init(p:TObject;arg:pointer);
       protected
         procedure generate_code_exceptfilters;
+        property hlcg: thlcgobj read GetHLCG;
       public
         { code for the subroutine as tree }
         code : tnode;
@@ -171,7 +176,7 @@ implementation
        scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,parser,
        { codegen }
-       tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,cgobj,hlcgcpu,dbgbase,
 
        ncgflw,
        ncgutil,
@@ -1489,6 +1494,12 @@ implementation
       end;
 
 
+    function tcgprocinfo.GetHLCG: thlcgobj; inline;
+      begin
+        Result:=compiler.hlcg;
+      end;
+
+
     procedure tcgprocinfo.apply_tempflags;
       begin
         if tempflags_swapped then
@@ -1740,9 +1751,9 @@ implementation
         aktproccode.concatlist(current_asmdata.CurrAsmList);
         { save the codegen }
         saved_cg:=cg;
-        saved_hlcg:=hlcg;
+        saved_hlcg:=compiler.hlcg;
         cg:=nil;
-        hlcg:=nil;
+        tcompiler(compiler).hlcg:=nil;
 {$ifdef cpu64bitalu}
         saved_cg128:=cg128;
         cg128:=nil;
@@ -1754,7 +1765,7 @@ implementation
         { prevents generating code the second time when processing nested procedures }
         nestedpi.resetprocdef;
         cg:=saved_cg;
-        hlcg:=saved_hlcg;
+        tcompiler(compiler).hlcg:=saved_hlcg;
 {$ifdef cpu64bitalu}
         cg128:=saved_cg128;
 {$else cpu64bitalu}
@@ -1794,7 +1805,7 @@ implementation
       end;
 
 
-     procedure TCGProcinfo.CreateInlineInfo;
+          procedure tcgprocinfo.CreateInlineInfo;
        begin
         new(procdef.inlininginfo);
         procdef.inlininginfo^.code:=code.getcopy;
@@ -1862,7 +1873,7 @@ implementation
       end;
 
 
-    function TCGProcinfo.GetUserCode : tnode;
+        function tcgprocinfo.GetUserCode: tnode;
       var
         n : tnode;
       begin
@@ -2396,7 +2407,7 @@ implementation
               end;
             { stop tempgen and ra }
             hlcg.done_register_allocators;
-            destroy_hlcodegen;
+            destroy_hlcodegen(compiler);
           end;
 
         dfabuilder.free;
@@ -2996,11 +3007,11 @@ implementation
 {$endif cpuhighleveltarget}
                    begin
                      create_hlcodegen(compiler);
-                     hlcg.handle_external_proc(
+                     compiler.hlcg.handle_external_proc(
                        current_asmdata.asmlists[al_procedures],
                        result,
                        parser.pdecsub.proc_get_importname(result));
-                     destroy_hlcodegen;
+                     destroy_hlcodegen(compiler);
                    end
                end;
            end;

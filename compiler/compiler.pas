@@ -157,6 +157,7 @@ uses
 {$endif GENERIC_CPU}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
+  ,hlcgobj
   ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti
   ,opt,optloop
   ,aasmdata
@@ -188,6 +189,7 @@ type
     FOptions: TOptions;
     FRTTIWriter : TRTTIWriter;
     FLinker: TLinker;
+    Fhlcg: thlcgobj;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
                                           given on the command line. Is common
@@ -224,6 +226,8 @@ type
     property Options: TOptions read FOptions;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
     property Linker: TLinker read FLinker;
+    {# Main high level code generator class }
+    property hlcg: thlcgobj read Fhlcg write Fhlcg;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
     property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
@@ -237,6 +241,7 @@ type
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
     function GetGlobals: TCompilerGlobals; inline;
+    function GetHLCG: thlcgobj; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
     function GetLinker: TLinker; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
@@ -374,6 +379,7 @@ type
     property ObjCUtil: TObjectiveCUtils read GetObjCUtil;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
     property Linker: TLinker read GetLinker;
+    property hlcg: thlcgobj read GetHLCG;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
     property symtablestack: TSymtablestack read Getsymtablestack;
@@ -719,6 +725,11 @@ end;
 function TCompilerHelper.GetGlobals: TCompilerGlobals; inline;
 begin
   Result := TCompiler(Self).Globals;
+end;
+
+function TCompilerHelper.GetHLCG: thlcgobj;
+begin
+  Result := TCompiler(Self).hlcg;
 end;
 
 function TCompilerHelper.Getinitialmacrosymtable: TSymtable; inline;

@@ -42,12 +42,13 @@ implementation
 
   uses
     hlcgobj,
-    cgcpu;
+    cgcpu,
+    compiler;
 
 
   procedure create_hlcodegen(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create(compiler);
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
       create_codegen;
     end;
 

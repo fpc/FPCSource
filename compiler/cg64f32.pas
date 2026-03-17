@@ -109,6 +109,24 @@ unit cg64f32;
                                      Helpers
 ****************************************************************************}
 
+    type
+
+      { tcg64f32helper }
+
+      tcg64f32helper = class helper for tcg64f32
+      private
+        function GetHLCG: thlcgobj; inline;
+      public
+        property hlcg: thlcgobj read GetHLCG;
+      end;
+
+
+    function tcg64f32helper.GetHLCG: thlcgobj; inline;
+      begin
+        result:=self.compiler.hlcg;
+      end;
+
+
     procedure swap64(var q : int64);
       begin
          q:=(int64(lo(q)) shl 32) or hi(q);

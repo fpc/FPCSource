@@ -712,15 +712,22 @@ unit hlcgobj;
        end;
      thlcgobjclass = class of thlcgobj;
 
+     { tnodehelper }
+
+     tnodehelper = class helper for tnode
+     private
+       function GetHLCG: thlcgobj; inline;
+     public
+       property hlcg: thlcgobj read GetHLCG;
+     end;
+
     var
-       {# Main high level code generator class }
-       hlcg : thlcgobj;
        { class type of high level code generator class (also valid when hlcg is
          nil, in order to be able to call its virtual class methods) }
        chlcgobj: thlcgobjclass;
        create_hlcodegen: procedure(acompiler: TCompilerBase);
 
-    procedure destroy_hlcodegen;
+    procedure destroy_hlcodegen(ACompiler: TCompilerBase);
 
 implementation
 
@@ -740,10 +747,10 @@ implementation
        compiler;
 
 
-    procedure destroy_hlcodegen;
+    procedure destroy_hlcodegen(ACompiler: TCompilerBase);
       begin
-        hlcg.free;
-        hlcg:=nil;
+        tcompiler(acompiler).hlcg.free;
+        tcompiler(acompiler).hlcg:=nil;
         destroy_codegen;
       end;
 
@@ -1527,22 +1534,22 @@ implementation
         begin
           tmpsref:=sref;
           tmpsref.bitlen:=AIntBits;
-          valuereg:=hlcg.getintregister(list,tosize);
+          valuereg:=getintregister(list,tosize);
           a_load_subsetref_reg(list,sinttype,tosize,tmpsref,valuereg);
           tmpsref.bitlen:=sref.bitlen-AIntBits;
           inc(tmpsref.ref.offset,AIntBits div 8);
-          extra_value_reg:=hlcg.getintregister(list,tosize);
+          extra_value_reg:=getintregister(list,tosize);
           a_load_subsetref_reg(list,sinttype,tosize,tmpsref,extra_value_reg);
           { can't use a_load_reg_subsetreg to merge the results, as that one
             does not support sizes > AIntBits either }
-          tmpreg:=hlcg.getintregister(list,tosize);
+          tmpreg:=getintregister(list,tosize);
           if compiler.target.info.endian=endian_big then
             begin
               a_op_const_reg_reg(list,OP_SHL,tosize,sref.bitlen-AIntBits,valuereg,tmpreg);
               if is_signed(fromsubsetsize) then
                 begin
                   valuereg:=tmpreg;
-                  tmpreg:=hlcg.getintregister(list,tosize);
+                  tmpreg:=getintregister(list,tosize);
                   a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl (sref.bitlen-AIntBits))-1,extra_value_reg,tmpreg);
                   valuereg:=tmpreg;
                 end
@@ -1552,14 +1559,14 @@ implementation
               a_op_const_reg_reg(list,OP_SHL,tosize,AIntBits,extra_value_reg,tmpreg);
               if is_signed(fromsubsetsize) then
                 begin
-                  extra_value_reg:=hlcg.getintregister(list,tosize);
+                  extra_value_reg:=getintregister(list,tosize);
                   a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl AIntBits)-1,valuereg,extra_value_reg);
                   valuereg:=extra_value_reg;
                 end
             end;
           if is_signed(fromsubsetsize) then
             begin
-              extra_value_reg:=hlcg.getintregister(list,tosize);
+              extra_value_reg:=getintregister(list,tosize);
               a_op_const_reg_reg(list,OP_AND,tosize,(tcgint(1) shl AIntBits)-1,valuereg,extra_value_reg);
               valuereg:=extra_value_reg;
             end;
@@ -1667,7 +1674,7 @@ implementation
             internalerror(2019052901);
           tmpsref:=sref;
           tmpsref.bitlen:=AIntBits;
-          fromreg1:=hlcg.getintregister(list,aluuinttype);
+          fromreg1:=getintregister(list,aluuinttype);
           a_load_reg_reg(list,fromsize,aluuinttype,fromreg,fromreg1);
           if compiler.target.info.endian=endian_big then
             begin
@@ -1683,8 +1690,8 @@ implementation
               inc(tmpsref.ref.offset,AIntBits div 8);
             end;
           tmpsref.bitlen:=sref.bitlen-AIntBits;
-          fromreg1:=hlcg.getintregister(list,fromsize);
-          hlcg.a_op_const_reg_reg(list,OP_SHR,fromsize,AIntBits,fromreg,fromreg1);
+          fromreg1:=getintregister(list,fromsize);
+          a_op_const_reg_reg(list,OP_SHR,fromsize,AIntBits,fromreg,fromreg1);
           a_load_reg_subsetref(list,fromsize,tosubsetsize,fromreg1,tmpsref);
           exit;
         end;
@@ -4577,7 +4584,7 @@ implementation
           if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
             begin
               tg.gethltemp(list,size,-1,tt_normal,href);
-              hlcg.a_loadfpu_reg_ref(list,size,size,l.register,href);
+              a_loadfpu_reg_ref(list,size,size,l.register,href);
               location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment,[]);
               l.reference:=href;
             end;
@@ -4604,8 +4611,8 @@ implementation
             else
               newsize:=size;
           end;
-          reg:=hlcg.getmmregister(list,newsize);
-          hlcg.a_loadmm_loc_reg(list,size,newsize,l,reg,mms_movescalar);
+          reg:=getmmregister(list,newsize);
+          a_loadmm_loc_reg(list,size,newsize,l,reg,mms_movescalar);
           l.size:=def_cgsize(newsize);
           location_freetemp(list,l);
           location_reset(l,LOC_MMREGISTER,l.size);
@@ -4762,7 +4769,7 @@ implementation
             else
 {$endif cpu64bitalu}
               if getregtype(rr.old)=R_ADDRESSREGISTER then
-                rr.new := hlcg.getaddressregister(current_asmdata.CurrAsmList,n.resultdef)
+                rr.new := getaddressregister(current_asmdata.CurrAsmList,n.resultdef)
               else
                 rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
           end;
@@ -5753,7 +5760,7 @@ implementation
       pd:=search_system_proc('fpc_stackcheck');
       paraloc1.init;
       paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-      hlcg.a_load_const_cgpara(list,paraloc1.def,current_procinfo.calc_stackframe_size,paraloc1);
+      a_load_const_cgpara(list,paraloc1.def,current_procinfo.calc_stackframe_size,paraloc1);
       paramanager.freecgpara(list,paraloc1);
       paraloc1.done;
     end;
@@ -5827,6 +5834,13 @@ implementation
       allocallcpuregisters(list);
       result:=a_call_name(list,pd,pd.mangledname,paras,forceresdef,false);
       deallocallcpuregisters(list);
+    end;
+
+  { tnodehelper }
+
+  function tnodehelper.GetHLCG: thlcgobj; inline;
+    begin
+      result:=self.compiler.hlcg;
     end;
 
 

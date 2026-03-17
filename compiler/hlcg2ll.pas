@@ -1153,7 +1153,7 @@ implementation
              ((l.size = dst_cgsize) or
               (TCGSize2Size[l.size] = sizeof(aint)));
           if not const_location then
-            hregister:=hlcg.getregisterfordef(list,dst_size)
+            hregister:=getregisterfordef(list,dst_size)
           else
             hregister := l.register;
           { load value in new register }
@@ -1415,14 +1415,14 @@ implementation
          if currpara.initialloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER] then
            begin
              gen_alloc_regvar(list,currpara,false);
-             hlcg.varsym_set_localloc(list,currpara);
+             varsym_set_localloc(list,currpara);
            end;
        end;
 
      { generate copies of call by value parameters, must be done before
        the initialization and body is parsed because the refcounts are
        incremented using the local copies }
-     current_procinfo.procdef.parast.SymList.ForEachCall(@hlcg.g_copyvalueparas,list);
+     current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
      if not(po_assembler in current_procinfo.procdef.procoptions) then
        begin
          { initialize refcounted paras, and trash others. Needed here

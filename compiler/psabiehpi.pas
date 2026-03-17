@@ -31,7 +31,7 @@ unit psabiehpi;
       { common }
       cclasses,
       { global }
-      globtype,
+      globtype,compilerbase,
       { symtable }
       symconst,symtype,symdef,symsym,
       node,nutils,
@@ -546,9 +546,13 @@ implementation
     class procedure tpsabiehexceptionstatehandler.new_exception(list: TAsmList; const t: texceptiontemps;
       const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         reg: tregister;
         action: TPSABIEHAction;
       begin
+        hlcg:=compiler.hlcg;
         exceptstate.oldflowcontrol:=flowcontrol;
         current_asmdata.getjumplabel(exceptstate.exceptionlabel);
         if exceptframekind<>tek_except then
@@ -584,7 +588,11 @@ implementation
 
     class procedure tpsabiehexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind;
       var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         hlcg.g_unreachable(list);
         hlcg.a_label(list,exceptionstate.exceptionlabel);
         if exceptframekind<>tek_except then
@@ -603,8 +611,12 @@ implementation
     class procedure tpsabiehexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps;
       var exceptionstate: texceptionstate; endlabel: TAsmLabel);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         reg: TRegister;
       begin
+        hlcg:=compiler.hlcg;
         if exceptframekind<>tek_except then
           begin
             { record that no exception happened in the reason buf, in case we are in a try block of a finally statement }
@@ -630,11 +642,15 @@ implementation
     class procedure tpsabiehexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate;
       const exceptframekind: texceptframekind);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         cgpara1: tcgpara;
         pd: tprocdef;
         ReRaiseLandingPad: TPSABIEHAction;
         psabiehprocinfo: tpsabiehprocinfo;
       begin
+        hlcg:=compiler.hlcg;
         if not(fc_catching_exceptions in flowcontrol) and
            use_cleanup(exceptframekind) then
           begin
@@ -694,6 +710,9 @@ implementation
     class procedure tpsabiehexceptionstatehandler.begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel;
       add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         catchstartlab : tasmlabel;
         begincatchres,
         paraloc1: tcgpara;
@@ -708,6 +727,7 @@ implementation
         typeindex : aint;
 {$endif}
       begin
+        hlcg:=compiler.hlcg;
         paraloc1.init;
 {
         rttidef:=nil;
@@ -785,7 +805,11 @@ implementation
 
 
     class procedure tpsabiehexceptionstatehandler.end_catch(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
         inherited;
       end;
@@ -804,7 +828,11 @@ implementation
 
 
     class procedure tpsabiehexceptionstatehandler.catch_all_end(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
       end;
 

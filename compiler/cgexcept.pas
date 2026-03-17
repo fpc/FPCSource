@@ -152,10 +152,14 @@ unit cgexcept;
 
     class procedure tcgexceptionstatehandler.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         paraloc1, paraloc2, paraloc3, pushexceptres, setjmpres: tcgpara;
         pd: tprocdef;
         tmpresloc: tlocation;
       begin
+        hlcg:=compiler.hlcg;
         current_asmdata.getjumplabel(exceptstate.exceptionlabel);
         exceptstate.oldflowcontrol:=flowcontrol;
         exceptstate.finallycodelabel:=nil;
@@ -222,7 +226,11 @@ unit cgexcept;
 
 
     class procedure tcgexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptstate: texceptionstate;var exceptiontemps:texceptiontemps);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         hlcg.a_label(list,exceptstate.exceptionlabel);
       end;
 
@@ -236,8 +244,12 @@ unit cgexcept;
 
     class procedure tcgexceptionstatehandler.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         reasonreg: tregister;
       begin
+         hlcg:=compiler.hlcg;
          popaddrstack(list);
          if not onlyfree then
           begin
@@ -251,7 +263,11 @@ unit cgexcept;
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
     class procedure tcgexceptionstatehandler.cleanupobjectstack(list: TAsmList);
+      var
+         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+         hlcg: thlcgobj;
       begin
+         hlcg:=compiler.hlcg;
          hlcg.g_call_system_proc(list,'fpc_doneexception',[],nil).resetiftemp;
       end;
 
@@ -260,8 +276,12 @@ unit cgexcept;
       control is inside except block }
     class procedure tcgexceptionstatehandler.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       var
+         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+         hlcg: thlcgobj;
+      var
          exitlabel: tasmlabel;
       begin
+         hlcg:=compiler.hlcg;
          current_asmdata.getjumplabel(exitlabel);
          { add an catch all action clause, at least psabieh needs this }
          catch_all_add(list);
@@ -279,7 +299,11 @@ unit cgexcept;
 
 
     class procedure tcgexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         hlcg.g_call_system_proc(list,'fpc_reraise',[],nil).resetiftemp;
       end;
 
@@ -287,6 +311,7 @@ unit cgexcept;
     class procedure tcgexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       var
         pd: tprocdef;
         href2: treference;
@@ -296,6 +321,7 @@ unit cgexcept;
         indirect: boolean;
         otherunit: boolean;
       begin
+        hlcg:=compiler.hlcg;
         paraloc1.init;
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
@@ -350,7 +376,11 @@ unit cgexcept;
       end;
 
     class procedure tcgexceptionstatehandler.popaddrstack(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil).resetiftemp;
       end;
 

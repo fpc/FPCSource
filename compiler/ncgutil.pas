@@ -230,6 +230,7 @@ implementation
     procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
     {
       produces jumps to true respectively false labels using boolean expressions
     }
@@ -238,6 +239,7 @@ implementation
         storepos : tfileposinfo;
         tmpreg : tregister;
       begin
+         hlcg:=compiler.hlcg;
          if tnf_error in p.transientflags then
            exit;
          storepos:=current_filepos;
@@ -384,8 +386,12 @@ implementation
 
     procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         tmpreg: tregister;
       begin
+        hlcg:=compiler.hlcg;
         if (setbase<>0) then
           begin
             { subtract the setbase }
@@ -425,7 +431,11 @@ implementation
 
 
     procedure location_allocate_register(list: TAsmList;out l: tlocation;def: tdef;constant: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         l.size:=def_cgsize(def);
         if (def.typ=floatdef) and
            not(cs_fp_emulation in current_settings.moduleswitches) then
@@ -488,6 +498,7 @@ implementation
     procedure init_paras(p:TObject;arg:pointer);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       var
         href : treference;
         hsym : tparavarsym;
@@ -495,6 +506,7 @@ implementation
         list : TAsmList;
         needs_inittable : boolean;
       begin
+        hlcg:=compiler.hlcg;
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) then
          begin
@@ -553,7 +565,11 @@ implementation
 
 
     procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation;def: tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       begin
+        hlcg:=compiler.hlcg;
         case loc.loc of
           LOC_CREGISTER:
             begin
@@ -795,10 +811,12 @@ implementation
     procedure gen_proc_entry_code(list:TAsmList);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       var
         hitemp,
         lotemp, stack_frame_size : longint;
       begin
+        hlcg:=compiler.hlcg;
         { generate call frame marker for dwarf call frame info }
         current_asmdata.asmcfi.start_frame(list);
 
@@ -839,9 +857,11 @@ implementation
     procedure gen_proc_exit_code(list:TAsmList);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       var
         parasize : longint;
       begin
+        hlcg:=compiler.hlcg;
         { c style clearstack does not need to remove parameters from the stack, only the
           return value when it was pushed by arguments }
         if current_procinfo.procdef.proccalloption in clearstack_pocalls then
@@ -908,7 +928,9 @@ implementation
 
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
       var
-        compiler: TCompilerBase;
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         i       : longint;
         highsym,
         sym     : tsym;
@@ -916,7 +938,7 @@ implementation
         ptrdef  : tdef;
         isaddr  : boolean;
       begin
-        compiler:=st.compiler;
+        hlcg:=compiler.hlcg;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);

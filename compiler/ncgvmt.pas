@@ -1257,6 +1257,7 @@ implementation
     procedure gen_intf_wrapper(list:TAsmList;_class:tobjectdef);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
       var
         i,j  : longint;
         tmps : string;
@@ -1268,6 +1269,7 @@ implementation
         oldfileposinfo: tfileposinfo;
         usehighlevelwrapper: Boolean;
       begin
+        hlcg:=compiler.hlcg;
 {$if defined(cpuhighleveltarget)}
         usehighlevelwrapper:=true;
 {$else defined(cpuhighleveltarget)}
@@ -1406,7 +1408,7 @@ implementation
 {$endif}
         do_write_vmts(st,is_global);
 {$ifndef cpuhighleveltarget}
-        destroy_hlcodegen;
+        destroy_hlcodegen(compiler);
 {$endif}
       end;
 
