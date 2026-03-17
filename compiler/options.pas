@@ -3211,7 +3211,7 @@ begin
         if ispara then
           ParaUnitPath.AddPath(More,false)
         else
-          unitsearchpath.AddPath(More,true);
+          compiler.globals.unitsearchpath.AddPath(More,true);
       end;
     'U' :
       compiler.globals.outputunitdir:=FixPath(More,true);
@@ -5180,7 +5180,7 @@ begin
     end;
 
   { Add paths specified with parameters to the searchpaths }
-  UnitSearchPath.AddList(option.ParaUnitPath,true);
+  compiler.globals.UnitSearchPath.AddList(option.ParaUnitPath,true);
   ObjectSearchPath.AddList(option.ParaObjectPath,true);
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   compiler.globals.LibrarySearchPath.AddList(option.ParaLibraryPath,true);
@@ -5221,12 +5221,12 @@ begin
 
   { add unit environment and exepath to the unit search path }
   if compiler.globals.inputfilepath<>'' then
-   Unitsearchpath.AddPath(compiler.globals.inputfilepath,true);
+   compiler.globals.Unitsearchpath.AddPath(compiler.globals.inputfilepath,true);
   if not disable_configfile then
     begin
       env:=GetEnvironmentVariable(compiler.target.info.unit_env);
       if env<>'' then
-        UnitSearchPath.AddPath(GetEnvironmentVariable(compiler.target.info.unit_env),false);
+        compiler.globals.UnitSearchPath.AddPath(GetEnvironmentVariable(compiler.target.info.unit_env),false);
     end;
 
 {$ifdef Unix}
@@ -5254,25 +5254,25 @@ begin
       if PathExists(FpcDir+'rtl',true) then
         if (tf_use_8_3 in Source_Info.Flags) or
            (tf_use_8_3 in compiler.target.info.Flags) then
-          UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.os_string,false)
+          compiler.globals.UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.os_string,false)
         else
-          UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.full_string,false)
+          compiler.globals.UnitSearchPath.AddPath(FpcDir+'rtl/'+compiler.target.full_string,false)
       else
         if (tf_use_8_3 in Source_Info.Flags) or
            (tf_use_8_3 in compiler.target.info.Flags) then
-          UnitSearchPath.AddPath(FpcDir+'units/'+compiler.target.os_string+'/rtl',false)
+          compiler.globals.UnitSearchPath.AddPath(FpcDir+'units/'+compiler.target.os_string+'/rtl',false)
         else
-          UnitSearchPath.AddPath(FpcDir+'units/'+compiler.target.full_string+'/rtl',false);
+          compiler.globals.UnitSearchPath.AddPath(FpcDir+'units/'+compiler.target.full_string+'/rtl',false);
     end;
   { Add exepath if the exe is not in the current dir, because that is always searched already.
     Do not add it when linking on the target because then we can maybe already find
     .o files that are not for the target }
   if (compiler.globals.ExePath<>cfileutl.GetCurrentDir) and
      not(cs_link_on_target in init_settings.globalswitches) then
-   UnitSearchPath.AddPath(compiler.globals.ExePath,false);
+   compiler.globals.UnitSearchPath.AddPath(compiler.globals.ExePath,false);
   { Add unit dir to the object and library path }
-  objectsearchpath.AddList(unitsearchpath,false);
-  compiler.globals.librarysearchpath.AddList(unitsearchpath,false);
+  objectsearchpath.AddList(compiler.globals.unitsearchpath,false);
+  compiler.globals.librarysearchpath.AddList(compiler.globals.unitsearchpath,false);
 
 {$ifdef llvm}
   { default to clang }

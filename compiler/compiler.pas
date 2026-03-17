@@ -551,7 +551,7 @@ begin
        verbose.Message1(general_d_sourceos,source_info.name);
        verbose.Message1(general_i_targetos,target.info.name);
        verbose.Message1(general_t_exepath,globals.exepath);
-       WriteCmdStrList(general_t_unitpath,unitsearchpath);
+       WriteCmdStrList(general_t_unitpath,globals.unitsearchpath);
        WriteCmdStrList(general_t_includepath,includesearchpath);
        WriteCmdStrList(general_t_librarypath,globals.librarysearchpath);
        WriteCmdStrList(general_t_objectpath,objectsearchpath);

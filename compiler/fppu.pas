@@ -629,7 +629,7 @@ var
            if (result=[]) and Assigned(loaded_from) then
              result:=SearchPathList(loaded_from.LocalUnitSearchPath,prefix);
            if (result=[]) then
-             result:=SearchPathList(UnitSearchPath,prefix);
+             result:=SearchPathList(compiler.globals.UnitSearchPath,prefix);
          end;
 
          function SearchNamespaceList(const prefixes:TCmdStrList): TAvailableUnitFiles;
@@ -797,7 +797,7 @@ var
                   pkgunit^.module:=self;
                 { ToDo: check whether we really don't need this anymore }
                 {filename:=pkgunit^.ppufile;
-                if not SearchPathList(unitsearchpath) then
+                if not SearchPathList(compiler.globals.unitsearchpath) then
                   exit};
                 strm:=tpcppackage(pkg^.package).getmodulestream(self);
                 if not assigned(strm) then
@@ -1309,7 +1309,7 @@ var
                   if (Source_Time=-1) then
                     begin
                       if is_main then
-                        found:=unitsearchpath.FindFile(hs,true,temp_dir)
+                        found:=compiler.globals.unitsearchpath.FindFile(hs,true,temp_dir)
                       else
                         found:=includesearchpath.FindFile(hs,true,temp_dir);
                       if found then

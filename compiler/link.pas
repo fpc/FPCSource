@@ -268,7 +268,7 @@ Implementation
         if (not found) then
          found:=FindFile(s, CurDirRelPath(source_info),false,foundfile);
         if (not found) then
-         found:=UnitSearchPath.FindFile(s,false,foundfile);
+         found:=compiler.globals.UnitSearchPath.FindFile(s,false,foundfile);
         if (not found) then
          found:=current_module.localobjectsearchpath.FindFile(s,false,foundfile);
         if (not found) then

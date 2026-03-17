@@ -1303,7 +1303,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
             begin
               fn := fileName;
               if not fileExists(fn) then
-               if not unitsearchpath.FindFile(fileName,true,fn) then
+               if not compiler.globals.unitsearchpath.FindFile(fileName,true,fn) then
                  begin
                    compiler.verbose.comment(v_error,'can not find '+desc+' file '+fileName);
                    exit;
