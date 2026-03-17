@@ -301,7 +301,6 @@ Const
 
 
     var
-       printnodefile     : text;
 
        {  typical cross compiling params}
 
@@ -725,6 +724,7 @@ Const
 {$ifdef PREPROCWRITE}
         parapreprocess    : boolean;
 {$endif PREPROCWRITE}
+        printnodefile     : text;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

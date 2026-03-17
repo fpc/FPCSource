@@ -469,16 +469,16 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        assign(printnodefile,treelogfilename);
+        assign(compiler.globals.printnodefile,treelogfilename);
         {$push}{$I-}
-         rewrite(printnodefile);
+         rewrite(compiler.globals.printnodefile);
         {$pop}
         if ioresult<>0 then
          begin
            compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
-        close(printnodefile);
+        close(compiler.globals.printnodefile);
       end;
 
 
@@ -753,24 +753,24 @@ implementation
 
     procedure tcgprocinfo.printproc(pass:string);
       begin
-        assign(printnodefile,treelogfilename);
+        assign(compiler.globals.printnodefile,treelogfilename);
         {$push}{$I-}
-         append(printnodefile);
+         append(compiler.globals.printnodefile);
          if ioresult<>0 then
-          rewrite(printnodefile);
+          rewrite(compiler.globals.printnodefile);
         {$pop}
         if ioresult<>0 then
          begin
            compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
-        writeln(printnodefile);
-        writeln(printnodefile,'*******************************************************************************');
-        writeln(printnodefile, pass);
-        writeln(printnodefile,procdef.fullprocname(false));
-        writeln(printnodefile,'*******************************************************************************');
-        printnode(printnodefile,code);
-        close(printnodefile);
+        writeln(compiler.globals.printnodefile);
+        writeln(compiler.globals.printnodefile,'*******************************************************************************');
+        writeln(compiler.globals.printnodefile, pass);
+        writeln(compiler.globals.printnodefile,procdef.fullprocname(false));
+        writeln(compiler.globals.printnodefile,'*******************************************************************************');
+        printnode(compiler.globals.printnodefile,code);
+        close(compiler.globals.printnodefile);
       end;
 
 
