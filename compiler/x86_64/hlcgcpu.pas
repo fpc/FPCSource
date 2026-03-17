@@ -112,9 +112,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       hlcg:=thlcgcpu.create(compiler);
       create_codegen;

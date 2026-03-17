@@ -1398,9 +1398,11 @@ implementation
       end;
 
     procedure write_vmts(st:tsymtable;is_global:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifndef cpuhighleveltarget}
-        create_hlcodegen;
+        create_hlcodegen(compiler);
 {$endif}
         do_write_vmts(st,is_global);
 {$ifndef cpuhighleveltarget}

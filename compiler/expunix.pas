@@ -175,7 +175,7 @@ var
   i : longint;
 begin
   pd:=nil;
-  create_hlcodegen;
+  create_hlcodegen(compiler);
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do

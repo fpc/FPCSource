@@ -36,7 +36,7 @@ interface
     thlcgcpu = class(thlcg2ll)
     end;
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen(compiler: TCompilerBase);
 
 implementation
 
@@ -45,9 +45,7 @@ implementation
     cgcpu;
 
 
-  procedure create_hlcodegen;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  procedure create_hlcodegen(compiler: TCompilerBase);
     begin
       hlcg:=thlcgcpu.create(compiler);
       create_codegen;
