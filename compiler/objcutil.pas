@@ -170,8 +170,8 @@ end;
                 { NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
                     (but also on all iPhone SDK revisions we support) }
                 if (compiler.target.info.system in systems_objc_nfabi) and
-                   (not MacOSXVersionMin.isvalid or
-                    (MacOSXVersionMin.relationto(10,6,0)>=0)) then
+                   (not compiler.globals.MacOSXVersionMin.isvalid or
+                    (compiler.globals.MacOSXVersionMin.relationto(10,6,0)>=0)) then
                   result:=compiler.cloadvmtaddrnode(compiler.ctypenode(tobjectdef(tclassrefdef(def).pointeddef).childof))
                 else
                   result:=compiler.cloadvmtaddrnode(compiler.ctypenode(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
@@ -203,8 +203,8 @@ end;
           NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
             (but also on all iPhone SDK revisions we support) }
         if not(compiler.target.info.system in systems_objc_nfabi) or
-           (MacOSXVersionMin.isvalid and
-            (MacOSXVersionMin.relationto(10,6,0)<0)) then
+           (compiler.globals.MacOSXVersionMin.isvalid and
+            (compiler.globals.MacOSXVersionMin.relationto(10,6,0)<0)) then
           result:=objcloadbasefield(result,'SUPERCLASS');
         typecheckpass(result);
       end;

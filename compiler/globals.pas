@@ -301,8 +301,6 @@ Const
 
 
     var
-
-       MacOSXVersionMin,
        iPhoneOSVersionMin: tversion;
        RelocSectionSetExplicitly : boolean;
 
@@ -725,6 +723,8 @@ Const
         GenerateImportSection,
         GenerateImportSectionSetExplicitly,
         RelocSection : boolean;
+
+        MacOSXVersionMin: tversion;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1819,7 +1819,7 @@ implementation
         compiler.globals.GenerateImportSection:=false;
         compiler.globals.RelocSection:=false;
         RelocSectionSetExplicitly:=false;
-        MacOSXVersionMin.invalidate;
+        compiler.globals.MacOSXVersionMin.invalidate;
         iPhoneOSVersionMin.invalidate;
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }

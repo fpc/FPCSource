@@ -183,14 +183,14 @@ implementation
                   system_x86_64_darwin:
                     begin
                       { 10.8 and later: no crt1.* }
-                      if MacOSXVersionMin.relationto(10,8,0)>=0 then
+                      if compiler.globals.MacOSXVersionMin.relationto(10,8,0)>=0 then
                         exit('');
                       { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
                       { others: crt1.10.5 -> crt1.o }
                       if (compiler.target.info.system in [system_i386_darwin,system_x86_64_darwin]) and
-                         (MacOSXVersionMin.relationto(10,6,0)>=0) then
+                         (compiler.globals.MacOSXVersionMin.relationto(10,6,0)>=0) then
                         exit('crt1.10.6.o');
-                      if MacOSXVersionMin.relationto(10,5,0)>=0 then
+                      if compiler.globals.MacOSXVersionMin.relationto(10,5,0)>=0 then
                         exit('crt1.10.5.o');
                     end;
                   system_arm_ios:
@@ -231,7 +231,7 @@ implementation
                 result:='gcrt1.o';
                 { 10.8 and later: tell the linker to use 'start' instead of "_main"
                   as entry point }
-                if MacOSXVersionMin.relationto(10,8,0)>=0 then
+                if compiler.globals.MacOSXVersionMin.relationto(10,8,0)>=0 then
                   Info.ExeCmd[1]:=Info.ExeCmd[1]+' -no_new_main';
               end;
           end
@@ -247,7 +247,7 @@ implementation
                     begin
                       { < 10.6: bundle1.o
                         >= 10.6: nothing }
-                      if MacOSXVersionMin.relationto(10,6,0)>=0 then
+                      if compiler.globals.MacOSXVersionMin.relationto(10,6,0)>=0 then
                         exit('');
                     end;
                   system_arm_ios,
@@ -285,9 +285,9 @@ implementation
                         = 10.5: dylib1.10.5.o
                         < 10.5: dylib1.o
                       }
-                      if MacOSXVersionMin.relationto(10,6,0)>=0 then
+                      if compiler.globals.MacOSXVersionMin.relationto(10,6,0)>=0 then
                         exit('');
-                      if MacOSXVersionMin.relationto(10,5,0)>=0 then
+                      if compiler.globals.MacOSXVersionMin.relationto(10,5,0)>=0 then
                         exit('dylib1.10.5.o');
                     end;
                   system_arm_ios,
@@ -362,14 +362,14 @@ implementation
 
     function tlinkerdarwin.GetLinkVersion: TCmdStr;
       begin
-        if MacOSXVersionMin.isvalid then
+        if compiler.globals.MacOSXVersionMin.isvalid then
           begin
            { This does not depend on the target version but on the toolchain
              version, but we only know the former and not the latter }
-           if MacOSXVersionMin.relationto(11,0,0)>=0 then
-             result:='-macosx_version_min '+MacOSXVersionMin.str
+           if compiler.globals.MacOSXVersionMin.relationto(11,0,0)>=0 then
+             result:='-macosx_version_min '+compiler.globals.MacOSXVersionMin.str
            else
-             result:='-macos_version_min '+MacOSXVersionMin.str;
+             result:='-macos_version_min '+compiler.globals.MacOSXVersionMin.str;
           end
         else if iPhoneOSVersionMin.isvalid then
           begin

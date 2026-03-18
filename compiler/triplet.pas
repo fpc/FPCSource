@@ -26,7 +26,7 @@ unit triplet;
 interface
 
 uses
-  globtype,systems;
+  globtype,systems,compilerbase;
 
 function targettriplet(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
@@ -34,9 +34,11 @@ implementation
 
 uses
   globals,
-  cpuinfo,tripletcpu;
+  cpuinfo,tripletcpu,compiler;
 
   function targettriplet(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { architecture }
       result:=tripletcpustr(tripletstyle);
@@ -45,7 +47,7 @@ uses
         begin
           result:=result+'-apple';
           if target.info.system in systems_macosx then
-            result:=result+'-macosx'+MacOSXVersionMin.str
+            result:=result+'-macosx'+compiler.globals.MacOSXVersionMin.str
           else if target.info.system = system_aarch64_iphonesim then
             result:=result+'-ios-simulator'+iPhoneOSVersionMin.str
           else
