@@ -306,7 +306,6 @@ Const
        init_settings,
        current_settings   : tsettings;
 
-       maxheapsize : int64;
        stacksize   : longint;
 
 {$Ifdef EXTDEBUG}
@@ -730,7 +729,8 @@ Const
 
         pendingstate       : tpendingstate;
       { Memory sizes }
-        heapsize : int64;
+        heapsize,
+        maxheapsize : int64;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

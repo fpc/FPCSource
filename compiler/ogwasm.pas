@@ -5269,7 +5269,7 @@ implementation
         cust_sec: TWasmCustomSectionType;
       begin
         result:=false;
-        FMaxMemoryPages:=align(maxheapsize,WasmPageSize) div WasmPageSize;
+        FMaxMemoryPages:=align(compiler.globals.maxheapsize,WasmPageSize) div WasmPageSize;
 
         { each custom sections starts with its name }
         for cust_sec in TWasmCustomSectionType do

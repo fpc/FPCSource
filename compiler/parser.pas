@@ -248,9 +248,9 @@ implementation
            system_wasm32_wasip2:
              begin
                if ts_wasm_threads in init_settings.targetswitches then
-                 maxheapsize:=256*1024*1024
+                 compiler.globals.maxheapsize:=256*1024*1024
                else
-                 maxheapsize:=0;
+                 compiler.globals.maxheapsize:=0;
              end;
 {$ifdef i8086}
            system_i8086_embedded:
@@ -272,12 +272,12 @@ implementation
                    else
                      stacksize:=4096;
                  end;
-               if maxheapsize=0 then
+               if compiler.globals.maxheapsize=0 then
                  begin
                    if init_settings.x86memorymodel in x86_far_data_models then
-                     maxheapsize:=655360
+                     compiler.globals.maxheapsize:=655360
                    else
-                     maxheapsize:=65520;
+                     compiler.globals.maxheapsize:=65520;
                  end;
              end;
            system_i8086_win16:

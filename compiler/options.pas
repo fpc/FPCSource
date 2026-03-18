@@ -2612,13 +2612,13 @@ begin
               IllegalPara(opt)
             else if l<=length(more)-j then
               begin
-                val(copy(more,j+l+1),maxheapsize,code);
+                val(copy(more,j+l+1),compiler.globals.maxheapsize,code);
                 if code<>0 then
                   IllegalPara(opt)
-                else if (maxheapsize<compiler.globals.heapsize) then
+                else if (compiler.globals.maxheapsize<compiler.globals.heapsize) then
                   begin
                     compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
-                    maxheapsize:=compiler.globals.heapsize;
+                    compiler.globals.maxheapsize:=compiler.globals.heapsize;
                   end;
               end;
             break;

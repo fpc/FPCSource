@@ -981,7 +981,7 @@ unit scandir;
                 current_scanner.skipspace;
                 l:=current_scanner.readval64;
                 if l>=compiler.globals.heapsize then
-                  maxheapsize:=min(l,maxheapsize_limit)
+                  compiler.globals.maxheapsize:=min(l,maxheapsize_limit)
                 else
                   compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
               end;

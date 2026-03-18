@@ -3237,7 +3237,7 @@ implementation
           begin
             { calculate the additional number of paragraphs needed }
             heapmin_paragraphs:=(compiler.globals.heapsize + 15) div 16;
-            heapmax_paragraphs:=(maxheapsize + 15) div 16;
+            heapmax_paragraphs:=(compiler.globals.maxheapsize + 15) div 16;
             Header.MaxExtraParagraphs:=min(Header.MinExtraParagraphs-heapmin_paragraphs+heapmax_paragraphs,$FFFF);
           end
         else

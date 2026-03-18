@@ -114,7 +114,7 @@ implementation
       maxheapsize_para: Word;
       stacksize_para: Word;
     begin
-      maxheapsize_para:=(maxheapsize+15) div 16;
+      maxheapsize_para:=(compiler.globals.maxheapsize+15) div 16;
       stacksize_para:=(stacksize+15) div 16;
 
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);

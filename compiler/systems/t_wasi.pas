@@ -173,7 +173,7 @@ begin
   cmdstr := cmdstr + ' --no-entry';
 
   initialmem:=align(compiler.globals.heapsize,PageSize);
-  maxmem:=align(maxheapsize,PageSize);
+  maxmem:=align(compiler.globals.maxheapsize,PageSize);
 
   if ts_wasm_threads in current_settings.targetswitches then
     begin
