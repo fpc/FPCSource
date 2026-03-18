@@ -948,8 +948,8 @@ implementation
          filepostry:=current_filepos;
          first:=nil;
          inc(compiler.globals.exceptblockcounter);
-         oldcurrent_exceptblock := current_exceptblock;
-         current_exceptblock := compiler.globals.exceptblockcounter;
+         oldcurrent_exceptblock := compiler.globals.current_exceptblock;
+         compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
          old_block_type := block_type;
          block_type := bt_body;
 
@@ -974,7 +974,7 @@ implementation
          if parser.pbase.try_to_consume(_FINALLY) then
            begin
               inc(compiler.globals.exceptblockcounter);
-              current_exceptblock := compiler.globals.exceptblockcounter;
+              compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=compiler.ctryfinallynode(p_try_block,p_finally_block);
               try_statement.fileinfo:=filepostry;
@@ -984,7 +984,7 @@ implementation
               parser.pbase.consume(_EXCEPT);
               block_type:=bt_except;
               inc(compiler.globals.exceptblockcounter);
-              current_exceptblock := compiler.globals.exceptblockcounter;
+              compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
               ot:=generrordef;
               p_specific:=nil;
               if (current_scanner.idtoken=_ON) then
@@ -1103,7 +1103,7 @@ implementation
               try_statement:=compiler.ctryexceptnode(p_try_block,p_specific,p_default);
            end;
          block_type:=old_block_type;
-         current_exceptblock := oldcurrent_exceptblock;
+         compiler.globals.current_exceptblock := oldcurrent_exceptblock;
       end;
 
 

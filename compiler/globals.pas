@@ -308,7 +308,6 @@ Const
        // TODO: block_type should probably be moved to the scanner or parser
        block_type : tblock_type;         { type of currently parsed block }
 
-       current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
 
@@ -729,6 +728,8 @@ Const
 
         // TODO: exceptblockcounter should probably be moved somewhere else
         exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
+        // TODO: current_exceptblock should probably be moved somewhere else (parser?)
+        current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
