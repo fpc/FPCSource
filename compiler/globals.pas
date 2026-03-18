@@ -307,8 +307,6 @@ Const
        current_settings   : tsettings;
 
 
-       features : tfeatures;
-
        { prefix added to automatically generated setters/getters. If empty,
          no getters/setters will be automatically generated except if required
          for visibility reasons (but in that case the names will be mangled so
@@ -731,6 +729,8 @@ Const
         { Application type (platform specific)
           see globtype.pas for description }
         apptype : tapptype;
+
+        features : tfeatures;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1513,13 +1513,15 @@ implementation
 
     function HandleFeature(const s : string) : boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : tfeature;
       begin
         result:=true;
         for i:=low(tfeature) to high(tfeature) do
           if s=featurestr[i] then
             begin
-              include(features,i);
+              include(compiler.globals.features,i);
               exit;
             end;
         { Also support -Sfnoheap to exclude heap }
@@ -1527,7 +1529,7 @@ implementation
           for i:=low(tfeature) to high(tfeature) do
             if s='NO'+featurestr[i] then
               begin
-                exclude(features,i);
+                exclude(compiler.globals.features,i);
                 exit;
               end;
         result:=false;
@@ -1841,7 +1843,7 @@ implementation
         compiler.globals.LinkLibraryOrder   :=TLinkStrMap.Create;
 
         { enable all features by default }
-        features:=[low(Tfeature)..high(Tfeature)];
+        compiler.globals.features:=[low(Tfeature)..high(Tfeature)];
 
         callinitprocs;
      end;

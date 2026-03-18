@@ -4492,7 +4492,7 @@ implementation
         { variants }
         for idx := Low(VARIANTS) to High(VARIANTS) do
           begin
-            if (features*VARIANTS[idx].features)=VARIANTS[idx].features then
+            if (compiler.globals.features*VARIANTS[idx].features)=VARIANTS[idx].features then
               begin
                 append_entry(DW_TAG_variant,true,[
                   DW_AT_discr_value,DW_FORM_udata,VARIANTS[idx].value

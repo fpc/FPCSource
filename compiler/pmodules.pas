@@ -1511,7 +1511,7 @@ type
 
          { system unit is loaded, now insert feature defines }
          for feature:=low(tfeature) to high(tfeature) do
-           if feature in features then
+           if feature in compiler.globals.features then
              def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
 
          parser.pbase.consume(_INTERFACE);
@@ -2118,7 +2118,7 @@ type
              parser.psystem.load_intern_types;
              { system unit is loaded, now insert feature defines }
              for feature:=low(tfeature) to high(tfeature) do
-               if feature in features then
+               if feature in compiler.globals.features then
                  def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
            end;
 
@@ -3061,7 +3061,7 @@ type
 
          { system unit is loaded, now insert feature defines }
          for feature:=low(tfeature) to high(tfeature) do
-           if feature in features then
+           if feature in compiler.globals.features then
              def_system_macro('FPC_HAS_FEATURE_'+featurestr[feature]);
 
          { load standard units, e.g objpas,profile unit }

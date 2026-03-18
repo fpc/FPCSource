@@ -1341,7 +1341,7 @@ implementation
         parser.pbase.consume(_THREADVAR);
         if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           compiler.verbose.Message(parser_e_threadvars_only_sg);
-        if f_threading in features then
+        if f_threading in compiler.globals.features then
           parser.pdecvar.read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
           begin

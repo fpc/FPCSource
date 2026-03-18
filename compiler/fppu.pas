@@ -1591,7 +1591,7 @@ var
                end;
              ibfeatures :
                begin
-                 ppufile.getset(tppuset4(features));
+                 ppufile.getset(tppuset4(compiler.globals.features));
                end;
              ibmoduleoptions:
                begin
@@ -1749,7 +1749,7 @@ var
 
          if cs_compilesystem in current_settings.moduleswitches then
            begin
-             ppufile.putset(tppuset4(features));
+             ppufile.putset(tppuset4(compiler.globals.features));
              ppufile.writeentry(ibfeatures);
            end;
 

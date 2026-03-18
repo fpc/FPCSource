@@ -469,7 +469,7 @@ implementation
         openchararraytype:=carraydef.create_openarray(compiler);
         tarraydef(openchararraytype).elementdef:=cansichartype;
         cfiletype:=cfiledef.createuntyped(compiler);
-        if f_variants in features then
+        if f_variants in compiler.globals.features then
           begin
             cvarianttype:=cvariantdef.create(vt_normalvariant,compiler);
             colevarianttype:=cvariantdef.create(vt_olevariant,compiler);
@@ -569,7 +569,7 @@ implementation
         addtype('WideChar',cwidechartype);
         addtype('Text',cfiledef.createtext(compiler));
         addtype('TypedFile',cfiledef.createtyped(voidtype,compiler));
-        if f_variants in features then
+        if f_variants in compiler.globals.features then
           begin
             addtype('Variant',cvarianttype);
             addtype('OleVariant',colevarianttype);
@@ -657,7 +657,7 @@ implementation
 {$endif wasm}
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
-        if f_variants in features then
+        if f_variants in compiler.globals.features then
           begin
             addtype('$variant',cvarianttype);
             addtype('$olevariant',colevarianttype);
@@ -833,7 +833,7 @@ implementation
             loadtype('vtblarray',vmtarraytype);
             loadtype('__vtbl_ptr_type',vmttype);
           end;
-        if f_variants in features then
+        if f_variants in compiler.globals.features then
           begin
             loadtype('variant',cvarianttype);
             loadtype('olevariant',colevarianttype);

@@ -2235,9 +2235,9 @@ begin
     Include(target_unsup_features,f_monitor);
 
   if def then
-    features:=features-target_unsup_features
+    compiler.globals.features:=compiler.globals.features-target_unsup_features
   else
-    features:=features+target_unsup_features;
+    compiler.globals.features:=compiler.globals.features+target_unsup_features;
 
 {$if defined(hasamiga)}
    { enable vlink as default linker on Amiga but not for cross compilers (for now) }
@@ -3693,7 +3693,7 @@ begin
                   if length(more)>j then
                     IllegalPara(opt)
                   else
-                    features:=[];
+                    compiler.globals.features:=[];
                 end
               else
                 begin
@@ -6037,7 +6037,7 @@ begin
 
   if cs_compilesystem in init_settings.moduleswitches then
     for i:=low(tfeature) to high(tfeature) do
-      if i in features then
+      if i in compiler.globals.features then
         def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
 
 {$push}

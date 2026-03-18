@@ -984,7 +984,7 @@ implementation
            { but it's useless in init/final code of units }
            not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
            not(compiler.target.info.system in systems_garbage_collected_managed_types) and
-           (f_exceptions in features) then
+           (f_exceptions in compiler.globals.features) then
           begin
             { Any result of managed type must be returned in parameter }
             if is_managed_type(procdef.returndef) and
@@ -1021,7 +1021,7 @@ implementation
             { constructors need destroy-on-exception code even if they don't
               have managed variables/temps }
             maybe_add_constructor_wrapper(code,
-              (cs_implicit_exceptions in current_settings.moduleswitches) and (f_exceptions in features));
+              (cs_implicit_exceptions in current_settings.moduleswitches) and (f_exceptions in compiler.globals.features));
             compiler.globals.current_filepos:=entrypos;
             addstatement(newstatement,code);
             compiler.globals.current_filepos:=exitpos;
