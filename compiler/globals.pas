@@ -301,6 +301,7 @@ Const
 
 
     var
+       // TODO: current_tokenpros and current_filepos should probably be moved to the scanner or the parser
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
