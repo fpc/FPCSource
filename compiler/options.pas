@@ -4048,7 +4048,7 @@ begin
            if compiler.target.info.system in systems_all_windows then
              begin
                compiler.globals.GenerateImportSection:=not UnsetBool(More,j,opt,false);
-               GenerateImportSectionSetExplicitly:=true;
+               compiler.globals.GenerateImportSectionSetExplicitly:=true;
              end
            else
              IllegalPara(opt);

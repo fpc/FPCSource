@@ -301,7 +301,6 @@ Const
 
 
     var
-       GenerateImportSectionSetExplicitly,
        RelocSection : boolean;
 
        MacOSXVersionMin,
@@ -724,7 +723,8 @@ Const
         imagebase     : puint;
         UseDeffileForExports    : boolean;
         UseDeffileForExportsSetExplicitly : boolean;
-        GenerateImportSection : boolean;
+        GenerateImportSection,
+        GenerateImportSectionSetExplicitly : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
