@@ -26,7 +26,7 @@ unit pass_2;
 interface
 
 uses
-   node;
+   node,compilerbase;
 
     type
        tenumflowcontrol = (
@@ -62,7 +62,7 @@ implementation
 
    uses
      cutils,
-     globtype,verbose,
+     globtype,verbose,compiler,
      globals,
      aasmdata,
      cgobj
@@ -180,6 +180,8 @@ implementation
 
      procedure secondpass(p : tnode);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
@@ -194,12 +196,12 @@ implementation
             if (tnf_do_not_execute in p.transientflags) then
               InternalError(2022112402);
 
-            oldcodegenerror:=codegenerror;
+            oldcodegenerror:=compiler.globals.codegenerror;
             oldlocalswitches:=current_settings.localswitches;
             oldpos:=current_filepos;
             current_filepos:=p.fileinfo;
             current_settings.localswitches:=p.localswitches;
-            codegenerror:=false;
+            compiler.globals.codegenerror:=false;
             oldexecutionweight:=cg.executionweight;
             if assigned(p.optinfo) then
               cg.executionweight:=min(p.optinfo^.executionweight,high(cg.executionweight))
@@ -217,7 +219,7 @@ implementation
 {$ifdef EXTDEBUG}
             if (cs_asm_nodes in current_settings.globalswitches) then
               logsecond(p.nodetype,false);
-            if (not codegenerror) then
+            if (not compiler.globals.codegenerror) then
              begin
                if (p.location.loc<>p.expectloc) then
                  begin
@@ -236,29 +238,31 @@ implementation
                  compiler.verbose.Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;
 {$endif EXTDEBUG}
-            if codegenerror then
+            if compiler.globals.codegenerror then
               include(p.transientflags,tnf_error);
-            codegenerror:=codegenerror or oldcodegenerror;
+            compiler.globals.codegenerror:=compiler.globals.codegenerror or oldcodegenerror;
             current_settings.localswitches:=oldlocalswitches;
             current_filepos:=oldpos;
             cg.executionweight:=oldexecutionweight;
           end
          else
-           codegenerror:=true;
+           compiler.globals.codegenerror:=true;
       end;
 
 
     function do_secondpass(var p : tnode) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          { current_asmdata.CurrAsmList must be empty }
          if not current_asmdata.CurrAsmList.empty then
            internalerror(200405201);
 
          { clear errors before starting }
-         codegenerror:=false;
+         compiler.globals.codegenerror:=false;
          if not(tnf_error in p.transientflags) then
            secondpass(p);
-         do_secondpass:=codegenerror;
+         do_secondpass:=compiler.globals.codegenerror;
       end;
 
 

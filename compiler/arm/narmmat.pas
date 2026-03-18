@@ -362,7 +362,7 @@ implementation
 
         result:=nil;
         firstpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
 
         { if we get here and VFP support is on, there is no 64 bit VFP operation support available,

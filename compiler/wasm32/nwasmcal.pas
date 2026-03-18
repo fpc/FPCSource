@@ -105,7 +105,7 @@ implementation
         pvs: tparavarsym;
       begin
         result:=inherited;
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
 
         if assigned(procdefinition) then

@@ -191,7 +191,7 @@ implementation
       begin
         result:=nil;
         typecheckpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
          exit;
 
         make_not_regable(left,[ra_addr_regable,ra_addr_taken]);

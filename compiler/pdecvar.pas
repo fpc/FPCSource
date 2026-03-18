@@ -219,7 +219,7 @@ implementation
                           begin
                             idx:=0;
                             p:=parser.pexpr.comp_expr([ef_accept_equal]);
-                            if (not codegenerror) then
+                            if (not compiler.globals.codegenerror) then
                              begin
                                if (p.nodetype=ordconstn) then
                                  begin
@@ -776,7 +776,7 @@ implementation
                       p.default:=0;
                     realconstn:
                       p.default:=longint(single(trealconstnode(pt).value_real));
-                    else if not codegenerror then
+                    else if not compiler.globals.codegenerror then
                       internalerror(2019050525);
                   end;
                   pt.free;

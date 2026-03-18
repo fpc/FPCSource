@@ -323,7 +323,7 @@ procedure tx64tryfinallynode.pass_generate_code;
           flowcontrol:=flowcontrol+[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
         secondpass(left);
         flowcontrol:=flowcontrol-[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
       end;
 
@@ -371,7 +371,7 @@ procedure tx64tryfinallynode.pass_generate_code;
     { right is a call to finalizer procedure }
     secondpass(right);
 
-    if codegenerror then
+    if compiler.globals.codegenerror then
       exit;
 
     { normal exit from safecall proc must zero the result register }
@@ -456,7 +456,7 @@ procedure tx64tryexceptnode.pass_generate_code;
       just make sure that target labels are outside the scope }
     secondpass(left);
     tryflowcontrol:=flowcontrol;
-    if codegenerror then
+    if compiler.globals.codegenerror then
       goto errorexit;
 
     { jump over except handlers }

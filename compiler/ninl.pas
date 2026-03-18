@@ -1404,7 +1404,7 @@ implementation
                 {  chararrays with > 255 characters)                                }
                 inserttypeconv(filepara.left,getansistringdef,compiler);
                 filepara.resultdef:=filepara.left.resultdef;
-                if codegenerror then
+                if compiler.globals.codegenerror then
                   exit;
               end
           end
@@ -4332,7 +4332,7 @@ implementation
           end;
 
         if not assigned(result) and not
-           codegenerror then
+           compiler.globals.codegenerror then
           result:=simplify(false);
       end;
 

@@ -414,7 +414,7 @@ implementation
 
          firstpass(right);
          firstpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
       end;
 
@@ -554,7 +554,7 @@ implementation
           begin
             secondpass(right);
           end;
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          { of course not commutative }

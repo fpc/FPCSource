@@ -506,7 +506,7 @@ implementation
     begin
       result:=inherited pass_typecheck;
       if assigned(result) or
-         codegenerror then
+         compiler.globals.codegenerror then
         exit;
       { unfortunately, we cannot handle a call to a virtual constructor for
         the current instance from inside another constructor. The reason is

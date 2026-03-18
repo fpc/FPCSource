@@ -185,7 +185,7 @@ implementation
          if assigned(right) then
           typecheckpass(right);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          resultdef:=left.resultdef;
@@ -199,7 +199,7 @@ implementation
          firstpass(left);
          if assigned(right) then
           firstpass(right);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          expectloc:=left.expectloc;
@@ -252,20 +252,20 @@ implementation
          resultdef:=pasbool1type;
          typecheckpass(right);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          { Convert array constructor first to set }
          if is_array_constructor(right.resultdef) then
           begin
             arrayconstructor_to_set(right);
-            if codegenerror then
+            if compiler.globals.codegenerror then
              exit;
           end;
 
          typecheckpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
 
          if not assigned(left.resultdef) then
@@ -288,7 +288,7 @@ implementation
          if right.resultdef.typ<>setdef then
            compiler.verbose.CGMessage(sym_e_set_expected);
 
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
 
          if (m_tp7 in current_settings.modeswitches) then
@@ -422,7 +422,7 @@ implementation
 
          firstpass(right);
          firstpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
       end;
 
@@ -455,7 +455,7 @@ implementation
          typecheckpass(right);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
          { both types must be compatible }
          if not (nf_generic_para in left.flags) and not (nf_generic_para in right.flags) and
@@ -479,7 +479,7 @@ implementation
          result:=nil;
          firstpass(left);
          firstpass(right);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
         expectloc:=left.expectloc;
       end;
@@ -843,7 +843,7 @@ implementation
          { evaluates the case expression }
          firstpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
 
          { Load caseexpr into temp var if complex. }

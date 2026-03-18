@@ -764,18 +764,18 @@ implementation
             (node_complexity(right)>node_complexity(left)) and not(has_conditional_nodes(right)) then
          begin
            secondpass(right);
-           if codegenerror then
+           if compiler.globals.codegenerror then
              exit;
 
            secondpass(left);
-           if codegenerror then
+           if compiler.globals.codegenerror then
              exit;
          end
         else
          begin
            { calculate left sides }
            secondpass(left);
-           if codegenerror then
+           if compiler.globals.codegenerror then
              exit;
 
            { tell the SSA/SSL code that the left side was handled first so
@@ -787,7 +787,7 @@ implementation
            secondpass(right);
            flowcontrol:=oldflowcontrol;
 
-           if codegenerror then
+           if compiler.globals.codegenerror then
              exit;
          end;
 

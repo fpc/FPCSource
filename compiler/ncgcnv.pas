@@ -185,7 +185,7 @@ interface
         newsize   : tcgsize;
       begin
         secondpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
          exit;
 
         { Explicit typecasts from any ordinal type to a boolean type }
@@ -867,7 +867,7 @@ interface
         if not(convtype in [tc_bool_2_int,tc_bool_2_bool,tc_int_2_bool]) then
          begin
            secondpass(left);
-           if codegenerror then
+           if compiler.globals.codegenerror then
             exit;
          end;
 

@@ -94,7 +94,7 @@ implementation
     uses
       verbose,
       cutils,
-      symconst,symdef,symsym,defutil,
+      symconst,symdef,symsym,defutil,compiler,
       pass_2,tgobj,
       nbas,ncon,ncgflw,
 {$ifdef WASM}
@@ -375,7 +375,7 @@ implementation
          { Only process the right if we are not generating jumps }
          if not genjumps then
            secondpass(right);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
 
          { of course not commutative }

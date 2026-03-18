@@ -154,7 +154,7 @@ implementation
         the flags. We can also do things more efficiently directly }
 
       secondpass(left);
-      if codegenerror then
+      if compiler.globals.codegenerror then
        exit;
 
       case left.location.loc of

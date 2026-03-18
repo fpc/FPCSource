@@ -26,7 +26,7 @@ unit pass_1;
 interface
 
     uses
-       node;
+       node,compilerbase;
 
     procedure typecheckpass(var p : tnode);
     function  do_typecheckpass(var p : tnode) : boolean;
@@ -42,7 +42,7 @@ interface
 implementation
 
     uses
-      globtype,comphook,
+      globtype,comphook,compiler,
       globals,
       procinfo,
       verbose,
@@ -62,10 +62,12 @@ implementation
 
     procedure typecheckpass_internal_loop(var p : tnode; out node_changed: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          hp        : tnode;
          oldflags  : tnodeflags;
       begin
-        codegenerror:=false;
+        compiler.globals.codegenerror:=false;
         repeat
           current_filepos:=p.fileinfo;
           current_settings.localswitches:=p.localswitches;
@@ -85,7 +87,7 @@ implementation
             end;
         until not assigned(hp) or
               assigned(hp.resultdef);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           begin
             include(p.transientflags,tnf_error);
             { default to errortype if no type is set yet }
@@ -96,6 +98,8 @@ implementation
 
     procedure typecheckpass_internal(var p : tnode; out node_changed: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldverbosity     : longint;
@@ -104,7 +108,7 @@ implementation
         node_changed:=false;
         if (p.resultdef=nil) then
           begin
-            oldcodegenerror:=codegenerror;
+            oldcodegenerror:=compiler.globals.codegenerror;
             oldpos:=current_filepos;
             oldlocalswitches:=current_settings.localswitches;
             oldverbosity:=status.verbosity;
@@ -112,13 +116,13 @@ implementation
             current_settings.localswitches:=oldlocalswitches;
             current_filepos:=oldpos;
             status.verbosity:=oldverbosity;
-            codegenerror:=codegenerror or oldcodegenerror;
+            compiler.globals.codegenerror:=compiler.globals.codegenerror or oldcodegenerror;
           end
         else
           begin
-            { update the codegenerror boolean with the previous result of this node }
+            { update the compiler.globals.codegenerror boolean with the previous result of this node }
             if (tnf_error in p.transientflags) then
-              codegenerror:=true;
+              compiler.globals.codegenerror:=true;
           end;
       end;
 
@@ -132,10 +136,12 @@ implementation
 
 
     function do_typecheckpass_changed(var p : tnode; out nodechanged: boolean) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         codegenerror:=false;
+         compiler.globals.codegenerror:=false;
          typecheckpass_internal(p,nodechanged);
-         do_typecheckpass_changed:=codegenerror;
+         do_typecheckpass_changed:=compiler.globals.codegenerror;
       end;
 
 
@@ -149,6 +155,8 @@ implementation
 
     procedure firstpass(var p : tnode);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
@@ -161,11 +169,11 @@ implementation
 
          if not(tnf_error in p.transientflags) then
            begin
-             oldcodegenerror:=codegenerror;
+             oldcodegenerror:=compiler.globals.codegenerror;
              oldpos:=current_filepos;
              oldlocalswitches:=current_settings.localswitches;
              oldverbosity:=status.verbosity;
-             codegenerror:=false;
+             compiler.globals.codegenerror:=false;
              repeat
                { The error flag takes precedence over the 'do not execute' flag,
                  as it's assumed the node tree isn't tenable beyond this point }
@@ -200,7 +208,7 @@ implementation
                        { switch to new node }
                        p:=hp;
                      end;
-                   if codegenerror then
+                   if compiler.globals.codegenerror then
                      include(p.transientflags,tnf_error);
                  end;
              until not assigned(hp) or
@@ -213,19 +221,21 @@ implementation
                    compiler.verbose.Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
                end;
 {$endif EXTDEBUG}
-             codegenerror:=codegenerror or oldcodegenerror;
+             compiler.globals.codegenerror:=compiler.globals.codegenerror or oldcodegenerror;
              current_settings.localswitches:=oldlocalswitches;
              current_filepos:=oldpos;
              status.verbosity:=oldverbosity;
            end
          else
-           codegenerror:=true;
+           compiler.globals.codegenerror:=true;
       end;
 
 
     function do_firstpass(var p : tnode) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         codegenerror:=false;
+         compiler.globals.codegenerror:=false;
          firstpass(p);
 {$ifdef state_tracking}
          writeln('TRACKSTART');
@@ -236,7 +246,7 @@ implementation
          writenode(p);
          writeln('TRACKDONE');
 {$endif}
-         do_firstpass:=codegenerror;
+         do_firstpass:=compiler.globals.codegenerror;
       end;
 
 {$ifdef state_tracking}

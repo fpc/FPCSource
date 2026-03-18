@@ -368,10 +368,10 @@ implementation
          pd: tprocdef;
       begin
          secondpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
          secondpass(right);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
          location_copy(location,left.location);
 

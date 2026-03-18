@@ -24,7 +24,7 @@ unit ncgopt;
 {$i fpcdefs.inc}
 
 interface
-uses node, nopt;
+uses node, nopt, compilerbase;
 
 type
   tcgaddsstringcharoptnode = class(taddsstringcharoptnode)
@@ -37,7 +37,7 @@ type
 implementation
 
 uses
-  globtype,globals,
+  globtype,globals,compiler,
   pass_1,defutil,
   symdef,
   aasmbase,aasmdata,
@@ -55,7 +55,7 @@ begin
   pass_typecheck := nil;
   typecheckpass(left);
   typecheckpass(right);
-  if codegenerror then
+  if compiler.globals.codegenerror then
     exit;
   { update the curmaxlen field (before converting to a string!) }
   updatecurmaxlen;
@@ -70,7 +70,7 @@ begin
   pass_1 := nil;
   firstpass(left);
   firstpass(right);
-  if codegenerror then
+  if compiler.globals.codegenerror then
     exit;
   expectloc:=LOC_REFERENCE;
 end;

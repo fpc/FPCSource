@@ -26,7 +26,7 @@ unit nx86cnv;
 interface
 
     uses
-      node,ncgcnv,defutil;
+      node,ncgcnv,defutil,compilerbase;
 
     type
        tx86typeconvnode = class(tcgtypeconvnode)
@@ -60,7 +60,7 @@ interface
 implementation
 
    uses
-      verbose,globals,globtype,
+      verbose,globals,globtype,compiler,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
       cgbase,cga,pass_1,pass_2,
@@ -94,7 +94,7 @@ implementation
         newsize   : tcgsize;
       begin
          secondpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
          { Explicit typecasts from any ordinal type to a boolean type }
          { must not change the ordinal value                          }

@@ -349,7 +349,7 @@ implementation
         if not assigned(p.resultdef) then
          begin
            typecheckpass(p);
-           if codegenerror then
+           if compiler.globals.codegenerror then
             exit;
          end;
 
@@ -555,7 +555,7 @@ implementation
                   typecheckpass(p3);
                   set_varstate(p3,vs_read,[vsf_must_be_valid]);
                 end;
-              if codegenerror then
+              if compiler.globals.codegenerror then
                break;
               oldfilepos:=current_filepos;
               current_filepos:=p2.fileinfo;
@@ -2868,7 +2868,7 @@ implementation
         resultdef:=totypedef;
 
         typecheckpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
          exit;
 
         { When absolute force tc_equal }
@@ -4638,7 +4638,7 @@ implementation
           compiler.verbose.CGMessage(type_w_pointer_to_signed);
         result:=nil;
         firstpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
          exit;
         expectloc:=left.expectloc;
 
@@ -4938,7 +4938,7 @@ implementation
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_read,[vsf_must_be_valid]);
 
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
 
         if target_specific_typecheck then
@@ -5125,7 +5125,7 @@ implementation
         left := nil;
         right := nil;
         //firstpass(call);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
       end;
 
@@ -5222,7 +5222,7 @@ implementation
             left := nil;
             right := nil;
             firstpass(call);
-            if codegenerror then
+            if compiler.globals.codegenerror then
               exit;
            expectloc:=call.expectloc;
          end;

@@ -214,7 +214,7 @@ implementation
       begin
         result:=nil;
         typecheckpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
          exit;
 
         case left.resultdef.typ of
@@ -562,7 +562,7 @@ implementation
       begin
         result:=nil;
         typecheckpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
          exit;
 
         make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
@@ -846,7 +846,7 @@ implementation
       begin
          result:=nil;
          firstpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          { is this right for object of methods ?? }
@@ -893,7 +893,7 @@ implementation
          result:=nil;
          typecheckpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          { tp procvar support }
@@ -917,7 +917,7 @@ implementation
       begin
          result:=nil;
          firstpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          expectloc:=LOC_REFERENCE;
@@ -1025,7 +1025,7 @@ implementation
       begin
          result:=nil;
          firstpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          { several object types must be dereferenced implicitly }
@@ -1144,7 +1144,7 @@ implementation
          to do anything else here, just like for loadn's
 }
          set_varstate(right,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          { maybe type conversion for the index value, but
@@ -1398,7 +1398,7 @@ implementation
          result:=nil;
          firstpass(left);
          firstpass(right);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
 
          if (vnf_callunique in vecnodeflags) and

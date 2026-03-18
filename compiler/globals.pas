@@ -305,8 +305,6 @@ Const
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
-
-       codegenerror : boolean;           { true if there is an error reported }
        exception_raised : boolean;           { true if there is an exception reported }
 
        block_type : tblock_type;         { type of currently parsed block }
@@ -727,6 +725,9 @@ Const
         nwscreenname : string;
         nwthreadname : string;
         nwcopyright  : string;
+
+        // TODO: codegenerror should probably be moved to TVerbose
+        codegenerror : boolean;           { true if there is an error reported }
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1763,7 +1764,7 @@ implementation
         compiler.globals.do_build:=false;
         compiler.globals.do_release:=false;
         compiler.globals.do_make:=true;
-        codegenerror:=false;
+        compiler.globals.codegenerror:=false;
         global_unit_count:=0;
 
         { Output }

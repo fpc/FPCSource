@@ -26,7 +26,7 @@ unit nx86mat;
 interface
 
     uses
-      node,ncgmat;
+      node,ncgmat,compilerbase;
 
     type
       tx86unaryminusnode = class(tcgunaryminusnode)
@@ -59,7 +59,7 @@ interface
     uses
       globtype,
       constexp,
-      cutils,verbose,globals,
+      cutils,verbose,globals,compiler,
       symconst,symdef,
       aasmbase,aasmtai,aasmcpu,aasmdata,defutil,
       cgbase,pass_1,pass_2,
@@ -77,7 +77,7 @@ interface
       begin
          result:=nil;
          firstpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
            exit;
 
          if (left.resultdef.typ=floatdef) then
@@ -727,10 +727,10 @@ interface
 
       begin
         secondpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
         secondpass(right);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
 
         { put numerator in register }
@@ -988,10 +988,10 @@ DefaultDiv:
         hregister  : tregister;
       begin
         secondpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
         secondpass(right);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
 
         op:=A_NOP;

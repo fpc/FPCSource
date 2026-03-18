@@ -106,10 +106,10 @@ implementation
         invertsign: Boolean;
       begin
         secondpass(left);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
         secondpass(right);
-        if codegenerror then
+        if compiler.globals.codegenerror then
           exit;
 
         if is_64bitint(resultdef) or is_32bitint(resultdef) then

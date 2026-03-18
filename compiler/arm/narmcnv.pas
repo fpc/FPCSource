@@ -275,7 +275,7 @@ implementation
         newsize   : tcgsize;
       begin
          secondpass(left);
-         if codegenerror then
+         if compiler.globals.codegenerror then
           exit;
 
          { Explicit typecasts from any ordinal type to a boolean type }
