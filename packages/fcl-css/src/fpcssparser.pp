@@ -67,7 +67,7 @@ Type
     function ParseComponentValueList(AllowRules: Boolean=True): TCSSElement; virtual;
     function ParseComponentValue: TCSSElement; virtual;
     function ParseExpression: TCSSElement; virtual;
-    function ParseRule: TCSSElement; virtual;
+    function ParseRule: TCSSRuleElement; virtual;
     function ParseAtUnknownRule: TCSSElement; virtual;
     function ParseAtMediaRule: TCSSAtRuleElement; virtual;
     function ParseAtSimpleRule: TCSSAtRuleElement; virtual;
@@ -994,70 +994,46 @@ function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false
 
 Const
   NestedRuleTokens: TCSSTokens = [ctkAND, ctkCLASSNAME, ctkHASH, ctkPSEUDO,
-                                   ctkPSEUDOFUNCTION, ctkLBRACKET, ctkDOUBLECOLON,
-                                   ctkPLUS, ctkGT, ctkTILDE];
-
-  procedure ParseNestedRule;
-  var
-    aEl: TCSSElement;
-  begin
-    aEl:=ParseRule;
-    if aEl is TCSSRuleElement then
-      aRule.AddNestedRule(TCSSRuleElement(aEl))
-    else
-      FreeAndNil(aEl);
-  end;
-
+                                  ctkPSEUDOFUNCTION, ctkLBRACKET, ctkDOUBLECOLON,
+                                  ctkPLUS, ctkGT, ctkTILDE];
 Var
   aDecl : TCSSElement;
+  aNestedRule: TCSSRuleElement;
 
 begin
   aDecl:=nil;
-  while CurrentToken=ctkUNKNOWN do
-    GetNextToken;
-  if not (CurrentToken in [ctkRBRACE,ctkSEMICOLON]) then
+  While Not (CurrentToken in [ctkEOF,ctkRBRACE]) do
     begin
-    if CurrentToken in NestedRuleTokens then
-      ParseNestedRule
+    While CurrentToken in [ctkSEMICOLON,ctkUNKNOWN] do
+      Consume(ctkSEMICOLON);
+    if (CurrentToken in [ctkEOF,ctkRBRACE]) then
+      break;
+    if CurrentToken=ctkATKEYWORD then
+      begin
+      aDecl:=ParseAtUnknownRule;
+      if aDecl<>nil then
+        aRule.AddChild(aDecl);
+      end
+    else if CurrentToken in NestedRuleTokens then
+      begin
+      aNestedRule:=ParseRule;
+      if aNestedRule<>nil then
+        aRule.AddNestedRule(aNestedRule);
+      end
     else
       begin
       aDecl:=ParseDeclaration(aIsAt);
       if aDecl<>nil then
         aRule.AddChild(aDecl)
-      else
+      else // skip invalid
         while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
           GetNextToken;
-      end;
-    end;
-  While Not (CurrentToken in [ctkEOF,ctkRBRACE]) do
-    begin
-    While CurrentToken=ctkSEMICOLON do
-      Consume(ctkSEMICOLON);
-    if Not (CurrentToken in [ctkEOF,ctkRBRACE]) then
-      begin
-      if CurrentToken=ctkATKEYWORD then
-        begin
-        aDecl:=ParseAtUnknownRule;
-        if aDecl<>nil then
-          aRule.AddChild(aDecl);
-        end
-      else if CurrentToken in NestedRuleTokens then
-        ParseNestedRule
-      else
-        begin
-        aDecl:=ParseDeclaration(aIsAt);
-        if aDecl<>nil then
-          aRule.AddChild(aDecl)
-        else
-          while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
-            GetNextToken;
-        end;
       end;
     end;
   Result:=aRule.ChildCount;
 end;
 
-function TCSSParser.ParseRule: TCSSElement;
+function TCSSParser.ParseRule: TCSSRuleElement;
 
 Var
   aRule : TCSSRuleElement;
@@ -1305,10 +1281,12 @@ function TCSSParser.ParseSelector: TCSSElement;
   function ParseSub: TCSSElement;
   var
     Un: TCSSUnaryElement;
+    Sub: TCSSElement;
+    aOperation: TCSSUnaryOperation;
   begin
     Result:=nil;
     Case CurrentToken of
-      ctkAND,
+      ctkAND, // the & of a nested rule
       ctkSTAR,
       ctkIDENTIFIER : Result:=ParseIdentifier;
       ctkHASH : Result:=ParseHashIdentifier;
@@ -1319,11 +1297,14 @@ function TCSSParser.ParseSelector: TCSSElement;
       ctkDOUBLECOLON: Result:=ParseUnaryPseudoElement;
       ctkPLUS, ctkGT, ctkTILDE:
         begin
-        Un:=TCSSUnaryElement(CreateElement(CSSUnaryElementClass));
-        Un.Operation:=TokenToUnaryOperation(CurrentToken);
+        aOperation:=TokenToUnaryOperation(CurrentToken);
         GetNextToken;
         SkipWhiteSpace;
-        Un.Right:=ParseSub;
+        Sub:=ParseSub();
+        if Sub=nil then exit;
+        Un:=TCSSUnaryElement(CreateElement(CSSUnaryElementClass));
+        Un.Operation:=aOperation;
+        Un.Right:=Sub;
         Result:=Un;
         end;
     else
@@ -1355,7 +1336,7 @@ begin
   ok:=false;
   //writeln('TCSSParser.ParseSelector START ',CurrentToken);
   OldReturnWhiteSpace:=Scanner.ReturnWhiteSpace;
-  Scanner.ReturnWhiteSpace:=true;
+  Scanner.ReturnWhiteSpace:=true; // needed for the descendant operator - a whitespace
   try
     repeat
       {$IFDEF VerboseCSSParser}
