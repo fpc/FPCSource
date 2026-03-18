@@ -301,7 +301,6 @@ Const
 
 
     var
-       imagebase     : puint;
        UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
        GenerateImportSection,
@@ -724,7 +723,8 @@ Const
         peoptflags,
         peflags : longint;
         minstacksize,
-        maxstacksize     : puint;
+        maxstacksize,
+        imagebase     : puint;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

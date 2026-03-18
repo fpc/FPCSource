@@ -3949,7 +3949,7 @@ begin
                  non relocatable DLL at a specific base address PM }
                if (length(More)>j) then
                  begin
-                   val('$'+Copy(More,j+1),imagebase,code);
+                   val('$'+Copy(More,j+1),compiler.globals.imagebase,code);
                    if code<>0 then
                      IllegalPara(opt);
                    compiler.globals.ImageBaseSetExplicity:=true;

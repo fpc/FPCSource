@@ -392,7 +392,7 @@ constructor TInternalLinkerMSXDOS.create;
     CExeOutput:=TIntelHexExeOutput;
     CObjInput:=TRelObjInput;
     if compiler.globals.ImageBaseSetExplicity then
-      FOrigin:=ImageBase
+      FOrigin:=compiler.globals.ImageBase
     else
       FOrigin:=DefaultOrigin;
   end;

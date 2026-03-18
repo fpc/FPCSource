@@ -103,7 +103,7 @@ end;
 procedure TLinkerSinclairQL.SetSinclairQLInfo;
 begin
   if compiler.globals.ImageBaseSetExplicity then
-    Origin:=ImageBase
+    Origin:=compiler.globals.ImageBase
   else
     Origin:=DefaultOrigin;
 

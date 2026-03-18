@@ -193,7 +193,7 @@ procedure TLinkerAmstradCPC.SetDefaultInfo_Sdld;
     ExeName='sdldz80';
   begin
     if compiler.globals.ImageBaseSetExplicity then
-      FOrigin:=ImageBase
+      FOrigin:=compiler.globals.ImageBase
     else
       FOrigin:=DefaultOrigin;
     with Info do
@@ -207,7 +207,7 @@ procedure TLinkerAmstradCPC.SetDefaultInfo_Vlink;
     ExeName='vlink';
   begin
     if compiler.globals.ImageBaseSetExplicity then
-      FOrigin:=ImageBase
+      FOrigin:=compiler.globals.ImageBase
     else
       FOrigin:=DefaultOrigin;
     with Info do
@@ -404,7 +404,7 @@ constructor TInternalLinkerAmstradCPC.create;
     CExeOutput:=TZXSpectrumIntelHexExeOutput;
     CObjInput:=TRelObjInput;
     if compiler.globals.ImageBaseSetExplicity then
-      FOrigin:=ImageBase
+      FOrigin:=compiler.globals.ImageBase
     else
       FOrigin:=DefaultOrigin;
   end;

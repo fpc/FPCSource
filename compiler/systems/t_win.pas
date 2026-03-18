@@ -975,21 +975,21 @@ implementation
             if not compiler.globals.ImageBaseSetExplicity then
               begin
                 if IsSharedLibrary then
-                  imagebase:={$ifdef cpu64bitaddr} $110000000 {$else} $10000000 {$endif}
+                  compiler.globals.imagebase:={$ifdef cpu64bitaddr} $110000000 {$else} $10000000 {$endif}
                 else
                   if compiler.target.info.system in systems_wince then
-                    imagebase:=$10000
+                    compiler.globals.imagebase:=$10000
                   else
 {$ifdef cpu64bitaddr}
                     if (compiler.target.dbg.id = dbg_stabs) then
-                      imagebase:=$400000
+                      compiler.globals.imagebase:=$400000
                     else
-                      imagebase:= $100000000;
+                      compiler.globals.imagebase:= $100000000;
 {$else}
-                    imagebase:=$400000;
+                    compiler.globals.imagebase:=$400000;
 {$endif}
               end;
-            Concat('IMAGEBASE $' + hexStr(imagebase, SizeOf(imagebase)*2));
+            Concat('IMAGEBASE $' + hexStr(compiler.globals.imagebase, SizeOf(compiler.globals.imagebase)*2));
             Concat('HEADER');
             Concat('EXESECTION .text');
             Concat('  SYMBOL __text_start__');
@@ -1455,7 +1455,7 @@ implementation
         else
           EntryStr:='--entry=_mainCRTStartup';
         if compiler.globals.ImageBaseSetExplicity then
-          ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
+          ImageBaseStr:='--image-base=0x'+hexStr(compiler.globals.imagebase, SizeOf(compiler.globals.imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
@@ -1561,7 +1561,7 @@ implementation
         else
           EntryStr:='--entry _DLLMainCRTStartup';
         if compiler.globals.ImageBaseSetExplicity then
-          ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
+          ImageBaseStr:='--image-base=0x'+hexStr(compiler.globals.imagebase, SizeOf(compiler.globals.imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
@@ -1713,7 +1713,7 @@ implementation
         if compiler.globals.SetPEFlagsSetExplicity then
           peoptheader.LoaderFlags:=compiler.globals.peflags;
         if compiler.globals.ImageBaseSetExplicity then
-          peoptheader.ImageBase:=imagebase;
+          peoptheader.ImageBase:=compiler.globals.imagebase;
         if compiler.globals.MinStackSizeSetExplicity then
           peoptheader.SizeOfStackCommit:=compiler.globals.minstacksize;
         if compiler.globals.MaxStackSizeSetExplicity then

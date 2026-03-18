@@ -642,7 +642,7 @@ unit scandir;
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           compiler.verbose.Message(scan_w_imagebase_not_support);
         current_scanner.skipspace;
-        imagebase:=current_scanner.readval;
+        compiler.globals.imagebase:=current_scanner.readval;
         compiler.globals.ImageBaseSetExplicity:=true
       end;
 

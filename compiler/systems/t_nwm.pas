@@ -789,7 +789,7 @@ end;
             if IsSharedLibrary then
               Concat('ISSHAREDLIBRARY');
             ConcatEntryName;
-            Concat('IMAGEBASE $' + hexStr(0, SizeOf(imagebase)*2));
+            Concat('IMAGEBASE $' + hexStr(0, SizeOf(compiler.globals.imagebase)*2));
             Concat('HEADER');
             Concat('EXESECTION .text');
             Concat('  SYMBOL __text_start__');  nlmSpecialSymbols_Segments.Add('__text_start__',pointer(ptruint(Section_text)));
