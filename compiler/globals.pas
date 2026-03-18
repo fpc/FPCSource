@@ -719,6 +719,7 @@ Const
         GenerateImportSectionSetExplicitly,
         RelocSection : boolean;
 
+        // TODO: MacOSXVersionMin and iPhoneOSVersionMin should probably be moved to TCompilerTarget
         MacOSXVersionMin,
         iPhoneOSVersionMin: tversion;
         RelocSectionSetExplicitly : boolean;
