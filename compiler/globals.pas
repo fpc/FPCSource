@@ -306,7 +306,6 @@ Const
        init_settings,
        current_settings   : tsettings;
 
-       pendingstate       : tpendingstate;
      { Memory sizes }
        heapsize,
        maxheapsize : int64;
@@ -730,6 +729,8 @@ Const
         current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
         LinkLibraryAliases : TLinkStrMap;
         LinkLibraryOrder   : TLinkStrMap;
+
+        pendingstate       : tpendingstate;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

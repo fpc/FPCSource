@@ -3802,6 +3802,8 @@ type
 
 
     procedure tscannerfile.startreplaytokens(buf:tdynamicarray; change_endian:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not assigned(buf) then
           internalerror(200511175);
@@ -3809,7 +3811,7 @@ type
         { save current scanner state }
         replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
           cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,
-          pendingstate,status.verbosity,replaystack);
+          compiler.globals.pendingstate,status.verbosity,replaystack);
 {$ifdef check_inputpointer_limits}
         if assigned(hidden_inputpointer) then
           dec_inputpointer;
@@ -3822,7 +3824,7 @@ type
 
         { ensure that existing message state records won't be freed }
         current_settings.pmessage:=nil;
-        pendingstate:=default(tpendingstate);
+        compiler.globals.pendingstate:=default(tpendingstate);
 
         { Initialize value of change_endian_for_replay variable }
         change_endian_for_replay:=change_endian;
@@ -3874,11 +3876,11 @@ type
             change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
             current_settings:=replaystack.settings;
-            pendingstate:=replaystack.pending;
-            if assigned(pendingstate.nextmessagerecord) then
-              compiler.verbose.FreeLocalVerbosity(pendingstate.nextmessagerecord);
+            compiler.globals.pendingstate:=replaystack.pending;
+            if assigned(compiler.globals.pendingstate.nextmessagerecord) then
+              compiler.verbose.FreeLocalVerbosity(compiler.globals.pendingstate.nextmessagerecord);
             recordpendingverbosityfullswitch(replaystack.verbosity);
-            pendingstate.nextmessagerecord:=current_settings.pmessage;
+            compiler.globals.pendingstate.nextmessagerecord:=current_settings.pmessage;
             current_settings.pmessage:=nil;
             popreplaystack;
 {$ifdef check_inputpointer_limits}
@@ -3968,7 +3970,7 @@ type
                       begin
                         { free current and pending messages }
                         compiler.verbose.FreeLocalVerbosity(current_settings.pmessage);
-                        compiler.verbose.FreeLocalVerbosity(pendingstate.nextmessagerecord);
+                        compiler.verbose.FreeLocalVerbosity(compiler.globals.pendingstate.nextmessagerecord);
                         { the message settings are stored from newest to oldest
                           change for the whole stack, so we only want to apply
                           the newest changes for each message type }
@@ -3994,7 +3996,7 @@ type
                             if assigned(msgset.findoradd(@pmsg^.value,sizeof(pmsg^.value),msgfound)) and msgfound then
                               continue;
                             if i=1 then
-                              pendingstate.nextmessagerecord:=pmsg
+                              compiler.globals.pendingstate.nextmessagerecord:=pmsg
                             else
                               prevmsg^.next:=pmsg;
                             prevmsg:=pmsg;

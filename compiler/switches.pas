@@ -302,12 +302,16 @@ end;
 
 
 procedure recordpendingverbosityswitch(sw: char; state: char);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextverbositystr:=pendingstate.nextverbositystr+sw+state;
+    compiler.globals.pendingstate.nextverbositystr:=compiler.globals.pendingstate.nextverbositystr+sw+state;
   end;
 
 
 procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   var
     pstate : pmessagestaterecord;
   begin
@@ -315,91 +319,111 @@ procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
     {$IFDEF DEBUG_MESSAGESTATE}
     pstate^.owner:=current_module; { nil for global option }
     {$ENDIF}
-    pstate^.next:=pendingstate.nextmessagerecord;
+    pstate^.next:=compiler.globals.pendingstate.nextmessagerecord;
     pstate^.value:=msg;
     pstate^.state:=state;
-    pendingstate.nextmessagerecord:=pstate;
+    compiler.globals.pendingstate.nextmessagerecord:=pstate;
   end;
 
 
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    if not (psf_local_switches_changed in pendingstate.flags) then
-       pendingstate.nextlocalswitches:=current_settings.localswitches;
+    if not (psf_local_switches_changed in compiler.globals.pendingstate.flags) then
+       compiler.globals.pendingstate.nextlocalswitches:=current_settings.localswitches;
     if state='-' then
-      exclude(pendingstate.nextlocalswitches,sw)
+      exclude(compiler.globals.pendingstate.nextlocalswitches,sw)
     else if state='+' then
-      include(pendingstate.nextlocalswitches,sw)
+      include(compiler.globals.pendingstate.nextlocalswitches,sw)
     else { state = '*' }
       begin
         if sw in init_settings.localswitches then
-         include(pendingstate.nextlocalswitches,sw)
+         include(compiler.globals.pendingstate.nextlocalswitches,sw)
         else
-         exclude(pendingstate.nextlocalswitches,sw);
+         exclude(compiler.globals.pendingstate.nextlocalswitches,sw);
       end;
-    include(pendingstate.flags,psf_local_switches_changed);
+    include(compiler.globals.pendingstate.flags,psf_local_switches_changed);
   end;
 
 
 procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextalignment:=alignment;
-    include(pendingstate.flags,psf_alignment_changed);
+    compiler.globals.pendingstate.nextalignment:=alignment;
+    include(compiler.globals.pendingstate.flags,psf_alignment_changed);
   end;
 
 
 procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextlocalswitches:=switches;
-    include(pendingstate.flags,psf_local_switches_changed);
+    compiler.globals.pendingstate.nextlocalswitches:=switches;
+    include(compiler.globals.pendingstate.flags,psf_local_switches_changed);
   end;
 
 
 procedure recordpendingverbosityfullswitch(verbosity: longint);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextverbositystr:='';
-    pendingstate.nextverbosityfullswitch:=verbosity;
-    include(pendingstate.flags,psf_verbosity_full_switched);
+    compiler.globals.pendingstate.nextverbositystr:='';
+    compiler.globals.pendingstate.nextverbosityfullswitch:=verbosity;
+    include(compiler.globals.pendingstate.flags,psf_verbosity_full_switched);
   end;
 
 procedure recordpendingcallingswitch(const str: shortstring);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextcallingstr:=str;
+    compiler.globals.pendingstate.nextcallingstr:=str;
   end;
 
 
 procedure recordpendingsetalloc(alloc:shortint);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextsetalloc:=alloc;
-    include(pendingstate.flags,psf_setalloc_changed);
+    compiler.globals.pendingstate.nextsetalloc:=alloc;
+    include(compiler.globals.pendingstate.flags,psf_setalloc_changed);
   end;
 
 
 procedure recordpendingasmmode(asmmode:tasmmode);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextasmmode:=asmmode;
-    include(pendingstate.flags,psf_asmmode_changed);
+    compiler.globals.pendingstate.nextasmmode:=asmmode;
+    include(compiler.globals.pendingstate.flags,psf_asmmode_changed);
   end;
 
 
 procedure recordpendingpackenum(size:shortint);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextpackenum:=size;
-    include(pendingstate.flags,psf_packenum_changed);
+    compiler.globals.pendingstate.nextpackenum:=size;
+    include(compiler.globals.pendingstate.flags,psf_packenum_changed);
   end;
 
 
 procedure recordpendingpackrecords(size:shortint);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextpackrecords:=size;
-    include(pendingstate.flags,psf_packrecords_changed);
+    compiler.globals.pendingstate.nextpackrecords:=size;
+    include(compiler.globals.pendingstate.flags,psf_packrecords_changed);
   end;
 
 
 procedure recordpendingoptimizerswitches(optimizerswitches:toptimizerswitches);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    pendingstate.nextoptimizerswitches:=optimizerswitches;
-    include(pendingstate.flags,psf_optimizerswitches_changed);
+    compiler.globals.pendingstate.nextoptimizerswitches:=optimizerswitches;
+    include(compiler.globals.pendingstate.flags,psf_optimizerswitches_changed);
   end;
 
 
@@ -413,59 +437,59 @@ procedure flushpendingswitchesstate;
     msgfound : boolean;
   begin
     { process pending localswitches (range checking, etc) }
-    if psf_local_switches_changed in pendingstate.flags then
+    if psf_local_switches_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.localswitches:=pendingstate.nextlocalswitches;
-        exclude(pendingstate.flags,psf_local_switches_changed);
+        current_settings.localswitches:=compiler.globals.pendingstate.nextlocalswitches;
+        exclude(compiler.globals.pendingstate.flags,psf_local_switches_changed);
       end;
     { process pending verbosity changes (warnings on, etc) }
-    if psf_verbosity_full_switched in pendingstate.flags then
+    if psf_verbosity_full_switched in compiler.globals.pendingstate.flags then
       begin
-        status.verbosity:=pendingstate.nextverbosityfullswitch;
-        exclude(pendingstate.flags,psf_verbosity_full_switched);
+        status.verbosity:=compiler.globals.pendingstate.nextverbosityfullswitch;
+        exclude(compiler.globals.pendingstate.flags,psf_verbosity_full_switched);
       end;
-    if psf_alignment_changed in pendingstate.flags then
+    if psf_alignment_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.alignment:=pendingstate.nextalignment;
-        exclude(pendingstate.flags,psf_alignment_changed);
+        current_settings.alignment:=compiler.globals.pendingstate.nextalignment;
+        exclude(compiler.globals.pendingstate.flags,psf_alignment_changed);
       end;
-    if psf_packenum_changed in pendingstate.flags then
+    if psf_packenum_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.packenum:=pendingstate.nextpackenum;
-        exclude(pendingstate.flags,psf_packenum_changed);
+        current_settings.packenum:=compiler.globals.pendingstate.nextpackenum;
+        exclude(compiler.globals.pendingstate.flags,psf_packenum_changed);
       end;
-    if psf_packrecords_changed in pendingstate.flags then
+    if psf_packrecords_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.packrecords:=pendingstate.nextpackrecords;
-        exclude(pendingstate.flags,psf_packrecords_changed);
+        current_settings.packrecords:=compiler.globals.pendingstate.nextpackrecords;
+        exclude(compiler.globals.pendingstate.flags,psf_packrecords_changed);
       end;
-    if psf_setalloc_changed in pendingstate.flags then
+    if psf_setalloc_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.setalloc:=pendingstate.nextsetalloc;
-        exclude(pendingstate.flags,psf_setalloc_changed);
+        current_settings.setalloc:=compiler.globals.pendingstate.nextsetalloc;
+        exclude(compiler.globals.pendingstate.flags,psf_setalloc_changed);
       end;
-    if psf_asmmode_changed in pendingstate.flags then
+    if psf_asmmode_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.asmmode:=pendingstate.nextasmmode;
-        exclude(pendingstate.flags,psf_asmmode_changed);
+        current_settings.asmmode:=compiler.globals.pendingstate.nextasmmode;
+        exclude(compiler.globals.pendingstate.flags,psf_asmmode_changed);
       end;
-    if psf_optimizerswitches_changed in pendingstate.flags then
+    if psf_optimizerswitches_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.optimizerswitches:=pendingstate.nextoptimizerswitches;
-        exclude(pendingstate.flags,psf_optimizerswitches_changed);
+        current_settings.optimizerswitches:=compiler.globals.pendingstate.nextoptimizerswitches;
+        exclude(compiler.globals.pendingstate.flags,psf_optimizerswitches_changed);
       end;
     { process pending verbosity changes (warnings on, etc) }
-    if pendingstate.nextverbositystr<>'' then
+    if compiler.globals.pendingstate.nextverbositystr<>'' then
       begin
-        compiler.verbose.setverbosity(pendingstate.nextverbositystr);
-        pendingstate.nextverbositystr:='';
+        compiler.verbose.setverbosity(compiler.globals.pendingstate.nextverbositystr);
+        compiler.globals.pendingstate.nextverbositystr:='';
       end;
     msgset:=thashset.create(10,false,false);
     { we need to start from a clean slate }
     if not assigned(current_settings.pmessage) then
       compiler.verbose.RestoreLocalVerbosity(nil);
-    fstate:=pendingstate.nextmessagerecord;
-    pstate:=pendingstate.nextmessagerecord;
+    fstate:=compiler.globals.pendingstate.nextmessagerecord;
+    pstate:=compiler.globals.pendingstate.nextmessagerecord;
     while assigned(pstate) do
       begin
         {$IFDEF DEBUG_MESSAGESTATE}
@@ -476,7 +500,7 @@ procedure flushpendingswitchesstate;
             Internalerror(2026030701);
           end;
         {$ENDIF}
-        pendingstate.nextmessagerecord:=pstate^.next;
+        compiler.globals.pendingstate.nextmessagerecord:=pstate^.next;
         { the message records are ordered newest to oldest, so only apply the newest change }
         msgfound:=false;
         if not assigned(msgset.findoradd(@pstate^.value,sizeof(pstate^.value),msgfound)) or
@@ -490,20 +514,20 @@ procedure flushpendingswitchesstate;
           end
         else
           pstate:=pstate^.next;
-        pendingstate.nextmessagerecord:=nil;
+        compiler.globals.pendingstate.nextmessagerecord:=nil;
       end;
     msgset.free;
     msgset := nil;
     { process pending calling convention changes (calling x) }
-    if pendingstate.nextcallingstr<>'' then
+    if compiler.globals.pendingstate.nextcallingstr<>'' then
       begin
-        if not SetAktProcCall(pendingstate.nextcallingstr,tmpproccal) then
-          compiler.verbose.Message1(parser_w_unknown_proc_directive_ignored,pendingstate.nextcallingstr)
+        if not SetAktProcCall(compiler.globals.pendingstate.nextcallingstr,tmpproccal) then
+          compiler.verbose.Message1(parser_w_unknown_proc_directive_ignored,compiler.globals.pendingstate.nextcallingstr)
         else if not(tmpproccal in supported_calling_conventions) then
-          compiler.verbose.Message1(parser_e_illegal_calling_convention,pendingstate.nextcallingstr)
+          compiler.verbose.Message1(parser_e_illegal_calling_convention,compiler.globals.pendingstate.nextcallingstr)
         else
           current_settings.defproccall:=tmpproccal;
-        pendingstate.nextcallingstr:='';
+        compiler.globals.pendingstate.nextcallingstr:='';
       end;
   end;
 

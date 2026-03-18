@@ -1445,7 +1445,7 @@ unit scandir;
           recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
           recordpendingasmmode(switchesstatestack[switchesstatestackpos].asmmode);
           recordpendingoptimizerswitches(switchesstatestack[switchesstatestackpos].optimizerswitches);
-          pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
+          compiler.globals.pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
           { flushpendingswitchesstate will reset the message state }
           current_settings.pmessage:=nil;
           { Do not activate these changes yet, as otherwise
@@ -1481,47 +1481,47 @@ unit scandir;
 
       { do not flush here as we might have read directives which shall not be active yet,
         see e.g. tests/webtbs/tw22744b.pp }
-      if psf_alignment_changed in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].alignment:=pendingstate.nextalignment
+      if psf_alignment_changed in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].alignment:=compiler.globals.pendingstate.nextalignment
       else
         switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
 
-      if psf_verbosity_full_switched in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].verbosity:=pendingstate.nextverbosityfullswitch
+      if psf_verbosity_full_switched in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].verbosity:=compiler.globals.pendingstate.nextverbosityfullswitch
       else
         switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
 
-      if psf_local_switches_changed in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].localsw:=pendingstate.nextlocalswitches
+      if psf_local_switches_changed in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].localsw:=compiler.globals.pendingstate.nextlocalswitches
       else
         switchesstatestack[switchesstatestackpos].localsw:=current_settings.localswitches;
 
-      if psf_packenum_changed in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].packenum:=pendingstate.nextpackenum
+      if psf_packenum_changed in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].packenum:=compiler.globals.pendingstate.nextpackenum
       else
         switchesstatestack[switchesstatestackpos].packenum:=current_settings.packenum;
 
-      if psf_packrecords_changed in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].packrecords:=pendingstate.nextpackrecords
+      if psf_packrecords_changed in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].packrecords:=compiler.globals.pendingstate.nextpackrecords
       else
         switchesstatestack[switchesstatestackpos].packrecords:=current_settings.packrecords;
 
-      if psf_setalloc_changed in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].setalloc:=pendingstate.nextsetalloc
+      if psf_setalloc_changed in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].setalloc:=compiler.globals.pendingstate.nextsetalloc
       else
         switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
 
-      if psf_asmmode_changed in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].asmmode:=pendingstate.nextasmmode
+      if psf_asmmode_changed in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].asmmode:=compiler.globals.pendingstate.nextasmmode
       else
         switchesstatestack[switchesstatestackpos].asmmode:=current_settings.asmmode;
 
-      if psf_optimizerswitches_changed in pendingstate.flags then
-        switchesstatestack[switchesstatestackpos].optimizerswitches:=pendingstate.nextoptimizerswitches
+      if psf_optimizerswitches_changed in compiler.globals.pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].optimizerswitches:=compiler.globals.pendingstate.nextoptimizerswitches
       else
         switchesstatestack[switchesstatestackpos].optimizerswitches:=current_settings.optimizerswitches;
 
-      switchesstatestack[switchesstatestackpos].pmessage:=pendingstate.nextmessagerecord;
+      switchesstatestack[switchesstatestackpos].pmessage:=compiler.globals.pendingstate.nextmessagerecord;
       Inc(switchesstatestackpos);
     end;
 
