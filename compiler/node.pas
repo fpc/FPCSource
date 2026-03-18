@@ -805,7 +805,7 @@ implementation
 
     procedure tnode.ppuwrite(ppufile:tcompilerppufile);
       begin
-        ppufile.putbyte(byte(compiler.globals.block_type));
+        ppufile.putbyte(byte(blocktype));
         ppufile.putposinfo(fileinfo);
         ppufile.putset(tppuset5(localswitches));
         ppufile.putlongint(verbosity);

@@ -46,6 +46,8 @@ uses
 const
   PrinterDevice : string = 'prn';
 
+var InitialHelpFileCount : Sw_Word;
+
 {$ifdef useresstrings}
 resourcestring
 {$else}
@@ -479,6 +481,7 @@ begin
     inc(I);
     if S<>'' then HelpFiles^.Insert(NewStr(S));
   until S='';
+  InitialHelpFileCount:=I-2;
   { Editor }
   DefaultTabSize:=INIFile^.GetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   DefaultIndentSize:=INIFile^.GetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
@@ -705,6 +708,11 @@ begin
       S:=HelpFiles^.At(I-1)^;
       INIFile^.SetEntry(secHelp, ieHelpFile + IntToStr(I), EscapeIniText(S));
     end;
+  if InitialHelpFileCount>HelpFileCount then
+    for I:=HelpFileCount+1 to InitialHelpFileCount do
+      { Have to actively delete file entries that are not in use anymore. }
+      INIFile^.DeleteEntry(secHelp, ieHelpFile + IntToStr(I));
+  InitialHelpFileCount:=HelpFileCount;
   { Editor }
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
@@ -770,6 +778,16 @@ begin
     INIFile^.SetEntry(secColors,iePalette+'_121_160',PaletteToStr(copy(S,121,40)));
     INIFile^.SetEntry(secColors,iePalette+'_161_200',PaletteToStr(copy(S,161,40)));
     INIFile^.SetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40)));
+  end else
+  begin
+    { Actively delete color map entries if current palette match to default
+      palette. This eliminates "bug" reported in if branch above. (M) }
+    INIFile^.DeleteEntry(secColors,iePalette+'_1_40');
+    INIFile^.DeleteEntry(secColors,iePalette+'_41_80');
+    INIFile^.DeleteEntry(secColors,iePalette+'_81_120');
+    INIFile^.DeleteEntry(secColors,iePalette+'_121_160');
+    INIFile^.DeleteEntry(secColors,iePalette+'_161_200');
+    INIFile^.DeleteEntry(secColors,iePalette+'_201_240');
   end;
   { Desktop }
   INIFile^.SetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);

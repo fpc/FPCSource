@@ -426,7 +426,7 @@ type
   end;
   TCSSUnicodeRangeElementClass = class of TCSSUnicodeRangeElement;
 
-  { TCSSURLElement }
+  { TCSSURLElement - a quoted string literal }
 
   TCSSURLElement = Class(TCSSBaseStringElement)
   public
@@ -434,7 +434,7 @@ type
   end;
   TCSSURLElementClass = class of TCSSURLElement;
 
-  { TCSSStringElement }
+  { TCSSStringElement - a quoted string literal }
 
   TCSSStringElement = Class(TCSSBaseStringElement)
   private
@@ -451,6 +451,19 @@ type
   end;
   TCSSStringElementClass = class of TCSSStringElement;
 
+  { TCSSHashValueElement }
+
+  TCSSHashValueElement = Class(TCSSElement)
+  private
+    FValue: TCSSString;
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
+  Public
+    function Equals(Obj: TObject): boolean; override;
+    Property Value : TCSSString Read FValue Write FValue; // without leading #
+  end;
+  TCSSHashValueElementClass = class of TCSSHashValueElement;
+
   { TCSSIdentifierElement }
 
   TCSSIdentifierElement = Class(TCSSBaseStringElement)
@@ -464,7 +477,7 @@ type
   end;
   TCSSIdentifierElementClass = class of TCSSIdentifierElement;
 
-  { TCSSHashIdentifierElement }
+  { TCSSHashIdentifierElement - in selector }
 
   TCSSHashIdentifierElement = Class(TCSSIdentifierElement)
   Protected
@@ -474,7 +487,7 @@ type
   end;
   TCSSHashIdentifierElementClass = class of TCSSHashIdentifierElement;
 
-  { TCSSClassNameElement }
+  { TCSSClassNameElement - in selector }
 
   TCSSClassNameElement = Class(TCSSIdentifierElement)
   Protected
@@ -484,7 +497,7 @@ type
   end;
   TCSSClassNameElementClass = class of TCSSClassNameElement;
 
-  { TCSSPseudoClassElement }
+  { TCSSPseudoClassElement - in selector }
 
   TCSSPseudoClassElement = Class(TCSSIdentifierElement)
   Protected
@@ -595,8 +608,11 @@ type
   TCSSRuleElement = class(TCSSChildrenElement)
   Private
     FSelectors : TCSSElementList;
+    FNestedRules : TCSSElementList;
     function GetSelector(aIndex : Integer): TCSSElement;
     function GetSelectorCount: Integer;
+    function GetNestedRule(aIndex: Integer): TCSSRuleElement;
+    function GetNestedRuleCount: Integer;
   Protected
     function DoGetAsString(const aPrefix : TCSSString; aFormat : Boolean; const aIndent : TCSSString): TCSSString; virtual;
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
@@ -605,9 +621,12 @@ type
     Class function CSSType : TCSSType; override;
     Destructor Destroy; override;
     Procedure AddSelector(aSelector : TCSSElement);
+    Procedure AddNestedRule(aRule: TCSSRuleElement);
     function Equals(Obj: TObject): boolean; override;
     Property Selectors [aIndex : Integer] : TCSSElement Read GetSelector;
     Property SelectorCount : Integer Read GetSelectorCount;
+    Property NestedRules[aIndex: Integer]: TCSSRuleElement Read GetNestedRule;
+    Property NestedRuleCount: Integer Read GetNestedRuleCount;
   end;
   TCSSRuleElementClass = class of TCSSRuleElement;
   TCSSRuleElementArray = array of TCSSRuleElement;
@@ -663,10 +682,8 @@ end;
 function StringToCSSString(const S: TCSSString): TCSSString;
 
 Var
-  iIn,iOut,I,L : Integer;
+  iIn,iOut,L : Integer;
   O : TCSSString;
-  u : TCSSString;
-  W : Unicodestring;
   C : AnsiChar;
 
   Procedure AddO;
@@ -684,40 +701,27 @@ Var
 begin
   Result:='';
   L:=Length(S);
-  SetLength(Result,4*L);
+  SetLength(Result,4*L+2);
+  Result[1]:='"';
+  iOut:=1;
   iIn:=1;
-  iOut:=0;
   While iIn<=L do
     begin
     C:=S[iIn];
-    If C in [#0..' ','"'] then
+    If C in [#0..#31,'"'] then
       begin
       O:='\'+HexStr(Ord(C),2);
       AddO;
       end
-    else if Ord(C)<128 then
+    else
       begin
       inc(iOut);
       Result[iOut]:=C;
-      end
-    else
-      begin
-      I:=U8length(C);
-      if (I>0) then
-        begin
-        U:=Copy(S,iIn,I);
-        W:=Utf8Decode(U);
-        for I:=1 to Length(W) do
-          begin
-          O:='\'+HexStr(Ord(W[I]),4);
-          AddO;
-          end;
-        inc(iIn,I);
-        continue;
-        end;
       end;
     Inc(iIn);
     end;
+  inc(iOut);
+  Result[iOut]:='"';
   SetLength(Result,iOut);
 end;
 
@@ -1082,6 +1086,17 @@ begin
         end;
       Result:=Result+Children[I].GetAsString(aFormat,lIndent)+';';
       end;
+    For I:=0 to NestedRuleCount-1 do
+      begin
+      if (ChildCount>0) or (I>0) then
+        begin
+        if aFormat then
+          Result:=Result+sLineBreak
+        else
+          Result:=Result+' ';
+        end;
+      Result:=Result+NestedRules[I].GetAsString(aFormat,lIndent);
+      end;
     if aFormat then
       Result:=Result+sLineBreak+aIndent
     else
@@ -1093,11 +1108,26 @@ begin
     end;
 end;
 
+function TCSSRuleElement.GetNestedRule(aIndex: Integer): TCSSRuleElement;
+begin
+  Result:=FNestedRules[aIndex] as TCSSRuleElement;
+end;
+
+function TCSSRuleElement.GetNestedRuleCount: Integer;
+begin
+  if Assigned(FNestedRules) then
+    Result:=FNestedRules.Count
+  else
+    Result:=0;
+end;
+
 procedure TCSSRuleElement.IterateChildren(aVisitor: TCSSTreeVisitor);
 begin
   if Assigned(FSelectors) then
     FSelectors.Iterate(aVisitor);
   inherited IterateChildren(aVisitor);
+  if Assigned(FNestedRules) then
+    FNestedRules.Iterate(aVisitor);
 end;
 
 class function TCSSRuleElement.CSSType: TCSSType;
@@ -1108,6 +1138,7 @@ end;
 destructor TCSSRuleElement.Destroy;
 begin
   FreeAndNil(FSelectors);
+  FreeAndNil(FNestedRules);
   Inherited Destroy;
 end;
 
@@ -1120,6 +1151,15 @@ begin
   FSelectors.Add(aSelector);
 end;
 
+procedure TCSSRuleElement.AddNestedRule(aRule: TCSSRuleElement);
+begin
+  if not Assigned(aRule) then
+    exit;
+  if not Assigned(FNestedRules) then
+    FNestedRules:=TCSSElementList.Create(Self);
+  FNestedRules.Add(aRule);
+end;
+
 function TCSSRuleElement.Equals(Obj: TObject): boolean;
 var
   Src: TCSSRuleElement absolute Obj;
@@ -1127,6 +1167,7 @@ begin
   if Obj is TCSSRuleElement then
     begin
     if not CSSElementListEquals(FSelectors,Src.FSelectors) then exit(false);
+    if not CSSElementListEquals(FNestedRules,Src.FNestedRules) then exit(false);
     end;
   Result:=inherited Equals(Obj);
 end;
@@ -1327,6 +1368,22 @@ begin
     begin
     if not CSSElementListEquals(FChildren,Src.FChildren) then exit(false);
     end;
+  Result:=inherited Equals(Obj);
+end;
+
+{ TCSSHashValueElement }
+
+function TCSSHashValueElement.GetAsString(aFormat: Boolean; const aIndent: TCSSString): TCSSString;
+begin
+  if aFormat then ;
+  if aIndent='' then ;
+  Result:='#'+Value;
+end;
+
+function TCSSHashValueElement.Equals(Obj: TObject): boolean;
+begin
+  if Obj is TCSSHashValueElement then
+    if TCSSHashValueElement(Obj).Value<>Value then exit(false);
   Result:=inherited Equals(Obj);
 end;
 

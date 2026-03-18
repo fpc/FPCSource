@@ -7,12 +7,18 @@
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
+        <UseDefaultCompilerOptions Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="testcss"/>
+      <Title Value="transformdemo"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
+    <CustomData Count="3">
+      <Item0 Name="OpenAPIBase"/>
+      <Item1 Name="OpenAPIConfig"/>
+      <Item2 Name="OpenAPIFile"/>
+    </CustomData>
     <BuildModes>
       <Item Name="Default" Default="True"/>
     </BuildModes>
@@ -25,25 +31,15 @@
     </RunParams>
     <Units>
       <Unit>
-        <Filename Value="testcss.lpr"/>
+        <Filename Value="transformdemo.pp"/>
         <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="tccssresolver.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tcCSSResolver"/>
-      </Unit>
-      <Unit>
-        <Filename Value="tccssskipinvalid.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tcCSSSkipInvalid"/>
       </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="testcss"/>
+      <Filename Value="transformdemo"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

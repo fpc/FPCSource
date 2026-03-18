@@ -392,7 +392,6 @@ type
     procedure Test_ParseAttr_Keyword;
     procedure Test_ParseAttr_Keyword_SkipInvalid;
     procedure Test_ParseAttr_Float;
-    procedure Test_ParseAttr_Float_SkipInvalid; // todo
 
     procedure Test_Selector_Universal;
     procedure Test_Selector_Type;
@@ -417,8 +416,6 @@ type
     procedure Test_Selector_AttributeContainsSubstring;
 
     // pseudo classes and functions
-    // test unknown pseudo class
-    // test unknown pseudo function
     procedure Test_Selector_Root;
     procedure Test_Selector_Empty;
     procedure Test_Selector_FirstChild;
@@ -461,14 +458,6 @@ type
     procedure Test_Var_NoDefault;
     procedure Test_Var_Inline_NoDefault;
     procedure Test_Var_Defaults;
-
-    // skipping for forward compatibility
-    // ToDo: invalid token in selector makes selector invalid
-    // ToDo: invalid domain in attribute value is skipped
-    // ToDo: invalid keyword in attribute value is skipped
-    // ToDo: invalid keyword in attribute value is skipped
-    // test skip invalid value  color: 3 red;
-    // test skip invalid attribute  color: 3;
 
     // pseudo elements (works like child combinator)
     procedure Test_PseudoElement;
@@ -1541,26 +1530,6 @@ begin
   AssertEquals('Div1.Top','-0.5pc',Div1.Top);
   AssertEquals('Div1.Width','0.6cm',Div1.Width);
   AssertEquals('Div1.Height','60rem',Div1.Height);
-end;
-
-procedure TTestNewCSSResolver.Test_ParseAttr_Float_SkipInvalid;
-begin
-  exit;
-
-  Doc.Root:=TDemoNode.Create(nil);
-  Doc.Style:=
-     ':root {'
-    +'  left: something 10px;'
-    +'  top: 1 px;' // no space between number
-    +'  width: 0 px;' // the px is ignored because of the space, 0 without unit is allowed
-    +'  height: -4cm;' // no negative
-    +'}';
-
-  ApplyStyle;
-  AssertEquals('Root.Left','10px',Doc.Root.Left);
-  AssertEquals('Root.Top','invalid',Doc.Root.Top);
-  AssertEquals('Root.Width','0',Doc.Root.Width);
-  AssertEquals('Root.Height','invalid',Doc.Root.Height);
 end;
 
 procedure TTestNewCSSResolver.Test_Selector_Universal;

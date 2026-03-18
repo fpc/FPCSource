@@ -7,7 +7,7 @@ uses
   cwstring,
   {$ENDIF}
   Classes, sysutils, consoletestrunner, tcCSSScanner, tcCSSParser, tcCSSTree,
-  tcCSSResolver;
+  tcCSSResolver, tcCSSSkipInvalid;
 
 type
 

@@ -82,6 +82,12 @@ begin
         NoDebugger;
         exit;
       end;
+     if not Debugger^.HasExe then
+      begin
+        DoneDebugger;
+        InformationBox(msg_nothingtorun,nil);
+        exit;
+      end;
    end;
   if not Debugger^.IsRunning then
     Debugger^.StartTrace
@@ -121,6 +127,12 @@ begin
      if not assigned(Debugger) then
       begin
         NoDebugger;
+        exit;
+      end;
+     if not Debugger^.HasExe then
+      begin
+        DoneDebugger;
+        InformationBox(msg_nothingtorun,nil);
         exit;
       end;
    end;
@@ -232,6 +244,16 @@ begin
             InitDebugger;
           if assigned(Debugger) then
             begin
+              if not Debugger^.HasExe then
+              begin
+                DoneDebugger;
+                InformationBox(msg_nothingtorun,nil);
+                exit;
+              end;
+              RunDirect:=false;
+              {we are about to run debugger, AutoSave first}
+              SaveCancelled:=false;
+              AutoSave; {ignore result, ignore if cancelled}
               if RestartingDebugger then
                 begin
                   RestartingDebugger:=false;
@@ -239,10 +261,6 @@ begin
                 end
               else
                 Debugger^.Run;
-              RunDirect:=false;
-              {we are about to run debugger, AutoSave first}
-              SaveCancelled:=false;
-              AutoSave; {ignore result, ignore if cancelled}
             end;
         end;
 {$endif ndef NODEBUG}
@@ -259,10 +277,6 @@ begin
       else
 {$endif Unix}
       DoExecute(ExeFile,GetRunParameters,'','','',exNormal);
-      {$I-}
-       chdir(oldcurrdir);
-      {$I+}
-      EatIO;
       { In case we have something that the compiler touched }
       AskToReloadAllModifiedFiles;
       LastExitCode:=ExecuteResult;
@@ -280,6 +294,10 @@ begin
           MsgParms[2].long:=LastExitCode;
           InformationBox(msg_programfileexitedwithexitcode,@MsgParms);
         end;
+      {$I-}
+       chdir(oldcurrdir);
+      {$I+}
+      EatIO;
     end
 {$ifndef NODEBUG}
   else
@@ -407,6 +425,12 @@ begin
           NoDebugger;
           exit;
         end;
+      if not Debugger^.HasExe then
+      begin
+        DoneDebugger;
+        InformationBox(msg_nothingtorun,nil);
+        exit;
+      end;
     end;
 
   W:=PFPWindow(DeskTop^.Current);

@@ -34,14 +34,17 @@ type
     FParser : TCSSParser;
     FToFree: TCSSElement;
     procedure Clear;
-    function GetRule: TCSSRuleElement;
+    function GetFirstRule: TCSSRuleElement;
+    function GetFirstInlineDeclaration: TCSSDeclarationElement;
     function OnScannerWarn(Sender: TObject; Msg: string; aRow, aCol: integer): boolean;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
     Procedure CreateParser(Const ASource : string);
     procedure Parse;
+    procedure ParseInline;
     procedure Parse(Const aSource : String);
+    procedure ParseInline(Const aSource : String);
     function ParseRule(Const aSource : String) : TCSSRuleElement;
     procedure AssertEquals(AMessage: String; AExpected, AActual: TCSSUnit);   overload;
     procedure AssertEquals(AMessage: String; AExpected, AActual: TCSSBinaryOperation);   overload;
@@ -56,9 +59,11 @@ type
     function CheckLiteral(Msg: String; aEl: TCSSelement; aValue: Integer) : TCSSIntegerElement;  overload;
     function CheckLiteral(Msg: String; aEl: TCSSelement; aValue: Integer; AUnits : TCSSUnit) : TCSSIntegerElement;  overload;
     Function GetCalArg(aCall : TCSSCallElement; aIndex : Integer) : TCSSElement;
+    function GetSecondRule: TCSSRuleElement;
   Public
     Property ParseResult : TCSSElement read FParseResult;
-    Property FirstRule : TCSSRuleElement Read GetRule;
+    Property FirstRule : TCSSRuleElement Read GetFirstRule;
+    Property FirstInlineDeclaration : TCSSDeclarationElement Read GetFirstInlineDeclaration;
     Property ToFree : TCSSElement Read FToFree Write FToFree;
     Property SkipInvalid: boolean read FSkipInvalid write FSkipInvalid;
   end;
@@ -104,6 +109,8 @@ type
     Procedure TestMediaPrint;
     Procedure TestSupportsFunction;
     Procedure TestSkipUnknownFunction;
+    Procedure TestNestedRule;
+    Procedure TestNestedAndRule;
   end;
 
   { TTestCSSFilesParser }
@@ -672,8 +679,8 @@ begin
   AssertEquals('selector count',0,R.SelectorCount);
   D:=CheckDeclaration(R,0,'a');
   AssertEquals('Value count', 1, D.ChildCount);
-  S:=TCSSStringElement(CheckClass('Value', TCSSStringElement,D.Children[0]));
-  AssertEquals('Value ','#ABABAB',S.Value);
+  S:=TCSSStringElement(CheckClass('Value', TCSSHashValueElement,D.Children[0]));
+  AssertEquals('Value ','ABABAB',S.Value);
 end;
 
 procedure TTestCSSParser.TestOneDeclarationURLValue;
@@ -825,10 +832,20 @@ begin
     +'}');
 end;
 
+procedure TTestCSSParser.TestNestedRule;
+begin
+  Parse('.parent { .child { } }');
+end;
+
+procedure TTestCSSParser.TestNestedAndRule;
+begin
+  Parse('.parent { & .child { } }');
+end;
+
 
 { TTestBaseCSSParser }
 
-function TTestBaseCSSParser.GetRule: TCSSRuleElement;
+function TTestBaseCSSParser.GetFirstRule: TCSSRuleElement;
 var
   L : TCSSCompoundElement;
 begin
@@ -840,12 +857,22 @@ begin
     Result:=TCSSRuleElement(CheckClass('First element is rule',TCSSRuleElement,L.Children[0]));
 end;
 
+function TTestBaseCSSParser.GetFirstInlineDeclaration: TCSSDeclarationElement;
+var
+  Rule: TCSSRuleElement;
+begin
+  Rule:=TCSSRuleElement(CheckClass('rule',TCSSRuleElement,ParseResult));
+  if Rule.ChildCount=0 then
+    Fail('No valid child found');
+  Result:=TCSSDeclarationElement(CheckClass('declaration',TCSSDeclarationElement,Rule.Children[0]));
+end;
+
 function TTestBaseCSSParser.OnScannerWarn(Sender: TObject; Msg: string; aRow, aCol: integer
   ): boolean;
 var
   aScanner: TCSSScanner;
 begin
-  Result:=false;
+  Result:=true;
   aScanner:=FParser.Scanner;
   writeln('TTestBaseCSSParser.OnScannerWarn ',aScanner.CurFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+') ',Msg);
 end;
@@ -864,7 +891,7 @@ begin
     FreeAndNil(FToFree);
   FreeAndNil(FParseResult);
   FreeAndNil(FParser);
-  FReeAndNil(FSource);
+  FreeAndNil(FSource);
 end;
 
 procedure TTestBaseCSSParser.TearDown;
@@ -888,10 +915,22 @@ begin
   FToFree:=FParseResult;
 end;
 
+procedure TTestBaseCSSParser.ParseInline;
+begin
+  FParseResult:=FParser.ParseInline;
+  FToFree:=FParseResult;
+end;
+
 procedure TTestBaseCSSParser.Parse(const aSource: String);
 begin
   CreateParser(aSource);
   Parse;
+end;
+
+procedure TTestBaseCSSParser.ParseInline(const aSource: String);
+begin
+  CreateParser(aSource);
+  ParseInline;
 end;
 
 function TTestBaseCSSParser.ParseRule(const aSource: String): TCSSRuleElement;
@@ -1020,6 +1059,18 @@ begin
   AssertTrue('Have argument '+IntToStr(aIndex),aIndex<aCall.ChildCount);
   Result:=aCall.Children[0];
   AssertNotNull('Have call argument',Result);
+end;
+
+function TTestBaseCSSParser.GetSecondRule: TCSSRuleElement;
+var
+  L : TCSSCompoundElement;
+begin
+  L:=TCSSCompoundElement(CheckClass('list',TCSSCompoundElement,ParseResult));
+  AssertTrue('Result has at least 2 children',L.ChildCount>1);
+  if L.Children[1] is TCSSAtRuleElement then
+    Result:=TCSSAtRuleElement(CheckClass('Second element is rule',TCSSAtRuleElement,L.Children[1]))
+  else
+    Result:=TCSSRuleElement(CheckClass('Second element is rule',TCSSRuleElement,L.Children[1]));
 end;
 
 initialization

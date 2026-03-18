@@ -53,7 +53,11 @@ uses
   FVConsts;
 {$ENDIF FPC_DOTTEDUNITS}
 
-resourcestring
+{$ifdef FPC_X86_DATA_NEAR}
+  const
+{$else}
+  resourcestring
+{$endif}
       dialog_colorsel_colors        = 'Colors';
       label_colorsel_group          = '~G~roup';
       label_colorsel_item           = '~I~tem';
@@ -214,8 +218,8 @@ const ColorIndexes : PColorIndex = nil;
 
 procedure RegisterColorsel;
 
-function ColorGroup(Name: Sw_String; Items: PColorItem; Next: PColorGroup): PColorGroup;
-function ColorItem(Name: Sw_String; Index: Byte; Next: PColorItem): PColorItem;
+function ColorGroup(Const Name: Sw_String; Items: PColorItem; Next: PColorGroup): PColorGroup;
+function ColorItem(Const Name: Sw_String; Index: Byte; Next: PColorItem): PColorItem;
 
 procedure LoadIndexes(var S: TStream);
 procedure StoreIndexes(var S: TStream);
@@ -280,7 +284,7 @@ begin
 end;
 
 
-function ColorGroup(Name: Sw_String; Items: PColorItem; Next: PColorGroup): PColorGroup;
+function ColorGroup(Const Name: Sw_String; Items: PColorItem; Next: PColorGroup): PColorGroup;
 var
   R: PColorGroup;
 begin
@@ -291,7 +295,7 @@ begin
   ColorGroup := R;
 end;
 
-function ColorItem(Name: Sw_String; Index: Byte; Next: PColorItem): PColorItem;
+function ColorItem(Const Name: Sw_String; Index: Byte; Next: PColorItem): PColorItem;
 var R: PColorItem;
 begin
   New(R);

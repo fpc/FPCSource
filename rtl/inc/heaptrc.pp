@@ -92,6 +92,23 @@ type
 
   procedure CheckPointer(p: pointer);
 
+type
+  TWalkBlockInfo = record
+    // size is the size supplied to GetMem (/ReallocMem/etc.) by the user, and ptr is the pointer returned to the user.
+    // System memory manager wrapped by heaptrc sees outerPtr = ptr - headSize and outerSize = headSize + size + tailSize.
+    ptr: pointer;
+    size, headSize, tailSize: SizeUint;
+    // Depending on your needs, you may want to ignore internal allocations (and they may be allocated differently, see SystemRealloc), or may not.
+    isInternalHeaptrcAllocation: boolean;
+    // Stack trace at the point of allocation.
+    nTrace: SizeInt;
+    trace: array[0 .. 63] of CodePointer;
+  end;
+  TWalkBlockProc = procedure(const bi: TWalkBlockInfo; param: pointer);
+
+  // It is possible, but not recommended, to allocate memory inside walkBlock.
+  procedure WalkHeap(walkBlock: TWalkBlockProc; param: pointer);
+
 {$ifdef debug_heaptrc}
 type
   DumpItem = (Ht, Traces);
@@ -651,7 +668,7 @@ type
   // N VarInts until the size is exhausted: zigzag-encoded deltas from the previous pointer, as if the pointer before first was nil.
   StackTrace = record
   const
-    MaxItems = 64;
+    MaxItems = length(TWalkBlockInfo.trace);
     SizeOffset = 0;
     HashOffset = 1;
     HeaderSize = 5;
@@ -1021,6 +1038,7 @@ type
     HeadSizeIndexMask = 1 shl HeadSizeIndexBits - 1;
     ReallocatingShift = HeadSizeIndexShift + HeadSizeIndexBits; ReallocatingBit = 1 shl ReallocatingShift;
     ReportedShift = ReallocatingShift + 1;                      ReportedBit = 1 shl ReportedShift;
+    ToWalkBit = ReportedBit; // Reuse for WalkHeap.
     UserSizeRequestShift = ReportedShift + 1;
 
     TailSizeUnit = sizeof(uint32);
@@ -1054,7 +1072,7 @@ type
       // info[11] = ReallocatingBit.
       //            If 1, node is being reallocated, temporarily blocking its incremental checks.
       // info[12] = ReportedBit.
-      //            If 1, node was reported as corrupted, blocking further reports.
+      //            If 1, node was reported as corrupted, blocking further reports. (Also reused for internal use in WalkHeap as ToWalkBit.)
       // info[13:bitsizeof(info) - 1] = user request (info shr UserSizeRequestShift).
       //                                If HasFullUserRequestBit is 1, fullUserRequest is used instead, and info[13:bitsizeof(info) - 1] is garbage.
       info: SizeUint;
@@ -1134,6 +1152,8 @@ type
     class function TraceGetFPCHeapStatus: TFPCHeapStatus; static;
 
     procedure CheckHeap(max: SizeUint; cf: CheckFlags);
+    procedure WalkHeap(walkBlock: TWalkBlockProc; param: pointer);
+    class procedure WalkInternalAllocation(p: pointer; size: SizeUint; walkBlock: TWalkBlockProc; param: pointer); static;
 
   {$ifdef debug_heaptrc}
     class procedure DumpHNode(hn: HashList.pNode; var f: text); static;
@@ -1160,8 +1180,7 @@ type
       first, last: pNode;
       sumSize: SizeUint;
     end;
-    headTailInfo, // Also has BasicBit set if extraInfo is not set.
-    traceDepth: uint32;
+    headTailInfo, traceDepth: uint32;
 
     hCheck: CircularHashListIterator; // Circular iterator over h for incremental CheckHeap work.
 
@@ -1834,6 +1853,100 @@ type
       dec(max);
     until (max = 0) or not Assigned(hCheck.cur);
     dec(insideCheckOrDumpHeap);
+  end;
+
+  procedure HeapTracer.WalkHeap(walkBlock: TWalkBlockProc; param: pointer);
+  var
+    hp: HashList.ppNode;
+    hLeft, savedMinItems, savedMaxItems: SizeUint;
+    hn: HashList.pNode;
+    n: pNode;
+    bi: TWalkBlockInfo;
+    rn: MemoryRegion.pNode;
+  begin
+    Lock;
+    // To support allocations in walkBlock, disable rehashes and set ToWalkBits.
+    // Allocations by walkBlock will have ToWalkBits unset and be ignored by the traversal.
+    savedMinItems := h.minItems;
+    savedMaxItems := h.maxItems;
+    h.minItems := 0;
+    h.maxItems := High(SizeUint);
+
+    hp := h.h;
+    hLeft := 1 + h.nhmask;
+    repeat
+      hn := hp^;
+      while Assigned(hn) do
+      begin
+        pNode(pointer(hn) - PtrUint(@HeapTracer.Node(nil^).hn))^.info := pNode(pointer(hn) - PtrUint(@HeapTracer.Node(nil^).hn))^.info or ToWalkBit;
+        hn := hn^.next;
+      end;
+      inc(hp); dec(hLeft);
+    until hleft = 0;
+
+    hp := h.h;
+    hLeft := 1 + h.nhmask;
+    repeat
+      hn := hp^;
+      while Assigned(hn) do
+      begin
+        n := pointer(hn) - PtrUint(@HeapTracer.Node(nil^).hn);
+        if n^.info and ToWalkBit <> 0 then
+        begin
+          dec(n^.info, ToWalkBit); // It is crucial to clear the bit before calling walkBlock, in order to avoid at least some of the unlikely problems described below.
+          bi.ptr := n^.userPtr;
+          bi.size := n^.GetUserSizeRequest;
+          bi.headSize := HeadTailSizes[n^.info shr HeadSizeIndexShift and HeadSizeIndexMask] * HeadSizeUnit;
+          bi.tailSize := HeadTailSizes[n^.info shr TailSizeIndexShift and TailSizeIndexMask] * TailSizeUnit;
+          bi.isInternalHeaptrcAllocation := false;
+          bi.nTrace := 0;
+          if Assigned(n^.trace) then
+            bi.nTrace := StackTrace.Unpack(traces.data + n^.trace^.dataOfs, bi.trace);
+          walkBlock(bi, param);
+
+          // ...Well.
+          // In theory, WalkBlock can free n, and in this case the traversal can crash.
+          // And in certain other cases, like MemSize() moving the node that was further in the hp^ chain to its beginning, that node might be skipped.
+          // (At least clearing ToWalkBit first means the node will never be handled twice in the reverse case.)
+          // But good luck indeed hitting these.
+          //
+          // And since WalkHeap is a debugging function and allocations in its callback are discouraged to begin with,
+          // I think a small chance of problems can be tolerated.
+          //
+          // Actually, the crash can be relatively easily fixed by traversing the hp^ chain from the start after every walkBlock (risking O(N²)),
+          // or (better) by FixupPreRemoveCur-like mechanism, but not doing anything is even easier.
+        end;
+        hn := hn^.next;
+      end;
+      inc(hp); dec(hLeft);
+    until hleft = 0;
+    if h.nhmask <> 0 then WalkInternalAllocation(h.h, (1 + h.nhmask) * sizeof(HashList.pNode), walkBlock, param);
+    if traces.h.nhmask <> 0 then WalkInternalAllocation(traces.h.h, (1 + traces.h.nhmask) * sizeof(HashList.pNode), walkBlock, param);
+    if Assigned(traces.data) then WalkInternalAllocation(traces.data, traces.dataAlloc, walkBlock, param);
+    rn := nodesRgn.top;
+    while Assigned(rn) do
+    begin
+      WalkInternalAllocation(rn, PtrUint(@MemoryRegion.pNode(nil)^.data) + rn^.alloc, walkBlock, param);
+      rn := rn^.prev;
+    end;
+
+    // Recover rehashes.
+    h.minItems := savedMinItems;
+    h.maxItems := savedMaxItems;
+    Unlock;
+  end;
+
+  class procedure HeapTracer.WalkInternalAllocation(p: pointer; size: SizeUint; walkBlock: TWalkBlockProc; param: pointer);
+  var
+    bi: TWalkBlockInfo;
+  begin
+    bi.ptr := p;
+    bi.size := size;
+    bi.headSize := 0;
+    bi.tailSize := 0;
+    bi.isInternalHeaptrcAllocation := true;
+    bi.nTrace := 0;
+    walkBlock(bi, param);
   end;
 
 {$ifdef debug_heaptrc}
@@ -2657,6 +2770,11 @@ begin
   ht.ReportBadPointer(p,[]);
   RunError(204);
 end;
+
+  procedure WalkHeap(walkBlock: TWalkBlockProc; param: pointer);
+  begin
+    ht.WalkHeap(walkBlock, param);
+  end;
 
 {$ifdef debug_heaptrc}
   procedure Dump(var f: text; what: DumpItems = [DumpItem.Ht, DumpItem.Traces]);

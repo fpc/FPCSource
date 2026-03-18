@@ -149,6 +149,7 @@ type
         CurLink: sw_integer;
         constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
         procedure   ChangeBounds(var Bounds: TRect); virtual;
+        procedure   ChangeCommands; virtual;
         procedure   Draw; virtual;
         procedure   HandleEvent(var Event: TEvent); virtual;
         procedure   SetCurPtr(X,Y: sw_integer); virtual;
@@ -219,7 +220,7 @@ implementation
 
 uses
   Video,
-  WConsts;
+  WConsts,wviews;
 
 const CommentColor = Blue;
 
@@ -915,6 +916,21 @@ begin
   GetColorAreaMask:=HelpTopic^.GetColorAreaMask(Index);
 end;
 
+procedure THelpViewer.ChangeCommands;
+var Enable: boolean;
+begin
+  { we change the CurCommandSet, but only if we are top view }
+  if ((State and sfFocused)<>0) then
+    begin
+      Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y));
+      SetCmdState([cmSelectAll],true);
+      SetCmdState([cmCopy,cmCopyWin,cmUnselect],Enable);
+      SetCmdState([cmPaste,cmPasteWin,cmClear,cmCommentSel,cmUnCommentSel], false);
+      SetCmdState(UndoCmd, false);
+      SetCmdState(RedoCmd, false);
+    end;
+end;
+
 procedure THelpViewer.SelectNextLink(ANext: boolean);
 var I,Link: sw_integer;
     R: TRect;
@@ -1149,11 +1165,18 @@ begin
   case Event.What of
     evMouseDown :
       if MouseInView(Event.Where) then
-      if (Event.Buttons=mbLeftButton) and (Event.Double) then
       begin
-        inherited HandleEvent(Event);
-        if CurLink<>-1 then
-           SelectLink(CurLink);
+        if (Event.Buttons=mbLeftButton) and (Event.Double) then
+        begin
+          inherited HandleEvent(Event);
+          if CurLink<>-1 then
+             SelectLink(CurLink);
+        end;
+        if (Event.Buttons=mbXButton1) then
+        begin
+          PrevTopic;
+          ClearEvent(Event);
+        end;
       end;
     evBroadcast :
       case Event.Command of

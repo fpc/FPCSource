@@ -572,11 +572,11 @@ type
     generic function Serialize<T>(const aValue: T): string; overload;
     generic procedure Serialize<T>(const aWriter: TTextWriter; const aValue: T); overload;
     generic procedure Serialize<T>(const aWriter: TJsonWriter; const aValue: T); overload;
-    generic procedure Serialize(const aWriter: TJsonWriter; const aValue: TValue); overload;
+    procedure Serialize(const aWriter: TJsonWriter; const aValue: TValue); overload;
     generic function Deserialize<T>(const aJson: string): T; overload;
     generic function Deserialize<T>(const aReader: TTextReader): T; overload;
     generic function Deserialize<T>(const aReader: TJsonReader): T; overload;
-    generic function Deserialize(const aReader: TJsonReader; aTypeinfo: PTypeInfo): TValue; overload;
+    function Deserialize(const aReader: TJsonReader; aTypeinfo: PTypeInfo): TValue; overload;
     generic procedure Populate<T>(const aJson: string; var aValue: T); overload;
     generic procedure Populate<T>(const aReader: TTextReader; var aValue: T); overload;
     generic procedure Populate<T>(const aReader: TJsonReader; var aValue: T); overload;
@@ -2229,7 +2229,7 @@ begin
   Serialize(aWriter, TValue.specialize From<T>(aValue));
 end;
 
-generic procedure TJsonSerializer.Serialize(const aWriter: TJsonWriter; const aValue: TValue);
+procedure TJsonSerializer.Serialize(const aWriter: TJsonWriter; const aValue: TValue);
 begin
   InternalSerialize(aWriter, aValue);
 end;
@@ -2272,7 +2272,7 @@ begin
     Result := V.specialize AsType<T>;
 end;
 
-generic function TJsonSerializer.Deserialize(const aReader: TJsonReader; aTypeinfo: PTypeInfo): TValue;
+function TJsonSerializer.Deserialize(const aReader: TJsonReader; aTypeinfo: PTypeInfo): TValue;
 begin
   Result := InternalDeserialize(aReader, aTypeinfo);
 end;

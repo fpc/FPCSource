@@ -917,7 +917,7 @@ begin
       end;
     evMouseDown :
       begin
-        if Event.double then
+        if (Event.Buttons=mbLeftButton) and Event.Double then
           begin
             Browse;
             ClearEvent(Event);
@@ -1402,6 +1402,14 @@ var OldFocus: sw_integer;
 begin
   OldFocus:=Focused;
   case Event.What of
+    evMouseDown :
+      begin
+        if (Event.Buttons=mbLeftButton) and Event.Double then
+          begin
+            TrackItem(Focused,false);
+            ClearEvent(Event);
+          end;
+      end;
     evKeyDown :
       begin
         DontClear:=false;
@@ -1644,7 +1652,7 @@ begin
         MakeLocal(Event.Where,P);
         SetCursor(P.X,P.Y);
 {$endif HASOUTLINE}
-        if Event.double then
+        if (Event.Buttons=mbLeftButton) and Event.Double then
           begin
             Message(@Self,evKeyDown,kbEnter,nil);
             ClearEvent(Event);
@@ -2454,6 +2462,12 @@ var DontClear: boolean;
     Anc: PObjectSymbol;
     P,WH: TPoint;
 begin
+  if Event.What = evMouseDown then
+    if (Event.Buttons=mbXButton1) then { Mouse browse back button }
+      begin
+        Event.What:=evCommand;
+        Event.Command:=cmSymPrevious;
+      end;
   case Event.What of
     evBroadcast :
       case Event.Command of
