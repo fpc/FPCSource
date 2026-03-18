@@ -306,12 +306,6 @@ Const
        init_settings,
        current_settings   : tsettings;
 
-
-       { prefix added to automatically generated setters/getters. If empty,
-         no getters/setters will be automatically generated except if required
-         for visibility reasons (but in that case the names will be mangled so
-         they are unique) }
-       prop_auto_getter_prefix,
        prop_auto_setter_prefix : string;
 
        cgbackend: tcgbackend;
@@ -731,6 +725,12 @@ Const
         apptype : tapptype;
 
         features : tfeatures;
+
+        { prefix added to automatically generated setters/getters. If empty,
+          no getters/setters will be automatically generated except if required
+          for visibility reasons (but in that case the names will be mangled so
+          they are unique) }
+        prop_auto_getter_prefix : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

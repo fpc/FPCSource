@@ -29,7 +29,8 @@ interface
 
     uses
       globtype,
-      systems;
+      systems,
+      compilerbase;
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
@@ -42,7 +43,8 @@ implementation
     uses
       globals,
       cutils,
-      symtable;
+      symtable,
+      compiler;
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
       var
@@ -255,6 +257,8 @@ implementation
 
     function UpdateTargetSwitchStr(s: string; var a: ttargetswitches; global: boolean): boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         tok,
         value : string;
         setstr: string[2];
@@ -325,7 +329,7 @@ implementation
                     begin
                       case opt of
                         ts_auto_getter_prefix:
-                          prop_auto_getter_prefix:=value;
+                          compiler.globals.prop_auto_getter_prefix:=value;
                         ts_auto_setter_predix:
                           prop_auto_setter_prefix:=value;
                         else

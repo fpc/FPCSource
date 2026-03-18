@@ -272,7 +272,7 @@ implementation
             (future or current) naming conflicts }
           (visibility<>vis_private) and
           (getter and
-           (prop_auto_getter_prefix<>'')) or
+           (compiler.globals.prop_auto_getter_prefix<>'')) or
           (not getter and
            (prop_auto_setter_prefix<>''));
         sym:=nil;
@@ -284,7 +284,7 @@ implementation
         if explicitwrapper then
           begin
             if getter then
-              accessorname:=prop_auto_getter_prefix+realname
+              accessorname:=compiler.globals.prop_auto_getter_prefix+realname
             else
               accessorname:=prop_auto_setter_prefix+realname;
             sym:=search_struct_member_no_helper(obj,upper(accessorname));
@@ -513,7 +513,7 @@ implementation
     begin
       inherited;
       if getset=palt_read then
-        pprefix:=@prop_auto_getter_prefix
+        pprefix:=@compiler.globals.prop_auto_getter_prefix
       else
         pprefix:=@prop_auto_setter_prefix;
       case sym.typ of
