@@ -306,11 +306,6 @@ Const
        init_settings,
        current_settings   : tsettings;
 
-
-{$Ifdef EXTDEBUG}
-     { parameter switches }
-       debugstop : boolean;
-{$EndIf EXTDEBUG}
        { Application type (platform specific)
          see globtype.pas for description }
        apptype : tapptype;
@@ -731,6 +726,11 @@ Const
         heapsize,
         maxheapsize : int64;
         stacksize   : longint;
+
+ {$Ifdef EXTDEBUG}
+      { parameter switches }
+        debugstop : boolean;
+ {$EndIf EXTDEBUG}
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
