@@ -1680,7 +1680,7 @@ implementation
            if compiler.globals.dllversion<>'' then
              cmdstr:=cmdstr+' --version '+compiler.globals.dllversion;
            cmdstr:=cmdstr+' --input '+maybequoted(fn);
-           cmdstr:=cmdstr+' --stack '+tostr(stacksize);
+           cmdstr:=cmdstr+' --stack '+tostr(compiler.globals.stacksize);
            if compiler.target.info.system in [system_i386_win32, system_i386_wdosx] then
              DoExec(FindUtil(compiler.globals.utilsprefix+'postw32'),cmdstr,false,false);
            postprocessexecutable:=true;
@@ -1709,7 +1709,7 @@ implementation
         compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(peoptheader.bsize));
         { change stack size (PM) }
         { I am not sure that the default value is adequate !! }
-        peoptheader.SizeOfStackReserve:=stacksize;
+        peoptheader.SizeOfStackReserve:=compiler.globals.stacksize;
         if compiler.globals.SetPEFlagsSetExplicity then
           peoptheader.LoaderFlags:=compiler.globals.peflags;
         if compiler.globals.ImageBaseSetExplicity then

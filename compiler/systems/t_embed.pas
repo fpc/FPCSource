@@ -2291,7 +2291,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     //Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+Info.ResName));
     //Replace(cmdstr,'$INIT',InitStr);
     //Replace(cmdstr,'$FINI',FiniStr);
-    Replace(cmdstr,'$STACKSIZE',tostr(stacksize));
+    Replace(cmdstr,'$STACKSIZE',tostr(compiler.globals.stacksize));
     Replace(cmdstr,'$SONAME',SoNameStr);
     Replace(cmdstr,'$MAP',mapstr);
     //Replace(cmdstr,'$LTO',ltostr);

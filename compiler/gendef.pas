@@ -127,7 +127,7 @@ begin
         writeln(t,'PROTMODE');
         writeln(t,'DESCRIPTION '+''''+compiler.globals.description+'''');
         writeln(t,'DATA'#9'MULTIPLE');
-        writeln(t,'STACKSIZE'#9+tostr(stacksize));
+        writeln(t,'STACKSIZE'#9+tostr(compiler.globals.stacksize));
         writeln(t,'HEAPSIZE'#9+tostr(compiler.globals.heapsize));
       end;
     system_i386_win32,

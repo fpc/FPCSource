@@ -2180,7 +2180,7 @@ Implementation
         compiler.verbose.Message1(execinfo_x_codesize,tostr(status.codesize));
         compiler.verbose.Message1(execinfo_x_initdatasize,tostr(status.datasize));
         compiler.verbose.Message1(execinfo_x_uninitdatasize,tostr(bsssize));
-        compiler.verbose.Message1(execinfo_x_stackreserve,tostr(stacksize));
+        compiler.verbose.Message1(execinfo_x_stackreserve,tostr(compiler.globals.stacksize));
 
       myexit:
         { close map }

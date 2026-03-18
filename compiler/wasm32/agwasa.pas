@@ -661,7 +661,7 @@ implementation
         if current_module.is_unit then
           writer.AsmWriteLn(#9';;.weak');
         writer.AsmWrite(#9'(global $__stack_top (mut i32) (i32.const ');
-        writer.AsmWrite(tostr(globals.stacksize));
+        writer.AsmWrite(tostr(compiler.globals.stacksize));
         writer.AsmWriteLn('))');
 
         WriteSymtableVarSyms(current_module.globalsymtable);

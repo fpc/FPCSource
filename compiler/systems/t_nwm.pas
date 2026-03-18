@@ -329,8 +329,8 @@ begin
   if compiler.globals.nwcopyright <> '' then
     NLMConvLinkFile.Add('COPYRIGHT "' + compiler.globals.nwcopyright + '"');
 
-  if stacksize < minStackSize then stacksize := minStackSize;
-  str (stacksize, s);
+  if compiler.globals.stacksize < minStackSize then compiler.globals.stacksize := minStackSize;
+  str (compiler.globals.stacksize, s);
   NLMConvLinkFile.Add ('STACKSIZE '+s);
   {$ifndef netware}
   NLMConvLinkFile.Add ('INPUT '+compiler.globals.outputexedir+tmpLinkFileName);
@@ -919,8 +919,8 @@ end;
             if not hasStacksize then
               if compiler.globals.MaxStackSizeSetExplicity then
               begin
-                if stacksize < minStackSize then stacksize := minStackSize;
-                Concat ('STACKSIZE '+tostr(stacksize));
+                if compiler.globals.stacksize < minStackSize then compiler.globals.stacksize := minStackSize;
+                Concat ('STACKSIZE '+tostr(compiler.globals.stacksize));
               end else
                 Concat ('STACKSIZE '+tostr(minStackSize));
               if compiler.target.info.system = system_i386_netwlibc then

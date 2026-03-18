@@ -502,10 +502,10 @@ begin
         { Is this really required? Not anymore according to my EMX docs }
         Replace(cmdstr,'$HEAPMB',tostr((1048575) shr 20));
         {Size of the stack when an EMX program runs in OS/2.}
-        Replace(cmdstr,'$STACKKB',tostr((stacksize+1023) shr 10));
+        Replace(cmdstr,'$STACKKB',tostr((compiler.globals.stacksize+1023) shr 10));
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
-        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
+        Replace(cmdstr,'$DOSHEAPKB',tostr((compiler.globals.stacksize+1023) shr 10));
         Replace(cmdstr,'$STRIP ', StripStr);
         Replace(cmdstr,'$MAP ', MapStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);

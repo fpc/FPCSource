@@ -341,7 +341,7 @@ begin
     header.eip:=hsym.address-sections[sec_code].mempos;
     {Set the initial ESP.}
     header.esp_object:=stack_object;
-    header.esp:=stacksize;
+    header.esp:=compiler.globals.stacksize;
     Fwriter.write(header,sizeof(header));
     for sec:=low(Tsection) to high(Tsection) do
     if sections[sec].available then

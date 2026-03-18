@@ -306,7 +306,6 @@ Const
        init_settings,
        current_settings   : tsettings;
 
-       stacksize   : longint;
 
 {$Ifdef EXTDEBUG}
      { parameter switches }
@@ -731,6 +730,7 @@ Const
       { Memory sizes }
         heapsize,
         maxheapsize : int64;
+        stacksize   : longint;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1828,7 +1828,7 @@ implementation
         compiler.globals.iPhoneOSVersionMin.invalidate;
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
-        stacksize:=0;
+        compiler.globals.stacksize:=0;
         { not initialized yet }
         apptype:=app_cui;
 

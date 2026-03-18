@@ -203,8 +203,8 @@ implementation
          registertais;
 
          { memory sizes }
-         if stacksize=0 then
-           stacksize:=compiler.target.info.stacksize;
+         if compiler.globals.stacksize=0 then
+           compiler.globals.stacksize:=compiler.target.info.stacksize;
 
          { RTTI writer }
          tcompiler(compiler).RTTIWriter:=TRTTIWriter.Create(compiler);
@@ -255,22 +255,22 @@ implementation
 {$ifdef i8086}
            system_i8086_embedded:
              begin
-               if stacksize=0 then
+               if compiler.globals.stacksize=0 then
                  begin
                    if init_settings.x86memorymodel in x86_far_data_models then
-                     stacksize:=16384
+                     compiler.globals.stacksize:=16384
                    else
-                     stacksize:=2048;
+                     compiler.globals.stacksize:=2048;
                  end;
              end;
            system_i8086_msdos:
              begin
-               if stacksize=0 then
+               if compiler.globals.stacksize=0 then
                  begin
                    if init_settings.x86memorymodel in x86_far_data_models then
-                     stacksize:=16384
+                     compiler.globals.stacksize:=16384
                    else
-                     stacksize:=4096;
+                     compiler.globals.stacksize:=4096;
                  end;
                if compiler.globals.maxheapsize=0 then
                  begin
@@ -282,12 +282,12 @@ implementation
              end;
            system_i8086_win16:
              begin
-               if stacksize=0 then
+               if compiler.globals.stacksize=0 then
                  begin
                    if init_settings.x86memorymodel in x86_far_data_models then
-                     stacksize:=8192
+                     compiler.globals.stacksize:=8192
                    else
-                     stacksize:=5120;
+                     compiler.globals.stacksize:=5120;
                  end;
                if compiler.globals.heapsize=0 then
                  begin

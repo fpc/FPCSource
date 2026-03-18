@@ -514,7 +514,7 @@ begin
         { Is this really required? Not anymore according to my EMX docs }
         Replace(cmdstr,'$HEAPMB',tostr((1048575) shr 20));
         {Size of the stack when an EMX program runs in OS/2.}
-        StackSizeKB := (StackSize + 1023) shr 10;
+        StackSizeKB := (compiler.globals.StackSize + 1023) shr 10;
         (* Ensure a value which might work and is accepted by EMXBIND *)
         if StackSizeKB < 64 then
          StackSizeKB := 64

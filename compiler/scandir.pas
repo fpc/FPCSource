@@ -965,7 +965,7 @@ unit scandir;
           and (l<67107840)
 {$endif cpu16bitaddr}
         then
-          stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif})
+          compiler.globals.stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif})
         else
           compiler.verbose.Message(scan_w_invalid_stacksize);
         if current_scanner.c=',' then

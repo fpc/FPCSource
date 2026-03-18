@@ -2871,14 +2871,14 @@ begin
            end;
        's' :
          begin
-            val(copy(more,j+1),stacksize,code);
+            val(copy(more,j+1),compiler.globals.stacksize,code);
             if (code<>0)
 {$ifdef cpu16bitaddr}
-               or (stacksize>=65521)
+               or (compiler.globals.stacksize>=65521)
 {$else cpu16bitaddr}
-               or (stacksize>=67107840)
+               or (compiler.globals.stacksize>=67107840)
 {$endif cpu16bitaddr}
-               or (stacksize<1024) then
+               or (compiler.globals.stacksize<1024) then
              IllegalPara(opt);
             break;
          end;

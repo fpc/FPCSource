@@ -3376,7 +3376,7 @@ const pemagic : array[0..3] of byte = (
             if compiler.globals.SetPEOptFlagsSetExplicity then
               peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or compiler.globals.peoptflags;
 
-            peoptheader.SizeOfStackReserve:=stacksize;
+            peoptheader.SizeOfStackReserve:=compiler.globals.stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
             if compiler.globals.MinStackSizeSetExplicity then
               peoptheader.SizeOfStackCommit:=compiler.globals.minstacksize;

@@ -848,8 +848,8 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
 
         { variable header }
         NLMWriteString(nlmDescription,true);
-        if stacksize < NLM_DEFAULT_STACKSIZE then stacksize := NLM_DEFAULT_STACKSIZE;
-        FWriter.Write(stacksize,4);
+        if compiler.globals.stacksize < NLM_DEFAULT_STACKSIZE then compiler.globals.stacksize := NLM_DEFAULT_STACKSIZE;
+        FWriter.Write(compiler.globals.stacksize,4);
         FWriter.writezeros(4);
         dummyLong := ' LONG';
         FWriter.Write(dummyLong,sizeof(dummyLong));  // old thread name
@@ -1404,7 +1404,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
               if (keyword = 'STACK') or (keyword = 'STACKSIZE') then
                 begin
                    if (not toInteger(GetToken(opt,' '),1,$FFFFFFF,i)) then compiler.verbose.comment(v_error,'invalid stacksize') else
-                     stacksize := i;
+                     compiler.globals.stacksize := i;
                 end else
               if keyword = 'SYNCHRONIZE' then
                 begin

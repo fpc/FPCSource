@@ -1662,7 +1662,7 @@ implementation
         begin
           { stacksize can be specified and is now simulated }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
-          tcb.emit_tai(Tai_const.Create_int_dataptr(stacksize),ptruinttype);
+          tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.stacksize),ptruinttype);
           sym:=current_asmdata.DefineAsmSymbol('__stklen',AB_GLOBAL,AT_DATA,ptruinttype);
           current_asmdata.asmlists[al_globals].concatlist(
             tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',const_align(sizeof(pint)))
@@ -1679,7 +1679,7 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',stacksize-1,carraydef.getreusable(u8inttype,stacksize-1,compiler),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
           current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(u8inttype,1,compiler),AT_DATA));
         end;
 {$IFDEF POWERPC}
@@ -1689,7 +1689,7 @@ implementation
          { this symbol is needed to ignite powerpc amigaos' }
          { stack allocation magic for us with the given stack size. }
          { note: won't work for m68k amigaos or morphos. (KB) }
-         str(stacksize,s);
+         str(compiler.globals.stacksize,s);
          s:='$STACK: '+s+#0;
          def:=carraydef.getreusable(cansichartype,length(s));
          tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);

@@ -281,7 +281,7 @@ begin
       if create_smartlink_sections then
         GCSectionsStr:='-gc-all';
       if sinclairql_vlink_experimental then
-        QLFlagsStr:='-b sinclairql -q -'+lower(sinclairql_metadata_format)+' -stack='+tostr(StackSize)
+        QLFlagsStr:='-b sinclairql -q -'+lower(sinclairql_metadata_format)+' -stack='+tostr(compiler.globals.StackSize)
       else
         QLFlagsStr:='-b rawseg -q';
     end;
@@ -342,7 +342,7 @@ begin
 
       { We assume .bss size is total size indicated by linker minus emitted binary.
         DataSpace size is .bss + stack space }
-      DataSpace := NToBE(DWord(max((HeaderSize - BinSize) - RelocSize + StackSize,0)));
+      DataSpace := NToBE(DWord(max((HeaderSize - BinSize) - RelocSize + compiler.globals.StackSize,0)));
 
       { Option: prepend QEmuLator and QPC2 v5 compatible header to EXE }
       if sinclairql_metadata_format='QHDR' then
