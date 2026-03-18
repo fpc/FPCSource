@@ -281,7 +281,7 @@ begin
     LinkRes.Add('format windows dll')
   else
     LinkRes.Add('format windows');
-  LinkRes.Add('option heapsize='+tostr(heapsize));
+  LinkRes.Add('option heapsize='+tostr(compiler.globals.heapsize));
   if (cs_link_map in current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   if isdll then

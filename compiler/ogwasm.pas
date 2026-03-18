@@ -5971,7 +5971,7 @@ implementation
         InitialStackPtrAddr := (BssSec.MemPos+BssSec.Size+stacksize+15) and (not 15);
         FMinMemoryPages := Max(
           QWord(Align(QWord(InitialStackPtrAddr),QWord(WasmPageSize)) div WasmPageSize),
-          QWord(Align(QWord(heapsize),QWord(WasmPageSize)) div WasmPageSize));
+          QWord(Align(QWord(compiler.globals.heapsize),QWord(WasmPageSize)) div WasmPageSize));
         FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=Int32(InitialStackPtrAddr);
       end;
 

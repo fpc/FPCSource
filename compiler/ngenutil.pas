@@ -1706,7 +1706,7 @@ implementation
 {$ENDIF POWERPC}
       { Initial heapsize }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
-      tcb.emit_tai(Tai_const.Create_int_dataptr(heapsize),ptruinttype);
+      tcb.emit_tai(Tai_const.Create_int_dataptr(compiler.globals.heapsize),ptruinttype);
       sym:=current_asmdata.DefineAsmSymbol('__heapsize',AB_GLOBAL,AT_DATA,ptruinttype);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',const_align(sizeof(pint)))
@@ -1722,7 +1722,7 @@ implementation
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
           new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
-          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize,carraydef.getreusable(u8inttype,heapsize,compiler),AT_DATA));
+          current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
         end;
 
       { Valgrind usage }

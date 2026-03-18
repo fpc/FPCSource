@@ -2601,12 +2601,12 @@ begin
             l:=pos(',',copy(more,j+1));
             if l=0 then
               l:=length(more)-j+1;
-            val(copy(more,j+1,l-1),heapsize,code);
+            val(copy(more,j+1,l-1),compiler.globals.heapsize,code);
             if (code<>0)
 {$ifdef AVR}
-            or (heapsize<32)
+            or (compiler.globals.heapsize<32)
 {$else AVR}
-            or (heapsize<1024)
+            or (compiler.globals.heapsize<1024)
 {$endif AVR}
             then
               IllegalPara(opt)
@@ -2615,10 +2615,10 @@ begin
                 val(copy(more,j+l+1),maxheapsize,code);
                 if code<>0 then
                   IllegalPara(opt)
-                else if (maxheapsize<heapsize) then
+                else if (maxheapsize<compiler.globals.heapsize) then
                   begin
                     compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);
-                    maxheapsize:=heapsize;
+                    maxheapsize:=compiler.globals.heapsize;
                   end;
               end;
             break;
@@ -5058,15 +5058,15 @@ begin
     begin
       case compiler.target.info.system of
         system_m68k_amiga:
-          heapsize:=256*1024;
+          compiler.globals.heapsize:=256*1024;
         system_powerpc_amiga,
         system_powerpc_morphos,
         system_arm_aros,
         system_i386_aros,
         system_x86_64_aros:
-          heapsize:=1024*1024;
+          compiler.globals.heapsize:=1024*1024;
         else
-          heapsize:=256*1024;
+          compiler.globals.heapsize:=256*1024;
       end;
     end;
   if compiler.target.info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
@@ -5075,21 +5075,21 @@ begin
 {$ifdef AVR}
         system_avr_embedded:
           if init_settings.controllertype in [ct_avrsim,ct_avrsim6] then
-            heapsize:=8192
+            compiler.globals.heapsize:=8192
           else
-            heapsize:=128;
+            compiler.globals.heapsize:=128;
 {$endif AVR}
         system_arm_freertos:
-          heapsize:=8192;
+          compiler.globals.heapsize:=8192;
         system_xtensa_freertos:
           { keep default value }
           ;
         system_arm_embedded:
-          heapsize:=256;
+          compiler.globals.heapsize:=256;
         system_mipsel_embedded:
-          heapsize:=256;
+          compiler.globals.heapsize:=256;
         else
-          heapsize:=256;
+          compiler.globals.heapsize:=256;
       end;
     end;
 

@@ -306,8 +306,6 @@ Const
        init_settings,
        current_settings   : tsettings;
 
-     { Memory sizes }
-       heapsize,
        maxheapsize : int64;
        stacksize   : longint;
 
@@ -731,6 +729,8 @@ Const
         LinkLibraryOrder   : TLinkStrMap;
 
         pendingstate       : tpendingstate;
+      { Memory sizes }
+        heapsize : int64;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

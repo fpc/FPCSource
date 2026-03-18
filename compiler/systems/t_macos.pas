@@ -152,10 +152,10 @@ begin
 
       Add('Exit If "{Status}" != 0');
 
-      if heapsize = 0 then
+      if compiler.globals.heapsize = 0 then
         heapsizestr:= HexStr(384000, 8)
       else
-        heapsizestr:= HexStr(heapsize, 8);
+        heapsizestr:= HexStr(compiler.globals.heapsize, 8);
 
       {Add a SIZE resource on the fly. It controls:
          * backgrounding is enabled, to facilitate debugging with Power Mac Debugger

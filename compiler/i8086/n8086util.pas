@@ -91,13 +91,13 @@ implementation
     begin
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_heap,'__heap', 16);
-      current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___heap', AT_DATA, heapsize,carraydef.getreusable(u8inttype,heapsize)));
+      current_asmdata.asmlists[al_globals].concat(tai_symbol.Createname_global('___heap', AT_DATA, compiler.globals.heapsize,carraydef.getreusable(u8inttype,heapsize)));
       { HACK: since tai_datablock's size parameter is aint, which cannot be
         larger than 32767 on i8086, but we'd like to support heap size of
         up to 640kb, we may need to use several tai_datablocks to reserve
         the heap segment }
       i:=0;
-      heapsizeleft:=heapsize;
+      heapsizeleft:=compiler.globals.heapsize;
       while heapsizeleft>0 do
         begin
           heapblock:=min(heapsizeleft,high(aint));

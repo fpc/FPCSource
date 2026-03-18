@@ -3236,7 +3236,7 @@ implementation
         if current_settings.x86memorymodel in x86_far_data_models then
           begin
             { calculate the additional number of paragraphs needed }
-            heapmin_paragraphs:=(heapsize + 15) div 16;
+            heapmin_paragraphs:=(compiler.globals.heapsize + 15) div 16;
             heapmax_paragraphs:=(maxheapsize + 15) div 16;
             Header.MaxExtraParagraphs:=min(Header.MinExtraParagraphs-heapmin_paragraphs+heapmax_paragraphs,$FFFF);
           end
@@ -4560,7 +4560,7 @@ cleanup:
         Header.InitialSP:=0;
         Header.InitialSS:=Header.AutoDataSegmentNumber;
         Header.InitialStackSize:=TNewExeSection(ExeSectionList[Header.AutoDataSegmentNumber-1]).StackSize;
-        Header.InitialLocalHeapSize:=heapsize;
+        Header.InitialLocalHeapSize:=compiler.globals.heapsize;
 
         Header.SegmentTableStart:=NewExeHeaderSize;
         Header.SegmentTableEntriesCount:=ExeSectionList.Count;

@@ -439,7 +439,7 @@ begin
   if source_info.endian<>compiler.target.info.endian then
     minalloc:=SwapEndian(minalloc);
   { calculate the additional number of paragraphs needed }
-  heapmin_paragraphs:=(heapsize + 15) div 16;
+  heapmin_paragraphs:=(compiler.globals.heapsize + 15) div 16;
   heapmax_paragraphs:=(maxheapsize + 15) div 16;
   maxalloc:=min(minalloc-heapmin_paragraphs+heapmax_paragraphs,$FFFF);
   { write maxalloc }

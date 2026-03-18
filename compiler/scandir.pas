@@ -974,13 +974,13 @@ unit scandir;
             current_scanner.skipspace;
             l:=current_scanner.readval64;
             if l>=1024 then
-              heapsize:=min(l,heapsize_limit);
+              compiler.globals.heapsize:=min(l,heapsize_limit);
             if current_scanner.c=',' then
               begin
                 current_scanner.readchar;
                 current_scanner.skipspace;
                 l:=current_scanner.readval64;
-                if l>=heapsize then
+                if l>=compiler.globals.heapsize then
                   maxheapsize:=min(l,maxheapsize_limit)
                 else
                   compiler.verbose.Message(scan_w_heapmax_lessthan_heapmin);

@@ -128,7 +128,7 @@ begin
         writeln(t,'DESCRIPTION '+''''+compiler.globals.description+'''');
         writeln(t,'DATA'#9'MULTIPLE');
         writeln(t,'STACKSIZE'#9+tostr(stacksize));
-        writeln(t,'HEAPSIZE'#9+tostr(heapsize));
+        writeln(t,'HEAPSIZE'#9+tostr(compiler.globals.heapsize));
       end;
     system_i386_win32,
     system_x86_64_win64,

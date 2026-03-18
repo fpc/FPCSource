@@ -240,8 +240,8 @@ implementation
            system_m68k_human68k:
              begin
                include(supported_calling_conventions,pocall_syscall);
-               if heapsize=0 then
-                 heapsize:=65536;
+               if compiler.globals.heapsize=0 then
+                 compiler.globals.heapsize:=65536;
              end;
            system_wasm32_wasip1,
            system_wasm32_wasip1threads,
@@ -289,12 +289,12 @@ implementation
                    else
                      stacksize:=5120;
                  end;
-               if heapsize=0 then
+               if compiler.globals.heapsize=0 then
                  begin
                    if init_settings.x86memorymodel in x86_far_data_models then
-                     heapsize:=8192
+                     compiler.globals.heapsize:=8192
                    else
-                     heapsize:=4096;
+                     compiler.globals.heapsize:=4096;
                  end;
              end;
 {$endif i8086}
