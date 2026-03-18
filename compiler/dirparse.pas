@@ -331,7 +331,7 @@ implementation
                         ts_auto_getter_prefix:
                           compiler.globals.prop_auto_getter_prefix:=value;
                         ts_auto_setter_predix:
-                          prop_auto_setter_prefix:=value;
+                          compiler.globals.prop_auto_setter_prefix:=value;
                         else
                           begin
                             writeln('Internalerror 2012053001');
