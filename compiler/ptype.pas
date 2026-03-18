@@ -402,7 +402,7 @@ implementation
          is_unit_specific:=false;
          s:=current_scanner.pattern;
          sorg:=current_scanner.orgpattern;
-         pos:=current_tokenpos;
+         pos:=compiler.globals.current_tokenpos;
          { use of current parsed object:
            classes, objects, records can be used also in themself }
          if checkcurrentrecdef and
@@ -414,7 +414,7 @@ implementation
              is_specialize:=true;
              s:=current_scanner.pattern;
              sorg:=current_scanner.orgpattern;
-             pos:=current_tokenpos;
+             pos:=compiler.globals.current_tokenpos;
            end;
          { Use the special searchsym_type that search only types }
          if not compiler.symtablestack.searchsym_type(s,srsym,srsymtable) then
@@ -1920,7 +1920,7 @@ implementation
                         internalerror(201101021);
                     end;
                   s:=current_scanner.orgpattern;
-                  defpos:=current_tokenpos;
+                  defpos:=compiler.globals.current_tokenpos;
                   parser.pbase.consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
                   if not(m_tp7 in current_settings.modeswitches) and
@@ -1966,8 +1966,8 @@ implementation
                   { don't generate enum members if this is a specialization because aktenumdef is copied from the generic type }
                   if not is_specialize then
                     begin
-                      storepos:=current_tokenpos;
-                      current_tokenpos:=defpos;
+                      storepos:=compiler.globals.current_tokenpos;
+                      compiler.globals.current_tokenpos:=defpos;
                       if (l.svalue<low(longint)) or (l.svalue>high(longint)) then
                         if m_delphi in current_settings.modeswitches then
                           compiler.verbose.Message(parser_w_enumeration_out_of_range)
@@ -1978,7 +1978,7 @@ implementation
                           { also provide the global symbol for anonymous enums }
                           not assigned(newsym) then
                         tstoredsymtable(aktenumdef.owner).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
-                      current_tokenpos:=storepos;
+                      compiler.globals.current_tokenpos:=storepos;
                     end;
                 until not parser.pbase.try_to_consume(_COMMA);
                 def:=aktenumdef;

@@ -764,8 +764,8 @@ implementation
             storepos:tfileposinfo;
             srsymtable:TSymtable;
           begin
-            storepos:=current_tokenpos;
-            current_tokenpos:=procstartfilepos;
+            storepos:=compiler.globals.current_tokenpos;
+            compiler.globals.current_tokenpos:=procstartfilepos;
             compiler.symtablestack.searchsym(sp,result,srsymtable);
             if not assigned(result) then
               begin
@@ -773,7 +773,7 @@ implementation
                   parser.pbase.identifier_not_found(orgsp);
                 result:=generrorsym;
               end;
-            current_tokenpos:=storepos;
+            compiler.globals.current_tokenpos:=storepos;
           end;
 
         function handle_generic_interface:boolean;
@@ -913,7 +913,7 @@ implementation
         orgspnongen:='';
 
         { Save the position where this procedure really starts }
-        procstartfilepos:=current_tokenpos;
+        procstartfilepos:=compiler.globals.current_tokenpos;
         old_parse_generic:=parser.pbase.parse_generic;
 
         firstpart:=true;
@@ -1036,7 +1036,7 @@ implementation
                    check_generic_parameters(tstoreddef(ttypesym(srsym).typedef));
 
                  { consume proc name }
-                 procstartfilepos:=current_tokenpos;
+                 procstartfilepos:=compiler.globals.current_tokenpos;
                  consume_proc_name;
                  { qualifier is class name ? }
                  if (srsym.typ=typesym) and
@@ -1102,7 +1102,7 @@ implementation
                    break;
 
                  searchagain:=false;
-                 current_tokenpos:=procstartfilepos;
+                 compiler.globals.current_tokenpos:=procstartfilepos;
 
                  if (potype=potype_operator)and(parser.pbase.optoken=NOTOKEN) then
                    parse_operator_name;
@@ -1193,7 +1193,7 @@ implementation
             if not assigned(aprocsym) then
               begin
                 { create a new procsym and set the real filepos }
-                current_tokenpos:=procstartfilepos;
+                compiler.globals.current_tokenpos:=procstartfilepos;
                 { for operator we have only one procsym for each overloaded
                   operation }
                 if (potype=potype_operator) then
@@ -3264,7 +3264,7 @@ const
           exit;
 
         { Keep track of the token's position in the file so it's correctly indicated if an error occurs. }
-        tokenloc := current_tokenpos;
+        tokenloc := compiler.globals.current_tokenpos;
 
         { consume directive, and turn flag on }
         parser.pbase.consume(current_scanner.token);

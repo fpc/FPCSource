@@ -692,7 +692,7 @@ implementation
         repeat
           s:=current_scanner.pattern;
           sorg:=current_scanner.orgpattern;
-          filepos:=current_tokenpos;
+          filepos:=compiler.globals.current_tokenpos;
           parser.pbase.consume(_ID);
           while current_scanner.token=_POINT do
             begin
@@ -743,7 +743,7 @@ implementation
              { Create unitsym, we need to use the name as specified, we
                can not use the modulename because that can be different
                when -Un is used }
-             current_tokenpos:=filepos;
+             compiler.globals.current_tokenpos:=filepos;
              unitsym:=cunitsym.create(sorg,nil);
              { the current module uses the unit hp2 }
              curr.addusedunit(hp2,true,unitsym);

@@ -2653,7 +2653,7 @@ type
                compiler.verbose.Message(scan_e_keyword_cant_be_a_macro);
 
              current_scanner.gettokenpos;
-             mac.fileinfo:=current_tokenpos;
+             mac.fileinfo:=compiler.globals.current_tokenpos;
 
              macropos:=0;
              { parse macro, brackets are counted so it's possible
@@ -3659,6 +3659,8 @@ type
 
 
     procedure tscannerfile.recordtoken;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         t : ttoken;
         s : tspecialgenerictoken;
@@ -3719,40 +3721,40 @@ type
           end;
 
         { file pos changes? }
-        if current_tokenpos.fileindex<>last_filepos.fileindex then
+        if compiler.globals.current_tokenpos.fileindex<>last_filepos.fileindex then
           begin
             s:=ST_FILEINDEX;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            tokenwriteword(current_tokenpos.fileindex);
-            last_filepos.fileindex:=current_tokenpos.fileindex;
+            tokenwriteword(compiler.globals.current_tokenpos.fileindex);
+            last_filepos.fileindex:=compiler.globals.current_tokenpos.fileindex;
             last_filepos.line:=0;
           end;
-        if current_tokenpos.line<>last_filepos.line then
+        if compiler.globals.current_tokenpos.line<>last_filepos.line then
           begin
             s:=ST_LINE;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            tokenwritelongint(current_tokenpos.line);
-            last_filepos.line:=current_tokenpos.line;
+            tokenwritelongint(compiler.globals.current_tokenpos.line);
+            last_filepos.line:=compiler.globals.current_tokenpos.line;
             last_filepos.column:=0;
           end;
-        if current_tokenpos.column<>last_filepos.column then
+        if compiler.globals.current_tokenpos.column<>last_filepos.column then
           begin
             s:=ST_COLUMN;
             writetoken(t);
             { can the column be written packed? }
-            if current_tokenpos.column<$80 then
+            if compiler.globals.current_tokenpos.column<$80 then
               begin
-                b:=$80 or current_tokenpos.column;
+                b:=$80 or compiler.globals.current_tokenpos.column;
                 recordtokenbuf.write(b,1);
               end
             else
               begin
                 recordtokenbuf.write(s,1);
-                tokenwriteword(current_tokenpos.column);
+                tokenwriteword(compiler.globals.current_tokenpos.column);
               end;
-            last_filepos.column:=current_tokenpos.column;
+            last_filepos.column:=compiler.globals.current_tokenpos.column;
           end;
 
         writetoken(token);
@@ -3944,8 +3946,8 @@ type
                 { packed column? }
                 if (ord(specialtoken) and $80)<>0 then
                   begin
-                      current_tokenpos.column:=ord(specialtoken) and $7f;
-                      current_filepos:=current_tokenpos;
+                      compiler.globals.current_tokenpos.column:=ord(specialtoken) and $7f;
+                      current_filepos:=compiler.globals.current_tokenpos;
                   end
                 else
                   case specialtoken of
@@ -4003,18 +4005,18 @@ type
                       end;
                     ST_LINE:
                       begin
-                        current_tokenpos.line:=tokenreadlongint;
-                        current_filepos:=current_tokenpos;
+                        compiler.globals.current_tokenpos.line:=tokenreadlongint;
+                        current_filepos:=compiler.globals.current_tokenpos;
                       end;
                     ST_COLUMN:
                       begin
-                        current_tokenpos.column:=tokenreadword;
-                        current_filepos:=current_tokenpos;
+                        compiler.globals.current_tokenpos.column:=tokenreadword;
+                        current_filepos:=compiler.globals.current_tokenpos;
                       end;
                     ST_FILEINDEX:
                       begin
-                        current_tokenpos.fileindex:=tokenreadword;
-                        current_filepos:=current_tokenpos;
+                        compiler.globals.current_tokenpos.fileindex:=tokenreadword;
+                        current_filepos:=compiler.globals.current_tokenpos;
                       end;
                   end;
                 continue;
@@ -4233,10 +4235,12 @@ type
 
 
     procedure tscannerfile.gettokenpos;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { load the values of tokenpos and lasttokenpos }
       begin
-        do_gettokenpos(lasttokenpos,current_tokenpos);
-        current_filepos:=current_tokenpos;
+        do_gettokenpos(lasttokenpos,compiler.globals.current_tokenpos);
+        current_filepos:=compiler.globals.current_tokenpos;
       end;
 
 
@@ -4247,29 +4251,35 @@ type
 
 
     procedure tscannerfile.setnexttoken;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         token:=nexttoken;
         nexttoken:=NOTOKEN;
         lasttokenpos:=nexttokenpos;
-        current_tokenpos:=next_filepos;
-        current_filepos:=current_tokenpos;
+        compiler.globals.current_tokenpos:=next_filepos;
+        current_filepos:=compiler.globals.current_tokenpos;
         nexttokenpos:=0;
       end;
 
 
     procedure tscannerfile.savetokenpos;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         oldlasttokenpos:=lasttokenpos;
         oldcurrent_filepos:=current_filepos;
-        oldcurrent_tokenpos:=current_tokenpos;
+        oldcurrent_tokenpos:=compiler.globals.current_tokenpos;
       end;
 
 
     procedure tscannerfile.restoretokenpos;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         lasttokenpos:=oldlasttokenpos;
         current_filepos:=oldcurrent_filepos;
-        current_tokenpos:=oldcurrent_tokenpos;
+        compiler.globals.current_tokenpos:=oldcurrent_tokenpos;
       end;
 
 

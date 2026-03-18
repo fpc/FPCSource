@@ -180,7 +180,7 @@ var
 
       { save scanner state }
       old_block_type:=block_type;
-      oldtokenpos:=current_tokenpos;
+      oldtokenpos:=compiler.globals.current_tokenpos;
       {
         consuming the semicolon after a uses clause can add to the
         pending state if the first directives change warning state.
@@ -262,7 +262,7 @@ var
       set_current_module(old_current_module);
 
       { restore scanner }
-      current_tokenpos:=oldtokenpos;
+      compiler.globals.current_tokenpos:=oldtokenpos;
       block_type:=old_block_type;
       switchesstatestack:=old_switchesstatestack;
       switchesstatestackpos:=old_switchesstatestackpos;

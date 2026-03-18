@@ -136,8 +136,8 @@ implementation
         hp:=nil;
         p:=parser.pexpr.comp_expr([ef_accept_equal]);
         nodetype:=p.nodetype;
-        storetokenpos:=current_tokenpos;
-        current_tokenpos:=filepos;
+        storetokenpos:=compiler.globals.current_tokenpos;
+        compiler.globals.current_tokenpos:=filepos;
         case p.nodetype of
            ordconstn:
              begin
@@ -247,7 +247,7 @@ implementation
             include(hp.symoptions,sp_generic_const);
             include(hp.symoptions,sp_generic_para);
           end;
-        current_tokenpos:=storetokenpos;
+        compiler.globals.current_tokenpos:=storetokenpos;
         p.free;
         p := nil;
         readconstant:=hp;
@@ -283,7 +283,7 @@ implementation
          first:=true;
          repeat
            orgname:=current_scanner.orgpattern;
-           filepos:=current_tokenpos;
+           filepos:=compiler.globals.current_tokenpos;
            isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
            parser.pbase.consume(_ID);
            case current_scanner.token of
@@ -334,8 +334,8 @@ implementation
                    parser.ptype.read_anon_type(hdef,false,nil);
                    block_type:=bt_const;
                    { create symbol }
-                   storetokenpos:=current_tokenpos;
-                   current_tokenpos:=filepos;
+                   storetokenpos:=compiler.globals.current_tokenpos;
+                   compiler.globals.current_tokenpos:=filepos;
                    if not (cs_typed_const_writable in current_settings.localswitches) then
                      begin
                        varspez:=vs_const;
@@ -365,7 +365,7 @@ implementation
                        compiler.symtablestack.top.insertsym(sym);
                      end;
                    sym.register_sym;
-                   current_tokenpos:=storetokenpos;
+                   compiler.globals.current_tokenpos:=storetokenpos;
                    skip_initialiser:=false;
                    { Anonymous proctype definitions can have proc directives }
                    if (
@@ -782,7 +782,7 @@ implementation
          had_generic:=false;
          storetokenpos:=Default(tfileposinfo);
          repeat
-           defpos:=current_tokenpos;
+           defpos:=compiler.globals.current_tokenpos;
            istyperenaming:=false;
            setdummysym:=false;
            generictypelist:=nil;
@@ -882,7 +882,7 @@ implementation
                 will give an error (PFV) }
               hdef:=generrordef;
               gendef:=nil;
-              storetokenpos:=current_tokenpos;
+              storetokenpos:=compiler.globals.current_tokenpos;
               if isgeneric then
                 begin
                   { for generics we need to check whether a non-generic type
@@ -939,8 +939,8 @@ implementation
                   newtype.visibility:=compiler.symtablestack.top.currentvisibility;
                   compiler.symtablestack.top.insertsym(newtype);
                 end;
-              current_tokenpos:=defpos;
-              current_tokenpos:=storetokenpos;
+              compiler.globals.current_tokenpos:=defpos;
+              compiler.globals.current_tokenpos:=storetokenpos;
               { read the type definition }
               parser.ptype.read_named_type(hdef,newtype,gendef,generictypelist,false,isunique);
               { update the definition of the type }
@@ -1377,7 +1377,7 @@ implementation
          block_type:=bt_const;
          repeat
            orgname:=current_scanner.orgpattern;
-           filepos:=current_tokenpos;
+           filepos:=compiler.globals.current_tokenpos;
            isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
            parser.pbase.consume(_ID);
            case current_scanner.token of
@@ -1385,8 +1385,8 @@ implementation
                 begin
                    parser.pbase.consume(_EQ);
                    p:=parser.pexpr.comp_expr([ef_accept_equal]);
-                   storetokenpos:=current_tokenpos;
-                   current_tokenpos:=filepos;
+                   storetokenpos:=compiler.globals.current_tokenpos;
+                   compiler.globals.current_tokenpos:=filepos;
                    sym:=nil;
                    case p.nodetype of
                       ordconstn:
@@ -1437,7 +1437,7 @@ implementation
                       else
                         compiler.verbose.Message(parser_e_illegal_expression);
                    end;
-                   current_tokenpos:=storetokenpos;
+                   compiler.globals.current_tokenpos:=storetokenpos;
                    { Support hint directives }
                    dummysymoptions:=[];
                    deprecatedmsg:=nil;

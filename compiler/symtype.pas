@@ -612,13 +612,15 @@ implementation
 
 
     constructor tsym.create(st:tsymtyp;const aname:string);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          inherited CreateNotOwned;
          realname:=aname;
          typ:=st;
          RefList:=nil;
          symoptions:=[];
-         fileinfo:=current_tokenpos;
+         fileinfo:=compiler.globals.current_tokenpos;
          isdbgwritten := false;
          visibility:=vis_public;
          deprecatedmsg:=nil;
@@ -656,9 +658,11 @@ implementation
 
     procedure Tsym.AddRef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         RefItem: TRefItem;
       begin
-        RefItem:=TRefItem.Create(current_tokenpos);
+        RefItem:=TRefItem.Create(compiler.globals.current_tokenpos);
         RefList.Concat(RefItem);
       end;
 

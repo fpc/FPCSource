@@ -1496,7 +1496,7 @@ implementation
              { read variable type def }
              block_type:=bt_var_type;
              parser.pbase.consume(_COLON);
-             typepos:=current_tokenpos;
+             typepos:=compiler.globals.current_tokenpos;
 
 {$ifdef gpc_mode}
              if (m_gpc in current_settings.modeswitches) and

@@ -3836,7 +3836,7 @@ implementation
         dopostfix:=true;
         updatefpos:=false;
         p1:=nil;
-        filepos:=current_tokenpos;
+        filepos:=compiler.globals.current_tokenpos;
         again:=false;
         pd:=nil;
         isspecialize:=false;
@@ -3859,7 +3859,7 @@ implementation
                 and in case of _SELF the filepos will already be the
                 same as filepos (so setting it again doesn't hurt).  }
               p1.fileinfo:=filepos;
-              filepos:=current_tokenpos;
+              filepos:=compiler.globals.current_tokenpos;
             end;
            { handle post fix operators }
            if (p1.nodetype=specializen) then
@@ -4827,7 +4827,7 @@ implementation
              ((current_scanner.token<>_EQ) or (ef_accept_equal in flags)) then
            begin
              oldt:=current_scanner.token;
-             filepos:=current_tokenpos;
+             filepos:=compiler.globals.current_tokenpos;
              parser.pbase.consume(current_scanner.token);
              if pred_level=highest_precedence then
                p2:=factor(false,[])
@@ -5032,7 +5032,7 @@ implementation
             (current_scanner.token=_LSHARPBRACKET) and
             (m_delphi in current_settings.modeswitches) then
           begin
-            filepos:=current_tokenpos;
+            filepos:=compiler.globals.current_tokenpos;
             parser.pbase.consume(current_scanner.token);
             p2:=factor(false,[]);
             if maybe_handle_specialization(p1,p2,filepos) then
@@ -5084,7 +5084,7 @@ implementation
          if not assigned(p1.resultdef) and
             dotypecheck then
           do_typecheckpass(p1);
-         filepos:=current_tokenpos;
+         filepos:=compiler.globals.current_tokenpos;
          if current_scanner.token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
          updatefpos:=true;

@@ -106,9 +106,9 @@ implementation
            paramanager.ret_in_param(pd.returndef,pd) and
            not assigned(pd.parast.find(name_result)) then
          begin
-           storepos:=current_tokenpos;
+           storepos:=compiler.globals.current_tokenpos;
            if pd.typ=procdef then
-            current_tokenpos:=tprocdef(pd).fileinfo;
+            compiler.globals.current_tokenpos:=tprocdef(pd).fileinfo;
 {$if defined(i386)}
            { For left to right add it at the end to be delphi compatible.
              In the case of safecalls with safecal-exceptions support the
@@ -136,7 +136,7 @@ implementation
            if pd.typ=procdef then
             tprocdef(pd).funcretsym:=vs;
 
-           current_tokenpos:=storepos;
+           compiler.globals.current_tokenpos:=storepos;
          end;
       end;
 
@@ -152,9 +152,9 @@ implementation
         if (pd.parast.symtablelevel>normal_function_level) and
            not assigned(pd.parast.find(name_parentfp)) then
           begin
-            storepos:=current_tokenpos;
+            storepos:=compiler.globals.current_tokenpos;
             if pd.typ=procdef then
-             current_tokenpos:=tprocdef(pd).fileinfo;
+             compiler.globals.current_tokenpos:=tprocdef(pd).fileinfo;
 
             { if no support for nested procvars is activated, use the old
               calling convention to pass the parent frame pointer for backwards
@@ -189,7 +189,7 @@ implementation
               end;
             pd.parast.insertsym(vs);
 
-            current_tokenpos:=storepos;
+            compiler.globals.current_tokenpos:=storepos;
           end;
       end;
 
@@ -287,8 +287,8 @@ implementation
                 if pd.no_self_node then
                    exit;
 
-                storepos:=current_tokenpos;
-                current_tokenpos:=tprocdef(pd).fileinfo;
+                storepos:=compiler.globals.current_tokenpos;
+                compiler.globals.current_tokenpos:=tprocdef(pd).fileinfo;
 
                 { Generate VMT variable for constructor/destructor }
                 if (pd.proctypeoption in [potype_constructor,potype_destructor]) and
@@ -334,7 +334,7 @@ implementation
                     pd.parast.insertsym(vs);
                   end;
 
-                current_tokenpos:=storepos;
+                compiler.globals.current_tokenpos:=storepos;
               end;
           end;
       end;
@@ -348,8 +348,8 @@ implementation
         sl       : tpropaccesslist;
         hs       : string;
       begin
-        storepos:=current_tokenpos;
-        current_tokenpos:=pd.fileinfo;
+        storepos:=compiler.globals.current_tokenpos;
+        compiler.globals.current_tokenpos:=pd.fileinfo;
 
         { The result from constructors and destructors can't be accessed directly }
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
@@ -422,7 +422,7 @@ implementation
             pd.localst.insertsym(vs);
           end;
 
-        current_tokenpos:=storepos;
+        compiler.globals.current_tokenpos:=storepos;
       end;
 
 

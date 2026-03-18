@@ -2080,7 +2080,7 @@ uses
                 oldcurrent_filepos:=current_filepos;
                 { use the index the module got from the current compilation process }
                 current_filepos.moduleindex:=hmodule.moduleid;
-                current_tokenpos:=current_filepos;
+                compiler.globals.current_tokenpos:=current_filepos;
                 if parser.pbase.parse_generic then
                   begin
                     recordbuf:=current_scanner.recordtokenbuf;
@@ -2353,7 +2353,7 @@ uses
               result.add(current_scanner.orgpattern,generictype);
             end;
           parser.pbase.consume(_ID);
-          fileinfo:=current_tokenpos;
+          fileinfo:=compiler.globals.current_tokenpos;
           { const restriction }
           if is_const and parser.pbase.try_to_consume(_COLON) then
             begin
@@ -2988,7 +2988,7 @@ uses
             current_filepos:=tprocdef(def.genericdef).fileinfo;
             { use the index the module got from the current compilation process }
             current_filepos.moduleindex:=hmodule.moduleid;
-            current_tokenpos:=current_filepos;
+            compiler.globals.current_tokenpos:=current_filepos;
             current_scanner.startreplaytokens(tprocdef(def.genericdef).generictokenbuf,hmodule.change_endian);
             parser.psub.read_proc_body(def);
             current_filepos:=oldcurrent_filepos;

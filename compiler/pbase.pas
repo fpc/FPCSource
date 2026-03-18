@@ -160,7 +160,7 @@ implementation
         else
           begin
             if current_scanner.token=_END then
-              last_endtoken_filepos:=current_tokenpos;
+              last_endtoken_filepos:=compiler.globals.current_tokenpos;
             current_scanner.readtoken(true);
           end;
       end;
@@ -186,7 +186,7 @@ implementation
          begin
            try_to_consume:=true;
            if current_scanner.token=_END then
-            last_endtoken_filepos:=current_tokenpos;
+            last_endtoken_filepos:=compiler.globals.current_tokenpos;
            current_scanner.readtoken(true);
          end;
       end;
