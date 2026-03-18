@@ -305,6 +305,7 @@ Const
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
+       // TODO: block_type should probably be moved to the scanner or parser
        block_type : tblock_type;         { type of currently parsed block }
 
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
