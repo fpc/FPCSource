@@ -58,7 +58,7 @@ interface
         procedure Loadprefixes;
         procedure LoadMsgFile(const fn:string);
         procedure MaybeLoadMessageFile;
-        Procedure UpdateStatus;
+        Procedure UpdateStatus(const filepos : tfileposinfo);
         function GetMessageState(m:longint):tmsgstate;
         Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
 
@@ -468,27 +468,25 @@ implementation
       end;
 
 
-    Procedure TVerbose.UpdateStatus;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    Procedure TVerbose.UpdateStatus(const filepos : tfileposinfo);
       var
         module : tmodule;
       begin
       { fix status }
-        status.currentline:=compiler.globals.current_filepos.line;
-        status.currentcolumn:=compiler.globals.current_filepos.column;
-        if (compiler.globals.current_filepos.moduleindex <> lastmoduleidx) or
-           (compiler.globals.current_filepos.fileindex <> lastfileidx) then
+        status.currentline:=filepos.line;
+        status.currentcolumn:=filepos.column;
+        if (filepos.moduleindex <> lastmoduleidx) or
+           (filepos.fileindex <> lastfileidx) then
         begin
-          module:=get_module(compiler.globals.current_filepos.moduleindex);
+          module:=get_module(filepos.moduleindex);
           if assigned(module) and assigned(module.sourcefiles) then
             begin
               { update status record }
               status.currentmodule:=module.modulename^;
               status.currentsourceppufilename:=module.ppufilename;
               status.currentmodulestate:=ModuleStateStr[module.state];
-              status.currentsource:=module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex);
-              status.currentsourcepath:=module.sourcefiles.get_file_path(compiler.globals.current_filepos.fileindex);
+              status.currentsource:=module.sourcefiles.get_file_name(filepos.fileindex);
+              status.currentsourcepath:=module.sourcefiles.get_file_path(filepos.fileindex);
               status.sources_avail:=module.sources_avail;
               { if currentsourcepath is relative, make it absolute }
               if not path_absolute(status.currentsourcepath) then
@@ -496,7 +494,7 @@ implementation
 
               { update lastfileidx only if name known PM }
               if status.currentsource<>'' then
-                lastfileidx:=compiler.globals.current_filepos.fileindex
+                lastfileidx:=filepos.fileindex
               else
                 lastfileidx:=0;
 
@@ -507,8 +505,10 @@ implementation
 
 
     procedure TVerbose.ShowStatus;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        UpdateStatus;
+        UpdateStatus(compiler.globals.current_filepos);
         if do_status() then
           raise ECompilerAbort.Create;
       end;
@@ -614,13 +614,15 @@ implementation
           raise ECompilerAbort.Create;
         end;
       begin
-        compiler.verbose.UpdateStatus;
+        compiler.verbose.UpdateStatus(compiler.globals.current_filepos);
         do_internalerrorex(i,s);
         compiler.verbose.GenerateError;
         doraise;
       end;
 
     procedure TVerbose.Comment(l:longint;s:ansistring);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         dostop : boolean;
       begin
@@ -646,7 +648,7 @@ implementation
         if (l and V_LineInfoMask)<>0 then
           l:=l or V_LineInfo;
       { Create status info }
-        UpdateStatus;
+        UpdateStatus(compiler.globals.current_filepos);
       { Fix replacements }
         DefaultReplacements(s,false);
       { show comment }
@@ -673,6 +675,8 @@ implementation
       end;
 
     Procedure TVerbose.Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         idx,i,v : longint;
         dostop  : boolean;
@@ -778,7 +782,7 @@ implementation
         if (v and V_LineInfoMask)<>0 then
           v:=v or V_LineInfo;
       { fix status }
-        UpdateStatus;
+        UpdateStatus(compiler.globals.current_filepos);
       { Fix replacements }
         DefaultReplacements(s,false);
         if status.showmsgnrs and ((v and V_Normal)=0) then
