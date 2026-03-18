@@ -3091,6 +3091,8 @@ type
  ****************************************************************************}
 
     constructor tscannerfile.Create(const fn: string; is_macro: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inputfile:=do_openinputfile(fn);
         if is_macro then
@@ -3112,7 +3114,7 @@ type
         replaystack:=nil;
         comment_level:=0;
         yylexcount:=0;
-        block_type:=bt_general;
+        compiler.globals.block_type:=bt_general;
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
@@ -5751,7 +5753,7 @@ type
        begin
          readchar;
          c:=upcase(c);
-         if (block_type in [bt_type,bt_const_type,bt_var_type]) or
+         if (compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type]) or
             (lasttoken=_ID) or (lasttoken=_NIL) or (lasttoken=_OPERATOR) or
             (lasttoken=_RKLAMMER) or (lasttoken=_RECKKLAMMER) or (lasttoken=_CARET) then
           begin
@@ -6681,7 +6683,7 @@ type
              '>' :
                begin
                  readchar;
-                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
+                 if (compiler.globals.block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_RSHARPBRACKET
                  else
                    begin
@@ -6713,7 +6715,7 @@ type
              '<' :
                begin
                  readchar;
-                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
+                 if (compiler.globals.block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_LSHARPBRACKET
                  else
                    begin

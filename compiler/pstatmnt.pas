@@ -900,7 +900,7 @@ implementation
            end
          else
            begin
-              if (block_type<>bt_except) then
+              if (compiler.globals.block_type<>bt_except) then
                 compiler.verbose.Message(parser_e_no_reraise_possible);
            end;
          if (po_noreturn in current_procinfo.procdef.procoptions) and (compiler.globals.exceptblockcounter=0) then
@@ -950,8 +950,8 @@ implementation
          inc(compiler.globals.exceptblockcounter);
          oldcurrent_exceptblock := compiler.globals.current_exceptblock;
          compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
-         old_block_type := block_type;
-         block_type := bt_body;
+         old_block_type := compiler.globals.block_type;
+         compiler.globals.block_type := bt_body;
 
          while (current_scanner.token<>_FINALLY) and (current_scanner.token<>_EXCEPT) do
            begin
@@ -982,7 +982,7 @@ implementation
          else
            begin
               parser.pbase.consume(_EXCEPT);
-              block_type:=bt_except;
+              compiler.globals.block_type:=bt_except;
               inc(compiler.globals.exceptblockcounter);
               compiler.globals.current_exceptblock := compiler.globals.exceptblockcounter;
               ot:=generrordef;
@@ -1102,7 +1102,7 @@ implementation
 
               try_statement:=compiler.ctryexceptnode(p_try_block,p_specific,p_default);
            end;
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
          compiler.globals.current_exceptblock := oldcurrent_exceptblock;
       end;
 

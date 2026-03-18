@@ -766,7 +766,7 @@ implementation
          inherited create;
          nodetype:=t;
          compiler:=acompiler;
-         blocktype:=block_type;
+         blocktype:=compiler.globals.block_type;
          { updated by firstpass }
          expectloc:=LOC_INVALID;
          { updated by secondpass }
@@ -805,7 +805,7 @@ implementation
 
     procedure tnode.ppuwrite(ppufile:tcompilerppufile);
       begin
-        ppufile.putbyte(byte(block_type));
+        ppufile.putbyte(byte(compiler.globals.block_type));
         ppufile.putposinfo(fileinfo);
         ppufile.putset(tppuset5(localswitches));
         ppufile.putlongint(verbosity);

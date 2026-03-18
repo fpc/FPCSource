@@ -306,11 +306,11 @@ implementation
                  compiler.verbose.Message(parser_e_default_value_only_one_para);
                if not(vs.varspez in [vs_value,vs_const,vs_constref]) then
                  compiler.verbose.Message(parser_e_default_value_val_const);
-               bt:=block_type;
-               block_type:=bt_const;
+               bt:=compiler.globals.block_type;
+               compiler.globals.block_type:=bt_const;
                { prefix 'def' to the parameter name }
                defaultvalue:=parser.pdecl.ReadConstant('$def'+vs.name,vs.fileinfo,nodetype);
-               block_type:=bt;
+               compiler.globals.block_type:=bt;
                if assigned(defaultvalue) then
                  begin
                    include(defaultvalue.symoptions,sp_internal);
@@ -331,7 +331,7 @@ implementation
 
 
       begin
-        old_block_type:=block_type;
+        old_block_type:=compiler.globals.block_type;
         explicit_paraloc:=false;
         parser.pbase.consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
@@ -345,7 +345,7 @@ implementation
         sc:=TFPObjectList.create(false);
         defaultrequired:=false;
         paranr:=0;
-        block_type:=bt_var;
+        compiler.globals.block_type:=bt_var;
         is_univ:=false;
         repeat
           parseprocvar:=pv_none;
@@ -408,10 +408,10 @@ implementation
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
               begin
-                block_type:=bt_var_type;
+                compiler.globals.block_type:=bt_var_type;
                 parser.pbase.consume(_COLON);
                 parser.ptype.single_type(pv.returndef,[]);
-                block_type:=bt_var;
+                compiler.globals.block_type:=bt_var;
               end;
              { possible proc directives }
              if check_proc_directive(true) then
@@ -476,9 +476,9 @@ implementation
                   hdef:=ctypedformaltype
                 else }
                   begin
-                    block_type:=bt_var_type;
+                    compiler.globals.block_type:=bt_var_type;
                     parser.ptype.single_type(hdef,[stoAllowSpecialization]);
-                    block_type:=bt_var;
+                    compiler.globals.block_type:=bt_var;
                   end;
 
                 { open string ? }
@@ -591,7 +591,7 @@ implementation
         sc.free;
         sc := nil;
         { reset object options }
-        block_type:=old_block_type;
+        compiler.globals.block_type:=old_block_type;
         parser.pbase.consume(_RKLAMMER);
       end;
 
@@ -1819,11 +1819,11 @@ implementation
               { we need to set the block type to bt_body, so that operator names
                 like ">", "=>" or "<>" are parsed correctly instead of e.g.
                 _LSHARPBRACKET and _RSHARPBRACKET for "<>" }
-              old_block_type:=block_type;
-              block_type:=bt_body;
+              old_block_type:=compiler.globals.block_type;
+              compiler.globals.block_type:=bt_body;
               parser.pbase.consume(_OPERATOR);
               parse_proc_head(astruct,potype_operator,[],nil,nil,pd);
-              block_type:=old_block_type;
+              compiler.globals.block_type:=old_block_type;
               if assigned(pd) then
                 parse_proc_dec_finish(pd,flags,astruct)
               else
@@ -3592,7 +3592,7 @@ const
              because a constant/default value follows }
            if res then
             begin
-              if (block_type=bt_const_type) and
+              if (compiler.globals.block_type=bt_const_type) and
                  (current_scanner.token=_EQ) then
                break;
               { support procedure proc;stdcall export; }

@@ -557,7 +557,7 @@ implementation
           begin
             { don't allow as a default parameter value, because it may not be valid
               when specialising }
-            if block_type<>bt_const then
+            if compiler.globals.block_type<>bt_const then
               result:=compiler.cpointerconstnode(0,def)
             else
               result:=compiler.cerrornode;
@@ -2846,7 +2846,7 @@ implementation
                 end;
               in_pi_real :
                  begin
-                   if block_type=bt_const then
+                   if compiler.globals.block_type=bt_const then
                      setconstrealvalue(getpi)
                  end;
               in_cos_real :

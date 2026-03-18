@@ -1417,8 +1417,8 @@ implementation
          tmp_filepos,
          old_current_filepos     : tfileposinfo;
       begin
-         old_block_type:=block_type;
-         block_type:=bt_var;
+         old_block_type:=compiler.globals.block_type;
+         compiler.globals.block_type:=bt_var;
          { Force an expected ID error message }
          if not (current_scanner.token in [_ID,_CASE,_END]) then
            parser.pbase.consume(_ID);
@@ -1494,7 +1494,7 @@ implementation
                break;
 
              { read variable type def }
-             block_type:=bt_var_type;
+             compiler.globals.block_type:=bt_var_type;
              parser.pbase.consume(_COLON);
              typepos:=compiler.globals.current_tokenpos;
 
@@ -1512,7 +1512,7 @@ implementation
                  vs:=tabstractvarsym(sc[i]);
                  vs.vardef:=hdef;
                end;
-             block_type:=bt_var;
+             compiler.globals.block_type:=bt_var;
 
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then
@@ -1683,7 +1683,7 @@ implementation
 
              first:=false;
            end;
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
          { free the list }
          sc.free;
          sc := nil;
@@ -1767,8 +1767,8 @@ implementation
          old_block_type: tblock_type;
          typepos : tfileposinfo;
       begin
-         old_block_type:=block_type;
-         block_type:=bt_var;
+         old_block_type:=compiler.globals.block_type;
+         compiler.globals.block_type:=bt_var;
          recst:=tabstractrecordsymtable(compiler.symtablestack.top);
 {$if defined(powerpc) or defined(powerpc64)}
          is_first_type:=true;
@@ -1823,9 +1823,9 @@ implementation
                  vs.free; // no nil needed
              until not parser.pbase.try_to_consume(_COMMA);
              if m_delphi in current_settings.modeswitches then
-               block_type:=bt_var_type
+               compiler.globals.block_type:=bt_var_type
              else
-               block_type:=old_block_type;
+               compiler.globals.block_type:=old_block_type;
              if had_generic and (sc.count=0) then
                break;
              parser.pbase.consume(_COLON);
@@ -1856,7 +1856,7 @@ implementation
              if is_wasm_reference_type(hdef) then
                compiler.verbose.MessagePos(typepos,sym_e_wasm_ref_types_cannot_be_used_in_records);
 {$endif wasm}
-             block_type:=bt_var;
+             compiler.globals.block_type:=bt_var;
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) then
                begin
@@ -2034,9 +2034,9 @@ implementation
            end;
 
          if m_delphi in current_settings.modeswitches then
-           block_type:=bt_var_type
+           compiler.globals.block_type:=bt_var_type
          else
-           block_type:=old_block_type;
+           compiler.globals.block_type:=old_block_type;
          { Check for Case }
          if (vd_record in options) and
             parser.pbase.try_to_consume(_CASE) then
@@ -2070,7 +2070,7 @@ implementation
                     end;
                 end;
               parser.ptype.read_anon_type(casetype,true,nil);
-              block_type:=bt_var;
+              compiler.globals.block_type:=bt_var;
               if assigned(fieldvs) then
                 begin
                   fieldvs.vardef:=casetype;
@@ -2122,9 +2122,9 @@ implementation
                     break;
                 until false;
                 if m_delphi in current_settings.modeswitches then
-                  block_type:=bt_var_type
+                  compiler.globals.block_type:=bt_var_type
                 else
-                  block_type:=old_block_type;
+                  compiler.globals.block_type:=old_block_type;
                 parser.pbase.consume(_COLON);
                 { read the vars }
                 parser.pbase.consume(_LKLAMMER);
@@ -2195,7 +2195,7 @@ implementation
 {$ifdef powerpc}
          is_first_type := false;
 {$endif powerpc}
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
       end;
 
 end.

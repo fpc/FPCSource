@@ -1251,7 +1251,7 @@ implementation
            genstr  : string;
            gencount : longint;
         begin
-           old_block_type:=block_type;
+           old_block_type:=compiler.globals.block_type;
            dospecialize:=false;
            { use of current parsed object:
              classes, objects, records can be used also in themself }
@@ -1432,7 +1432,7 @@ implementation
              end;
            pt1.free;
            pt1 := nil;
-           block_type:=old_block_type;
+           compiler.globals.block_type:=old_block_type;
         end;
 
 
@@ -1492,11 +1492,11 @@ implementation
         begin
           parser.pbase.consume(_CARET);
           single_type(tt2,
-              SingleTypeOptionsInTypeBlock[block_type=bt_type]+[stoAllowSpecialization]
+              SingleTypeOptionsInTypeBlock[compiler.globals.block_type=bt_type]+[stoAllowSpecialization]
             );
           { in case of e.g. var or const sections we need to especially
             check that we don't use a generic dummy symbol }
-          if (block_type<>bt_type) and
+          if (compiler.globals.block_type<>bt_type) and
               (tt2.typ=undefineddef) and
               assigned(tt2.typesym) and
               (sp_generic_dummy in tt2.typesym.symoptions) then
@@ -2060,11 +2060,11 @@ implementation
                 if (current_scanner.token=_OF) and
                    (
                     not(m_delphi in current_settings.modeswitches) or
-                    (block_type=bt_type)
+                    (compiler.globals.block_type=bt_type)
                    ) then
                   begin
                     parser.pbase.consume(_OF);
-                    single_type(hdef,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
+                    single_type(hdef,SingleTypeOptionsInTypeBlock[compiler.globals.block_type=bt_type]);
                     if is_class(hdef) or
                        is_objcclass(hdef) or
                        is_javaclass(hdef) then
@@ -2189,7 +2189,7 @@ implementation
               if (current_scanner.token=_KLAMMERAFFE) and (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
                 begin
                   parser.pbase.consume(_KLAMMERAFFE);
-                  single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
+                  single_type(tt2,SingleTypeOptionsInTypeBlock[compiler.globals.block_type=bt_type]);
                   def:=cpointerdef.create(tt2,compiler);
                   if tt2.typ=forwarddef then
                     current_module.checkforwarddefs.add(def);

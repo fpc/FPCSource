@@ -4372,7 +4372,7 @@ implementation
 
          { handle predefined procedures }
          is_const:=(po_internconst in procdefinition.procoptions) and
-                   ((block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
+                   ((compiler.globals.block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
                     (assigned(left) and ((tcallparanode(left).left.nodetype in [realconstn,ordconstn])
                      and (not assigned(tcallparanode(left).right) or (tcallparanode(tcallparanode(left).right).left.nodetype in [realconstn,ordconstn])))));
          if (procdefinition.proccalloption=pocall_internproc) or is_const then
@@ -5100,7 +5100,7 @@ implementation
          if assigned(callcleanupblock) then
            firstpass(tnode(callcleanupblock));
 
-         if not (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) then
+         if not (compiler.globals.block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) then
            include(current_procinfo.flags,pi_do_call);
 
          { order parameters }

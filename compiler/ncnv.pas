@@ -566,7 +566,7 @@ implementation
                     { widechars are not yet supported }
                     if is_widechar(p2.resultdef) then
                       begin
-                        if block_type<>bt_const then
+                        if compiler.globals.block_type<>bt_const then
                           inserttypeconv(p2,cansichartype,compiler);
                         if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                           incompatibletypes(cwidechartype,cansichartype);
@@ -577,7 +577,7 @@ implementation
                      begin
                        if is_widechar(p3.resultdef) then
                          begin
-                           if block_type<>bt_const then
+                           if compiler.globals.block_type<>bt_const then
                              inserttypeconv(p3,cansichartype,compiler);
                            if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                              begin
@@ -2912,7 +2912,7 @@ implementation
             cdoptions:=[cdo_allow_variant,cdo_warn_incompatible_univ];
             { overloaded operators require calls, which is not possible inside
               a constant declaration }
-            if (block_type<>bt_const) and
+            if (compiler.globals.block_type<>bt_const) and
                not(nf_internal in flags) then
               include(cdoptions,cdo_check_operator);
             if nf_explicit in flags then

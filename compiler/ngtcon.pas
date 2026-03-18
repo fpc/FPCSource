@@ -273,10 +273,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
        prev_old_block_type,
        old_block_type: tblock_type;
       begin
-        old_block_type:=block_type;
+        old_block_type:=compiler.globals.block_type;
         prev_old_block_type:=current_old_block_type;
         current_old_block_type:=old_block_type;
-        block_type:=bt_const;
+        compiler.globals.block_type:=bt_const;
         case def.typ of
           orddef :
             parse_orddef(torddef(def));
@@ -311,7 +311,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           else
             compiler.verbose.Message(parser_e_type_const_not_possible);
         end;
-        block_type:=old_block_type;
+        compiler.globals.block_type:=old_block_type;
         current_old_block_type:=prev_old_block_type;
       end;
 

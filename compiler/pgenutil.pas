@@ -608,7 +608,7 @@ uses
         { set the block type to type, so that the parsed type are returned as
           ttypenode (e.g. classes are in non type-compatible blocks returned as
           tloadvmtaddrnode) }
-        old_block_type:=block_type;
+        old_block_type:=compiler.globals.block_type;
         { if parsedtype is set, then the first type identifer was already parsed
           (happens in inline specializations) and thus we only need to parse
           the remaining types and do as if the first one was already given }
@@ -636,7 +636,7 @@ uses
             { "first" is set to false at the end of the loop! }
             if not first then
               parser.pbase.consume(_COMMA);
-            block_type:=bt_type;
+            compiler.globals.block_type:=bt_type;
             tmpparampos:=compiler.globals.current_filepos;
             typeparam:=parser.pexpr.factor(false,[ef_accept_equal]);
             { determine if the typeparam node is a valid type or const }
@@ -687,7 +687,7 @@ uses
             typeparam := nil;
             first:=false;
           end;
-        block_type:=old_block_type;
+        compiler.globals.block_type:=old_block_type;
       end;
 
 
@@ -2064,8 +2064,8 @@ uses
                   experience unexpected side effects like the addition of
                   classrefdefs if we have a generic that's derived from another
                   generic }
-                old_block_type:=block_type;
-                block_type:=bt_type;
+                old_block_type:=compiler.globals.block_type;
+                compiler.globals.block_type:=bt_type;
 
                 if (
                      (genericdef.typ=procdef) and
@@ -2235,7 +2235,7 @@ uses
                     current_scanner.recordtokenbuf:=recordbuf;
                   end;
 
-                block_type:=old_block_type;
+                compiler.globals.block_type:=old_block_type;
                 current_procinfo:=old_current_procinfo;
                 current_module.procinfo:=old_module_procinfo;
                 if parse_class_parent then
@@ -2330,8 +2330,8 @@ uses
         result:=tfphashobjectlist.create(false);
         firstidx:=0;
         const_list_index:=0;
-        old_block_type:=block_type;
-        block_type:=bt_type;
+        old_block_type:=compiler.globals.block_type;
+        compiler.globals.block_type:=bt_type;
         allowconst:=true;
         is_const:=false;
         repeat
@@ -2560,7 +2560,7 @@ uses
               ttypesym(result[i]).typedef:=cundefineddef.create(false,compiler);
               ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
             end;
-        block_type:=old_block_type;
+        compiler.globals.block_type:=old_block_type;
       end;
 
 

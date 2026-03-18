@@ -277,8 +277,8 @@ implementation
          varspez : tvarspez;
          asmtype : tasmlisttype;
       begin
-         old_block_type:=block_type;
-         block_type:=bt_const;
+         old_block_type:=compiler.globals.block_type;
+         compiler.globals.block_type:=bt_const;
          had_generic:=false;
          first:=true;
          repeat
@@ -329,10 +329,10 @@ implementation
                      end;
                    { set the blocktype first so a consume also supports a
                      caret, to support const s : ^string = nil }
-                   block_type:=bt_const_type;
+                   compiler.globals.block_type:=bt_const_type;
                    parser.pbase.consume(_COLON);
                    parser.ptype.read_anon_type(hdef,false,nil);
-                   block_type:=bt_const;
+                   compiler.globals.block_type:=bt_const;
                    { create symbol }
                    storetokenpos:=compiler.globals.current_tokenpos;
                    compiler.globals.current_tokenpos:=filepos;
@@ -416,7 +416,7 @@ implementation
                 ((current_scanner.idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
                  ((m_final_fields in current_settings.modeswitches) and
                   (current_scanner.idtoken=_FINAL))));
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
       end;
 
 
@@ -490,10 +490,10 @@ implementation
           if parser.pbase.try_to_consume(_LKLAMMER) then
             begin
               { we only want constants here }
-              old_block_type:=block_type;
-              block_type:=bt_const;
+              old_block_type:=compiler.globals.block_type;
+              compiler.globals.block_type:=bt_const;
               result:=parser.pexpr.parse_paras(false,false,_RKLAMMER);
-              block_type:=old_block_type;
+              compiler.globals.block_type:=old_block_type;
               parser.pbase.consume(_RKLAMMER);
             end
           else
@@ -771,12 +771,12 @@ implementation
          segment_register: string;
 {$endif x86}
       begin
-         old_block_type:=block_type;
+         old_block_type:=compiler.globals.block_type;
          { save unit container of forward declarations -
            we can be inside nested class type block }
          old_checkforwarddefs:=current_module.checkforwarddefs;
          current_module.checkforwarddefs:=TFPObjectList.Create(false);
-         block_type:=bt_type;
+         compiler.globals.block_type:=bt_type;
          hdef:=nil;
          first:=true;
          had_generic:=false;
@@ -1290,7 +1290,7 @@ implementation
          parser.ptype.resolve_forward_types;
          current_module.checkforwarddefs.free;
          current_module.checkforwarddefs:=old_checkforwarddefs;
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
       end;
 
 
@@ -1324,13 +1324,13 @@ implementation
          parser.pbase.consume(_PROPERTY);
          if not(compiler.symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            compiler.verbose.Message(parser_e_property_only_sgr);
-         old_block_type:=block_type;
-         block_type:=bt_const;
+         old_block_type:=compiler.globals.block_type;
+         compiler.globals.block_type:=bt_const;
          repeat
            parser.pdecvar.read_property_dec(false, nil);
            parser.pbase.consume(_SEMICOLON);
          until current_scanner.token<>_ID;
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
       end;
 
 
@@ -1373,8 +1373,8 @@ implementation
            compiler.verbose.Message(parser_e_resourcestring_only_sg);
          first:=true;
          had_generic:=false;
-         old_block_type:=block_type;
-         block_type:=bt_const;
+         old_block_type:=compiler.globals.block_type;
+         compiler.globals.block_type:=bt_const;
          repeat
            orgname:=current_scanner.orgpattern;
            filepos:=compiler.globals.current_tokenpos;
@@ -1466,7 +1466,7 @@ implementation
            end;
            first:=false;
          until current_scanner.token<>_ID;
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
       end;
 
 end.

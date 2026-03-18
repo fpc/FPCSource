@@ -2493,7 +2493,7 @@ implementation
          recordtokens : boolean;
       begin
          old_current_procinfo:=current_procinfo;
-         old_block_type:=block_type;
+         old_block_type:=compiler.globals.block_type;
          old_current_structdef:=current_structdef;
          old_current_genericdef:=current_genericdef;
          old_current_specializedef:=current_specializedef;
@@ -2532,7 +2532,7 @@ implementation
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
            compiler.verbose.Message(parser_e_too_much_lexlevel);
-         block_type:=bt_body;
+         compiler.globals.block_type:=bt_body;
 
     {$ifdef state_tracking}
 {    aktstate:=Tstate_storage.create;}
@@ -2659,7 +2659,7 @@ implementation
          compiler.parser.pbase.parse_generic:=old_parse_generic;
 
          { Restore old state }
-         block_type:=old_block_type;
+         compiler.globals.block_type:=old_block_type;
       end;
 
 

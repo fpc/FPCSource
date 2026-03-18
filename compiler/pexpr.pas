@@ -1142,7 +1142,7 @@ implementation
            to get the address in some cases }
          if assigned(getprocvardef) or assigned(getfuncrefdef) then
           begin
-            if (block_type=bt_const) or
+            if (compiler.globals.block_type=bt_const) or
                getaddr then
              begin
                if assigned(getfuncrefdef) then
@@ -1699,7 +1699,7 @@ implementation
                          if (is_class(ttypesym(sym).typedef) or
                              is_objcclass(ttypesym(sym).typedef) or
                              is_javaclass(ttypesym(sym).typedef)) and
-                            not(block_type in [bt_type,bt_const_type,bt_var_type]) then
+                            not(compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type]) then
                            p1:=compiler.cloadvmtaddrnode(p1);
                        end;
                    end;
@@ -1759,7 +1759,7 @@ implementation
                   end;
                 procdef:
                   begin
-                    if block_type<>bt_body then
+                    if compiler.globals.block_type<>bt_body then
                       begin
                         compiler.verbose.Message(parser_e_illegal_expression);
                         spezcontext.free;
@@ -1837,7 +1837,7 @@ implementation
                  result:=compiler.ctypenode(hdef);
                  ttypenode(result).typesym:=sym;
                  if not (m_delphi in current_settings.modeswitches) and
-                     (block_type in inline_specialization_block_types) and
+                     (compiler.globals.block_type in inline_specialization_block_types) and
                      (current_scanner.token=_ID) and
                      (current_scanner.idtoken=_SPECIALIZE) then
                    begin
@@ -1880,7 +1880,7 @@ implementation
                 result:=compiler.ctypenode(hdef);
                 ttypenode(result).typesym:=sym;
                 if not (m_delphi in current_settings.modeswitches) and
-                    (block_type in inline_specialization_block_types) and
+                    (compiler.globals.block_type in inline_specialization_block_types) and
                     (current_scanner.token=_ID) and
                     (current_scanner.idtoken=_SPECIALIZE) then
                   begin
@@ -1962,7 +1962,7 @@ implementation
                        a typen (the typenode would be changed to self of the
                        current method in case Method1 is a constructor, see
                        mantis #24844) }
-                     if not(block_type in [bt_type,bt_const_type,bt_var_type]) and
+                     if not(compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type]) and
                         (srsym.typ=procsym) and
                         (current_scanner.token in [_CARET,_POINT]) then
                        result:=compiler.cloadvmtaddrnode(result);
@@ -1981,7 +1981,7 @@ implementation
                   { For a type block we simply return only
                     the type. For all other blocks we return
                     a loadvmt node }
-                  if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
+                  if not(compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type]) then
                     result:=compiler.cloadvmtaddrnode(result);
                 end;
              end
@@ -2232,7 +2232,7 @@ implementation
           extdef : tdef;
         begin
           result:=false;
-          if (current_scanner.token=_ID) and (block_type in [bt_body,bt_general,bt_except,bt_const]) then
+          if (current_scanner.token=_ID) and (compiler.globals.block_type in [bt_body,bt_general,bt_except,bt_const]) then
             begin
               if not assigned(def) then
                 if node.nodetype=addrn then
@@ -2509,7 +2509,7 @@ implementation
           _POINT :
              begin
                parser.pbase.consume(_POINT);
-               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in inline_specialization_block_types);
+               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (compiler.globals.block_type in inline_specialization_block_types);
                if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
                  begin
                    //parser.pbase.consume(_ID);
@@ -3202,7 +3202,7 @@ implementation
                      (sp_generic_dummy in srsym.symoptions) and
                      (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                    begin
-                     if block_type in [bt_type,bt_const_type,bt_var_type] then
+                     if compiler.globals.block_type in [bt_type,bt_const_type,bt_var_type] then
                        begin
                          if not handle_specialize_inline_specialization(srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
                            begin
@@ -3466,7 +3466,7 @@ implementation
 
            allowspecialize:=not (m_delphi in current_settings.modeswitches) and
                             not (ef_had_specialize in flags) and
-                            (block_type in inline_specialization_block_types);
+                            (compiler.globals.block_type in inline_specialization_block_types);
            if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
              begin
                parser.pbase.consume(_ID);
@@ -3592,7 +3592,7 @@ implementation
                            else
                              if hdef.typ=procdef then
                                begin
-                                 if not(block_type in inline_specialization_block_types) then
+                                 if not(compiler.globals.block_type in inline_specialization_block_types) then
                                    compiler.verbose.Message(parser_e_illegal_expression);
                                  srsym:=tprocdef(hdef).procsym;
                                  if assigned(spezcontext.symtable) then
@@ -3784,7 +3784,7 @@ implementation
                end;
            { there could be more elements }
            until not parser.pbase.try_to_consume(_COMMA);
-           if block_type in [bt_body,bt_except] then
+           if compiler.globals.block_type in [bt_body,bt_except] then
              Include(buildp.arrayconstructornodeflags, acnf_allow_array_constructor);
            factor_read_set:=buildp;
          end;
@@ -3792,7 +3792,7 @@ implementation
          function can_load_self_node: boolean;
          begin
            result:=false;
-           if (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
+           if (compiler.globals.block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
               not assigned(current_structdef) or
               not assigned(current_procinfo) then
              exit;
@@ -3867,7 +3867,7 @@ implementation
              dopostfix:=false
            else
              if (m_delphi in current_settings.modeswitches) and
-                 (block_type in inline_specialization_block_types) and
+                 (compiler.globals.block_type in inline_specialization_block_types) and
                  (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                begin
                  idstr:='';
@@ -3977,7 +3977,7 @@ implementation
                     else
                      begin
                        if not (m_delphi in current_settings.modeswitches) and
-                           (block_type in inline_specialization_block_types) and
+                           (compiler.globals.block_type in inline_specialization_block_types) and
                            (current_scanner.token=_ID) and
                            (current_scanner.idtoken=_SPECIALIZE) then
                          begin
@@ -4442,7 +4442,7 @@ implementation
              _PROCEDURE,
              _FUNCTION:
                begin
-                 if (block_type=bt_body) and
+                 if (compiler.globals.block_type=bt_body) and
                      (m_anonymous_functions in current_settings.modeswitches) then
                    begin
                      filepos:=compiler.globals.current_filepos;
@@ -4653,7 +4653,7 @@ implementation
               end;
             procdef:
               begin
-                if not (block_type in [bt_body,bt_except]) then
+                if not (compiler.globals.block_type in [bt_body,bt_except]) then
                   begin
                     compiler.verbose.Message(parser_e_illegal_expression);
                     gensym:=generrorsym;

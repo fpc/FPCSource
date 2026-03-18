@@ -161,10 +161,10 @@ implementation
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
-      old_block_type:=block_type;
+      old_block_type:=compiler.globals.block_type;
       sstate.new_scanner:=tscannerfile.Create('_Macro_.'+tempname,true);
       set_current_scanner(sstate.new_scanner);
-      block_type:=old_block_type;
+      compiler.globals.block_type:=old_block_type;
       { required for e.g. FpcDeepCopy record method (uses "out" parameter; field
         names are escaped via &, so should not cause conflicts }
       current_settings.modeswitches:=objfpcmodeswitches;
@@ -299,14 +299,14 @@ implementation
         typed constant parsing will stop }
       str:=str+'type ';
       old_parse_only:=compiler.parser.pbase.parse_only;
-      old_block_type:=block_type;
+      old_block_type:=compiler.globals.block_type;
       compiler.parser.pbase.parse_only:=true;
-      block_type:=bt_const;
+      compiler.globals.block_type:=bt_const;
       current_scanner.substitutemacro('typed_const_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
       compiler.parser.ptconst.read_typed_const(list,ssym,ssym.owner.symtabletype in [recordsymtable,objectsymtable]);
       compiler.parser.pbase.parse_only:=old_parse_only;
-      block_type:=old_block_type;
+      compiler.globals.block_type:=old_block_type;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
       current_scanner.nextfile;
@@ -330,7 +330,7 @@ implementation
       compiler.parser.pbase.parse_only:=true;
       { "const" starts a new kind of block and hence makes the scanner return }
       str:=str+'const;';
-      block_type:=bt_type;
+      compiler.globals.block_type:=bt_type;
       { inject the string in the scanner }
       current_scanner.substitutemacro('hidden_interface_class_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
@@ -1665,7 +1665,7 @@ implementation
     compiler.parser.pbase.parse_only:=false;
     { "const" starts a new kind of block and hence makes the scanner return }
     str:=str+'const;';
-    block_type:=bt_none;
+    compiler.globals.block_type:=bt_none;
     { inject the string in the scanner }
     oldallow:=current_scanner.allowgenericid;
     current_scanner.allowgenericid:=allowgenericid;

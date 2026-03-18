@@ -179,7 +179,7 @@ var
       oldcurrent_procinfo:=current_procinfo;
 
       { save scanner state }
-      old_block_type:=block_type;
+      old_block_type:=compiler.globals.block_type;
       oldtokenpos:=compiler.globals.current_tokenpos;
       {
         consuming the semicolon after a uses clause can add to the
@@ -263,7 +263,7 @@ var
 
       { restore scanner }
       compiler.globals.current_tokenpos:=oldtokenpos;
-      block_type:=old_block_type;
+      compiler.globals.block_type:=old_block_type;
       switchesstatestack:=old_switchesstatestack;
       switchesstatestackpos:=old_switchesstatestackpos;
 
@@ -331,7 +331,7 @@ var
       tcompiler(_compiler).macrosymtablestack:=nil;
       current_procinfo:=nil;
 
-      block_type:=bt_none;
+      _compiler.globals.block_type:=bt_none;
       flushpendingswitchesstate;
       switchesstatestack:=default(tswitchesstatestack);
       switchesstatestackpos:=0;
