@@ -1715,7 +1715,7 @@ implementation
         if compiler.globals.ImageBaseSetExplicity then
           peoptheader.ImageBase:=imagebase;
         if compiler.globals.MinStackSizeSetExplicity then
-          peoptheader.SizeOfStackCommit:=minstacksize;
+          peoptheader.SizeOfStackCommit:=compiler.globals.minstacksize;
         if compiler.globals.MaxStackSizeSetExplicity then
           peoptheader.SizeOfStackReserve:=maxstacksize;
         { change the header }

@@ -1047,7 +1047,7 @@ unit scandir;
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           compiler.verbose.Message(scan_w_minstacksize_not_support);
         current_scanner.skipspace;
-        minstacksize:=current_scanner.readval;
+        compiler.globals.minstacksize:=current_scanner.readval;
         compiler.globals.MinStackSizeSetExplicity:=true;
       end;
 
