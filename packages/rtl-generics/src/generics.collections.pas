@@ -1768,6 +1768,7 @@ end;
 destructor TList<T>.Destroy;
 begin
   SetCapacity(0);
+  inherited;
 end;
 
 procedure TList<T>.SetCapacity(AValue: SizeInt);
@@ -2514,6 +2515,7 @@ end;
 destructor TQueue<T>.Destroy;
 begin
   Clear;
+  Inherited;
 end;
 
 procedure TQueue<T>.Enqueue(const AValue: T);
@@ -2600,6 +2602,7 @@ end;
 destructor TStack<T>.Destroy;
 begin
   Clear;
+  Inherited;
 end;
 
 procedure TStack<T>.Clear;
@@ -2779,6 +2782,7 @@ end;
 destructor TCustomSet<T>.TCustomSetEnumerator.Destroy;
 begin
   FEnumerator.Free;
+  Inherited;
 end;
 
 { TCustomSet<T> }
@@ -2992,6 +2996,7 @@ end;
 destructor THashSet<T>.Destroy;
 begin
   FInternalDictionary.Free;
+  Inherited;
 end;
 
 function THashSet<T>.Add(const AValue: T): Boolean;
@@ -3850,6 +3855,7 @@ begin
   FValues.Free;
   FNodes.Free;
   Clear;
+  Inherited;
 end;
 
 function TCustomAVLTreeMap<TREE_CONSTRAINTS>.AddNode(ANode: PNode): boolean;
@@ -4356,6 +4362,7 @@ end;
 destructor TSortedSet<T>.Destroy;
 begin
   FInternalTree.Free;
+  Inherited;
 end;
 
 function TSortedSet<T>.Add(const AValue: T): Boolean;
