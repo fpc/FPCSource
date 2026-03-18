@@ -184,7 +184,7 @@ Begin
       LinkLibraryOrder.add('c_r','',76);
       LinkLibraryOrder.add('kvm','',80);		     // must be before ncurses
       if (cs_link_pthread in current_settings.globalswitches) Then     // convert libpthread to libc_r.
-        LinkLibraryAliases.add('pthread','c_r');
+        compiler.globals.LinkLibraryAliases.add('pthread','c_r');
     end;
 End;
 

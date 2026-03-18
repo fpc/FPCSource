@@ -637,14 +637,14 @@ Implementation
         LoadPredefinedLibraryOrder;
 
         // something to do?
-        if (LinkLibraryAliases.count=0) and (LinkLibraryOrder.Count=0) Then
+        if (compiler.globals.LinkLibraryAliases.count=0) and (LinkLibraryOrder.Count=0) Then
           exit;
         p:=TLinkStrMap.Create;
 
         // expand libaliases, clears src
-        LinkLibraryAliases.expand(src,p);
+        compiler.globals.LinkLibraryAliases.expand(src,p);
 
-        // writeln(src.count,' ',p.count,' ',linklibraryorder.count,' ',linklibraryaliases.count);
+        // writeln(src.count,' ',p.count,' ',linklibraryorder.count,' ',compiler.globals.linklibraryaliases.count);
         // apply order
         p.UpdateWeights(LinkLibraryOrder);
         p.SortOnWeight;
@@ -664,7 +664,7 @@ Implementation
 
     function  TLinker.ReOrderEntries : boolean;
       begin
-        result:=(LinkLibraryOrder.count>0) or (LinkLibraryAliases.count>0);
+        result:=(LinkLibraryOrder.count>0) or (compiler.globals.LinkLibraryAliases.count>0);
       end;
 
 

@@ -308,7 +308,6 @@ Const
        // TODO: block_type should probably be moved to the scanner or parser
        block_type : tblock_type;         { type of currently parsed block }
 
-       LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
 
 
@@ -730,6 +729,7 @@ Const
         exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
         // TODO: current_exceptblock should probably be moved somewhere else (parser?)
         current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
+        LinkLibraryAliases : TLinkStrMap;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1743,8 +1743,8 @@ implementation
        compiler.globals.includesearchpath := nil;
        compiler.globals.frameworksearchpath.Free;
        compiler.globals.frameworksearchpath := nil;
-       LinkLibraryAliases.Free;
-       LinkLibraryAliases := nil;
+       compiler.globals.LinkLibraryAliases.Free;
+       compiler.globals.LinkLibraryAliases := nil;
        LinkLibraryOrder.Free;
        LinkLibraryOrder := nil;
        compiler.globals.packagesearchpath.Free;
@@ -1836,7 +1836,7 @@ implementation
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
 
-        LinkLibraryAliases :=TLinkStrMap.Create;
+        compiler.globals.LinkLibraryAliases :=TLinkStrMap.Create;
         LinkLibraryOrder   :=TLinkStrMap.Create;
 
         { enable all features by default }

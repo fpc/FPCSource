@@ -4420,7 +4420,7 @@ begin
                    case more[j+1] of
                     'A' : begin
                            s:=Copy(more,3);
-                           if not LinkLibraryAliases.AddDep(s) Then
+                           if not compiler.globals.LinkLibraryAliases.AddDep(s) Then
                               IllegalPara(opt);
                           end;
                     'O' : begin
