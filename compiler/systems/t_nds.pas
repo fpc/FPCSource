@@ -57,8 +57,8 @@ begin
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
   // set arm9 as default apptype
-  if (apptype <> app_arm9) and (apptype <> app_arm7) then
-    apptype:=app_arm9;
+  if (compiler.globals.apptype <> app_arm9) and (compiler.globals.apptype <> app_arm7) then
+    compiler.globals.apptype:=app_arm9;
 end;
 
 
@@ -91,7 +91,7 @@ begin
 
   prtobj:='';
   cprtobj:='';
-  case apptype of
+  case compiler.globals.apptype of
     app_arm9:
       begin
         prtobj:='prt09';
@@ -246,7 +246,7 @@ begin
 
   with linkres do
     begin
-      if apptype=app_arm9 then //ARM9
+      if compiler.globals.apptype=app_arm9 then //ARM9
       begin
         add('MEMORY {');
         add('	ewram	: ORIGIN = 0x02000000, LENGTH = 4M - 512k');
@@ -540,7 +540,7 @@ begin
         add('	/* These must appear regardless of  .  */');
         add('}');
       end;
-      if apptype=app_arm7 then
+      if compiler.globals.apptype=app_arm7 then
       begin
         add('/*--------------------------------------------------------------------------------');
         add('	This Source Code Form is subject to the terms of the Mozilla Public License,');
@@ -805,7 +805,7 @@ begin
   DynLinkStr:='';
   GCSectionsStr:='';
   preName:='';
-  case apptype of
+  case compiler.globals.apptype of
    app_arm9: preName:='.nef';
    app_arm7: preName:='.nlf';
    else
@@ -852,7 +852,7 @@ begin
         true,false);
     end;
 
-  if success and (apptype=app_arm9) then
+  if success and (compiler.globals.apptype=app_arm9) then
     begin
       success:=DoExec(FindUtil('ndstool'), '-c ' +
         ChangeFileExt(current_module.exefilename, '.nds') + ' -9 ' +

@@ -347,7 +347,7 @@ begin
     if s<>'' then
       LinkRes.Add('library '+MaybeQuoted(s));
   end;
-  if apptype=app_com then
+  if compiler.globals.apptype=app_com then
     LinkRes.Add('format dos com')
   else
     LinkRes.Add('format dos');
@@ -425,7 +425,7 @@ begin
   if current_settings.x86memorymodel in x86_near_data_models then
     exit(true);
   { .COM files are not supported in the far data memory models }
-  if apptype=app_com then
+  if compiler.globals.apptype=app_com then
     internalerror(2014062501);
   { open file }
   assign(f,fn);

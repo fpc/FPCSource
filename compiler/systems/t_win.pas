@@ -1112,14 +1112,14 @@ implementation
             if IsSharedLibrary then
               begin
                 Concat('ISSHAREDLIBRARY');
-                if apptype=app_gui then
+                if compiler.globals.apptype=app_gui then
                   Concat('ENTRYNAME _DLLWinMainCRTStartup')
                 else
                   Concat('ENTRYNAME _DLLMainCRTStartup');
               end
             else
               begin
-                if apptype=app_gui then
+                if compiler.globals.apptype=app_gui then
                   Concat('ENTRYNAME _WinMainCRTStartup')
                 else
                   Concat('ENTRYNAME _mainCRTStartup');
@@ -1447,10 +1447,10 @@ implementation
           AppTypeStr:='--subsystem wince'
         else
           begin
-            if apptype=app_gui then
+            if compiler.globals.apptype=app_gui then
               AppTypeStr:='--subsystem windows';
           end;
-        if apptype=app_gui then
+        if compiler.globals.apptype=app_gui then
           EntryStr:='--entry=_WinMainCRTStartup'
         else
           EntryStr:='--entry=_mainCRTStartup';
@@ -1553,7 +1553,7 @@ implementation
          RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
          GCSectionsStr:='--gc-sections';
-        if apptype=app_gui then
+        if compiler.globals.apptype=app_gui then
           begin
             AppTypeStr:='--subsystem windows';
             EntryStr:='--entry _DLLWinMainCRTStartup'
@@ -1667,7 +1667,7 @@ implementation
         { when -s is used or it's a dll then quit }
         if (cs_link_nolink in current_settings.globalswitches) then
          begin
-           case apptype of
+           case compiler.globals.apptype of
              app_native :
                cmdstr:='--subsystem native';
              app_gui :
@@ -1726,7 +1726,7 @@ implementation
         if compiler.target.info.system in systems_wince then
           peoptheader.Subsystem:=9
         else
-          case apptype of
+          case compiler.globals.apptype of
             app_native :
               peoptheader.Subsystem:=1;
             app_gui :

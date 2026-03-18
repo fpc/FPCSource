@@ -121,7 +121,7 @@ begin
       Add('PPCLink '#182);
 
       { Add MPW standard libraries}
-      if apptype = app_cui then
+      if compiler.globals.apptype = app_cui then
           Add('"{PPCLibraries}PPCSIOW.o" '#182);
 
       {Even GUI apps must link to PPCToolLibs, because of the System unit
@@ -142,10 +142,10 @@ begin
         end;
 
       {Add last lines of the link command}
-      if apptype = app_tool then
+      if compiler.globals.apptype = app_tool then
         Add('-t "MPST" -c "MPS " '#182);
 
-      if apptype = app_cui then {If SIOW, to avoid some warnings.}
+      if compiler.globals.apptype = app_cui then {If SIOW, to avoid some warnings.}
         Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main -ignoredups qd '#182);
 
       Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename));
@@ -161,7 +161,7 @@ begin
          * backgrounding is enabled, to facilitate debugging with Power Mac Debugger
          * it is signaled it is a 32 bit app. (perhaps not necessary on PowerPC)
          * heapsize  }
-      if apptype <> app_tool then
+      if compiler.globals.apptype <> app_tool then
         begin
           Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
                                          #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(current_module.exefilename));
@@ -169,7 +169,7 @@ begin
         end;
 
       {Add mac resources}
-      if apptype = app_cui then
+      if compiler.globals.apptype = app_cui then
         begin
           Add('Rez -a "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename));
           Add('Exit If "{Status}" != 0');

@@ -66,7 +66,7 @@ implementation
             if IsSharedLibrary then
               begin
                 // for now we use {$apptype native} for kernel mode code
-                if apptype=app_native then
+                if compiler.globals.apptype=app_native then
                   Concat('ENTRYNAME _NtDriverEntry')
                 else
                   Concat('ENTRYNAME _DLLMainStartup')

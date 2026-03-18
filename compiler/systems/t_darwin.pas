@@ -145,7 +145,7 @@ implementation
   {$else ndef cpu64bitaddr}
            ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
   {$endif ndef cpu64bitaddr}
-           if (apptype<>app_bundle) then
+           if (compiler.globals.apptype<>app_bundle) then
              DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -dylib -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES'
            else
              DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -bundle -L. -o $EXE $ARCH $VERSION $SYRSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
@@ -237,7 +237,7 @@ implementation
           end
         else
           begin
-            if (apptype=app_bundle) then
+            if (compiler.globals.apptype=app_bundle) then
               begin
                 case compiler.target.info.system of
                   system_powerpc_darwin,

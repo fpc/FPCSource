@@ -2267,7 +2267,7 @@ begin
 {$endif}
 
 {$ifdef i8086}
-  if (apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
+  if (compiler.globals.apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
     begin
       compiler.verbose.Message(option_com_files_require_tiny_model);
       StopOptions(1);
@@ -4995,7 +4995,7 @@ begin
   if compiler.target.info.system in systems_wince then
     SetApptype(app_gui)
   else
-    SetApptype(apptype);
+    SetApptype(compiler.globals.apptype);
 
 { default defines }
   def_system_macro(compiler.target.info.shortname);

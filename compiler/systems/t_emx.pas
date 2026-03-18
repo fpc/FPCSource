@@ -477,9 +477,9 @@ begin
    MapStr := '-m' + BaseFileName + ' '
   else
    MapStr := '';
-  if (compiler.globals.usewindowapi) or (AppType = app_gui) then
+  if (compiler.globals.usewindowapi) or (compiler.globals.AppType = app_gui) then
    AppTypeStr := '-p'
-  else if AppType = app_fs then
+  else if compiler.globals.AppType = app_fs then
    AppTypeStr := '-f'
   else AppTypeStr := '-w';
   if not (Current_module.ResourceFiles.Empty) then

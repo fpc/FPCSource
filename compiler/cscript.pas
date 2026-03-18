@@ -432,6 +432,8 @@ end;
 
 
 Procedure TAsmScriptMPW.AddLinkCommand (Const Command, Options, FileName : TCmdStr);
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if FileName<>'' then
     Add('Echo Linking '+ScriptFixFileName(FileName));
@@ -439,7 +441,7 @@ begin
   Add('Exit If "{Status}" != 0');
 
   {Add resources}
-  if apptype = app_cui then {If SIOW}
+  if compiler.globals.apptype = app_cui then {If SIOW}
     begin
       Add('Rez -append "{RIncludes}"SIOW.r -o '+ ScriptFixFileName(FileName));
       Add('Exit If "{Status}" != 0');

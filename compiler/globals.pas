@@ -306,9 +306,6 @@ Const
        init_settings,
        current_settings   : tsettings;
 
-       { Application type (platform specific)
-         see globtype.pas for description }
-       apptype : tapptype;
 
        features : tfeatures;
 
@@ -731,6 +728,9 @@ Const
       { parameter switches }
         debugstop : boolean;
  {$EndIf EXTDEBUG}
+        { Application type (platform specific)
+          see globtype.pas for description }
+        apptype : tapptype;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1830,7 +1830,7 @@ implementation
           in options or init_parser }
         compiler.globals.stacksize:=0;
         { not initialized yet }
-        apptype:=app_cui;
+        compiler.globals.apptype:=app_cui;
 
         { Init values }
         init_settings:=default_settings;

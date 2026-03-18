@@ -840,6 +840,8 @@ implementation
       end;
 
     procedure SetAppType(NewAppType:tapptype);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef i8086}
         { Set application extension regardless if it might or might not have been correct.
@@ -875,10 +877,10 @@ implementation
               ;
           end;
 {$endif m68k}
-        if apptype in [app_cui,app_com] then
+        if compiler.globals.apptype in [app_cui,app_com] then
           undef_system_macro('CONSOLE');
-        apptype:=NewAppType;
-        if apptype in [app_cui,app_com] then
+        compiler.globals.apptype:=NewAppType;
+        if compiler.globals.apptype in [app_cui,app_com] then
           def_system_macro('CONSOLE');
       end;
 {*****************************************************************************

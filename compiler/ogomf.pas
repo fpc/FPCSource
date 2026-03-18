@@ -3808,7 +3808,7 @@ cleanup:
         Result:=False;
         if ExeWriteMode in [ewm_exefull,ewm_exeonly] then
           begin
-            if apptype=app_com then
+            if compiler.globals.apptype=app_com then
               Result:=WriteCom
             else
               Result:=WriteExe;

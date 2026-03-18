@@ -3052,7 +3052,7 @@ const pemagic : array[0..3] of byte = (
             if win32 then
               begin
                 if (compiler.target.info.system in systems_nativent) and
-                   (apptype = app_native) then
+                   (compiler.globals.apptype = app_native) then
                   sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign) or PE_SCN_MEM_NOT_PAGED
                 else
                   sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign);
@@ -3353,7 +3353,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
             peoptheader.CheckSum:=0;
-            if (compiler.target.info.system in systems_nativent) and (not IsSharedLibrary or (apptype = app_native)) then
+            if (compiler.target.info.system in systems_nativent) and (not IsSharedLibrary or (compiler.globals.apptype = app_native)) then
               { Although I did not really test this, it seems that Subsystem is
                 not checked in DLLs except for maybe drivers}
               peoptheader.Subsystem:=PE_SUBSYSTEM_NATIVE
@@ -3361,7 +3361,7 @@ const pemagic : array[0..3] of byte = (
               if compiler.target.info.system in systems_wince then
                 peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
               else
-                if apptype=app_gui then
+                if compiler.globals.apptype=app_gui then
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
                 else
                   peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
