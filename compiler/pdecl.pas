@@ -540,7 +540,7 @@ implementation
               ecnt:=compiler.verbose.errorcount;
               typecheckpass(pcalln);
 
-              if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not compiler.globals.codegenerror then
+              if (pcalln.nodetype=calln) and assigned(tcallnode(pcalln).procdefinition) and not compiler.verbose.codegenerror then
                 begin
                   { TODO: once extended RTTI for methods is supported, reject a
                           constructor if it doesn't have extended RTTI enabled }

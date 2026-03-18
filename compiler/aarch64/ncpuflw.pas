@@ -291,7 +291,7 @@ procedure taarch64tryfinallynode.pass_generate_code;
           flowcontrol:=flowcontrol+[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
         secondpass(left);
         flowcontrol:=flowcontrol-[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
       end;
 
@@ -340,7 +340,7 @@ procedure taarch64tryfinallynode.pass_generate_code;
     { generate the inline finalizer code }
     secondpass(right);
 
-    if compiler.globals.codegenerror then
+    if compiler.verbose.codegenerror then
       exit;
 
     { normal exit from safecall proc must zero the result register }
@@ -452,7 +452,7 @@ procedure taarch64tryexceptnode.pass_generate_code;
       just make sure that target labels are outside the scope }
     secondpass(left);
     tryflowcontrol:=flowcontrol;
-    if compiler.globals.codegenerror then
+    if compiler.verbose.codegenerror then
       goto errorexit;
 
     { jump over except handlers }

@@ -67,7 +67,7 @@ implementation
          hp        : tnode;
          oldflags  : tnodeflags;
       begin
-        compiler.globals.codegenerror:=false;
+        compiler.verbose.codegenerror:=false;
         repeat
           current_filepos:=p.fileinfo;
           current_settings.localswitches:=p.localswitches;
@@ -87,7 +87,7 @@ implementation
             end;
         until not assigned(hp) or
               assigned(hp.resultdef);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           begin
             include(p.transientflags,tnf_error);
             { default to errortype if no type is set yet }
@@ -108,7 +108,7 @@ implementation
         node_changed:=false;
         if (p.resultdef=nil) then
           begin
-            oldcodegenerror:=compiler.globals.codegenerror;
+            oldcodegenerror:=compiler.verbose.codegenerror;
             oldpos:=current_filepos;
             oldlocalswitches:=current_settings.localswitches;
             oldverbosity:=status.verbosity;
@@ -116,13 +116,13 @@ implementation
             current_settings.localswitches:=oldlocalswitches;
             current_filepos:=oldpos;
             status.verbosity:=oldverbosity;
-            compiler.globals.codegenerror:=compiler.globals.codegenerror or oldcodegenerror;
+            compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
           end
         else
           begin
-            { update the compiler.globals.codegenerror boolean with the previous result of this node }
+            { update the compiler.verbose.codegenerror boolean with the previous result of this node }
             if (tnf_error in p.transientflags) then
-              compiler.globals.codegenerror:=true;
+              compiler.verbose.codegenerror:=true;
           end;
       end;
 
@@ -139,9 +139,9 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         compiler.globals.codegenerror:=false;
+         compiler.verbose.codegenerror:=false;
          typecheckpass_internal(p,nodechanged);
-         do_typecheckpass_changed:=compiler.globals.codegenerror;
+         do_typecheckpass_changed:=compiler.verbose.codegenerror;
       end;
 
 
@@ -169,11 +169,11 @@ implementation
 
          if not(tnf_error in p.transientflags) then
            begin
-             oldcodegenerror:=compiler.globals.codegenerror;
+             oldcodegenerror:=compiler.verbose.codegenerror;
              oldpos:=current_filepos;
              oldlocalswitches:=current_settings.localswitches;
              oldverbosity:=status.verbosity;
-             compiler.globals.codegenerror:=false;
+             compiler.verbose.codegenerror:=false;
              repeat
                { The error flag takes precedence over the 'do not execute' flag,
                  as it's assumed the node tree isn't tenable beyond this point }
@@ -208,7 +208,7 @@ implementation
                        { switch to new node }
                        p:=hp;
                      end;
-                   if compiler.globals.codegenerror then
+                   if compiler.verbose.codegenerror then
                      include(p.transientflags,tnf_error);
                  end;
              until not assigned(hp) or
@@ -221,13 +221,13 @@ implementation
                    compiler.verbose.Comment(V_Warning,'Expectloc is not set in firstpass: '+nodetype2str[p.nodetype]);
                end;
 {$endif EXTDEBUG}
-             compiler.globals.codegenerror:=compiler.globals.codegenerror or oldcodegenerror;
+             compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
              current_settings.localswitches:=oldlocalswitches;
              current_filepos:=oldpos;
              status.verbosity:=oldverbosity;
            end
          else
-           compiler.globals.codegenerror:=true;
+           compiler.verbose.codegenerror:=true;
       end;
 
 
@@ -235,7 +235,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         compiler.globals.codegenerror:=false;
+         compiler.verbose.codegenerror:=false;
          firstpass(p);
 {$ifdef state_tracking}
          writeln('TRACKSTART');
@@ -246,7 +246,7 @@ implementation
          writenode(p);
          writeln('TRACKDONE');
 {$endif}
-         do_firstpass:=compiler.globals.codegenerror;
+         do_firstpass:=compiler.verbose.codegenerror;
       end;
 
 {$ifdef state_tracking}

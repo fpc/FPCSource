@@ -47,7 +47,7 @@ implementation
     function twasmaddrnode.pass_typecheck: tnode;
     begin
       Result:=inherited;
-      if compiler.globals.codegenerror then
+      if compiler.verbose.codegenerror then
        exit;
 
       if assigned(left) and is_wasm_externref(left.resultdef) then

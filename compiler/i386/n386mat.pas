@@ -81,10 +81,10 @@ implementation
           begin
             { signed divide-by-power-of-two optimized for size }
             secondpass(left);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
             secondpass(right);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             hreg1:=left.location.register;

@@ -726,8 +726,6 @@ Const
         nwthreadname : string;
         nwcopyright  : string;
 
-        // TODO: codegenerror should probably be moved to TVerbose
-        codegenerror : boolean;           { true if there is an error reported }
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1764,7 +1762,6 @@ implementation
         compiler.globals.do_build:=false;
         compiler.globals.do_release:=false;
         compiler.globals.do_make:=true;
-        compiler.globals.codegenerror:=false;
         global_unit_count:=0;
 
         { Output }

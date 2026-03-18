@@ -127,7 +127,7 @@ implementation
     function tjvmraisenode.pass_typecheck: tnode;
       begin
          Result:=inherited pass_typecheck;
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
          { Java exceptions must descend from java.lang.Throwable }
          if assigned(left) and
@@ -402,7 +402,7 @@ implementation
               secondpass(left);
               hlcg.a_label(current_asmdata.CurrAsmList,endtrylabel);
               tryflowcontrol:=flowcontrol;
-              if compiler.globals.codegenerror then
+              if compiler.verbose.codegenerror then
                 exit;
               { reason: no exception occurred }
               hlcg.a_load_const_reg(current_asmdata.CurrAsmList,s32inttype,0,reasonbuf);
@@ -422,7 +422,7 @@ implementation
            this is checked using the exception block number }
          if (flowcontrol-[fc_gotolabel])<>[fc_inflowcontrol] then
            compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            begin
              if assigned(begintrylabel) then
                finallycodecopy.free;

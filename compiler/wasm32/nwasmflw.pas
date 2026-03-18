@@ -525,7 +525,7 @@ implementation
 
         { try block }
         secondpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           goto errorexit;
 
         cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
@@ -709,7 +709,7 @@ implementation
 
         { try block }
         secondpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           goto errorexit;
 
         cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
@@ -895,7 +895,7 @@ implementation
 
         { try block }
         secondpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           goto errorexit;
 
         cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
@@ -1164,7 +1164,7 @@ implementation
         if assigned(left) then
           begin
             secondpass(left);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
           end;
 
@@ -1216,7 +1216,7 @@ implementation
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
           compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { don't generate line info for internal cleanup }
@@ -1355,7 +1355,7 @@ implementation
         if assigned(left) then
           begin
             secondpass(left);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
           end;
 
@@ -1417,7 +1417,7 @@ implementation
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
           compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { don't generate line info for internal cleanup }
@@ -1554,7 +1554,7 @@ implementation
         if assigned(left) then
           begin
             secondpass(left);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
           end;
 
@@ -1614,7 +1614,7 @@ implementation
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
           compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { don't generate line info for internal cleanup }
@@ -1758,7 +1758,7 @@ implementation
         if assigned(left) then
           begin
             secondpass(left);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
           end;
 
@@ -1821,7 +1821,7 @@ implementation
           this is checked using the exception block number }
         if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
           compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { don't generate line info for internal cleanup }

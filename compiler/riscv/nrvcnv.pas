@@ -75,7 +75,7 @@ implementation
         href: treference;
       begin
         secondpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { Explicit typecasts from any ordinal type to a boolean type }

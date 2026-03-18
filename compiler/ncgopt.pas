@@ -55,7 +55,7 @@ begin
   pass_typecheck := nil;
   typecheckpass(left);
   typecheckpass(right);
-  if compiler.globals.codegenerror then
+  if compiler.verbose.codegenerror then
     exit;
   { update the curmaxlen field (before converting to a string!) }
   updatecurmaxlen;
@@ -70,7 +70,7 @@ begin
   pass_1 := nil;
   firstpass(left);
   firstpass(right);
-  if compiler.globals.codegenerror then
+  if compiler.verbose.codegenerror then
     exit;
   expectloc:=LOC_REFERENCE;
 end;

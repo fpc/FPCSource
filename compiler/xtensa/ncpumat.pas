@@ -207,7 +207,7 @@ implementation
 
         result:=nil;
         firstpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         expectloc:=LOC_REGISTER;
@@ -268,7 +268,7 @@ implementation
             result:=nil;
             firstpass(left);
             firstpass(right);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
 
             expectloc:=LOC_REGISTER;

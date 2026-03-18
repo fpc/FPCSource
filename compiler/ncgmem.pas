@@ -343,7 +343,7 @@ implementation
       begin
          sym:=nil;
          secondpass(left);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
          paraloc1.init;
          { several object types must be dereferenced implicitly }

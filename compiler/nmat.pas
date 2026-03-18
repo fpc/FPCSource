@@ -297,7 +297,7 @@ implementation
 
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { tp procvar support }
@@ -317,7 +317,7 @@ implementation
            inserttypeconv(left,sinttype,compiler);
          if (right.resultdef.typ<>orddef) then
            inserttypeconv(right,sinttype,compiler);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { Try only now to simply constant
@@ -747,7 +747,7 @@ implementation
          result:=nil;
          firstpass(left);
          firstpass(right);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { Try to optimize mod/div }
@@ -892,7 +892,7 @@ implementation
 
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { tp procvar support }
@@ -996,7 +996,7 @@ implementation
          result:=nil;
          firstpass(left);
          firstpass(right);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          expectloc:=LOC_REGISTER;
@@ -1129,7 +1129,7 @@ implementation
            end;
 
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          result:=simplify(false);
@@ -1202,7 +1202,7 @@ implementation
       begin
         result:=nil;
         firstpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         if (cs_fp_emulation in current_settings.moduleswitches) and (left.resultdef.typ=floatdef) then
@@ -1276,7 +1276,7 @@ implementation
           end;
 
         set_varstate(left,vs_read,[vsf_must_be_valid]);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         if is_constintnode(left) or
@@ -1416,7 +1416,7 @@ implementation
            end;
 
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { tp procvar support }
@@ -1467,7 +1467,7 @@ implementation
       begin
          result:=nil;
          firstpass(left);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          expectloc:=left.expectloc;

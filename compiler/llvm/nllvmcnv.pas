@@ -241,7 +241,7 @@ procedure tllvmtypeconvnode.second_int_to_bool;
     newsize  : tcgsize;
   begin
     secondpass(left);
-    if compiler.globals.codegenerror then
+    if compiler.verbose.codegenerror then
       exit;
 
     { Explicit typecasts from any ordinal type to a boolean type }

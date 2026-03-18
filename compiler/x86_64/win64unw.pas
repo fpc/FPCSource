@@ -192,7 +192,7 @@ begin
     compiler.verbose.CGMessage(asmw_e_missing_endprologue);
   if (FPrologueEndPos-FFrameStartSym.address) > 255 then
     compiler.verbose.CGMessage(asmw_e_prologue_too_large);
-  if compiler.globals.codegenerror then
+  if compiler.verbose.codegenerror then
     exit;
 
   FXdataSec:=objdata.createsection('.xdata.n_'+lower(FName^),4,[oso_data,oso_load]);
@@ -290,7 +290,7 @@ begin
   if FXdataSec=nil then
     generate_prologue_data(objdata);
 
-  if not compiler.globals.codegenerror then
+  if not compiler.verbose.codegenerror then
     begin
       pdatasec:=objdata.createsection(sec_pdata,lower(FName^));
       objdata.writereloc(0,4,FFrameStartSym,RELOC_RVA);

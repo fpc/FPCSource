@@ -375,7 +375,7 @@ implementation
          { Only process the right if we are not generating jumps }
          if not genjumps then
            secondpass(right);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { of course not commutative }

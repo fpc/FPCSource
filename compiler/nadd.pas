@@ -2185,7 +2185,7 @@ const
          { both left and right need to be valid }
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { tp procvar support. Omit for converted assigned() nodes }
@@ -2238,7 +2238,7 @@ const
               exit;
            end;
          { Stop checking when an error was found in the operator checking }
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            begin
              result:=compiler.cerrornode;
              exit;
@@ -3473,7 +3473,7 @@ const
             end;
           end;
 
-         if not(compiler.globals.codegenerror) and
+         if not(compiler.verbose.codegenerror) and
             not assigned(result) then
            result:=simplify(false);
       end;
@@ -4594,7 +4594,7 @@ const
          firstpass(left);
          firstpass(right);
 
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { load easier access variables }

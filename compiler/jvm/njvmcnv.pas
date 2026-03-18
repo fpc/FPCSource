@@ -757,7 +757,7 @@ implementation
         newsize  : tcgsize;
       begin
         secondpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { Explicit typecasts from any ordinal type to a boolean type }
@@ -1524,7 +1524,7 @@ implementation
               node.left:=nil;
               node.right:=nil;
               firstpass(call);
-              if compiler.globals.codegenerror then
+              if compiler.verbose.codegenerror then
                 exit;
               if node.nodetype=isn then
                 result:=call

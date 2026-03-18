@@ -1072,7 +1072,7 @@ implementation
            typecheckpass(third);
          if assigned(fparacopyback) then
            typecheckpass(fparacopyback);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
           resultdef:=generrordef
          else
           resultdef:=left.resultdef;
@@ -1269,7 +1269,7 @@ implementation
                          check_ranges(left.fileinfo,left,parasym.vardef);
                          inserttypeconv(left,parasym.vardef,compiler);
                        end;
-                      if compiler.globals.codegenerror then
+                      if compiler.verbose.codegenerror then
                         exit;
                    end;
 
@@ -4053,7 +4053,7 @@ implementation
         if assigned(left) then
          begin
            tcallparanode(left).get_paratype;
-           if compiler.globals.codegenerror then
+           if compiler.verbose.codegenerror then
              exit;
          end;
 
@@ -4065,7 +4065,7 @@ implementation
           begin
              set_varstate(right,vs_read,[vsf_must_be_valid]);
              typecheckpass(right);
-             if compiler.globals.codegenerror then
+             if compiler.verbose.codegenerror then
                exit;
 
              if is_invokable(right.resultdef) then

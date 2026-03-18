@@ -196,12 +196,12 @@ implementation
             if (tnf_do_not_execute in p.transientflags) then
               InternalError(2022112402);
 
-            oldcodegenerror:=compiler.globals.codegenerror;
+            oldcodegenerror:=compiler.verbose.codegenerror;
             oldlocalswitches:=current_settings.localswitches;
             oldpos:=current_filepos;
             current_filepos:=p.fileinfo;
             current_settings.localswitches:=p.localswitches;
-            compiler.globals.codegenerror:=false;
+            compiler.verbose.codegenerror:=false;
             oldexecutionweight:=cg.executionweight;
             if assigned(p.optinfo) then
               cg.executionweight:=min(p.optinfo^.executionweight,high(cg.executionweight))
@@ -219,7 +219,7 @@ implementation
 {$ifdef EXTDEBUG}
             if (cs_asm_nodes in current_settings.globalswitches) then
               logsecond(p.nodetype,false);
-            if (not compiler.globals.codegenerror) then
+            if (not compiler.verbose.codegenerror) then
              begin
                if (p.location.loc<>p.expectloc) then
                  begin
@@ -238,15 +238,15 @@ implementation
                  compiler.verbose.Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;
 {$endif EXTDEBUG}
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               include(p.transientflags,tnf_error);
-            compiler.globals.codegenerror:=compiler.globals.codegenerror or oldcodegenerror;
+            compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
             current_settings.localswitches:=oldlocalswitches;
             current_filepos:=oldpos;
             cg.executionweight:=oldexecutionweight;
           end
          else
-           compiler.globals.codegenerror:=true;
+           compiler.verbose.codegenerror:=true;
       end;
 
 
@@ -259,10 +259,10 @@ implementation
            internalerror(200405201);
 
          { clear errors before starting }
-         compiler.globals.codegenerror:=false;
+         compiler.verbose.codegenerror:=false;
          if not(tnf_error in p.transientflags) then
            secondpass(p);
-         do_secondpass:=compiler.globals.codegenerror;
+         do_secondpass:=compiler.verbose.codegenerror;
       end;
 
 

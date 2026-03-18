@@ -636,7 +636,7 @@ implementation
                   p1.free;
                   p1:=p2;
                 end;
-              if not compiler.globals.codegenerror then
+              if not compiler.verbose.codegenerror then
                begin
                  case p1.resultdef.typ of
                    procdef, { procvar }
@@ -799,7 +799,7 @@ implementation
                   in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
                   parser.pbase.consume(_COMMA);
-                  if not(compiler.globals.codegenerror) then
+                  if not(compiler.verbose.codegenerror) then
                     p2:=compiler.ccallparanode(comp_expr([ef_accept_equal]),nil)
                   else
                     p2:=compiler.cerrornode;
@@ -2304,7 +2304,7 @@ implementation
         do_typecheckpass_changed(p1,nodechanged);
         result:=result or nodechanged;
 
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
          begin
            recoverconsume_postfixops;
            exit;
@@ -5169,7 +5169,7 @@ implementation
     begin
       result:=0;
       p:=comp_expr([ef_accept_equal]);
-      if not compiler.globals.codegenerror then
+      if not compiler.verbose.codegenerror then
        begin
          if (p.nodetype<>ordconstn) or
             not(is_integer(p.resultdef)) then

@@ -389,7 +389,7 @@ procedure ti386tryfinallynode.pass_generate_code;
       begin
         secondpass(left);
         tryflowcontrol:=flowcontrol;
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
       end;
 
@@ -424,7 +424,7 @@ procedure ti386tryfinallynode.pass_generate_code;
       this is checked using the exception block number }
     if (flowcontrol-[fc_gotolabel])<>[fc_inflowcontrol] then
       compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
-    if compiler.globals.codegenerror then
+    if compiler.verbose.codegenerror then
       exit;
 
     { don't generate line info for internal cleanup }
@@ -572,7 +572,7 @@ procedure ti386tryexceptnode.pass_generate_code;
 
     secondpass(left);
     tryflowcontrol:=flowcontrol;
-    if compiler.globals.codegenerror then
+    if compiler.verbose.codegenerror then
       goto errorexit;
 
     emit_scope_end;

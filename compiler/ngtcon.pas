@@ -518,7 +518,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             { convert to the expected string type so that
               for widestrings strval is a tcompilerwidestring }
             inserttypeconv(node,def,compiler);
-            if (not compiler.globals.codegenerror) and
+            if (not compiler.verbose.codegenerror) and
                (node.nodetype=stringconstn) then
               begin
                 strlength:=tstringconstnode(node).len;
@@ -540,7 +540,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 strlength:=-1;
                 { it's possible that the type conversion could not be
                   evaluated at compile-time }
-                if not compiler.globals.codegenerror then
+                if not compiler.verbose.codegenerror then
                   compiler.verbose.CGMessage(parser_e_widestring_to_ansi_compile_time);
               end;
           end
@@ -1520,7 +1520,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         compiler.parser.pexpr.getprocvardef:=def;
         n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
         compiler.parser.pexpr.getprocvardef:=nil;
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           begin
             n.free;
             n := nil;
@@ -1528,7 +1528,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end;
         { let type conversion check everything needed }
         inserttypeconv(n,def,compiler);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           begin
             n.free;
             n := nil;

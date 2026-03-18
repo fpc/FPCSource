@@ -1364,7 +1364,7 @@ implementation
          if assigned(right) then
            typecheckpass(right);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          if not(is_boolean(left.resultdef)) and
@@ -1513,14 +1513,14 @@ implementation
          expectloc:=LOC_VOID;
 
          firstpass(left);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { loop instruction }
          if assigned(right) then
            begin
               firstpass(right);
-              if compiler.globals.codegenerror then
+              if compiler.verbose.codegenerror then
                 exit;
            end;
 
@@ -1873,7 +1873,7 @@ implementation
          if assigned(t1) then
            typecheckpass(t1);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          if not(is_boolean(left.resultdef)) and
@@ -1900,7 +1900,7 @@ implementation
 
          { leave if we've got an error in one of the paths }
 
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
       end;
 
@@ -2670,7 +2670,7 @@ implementation
              { first para must be a _class_ }
              typecheckpass(left);
              set_varstate(left,vs_read,[vsf_must_be_valid]);
-             if compiler.globals.codegenerror then
+             if compiler.verbose.codegenerror then
               exit;
              if not is_class(left.resultdef) and
                 not is_javaclass(left.resultdef) then

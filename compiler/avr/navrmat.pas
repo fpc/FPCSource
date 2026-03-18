@@ -145,7 +145,7 @@ implementation
             result:=nil;
             firstpass(left);
             firstpass(right);
-            if compiler.globals.codegenerror then
+            if compiler.verbose.codegenerror then
               exit;
 
             expectloc:=LOC_REGISTER;

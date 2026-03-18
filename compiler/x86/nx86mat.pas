@@ -77,7 +77,7 @@ interface
       begin
          result:=nil;
          firstpass(left);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          if (left.resultdef.typ=floatdef) then
@@ -727,10 +727,10 @@ interface
 
       begin
         secondpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
         secondpass(right);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { put numerator in register }
@@ -988,10 +988,10 @@ DefaultDiv:
         hregister  : tregister;
       begin
         secondpass(left);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
         secondpass(right);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         op:=A_NOP;

@@ -606,7 +606,7 @@ implementation
           end;
 
          secondpass(left);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            goto errorexit;
 
          { don't generate line info for internal cleanup }
@@ -979,7 +979,7 @@ implementation
          if assigned(left) then
            begin
               secondpass(left);
-              if compiler.globals.codegenerror then
+              if compiler.verbose.codegenerror then
                 exit;
            end;
 
@@ -1001,7 +1001,7 @@ implementation
              if not implicitframe then
                current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
              secondpass(third);
-             if compiler.globals.codegenerror then
+             if compiler.verbose.codegenerror then
                exit;
              if not implicitframe then
                current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
@@ -1032,7 +1032,7 @@ implementation
            this is checked using the exception block number }
          if (flowcontrol-[fc_gotolabel])<>(finallyexceptionstate.oldflowcontrol*[fc_inflowcontrol,fc_catching_exceptions]) then
            compiler.verbose.CGMessage(cg_e_control_flow_outside_finally);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { don't generate line info for internal cleanup }

@@ -501,7 +501,7 @@ implementation
       begin
          result:=nil;
          include(transientflags,tnf_error);
-         compiler.globals.codegenerror:=true;
+         compiler.verbose.codegenerror:=true;
          resultdef:=generrordef;
       end;
 
@@ -510,7 +510,7 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         compiler.globals.codegenerror:=true;
+         compiler.verbose.codegenerror:=true;
       end;
 
 
@@ -551,7 +551,7 @@ implementation
          internalerror(2015071704);
          result:=nil;
          expectloc:=LOC_VOID;
-         compiler.globals.codegenerror:=true;
+         compiler.verbose.codegenerror:=true;
       end;
 
 
@@ -660,13 +660,13 @@ implementation
 
          { left is the statement itself calln assignn or a complex one }
          typecheckpass(left);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { right is the next statement in the list }
          if assigned(right) then
            typecheckpass(right);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
       end;
 
@@ -676,13 +676,13 @@ implementation
          result:=nil;
          { left is the statement itself calln assignn or a complex one }
          firstpass(left);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
          expectloc:=left.expectloc;
          { right is the next in the list }
          if assigned(right) then
            firstpass(right);
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
       end;
 
@@ -917,7 +917,7 @@ implementation
            begin
               if assigned(hp.left) then
                 begin
-                   compiler.globals.codegenerror:=false;
+                   compiler.verbose.codegenerror:=false;
                    typecheckpass(hp.left);
                    { the resultdef of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
@@ -948,7 +948,7 @@ implementation
                    { Calling firstpass on a statement node normally causes
                      problems, so we have to be a little bit hacky if we want
                      to remove nothing nodes }
-                   compiler.globals.codegenerror:=false;
+                   compiler.verbose.codegenerror:=false;
                    firstpass(tnode(hp));
                    { If the first node gets deleted, left must be updated,
                      otherwise it will be a dangling pointer }

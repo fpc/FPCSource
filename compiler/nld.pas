@@ -728,7 +728,7 @@ implementation
 
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_written,[]);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
           exit;
 
         { just in case the typecheckpass of right optimized something here }
@@ -978,7 +978,7 @@ implementation
              exit;
            end;
 
-         if compiler.globals.codegenerror then
+         if compiler.verbose.codegenerror then
            exit;
 
          { assignment to refcounted variable -> inc/decref }
@@ -1187,7 +1187,7 @@ implementation
         typecheckpass(right);
         set_varstate(left,vs_read,[vsf_must_be_valid]);
         set_varstate(right,vs_read,[vsf_must_be_valid]);
-        if compiler.globals.codegenerror then
+        if compiler.verbose.codegenerror then
          exit;
         resultdef:=left.resultdef;
       end;
