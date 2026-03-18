@@ -303,11 +303,11 @@ begin
     NLMConvLinkFile.Add('DESCRIPTION "' + Description + '"');
   NLMConvLinkFile.Add('VERSION '+tostr(compiler.globals.dllmajor)+','+tostr(compiler.globals.dllminor)+','+tostr(compiler.globals.dllrevision));
 
-  p := Pos ('"', nwscreenname);
+  p := Pos ('"', compiler.globals.nwscreenname);
   while (p > 0) do
   begin
-    delete (nwscreenname,p,1);
-    p := Pos ('"', nwscreenname);
+    delete (compiler.globals.nwscreenname,p,1);
+    p := Pos ('"', compiler.globals.nwscreenname);
   end;
   p := Pos ('"', nwthreadname);
   while (p > 0) do
@@ -322,8 +322,8 @@ begin
     p := Pos ('"', nwcopyright);
   end;
 
-  if nwscreenname <> '' then
-    NLMConvLinkFile.Add('SCREENNAME "' + nwscreenname + '"');
+  if compiler.globals.nwscreenname <> '' then
+    NLMConvLinkFile.Add('SCREENNAME "' + compiler.globals.nwscreenname + '"');
   if nwthreadname <> '' then
     NLMConvLinkFile.Add('THREADNAME "' + nwthreadname + '"');
   if nwcopyright <> '' then
@@ -906,8 +906,8 @@ end;
               if nwcopyright <> '' then
                 Concat('COPYRIGHT "'+nwCopyright+'"');
             if not hasScreenname then
-              if nwscreenname <> '' then
-                Concat('SCREENNAME "'+nwscreenname+'"');
+              if compiler.globals.nwscreenname <> '' then
+                Concat('SCREENNAME "'+compiler.globals.nwscreenname+'"');
             if not hasThreadname then
               if nwthreadname <> '' then
                 Concat('THREADNAME "'+nwthreadname+'"');

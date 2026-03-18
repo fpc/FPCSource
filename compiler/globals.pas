@@ -301,11 +301,9 @@ Const
 
 
     var
-
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
-       nwscreenname : string;
        nwthreadname : string;
        nwcopyright  : string;
 
@@ -725,6 +723,8 @@ Const
         MacOSXVersionMin,
         iPhoneOSVersionMin: tversion;
         RelocSectionSetExplicitly : boolean;
+
+        nwscreenname : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1811,7 +1811,7 @@ implementation
         compiler.globals.dllmajor:=1;
         compiler.globals.dllminor:=0;
         compiler.globals.dllrevision:=0;
-        nwscreenname := '';
+        compiler.globals.nwscreenname := '';
         nwthreadname := '';
         nwcopyright  := '';
         compiler.globals.UseDeffileForExports:=false;

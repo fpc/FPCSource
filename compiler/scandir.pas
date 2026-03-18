@@ -524,7 +524,7 @@ unit scandir;
           {compiler.verbose.Message(scan_w_description_not_support);}
           compiler.verbose.comment (V_Warning,'Screenname only supported for target netware');
         current_scanner.skipspace;
-        nwscreenname:=current_scanner.readcomment;
+        compiler.globals.nwscreenname:=current_scanner.readcomment;
       end;
 
       procedure dir_threadname; {ad}
