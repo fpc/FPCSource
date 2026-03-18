@@ -301,7 +301,6 @@ Const
 
 
     var
-       UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
        GenerateImportSection,
        GenerateImportSectionSetExplicitly,
@@ -725,6 +724,7 @@ Const
         minstacksize,
         maxstacksize,
         imagebase     : puint;
+        UseDeffileForExports    : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1814,7 +1814,7 @@ implementation
         nwscreenname := '';
         nwthreadname := '';
         nwcopyright  := '';
-        UseDeffileForExports:=false;
+        compiler.globals.UseDeffileForExports:=false;
         UseDeffileForExportsSetExplicitly:=false;
         GenerateImportSection:=false;
         RelocSection:=false;

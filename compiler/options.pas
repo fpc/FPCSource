@@ -3980,7 +3980,7 @@ begin
          begin
            if compiler.target.info.system in systems_all_windows then
              begin
-               UseDeffileForExports:=not UnsetBool(More, j, opt, false);
+               compiler.globals.UseDeffileForExports:=not UnsetBool(More, j, opt, false);
                UseDeffileForExportsSetExplicitly:=true;
              end
            else

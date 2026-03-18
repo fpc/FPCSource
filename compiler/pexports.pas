@@ -163,7 +163,7 @@ implementation
                          an underline }
                        if InternalProcName[1]='_' then
                          delete(InternalProcName,1,1)
-                       else if (compiler.target.info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince]) and UseDeffileForExports then
+                       else if (compiler.target.info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince]) and compiler.globals.UseDeffileForExports then
                          begin
                            compiler.verbose.Message(parser_e_dlltool_unit_var_problem);
                            compiler.verbose.Message(parser_e_dlltool_unit_var_problem2);
@@ -236,7 +236,7 @@ implementation
                      end;
                     if (DefString<>'') and
                         (
-                          UseDeffileForExports or
+                          compiler.globals.UseDeffileForExports or
                           (cs_link_deffile in current_settings.globalswitches)
                         ) then
                      DefFile.AddExport(DefString);

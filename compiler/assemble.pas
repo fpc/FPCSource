@@ -2910,7 +2910,7 @@ Implementation
 
       begin
         to_do:=[low(Tasmlisttype)..high(Tasmlisttype)];
-        if usedeffileforexports then
+        if compiler.globals.usedeffileforexports then
           exclude(to_do,al_exports);
         if not(tf_section_threadvars in compiler.target.info.flags) then
           exclude(to_do,al_threadvars);
