@@ -159,8 +159,8 @@ implementation
       begin
         // put your linkorder/linkalias overrides here.
         // Note: assumes only called when reordering/aliasing is used.
-        LinkLibraryOrder.add('gcc','',15);
-        LinkLibraryOrder.add('c','',50);
+        compiler.globals.LinkLibraryOrder.add('gcc','',15);
+        compiler.globals.LinkLibraryOrder.add('c','',50);
       end;
 
 

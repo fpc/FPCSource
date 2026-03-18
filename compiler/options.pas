@@ -4425,7 +4425,7 @@ begin
                           end;
                     'O' : begin
                            s:=Copy(more,3);
-                           if not LinkLibraryOrder.AddWeight(s) Then
+                           if not compiler.globals.LinkLibraryOrder.AddWeight(s) Then
                               IllegalPara(opt);
                           end;
                     'D' : include(init_settings.globalswitches,cs_link_no_default_lib_order);

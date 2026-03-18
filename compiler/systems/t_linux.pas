@@ -544,11 +544,11 @@ procedure TLinkerLinux.LoadPredefinedLibraryOrder;
 Begin
    if not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
         Begin
-          LinkLibraryOrder.add('gcc','',15);
-          LinkLibraryOrder.add('c','',100);
-          LinkLibraryOrder.add('gmon','',120);
-          LinkLibraryOrder.add('dl','',140);
-          LinkLibraryOrder.add('pthread','',160);
+          compiler.globals.LinkLibraryOrder.add('gcc','',15);
+          compiler.globals.LinkLibraryOrder.add('c','',100);
+          compiler.globals.LinkLibraryOrder.add('gmon','',120);
+          compiler.globals.LinkLibraryOrder.add('dl','',140);
+          compiler.globals.LinkLibraryOrder.add('pthread','',160);
          end;
 End;
 

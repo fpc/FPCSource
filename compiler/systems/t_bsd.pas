@@ -177,12 +177,12 @@ Begin
   if (compiler.target.info.system =system_i386_freebsd) and
      not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
     Begin
-      LinkLibraryOrder.add('gcc','',15);
-      LinkLibraryOrder.add('c','',50);		     // c and c_p mutual. excl?
-      LinkLibraryOrder.add('c_p','',55);
-      LinkLibraryOrder.add('pthread','',75);	     // pthread and c_r should be mutually exclusive
-      LinkLibraryOrder.add('c_r','',76);
-      LinkLibraryOrder.add('kvm','',80);		     // must be before ncurses
+      compiler.globals.LinkLibraryOrder.add('gcc','',15);
+      compiler.globals.LinkLibraryOrder.add('c','',50);		     // c and c_p mutual. excl?
+      compiler.globals.LinkLibraryOrder.add('c_p','',55);
+      compiler.globals.LinkLibraryOrder.add('pthread','',75);	     // pthread and c_r should be mutually exclusive
+      compiler.globals.LinkLibraryOrder.add('c_r','',76);
+      compiler.globals.LinkLibraryOrder.add('kvm','',80);		     // must be before ncurses
       if (cs_link_pthread in current_settings.globalswitches) Then     // convert libpthread to libc_r.
         compiler.globals.LinkLibraryAliases.add('pthread','c_r');
     end;

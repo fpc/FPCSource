@@ -308,7 +308,6 @@ Const
        // TODO: block_type should probably be moved to the scanner or parser
        block_type : tblock_type;         { type of currently parsed block }
 
-       LinkLibraryOrder   : TLinkStrMap;
 
 
        init_settings,
@@ -730,6 +729,7 @@ Const
         // TODO: current_exceptblock should probably be moved somewhere else (parser?)
         current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
         LinkLibraryAliases : TLinkStrMap;
+        LinkLibraryOrder   : TLinkStrMap;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1745,8 +1745,8 @@ implementation
        compiler.globals.frameworksearchpath := nil;
        compiler.globals.LinkLibraryAliases.Free;
        compiler.globals.LinkLibraryAliases := nil;
-       LinkLibraryOrder.Free;
-       LinkLibraryOrder := nil;
+       compiler.globals.LinkLibraryOrder.Free;
+       compiler.globals.LinkLibraryOrder := nil;
        compiler.globals.packagesearchpath.Free;
        compiler.globals.packagesearchpath := nil;
        compiler.globals.namespacelist.Free;
@@ -1837,7 +1837,7 @@ implementation
           init_settings.optimizecputype:=init_settings.cputype;
 
         compiler.globals.LinkLibraryAliases :=TLinkStrMap.Create;
-        LinkLibraryOrder   :=TLinkStrMap.Create;
+        compiler.globals.LinkLibraryOrder   :=TLinkStrMap.Create;
 
         { enable all features by default }
         features:=[low(Tfeature)..high(Tfeature)];
