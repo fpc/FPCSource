@@ -307,11 +307,11 @@ begin
     delete (compiler.globals.nwscreenname,p,1);
     p := Pos ('"', compiler.globals.nwscreenname);
   end;
-  p := Pos ('"', nwthreadname);
+  p := Pos ('"', compiler.globals.nwthreadname);
   while (p > 0) do
   begin
-    delete (nwthreadname,p,1);
-    p := Pos ('"', nwthreadname);
+    delete (compiler.globals.nwthreadname,p,1);
+    p := Pos ('"', compiler.globals.nwthreadname);
   end;
   p := Pos ('"', nwcopyright);
   while (p > 0) do
@@ -322,8 +322,8 @@ begin
 
   if compiler.globals.nwscreenname <> '' then
     NLMConvLinkFile.Add('SCREENNAME "' + compiler.globals.nwscreenname + '"');
-  if nwthreadname <> '' then
-    NLMConvLinkFile.Add('THREADNAME "' + nwthreadname + '"');
+  if compiler.globals.nwthreadname <> '' then
+    NLMConvLinkFile.Add('THREADNAME "' + compiler.globals.nwthreadname + '"');
   if nwcopyright <> '' then
     NLMConvLinkFile.Add('COPYRIGHT "' + nwcopyright + '"');
 

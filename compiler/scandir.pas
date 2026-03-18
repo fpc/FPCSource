@@ -535,7 +535,7 @@ unit scandir;
           {compiler.verbose.Message(scan_w_description_not_support);}
           compiler.verbose.comment (V_Warning,'Threadname only supported for target netware');
         current_scanner.skipspace;
-        nwthreadname:=current_scanner.readcomment;
+        compiler.globals.nwthreadname:=current_scanner.readcomment;
       end;
 
       procedure dir_copyright; {ad}
