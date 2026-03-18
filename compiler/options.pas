@@ -3261,7 +3261,7 @@ begin
        paratargetdbg:=compiler.target.info.dbg;
    end;
   if not RelocSectionSetExplicitly then
-    RelocSection:=false;
+    compiler.globals.RelocSection:=false;
   j:=1;
   while j<=length(more) do
     begin
@@ -3956,7 +3956,7 @@ begin
                  end
                else
                  begin
-                   RelocSection:=true;
+                   compiler.globals.RelocSection:=true;
                    RelocSectionSetExplicitly:=true;
                  end;
                break;
@@ -4100,7 +4100,7 @@ begin
          begin
            if compiler.target.info.system in systems_all_windows then
              begin
-               RelocSection:=UnsetBool(More,j,opt,false);
+               compiler.globals.RelocSection:=UnsetBool(More,j,opt,false);
                RelocSectionSetExplicitly:=true;
              end
            else
@@ -4176,7 +4176,7 @@ begin
            if compiler.target.info.system in systems_all_windows then
              begin
                { support -WR+ / -WR- as synonyms to -WR / -WN }
-               RelocSection:=not UnsetBool(More,j,opt,false);
+               compiler.globals.RelocSection:=not UnsetBool(More,j,opt,false);
                RelocSectionSetExplicitly:=true;
              end
            else

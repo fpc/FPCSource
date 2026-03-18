@@ -301,7 +301,6 @@ Const
 
 
     var
-       RelocSection : boolean;
 
        MacOSXVersionMin,
        iPhoneOSVersionMin: tversion;
@@ -724,7 +723,8 @@ Const
         UseDeffileForExports    : boolean;
         UseDeffileForExportsSetExplicitly : boolean;
         GenerateImportSection,
-        GenerateImportSectionSetExplicitly : boolean;
+        GenerateImportSectionSetExplicitly,
+        RelocSection : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1817,7 +1817,7 @@ implementation
         compiler.globals.UseDeffileForExports:=false;
         compiler.globals.UseDeffileForExportsSetExplicitly:=false;
         compiler.globals.GenerateImportSection:=false;
-        RelocSection:=false;
+        compiler.globals.RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         MacOSXVersionMin.invalidate;
         iPhoneOSVersionMin.invalidate;

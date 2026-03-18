@@ -1439,7 +1439,7 @@ implementation
 {$else not AARCH64}
         AsBinStr:=FindUtil(compiler.globals.utilsprefix+'as');
 {$endif AARCH64}
-        if RelocSection then
+        if compiler.globals.RelocSection then
           RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
           GCSectionsStr:='--gc-sections';
@@ -1466,7 +1466,7 @@ implementation
 
       { Call linker }
         success:=false;
-        if RelocSection or (not Deffile.empty) then
+        if compiler.globals.RelocSection or (not Deffile.empty) then
           cmds:=3
         else
           cmds:=1;
@@ -1549,7 +1549,7 @@ implementation
 {$else not AARCH64}
         AsBinStr:=FindUtil(compiler.globals.utilsprefix+'as');
 {$endif AARCH64}
-        if RelocSection then
+        if compiler.globals.RelocSection then
          RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
          GCSectionsStr:='--gc-sections';
@@ -1572,7 +1572,7 @@ implementation
 
       { Call linker }
         success:=false;
-        if RelocSection or (not Deffile.empty) then
+        if compiler.globals.RelocSection or (not Deffile.empty) then
           cmds:=3
         else
           cmds:=1;

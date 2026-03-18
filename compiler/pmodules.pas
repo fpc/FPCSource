@@ -1997,14 +1997,14 @@ type
            compiler.verbose.Message1(parser_e_packages_not_supported,compiler.target.info.name);
 
          if not RelocSectionSetExplicitly then
-           RelocSection:=true;
+           compiler.globals.RelocSection:=true;
 
          { Relocation works only without stabs under Windows when }
          { external linker (LD) is used.  LD generates relocs for }
          { stab sections which is not loaded in memory. It causes }
          { AV error when DLL is loaded and relocation is needed.  }
          { Internal linker does not have this problem.            }
-         if RelocSection and
+         if compiler.globals.RelocSection and
             (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in current_settings.globalswitches) then
            begin
@@ -2984,7 +2984,7 @@ type
          if islibrary or (compiler.target.info.system in [system_aarch64_win64]) then
            begin
              if not RelocSectionSetExplicitly then
-               RelocSection:=true;
+               compiler.globals.RelocSection:=true;
            end;
 
          { Relocation works only without stabs under Windows when }
@@ -2992,7 +2992,7 @@ type
          { stab sections which is not loaded in memory. It causes }
          { AV error when DLL is loaded and relocation is needed.  }
          { Internal linker does not have this problem.            }
-         if RelocSection and
+         if compiler.globals.RelocSection and
             (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in current_settings.globalswitches) then
            begin

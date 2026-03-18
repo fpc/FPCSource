@@ -3773,7 +3773,7 @@ const pemagic : array[0..3] of byte = (
         offset : longword;
         w: word;
       begin
-        if not RelocSection or FRelocsGenerated then
+        if not compiler.globals.RelocSection or FRelocsGenerated then
           exit;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
@@ -3832,7 +3832,7 @@ const pemagic : array[0..3] of byte = (
       var
         exesec : TExeSection;
       begin
-        if RelocSection then
+        if compiler.globals.RelocSection then
           begin
             exesec:=FindExeSection('.reloc');
             if exesec=nil then
