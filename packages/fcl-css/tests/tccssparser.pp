@@ -963,13 +963,42 @@ begin
 end;
 
 procedure TTestCSSParser.TestNestedRule_NestedDeclarations;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+  aBin: TCSSBinaryElement;
+  aDecl: TCSSDeclarationElement;
 begin
-  Parse(
+  aRule:=ParseRule(
    'div {'+LineEnding
   +'  & span {'+LineEnding
   +'  }'+LineEnding
   +'  color: blue;'+LineEnding
   +'}');
+  AssertEquals('selector count',1,aRule.SelectorCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Selector',TCSSIdentifierElement,aRule.Selectors[0]));
+  AssertEquals('Sel name','div',aIdent.Value);
+  AssertEquals('Declaration count',0,aRule.ChildCount);
+  AssertEquals('Nested rule count',2,aRule.NestedRuleCount);
+  // Check nested rule: & span { }
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('Nested selector',TCSSBinaryElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector operation',boWhiteSpace,aBin.Operation);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('Nested selector left value','&',aIdent.Value);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector right',TCSSIdentifierElement,aBin.Right));
+  AssertEquals('Nested selector right value','span',aIdent.Value);
+  AssertEquals('No nested declarations',0,aNestedRule.ChildCount);
+  AssertEquals('No nested rules',0,aNestedRule.NestedRuleCount);
+  // Check nested declaration rule
+  aNestedRule:=aRule.NestedRules[1];
+  AssertEquals('Nested Declaration selector count',0,aNestedRule.SelectorCount);
+  //declaration: color: blue
+  aDecl:=CheckDeclaration(aNestedRule,0,'color');
+  AssertEquals('Declaration value count',1,aDecl.ChildCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Declaration value',TCSSIdentifierElement,aDecl.Children[0]));
+  AssertEquals('Declaration value','blue',aIdent.Value);
 end;
 
 
