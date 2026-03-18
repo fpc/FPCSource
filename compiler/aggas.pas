@@ -910,7 +910,7 @@ implementation
          prefetch(pointer(hp.next)^);
          if not(hp.typ in SkipLineInfo) then
           begin
-            current_filepos:=tailineinfo(hp).fileinfo;
+            compiler.globals.current_filepos:=tailineinfo(hp).fileinfo;
             { no line info for inlined code }
             if do_line and (inlinelevel=0) then
               WriteSourceLine(hp as tailineinfo);

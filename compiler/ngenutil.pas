@@ -978,8 +978,8 @@ implementation
       sectype : TAsmSectiontype;
       asmtype: TAsmsymtype;
     begin
-      storefilepos:=current_filepos;
-      current_filepos:=sym.fileinfo;
+      storefilepos:=compiler.globals.current_filepos;
+      compiler.globals.current_filepos:=sym.fileinfo;
       l:=sym.getsize;
       wantedalign:=sym.vardef.alignment;
       if sym.vardef.inheritsfrom(tabstractrecorddef) and
@@ -1039,7 +1039,7 @@ implementation
       else
         new_section(list,sectype,lower(sym.mangledname),varalign);
       insertbsssym(list,sym,l,varalign,asmtype);
-      current_filepos:=storefilepos;
+      compiler.globals.current_filepos:=storefilepos;
     end;
 
 

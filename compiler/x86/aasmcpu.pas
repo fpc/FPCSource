@@ -2060,7 +2060,7 @@ implementation
 
         if (Insentry=nil) or (IF_PASS2 in InsEntry^.flags) then
          begin
-           current_filepos:=fileinfo;
+           compiler.globals.current_filepos:=fileinfo;
            { We need intel style operands }
            SetOperandOrder(op_intel);
            { create the .ot fields }
@@ -2331,6 +2331,8 @@ implementation
 
 
     function taicpu.Pass1(objdata:TObjData):longint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Pass1:=0;
         { Save the old offset and set the new offset }
@@ -2339,7 +2341,7 @@ implementation
         if (Insentry=nil) and (InsSize=-1) then
           exit;
         { set the file position }
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
         { Get InsEntry }
         if FindInsEntry(ObjData) then
          begin
@@ -2386,11 +2388,13 @@ implementation
       );
 
     procedure taicpu.Pass2(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { error in pass1 ? }
         if insentry=nil then
          exit;
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
         { Segment override }
         if (segprefix>=NR_ES) and (segprefix<=NR_GS) then
          begin

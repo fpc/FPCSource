@@ -1312,9 +1312,11 @@ implementation
  ****************************************************************************}
 
     constructor tailineinfo.create;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
        inherited create;
-       fileinfo:=current_filepos;
+       fileinfo:=compiler.globals.current_filepos;
      end;
 
 

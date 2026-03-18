@@ -1291,7 +1291,7 @@ constructor TInstruction.create(optype : tcoperand;ACompiler: TCompilerBase);
     Condition:=C_NONE;
     Ops:=0;
     }
-    filepos:=current_filepos;
+    filepos:=compiler.globals.current_filepos;
     for i:=1 to max_operands do
       Operands[i]:=optype.create(compiler);
     Labeled:=false;

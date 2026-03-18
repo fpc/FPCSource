@@ -2044,6 +2044,8 @@ unit rgobj;
 
 
     procedure trgobj.generate_interference_graph(list:TAsmList;headertai:tai);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure RecordUse(var r : Treginfo);
         begin
@@ -2072,7 +2074,7 @@ unit rgobj;
               ait_instruction:
                 with Taicpu(p) do
                   begin
-                    current_filepos:=fileinfo;
+                    compiler.globals.current_filepos:=fileinfo;
                     {For speed reasons, get_alias isn't used here, instead,
                      assign_colours will also set the colour of coalesced nodes.
                      If there are registers with colour=0, then the coalescednodes
@@ -2232,6 +2234,8 @@ unit rgobj;
 
 
     procedure trgobj.translate_registers(list: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function get_reg_name_full(r: tregister; include_prefix: boolean): string;
         var
@@ -2345,7 +2349,7 @@ unit rgobj;
               ait_instruction:
                 with Taicpu(p) do
                   begin
-                    current_filepos:=fileinfo;
+                    compiler.globals.current_filepos:=fileinfo;
                     {For speed reasons, get_alias isn't used here, instead,
                      assign_colours will also set the colour of coalesced nodes.
                      If there are registers with colour=0, then the coalescednodes
@@ -2449,11 +2453,13 @@ unit rgobj;
             end;
             p:=Tai(p.next);
           end;
-        current_filepos:=current_procinfo.exitpos;
+        compiler.globals.current_filepos:=current_procinfo.exitpos;
       end;
 
 
     function trgobj.spill_registers(list:TAsmList;headertai:tai):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { Returns true if any help registers have been used }
       var
         i : cardinal;
@@ -2610,7 +2616,7 @@ unit rgobj;
                 with tai_cpu_abstract_sym(p) do
                   begin
 //                    writeln(gas_op2str[tai_cpu_abstract_sym(p).opcode]);
-                    current_filepos:=fileinfo;
+                    compiler.globals.current_filepos:=fileinfo;
                     if instr_spill_register(list,tai_cpu_abstract_sym(p),regs_to_spill_set,spill_temps) then
                       spill_registers:=true;
                   end;
@@ -2619,7 +2625,7 @@ unit rgobj;
             end;
             p:=Tai(p.next);
           end;
-        current_filepos:=current_procinfo.exitpos;
+        compiler.globals.current_filepos:=current_procinfo.exitpos;
         {Safe: this procedure is only called if there are spilled nodes.}
         with spillednodes do
           for i:=0 to length-1 do

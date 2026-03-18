@@ -1760,7 +1760,7 @@ Implementation
          begin
 {$ifdef DEBUG}
            if not(hp.typ in SkipLineInfo) then
-             current_filepos:=tailineinfo(hp).fileinfo;
+             compiler.globals.current_filepos:=tailineinfo(hp).fileinfo;
 {$endif DEBUG}
             case hp.typ of
              ait_align :
@@ -1985,7 +1985,7 @@ Implementation
          begin
 {$ifdef DEBUG}
            if not(hp.typ in SkipLineInfo) then
-             current_filepos:=tailineinfo(hp).fileinfo;
+             compiler.globals.current_filepos:=tailineinfo(hp).fileinfo;
 {$endif DEBUG}
            case hp.typ of
              ait_align :
@@ -2227,7 +2227,7 @@ Implementation
          begin
 {$ifdef DEBUG}
            if not(hp.typ in SkipLineInfo) then
-             current_filepos:=tailineinfo(hp).fileinfo;
+             compiler.globals.current_filepos:=tailineinfo(hp).fileinfo;
 {$endif DEBUG}
            case hp.typ of
              ait_align :

@@ -945,7 +945,7 @@ implementation
 
          { read statements to try }
          parser.pbase.consume(_TRY);
-         filepostry:=current_filepos;
+         filepostry:=compiler.globals.current_filepos;
          first:=nil;
          inc(compiler.globals.exceptblockcounter);
          oldcurrent_exceptblock := compiler.globals.current_exceptblock;
@@ -1125,7 +1125,7 @@ implementation
          if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
              asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create(compiler);
-             entrypos:=current_filepos;
+             entrypos:=compiler.globals.current_filepos;
              hl:=asmreader.assemble as TAsmList;
              if (not hl.empty) then
                begin
@@ -1247,7 +1247,7 @@ implementation
         parser.pbase.consume(_LKLAMMER);
         hl:=TAsmList.create;
         asmstat:=compiler.casmnode(hl);
-        asmstat.fileinfo:=current_filepos;
+        asmstat.fileinfo:=compiler.globals.current_filepos;
         tokenbuf:=tdynamicarray.Create(16);
         cur_line:=0;
         { Parse data blocks }
@@ -1282,10 +1282,10 @@ implementation
           { Parse recorded tokens }
           current_scanner.startreplaytokens(tokenbuf,false);
 
-          if cur_line<>current_filepos.line then
+          if cur_line<>compiler.globals.current_filepos.line then
             begin
               hl.concat(tai_force_line.Create);
-              cur_line:=current_filepos.line;
+              cur_line:=compiler.globals.current_filepos.line;
             end;
 
           { Data size override }

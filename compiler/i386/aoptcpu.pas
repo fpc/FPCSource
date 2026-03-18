@@ -153,7 +153,7 @@ unit aoptcpu;
         case p.Typ Of
           ait_instruction:
             begin
-              current_filepos:=taicpu(p).fileinfo;
+              compiler.globals.current_filepos:=taicpu(p).fileinfo;
               if InsContainsSegRef(taicpu(p)) then
                 exit;
               case taicpu(p).opcode Of

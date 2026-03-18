@@ -323,7 +323,7 @@ implementation
 
         if not assigned(srsym) and (current_scanner.pattern<>'') and (compiler.globals.namespacelist.count>0) then
           begin
-            hmodule:=get_module(current_filepos.moduleindex);
+            hmodule:=get_module(compiler.globals.current_filepos.moduleindex);
             if not assigned(hmodule) then
               internalerror(2018050301);
 
@@ -351,7 +351,7 @@ implementation
             hmodule:=find_module_from_symtable(srsym.Owner);
             if not Assigned(hmodule) then
               internalerror(2010011201);
-            if hmodule.moduleid=current_filepos.moduleindex then
+            if hmodule.moduleid=compiler.globals.current_filepos.moduleindex then
               begin
                 if cuf_consume_id in flags then
                   consume(_ID);

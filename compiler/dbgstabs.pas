@@ -1682,8 +1682,8 @@ implementation
         i  : longint;
         vardatatype : ttypesym;
       begin
-        storefilepos:=current_filepos;
-        current_filepos:=current_module.mainfilepos;
+        storefilepos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=current_module.mainfilepos;
 
         global_stab_number:=0;
         defnumberlist:=TFPObjectlist.create(false);
@@ -1753,7 +1753,7 @@ implementation
         stabsvarlist := nil;
         stabstypelist.free;
         stabstypelist := nil;
-        current_filepos:=storefilepos;
+        compiler.globals.current_filepos:=storefilepos;
       end;
 
 

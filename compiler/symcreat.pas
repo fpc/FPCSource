@@ -146,6 +146,8 @@ implementation
 
   procedure replace_scanner(const tempname: string; out sstate: tscannerstate);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       old_block_type: tblock_type;
     begin
       { would require saving of cstringpattern, patternw }
@@ -154,7 +156,7 @@ implementation
          (current_scanner.token=_CWSTRING) then
         internalerror(2011032201);
       sstate.old_scanner:=current_scanner;
-      sstate.old_filepos:=current_filepos;
+      sstate.old_filepos:=compiler.globals.current_filepos;
       sstate.old_modeswitches:=current_settings.modeswitches;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
@@ -170,12 +172,14 @@ implementation
 
 
   procedure restore_scanner(const sstate: tscannerstate);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if sstate.valid then
         begin
           sstate.new_scanner.free; // no nil needed
           set_current_scanner(sstate.old_scanner);
-          current_filepos:=sstate.old_filepos;
+          compiler.globals.current_filepos:=sstate.old_filepos;
           current_settings.modeswitches:=sstate.old_modeswitches;
         end;
     end;
@@ -2040,8 +2044,8 @@ implementation
           { add initialization with original value if it's a parameter }
           if (sym.typ=paravarsym) then
             begin
-              old_filepos:=current_filepos;
-              fillchar(current_filepos,sizeof(current_filepos),0);
+              old_filepos:=compiler.globals.current_filepos;
+              fillchar(compiler.globals.current_filepos,sizeof(compiler.globals.current_filepos),0);
               initcode:=compiler.cloadnode(sym,sym.owner);
               { indicate that this load should not be transformed into a load
                 from the parentfpstruct, but instead should load the original
@@ -2059,7 +2063,7 @@ implementation
                 initcode);
               tblocknode(pd.parentfpinitblock).left:=compiler.cstatementnode
                 (initcode,tblocknode(pd.parentfpinitblock).left);
-              current_filepos:=old_filepos;
+              compiler.globals.current_filepos:=old_filepos;
 
               { also add the associated high para, if any. It may not be accessed
                 during code generation, and we need to catch 'em all (TM) during

@@ -116,15 +116,15 @@ implementation
           routine }
         if assigned(current_procinfo) then
           begin
-            oldfileinfo:=current_filepos;
-            current_filepos:=current_procinfo.entrypos;
+            oldfileinfo:=compiler.globals.current_filepos;
+            compiler.globals.current_filepos:=current_procinfo.entrypos;
           end
         else
           { avoid uninitialised warning later }
           oldfileinfo.line:=0;
         alloclist.concat(taillvm.op_ref_size(la_alloca,ref,def));
         if assigned(current_procinfo) then
-          current_filepos:=oldfileinfo;
+          compiler.globals.current_filepos:=oldfileinfo;
       end;
 
     procedure ttgllvm.gethltempintern(list: TAsmList; def: tdef; alignment: shortint; forcesize: asizeint; temptype: ttemptype; out ref: treference);

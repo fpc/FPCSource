@@ -3250,8 +3250,8 @@ implementation
         lang: tdwarf_source_language;
       begin
         include(current_module.moduleflags,mf_has_dwarf_debuginfo);
-        storefilepos:=current_filepos;
-        current_filepos:=current_module.mainfilepos;
+        storefilepos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=current_module.mainfilepos;
 
         if assigned(dwarflabels) then
           internalerror(2015100301);
@@ -3481,7 +3481,7 @@ implementation
         deftowritelist.free;
         deftowritelist:=nil;
 
-        current_filepos:=storefilepos;
+        compiler.globals.current_filepos:=storefilepos;
       end;
 
 

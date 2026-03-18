@@ -951,8 +951,8 @@ implementation
         storefilepos: tfileposinfo;
       begin
         compiler:=hloopvar.compiler;
-        storefilepos:=current_filepos;
-        current_filepos:=hloopvar.fileinfo;
+        storefilepos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=hloopvar.fileinfo;
         if expr.nodetype=typen then
           begin
             if (expr.resultdef.typ=enumdef) and tenumdef(expr.resultdef).has_jumps then
@@ -1073,7 +1073,7 @@ implementation
                   end;
               end;
           end;
-        current_filepos:=storefilepos;
+        compiler.globals.current_filepos:=storefilepos;
       end;
 
 
@@ -2074,8 +2074,8 @@ implementation
         result:=nil;
         totemp:=nil;
         fromtemp:=nil;
-        storefilepos:=current_filepos;
-        current_filepos:=fileinfo;
+        storefilepos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=fileinfo;
 
         case left.resultdef.typ of
           enumdef:
@@ -2258,7 +2258,7 @@ implementation
               addstatement(ifstatements,compiler.cwhilerepeatnode(compiler.caddnode_internal(cond,leftcopy,t1.getcopy),loopblock,false,true));
             addstatement(statements,ifblock);
           end;
-        current_filepos:=storefilepos;
+        compiler.globals.current_filepos:=storefilepos;
       end;
 
 

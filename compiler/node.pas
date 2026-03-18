@@ -772,7 +772,7 @@ implementation
          { updated by secondpass }
          location.loc:=LOC_INVALID;
          { save local info }
-         fileinfo:=current_filepos;
+         fileinfo:=compiler.globals.current_filepos;
          localswitches:=current_settings.localswitches;
          verbosity:=status.verbosity;
          resultdef:=nil;

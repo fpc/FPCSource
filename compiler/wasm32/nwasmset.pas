@@ -451,7 +451,7 @@ implementation
 
                 secondpass(statement);
                 { don't come back to case line }
-                current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
+                compiler.globals.current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
                 current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br,endlabel));
               end;
           end;

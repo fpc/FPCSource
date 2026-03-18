@@ -5502,7 +5502,7 @@ implementation
          paras: tcallparanode;
        begin
          paras:=tcallparanode(tcallparanode(left).right);
-         paras:=compiler.ccallparanode(compiler.cstringconstnode_str(current_module.sourcefiles.get_file_name(current_filepos.fileindex)),paras);
+         paras:=compiler.ccallparanode(compiler.cstringconstnode_str(current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex)),paras);
          paras:=compiler.ccallparanode(genintconstnode(fileinfo.line,compiler),paras);
 {$ifdef SUPPORT_GET_FRAME}
          paras:=compiler.ccallparanode(geninlinenode(in_get_frame,false,nil,compiler),paras);

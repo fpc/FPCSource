@@ -813,8 +813,8 @@ type
                   begin
                     if fpu_regs_assigned>=max_fpu_regs_assigned then
                       break;
-                    old_current_filepos:=current_filepos;
-                    current_filepos:=current_procinfo.entrypos;
+                    old_current_filepos:=compiler.globals.current_filepos;
+                    compiler.globals.current_filepos:=current_procinfo.entrypos;
                     if not(assigned(createblock)) then
                       begin
                         rootblock:=internalstatements(compiler,statements);
@@ -825,7 +825,7 @@ type
                        constentries[i].valuenode.resultdef.size,tt_persistent,true);
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),constentries[i].valuenode));
-                     current_filepos:=old_current_filepos;
+                     compiler.globals.current_filepos:=old_current_filepos;
                      foreachnode(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(fpu_regs_assigned);
                   end
@@ -837,8 +837,8 @@ type
                   begin
                     if int_regs_assigned>=max_int_regs_assigned then
                       break;
-                    old_current_filepos:=current_filepos;
-                    current_filepos:=current_procinfo.entrypos;
+                    old_current_filepos:=compiler.globals.current_filepos;
+                    compiler.globals.current_filepos:=current_procinfo.entrypos;
                     if not(assigned(createblock)) then
                       begin
                         rootblock:=internalstatements(compiler,statements);
@@ -850,7 +850,7 @@ type
                      addstatement(creates,constentries[i].temp);
                      addstatement(creates,compiler.cassignmentnode_internal(compiler.ctemprefnode(constentries[i].temp),
                        compiler.caddrnode_internal(constentries[i].valuenode)));
-                     current_filepos:=old_current_filepos;
+                     compiler.globals.current_filepos:=old_current_filepos;
                      foreachnode(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
                      inc(int_regs_assigned);
                   end;

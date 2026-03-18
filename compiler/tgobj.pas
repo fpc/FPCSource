@@ -460,7 +460,7 @@ implementation
             templist:=tl;
           end;
 {$ifdef EXTDEBUG}
-         tl^.posinfo:=current_filepos;
+         tl^.posinfo:=compiler.globals.current_filepos;
          if assigned(tl^.def) then
            list.concat(tai_tempalloc.allocinfo(tl^.pos,tl^.size,'allocated with type '+TempTypeStr[tl^.temptype]+' for def '+tl^.def.typename))
          else

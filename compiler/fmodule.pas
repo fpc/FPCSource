@@ -392,6 +392,8 @@ implementation
       end;
 
     procedure set_current_module(p:tmodule);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       begin
         { save the state of the scanner }
@@ -400,7 +402,7 @@ implementation
         { set new module }
         current_module:=p;
         { restore previous module settings }
-        Fillchar(current_filepos,sizeof(current_filepos),0);
+        Fillchar(compiler.globals.current_filepos,sizeof(compiler.globals.current_filepos),0);
         if assigned(current_module) then
           begin
             current_asmdata:=tasmdata(current_module.asmdata);
@@ -415,7 +417,7 @@ implementation
               end
             else
               begin
-                current_filepos.moduleindex:=current_module.moduleid;
+                compiler.globals.current_filepos.moduleindex:=current_module.moduleid;
                 parser_current_file:='';
               end;
           end

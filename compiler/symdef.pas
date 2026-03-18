@@ -2091,7 +2091,7 @@ implementation
          inherited create(dt,acompiler);
          savesize := 0;
 {$ifdef EXTDEBUG}
-         fileinfo := current_filepos;
+         fileinfo := compiler.globals.current_filepos;
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
@@ -6686,7 +6686,7 @@ implementation
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
          seenmarker := nil;
 {$endif}
-         fileinfo:=current_filepos;
+         fileinfo:=compiler.globals.current_filepos;
          extnumber:=$ffff;
          aliasnames:=TCmdStrList.create;
          funcretsym:=nil;

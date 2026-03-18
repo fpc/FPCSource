@@ -590,8 +590,10 @@ implementation
 
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        check_hints(srsym,symoptions,deprecatedmsg,current_filepos);
+        check_hints(srsym,symoptions,deprecatedmsg,compiler.globals.current_filepos);
       end;
 
 

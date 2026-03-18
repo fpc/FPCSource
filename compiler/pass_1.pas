@@ -69,7 +69,7 @@ implementation
       begin
         compiler.verbose.codegenerror:=false;
         repeat
-          current_filepos:=p.fileinfo;
+          compiler.globals.current_filepos:=p.fileinfo;
           current_settings.localswitches:=p.localswitches;
           status.verbosity:=p.verbosity;
           hp:=p.pass_typecheck;
@@ -109,12 +109,12 @@ implementation
         if (p.resultdef=nil) then
           begin
             oldcodegenerror:=compiler.verbose.codegenerror;
-            oldpos:=current_filepos;
+            oldpos:=compiler.globals.current_filepos;
             oldlocalswitches:=current_settings.localswitches;
             oldverbosity:=status.verbosity;
             typecheckpass_internal_loop(p, node_changed);
             current_settings.localswitches:=oldlocalswitches;
-            current_filepos:=oldpos;
+            compiler.globals.current_filepos:=oldpos;
             status.verbosity:=oldverbosity;
             compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
           end
@@ -170,7 +170,7 @@ implementation
          if not(tnf_error in p.transientflags) then
            begin
              oldcodegenerror:=compiler.verbose.codegenerror;
-             oldpos:=current_filepos;
+             oldpos:=compiler.globals.current_filepos;
              oldlocalswitches:=current_settings.localswitches;
              oldverbosity:=status.verbosity;
              compiler.verbose.codegenerror:=false;
@@ -192,7 +192,7 @@ implementation
                hp:=nil;
                if not(tnf_error in p.transientflags) then
                  begin
-                   current_filepos:=p.fileinfo;
+                   compiler.globals.current_filepos:=p.fileinfo;
                    current_settings.localswitches:=p.localswitches;
                    status.verbosity:=p.verbosity;
                    { first pass }
@@ -223,7 +223,7 @@ implementation
 {$endif EXTDEBUG}
              compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
              current_settings.localswitches:=oldlocalswitches;
-             current_filepos:=oldpos;
+             compiler.globals.current_filepos:=oldpos;
              status.verbosity:=oldverbosity;
            end
          else

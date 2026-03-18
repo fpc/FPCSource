@@ -872,7 +872,7 @@ type
         if (InsEntry=nil) then
           begin
             { set the file position }
-            current_filepos:=fileinfo;
+            compiler.globals.current_filepos:=fileinfo;
           end
         else
           begin
@@ -970,7 +970,7 @@ type
         if (InsEntry=nil) and (InsSize=-1) then
           exit;
         { set the file position }
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
         { Get InsEntry }
         if FindInsEntry(ObjData) then
           begin
@@ -988,7 +988,7 @@ type
         { error in pass1 ? }
         if InsEntry=nil then
           exit;
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
 
         { Generate the instruction }
         GenCode(ObjData);

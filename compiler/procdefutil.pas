@@ -174,7 +174,7 @@ implementation
       if not (po_is_function_ref in tprocvardef(pvdef).procoptions) then
         internalerror(2021022101);
       if n='' then
-        name:=anon_funcref_prefix+fileinfo_to_suffix(current_filepos)
+        name:=anon_funcref_prefix+fileinfo_to_suffix(compiler.globals.current_filepos)
       else
         name:=n;
       intfdef:=cobjectdef.create(odt_interfacecom,name,interface_iunknown,true,compiler);
@@ -1526,8 +1526,8 @@ implementation
               begin
                 if tloadnode(n).symtableentry<>mapping^.oldsym then
                   continue;
-                old_filepos:=current_filepos;
-                current_filepos:=n.fileinfo;
+                old_filepos:=compiler.globals.current_filepos;
+                compiler.globals.current_filepos:=n.fileinfo;
                 loadprocvar:=nf_load_procvar in n.flags;
                 n.free;
                 n:=compiler.csubscriptnode(mapping^.newsym,mapping^.selfnode.getcopy);
@@ -1538,7 +1538,7 @@ implementation
                     not is_implicit_pointer_object_type(tparavarsym(mapping^.oldsym).vardef) then
                   n:=compiler.cderefnode(n);
                 typecheckpass(n);
-                current_filepos:=old_filepos;
+                compiler.globals.current_filepos:=old_filepos;
                 break;
               end;
             calln:
@@ -1549,8 +1549,8 @@ implementation
                   continue;
                 if tcallnode(n).procdefinition<>tprocdef(mapping^.olddef) then
                   continue;
-                old_filepos:=current_filepos;
-                current_filepos:=n.fileinfo;
+                old_filepos:=compiler.globals.current_filepos;
+                compiler.globals.current_filepos:=n.fileinfo;
                 loadprocvar:=nf_load_procvar in n.flags;
                 paras:=tcallnode(n).left;
                 paraold:=tcallparanode(paras);
@@ -1573,7 +1573,7 @@ implementation
                 if loadprocvar then
                   include(n.flags,nf_load_procvar);
                 typecheckpass(n);
-                current_filepos:=old_filepos;
+                compiler.globals.current_filepos:=old_filepos;
                 break;
               end;
             else

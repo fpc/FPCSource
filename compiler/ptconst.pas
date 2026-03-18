@@ -97,8 +97,8 @@ implementation
         sym.varregable:=vr_none;
 
         { generate data for typed const }
-        storefilepos:=current_filepos;
-        current_filepos:=sym.fileinfo;
+        storefilepos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=sym.fileinfo;
 
         if not(compiler.target.info.system in systems_typed_constants_node_init) then
           begin
@@ -185,7 +185,7 @@ implementation
 
         tcbuilder.free;
         tcbuilder := nil;
-        current_filepos:=storefilepos;
+        compiler.globals.current_filepos:=storefilepos;
       end;
 
 end.

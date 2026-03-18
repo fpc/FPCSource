@@ -398,7 +398,7 @@ implementation
         result.procdef:=compiler.procdefutil.create_outline_procdef(basesymname,astruct,potype,resultdef);
         result.entrypos:=entrynodeinfo.fileinfo;
         result.entryswitches:=entrynodeinfo.localswitches;
-        result.exitpos:=current_filepos; // filepos of last node?
+        result.exitpos:=compiler.globals.current_filepos; // filepos of last node?
         result.exitswitches:=current_settings.localswitches; // localswitches of last node?
       end;
 

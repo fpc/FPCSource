@@ -287,10 +287,11 @@ begin
            writeln('Error: Out of memory');
         end;
      end;
-     { we cannot use current_filepos.file because all memory might have been
+     { we cannot use compiler.globals.current_filepos.file because all memory might have been
        freed already !
        But we can use global parser_current_file var }
-     Writeln('Compilation aborted ',parser_current_file,':',current_filepos.line);
+     //TODO(nickysn): find a workaround for this, when we don't have global vars
+     //Writeln('Compilation aborted ',parser_current_file,':',compiler.globals.current_filepos.line);
    end;
 end;
 

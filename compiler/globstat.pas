@@ -197,7 +197,7 @@ var
 
       { save akt... state }
       { handle the postponed case first }
-      oldcurrent_filepos:=current_filepos;
+      oldcurrent_filepos:=compiler.globals.current_filepos;
       old_settings:=current_settings;
       old_verbosity:=status.verbosity;
 
@@ -278,7 +278,7 @@ var
       if reload then
         reload_symtable_stack(compiler.macrosymtablestack,stsk_macro);
       current_procinfo:=oldcurrent_procinfo;
-      current_filepos:=oldcurrent_filepos;
+      compiler.globals.current_filepos:=oldcurrent_filepos;
       current_settings:=old_settings;
       status.verbosity:=old_verbosity;
 

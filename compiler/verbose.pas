@@ -470,23 +470,25 @@ implementation
 
     Procedure TVerbose.UpdateStatus;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         module : tmodule;
       begin
       { fix status }
-        status.currentline:=current_filepos.line;
-        status.currentcolumn:=current_filepos.column;
-        if (current_filepos.moduleindex <> lastmoduleidx) or
-           (current_filepos.fileindex <> lastfileidx) then
+        status.currentline:=compiler.globals.current_filepos.line;
+        status.currentcolumn:=compiler.globals.current_filepos.column;
+        if (compiler.globals.current_filepos.moduleindex <> lastmoduleidx) or
+           (compiler.globals.current_filepos.fileindex <> lastfileidx) then
         begin
-          module:=get_module(current_filepos.moduleindex);
+          module:=get_module(compiler.globals.current_filepos.moduleindex);
           if assigned(module) and assigned(module.sourcefiles) then
             begin
               { update status record }
               status.currentmodule:=module.modulename^;
               status.currentsourceppufilename:=module.ppufilename;
               status.currentmodulestate:=ModuleStateStr[module.state];
-              status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
-              status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
+              status.currentsource:=module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex);
+              status.currentsourcepath:=module.sourcefiles.get_file_path(compiler.globals.current_filepos.fileindex);
               status.sources_avail:=module.sources_avail;
               { if currentsourcepath is relative, make it absolute }
               if not path_absolute(status.currentsourcepath) then
@@ -494,7 +496,7 @@ implementation
 
               { update lastfileidx only if name known PM }
               if status.currentsource<>'' then
-                lastfileidx:=current_filepos.fileindex
+                lastfileidx:=compiler.globals.current_filepos.fileindex
               else
                 lastfileidx:=0;
 
@@ -843,61 +845,71 @@ implementation
 
     procedure TVerbose.MessagePos(const pos:tfileposinfo;w:longint;onqueue:tmsgqueueevent=nil);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         oldpos : tfileposinfo;
       begin
-        oldpos:=current_filepos;
-        current_filepos:=pos;
+        oldpos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[]),w,onqueue);
-        current_filepos:=oldpos;
+        compiler.globals.current_filepos:=oldpos;
       end;
 
 
     procedure TVerbose.MessagePos1(const pos:tfileposinfo;w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         oldpos : tfileposinfo;
       begin
-        oldpos:=current_filepos;
-        current_filepos:=pos;
+        oldpos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1]),w,onqueue);
-        current_filepos:=oldpos;
+        compiler.globals.current_filepos:=oldpos;
       end;
 
 
     procedure TVerbose.MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         oldpos : tfileposinfo;
       begin
-        oldpos:=current_filepos;
-        current_filepos:=pos;
+        oldpos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2]),w,onqueue);
-        current_filepos:=oldpos;
+        compiler.globals.current_filepos:=oldpos;
       end;
 
 
     procedure TVerbose.MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         oldpos : tfileposinfo;
       begin
-        oldpos:=current_filepos;
-        current_filepos:=pos;
+        oldpos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
-        current_filepos:=oldpos;
+        compiler.globals.current_filepos:=oldpos;
       end;
 
 
     procedure TVerbose.MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         oldpos : tfileposinfo;
       begin
-        oldpos:=current_filepos;
-        current_filepos:=pos;
+        oldpos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,onqueue);
-        current_filepos:=oldpos;
+        compiler.globals.current_filepos:=oldpos;
       end;
 
 

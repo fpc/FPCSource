@@ -1018,11 +1018,11 @@ implementation
                  searchagain:=false;
 
                  { throw the error at the right location }
-                 oldfilepos:=current_filepos;
-                 current_filepos:=procstartfilepos;
+                 oldfilepos:=compiler.globals.current_filepos;
+                 compiler.globals.current_filepos:=procstartfilepos;
                  if not assigned(astruct) and not assigned(srsym) then
                    srsym:=search_object_name(sp,true);
-                 current_filepos:=oldfilepos;
+                 compiler.globals.current_filepos:=oldfilepos;
 
                  { we need to check whether the names of the generic parameter
                    types match with the one in the declaration of a class/record,
@@ -1070,7 +1070,7 @@ implementation
                              compiler.verbose.Message(parser_e_methode_id_expected);
                            { rename the name to an unique name to avoid an
                              error when inserting the symbol in the symtable }
-                           orgsp:=orgsp+'$'+tostr(current_filepos.line);
+                           orgsp:=orgsp+'$'+tostr(compiler.globals.current_filepos.line);
                          end;
                      end
                     else
@@ -1182,7 +1182,7 @@ implementation
                               compiler.verbose.Message1(sym_e_duplicate_id,srsym.realname);
                             { rename the name to an unique name to avoid an
                               error when inserting the symbol in the symtable }
-                            orgsp:=orgsp+'$'+tostr(current_filepos.line);
+                            orgsp:=orgsp+'$'+tostr(compiler.globals.current_filepos.line);
                           end;
                        end;
                   end;

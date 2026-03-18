@@ -198,8 +198,8 @@ implementation
 
             oldcodegenerror:=compiler.verbose.codegenerror;
             oldlocalswitches:=current_settings.localswitches;
-            oldpos:=current_filepos;
-            current_filepos:=p.fileinfo;
+            oldpos:=compiler.globals.current_filepos;
+            compiler.globals.current_filepos:=p.fileinfo;
             current_settings.localswitches:=p.localswitches;
             compiler.verbose.codegenerror:=false;
             oldexecutionweight:=cg.executionweight;
@@ -242,7 +242,7 @@ implementation
               include(p.transientflags,tnf_error);
             compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
             current_settings.localswitches:=oldlocalswitches;
-            current_filepos:=oldpos;
+            compiler.globals.current_filepos:=oldpos;
             cg.executionweight:=oldexecutionweight;
           end
          else

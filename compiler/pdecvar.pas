@@ -1455,7 +1455,7 @@ implementation
                    end;
                    sc.add(vs);
                    if isgeneric then
-                     tmp_filepos:=current_filepos;
+                     tmp_filepos:=compiler.globals.current_filepos;
                  end
                else
                  isgeneric:=false;
@@ -1480,10 +1480,10 @@ implementation
                    if isgeneric then
                      begin
                        { ensure correct error position }
-                       old_current_filepos:=current_filepos;
-                       current_filepos:=tmp_filepos;
+                       old_current_filepos:=compiler.globals.current_filepos;
+                       compiler.globals.current_filepos:=tmp_filepos;
                        compiler.symtablestack.top.insertsym(vs);
-                       current_filepos:=old_current_filepos;
+                       compiler.globals.current_filepos:=old_current_filepos;
                      end
                    else
                      compiler.symtablestack.top.insertsym(vs);
@@ -1832,7 +1832,7 @@ implementation
              if attr_element_count=0 then
                attr_element_count:=sc.Count;
 
-             typepos:=current_filepos;
+             typepos:=compiler.globals.current_filepos;
 
              { make sure that the correct genericdef is set up, especially if
                we're dealing with anonymous type declarations }

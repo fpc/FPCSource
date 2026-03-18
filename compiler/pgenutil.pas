@@ -637,7 +637,7 @@ uses
             if not first then
               parser.pbase.consume(_COMMA);
             block_type:=bt_type;
-            tmpparampos:=current_filepos;
+            tmpparampos:=compiler.globals.current_filepos;
             typeparam:=parser.pexpr.factor(false,[ef_accept_equal]);
             { determine if the typeparam node is a valid type or const }
             validparam:=typeparam.nodetype in tgeneric_param_nodes;
@@ -793,7 +793,7 @@ uses
           context:=tspecializationcontext.create;
           fillchar(parsedpos,sizeof(parsedpos),0);
           poslist:=context.poslist;
-          tmpparampos:=current_filepos;
+          tmpparampos:=compiler.globals.current_filepos;
           if genericparams.count<>genericdef.genericparas.count then
             internalerror(2021020901);
           poslist.capacity:=poslist.count+genericparams.count;
@@ -2077,10 +2077,10 @@ uses
                   internalerror(200511171);
                 if hmodule=nil then
                   internalerror(2012051202);
-                oldcurrent_filepos:=current_filepos;
+                oldcurrent_filepos:=compiler.globals.current_filepos;
                 { use the index the module got from the current compilation process }
-                current_filepos.moduleindex:=hmodule.moduleid;
-                compiler.globals.current_tokenpos:=current_filepos;
+                compiler.globals.current_filepos.moduleindex:=hmodule.moduleid;
+                compiler.globals.current_tokenpos:=compiler.globals.current_filepos;
                 if parser.pbase.parse_generic then
                   begin
                     recordbuf:=current_scanner.recordtokenbuf;
@@ -2135,7 +2135,7 @@ uses
                     else
                       ttypesym(result.typesym).fprettyname:=prettyname;
                   end;
-                current_filepos:=oldcurrent_filepos;
+                compiler.globals.current_filepos:=oldcurrent_filepos;
 
                 { Note regarding hint directives:
                   There is no need to remove the flags for them from the
@@ -2984,14 +2984,14 @@ uses
           begin
             if not assigned(tprocdef(def.genericdef).generictokenbuf) then
               internalerror(2015061902);
-            oldcurrent_filepos:=current_filepos;
-            current_filepos:=tprocdef(def.genericdef).fileinfo;
+            oldcurrent_filepos:=compiler.globals.current_filepos;
+            compiler.globals.current_filepos:=tprocdef(def.genericdef).fileinfo;
             { use the index the module got from the current compilation process }
-            current_filepos.moduleindex:=hmodule.moduleid;
-            compiler.globals.current_tokenpos:=current_filepos;
+            compiler.globals.current_filepos.moduleindex:=hmodule.moduleid;
+            compiler.globals.current_tokenpos:=compiler.globals.current_filepos;
             current_scanner.startreplaytokens(tprocdef(def.genericdef).generictokenbuf,hmodule.change_endian);
             parser.psub.read_proc_body(def);
-            current_filepos:=oldcurrent_filepos;
+            compiler.globals.current_filepos:=oldcurrent_filepos;
           end
         { synthetic routines will be implemented afterwards }
         else if def.synthetickind=tsk_none then

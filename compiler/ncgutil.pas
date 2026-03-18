@@ -242,8 +242,8 @@ implementation
          hlcg:=compiler.hlcg;
          if tnf_error in p.transientflags then
            exit;
-         storepos:=current_filepos;
-         current_filepos:=p.fileinfo;
+         storepos:=compiler.globals.current_filepos;
+         compiler.globals.current_filepos:=p.fileinfo;
          if is_boolean(p.resultdef) then
            begin
               if is_constboolnode(p) then
@@ -347,7 +347,7 @@ implementation
            end
          else
            internalerror(200112305);
-         current_filepos:=storepos;
+         compiler.globals.current_filepos:=storepos;
       end;
 
 

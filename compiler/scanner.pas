@@ -1705,7 +1705,7 @@ type
                 hmodule:=find_module_from_symtable(srsym.Owner);
                 if not Assigned(hmodule) then
                   internalerror(201001120);
-                if hmodule.moduleid=current_filepos.moduleindex then
+                if hmodule.moduleid=compiler.globals.current_filepos.moduleindex then
                   begin
                     preproc_consume(_POINT);
                     current_scanner.skipspace;
@@ -1964,7 +1964,7 @@ type
                     { this like 'include' }
                     if (length(name)>=1) and
                        (name[1]='*') then
-                      name:=ChangeFileExt(current_module.sourcefiles.get_file_name(current_filepos.fileindex),'')+ExtractFileExt(name);
+                      name:=ChangeFileExt(current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex),'')+ExtractFileExt(name);
 
                     { try to find the file, this like 'include' }
                     found:=findincludefile(path,name,foundfile);
@@ -2882,12 +2882,12 @@ type
                  macroIsString:=false;
                end;
              'FILE':
-               hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex);
+               hs:=current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex);
              'LINE':
-               hs:=tostr(current_filepos.line);
+               hs:=tostr(compiler.globals.current_filepos.line);
              'LINENUM':
                begin
-                 hs:=tostr(current_filepos.line);
+                 hs:=tostr(compiler.globals.current_filepos.line);
                  macroIsString:=false;
                end;
              'FPCVERSION':
@@ -2922,7 +2922,7 @@ type
              by the file name of the current source file.  }
            if (length(name)>=1) and
               (name[1]='*') then
-             name:=ChangeFileExt(current_module.sourcefiles.get_file_name(current_filepos.fileindex),'')+ExtractFileExt(name);
+             name:=ChangeFileExt(current_module.sourcefiles.get_file_name(compiler.globals.current_filepos.fileindex),'')+ExtractFileExt(name);
 
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
@@ -3947,7 +3947,7 @@ type
                 if (ord(specialtoken) and $80)<>0 then
                   begin
                       compiler.globals.current_tokenpos.column:=ord(specialtoken) and $7f;
-                      current_filepos:=compiler.globals.current_tokenpos;
+                      compiler.globals.current_filepos:=compiler.globals.current_tokenpos;
                   end
                 else
                   case specialtoken of
@@ -4006,17 +4006,17 @@ type
                     ST_LINE:
                       begin
                         compiler.globals.current_tokenpos.line:=tokenreadlongint;
-                        current_filepos:=compiler.globals.current_tokenpos;
+                        compiler.globals.current_filepos:=compiler.globals.current_tokenpos;
                       end;
                     ST_COLUMN:
                       begin
                         compiler.globals.current_tokenpos.column:=tokenreadword;
-                        current_filepos:=compiler.globals.current_tokenpos;
+                        compiler.globals.current_filepos:=compiler.globals.current_tokenpos;
                       end;
                     ST_FILEINDEX:
                       begin
                         compiler.globals.current_tokenpos.fileindex:=tokenreadword;
-                        current_filepos:=compiler.globals.current_tokenpos;
+                        compiler.globals.current_filepos:=compiler.globals.current_tokenpos;
                       end;
                   end;
                 continue;
@@ -4049,7 +4049,7 @@ type
         with inputfile do
          begin
            { when nothing more to read then leave immediately, so we
-             don't change the current_filepos and leave it point to the last
+             don't change the compiler.globals.current_filepos and leave it point to the last
              char }
            if (c=#26) and (not assigned(next)) then
             exit;
@@ -4135,7 +4135,7 @@ type
              else
               begin
                 wasmacro:=inputfile.is_macro;
-              { load eof position in tokenpos/current_filepos }
+              { load eof position in tokenpos/compiler.globals.current_filepos }
                 gettokenpos;
               { close file }
                 closeinputfile;
@@ -4240,7 +4240,7 @@ type
     { load the values of tokenpos and lasttokenpos }
       begin
         do_gettokenpos(lasttokenpos,compiler.globals.current_tokenpos);
-        current_filepos:=compiler.globals.current_tokenpos;
+        compiler.globals.current_filepos:=compiler.globals.current_tokenpos;
       end;
 
 
@@ -4258,7 +4258,7 @@ type
         nexttoken:=NOTOKEN;
         lasttokenpos:=nexttokenpos;
         compiler.globals.current_tokenpos:=next_filepos;
-        current_filepos:=compiler.globals.current_tokenpos;
+        compiler.globals.current_filepos:=compiler.globals.current_tokenpos;
         nexttokenpos:=0;
       end;
 
@@ -4268,7 +4268,7 @@ type
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         oldlasttokenpos:=lasttokenpos;
-        oldcurrent_filepos:=current_filepos;
+        oldcurrent_filepos:=compiler.globals.current_filepos;
         oldcurrent_tokenpos:=compiler.globals.current_tokenpos;
       end;
 
@@ -4278,7 +4278,7 @@ type
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         lasttokenpos:=oldlasttokenpos;
-        current_filepos:=oldcurrent_filepos;
+        compiler.globals.current_filepos:=oldcurrent_filepos;
         compiler.globals.current_tokenpos:=oldcurrent_tokenpos;
       end;
 
@@ -4357,7 +4357,7 @@ type
            if cs_asm_source in current_settings.globalswitches then
              inputfile.setline(line_no,lastlinepos);
            { update for status and call the show status routine,
-             but don't touch current_filepos ! }
+             but don't touch compiler.globals.current_filepos ! }
            savetokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
@@ -4446,7 +4446,7 @@ type
         preprocstack:=tpreprocstack.create(atyp, condition, preprocstack);
         preprocstack.name:=valuedescr;
         preprocstack.line_nb:=line_no;
-        preprocstack.fileindex:=current_filepos.fileindex;
+        preprocstack.fileindex:=compiler.globals.current_filepos.fileindex;
         if preprocstack.accept then
           compiler.verbose.Message2(messid,preprocstack.name,'accepted')
         else
@@ -4468,7 +4468,7 @@ type
            preprocstack.iftyp:=preprocstack.typ;
            preprocstack.typ:=pp_else;
            preprocstack.line_nb:=line_no;
-           preprocstack.fileindex:=current_filepos.fileindex;
+           preprocstack.fileindex:=compiler.globals.current_filepos.fileindex;
            if preprocstack.accept then
             compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
@@ -4506,7 +4506,7 @@ type
                end;
 
            preprocstack.line_nb:=line_no;
-           preprocstack.fileindex:=current_filepos.fileindex;
+           preprocstack.fileindex:=compiler.globals.current_filepos.fileindex;
            if preprocstack.accept then
              compiler.verbose.Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
@@ -5740,8 +5740,8 @@ type
             Illegal_Char(c)
           else
             begin
-              multiline_start_line:=current_filepos.line;
-              multiline_start_column:=current_filepos.column;
+              multiline_start_line:=compiler.globals.current_filepos.line;
+              multiline_start_column:=compiler.globals.current_filepos.column;
             end;
         end;
       len:=0;
@@ -5911,8 +5911,8 @@ type
                             begin
                             style:=qsMultiQuote;
                             init_quote_count:=quote_count;
-                            multiline_start_line:=current_filepos.line;
-                            multiline_start_column:=current_filepos.column;
+                            multiline_start_line:=compiler.globals.current_filepos.line;
+                            multiline_start_column:=compiler.globals.current_filepos.column;
                             in_multiline_string:=true;
                             had_multiline_string:=true;
                             trimcount:=0;

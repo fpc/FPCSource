@@ -25,7 +25,7 @@ unit ppheap;
 
 interface
 
-    uses heaptrc;
+    uses heaptrc,compilerbase;
 
     { call this function before any memory allocation
       in a unit initialization code (PM) }
@@ -38,7 +38,7 @@ interface
 implementation
 
     uses
-       cutils,globtype,globals,fmodule;
+       cutils,globtype,globals,fmodule,compiler;
 
 {*****************************************************************************
                             Filename registration
@@ -119,15 +119,17 @@ implementation
       end;
 
     procedure set_extra_info(p : pointer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         with pextra_info(p)^ do
          begin
-           line:=current_filepos.line;
-           col:=current_filepos.column;
+           line:=compiler.globals.current_filepos.line;
+           col:=compiler.globals.current_filepos.column;
            if assigned(current_module) then
-            fileindex:=current_module.moduleid*100000+current_filepos.fileindex
+            fileindex:=current_module.moduleid*100000+compiler.globals.current_filepos.fileindex
            else
-            fileindex:=current_filepos.fileindex;
+            fileindex:=compiler.globals.current_filepos.fileindex;
          end;
       end;
 

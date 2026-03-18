@@ -328,7 +328,7 @@ implementation
         if (Insentry=nil) and (InsSize=-1) then
           exit;
         { set the file position }
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
 
         { Get InsEntry }
         if FindInsEntry(objdata) then

@@ -1355,7 +1355,7 @@ implementation
                  cg.a_label(current_asmdata.CurrAsmList,blocklabel);
                  secondpass(statement);
                  { don't come back to case line }
-                 current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
+                 compiler.globals.current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
                  hlcg.a_jmp_always(current_asmdata.CurrAsmList,endlabel);
                end;
            end;

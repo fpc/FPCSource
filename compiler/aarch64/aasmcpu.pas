@@ -1705,7 +1705,7 @@ implementation
     procedure taicpu.Pass2(objdata:TObjData);
       begin
         { error in pass1 ? }
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
         { Generate the instruction }
         { GenCode(objdata); }
       end;

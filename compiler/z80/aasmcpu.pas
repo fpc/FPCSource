@@ -409,7 +409,7 @@ implementation
         if (Insentry=nil) or (opcode=A_JRJP) then
          begin
            { set the file position }
-           current_filepos:=fileinfo;
+           compiler.globals.current_filepos:=fileinfo;
          end
         else
          begin
@@ -1185,7 +1185,7 @@ implementation
         if (Insentry=nil) and (InsSize=-1) then
           exit;
         { set the file position }
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
         { Get InsEntry }
         if FindInsEntry(ObjData) then
           begin
@@ -1204,7 +1204,7 @@ implementation
         { error in pass1 ? }
         if insentry=nil then
          exit;
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
         { Generate the instruction }
         GenCode(objdata);
       end;

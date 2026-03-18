@@ -1315,15 +1315,15 @@ implementation
                     end
                   else
                     begin
-                      oldfileposinfo:=current_filepos;
+                      oldfileposinfo:=compiler.globals.current_filepos;
                       if pd.owner.iscurrentunit then
-                        current_filepos:=pd.fileinfo
+                        compiler.globals.current_filepos:=pd.fileinfo
                       else
                         begin
-                          current_filepos.moduleindex:=current_module.moduleid;
-                          current_filepos.fileindex:=1;
-                          current_filepos.line:=1;
-                          current_filepos.column:=1;
+                          compiler.globals.current_filepos.moduleindex:=current_module.moduleid;
+                          compiler.globals.current_filepos.fileindex:=1;
+                          compiler.globals.current_filepos.line:=1;
+                          compiler.globals.current_filepos.column:=1;
                         end;
                       { create wrapper code }
                       tmplist:=tasmlist.create;
@@ -1339,7 +1339,7 @@ implementation
                       list.concatlist(tmplist);
                       tmplist.Free;
                       tmplist := nil;
-                      current_filepos:=oldfileposinfo;
+                      compiler.globals.current_filepos:=oldfileposinfo;
                     end;
                   end;
               end;

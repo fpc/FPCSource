@@ -1197,7 +1197,7 @@ implementation
                  (aprocdef.parast.symtablelevel<=current_procinfo.procdef.parast.symtablelevel) and
                  (aprocdef.parast.symtablelevel>normal_function_level) and
                  (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-               current_procinfo.add_captured_sym(sym,aprocdef,current_filepos);
+               current_procinfo.add_captured_sym(sym,aprocdef,compiler.globals.current_filepos);
 
              { generate a methodcallnode or proccallnode }
              { we shouldn't convert things like @tcollection.load }
@@ -1905,7 +1905,7 @@ implementation
                   begin
                     if assigned(srsym) then
                       begin
-                        savedfilepos:=current_filepos;
+                        savedfilepos:=compiler.globals.current_filepos;
                         parser.pbase.consume(_ID);
                         if not (sp_generic_dummy in srsym.symoptions) or
                             not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
@@ -2677,7 +2677,7 @@ implementation
                              searchsym_in_record(structh,current_scanner.pattern,srsym,srsymtable);
                              if assigned(srsym) then
                                begin
-                                 old_current_filepos:=current_filepos;
+                                 old_current_filepos:=compiler.globals.current_filepos;
                                  parser.pbase.consume(_ID);
                                  if not (sp_generic_dummy in srsym.symoptions) or
                                      not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
@@ -2859,7 +2859,7 @@ implementation
                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                               if assigned(srsym) then
                                 begin
-                                  old_current_filepos:=current_filepos;
+                                  old_current_filepos:=compiler.globals.current_filepos;
                                   parser.pbase.consume(_ID);
                                   if not (sp_generic_dummy in srsym.symoptions) or
                                       not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
@@ -2913,7 +2913,7 @@ implementation
                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),current_scanner.pattern,srsym,srsymtable,[ssf_search_helper]);
                               if assigned(srsym) then
                                 begin
-                                   old_current_filepos:=current_filepos;
+                                   old_current_filepos:=compiler.globals.current_filepos;
                                    parser.pbase.consume(_ID);
                                    if not (sp_generic_dummy in srsym.symoptions) or
                                        not (current_scanner.token in [_LT,_LSHARPBRACKET]) then
@@ -3457,7 +3457,7 @@ implementation
            again:=true;
 
            { preinitalize tokenpos }
-           tokenpos:=current_filepos;
+           tokenpos:=compiler.globals.current_filepos;
            p1:=nil;
            spezcontext:=nil;
 
@@ -3488,7 +3488,7 @@ implementation
                storedpattern:=current_scanner.pattern;
                orgstoredpattern:=current_scanner.orgpattern;
                { store the position of the token before consuming it }
-               tokenpos:=current_filepos;
+               tokenpos:=compiler.globals.current_filepos;
                consumeid:=true;
                srsym:=nil;
                if ef_check_attr_suffix in flags then
@@ -3531,7 +3531,7 @@ implementation
                    storedpattern:=current_scanner.pattern;
                    orgstoredpattern:=current_scanner.orgpattern;
                    { store the position of the token before consuming it }
-                   tokenpos:=current_filepos;
+                   tokenpos:=compiler.globals.current_filepos;
                    parser.pbase.consume(t);
                  end;
                { named parameter support }
@@ -4445,7 +4445,7 @@ implementation
                  if (block_type=bt_body) and
                      (m_anonymous_functions in current_settings.modeswitches) then
                    begin
-                     filepos:=current_filepos;
+                     filepos:=compiler.globals.current_filepos;
                      oldprocvardef:=getprocvardef;
                      oldfuncrefdef:=getfuncrefdef;
                      getprocvardef:=nil;

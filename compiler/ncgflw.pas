@@ -296,10 +296,10 @@ implementation
 (*
                    if not(cs_opt_regvar in current_settings.optimizerswitches) then
 *)
-                     current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^
+                     compiler.globals.current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^
 (*
                    else
-                     current_filepos:=then_list.getlasttaifilepos^
+                     compiler.globals.current_filepos:=then_list.getlasttaifilepos^
 *)
                    ;
                    hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);

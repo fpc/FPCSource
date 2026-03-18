@@ -546,7 +546,7 @@ implementation
         oldpos: tfileposinfo;
       begin
         // handle calling conventions of record methods
-        oldpos:=current_filepos;
+        oldpos:=compiler.globals.current_filepos;
         { don't keep track of procdefs in a separate list, because the
           compiler may add additional procdefs (e.g. property wrappers for
           the jvm backend) }
@@ -555,10 +555,10 @@ implementation
             pd:=tdef(astruct.symtable.deflist[i]);
             if pd.typ<>procdef then
               continue;
-            current_filepos:=tprocdef(pd).fileinfo;
+            compiler.globals.current_filepos:=tprocdef(pd).fileinfo;
             handle_calling_convention(tprocdef(pd),[hcc_declaration,hcc_insert_hidden_paras]);
           end;
-        current_filepos:=oldpos;
+        compiler.globals.current_filepos:=oldpos;
       end;
 
 

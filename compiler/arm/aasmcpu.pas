@@ -2158,7 +2158,7 @@ implementation
         if (Insentry=nil) and (InsSize=-1) then
           exit;
         { set the file position }
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
 
         { translate LDR+postfix to complete opcode }
         if (opcode=A_LDR) and (oppostfix=PF_D) then
@@ -2215,7 +2215,7 @@ implementation
         { error in pass1 ? }
         if insentry=nil then
          exit;
-        current_filepos:=fileinfo;
+        compiler.globals.current_filepos:=fileinfo;
         { Generate the instruction }
         GenCode(objdata);
       end;
@@ -2795,7 +2795,7 @@ implementation
 
            BuildArmMasks(objdata);
            { set the file position }
-           current_filepos:=fileinfo;
+           compiler.globals.current_filepos:=fileinfo;
          end
         else
          begin

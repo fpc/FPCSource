@@ -557,8 +557,8 @@ implementation
                 end;
               if compiler.verbose.codegenerror then
                break;
-              oldfilepos:=current_filepos;
-              current_filepos:=p2.fileinfo;
+              oldfilepos:=compiler.globals.current_filepos;
+              compiler.globals.current_filepos:=p2.fileinfo;
               case p2.resultdef.typ of
                 enumdef,
                 orddef:
@@ -581,7 +581,7 @@ implementation
                              inserttypeconv(p3,cansichartype,compiler);
                            if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
                              begin
-                               current_filepos:=p3.fileinfo;
+                               compiler.globals.current_filepos:=p3.fileinfo;
                                incompatibletypes(cwidechartype,cansichartype);
                              end;
                          end;
@@ -687,7 +687,7 @@ implementation
               tarrayconstructornode(p2).right:=nil;
               if freep then
                 p2.free; // no nil needed
-              current_filepos:=oldfilepos;
+              compiler.globals.current_filepos:=oldfilepos;
               first:=false;
             end;
           if (hdef=nil) then

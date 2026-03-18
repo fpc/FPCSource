@@ -2691,7 +2691,7 @@ implementation
           fcunode.addenum('language','DW_LANG_C_plus_plus')
         else
           fcunode.addenum('language','DW_LANG_Pascal83');
-        fcunode.addmetadatarefto('file',file_getmetanode(current_filepos.moduleindex,current_filepos.fileindex));
+        fcunode.addmetadatarefto('file',file_getmetanode(compiler.globals.current_filepos.moduleindex,compiler.globals.current_filepos.fileindex));
         fcunode.addstring('producer','Free Pascal Compiler '+full_version_string);
         fcunode.addboolean('isOptimized',cs_opt_level2 in current_settings.optimizerswitches);
         if compiler.target.info.system in systems_objc_supported then
@@ -2766,8 +2766,8 @@ implementation
         vardatatype: ttypesym;
       begin
         ensuremetainit;
-        storefilepos:=current_filepos;
-        current_filepos:=current_module.mainfilepos;
+        storefilepos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=current_module.mainfilepos;
 
         vardatatype:=try_search_system_type('TVARDATA');
         if assigned(vardatatype) then
@@ -2811,7 +2811,7 @@ implementation
               def.dbg_state:=dbg_state_unused;
           end;
 
-        current_filepos:=storefilepos;
+        compiler.globals.current_filepos:=storefilepos;
       end;
 
 

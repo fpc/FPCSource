@@ -570,7 +570,7 @@ unit agz80vasm;
             begin
               previnfile:=lastinfile;
               prevfileinfo:=lastfileinfo;
-              current_filepos:=tailineinfo(hp).fileinfo;
+              compiler.globals.current_filepos:=tailineinfo(hp).fileinfo;
 
               { no line info for inlined code }
               if do_line and (inlinelevel=0) then
@@ -579,7 +579,7 @@ unit agz80vasm;
                  (previnfile<>lastinfile) then
                 begin
                   { +0 postfix means no line increment per assembler instruction }
-                  writer.AsmWrite('%LINE '+tostr(current_filepos.line)+'+0');
+                  writer.AsmWrite('%LINE '+tostr(compiler.globals.current_filepos.line)+'+0');
                   if assigned(lastinfile) and ((previnfile<>lastinfile) or NewObject) then
                     writer.AsmWriteLn(' '+lastinfile.name)
                   else

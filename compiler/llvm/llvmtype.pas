@@ -722,8 +722,8 @@ implementation
       begin
         if cs_no_regalloc in current_settings.globalswitches then
           exit;
-        storefilepos:=current_filepos;
-        current_filepos:=current_module.mainfilepos;
+        storefilepos:=compiler.globals.current_filepos;
+        compiler.globals.current_filepos:=current_module.mainfilepos;
 
         defnumberlist:=TFPObjectList.create(false);
         deftowritelist:=TFPObjectList.create(false);
@@ -774,7 +774,7 @@ implementation
         deftowritelist.free;
         deftowritelist:=nil;
 
-        current_filepos:=storefilepos;
+        compiler.globals.current_filepos:=storefilepos;
       end;
 
 
