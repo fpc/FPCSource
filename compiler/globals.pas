@@ -301,7 +301,6 @@ Const
 
 
     var
-       RelocSectionSetExplicitly : boolean;
 
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
@@ -725,6 +724,7 @@ Const
 
         MacOSXVersionMin,
         iPhoneOSVersionMin: tversion;
+        RelocSectionSetExplicitly : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1818,7 +1818,7 @@ implementation
         compiler.globals.UseDeffileForExportsSetExplicitly:=false;
         compiler.globals.GenerateImportSection:=false;
         compiler.globals.RelocSection:=false;
-        RelocSectionSetExplicitly:=false;
+        compiler.globals.RelocSectionSetExplicitly:=false;
         compiler.globals.MacOSXVersionMin.invalidate;
         compiler.globals.iPhoneOSVersionMin.invalidate;
         { memory sizes, will be overridden by parameter or default for target

@@ -1996,7 +1996,7 @@ type
          if not (tf_supports_packages in compiler.target.info.flags) then
            compiler.verbose.Message1(parser_e_packages_not_supported,compiler.target.info.name);
 
-         if not RelocSectionSetExplicitly then
+         if not compiler.globals.RelocSectionSetExplicitly then
            compiler.globals.RelocSection:=true;
 
          { Relocation works only without stabs under Windows when }
@@ -2983,7 +2983,7 @@ type
          { DLL defaults to create reloc info }
          if islibrary or (compiler.target.info.system in [system_aarch64_win64]) then
            begin
-             if not RelocSectionSetExplicitly then
+             if not compiler.globals.RelocSectionSetExplicitly then
                compiler.globals.RelocSection:=true;
            end;
 
