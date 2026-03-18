@@ -301,7 +301,6 @@ Const
 
 
     var
-       GenerateImportSection,
        GenerateImportSectionSetExplicitly,
        RelocSection : boolean;
 
@@ -725,6 +724,7 @@ Const
         imagebase     : puint;
         UseDeffileForExports    : boolean;
         UseDeffileForExportsSetExplicitly : boolean;
+        GenerateImportSection : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1816,7 +1816,7 @@ implementation
         nwcopyright  := '';
         compiler.globals.UseDeffileForExports:=false;
         compiler.globals.UseDeffileForExportsSetExplicitly:=false;
-        GenerateImportSection:=false;
+        compiler.globals.GenerateImportSection:=false;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         MacOSXVersionMin.invalidate;

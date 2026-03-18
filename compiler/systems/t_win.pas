@@ -618,7 +618,7 @@ implementation
 
     procedure TImportLibWin.generatelib;
       begin
-        if GenerateImportSection then
+        if compiler.globals.GenerateImportSection then
           generateidatasection
         else
           generateimportlib;

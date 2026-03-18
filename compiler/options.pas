@@ -4047,7 +4047,7 @@ begin
          begin
            if compiler.target.info.system in systems_all_windows then
              begin
-               GenerateImportSection:=not UnsetBool(More,j,opt,false);
+               compiler.globals.GenerateImportSection:=not UnsetBool(More,j,opt,false);
                GenerateImportSectionSetExplicitly:=true;
              end
            else
@@ -5968,7 +5968,7 @@ begin
 {$endif}
 
   { Section smartlinking conflicts with import sections on Windows }
-  if GenerateImportSection and
+  if compiler.globals.GenerateImportSection and
      (compiler.target.info.system in [system_i386_win32,system_x86_64_win64,system_aarch64_win64]) then
     compiler.target.set_target_flags(compiler.target.info.flags-[tf_smartlink_sections]);
 
