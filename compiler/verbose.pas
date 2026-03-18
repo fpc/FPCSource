@@ -60,7 +60,7 @@ interface
         procedure MaybeLoadMessageFile;
         Procedure UpdateStatus(const filepos : tfileposinfo);
         function GetMessageState(m:longint):tmsgstate;
-        Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
+        Procedure Msg2Comment(s:ansistring;w:longint;const filepos : tfileposinfo;onqueue:tmsgqueueevent);
 
         procedure InitVerbose;
         procedure DoneVerbose;
@@ -672,9 +672,7 @@ implementation
         { todo }
       end;
 
-    Procedure TVerbose.Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    Procedure TVerbose.Msg2Comment(s:ansistring;w:longint;const filepos : tfileposinfo;onqueue:tmsgqueueevent);
       var
         idx,i,v : longint;
         dostop  : boolean;
@@ -780,7 +778,7 @@ implementation
         if (v and V_LineInfoMask)<>0 then
           v:=v or V_LineInfo;
       { fix status }
-        UpdateStatus(compiler.globals.current_filepos);
+        UpdateStatus(filepos);
       { Fix replacements }
         DefaultReplacements(s,false);
         if status.showmsgnrs and ((v and V_Normal)=0) then
@@ -810,108 +808,83 @@ implementation
 
 
     procedure TVerbose.Message(w:longint;onqueue:tmsgqueueevent=nil);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[]),w,onqueue);
+        Msg2Comment(msg^.Get(w,[]),w,compiler.globals.current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1]),w,onqueue);
+        Msg2Comment(msg^.Get(w,[s1]),w,compiler.globals.current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2]),w,onqueue);
+        Msg2Comment(msg^.Get(w,[s1,s2]),w,compiler.globals.current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
+        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,compiler.globals.current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message4(w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,onqueue);
+        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,compiler.globals.current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.MessagePos(const pos:tfileposinfo;w:longint;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
-        oldpos : tfileposinfo;
       begin
-        oldpos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[]),w,onqueue);
-        compiler.globals.current_filepos:=oldpos;
+        Msg2Comment(msg^.Get(w,[]),w,pos,onqueue);
       end;
 
 
     procedure TVerbose.MessagePos1(const pos:tfileposinfo;w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
-        oldpos : tfileposinfo;
       begin
-        oldpos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1]),w,onqueue);
-        compiler.globals.current_filepos:=oldpos;
+        Msg2Comment(msg^.Get(w,[s1]),w,pos,onqueue);
       end;
 
 
     procedure TVerbose.MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
-        oldpos : tfileposinfo;
       begin
-        oldpos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2]),w,onqueue);
-        compiler.globals.current_filepos:=oldpos;
+        Msg2Comment(msg^.Get(w,[s1,s2]),w,pos,onqueue);
       end;
 
 
     procedure TVerbose.MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
-        oldpos : tfileposinfo;
       begin
-        oldpos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
-        compiler.globals.current_filepos:=oldpos;
+        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,pos,onqueue);
       end;
 
 
     procedure TVerbose.MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
-        oldpos : tfileposinfo;
       begin
-        oldpos:=compiler.globals.current_filepos;
-        compiler.globals.current_filepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,onqueue);
-        compiler.globals.current_filepos:=oldpos;
+        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,pos,onqueue);
       end;
 
 
