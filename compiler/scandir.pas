@@ -1976,15 +1976,15 @@ unit scandir;
                           compiler.verbose.Message1(scan_w_wrong_version_ignored,tostr(revision)+'.'+current_scanner.pattern);
                           exit;
                        end;
-                     dllmajor:=word(major);
-                     dllminor:=word(minor);
-                     dllrevision:=word(revision);
+                     compiler.globals.dllmajor:=word(major);
+                     compiler.globals.dllminor:=word(minor);
+                     compiler.globals.dllrevision:=word(revision);
                      compiler.globals.dllversion:=tostr(major)+','+tostr(minor)+','+tostr(revision);
                   end
                 else
                   begin
-                     dllmajor:=word(major);
-                     dllminor:=word(minor);
+                     compiler.globals.dllmajor:=word(major);
+                     compiler.globals.dllminor:=word(minor);
                      compiler.globals.dllversion:=tostr(major)+'.'+tostr(minor);
                   end;
               end

@@ -301,9 +301,6 @@ Const
 
 
     var
-       dllmajor,
-       dllminor,
-       dllrevision   : word;  { revision only for netware }
        { win pe  }
        peosversionminor,
        peosversionmajor,
@@ -725,6 +722,9 @@ Const
         MaxStackSizeSetExplicity,
         DescriptionSetExplicity : boolean;
         dllversion    : string;
+        dllmajor,
+        dllminor,
+        dllrevision   : word;  { revision only for netware }
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1808,9 +1808,9 @@ implementation
         compiler.globals.MaxStackSizeSetExplicity:=false;
 
         compiler.globals.dllversion:='';
-        dllmajor:=1;
-        dllminor:=0;
-        dllrevision:=0;
+        compiler.globals.dllmajor:=1;
+        compiler.globals.dllminor:=0;
+        compiler.globals.dllrevision:=0;
         nwscreenname := '';
         nwthreadname := '';
         nwcopyright  := '';

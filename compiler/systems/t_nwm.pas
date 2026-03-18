@@ -301,7 +301,7 @@ begin
   end;
   if Description <> '' then
     NLMConvLinkFile.Add('DESCRIPTION "' + Description + '"');
-  NLMConvLinkFile.Add('VERSION '+tostr(dllmajor)+','+tostr(dllminor)+','+tostr(dllrevision));
+  NLMConvLinkFile.Add('VERSION '+tostr(compiler.globals.dllmajor)+','+tostr(compiler.globals.dllminor)+','+tostr(compiler.globals.dllrevision));
 
   p := Pos ('"', nwscreenname);
   while (p > 0) do
@@ -912,7 +912,7 @@ end;
               if nwthreadname <> '' then
                 Concat('THREADNAME "'+nwthreadname+'"');
             if not hasVersion then
-              Concat('VERSION '+tostr(dllmajor)+' '+tostr(dllminor)+' '+tostr(dllrevision));
+              Concat('VERSION '+tostr(compiler.globals.dllmajor)+' '+tostr(compiler.globals.dllminor)+' '+tostr(compiler.globals.dllrevision));
             if not hasDescription then
               if description <> '' then
                 Concat ('DESCRIPTION "'+description+'"');

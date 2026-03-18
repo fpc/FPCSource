@@ -3333,8 +3333,8 @@ const pemagic : array[0..3] of byte = (
               end
             else
               begin
-                peoptheader.MajorImageVersion:=dllmajor;
-                peoptheader.MinorImageVersion:=dllminor;
+                peoptheader.MajorImageVersion:=compiler.globals.dllmajor;
+                peoptheader.MinorImageVersion:=compiler.globals.dllminor;
               end;
             if compiler.globals.SetPESubSysVersionSetExplicitely then
               begin

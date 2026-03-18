@@ -2996,26 +2996,26 @@ begin
            include(init_settings.globalswitches,cs_link_deffile);
            compiler.globals.dllversion:=Copy(more,j+1);
            l:=pos('.',compiler.globals.dllversion);
-           dllminor:=0;
+           compiler.globals.dllminor:=0;
            error:=0;
            if l>0 then
             begin
               val(copy(compiler.globals.dllversion,l+1,255),minor,error);
               if (error=0) and
                  (minor>=0) and (minor<=$ffff) then
-                dllminor:=minor
+                compiler.globals.dllminor:=minor
               else
                 if error=0 then
                   error:=1;
             end;
            if l=0 then
              l:=256;
-           dllmajor:=1;
+           compiler.globals.dllmajor:=1;
            major:=0;
            if error=0 then
              val(copy(compiler.globals.dllversion,1,l-1),major,error);
            if (error=0) and (major>=0) and (major<=$ffff) then
-             dllmajor:=major
+             compiler.globals.dllmajor:=major
            else
              if error=0 then
                error:=1;

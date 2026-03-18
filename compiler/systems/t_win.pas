@@ -1738,8 +1738,8 @@ implementation
           end;
         if compiler.globals.dllversion<>'' then
           begin
-           peoptheader.MajorImageVersion:=dllmajor;
-           peoptheader.MinorImageVersion:=dllminor;
+           peoptheader.MajorImageVersion:=compiler.globals.dllmajor;
+           peoptheader.MinorImageVersion:=compiler.globals.dllminor;
           end;
         { reset timestamp }
         peheader.time:=0;
