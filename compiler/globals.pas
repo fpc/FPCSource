@@ -301,13 +301,6 @@ Const
 
 
     var
-       { win pe  }
-       peosversionminor,
-       peosversionmajor,
-       pesubsysversionminor,
-       pesubsysversionmajor,
-       peuserversionminor,
-       peuserversionmajor : word;
        peoptflags,
        peflags : longint;
        minstacksize,
@@ -725,6 +718,13 @@ Const
         dllmajor,
         dllminor,
         dllrevision   : word;  { revision only for netware }
+        { win pe  }
+        peosversionminor,
+        peosversionmajor,
+        pesubsysversionminor,
+        pesubsysversionmajor,
+        peuserversionminor,
+        peuserversionmajor : word;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

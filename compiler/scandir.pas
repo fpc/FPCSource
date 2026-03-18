@@ -1747,7 +1747,7 @@ unit scandir;
         if (not current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
-          do_version(peuserversionmajor,peuserversionminor,dummyrev,dummystr,false,compiler.globals.SetPEUserVersionSetExplicitely);
+          do_version(compiler.globals.peuserversionmajor,compiler.globals.peuserversionminor,dummyrev,dummystr,false,compiler.globals.SetPEUserVersionSetExplicitely);
       end;
 
     procedure dir_setpeosversion;
@@ -1762,7 +1762,7 @@ unit scandir;
         if (not current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
-          do_version(peosversionmajor,peosversionminor,dummyrev,dummystr,false,compiler.globals.SetPEOSVersionSetExplicitely);
+          do_version(compiler.globals.peosversionmajor,compiler.globals.peosversionminor,dummyrev,dummystr,false,compiler.globals.SetPEOSVersionSetExplicitely);
       end;
 
     procedure dir_setpesubsysversion;
@@ -1777,7 +1777,7 @@ unit scandir;
         if (not current_module.is_initial) then
           compiler.verbose.Message(scan_n_only_exe_version)
         else
-          do_version(pesubsysversionmajor,pesubsysversionminor,dummyrev,dummystr,false,compiler.globals.SetPESubSysVersionSetExplicitely);
+          do_version(compiler.globals.pesubsysversionmajor,compiler.globals.pesubsysversionminor,dummyrev,dummystr,false,compiler.globals.SetPESubSysVersionSetExplicitely);
       end;
 
     procedure dir_smartlink;

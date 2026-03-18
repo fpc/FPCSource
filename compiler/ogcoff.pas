@@ -3318,8 +3318,8 @@ const pemagic : array[0..3] of byte = (
             peoptheader.FileAlignment:=SectionDataAlign;
             if compiler.globals.SetPEOSVersionSetExplicitely then
               begin
-                peoptheader.MajorOperatingSystemVersion:=peosversionmajor;
-                peoptheader.MinorOperatingSystemVersion:=peosversionminor;
+                peoptheader.MajorOperatingSystemVersion:=compiler.globals.peosversionmajor;
+                peoptheader.MinorOperatingSystemVersion:=compiler.globals.peosversionminor;
               end
             else
               begin
@@ -3328,8 +3328,8 @@ const pemagic : array[0..3] of byte = (
               end;
             if compiler.globals.SetPEUserVersionSetExplicitely then
               begin
-                peoptheader.MajorImageVersion:=peuserversionmajor;
-                peoptheader.MinorImageVersion:=peuserversionminor;
+                peoptheader.MajorImageVersion:=compiler.globals.peuserversionmajor;
+                peoptheader.MinorImageVersion:=compiler.globals.peuserversionminor;
               end
             else
               begin
@@ -3338,8 +3338,8 @@ const pemagic : array[0..3] of byte = (
               end;
             if compiler.globals.SetPESubSysVersionSetExplicitely then
               begin
-                peoptheader.MajorSubsystemVersion:=pesubsysversionmajor;
-                peoptheader.MinorSubsystemVersion:=pesubsysversionminor;
+                peoptheader.MajorSubsystemVersion:=compiler.globals.pesubsysversionmajor;
+                peoptheader.MinorSubsystemVersion:=compiler.globals.pesubsysversionminor;
               end
             else
               begin
