@@ -917,7 +917,7 @@ unit scandir;
         if not (compiler.target.info.system in (systems_windows+systems_wince)) then
           compiler.verbose.Message(scan_w_maxstacksize_not_support);
         current_scanner.skipspace;
-        maxstacksize:=current_scanner.readval;
+        compiler.globals.maxstacksize:=current_scanner.readval;
         compiler.globals.MaxStackSizeSetExplicity:=true;
       end;
 

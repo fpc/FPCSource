@@ -3381,7 +3381,7 @@ const pemagic : array[0..3] of byte = (
             if compiler.globals.MinStackSizeSetExplicity then
               peoptheader.SizeOfStackCommit:=compiler.globals.minstacksize;
             if compiler.globals.MaxStackSizeSetExplicity then
-              peoptheader.SizeOfStackReserve:=maxstacksize;
+              peoptheader.SizeOfStackReserve:=compiler.globals.maxstacksize;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;

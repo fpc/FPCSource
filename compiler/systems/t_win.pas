@@ -1717,7 +1717,7 @@ implementation
         if compiler.globals.MinStackSizeSetExplicity then
           peoptheader.SizeOfStackCommit:=compiler.globals.minstacksize;
         if compiler.globals.MaxStackSizeSetExplicity then
-          peoptheader.SizeOfStackReserve:=maxstacksize;
+          peoptheader.SizeOfStackReserve:=compiler.globals.maxstacksize;
         { change the header }
         { sub system }
         { gui=2 }

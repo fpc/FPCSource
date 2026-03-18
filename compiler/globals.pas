@@ -301,7 +301,6 @@ Const
 
 
     var
-       maxstacksize,
        imagebase     : puint;
        UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
@@ -724,7 +723,8 @@ Const
         peuserversionmajor : word;
         peoptflags,
         peflags : longint;
-        minstacksize     : puint;
+        minstacksize,
+        maxstacksize     : puint;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
