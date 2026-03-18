@@ -313,19 +313,19 @@ begin
     delete (compiler.globals.nwthreadname,p,1);
     p := Pos ('"', compiler.globals.nwthreadname);
   end;
-  p := Pos ('"', nwcopyright);
+  p := Pos ('"', compiler.globals.nwcopyright);
   while (p > 0) do
   begin
-    delete (nwcopyright,p,1);
-    p := Pos ('"', nwcopyright);
+    delete (compiler.globals.nwcopyright,p,1);
+    p := Pos ('"', compiler.globals.nwcopyright);
   end;
 
   if compiler.globals.nwscreenname <> '' then
     NLMConvLinkFile.Add('SCREENNAME "' + compiler.globals.nwscreenname + '"');
   if compiler.globals.nwthreadname <> '' then
     NLMConvLinkFile.Add('THREADNAME "' + compiler.globals.nwthreadname + '"');
-  if nwcopyright <> '' then
-    NLMConvLinkFile.Add('COPYRIGHT "' + nwcopyright + '"');
+  if compiler.globals.nwcopyright <> '' then
+    NLMConvLinkFile.Add('COPYRIGHT "' + compiler.globals.nwcopyright + '"');
 
   if stacksize < minStackSize then stacksize := minStackSize;
   str (stacksize, s);

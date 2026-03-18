@@ -546,7 +546,7 @@ unit scandir;
           {compiler.verbose.Message(scan_w_description_not_support);}
           compiler.verbose.comment (V_Warning,'Copyright only supported for target netware');
         current_scanner.skipspace;
-        nwcopyright:=current_scanner.readcomment;
+        compiler.globals.nwcopyright:=current_scanner.readcomment;
       end;
 
     procedure dir_error;

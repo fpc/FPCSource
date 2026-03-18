@@ -304,7 +304,6 @@ Const
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
-       nwcopyright  : string;
 
        codegenerror : boolean;           { true if there is an error reported }
        exception_raised : boolean;           { true if there is an exception reported }
@@ -725,6 +724,7 @@ Const
 
         nwscreenname : string;
         nwthreadname : string;
+        nwcopyright  : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1813,7 +1813,7 @@ implementation
         compiler.globals.dllrevision:=0;
         compiler.globals.nwscreenname := '';
         compiler.globals.nwthreadname := '';
-        nwcopyright  := '';
+        compiler.globals.nwcopyright  := '';
         compiler.globals.UseDeffileForExports:=false;
         compiler.globals.UseDeffileForExportsSetExplicitly:=false;
         compiler.globals.GenerateImportSection:=false;

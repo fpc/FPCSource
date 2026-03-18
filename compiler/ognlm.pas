@@ -606,7 +606,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         inc(optHdrSize,2+length(nlmThreadname));
 
         varHdrSize := 0;
-        if nwcopyright <> '' then
+        if compiler.globals.nwcopyright <> '' then
           inc(varHdrSize,sizeof(NLM_COPYRIGHT_STAMP)+2+length(nlmCopyright));
         hdrSize := sizeof(nlm32_i386_external_fixed_header)+
                    sizeof(nlm32_i386_external_extended_header)+
