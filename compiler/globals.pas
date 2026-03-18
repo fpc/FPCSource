@@ -308,7 +308,6 @@ Const
        // TODO: block_type should probably be moved to the scanner or parser
        block_type : tblock_type;         { type of currently parsed block }
 
-       exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
        current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
@@ -727,6 +726,9 @@ Const
 
         // TODO: exception_raised should probably be moved somewhere else (possible candidates: TVerbose, TParser, TCompiler)
         exception_raised : boolean;           { true if there is an exception reported }
+
+        // TODO: exceptblockcounter should probably be moved somewhere else
+        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

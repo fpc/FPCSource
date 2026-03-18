@@ -121,7 +121,7 @@ implementation
        { Restore all locally modified warning messages }
        compiler.verbose.RestoreLocalVerbosity(current_settings.pmessage);
        current_exceptblock:=0;
-       exceptblockcounter:=0;
+       compiler.globals.exceptblockcounter:=0;
 
        { Shut down things when the last file is compiled successful }
        if (module.is_initial) and (module.state=ms_compiled) and
@@ -527,7 +527,7 @@ implementation
          systemunit:=nil;
          current_settings.defproccall:=init_settings.defproccall;
          current_exceptblock:=0;
-         exceptblockcounter:=0;
+         compiler.globals.exceptblockcounter:=0;
          current_settings.maxfpuregisters:=-1;
          current_settings.pmessage:=nil;
 

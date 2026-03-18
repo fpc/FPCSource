@@ -903,7 +903,7 @@ implementation
               if (block_type<>bt_except) then
                 compiler.verbose.Message(parser_e_no_reraise_possible);
            end;
-         if (po_noreturn in current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
+         if (po_noreturn in current_procinfo.procdef.procoptions) and (compiler.globals.exceptblockcounter=0) then
            compiler.verbose.Message(parser_e_raise_with_noreturn_not_allowed);
          p:=compiler.craisenode(pobj,paddr,pframe);
          raise_statement:=p;
@@ -947,9 +947,9 @@ implementation
          parser.pbase.consume(_TRY);
          filepostry:=current_filepos;
          first:=nil;
-         inc(exceptblockcounter);
+         inc(compiler.globals.exceptblockcounter);
          oldcurrent_exceptblock := current_exceptblock;
-         current_exceptblock := exceptblockcounter;
+         current_exceptblock := compiler.globals.exceptblockcounter;
          old_block_type := block_type;
          block_type := bt_body;
 
@@ -973,8 +973,8 @@ implementation
 
          if parser.pbase.try_to_consume(_FINALLY) then
            begin
-              inc(exceptblockcounter);
-              current_exceptblock := exceptblockcounter;
+              inc(compiler.globals.exceptblockcounter);
+              current_exceptblock := compiler.globals.exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=compiler.ctryfinallynode(p_try_block,p_finally_block);
               try_statement.fileinfo:=filepostry;
@@ -983,8 +983,8 @@ implementation
            begin
               parser.pbase.consume(_EXCEPT);
               block_type:=bt_except;
-              inc(exceptblockcounter);
-              current_exceptblock := exceptblockcounter;
+              inc(compiler.globals.exceptblockcounter);
+              current_exceptblock := compiler.globals.exceptblockcounter;
               ot:=generrordef;
               p_specific:=nil;
               if (current_scanner.idtoken=_ON) then
