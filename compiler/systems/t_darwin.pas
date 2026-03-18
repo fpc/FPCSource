@@ -200,9 +200,9 @@ implementation
                           iOS 3.1 - 5.x: crt1.3.1.o
                           pre-iOS 3.1: crt1.o
                       }
-                      if iPhoneOSVersionMin.relationto(6,0,0)>=0 then
+                      if compiler.globals.iPhoneOSVersionMin.relationto(6,0,0)>=0 then
                         exit('');
-                      if iPhoneOSVersionMin.relationto(3,1,0)>=0 then
+                      if compiler.globals.iPhoneOSVersionMin.relationto(3,1,0)>=0 then
                         exit('crt1.3.1.o');
                     end;
                   system_i386_iphonesim,
@@ -213,7 +213,7 @@ implementation
                         What those recent versions could be, is anyone's guess. It
                         still seems to work with 8.1 and no longer with 8.3, so use
                         8.1 as a cut-off point }
-                      if iPhoneOSVersionMin.relationto(8,1,0)>0 then
+                      if compiler.globals.iPhoneOSVersionMin.relationto(8,1,0)>0 then
                         exit('');
                     end;
                   system_aarch64_ios,
@@ -255,7 +255,7 @@ implementation
                     begin
                       { iOS: < 3.1: bundle1.o
                              >= 3.1: nothing }
-                      if iPhoneOSVersionMin.relationto(3,1,0)>=0 then
+                      if compiler.globals.iPhoneOSVersionMin.relationto(3,1,0)>=0 then
                         exit('');
                     end;
                   system_i386_iphonesim,
@@ -263,7 +263,7 @@ implementation
                   system_aarch64_iphonesim:
                     begin
                       { see rule for crt1.o }
-                      if iPhoneOSVersionMin.relationto(8,1,0)>0 then
+                      if compiler.globals.iPhoneOSVersionMin.relationto(8,1,0)>0 then
                         exit('');
                     end;
                   system_aarch64_darwin:
@@ -295,7 +295,7 @@ implementation
                     begin
                       { iOS: < 3.1: dylib1.o
                              >= 3.1: nothing }
-                      if iPhoneOSVersionMin.relationto(3,1,0)>=0 then
+                      if compiler.globals.iPhoneOSVersionMin.relationto(3,1,0)>=0 then
                         exit('');
                     end;
                   system_i386_iphonesim,
@@ -303,7 +303,7 @@ implementation
                   system_aarch64_iphonesim:
                     begin
                       { see rule for crt1.o }
-                      if iPhoneOSVersionMin.relationto(8,1,0)>0 then
+                      if compiler.globals.iPhoneOSVersionMin.relationto(8,1,0)>0 then
                         exit('');
                     end;
                   system_aarch64_darwin:
@@ -371,12 +371,12 @@ implementation
            else
              result:='-macos_version_min '+compiler.globals.MacOSXVersionMin.str;
           end
-        else if iPhoneOSVersionMin.isvalid then
+        else if compiler.globals.iPhoneOSVersionMin.isvalid then
           begin
             if compiler.target.info.system in [system_i386_iphonesim,system_x86_64_iphonesim,system_aarch64_iphonesim] then
-              result:='-ios_simulator_version_min '+iPhoneOSVersionMin.str
+              result:='-ios_simulator_version_min '+compiler.globals.iPhoneOSVersionMin.str
             else
-              result:='-iphoneos_version_min '+iPhoneOSVersionMin.str;
+              result:='-iphoneos_version_min '+compiler.globals.iPhoneOSVersionMin.str;
           end
         else
           begin

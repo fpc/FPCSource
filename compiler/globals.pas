@@ -301,7 +301,6 @@ Const
 
 
     var
-       iPhoneOSVersionMin: tversion;
        RelocSectionSetExplicitly : boolean;
 
        current_tokenpos,                  { position of the last token }
@@ -724,7 +723,8 @@ Const
         GenerateImportSectionSetExplicitly,
         RelocSection : boolean;
 
-        MacOSXVersionMin: tversion;
+        MacOSXVersionMin,
+        iPhoneOSVersionMin: tversion;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1820,7 +1820,7 @@ implementation
         compiler.globals.RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         compiler.globals.MacOSXVersionMin.invalidate;
-        iPhoneOSVersionMin.invalidate;
+        compiler.globals.iPhoneOSVersionMin.invalidate;
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
         stacksize:=0;

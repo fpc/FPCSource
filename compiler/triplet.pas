@@ -49,9 +49,9 @@ uses
           if target.info.system in systems_macosx then
             result:=result+'-macosx'+compiler.globals.MacOSXVersionMin.str
           else if target.info.system = system_aarch64_iphonesim then
-            result:=result+'-ios-simulator'+iPhoneOSVersionMin.str
+            result:=result+'-ios-simulator'+compiler.globals.iPhoneOSVersionMin.str
           else
-            result:=result+'-ios'+iPhoneOSVersionMin.str;
+            result:=result+'-ios'+compiler.globals.iPhoneOSVersionMin.str;
         end
       else if target.info.system in (systems_linux+systems_android) then
         result:=result+'-unknown-linux'
