@@ -680,9 +680,9 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
-          if not exception_raised then
+          if not globals.exception_raised then
             begin
-              exception_raised:=true;
+              globals.exception_raised:=true;
               verbose.Message(general_e_exception_raised);
             end
           else

@@ -305,8 +305,6 @@ Const
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
-       exception_raised : boolean;           { true if there is an exception reported }
-
        block_type : tblock_type;         { type of currently parsed block }
 
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
@@ -726,6 +724,8 @@ Const
         nwthreadname : string;
         nwcopyright  : string;
 
+        // TODO: exception_raised should probably be moved somewhere else (possible candidates: TVerbose, TParser, TCompiler)
+        exception_raised : boolean;           { true if there is an exception reported }
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

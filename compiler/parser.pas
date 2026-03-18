@@ -582,9 +582,9 @@ implementation
                { Generate exception_raised message,
                  but avoid multiple messages by
                  guarding with exception_raised global variable }
-               if not exception_raised then
+               if not compiler.globals.exception_raised then
                  begin
-                   exception_raised:=true;
+                   compiler.globals.exception_raised:=true;
                    compiler.verbose.Message(general_e_exception_raised);
                  end;
                raise;
