@@ -1024,7 +1024,22 @@ begin
       begin
       aDecl:=ParseDeclaration(aIsAt);
       if aDecl<>nil then
-        aRule.AddChild(aDecl)
+        begin
+        if aRule.NestedRuleCount=0 then
+          aRule.AddChild(aDecl)
+        else
+          begin
+          // declarations behind nested rules are added to a special nested rule
+          aNestedRule:=aRule.NestedRules[aRule.NestedRuleCount-1];
+          if aNestedRule.SelectorCount>0 then
+            begin
+            // add special nested rule
+            aNestedRule:=TCSSRuleElement(CreateElement(CSSRuleElementClass));
+            aRule.AddNestedRule(aNestedRule);
+            end;
+          aNestedRule.AddChild(aDecl);
+          end;
+        end
       else // skip invalid
         while not (CurrentToken in [ctkEOF,ctkSEMICOLON,ctkRBRACE]) do
           GetNextToken;
@@ -1040,7 +1055,6 @@ Var
   aSel : TCSSElement;
   Term : TCSSTokens;
   aLast : TCSSToken;
-  aList: TCSSListElement;
 {$IFDEF VerboseCSSParser}
   aAt : TCSSString;
 {$ENDIF}
@@ -1062,23 +1076,15 @@ begin
 
   Term:=[ctkLBRACE,ctkEOF,ctkSEMICOLON];
   aRule:=TCSSRuleElement(CreateElement(CSSRuleElementClass));
-  aList:=nil;
   try
-    aList:=TCSSListElement(CreateElement(CSSListElementClass));
     While Not (CurrentToken in Term) do
       begin
       aSel:=ParseSelector;
       aRule.AddSelector(aSel);
       if CurrentToken=ctkCOMMA then
-        begin
         Consume(ctkCOMMA);
-        aRule.AddSelector(GetAppendElement(aList));
-        aList:=TCSSListElement(CreateElement(CSSListElementClass));
-        end;
       end;
     // Note: no selectors is allowed
-    aRule.AddSelector(GetAppendElement(aList));
-    aList:=nil;
     aLast:=CurrentToken;
     if (aLast=ctkLBRACE) then
       begin
@@ -1097,7 +1103,6 @@ begin
     Dec(FRuleLevel);
   finally
     aRule.Free;
-    aList.Free;
   end;
 end;
 

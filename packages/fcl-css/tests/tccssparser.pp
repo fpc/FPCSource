@@ -909,13 +909,13 @@ end;
 procedure TTestCSSParser.TestNestedPlusRule;
 var
   aRule, aNestedRule: TCSSRuleElement;
-  aSel: TCSSIdentifierElement;
+  aIdent: TCSSIdentifierElement;
   aUnary: TCSSUnaryElement;
 begin
   aRule:=ParseRule('h1 { + p { } }');
   AssertEquals('selector count',1,aRule.SelectorCount);
-  aSel:=TCSSIdentifierElement(CheckClass('Selector',TCSSIdentifierElement,aRule.Selectors[0]));
-  AssertEquals('Sel name','h1',aSel.Value);
+  aIdent:=TCSSIdentifierElement(CheckClass('Selector',TCSSIdentifierElement,aRule.Selectors[0]));
+  AssertEquals('Sel name','h1',aIdent.Value);
   AssertEquals('No declarations',0,aRule.ChildCount);
   AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
   aNestedRule:=aRule.NestedRules[0];
@@ -923,36 +923,52 @@ begin
   aUnary:=TCSSUnaryElement(CheckClass('Nested selector',TCSSUnaryElement,aNestedRule.Selectors[0]));
   if aUnary.Operation<>uoPlus then
     Fail('Nested selector operation expected uoPlus, but found '+GetEnumName(TypeInfo(TCSSUnaryOperation),Ord(aUnary.Operation)));
-  aSel:=TCSSIdentifierElement(CheckClass('Nested selector right',TCSSIdentifierElement,aUnary.Right));
-  AssertEquals('Nested selector right value','p',aSel.Value);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector right',TCSSIdentifierElement,aUnary.Right));
+  AssertEquals('Nested selector right value','p',aIdent.Value);
   AssertEquals('No nested declarations',0,aNestedRule.ChildCount);
   AssertEquals('No nested rules',0,aNestedRule.NestedRuleCount);
 end;
 
 procedure TTestCSSParser.TestNestedAndPlusRule;
+var
+  aRule, aNestedRule: TCSSRuleElement;
+  aIdent: TCSSIdentifierElement;
+  aBin: TCSSBinaryElement;
 begin
-  Parse('h1 { & + p { } }');
+  aRule:=ParseRule('h1 { & + p { } }');
+  AssertEquals('selector count',1,aRule.SelectorCount);
+  aIdent:=TCSSIdentifierElement(CheckClass('Selector',TCSSIdentifierElement,aRule.Selectors[0]));
+  AssertEquals('Sel name','h1',aIdent.Value);
+  AssertEquals('No declarations',0,aRule.ChildCount);
+  AssertEquals('Nested rule count',1,aRule.NestedRuleCount);
+  aNestedRule:=aRule.NestedRules[0];
+  AssertEquals('Nested selector count',1,aNestedRule.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('Nested selector',TCSSBinaryElement,aNestedRule.Selectors[0]));
+  AssertEquals('Nested selector operation',boPlus,aBin.Operation);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('Nested selector left value','&',aIdent.Value);
+  aIdent:=TCSSIdentifierElement(CheckClass('Nested selector right',TCSSIdentifierElement,aBin.Right));
+  AssertEquals('Nested selector right value','p',aIdent.Value);
+  AssertEquals('No nested declarations',0,aNestedRule.ChildCount);
+  AssertEquals('No nested rules',0,aNestedRule.NestedRuleCount);
 end;
 
 procedure TTestCSSParser.TestNestedRule_AppendedAndOperator;
 begin
   Parse(
-   '.foo {'
-  +'  /* .foo styles */'
-  +'  .bar & {'
-  +'    /* .bar .foo styles */'
-  +'  }'
+   '.foo {'+LineEnding
+  +'  .bar & {'+LineEnding
+  +'  }'+LineEnding
   +'}');
 end;
 
 procedure TTestCSSParser.TestNestedRule_NestedDeclarations;
 begin
   Parse(
-   'div {'
-  +'  span {'
-  +'    color: red;'
-  +'  }'
-  +'  color: blue;'
+   'div {'+LineEnding
+  +'  & span {'+LineEnding
+  +'  }'+LineEnding
+  +'  color: blue;'+LineEnding
   +'}');
 end;
 
