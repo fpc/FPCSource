@@ -301,8 +301,6 @@ Const
 
 
     var
-       peoptflags,
-       peflags : longint;
        minstacksize,
        maxstacksize,
        imagebase     : puint;
@@ -725,6 +723,8 @@ Const
         pesubsysversionmajor,
         peuserversionminor,
         peuserversionmajor : word;
+        peoptflags,
+        peflags : longint;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);

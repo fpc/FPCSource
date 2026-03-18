@@ -1711,7 +1711,7 @@ implementation
         { I am not sure that the default value is adequate !! }
         peoptheader.SizeOfStackReserve:=stacksize;
         if compiler.globals.SetPEFlagsSetExplicity then
-          peoptheader.LoaderFlags:=peflags;
+          peoptheader.LoaderFlags:=compiler.globals.peflags;
         if compiler.globals.ImageBaseSetExplicity then
           peoptheader.ImageBase:=imagebase;
         if compiler.globals.MinStackSizeSetExplicity then

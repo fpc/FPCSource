@@ -3291,7 +3291,7 @@ const pemagic : array[0..3] of byte = (
             if not hassymbols then
               header.flag:=header.flag or PE_FILE_LOCAL_SYMS_STRIPPED;
             if compiler.globals.SetPEFlagsSetExplicity then
-              header.flag:=header.flag or peflags;
+              header.flag:=header.flag or compiler.globals.peflags;
           end
         else
           header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_EXE or COFF_FLAG_NORELOCS or COFF_FLAG_NOLINES;
@@ -3374,7 +3374,7 @@ const pemagic : array[0..3] of byte = (
               peoptheader.DllCharacteristics:=0;
 
             if compiler.globals.SetPEOptFlagsSetExplicity then
-              peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or peoptflags;
+              peoptheader.DllCharacteristics:=peoptheader.DllCharacteristics or compiler.globals.peoptflags;
 
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;

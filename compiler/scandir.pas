@@ -1713,7 +1713,7 @@ unit scandir;
           begin
             if flags>$ffff then
               compiler.verbose.Message(scan_e_illegal_peflag);
-            peflags:=peflags or uint16(flags);
+            compiler.globals.peflags:=compiler.globals.peflags or uint16(flags);
           end;
         compiler.globals.SetPEFlagsSetExplicity:=true;
       end;
@@ -1730,7 +1730,7 @@ unit scandir;
           begin
             if flags>$ffff then
               compiler.verbose.Message(scan_e_illegal_peoptflag);
-            peoptflags:=peoptflags or uint16(flags);
+            compiler.globals.peoptflags:=compiler.globals.peoptflags or uint16(flags);
           end;
         compiler.globals.SetPEOptFlagsSetExplicity:=true;
       end;
