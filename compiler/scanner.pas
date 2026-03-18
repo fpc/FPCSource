@@ -4361,7 +4361,7 @@ type
            savetokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
-           compiler.verbose.ShowStatus;
+           compiler.verbose.ShowStatus(compiler.globals.current_filepos);
            restoretokenpos;
          end;
       end;

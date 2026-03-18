@@ -80,7 +80,7 @@ interface
         procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
 
         function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
-        procedure ShowStatus;
+        procedure ShowStatus(const filepos : tfileposinfo);
         function  ErrorCount:longint;
         procedure SetErrorFlags(const s:string);
         procedure GenerateError;
@@ -504,11 +504,9 @@ implementation
       end;
 
 
-    procedure TVerbose.ShowStatus;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure TVerbose.ShowStatus(const filepos : tfileposinfo);
       begin
-        UpdateStatus(compiler.globals.current_filepos);
+        UpdateStatus(filepos);
         if do_status() then
           raise ECompilerAbort.Create;
       end;
