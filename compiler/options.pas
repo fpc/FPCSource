@@ -3981,7 +3981,7 @@ begin
            if compiler.target.info.system in systems_all_windows then
              begin
                compiler.globals.UseDeffileForExports:=not UnsetBool(More, j, opt, false);
-               UseDeffileForExportsSetExplicitly:=true;
+               compiler.globals.UseDeffileForExportsSetExplicitly:=true;
              end
            else
              IllegalPara(opt);
