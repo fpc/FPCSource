@@ -2813,8 +2813,28 @@ begin
 end;
 
 procedure TTestNewCSSResolver.TestRes_Nested_Hash;
+var
+  Container, Div1: TDemoDiv;
 begin
+  Doc.Root:=TDemoNode.Create(nil);
 
+  // Container is the .Big parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Big');
+
+  Div1:=AddDiv('Div1',Container);
+
+  // .Big { #Div1 { ... } } -> descendant combinator: .Big #Div1
+  Doc.Style:=LinesToStr([
+  '.Big {',
+  '  #Div1 {',
+  '    color:red;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Div1.Color','red',Div1.Color);
+  AssertEquals('Container.Color','',Container.Color);
 end;
 
 initialization

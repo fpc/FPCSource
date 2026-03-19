@@ -398,7 +398,7 @@ type
     // resolving rules
     procedure ComputeElement(El: TCSSElement); virtual;
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
-    function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
     function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -994,7 +994,7 @@ begin
   for i:=0 to aRule.SelectorCount-1 do
   begin
     aSelector:=aRule.Selectors[i];
-    Specificity:=SelectorMatches(aSelector,FNode,false);
+    Specificity:=SelectorMatches(aSelector,FNode,false,aRule);
     if Specificity>BestSpecificity then
       BestSpecificity:=Specificity;
   end;
@@ -1003,6 +1003,9 @@ begin
     // match -> add rule to ruleset
     AddRule(aRule,BestSpecificity);
   end;
+
+  for i:=0 to aRule.NestedRuleCount-1 do
+    ComputeRule(aRule.NestedRules[i]);
 end;
 
 function TCSSResolver.FindSharedRuleList(const Rules: TCSSSharedRuleArray
@@ -1158,12 +1161,60 @@ begin
   AttrP^.Prev:=0;
 end;
 
-function TCSSResolver.SelectorMatches(aSelector: TCSSElement;
-  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
+function TCSSResolver.SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode;
+  OnlySpecificity: boolean; aRule: TCSSRuleElement): TCSSSpecificity;
 var
   C: TClass;
+  ParentRule: TCSSRuleElement;
+  aParent: ICSSNode;
+  ParentSpecificity, Spec: TCSSSpecificity;
+  i: Integer;
 begin
   Result:=CSSSpecificityInvalid;
+
+  if (aRule<>nil) and (aRule.Parent is TCSSRuleElement) then
+  begin
+    // nested rule without & -> descendant combinator:
+    // own selector must match TestNode AND an ancestor must match the parent rule.
+    // Parent rule specificity is like :is() = max of its selectors' specificities.
+    ParentRule:=TCSSRuleElement(aRule.Parent);
+    // match own selector without nested context
+    Result:=SelectorMatches(aSelector,TestNode,OnlySpecificity,nil);
+    if Result<0 then exit;
+    if OnlySpecificity then
+    begin
+      // parent specificity = max of parent selectors (like :is())
+      ParentSpecificity:=CSSSpecificityNoMatch;
+      for i:=0 to ParentRule.SelectorCount-1 do
+      begin
+        Spec:=SelectorMatches(ParentRule.Selectors[i],TestNode,true,ParentRule);
+        if Spec>ParentSpecificity then
+          ParentSpecificity:=Spec;
+      end;
+      inc(Result,ParentSpecificity);
+      exit;
+    end;
+    // find ancestor matching any of the parent rule's selectors
+    aParent:=TestNode.GetCSSParent;
+    while aParent<>nil do
+    begin
+      for i:=0 to ParentRule.SelectorCount-1 do
+      begin
+        ParentSpecificity:=SelectorMatches(ParentRule.Selectors[i],aParent,false,ParentRule);
+        if ParentSpecificity=CSSSpecificityInvalid then
+          exit(CSSSpecificityInvalid);
+        if ParentSpecificity>=0 then
+        begin
+          inc(Result,ParentSpecificity);
+          exit;
+        end;
+      end;
+      aParent:=aParent.GetCSSParent;
+    end;
+    Result:=CSSSpecificityNoMatch;
+    exit;
+  end;
+
   //writeln('TCSSResolver.SelectorMatches ',aSelector.ClassName,' ',TestNode.GetCSSTypeName);
   C:=aSelector.ClassType;
   if C=TCSSResolvedIdentifierElement then
