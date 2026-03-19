@@ -687,10 +687,10 @@ Const
         maxheapsize : int64;
         stacksize   : longint;
 
- {$Ifdef EXTDEBUG}
+{$Ifdef EXTDEBUG}
       { parameter switches }
         debugstop : boolean;
- {$EndIf EXTDEBUG}
+{$EndIf EXTDEBUG}
         { Application type (platform specific)
           see globtype.pas for description }
         apptype : tapptype;
@@ -712,12 +712,12 @@ Const
         { for error info in pp.pas }
         parser_current_file : string;
 
- {$if defined(m68k) or defined(arm)}
+{$if defined(m68k) or defined(arm)}
         { PalmOS resources }
         palmos_applicationname : string;
         palmos_applicationid : string[4];
- {$endif defined(m68k) or defined(arm)}
- {$if defined(m68k)}
+{$endif defined(m68k) or defined(arm)}
+{$if defined(m68k)}
         { Atari Specific }
         ataritos_exe_flags: dword;
         ataritos_exe_format: string;
@@ -725,7 +725,7 @@ Const
         { Sinclair QL specific }
         sinclairql_metadata_format: string[4];
         sinclairql_vlink_experimental: boolean;
- {$endif defined(m68k)}
+{$endif defined(m68k)}
 
         mainaliasname : string;
 
