@@ -994,7 +994,7 @@ begin
   // Check nested declaration rule
   aNestedRule:=aRule.NestedRules[1];
   AssertEquals('Nested Declaration selector count',0,aNestedRule.SelectorCount);
-  //declaration: color: blue
+  // declaration: color: blue
   aDecl:=CheckDeclaration(aNestedRule,0,'color');
   AssertEquals('Declaration value count',1,aDecl.ChildCount);
   aIdent:=TCSSIdentifierElement(CheckClass('Declaration value',TCSSIdentifierElement,aDecl.Children[0]));
