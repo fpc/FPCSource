@@ -1678,11 +1678,9 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
   Doc.Style:='div, button { left: 10px; }';
   ApplyStyle;
@@ -1699,15 +1697,11 @@ begin
   Doc.Root.Name:='root';
   Doc.Root.CSSClasses.Add('lvl1');
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('lvl2');
-  Div1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
+  Div2:=AddDiv('Div2',Div1);
   Div2.CSSClasses.Add('lvl3');
-  Div2.Parent:=Div1;
 
   Doc.Style:=LinesToStr([
   '.lvl1>.lvl2 { left: 10px; }', // set
@@ -1734,21 +1728,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Name:='Button2';
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('Button2',Doc.Root);
 
-  Button3:=TDemoButton.Create(nil);
-  Button3.Name:='Button3';
-  Button3.Parent:=Doc.Root;
+  Button3:=AddButton('Button3',Doc.Root);
 
   Doc.Style:='div+button { left: 10px; }'; // only Button2 has a prev sibling div
   ApplyStyle;
@@ -1766,17 +1752,13 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('',Doc.Root);
 
-  Button3:=TDemoButton.Create(nil);
-  Button3.Parent:=Doc.Root;
+  Button3:=AddButton('',Doc.Root);
 
   Doc.Style:='div~button { left: 10px; }';
   ApplyStyle;
@@ -1795,9 +1777,7 @@ begin
   Doc.Root.Name:='root';
   Doc.Root.ExplicitAttributes[naLeft]:='100px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='2px';
   Button1.ExplicitCaption:='Click Button1';
 
@@ -1819,8 +1799,7 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='2px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='3px';
   Button1.ExplicitAttributes[naColor]:='maybe black';
 
@@ -1841,8 +1820,7 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='2px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='3px';
   Button1.ExplicitAttributes[naColor]:='maybe Black';
 
@@ -1863,8 +1841,7 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
@@ -1885,8 +1862,7 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
@@ -1907,8 +1883,7 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo-Bar';
 
   Doc.Style:=LinesToStr([
@@ -1930,9 +1905,7 @@ begin
   Doc.Root.Name:='root';
   Doc.Root.ExplicitAttributes[naLeft]:='One Two Three';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Four Five';
 
   Doc.Style:=LinesToStr([
@@ -1962,8 +1935,7 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
@@ -1984,8 +1956,7 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':roOt { top: 4px; }',
@@ -2001,14 +1972,11 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':eMpty { left: 1px; }',
@@ -2031,17 +1999,13 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Div12:=TDemoDiv.Create(nil);
-  Div12.Parent:=Div1;
+  Div12:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':first-child { left: 1px; }',
@@ -2067,17 +2031,13 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':last-child { left: 6px; }',
@@ -2104,21 +2064,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Name:='Div11';
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('Div11',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Name:='Button12';
-  Button12.Parent:=Div2;
+  Button12:=AddButton('Button12',Div2);
 
   Doc.Style:=LinesToStr([
   ':only-child { left: 8px; }',
@@ -2145,21 +2097,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Name:='Div11';
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('Div11',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Name:='Button12';
-  Button12.Parent:=Div2;
+  Button12:=AddButton('Button12',Div2);
 
   Doc.Style:=LinesToStr([
   ':not(:only-child) { left: 8px; }',
@@ -2184,17 +2128,13 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div:nth-child(2n+1) { left: 8px; }',
@@ -2237,17 +2177,13 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':nth-last-child(2n+1) { left: 8px; }',
@@ -2267,23 +2203,15 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
   Div2.ExplicitAttributes[naTop]:='3px';
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Name:='Div3';
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('Div3',Doc.Root);
   Div3.ExplicitAttributes[naTop]:='3px';
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Name:='Div4';
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('Div4',Doc.Root);
   Div4.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
@@ -2304,20 +2232,15 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div13:=TDemoDiv.Create(nil);
-  Div13.Parent:=Div1;
+  Div13:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':first-of-type { left: 6px; }',
@@ -2345,20 +2268,15 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div13:=TDemoDiv.Create(nil);
-  Div13.Parent:=Div1;
+  Div13:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':last-of-type { left: 6px; }',
@@ -2386,17 +2304,13 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':only-of-type { left: 6px; }',
@@ -2423,29 +2337,17 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Name:='Div3';
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('Div3',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Name:='Button2';
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('Button2',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Name:='Div4';
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('Div4',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':nth-of-type(2n+1) { left: 8px; }',
@@ -2467,23 +2369,17 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':nth-last-of-type(2n+1) { left: 8px; }',
@@ -2507,24 +2403,17 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.ExplicitAttributes[naTop]:='3px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Span1:=TDemoSpan.Create(nil);
-  Span1.Parent:=Doc.Root;
+  Span1:=AddSpan('',Doc.Root);
   Span1.ExplicitAttributes[naTop]:='3px';
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('',Doc.Root);
   Button2.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
@@ -2546,14 +2435,10 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.ExplicitAttributes[naTop]:='3px';
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Div1;
+  Div2:=AddDiv('Div2',Div1);
   Div2.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
@@ -2574,19 +2459,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.Hover:=true;
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Div1;
+  Button1:=AddButton('Button1',Div1);
   Button1.Hover:=true;
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Name:='Div11';
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('Div11',Div1);
 
   Doc.Style:=LinesToStr([
   ':hover { left: 1px; }',
@@ -2609,8 +2488,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
   Div1.InlineStyle:='left: 10px; top: 5px';
 
   Doc.Style:=LinesToStr([
@@ -2628,8 +2506,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
   Div1.InlineStyle:='display:none';
 
   ApplyStyle;
@@ -2642,9 +2519,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
   Doc.Style:=LinesToStr([
@@ -2664,9 +2539,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
   Doc.Style:=LinesToStr([
@@ -2686,9 +2559,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
   Doc.Style:='.bird { border-color: blue; border: 6px red; border-width: 7px; }';
@@ -2703,9 +2574,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
   Div1.CSSClasses.Add('eagle');
 
@@ -2725,9 +2594,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
   Div1.CSSClasses.Add('eagle');
 
@@ -2749,14 +2616,10 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
   Div2.CSSClasses.Add('eagle');
 
   Doc.Style:=LinesToStr([
@@ -2778,9 +2641,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'testagent',
   '#Div1 { border-width: 2px;'
@@ -2804,9 +2665,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div {',
@@ -2837,9 +2696,7 @@ begin
   '  --bird-color: red;',
   '}']);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.InlineStyle:='--bird-width: 3px; border-color: var(--bird-color); border-width: var(--bird-width);';
 
   ApplyStyle;
@@ -2853,9 +2710,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div {',
@@ -2879,9 +2734,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div {',
@@ -2911,9 +2764,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   '::first-line {',
@@ -2937,9 +2788,7 @@ var
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('Big');
 
   Doc.Style:=LinesToStr([
