@@ -33,7 +33,8 @@ implementation
        link,
        SysUtils,
        cclasses,cutils,cfileutl,globtype,globals,
-       systems,verbose,cscript,fmodule,i_watcom;
+       systems,verbose,cscript,fmodule,i_watcom,
+       compilerbase,compiler;
 
 
   type
@@ -41,7 +42,7 @@ implementation
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-       constructor Create;override;
+       constructor Create(acompiler: TCompilerBase);override;
        procedure SetDefaultInfo;override;
        function  MakeExecutable:boolean;override;
 {       function  MakeSharedLibrary:boolean;override;}
@@ -52,9 +53,9 @@ implementation
                                TLinkerWatcom
 ****************************************************************************}
 
-Constructor TLinkerWatcom.Create;
+Constructor TLinkerWatcom.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
 end;

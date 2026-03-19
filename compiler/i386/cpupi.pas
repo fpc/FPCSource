@@ -28,11 +28,11 @@ unit cpupi;
   interface
 
     uses
-       psub,procinfo,psabiehpi,aasmdata;
+       psub,procinfo,psabiehpi,aasmdata,compilerbase;
 
     type
        tcpuprocinfo = class(tpsabiehprocinfo)
-         constructor create(aparent:tprocinfo);override;
+         constructor create(aparent:tprocinfo;acompiler:TCompilerBase);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
@@ -48,11 +48,12 @@ unit cpupi;
       cgobj,tgobj,paramgr,
       cpubase,
       cgutils,
-      symconst;
+      symconst,
+      compiler;
 
-    constructor tcpuprocinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo;acompiler:TCompilerBase);
       begin
-        inherited create(aparent);
+        inherited;
         got:=NR_EBX;
       end;
 

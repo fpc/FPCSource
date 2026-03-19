@@ -30,13 +30,13 @@ interface
        cutils,cclasses,
        aasmbase,aasmtai,aasmdata,aasmcpu,fmodule,globtype,globals,systems,verbose,
        symconst,symdef,symsym,
-       cscript,gendef,
+       cscript,gendef,compilerbase,
        cpubase,
        import,export,link,cgobj, i_symbian;
 
     type
       TInternalLinkerSymbian = class(TInternalLinker)
-        constructor create; override;
+        constructor create(acompiler: TCompilerBase); override;
         procedure DefaultLinkScript; override;
         procedure InitSysInitUnitName; override;
       end;
@@ -46,16 +46,16 @@ implementation
   uses
     SysUtils,
     cfileutl,
-    cpuinfo,cgutils,dbgbase,
+    cpuinfo,cgutils,dbgbase,compiler,
     owar,ogbase,ogcoff, t_win;
 
 {****************************************************************************
                             TInternalLinkerSymbian
 ****************************************************************************}
 
-    constructor TInternalLinkerSymbian.Create;
+    constructor TInternalLinkerSymbian.Create(acompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         CArObjectReader:=TArObjectReader;
         CExeoutput:=TPECoffexeoutput;
         CObjInput:=TPECoffObjInput;

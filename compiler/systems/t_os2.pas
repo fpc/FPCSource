@@ -41,10 +41,14 @@ implementation
      cutils,cfileutl,cclasses,
      globtype,systems,symconst,symdef,
      globals,verbose,fmodule,cscript,
-     import,link,i_os2,ogbase;
+     import,link,i_os2,ogbase,
+     compilerbase,compiler;
 
   type
     timportlibos2=class(timportlib)
+    private
+      procedure AddImport(const module:string;index:longint;const name,mangledname:string);
+    public
       procedure generatelib;override;
     end;
 
@@ -52,7 +56,7 @@ implementation
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-       constructor Create;override;
+       constructor Create(ACompiler: TCompilerBase);override;
        procedure SetDefaultInfo;override;
        function  MakeExecutable:boolean;override;
     end;
@@ -279,7 +283,7 @@ begin
 end;
 
 
-procedure AddImport(const module:string;index:longint;const name,mangledname:string);
+procedure timportlibos2.AddImport(const module:string;index:longint;const name,mangledname:string);
 {mangledname= Assembler label of the function to import.
  module     = Name of DLL to import from.
  index      = Index of function in DLL. Use 0 to import by name.
@@ -378,9 +382,9 @@ end;
                                TLinkeros2
 ****************************************************************************}
 
-Constructor TLinkeros2.Create;
+Constructor TLinkeros2.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

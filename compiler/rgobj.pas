@@ -762,6 +762,8 @@ unit rgobj;
 
 {$ifdef EXTDEBUG}
     procedure trgobj.writegraph(loopidx:longint);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     {This procedure writes out the current interference graph in the
     register allocator.}

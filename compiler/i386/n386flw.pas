@@ -26,7 +26,7 @@ unit n386flw;
 interface
 
   uses
-    node,nflw,ncgflw,psub;
+    node,nflw,ncgflw,psub,compilerbase;
 
   type
     ti386raisenode=class(tcgraisenode)
@@ -43,8 +43,8 @@ interface
 
     ti386tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
-      constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r:TNode);override;
+      constructor create(l,r:TNode;acompiler:TCompilerBase);override;
+      constructor create_implicit(l,r:TNode;acompiler:TCompilerBase);override;
       function pass_1: tnode;override;
       function dogetcopy : tnode;override;
       function simplify(forinline: boolean): tnode;override;
@@ -60,7 +60,8 @@ implementation
     cgbase,cgobj,cgcpu,cgutils,tgobj,
     cpubase,htypechk,
     parabase,paramgr,pass_1,pass_2,ncgutil,cga,
-    aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi,procdefutil;
+    aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi,procdefutil,
+    compiler;
 
   var
     endexceptlabel: tasmlabel;
@@ -78,7 +79,7 @@ function ti386raisenode.pass_1 : tnode;
       result:=inherited pass_1
     else
       begin
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
         raisenode:=compiler.ccallnode_intern('fpc_reraise',nil);
         include(raisenode.callnodeflags,cnf_call_never_returns);
         addstatement(statements,raisenode);
@@ -157,9 +158,9 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
     result:=fen_true;
   end;
 
-constructor ti386tryfinallynode.create(l, r: TNode);
+constructor ti386tryfinallynode.create(l, r: TNode;acompiler: TCompilerBase);
   begin
-    inherited create(l,r);
+    inherited;
     if (compiler.target.info.system<>system_i386_win32) or
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
@@ -177,9 +178,9 @@ constructor ti386tryfinallynode.create(l, r: TNode);
     include(finalizepi.flags,pi_uses_exceptions);
   end;
 
-constructor ti386tryfinallynode.create_implicit(l, r: TNode);
+constructor ti386tryfinallynode.create_implicit(l, r: TNode;acompiler: TCompilerBase);
   begin
-    inherited create_implicit(l, r);
+    inherited;
     if (compiler.target.info.system<>system_i386_win32) then
       exit;
 
@@ -223,9 +224,9 @@ function ti386tryfinallynode.dogetcopy: tnode;
     n:=ti386tryfinallynode(inherited dogetcopy);
     if compiler.target.info.system=system_i386_win32 then
       begin
-        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
+        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent,compiler));
         n.finalizepi.force_nested;
-        n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+        n.finalizepi.procdef:=compiler.procdefutil.create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
         n.finalizepi.entrypos:=finalizepi.entrypos;
         n.finalizepi.entryswitches:=finalizepi.entryswitches;
         n.finalizepi.exitpos:=finalizepi.exitpos;

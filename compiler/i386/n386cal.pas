@@ -28,7 +28,7 @@ interface
 { $define AnsiStrRef}
 
     uses
-      nx86cal,ncal;
+      nx86cal,ncal,compilerbase;
 
     type
        ti386callnode = class(tx86callnode)
@@ -53,7 +53,8 @@ implementation
       parabase,
       symdef,symsym,symcpu,symconst,
       cga,cgobj,cgx86,
-      cpuinfo;
+      cpuinfo,
+      compiler;
 
 
 {*****************************************************************************

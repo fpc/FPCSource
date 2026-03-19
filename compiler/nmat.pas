@@ -917,7 +917,7 @@ implementation
              if not(mmx_type(left.resultdef) in [mmxu16bit,mmxs16bit,mmxfixed16,mmxu32bit,mmxs32bit,mmxu64bit,mmxs64bit]) then
                compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
              if not(is_mmx_able_array(right.resultdef)) then
-               inserttypeconv(right,sinttype);
+               inserttypeconv(right,sinttype,compiler);
            end
          else
 {$endif SUPPORT_MMX}

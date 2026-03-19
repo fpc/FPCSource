@@ -26,6 +26,7 @@ unit n386mat;
 interface
 
     uses
+      compilerbase,
       node,nmat,ncgmat,nx86mat;
 
     type
@@ -55,7 +56,8 @@ implementation
       ncon,
       cpubase,cpuinfo,
       cga,ncgutil,cgobj,cgutils,
-      hlcgobj;
+      hlcgobj,
+      compiler;
 
 {*****************************************************************************
                              TI386MODDIVNODE

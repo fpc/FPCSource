@@ -197,6 +197,8 @@ implementation
 
     procedure ttgobj.resettempgen;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          hp : ptemprecord;
       begin
         { Clear the old templist }
@@ -227,6 +229,8 @@ implementation
 
 
     procedure ttgobj.setfirsttemp(l: asizeint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          { this is a negative value normally }
          if l*direction>=0 then
@@ -475,6 +479,8 @@ implementation
 
     procedure ttgobj.FreeTemp(list: TAsmList; pos: treftemppos; temptypes: ttemptypeset);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          hp,hnext,hprev,hprevfree : ptemprecord;
       begin
          hp:=templist;
@@ -614,6 +620,8 @@ implementation
 
     function ttgobj.sizeoftemp(list: TAsmList; const ref: treference): asizeint;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          hp : ptemprecord;
       begin
          SizeOfTemp := -1;
@@ -635,6 +643,8 @@ implementation
 
 
     function ttgobj.changetemptype(list: tasmList; const ref:treference; temptype:ttemptype):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : ptemprecord;
       begin

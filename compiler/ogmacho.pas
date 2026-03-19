@@ -31,7 +31,7 @@ uses
   owbase, ogbase,
   aasmbase, assemble,
   macho, machoutils,
-  systems,
+  systems, compilerbase,
   { assembler }
   cpuinfo,cpubase,aasmtai,aasmdata; {for system constants}
 
@@ -139,21 +139,21 @@ type
 
         function writedata(data:TObjData):boolean;override;
       public
-        constructor Create(AWriter:TObjectWriter);override;
+        constructor Create(AWriter:TObjectWriter;acompiler: TCompilerBase);override;
       end;
 
     { TMachoAssembler }
 
     TMachoAssembler=class(TInternalAssembler)
       public
-        constructor create(info: pasminfo; smart:boolean);override;
+        constructor create(info: pasminfo; smart:boolean;acompiler: TCompilerBase);override;
       end;
 
 
 implementation
 
 uses
-  owar;
+  owar,compiler;
 
   { TmachoObjData }
 
@@ -167,6 +167,8 @@ uses
   { TmachoObjData.CreateDebugSections. }
   { note: mach-o file has specific symbol table command (not sections) to keep symbols and symbol string }
   procedure TmachoObjData.CreateDebugSections;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       inherited CreateDebugSections;
       if compiler.target.dbg.id=dbg_stabs then
@@ -345,7 +347,7 @@ uses
 
   { TMachoAssembler }
 
-  constructor TMachoAssembler.create(info: pasminfo; smart: boolean);
+  constructor TMachoAssembler.create(info: pasminfo; smart: boolean;acompiler: TCompilerBase);
     begin
       inherited;
       CObjOutput:=TMachoObjectOutput;
@@ -1157,9 +1159,9 @@ uses
     end;
 
 
-  constructor TMachoObjectOutput.Create(AWriter: TObjectWriter);
+  constructor TMachoObjectOutput.Create(AWriter: TObjectWriter;acompiler: TCompilerBase);
     begin
-      inherited Create(AWriter);
+      inherited;
       CObjData:=TMachoObjData;
     end;
 

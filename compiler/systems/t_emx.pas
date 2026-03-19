@@ -41,7 +41,8 @@ implementation
      cutils,cfileutl,cclasses,
      globtype,comphook,systems,symconst,symsym,symdef,
      globals,verbose,fmodule,cscript,ogbase,
-     comprsrc,import,link,i_emx,ppu;
+     comprsrc,import,link,i_emx,ppu,
+     compilerbase,compiler;
 
   type
     TImportLibEMX=class(timportlib)
@@ -53,7 +54,7 @@ implementation
     private
        Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-       constructor Create;override;
+       constructor Create(ACompiler: TCompilerBase);override;
        procedure SetDefaultInfo;override;
        function  MakeExecutable:boolean;override;
     end;
@@ -367,9 +368,9 @@ end;
                                TLinkerEMX
 ****************************************************************************}
 
-Constructor TLinkerEMX.Create;
+Constructor TLinkerEMX.Create(ACompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

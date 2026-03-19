@@ -32,6 +32,7 @@ interface
        { target }
        systems,
        aasmbase,assemble,link,
+       compilerbase,
        { output }
        ogbase,
        owbase,
@@ -275,7 +276,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        protected
          function writedata:boolean;override;
        public
-         constructor create; override;
+         constructor create(acompiler: TCompilerBase); override;
          destructor destroy; override;
          procedure MemPos_Header;override;
          procedure DataPos_Header;override;
@@ -298,11 +299,11 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
     type
 
       TNLMCoffObjInput = class(TCoffObjInput)
-         constructor create;override;
+         constructor create(acompiler: TCompilerBase);override;
        end;
 
        TNLMCoffassembler = class(tinternalassembler)
-         constructor create(info: pasminfo; smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);override;
        end;
 
       TNLMCoffObjData = class(TCoffObjData)
@@ -310,7 +311,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
       TNLMCoffObjOutput = class(TCoffObjOutput)
-         constructor create(AWriter:TObjectWriter);override;
+         constructor create(AWriter:TObjectWriter; acompiler: TCompilerBase);override;
        end;
 
       TNLMCoffObjSection = class(TCoffObjSection)
@@ -326,8 +327,8 @@ implementation
        SysUtils,
        cutils,verbose,globals,
        fmodule,aasmdata,
-       ogmap,export,owar
-       ;
+       ogmap,export,owar,
+       compiler;
 
 
 {****************************************************************************
@@ -381,9 +382,9 @@ end;
                               TNLMexeoutput
 ****************************************************************************}
 
-    constructor TNLMexeoutput.create;
+    constructor TNLMexeoutput.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         CExeSection:=TNLMExeSection;
         CObjData:=TNLMCoffObjData;
         MaxMemPos:=$7FFFFFFF;
@@ -1462,12 +1463,12 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
       end;
 
 
-    constructor TNLMCoffObjOutput.create(AWriter:TObjectWriter);
+    constructor TNLMCoffObjOutput.create(AWriter:TObjectWriter; acompiler: TCompilerBase);
       begin
         // ??????
         // if win32=false, .stabs and .stabstr will be written without oso_debug
         // Without oso_debug the sections will be removed by the linker
-        inherited createcoff(AWriter,{win32}true);
+        inherited createcoff(AWriter,{win32}true,acompiler);
         cobjdata:=TNLMCoffObjData;
       end;
 
@@ -1475,16 +1476,16 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                  TDJCoffAssembler
 ****************************************************************************}
 
-    constructor TNLMCoffAssembler.Create(info: pasminfo; smart:boolean);
+    constructor TNLMCoffAssembler.Create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);
       begin
         inherited;
         CObjOutput:=TNLMCoffObjOutput;
         CInternalAr:=tarobjectwriter;
       end;
 
-    constructor TNLMCoffObjInput.create;
+    constructor TNLMCoffObjInput.create(acompiler: TCompilerBase);
       begin
-        inherited createcoff(true);
+        inherited createcoff(true,acompiler);
         cobjdata:=TNLMCoffObjData;
       end;
 

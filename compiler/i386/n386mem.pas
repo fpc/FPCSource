@@ -27,7 +27,7 @@ interface
 
     uses
       globtype,
-      cgbase,cpuinfo,cpubase,
+      cgbase,cpuinfo,cpubase,compilerbase,
       node,nmem,ncgmem,nx86mem,ni86mem;
 
     type
@@ -46,7 +46,7 @@ implementation
 
     uses
       systems,
-      cutils,verbose,
+      cutils,verbose,compiler,
       symconst,symdef,symcpu,paramgr,
       aasmtai,aasmdata,
       nld,ncon,nadd,
@@ -61,7 +61,7 @@ implementation
         if not(anf_typedaddr in addrnodeflags) then
           resultdef:=voidnearfspointertype
         else
-          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_near_fs);
+          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_near_fs,compiler);
       end;
 
 

@@ -26,7 +26,7 @@ unit cgcpu;
   interface
 
     uses
-       globtype,
+       globtype,compilerbase,
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,parabase,cgutils,
@@ -68,7 +68,7 @@ unit cgcpu;
     uses
        globals,verbose,systems,cutils,
        paramgr,procinfo,fmodule,
-       rgcpu,rgx86,cpuinfo;
+       rgcpu,rgx86,cpuinfo,compiler;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -1205,9 +1205,11 @@ unit cgcpu;
 
 
     procedure create_codegen;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        cg := tcg386.create;
-        cg64 := tcg64f386.create;
+        cg := tcg386.create(compiler);
+        cg64 := tcg64f386.create(compiler);
       end;
 
 end.

@@ -94,7 +94,7 @@ implementation
   uses
     SysUtils,
     cutils,cfileutl,
-    verbose,systems,globtype,globals,
+    verbose,systems,globtype,globals,compilerbase,compiler,
     symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_nwm,ogbase, ogcoff, ognlm, owar, cclasses
@@ -118,14 +118,14 @@ implementation
       NLMConvLinkFile: TLinkRes;  {for second pass, fist pass is ld}
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-      constructor Create;override;
+      constructor Create(acompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
     end;
 
     TInternalLinkerNetware = class(TInternalLinker)
         prelude : string;
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
         destructor destroy;override;
         procedure DefaultLinkScript;override;
         procedure InitSysInitUnitName;override;
@@ -249,9 +249,9 @@ end;
                                   TLINKERNETWARE
 *****************************************************************************}
 
-Constructor TLinkerNetware.Create;
+Constructor TLinkerNetware.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
 end;
 
 
@@ -293,14 +293,14 @@ begin
   LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);             {for ld}
   NLMConvLinkFile:=TLinkRes.Create(compiler.globals.outputexedir+'n'+Info.ResName,true); {for nlmconv, written in CreateExeFile}
 
-  p := Pos ('"', Description);
+  p := Pos ('"', compiler.globals.Description);
   while (p > 0) do
   begin
-    delete (Description,p,1);
-    p := Pos ('"', Description);
+    delete (compiler.globals.Description,p,1);
+    p := Pos ('"', compiler.globals.Description);
   end;
-  if Description <> '' then
-    NLMConvLinkFile.Add('DESCRIPTION "' + Description + '"');
+  if compiler.globals.Description <> '' then
+    NLMConvLinkFile.Add('DESCRIPTION "' + compiler.globals.Description + '"');
   NLMConvLinkFile.Add('VERSION '+tostr(compiler.globals.dllmajor)+','+tostr(compiler.globals.dllminor)+','+tostr(compiler.globals.dllrevision));
 
   p := Pos ('"', compiler.globals.nwscreenname);
@@ -592,9 +592,9 @@ end;
                             TInternalLinkerNetware
 ****************************************************************************}
 
-    constructor TInternalLinkerNetware.Create;
+    constructor TInternalLinkerNetware.Create(acompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         CArObjectReader:=TArObjectReader;
         CExeoutput:=TNLMexeoutput;
         CObjInput:=TNLMCoffObjInput;
@@ -914,8 +914,8 @@ end;
             if not hasVersion then
               Concat('VERSION '+tostr(compiler.globals.dllmajor)+' '+tostr(compiler.globals.dllminor)+' '+tostr(compiler.globals.dllrevision));
             if not hasDescription then
-              if description <> '' then
-                Concat ('DESCRIPTION "'+description+'"');
+              if compiler.globals.description <> '' then
+                Concat ('DESCRIPTION "'+compiler.globals.description+'"');
             if not hasStacksize then
               if compiler.globals.MaxStackSizeSetExplicity then
               begin

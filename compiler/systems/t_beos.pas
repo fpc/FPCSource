@@ -28,7 +28,8 @@ interface
 
   uses
     symsym,symdef,
-    import,export,link;
+    import,export,link,
+    compilerbase;
 
   type
     timportlibbeos=class(timportlib)
@@ -46,7 +47,7 @@ interface
     private
       Function  WriteResponseFile(isdll:boolean;makelib:boolean) : Boolean;
     public
-      constructor Create;override;
+      constructor Create(acompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
@@ -58,7 +59,7 @@ implementation
   uses
     SysUtils,
     cutils,cfileutl,cclasses,
-    verbose,systems,globtype,globals,
+    verbose,systems,globtype,globals,compiler,
     symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_beos,ogbase;
 
@@ -168,11 +169,11 @@ end;
                                   TLINKERBEOS
 *****************************************************************************}
 
-Constructor TLinkerBeos.Create;
+Constructor TLinkerBeos.Create(acompiler: TCompilerBase);
 var
   s : string;
 begin
-  Inherited Create;
+  Inherited;
   s:=GetEnvironmentVariable('BELIBRARIES');
   { convert to correct format in case under unix system }
   Replace(s,':',';=');

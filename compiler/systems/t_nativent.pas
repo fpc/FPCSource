@@ -32,7 +32,7 @@ implementation
     SysUtils,
     cutils,
     ogbase,ogcoff,
-    globtype,globals,systems,verbose,
+    globtype,globals,systems,verbose,compilerbase,compiler,
     import,export,link,t_win,i_nativent;
 
 
@@ -44,7 +44,7 @@ implementation
       end;
 
       TInternalLinkerNativeNT = class(TInternalLinkerWin)
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
         procedure ConcatEntryName; override;
       end;
 
@@ -52,9 +52,9 @@ implementation
                             TInternalLinkerNativeNT
 ****************************************************************************}
 
-    constructor TInternalLinkerNativeNT.create;
+    constructor TInternalLinkerNativeNT.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         CExeoutput:=TPECoffexeoutput;
         CObjInput:=TPECoffObjInput;
       end;

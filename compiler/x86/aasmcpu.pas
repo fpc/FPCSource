@@ -2955,6 +2955,8 @@ implementation
 
     function process_ea_ref_32(const input:toper;out output:ea;rfield:longint; uselargeoffset: boolean):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sym   : tasmsymbol;
         md,s  : byte;
         base,index,scalefactor,
@@ -3129,6 +3131,8 @@ implementation
       end;
 
     function process_ea_ref_16(const input:toper;out output:ea;rfield:longint; uselargeoffset: boolean):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         sym   : tasmsymbol;
         md,s  : byte;

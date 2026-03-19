@@ -27,7 +27,7 @@ unit cpupara;
 
     uses
        globtype,
-       aasmtai,aasmdata,cpubase,cgbase,cgutils,
+       aasmtai,aasmdata,cpubase,cgbase,cgutils,compilerbase,
        symconst,symtype,symsym,symdef,
        parabase,paramgr;
 
@@ -57,7 +57,7 @@ unit cpupara;
        cutils,sysutils,
        systems,verbose,
        symtable,
-       globals,defutil;
+       globals,defutil,compiler;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
@@ -472,7 +472,7 @@ unit cpupara;
               begin
                 paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
-                paradef:=cpointerdef.getreusable_no_free(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
               end
             else
               begin
@@ -622,7 +622,7 @@ unit cpupara;
                       begin
                         paralen:=sizeof(aint);
                         paracgsize:=OS_ADDR;
-                        paradef:=cpointerdef.getreusable_no_free(paradef);
+                        paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                       end
                     else
                       begin
@@ -808,6 +808,4 @@ unit cpupara;
       end;
 
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.

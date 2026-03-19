@@ -29,7 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
-    globtype,
+    globtype,compilerbase,
     aasmdata,
     symtype,symdef,parabase,
     cgbase,cgutils,
@@ -56,7 +56,7 @@ implementation
 
   uses
     globals, procinfo,
-    verbose,
+    verbose,compiler,
     fmodule,systems,
     aasmbase,aasmtai,
     paramgr,
@@ -442,9 +442,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
       create_codegen;
     end;
 

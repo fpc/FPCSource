@@ -2866,7 +2866,7 @@ implementation
         i  : integer;
         currpara : tparavarsym;
       begin
-        if not CheckVerbosity(lvl) then
+        if not compiler.verbose.CheckVerbosity(lvl) then
          exit;
         compiler.verbose.Comment(lvl+V_LineInfo,'Overloaded callnode: '+FProcsym.name+'('+ParaTreeStr(tcallparanode(FParaNode))+')');
         hp:=FCandidateProcs;

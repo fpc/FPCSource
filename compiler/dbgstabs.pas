@@ -27,7 +27,7 @@ interface
 
     uses
       cclasses,
-      systems,dbgbase,cgbase,
+      systems,dbgbase,cgbase,compilerbase,
       symconst,symtype,symdef,symsym,symtable,symbase,
       aasmtai,aasmdata;
 
@@ -128,7 +128,7 @@ interface
         procedure insertlineinfo(list:TAsmList);override;
         procedure referencesections(list:TAsmList);override;
 
-        constructor Create;override;
+        constructor Create(acompiler: TCompilerBase);override;
       end;
 
 
@@ -159,7 +159,8 @@ implementation
       cpuinfo,cpubase,cpupi,paramgr,
       aasmbase,procinfo,
       finput,fmodule,ppu,
-      symutil;
+      symutil,
+      compiler;
 
 
     const
@@ -189,6 +190,8 @@ implementation
     end;
 
     function GetSymName(Sym : TSymEntry) : string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if Not (cs_stabs_preservecase in current_settings.globalswitches) then
         result := Sym.Name
@@ -201,6 +204,8 @@ implementation
     end;
 
     function GetSymTableName(SymTable : TSymTable) : string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if Not (cs_stabs_preservecase in current_settings.globalswitches) then
         result := SymTable.Name^
@@ -1904,9 +1909,9 @@ implementation
           end;
       end;
 
-    constructor TDebugInfoStabs.Create;
+    constructor TDebugInfoStabs.Create(acompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         dbgtype:=dbg_stabs;
         stabsdir:=stab_stabs;
 

@@ -32,13 +32,13 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,cscript,
+       globtype,globals,systems,verbose,cscript,compilerbase,compiler,
        fmodule,i_go32v2,
        link,ogcoff,owar,aasmbase;
 
     type
       TInternalLinkerGo32v2=class(TInternallinker)
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
         procedure DefaultLinkScript;override;
       end;
 
@@ -47,7 +47,7 @@ implementation
          Function  WriteResponseFile(isdll:boolean) : Boolean;
          Function  WriteScript(isdll:boolean) : Boolean;
       public
-         constructor Create;override;
+         constructor Create(acompiler: TCompilerBase);override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
       end;
@@ -57,9 +57,9 @@ implementation
                                   TCoffLinker
 ****************************************************************************}
 
-    constructor TInternalLinkerGo32v2.Create;
+    constructor TInternalLinkerGo32v2.Create(acompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         CArObjectReader:=TArObjectReader;
         CExeoutput:=TDJCoffexeoutput;
         CObjInput:=TDJCoffObjInput;
@@ -177,9 +177,9 @@ implementation
                                TExternalLinkerGo32v2
 ****************************************************************************}
 
-Constructor TExternalLinkerGo32v2.Create;
+Constructor TExternalLinkerGo32v2.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

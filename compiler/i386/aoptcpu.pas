@@ -31,7 +31,7 @@ unit aoptcpu;
   Interface
 
     uses
-      cgbase,
+      cgbase,compilerbase,
       cpubase, aopt, aoptx86,
       Aasmbase,aasmtai,aasmdata;
 
@@ -56,6 +56,7 @@ unit aoptcpu;
       aasmcfi,
       procinfo,
       cgutils,
+      compiler,
       { units we should get rid off: }
       symsym,symconst;
 

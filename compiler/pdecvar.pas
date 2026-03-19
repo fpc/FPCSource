@@ -1288,7 +1288,7 @@ implementation
                   parser.pbase.try_to_consume(_COLON) then
                 begin
                   pt.free;
-                  pt:=expr(true);
+                  pt:=compiler.parser.pexpr.expr(true);
                   if is_constintnode(pt) then
                     begin
                       {$if defined(i8086)}
