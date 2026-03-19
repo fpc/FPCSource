@@ -2793,7 +2793,7 @@ begin
         if (ch = '_') and (arrayind > 2) and (store[0]=#27) and (store[1]='[') then
         begin
           DecodeAndPushWin32Key(store, arrayind);
-          exit;
+          arrayind:=0; { used all characters, empty store array }
         end else
         if (arrayind>3) then
           if (ch = 'u'  )   { for sure kitty keys  or }
