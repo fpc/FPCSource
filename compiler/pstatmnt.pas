@@ -1115,7 +1115,7 @@ implementation
         entrypos : tfileposinfo;
         hl : TAsmList;
       begin
-         Inside_asm_statement:=true;
+         compiler.globals.Inside_asm_statement:=true;
          asmstat:=nil;
          hl:=nil;
 
@@ -1201,7 +1201,7 @@ implementation
              parser.pbase.consume(_RECKKLAMMER);
            end;
 
-         Inside_asm_statement:=false;
+         compiler.globals.Inside_asm_statement:=false;
          _asm_statement:=asmstat;
       end;
 

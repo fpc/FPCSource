@@ -310,7 +310,6 @@ Const
        cgbackend: tcgbackend;
 
     const
-       Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;
 
@@ -731,6 +730,9 @@ Const
           they are unique) }
         prop_auto_getter_prefix,
         prop_auto_setter_prefix : string;
+
+        // TODO: Inside_asm_statement should probably be moved inside the scanner or parser
+        Inside_asm_statement : boolean;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1844,6 +1846,8 @@ implementation
 
         { enable all features by default }
         compiler.globals.features:=[low(Tfeature)..high(Tfeature)];
+
+        compiler.globals.Inside_asm_statement:=false;
 
         callinitprocs;
      end;

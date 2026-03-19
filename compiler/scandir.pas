@@ -298,7 +298,7 @@ unit scandir;
       begin
         current_scanner.skipspace;
         s:=current_scanner.readid;
-        If Inside_asm_statement then
+        If compiler.globals.Inside_asm_statement then
           compiler.verbose.Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='ANY' then
           current_settings.asmcputype:=cpu_none
@@ -328,7 +328,7 @@ unit scandir;
       begin
         current_scanner.skipspace;
         s:=current_scanner.readid;
-        If Inside_asm_statement then
+        If compiler.globals.Inside_asm_statement then
           compiler.verbose.Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='DEFAULT' then
           recordpendingasmmode(init_settings.asmmode)
