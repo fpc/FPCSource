@@ -203,7 +203,7 @@ var
 
       old_asmdata:=current_asmdata;
       old_debuginfo:=current_debuginfo;
-      old_parser_file:=parser_current_file;
+      old_parser_file:=compiler.globals.parser_current_file;
       old_scanner:=current_scanner;
     end;
 
@@ -342,7 +342,7 @@ var
       current_asmdata:=nil;
       current_debuginfo:=nil;
 
-      parser_current_file:='';
+      _compiler.globals.parser_current_file:='';
       set_current_scanner(nil);
     end;
 

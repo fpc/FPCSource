@@ -431,7 +431,7 @@ type
                     begin
 {$ifdef DEBUG_OPTSTRENGTH}
                       writeln('**********************************************************************************');
-                      writeln(parser_current_file, ': Found expression for strength reduction (MUL): ');
+                      writeln(compiler.globals.parser_current_file, ': Found expression for strength reduction (MUL): ');
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
@@ -509,7 +509,7 @@ type
                     begin
 {$ifdef DEBUG_OPTSTRENGTH}
                       writeln('**********************************************************************************');
-                      writeln(parser_current_file,': Found expression for strength reduction (VEC): ');
+                      writeln(compiler.globals.parser_current_file,': Found expression for strength reduction (VEC): ');
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}

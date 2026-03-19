@@ -413,12 +413,12 @@ implementation
               begin
                 current_scanner.tempopeninputfile;
                 current_scanner.gettokenpos;
-                parser_current_file:=current_scanner.inputfile.name;
+                compiler.globals.parser_current_file:=current_scanner.inputfile.name;
               end
             else
               begin
                 compiler.globals.current_filepos.moduleindex:=current_module.moduleid;
-                parser_current_file:='';
+                compiler.globals.parser_current_file:='';
               end;
           end
         else

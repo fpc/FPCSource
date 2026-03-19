@@ -3261,6 +3261,8 @@ type
 
 
     procedure tscannerfile.restoreinputfile;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef check_inputpointer_limits}
         hidden_inputbuffer:=PAnsiChar(inputfile.buf);
@@ -3272,7 +3274,7 @@ type
         lastlinepos:=inputfile.savelastlinepos;
         line_no:=inputfile.saveline_no;
         if not inputfile.is_macro then
-          parser_current_file:=inputfile.name;
+          compiler.globals.parser_current_file:=inputfile.name;
       end;
 
 

@@ -311,9 +311,6 @@ Const
 
     const
 
-       { for error info in pp.pas }
-       parser_current_file : string = '';
-
 {$if defined(m68k) or defined(arm)}
        { PalmOS resources }
        palmos_applicationname : string = 'FPC Application';
@@ -733,6 +730,9 @@ Const
         Inside_asm_statement : boolean;
 
         global_unit_count : word;
+
+        { for error info in pp.pas }
+        parser_current_file : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1848,6 +1848,7 @@ implementation
         compiler.globals.features:=[low(Tfeature)..high(Tfeature)];
 
         compiler.globals.Inside_asm_statement:=false;
+        compiler.globals.parser_current_file:='';
 
         callinitprocs;
      end;

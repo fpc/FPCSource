@@ -127,7 +127,7 @@ implementation
        if (module.is_initial) and (module.state=ms_compiled) and
            (status.errorcount=0) then
          begin
-           parser_current_file:='';
+           compiler.globals.parser_current_file:='';
            { Close script }
            if (not AsmRes.Empty) then
            begin
@@ -512,7 +512,7 @@ implementation
          if assigned(current_structdef) then
            internalerror(200811122);
          inc(module.compilecount);
-         parser_current_file:=module.mainsource;
+         compiler.globals.parser_current_file:=module.mainsource;
 
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }

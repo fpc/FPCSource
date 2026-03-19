@@ -291,7 +291,7 @@ begin
        freed already !
        But we can use global parser_current_file var }
      //TODO(nickysn): find a workaround for this, when we don't have global vars
-     //Writeln('Compilation aborted ',parser_current_file,':',compiler.globals.current_filepos.line);
+     //Writeln('Compilation aborted ',compiler.globals.parser_current_file,':',compiler.globals.current_filepos.line);
    end;
 end;
 
