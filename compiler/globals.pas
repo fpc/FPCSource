@@ -301,17 +301,12 @@ Const
 
 
     var
-
-
        init_settings,
        current_settings   : tsettings;
-
 
        cgbackend: tcgbackend;
 
     const
-
-
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the compiler.target.info.cprefix)                }
        defaultmainaliasname = 'main';
