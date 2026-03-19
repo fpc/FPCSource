@@ -473,7 +473,6 @@ begin
   InitFileUtils;
   { globals depends on source_info so it must be after systems }
   FGlobals:=TCompilerGlobals.Create;
-  InitGlobals;
   { verbose depends on exe_path and must be after globals }
   FVerbose:=TVerbose.Create;
   inittokens;

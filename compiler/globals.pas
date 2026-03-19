@@ -543,6 +543,9 @@ Const
       { TCompilerGlobals }
 
       TCompilerGlobals = class
+      private
+        procedure InitGlobals;
+      public
         { specified inputfile }
         inputfilepath     : string;
         inputfilename     : string;
@@ -730,6 +733,8 @@ Const
         mainaliasname : string;
 
         LTOExt: TCmdStr;
+
+        constructor Create;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -741,7 +746,6 @@ Const
     { discern +0.0 and -0.0 }
     function get_real_sign(r: bestreal): longint;
 
-    procedure InitGlobals;
     procedure DoneGlobals;
     procedure register_initdone_proc(init,done:tprocedure);
 
@@ -1758,7 +1762,7 @@ implementation
        compiler.globals.current_namespacelist:=Nil;
      end;
 
-   procedure InitGlobals;
+   procedure TCompilerGlobals.InitGlobals;
      var
        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
@@ -1863,6 +1867,11 @@ implementation
         compiler.globals.LTOExt:='';
 
         callinitprocs;
+     end;
+
+   constructor TCompilerGlobals.Create;
+     begin
+       InitGlobals;
      end;
 
 initialization
