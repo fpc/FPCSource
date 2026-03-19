@@ -311,8 +311,6 @@ Const
 
     const
 
-       global_unit_count : word = 0;
-
        { for error info in pp.pas }
        parser_current_file : string = '';
 
@@ -733,6 +731,8 @@ Const
 
         // TODO: Inside_asm_statement should probably be moved inside the scanner or parser
         Inside_asm_statement : boolean;
+
+        global_unit_count : word;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1771,7 +1771,7 @@ implementation
         compiler.globals.do_build:=false;
         compiler.globals.do_release:=false;
         compiler.globals.do_make:=true;
-        global_unit_count:=0;
+        compiler.globals.global_unit_count:=0;
 
         { Output }
         compiler.globals.OutputFileName:='';
