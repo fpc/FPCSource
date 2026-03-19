@@ -280,8 +280,8 @@ begin
     begin
       if create_smartlink_sections then
         GCSectionsStr:='-gc-all';
-      if sinclairql_vlink_experimental then
-        QLFlagsStr:='-b sinclairql -q -'+lower(sinclairql_metadata_format)+' -stack='+tostr(compiler.globals.StackSize)
+      if compiler.globals.sinclairql_vlink_experimental then
+        QLFlagsStr:='-b sinclairql -q -'+lower(compiler.globals.sinclairql_metadata_format)+' -stack='+tostr(compiler.globals.StackSize)
       else
         QLFlagsStr:='-b rawseg -q';
     end;
@@ -307,7 +307,7 @@ begin
   { Kludge:
       With the above linker script, vlink will produce two files. The main binary
       and the relocation info. Here we copy the two together. (KB) }
-  if MakeSinclairQLExe and not sinclairql_vlink_experimental then
+  if MakeSinclairQLExe and not compiler.globals.sinclairql_vlink_experimental then
     begin
       QLHeader:=DefaultQLHeader;
       XTccData:=DefaultXTccData;
@@ -345,7 +345,7 @@ begin
       DataSpace := NToBE(DWord(max((HeaderSize - BinSize) - RelocSize + compiler.globals.StackSize,0)));
 
       { Option: prepend QEmuLator and QPC2 v5 compatible header to EXE }
-      if sinclairql_metadata_format='QHDR' then
+      if compiler.globals.sinclairql_metadata_format='QHDR' then
         begin
           QLHeader.hdr_data:=DataSpace;
           blockwrite(fd, QLHeader, sizeof(QLHeader));
@@ -370,7 +370,7 @@ begin
       { Option: append cross compilation data space marker, this can be picked up by
         a special version of InfoZIP (compiled with -DQLZIP and option -Q) or by any
         of the XTcc unpack utilities }
-      if sinclairql_metadata_format='XTCC' then
+      if compiler.globals.sinclairql_metadata_format='XTCC' then
         begin
           XTccData.xtcc_data:=DataSpace;
           blockwrite(fd, XTccData, sizeof(XTccData));

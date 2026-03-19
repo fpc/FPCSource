@@ -311,15 +311,6 @@ Const
 
     const
 
-{$if defined(m68k)}
-       { Atari Specific }
-       ataritos_exe_flags: dword = 7;
-       ataritos_exe_format: string = 'ataritos';
-
-       { Sinclair QL specific }
-       sinclairql_metadata_format: string[4] = 'QHDR';
-       sinclairql_vlink_experimental: boolean = true; { temporary }
-{$endif defined(m68k)}
 
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the compiler.target.info.cprefix)                }
@@ -734,6 +725,15 @@ Const
         palmos_applicationname : string = 'FPC Application';
         palmos_applicationid : string[4] = 'FPCA';
  {$endif defined(m68k) or defined(arm)}
+ {$if defined(m68k)}
+        { Atari Specific }
+        ataritos_exe_flags: dword;
+        ataritos_exe_format: string;
+
+        { Sinclair QL specific }
+        sinclairql_metadata_format: string[4];
+        sinclairql_vlink_experimental: boolean;
+ {$endif defined(m68k)}
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1855,6 +1855,12 @@ implementation
         compiler.globals.palmos_applicationname := 'FPC Application';
         compiler.globals.palmos_applicationid := 'FPCA';
 {$endif defined(m68k) or defined(arm)}
+{$if defined(m68k)}
+        compiler.globals.ataritos_exe_flags:=7;
+        compiler.globals.ataritos_exe_format:='ataritos';
+        compiler.globals.sinclairql_metadata_format:='QHDR';
+        compiler.globals.sinclairql_vlink_experimental:=true; { temporary }
+{$endif defined(m68k)}
 
         callinitprocs;
      end;

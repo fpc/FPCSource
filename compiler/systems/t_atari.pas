@@ -73,7 +73,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='vlink -b '+ataritos_exe_format+' $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b '+compiler.globals.ataritos_exe_format+' $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -154,7 +154,7 @@ begin
     LinkRes.Add('  }');
     LinkRes.Add('}');
    end;
-  if (UseVLink) and (ataritos_exe_format = 'aoutmint') then
+  if (UseVLink) and (compiler.globals.ataritos_exe_format = 'aoutmint') then
    begin
     LinkRes.Add('SECTIONS {');
     LinkRes.Add('  . = 0xe4;');
@@ -288,9 +288,9 @@ begin
   DynLinkStr:='';
   MapStr:='';
   if UseVLink then
-    FlagsStr:='-tos-flags '+tostr(ataritos_exe_flags)
+    FlagsStr:='-tos-flags '+tostr(compiler.globals.ataritos_exe_flags)
   else
-    FlagsStr:='--mprg-flags '+tostr(ataritos_exe_flags);
+    FlagsStr:='--mprg-flags '+tostr(compiler.globals.ataritos_exe_flags);
 
   if (cs_link_map in current_settings.globalswitches) then
     if UseVLink then

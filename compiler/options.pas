@@ -4003,7 +4003,7 @@ begin
              begin
                if (length(More)>j) then
                  begin
-                   val(Copy(More,j+1),ataritos_exe_flags,code);
+                   val(Copy(More,j+1),compiler.globals.ataritos_exe_flags,code);
                    if code<>0 then
                      IllegalPara(opt);
                  end
@@ -4151,7 +4151,7 @@ begin
        'L':
          begin
            if (compiler.target.info.system in [system_m68k_sinclairql]) then
-             sinclairql_vlink_experimental:=false
+             compiler.globals.sinclairql_vlink_experimental:=false
            else
              IllegalPara(opt);
          end;
@@ -4159,8 +4159,8 @@ begin
          begin
            if (compiler.target.info.system in [system_m68k_sinclairql]) then
              begin
-               sinclairql_metadata_format:=Upper(Copy(More,j+1));
-               case sinclairql_metadata_format of
+               compiler.globals.sinclairql_metadata_format:=Upper(Copy(More,j+1));
+               case compiler.globals.sinclairql_metadata_format of
                  'QHDR', 'XTCC': ; { allowed formats }
                  else
                    IllegalPara(opt);
@@ -4201,8 +4201,8 @@ begin
            if (compiler.target.info.system in [system_m68k_atari]) then
              begin
                case Upper(Copy(More,j+1)) of
-                 'TOS': ataritos_exe_format := 'ataritos';
-                 'MINT': ataritos_exe_format := 'aoutmint';
+                 'TOS': compiler.globals.ataritos_exe_format := 'ataritos';
+                 'MINT': compiler.globals.ataritos_exe_format := 'aoutmint';
                  else
                    IllegalPara(opt);
                end;
