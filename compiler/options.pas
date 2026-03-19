@@ -2659,7 +2659,7 @@ begin
                             if not disable then
                               begin
                                 include(init_settings.moduleswitches,cs_lto);
-                                LTOExt:='.bc';
+                                compiler.globals.LTOExt:='.bc';
                               end
                             else
                               exclude(init_settings.moduleswitches,cs_lto);

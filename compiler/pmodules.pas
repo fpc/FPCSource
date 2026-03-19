@@ -212,7 +212,7 @@ implementation
           end;
         if cs_lto in current_settings.moduleswitches then
           begin
-            curr.linkunitofiles.add(ChangeFileExt(curr.objfilename,LTOExt),link_lto);
+            curr.linkunitofiles.add(ChangeFileExt(curr.objfilename,compiler.globals.LTOExt),link_lto);
             curr.headerflags:=curr.headerflags or uf_lto_linked;
           end;
       end;

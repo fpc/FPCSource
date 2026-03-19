@@ -318,8 +318,6 @@ Const
 
        custom_attribute_suffix = 'ATTRIBUTE';
 
-      LTOExt: TCmdStr = '';
-
     const
       default_settings : TSettings = (
         alignment : (
@@ -735,6 +733,8 @@ Const
  {$endif defined(m68k)}
 
         mainaliasname : string;
+
+        LTOExt: TCmdStr;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1864,6 +1864,8 @@ implementation
 {$endif defined(m68k)}
 
         compiler.globals.mainaliasname:=defaultmainaliasname;
+
+        compiler.globals.LTOExt:='';
 
         callinitprocs;
      end;
