@@ -274,6 +274,8 @@ var
   hs : ShortString;
 begin
   hs:=s;
+  if hs='' then
+    exit; { if there is no directory to set to, then don't  }
   UnixDir(hs);
   if assigned(progdir) then
     strdispose(progdir);
