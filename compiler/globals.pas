@@ -722,8 +722,8 @@ Const
 
  {$if defined(m68k) or defined(arm)}
         { PalmOS resources }
-        palmos_applicationname : string = 'FPC Application';
-        palmos_applicationid : string[4] = 'FPCA';
+        palmos_applicationname : string;
+        palmos_applicationid : string[4];
  {$endif defined(m68k) or defined(arm)}
  {$if defined(m68k)}
         { Atari Specific }
