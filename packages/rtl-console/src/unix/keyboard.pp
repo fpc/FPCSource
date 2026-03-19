@@ -72,6 +72,7 @@ function RawReadString : ShortString;
 function KeyPressed : Boolean;
 procedure AddSequence(const St : ShortString; AChar,AScan :byte);inline;
 function FindSequence(const St : ShortString;var AChar, Ascan : byte) : boolean;
+function FindSequence(const St : ShortString;var ATreeEl:TTreeElement) : boolean;
 procedure RestoreStartMode;
 
 function AddSpecialSequence(const St : Shortstring;Proc : Tprocedure) : PTreeElement; platform;
@@ -988,14 +989,12 @@ begin
   AddSpecialSequence:=NPT;
 end;
 
-function FindSequence(const St : shortstring;var AChar,AScan :byte) : boolean;
+function FindSequence(const St : ShortString;var ATreeEl:TTreeElement) : boolean;
 var
   NPT : PTreeElement;
   i,p : byte;
 begin
   FindSequence:=false;
-  AChar:=0;
-  AScan:=0;
   if St='' then
     exit;
   p:=1;
@@ -1015,13 +1014,28 @@ begin
           if NPT=nil then
             exit;
         end;
-      if NPT^.CanBeTerminal then
+      if (NPT^.CanBeTerminal) or assigned(NPT^.SpecialHandler) then
         begin
           FindSequence:=true;
-          AScan:=NPT^.ScanValue;
-          AChar:=NPT^.CharValue;
+          ATreeEl:=NPT^;
         end;
     end;
+end;
+
+function FindSequence(const St : shortstring;var AChar,AScan :byte) : boolean;
+var
+  NPT: TTreeElement;
+begin
+  FindSequence:=false;
+  AChar:=0;
+  AScan:=0;
+  if FindSequence (St,NPT) then
+    if NPT.CanBeTerminal then
+      begin
+        FindSequence:=true;
+        AScan:=NPT.ScanValue;
+        AChar:=NPT.CharValue;
+      end;
 end;
 
 type  key_sequence=packed record
