@@ -205,8 +205,8 @@ begin
         Replace(cmdstr,'$RES',MaybeQuoted(compiler.globals.outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);
 //        Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
-        Replace(cmdstr,'$APPNAME',palmos_applicationname);
-        Replace(cmdstr,'$APPID',palmos_applicationid);
+        Replace(cmdstr,'$APPNAME',compiler.globals.palmos_applicationname);
+        Replace(cmdstr,'$APPID',compiler.palmos_applicationid);
 
         success:=DoExec(binstr,cmdstr,(i=1),false);
         if not success then

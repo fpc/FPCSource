@@ -311,11 +311,6 @@ Const
 
     const
 
-{$if defined(m68k) or defined(arm)}
-       { PalmOS resources }
-       palmos_applicationname : string = 'FPC Application';
-       palmos_applicationid : string[4] = 'FPCA';
-{$endif defined(m68k) or defined(arm)}
 {$if defined(m68k)}
        { Atari Specific }
        ataritos_exe_flags: dword = 7;
@@ -733,6 +728,12 @@ Const
 
         { for error info in pp.pas }
         parser_current_file : string;
+
+ {$if defined(m68k) or defined(arm)}
+        { PalmOS resources }
+        palmos_applicationname : string = 'FPC Application';
+        palmos_applicationid : string[4] = 'FPCA';
+ {$endif defined(m68k) or defined(arm)}
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1849,6 +1850,11 @@ implementation
 
         compiler.globals.Inside_asm_statement:=false;
         compiler.globals.parser_current_file:='';
+
+{$if defined(m68k) or defined(arm)}
+        compiler.globals.palmos_applicationname := 'FPC Application';
+        compiler.globals.palmos_applicationid := 'FPCA';
+{$endif defined(m68k) or defined(arm)}
 
         callinitprocs;
      end;

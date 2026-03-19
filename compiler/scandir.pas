@@ -347,7 +347,7 @@ unit scandir;
         { change description global var in all cases }
         { it not used but in win32 and os2 }
         current_scanner.skipspace;
-        palmos_applicationid:=current_scanner.readcomment;
+        compiler.globals.palmos_applicationid:=current_scanner.readcomment;
       end;
 
     procedure dir_appname;
@@ -357,7 +357,7 @@ unit scandir;
         { change description global var in all cases }
         { it not used but in win32 and os2 }
         current_scanner.skipspace;
-        palmos_applicationname:=current_scanner.readcomment;
+        compiler.globals.palmos_applicationname:=current_scanner.readcomment;
       end;
 {$endif defined(m68k) or defined(arm)}
 
