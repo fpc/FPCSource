@@ -1769,102 +1769,102 @@ implementation
         get_exepath;
 
         { reset globals }
-        compiler.globals.do_build:=false;
-        compiler.globals.do_release:=false;
-        compiler.globals.do_make:=true;
-        compiler.globals.global_unit_count:=0;
+        do_build:=false;
+        do_release:=false;
+        do_make:=true;
+        global_unit_count:=0;
 
         { Output }
-        compiler.globals.OutputFileName:='';
-        compiler.globals.OutputPrefix:=Nil;
-        compiler.globals.OutputSuffix:=Nil;
+        OutputFileName:='';
+        OutputPrefix:=Nil;
+        OutputSuffix:=Nil;
 
-        compiler.globals.outputexedir:='';
-        compiler.globals.outputunitdir:='';
+        outputexedir:='';
+        outputunitdir:='';
 
         { Utils directory }
-        compiler.globals.utilsdirectory:='';
-        compiler.globals.utilsprefix:='';
-        compiler.globals.llvmutilssuffix:='';
-        compiler.globals.cshared:=false;
-        compiler.globals.rlinkpath:='';
-        compiler.globals.sysrootpath:='';
+        utilsdirectory:='';
+        utilsprefix:='';
+        llvmutilssuffix:='';
+        cshared:=false;
+        rlinkpath:='';
+        sysrootpath:='';
 {$if defined(XTENSA) or defined(RISCV32)}
-        compiler.globals.idfpath:='';
+        idfpath:='';
 {$endif defined(XTENSA) or defined(RISCV32)}
 
         { Search Paths }
-        compiler.globals.unicodepath:='';
-        compiler.globals.librarysearchpath:=TSearchPathList.Create;
-        compiler.globals.unitsearchpath:=TSearchPathList.Create;
-        compiler.globals.includesearchpath:=TSearchPathList.Create;
-        compiler.globals.objectsearchpath:=TSearchPathList.Create;
-        compiler.globals.frameworksearchpath:=TSearchPathList.Create;
-        compiler.globals.packagesearchpath:=TSearchPathList.Create;
-        compiler.globals.namespacelist:=TCmdStrList.Create;
-        compiler.globals.premodule_namespacelist:=TCmdStrList.Create;
-        compiler.globals.current_namespacelist:=Nil;
+        unicodepath:='';
+        librarysearchpath:=TSearchPathList.Create;
+        unitsearchpath:=TSearchPathList.Create;
+        includesearchpath:=TSearchPathList.Create;
+        objectsearchpath:=TSearchPathList.Create;
+        frameworksearchpath:=TSearchPathList.Create;
+        packagesearchpath:=TSearchPathList.Create;
+        namespacelist:=TCmdStrList.Create;
+        premodule_namespacelist:=TCmdStrList.Create;
+        current_namespacelist:=Nil;
         { Def file }
-        compiler.globals.usewindowapi:=false;
-        compiler.globals.description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;
-        compiler.globals.DescriptionSetExplicity:=false;
-        compiler.globals.SetPEFlagsSetExplicity:=false;
-        compiler.globals.SetPEOptFlagsSetExplicity:=false;
-        compiler.globals.SetPEOSVersionSetExplicitely:=false;
-        compiler.globals.SetPESubSysVersionSetExplicitely:=false;
-        compiler.globals.SetPEUserVersionSetExplicitely:=false;
-        compiler.globals.ImageBaseSetExplicity:=false;
-        compiler.globals.MinStackSizeSetExplicity:=false;
-        compiler.globals.MaxStackSizeSetExplicity:=false;
+        usewindowapi:=false;
+        description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;
+        DescriptionSetExplicity:=false;
+        SetPEFlagsSetExplicity:=false;
+        SetPEOptFlagsSetExplicity:=false;
+        SetPEOSVersionSetExplicitely:=false;
+        SetPESubSysVersionSetExplicitely:=false;
+        SetPEUserVersionSetExplicitely:=false;
+        ImageBaseSetExplicity:=false;
+        MinStackSizeSetExplicity:=false;
+        MaxStackSizeSetExplicity:=false;
 
-        compiler.globals.dllversion:='';
-        compiler.globals.dllmajor:=1;
-        compiler.globals.dllminor:=0;
-        compiler.globals.dllrevision:=0;
-        compiler.globals.nwscreenname := '';
-        compiler.globals.nwthreadname := '';
-        compiler.globals.nwcopyright  := '';
-        compiler.globals.UseDeffileForExports:=false;
-        compiler.globals.UseDeffileForExportsSetExplicitly:=false;
-        compiler.globals.GenerateImportSection:=false;
-        compiler.globals.RelocSection:=false;
-        compiler.globals.RelocSectionSetExplicitly:=false;
-        compiler.globals.MacOSXVersionMin.invalidate;
-        compiler.globals.iPhoneOSVersionMin.invalidate;
+        dllversion:='';
+        dllmajor:=1;
+        dllminor:=0;
+        dllrevision:=0;
+        nwscreenname := '';
+        nwthreadname := '';
+        nwcopyright  := '';
+        UseDeffileForExports:=false;
+        UseDeffileForExportsSetExplicitly:=false;
+        GenerateImportSection:=false;
+        RelocSection:=false;
+        RelocSectionSetExplicitly:=false;
+        MacOSXVersionMin.invalidate;
+        iPhoneOSVersionMin.invalidate;
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
-        compiler.globals.stacksize:=0;
+        stacksize:=0;
         { not initialized yet }
-        compiler.globals.apptype:=app_cui;
+        apptype:=app_cui;
 
         { Init values }
         init_settings:=default_settings;
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
 
-        compiler.globals.LinkLibraryAliases :=TLinkStrMap.Create;
-        compiler.globals.LinkLibraryOrder   :=TLinkStrMap.Create;
+        LinkLibraryAliases :=TLinkStrMap.Create;
+        LinkLibraryOrder   :=TLinkStrMap.Create;
 
         { enable all features by default }
-        compiler.globals.features:=[low(Tfeature)..high(Tfeature)];
+        features:=[low(Tfeature)..high(Tfeature)];
 
-        compiler.globals.Inside_asm_statement:=false;
-        compiler.globals.parser_current_file:='';
+        Inside_asm_statement:=false;
+        parser_current_file:='';
 
 {$if defined(m68k) or defined(arm)}
-        compiler.globals.palmos_applicationname := 'FPC Application';
-        compiler.globals.palmos_applicationid := 'FPCA';
+        palmos_applicationname := 'FPC Application';
+        palmos_applicationid := 'FPCA';
 {$endif defined(m68k) or defined(arm)}
 {$if defined(m68k)}
-        compiler.globals.ataritos_exe_flags:=7;
-        compiler.globals.ataritos_exe_format:='ataritos';
-        compiler.globals.sinclairql_metadata_format:='QHDR';
-        compiler.globals.sinclairql_vlink_experimental:=true; { temporary }
+        ataritos_exe_flags:=7;
+        ataritos_exe_format:='ataritos';
+        sinclairql_metadata_format:='QHDR';
+        sinclairql_vlink_experimental:=true; { temporary }
 {$endif defined(m68k)}
 
-        compiler.globals.mainaliasname:=defaultmainaliasname;
+        mainaliasname:=defaultmainaliasname;
 
-        compiler.globals.LTOExt:='';
+        LTOExt:='';
 
         callinitprocs;
      end;
