@@ -1627,9 +1627,9 @@ var
              ibmainname:
                begin
                  mainname:=ppufile.getpshortstring;
-                 if (mainaliasname<>defaultmainaliasname) then
-                   compiler.verbose.Message1(scan_w_multiple_main_name_overrides,mainaliasname);
-                 mainaliasname:=mainname^;
+                 if (compiler.globals.mainaliasname<>defaultmainaliasname) then
+                   compiler.verbose.Message1(scan_w_multiple_main_name_overrides,compiler.globals.mainaliasname);
+                 compiler.globals.mainaliasname:=mainname^;
                end;
              ibImportSymbols :
                readImportSymbols;

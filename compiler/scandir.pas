@@ -874,12 +874,12 @@ unit scandir;
             compiler.verbose.Message1(scan_w_multiple_main_name_overrides,current_module.mainname^);
             stringdispose(current_module.mainname)
           end
-        else if (mainaliasname<>defaultmainaliasname) and
-                (mainaliasname<>s) then
-          compiler.verbose.Message1(scan_w_multiple_main_name_overrides,mainaliasname);
-        mainaliasname:=s;
-        if (mainaliasname<>defaultmainaliasname) then
-          current_module.mainname:=stringdup(mainaliasname);
+        else if (compiler.globals.mainaliasname<>defaultmainaliasname) and
+                (compiler.globals.mainaliasname<>s) then
+          compiler.verbose.Message1(scan_w_multiple_main_name_overrides,compiler.globals.mainaliasname);
+        compiler.globals.mainaliasname:=s;
+        if (compiler.globals.mainaliasname<>defaultmainaliasname) then
+          current_module.mainname:=stringdup(compiler.globals.mainaliasname);
       end;
 
     procedure dir_maxfpuregisters;

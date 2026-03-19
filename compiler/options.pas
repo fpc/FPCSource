@@ -4402,7 +4402,7 @@ begin
          end;
        'M' :
          begin
-           mainaliasname:=Copy(more,2);
+           compiler.globals.mainaliasname:=Copy(more,2);
            More:='';
          end;
        'P' :

@@ -315,7 +315,6 @@ Const
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the compiler.target.info.cprefix)                }
        defaultmainaliasname = 'main';
-       mainaliasname : string = defaultmainaliasname;
 
        custom_attribute_suffix = 'ATTRIBUTE';
 
@@ -734,6 +733,8 @@ Const
         sinclairql_metadata_format: string[4];
         sinclairql_vlink_experimental: boolean;
  {$endif defined(m68k)}
+
+        mainaliasname : string;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -1861,6 +1862,8 @@ implementation
         compiler.globals.sinclairql_metadata_format:='QHDR';
         compiler.globals.sinclairql_vlink_experimental:=true; { temporary }
 {$endif defined(m68k)}
+
+        compiler.globals.mainaliasname:=defaultmainaliasname;
 
         callinitprocs;
      end;

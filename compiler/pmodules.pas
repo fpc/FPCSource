@@ -2721,7 +2721,7 @@ type
                main_procinfo := nil;
              end;
 
-           main_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,mainaliasname),potype_proginit,curr.localsymtable);
+           main_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,compiler.globals.mainaliasname),potype_proginit,curr.localsymtable);
            { Win32 startup code needs a single name }
            if not(compiler.target.info.system in (systems_darwin+systems_aix)) then
              main_procinfo.procdef.aliasnames.concat('PASCALMAIN')
@@ -2741,7 +2741,7 @@ type
               parameters. This function cannot be in the system unit, because
               its name can be configured on the command line (for use with e.g.
               SDL, where the main function should be called SDL_main) }
-            main_procinfo:=create_main_proc(mainaliasname,potype_mainstub,curr.localsymtable);
+            main_procinfo:=create_main_proc(compiler.globals.mainaliasname,potype_mainstub,curr.localsymtable);
             call_through_new_name(main_procinfo.procdef,compiler.target.info.cprefix+'FPC_SYSTEMMAIN');
             main_procinfo.free;
             { now create the PASCALMAIN routine (which will be called from
@@ -2750,7 +2750,7 @@ type
           end
         else
           begin
-            main_procinfo:=create_main_proc(mainaliasname,potype_proginit,curr.localsymtable);
+            main_procinfo:=create_main_proc(compiler.globals.mainaliasname,potype_proginit,curr.localsymtable);
             main_procinfo.procdef.aliasnames.concat('PASCALMAIN');
           end;
         main_procinfo.parse_body;

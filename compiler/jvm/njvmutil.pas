@@ -423,7 +423,7 @@ implementation
         end;
 
       { insert in main program routine }
-      mainpsym:=tsym(main.localsymtable.find(mainaliasname));
+      mainpsym:=tsym(main.localsymtable.find(compiler.globals.mainaliasname));
       if not assigned(mainpsym) or
          (mainpsym.typ<>procsym) then
         internalerror(2011041901);
