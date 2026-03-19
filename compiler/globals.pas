@@ -544,6 +544,7 @@ Const
 
       TCompilerGlobals = class
       private
+        procedure get_exepath;
         procedure InitGlobals;
       public
         { specified inputfile }
@@ -1650,9 +1651,7 @@ implementation
   {$define need_path_search}
 {$endif macos}
 
-   procedure get_exepath;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   procedure TCompilerGlobals.get_exepath;
      var
        localExepath : TCmdStr;
        exeName:TCmdStr;
@@ -1680,7 +1679,7 @@ implementation
           localExepath:=ExtractFilePath(localExepath);
         end;
 {$endif need_path_search}
-       compiler.globals.exepath:=FixPath(localExepath,false);
+       exepath:=FixPath(localExepath,false);
      end;
 
 
