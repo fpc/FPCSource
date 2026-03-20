@@ -476,7 +476,7 @@ type
     procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
     procedure TestRes_Nested_ClassCommaAndClass; // .class,&.class: descendant OR compound
     procedure TestRes_Nested_ClassCommaAndSpaceClass; // .class,& .class: Descendant combinator
-    // todo: procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append
+    procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append: & is the subject
     procedure TestRes_Nested_AndSpaceType; // & type -> Descendant combinator
     procedure TestRes_Nested_GTClass; // child combinator
     procedure TestRes_Nested_AndGTClass; // & child combinator
@@ -3037,6 +3037,37 @@ begin
   AssertEquals('Span4.Width','',Span4.Width);
 end;
 
+procedure TTestNewCSSResolver.TestRes_Nested_ClassSpaceAnd;
+var
+  Container, Div1, Div2, Div3: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Ant');         // .Ant descendant of .Bird -> matches .Bird &
+
+  Div2:=AddDiv('Div2',Container);     // descendant of .Bird but not .Ant -> no match
+
+  Div3:=AddDiv('Div3',Doc.Root);
+  Div3.CSSClasses.Add('Ant');         // .Ant but not descendant of .Bird -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Ant {',
+  '  .Bird & {', // append: expands to .Bird .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+  AssertEquals('Div3.Width','',Div3.Width);
+end;
+
 procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceType;
 var
   Container, Div1: TDemoDiv;
@@ -3328,6 +3359,7 @@ begin
   AssertEquals('Div1.Width','',Div1.Width);
   AssertEquals('Button2.Width','3px',Button2.Width);
 end;
+
 
 initialization
   RegisterTests([TTestNewCSSResolver]);

@@ -1080,6 +1080,8 @@ begin
     While Not (CurrentToken in Term) do
       begin
       aSel:=ParseSelector;
+      if aSel=nil then
+        exit;
       aRule.AddSelector(aSel);
       if CurrentToken=ctkCOMMA then
         Consume(ctkCOMMA);
@@ -1399,7 +1401,7 @@ begin
         GetNextToken;
         SkipWhiteSpace;
         end;
-      ctkSTAR,ctkHASH,ctkIDENTIFIER,ctkCLASSNAME,ctkLBRACKET,ctkPSEUDO,ctkPSEUDOFUNCTION:
+      ctkSTAR,ctkHASH,ctkIDENTIFIER,ctkCLASSNAME,ctkLBRACKET,ctkPSEUDO,ctkPSEUDOFUNCTION,ctkAND:
         begin
         // descendant combinator
         Bin:=TCSSBinaryElement(CreateElement(CSSBinaryElementClass));
