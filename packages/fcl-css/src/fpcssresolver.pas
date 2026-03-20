@@ -398,8 +398,10 @@ type
     // resolving rules
     procedure ComputeElement(El: TCSSElement); virtual;
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
+    function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
     function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorAndWhitespaceMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -1008,6 +1010,18 @@ begin
     ComputeRule(aRule.NestedRules[i]);
 end;
 
+function TCSSResolver.GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement;
+begin
+  Result:=nil;
+  if aSelector=nil then exit;
+  repeat
+    aSelector:=aSelector.Parent;
+    if aSelector=nil then exit;
+    if aSelector is TCSSRuleElement then
+      exit(TCSSRuleElement(aSelector));
+  until false;
+end;
+
 function TCSSResolver.FindSharedRuleList(const Rules: TCSSSharedRuleArray
   ): TCSSSharedRuleList;
 var
@@ -1165,53 +1179,32 @@ function TCSSResolver.SelectorMatches(aSelector: TCSSElement; const TestNode: IC
   OnlySpecificity: boolean; aRule: TCSSRuleElement): TCSSSpecificity;
 var
   C: TClass;
-  ParentRule: TCSSRuleElement;
-  aParent: ICSSNode;
-  ParentSpecificity, Spec: TCSSSpecificity;
-  i: Integer;
+  aBinary: TCSSBinaryElement;
 begin
   Result:=CSSSpecificityInvalid;
 
   if (aRule<>nil) and (aRule.Parent is TCSSRuleElement) then
   begin
+    // nested rule
+    if (aSelector is TCSSBinaryElement) then
+    begin
+      aBinary:=TCSSBinaryElement(aSelector);
+      if (aBinary.Operation=boWhiteSpace)
+          and (aBinary.Left is TCSSIdentifierElement)
+          and (TCSSIdentifierElement(aBinary.Left).Value='&') then
+      begin
+        // nested rule with "& <descendant>" -> descendant combinator with & as parent selector:
+        // right side must match TestNode AND an ancestor must match the parent rule.
+        aBinary:=TCSSBinaryElement(aSelector);
+        Result:=SelectorAndWhitespaceMatches(aBinary.Right,TestNode,OnlySpecificity);
+        exit;
+      end;
+    end;
     // nested rule without & -> descendant combinator:
     // own selector must match TestNode AND an ancestor must match the parent rule.
     // Parent rule specificity is like :is() = max of its selectors' specificities.
-    ParentRule:=TCSSRuleElement(aRule.Parent);
     // match own selector without nested context
-    Result:=SelectorMatches(aSelector,TestNode,OnlySpecificity,nil);
-    if Result<0 then exit;
-    if OnlySpecificity then
-    begin
-      // parent specificity = max of parent selectors (like :is())
-      ParentSpecificity:=CSSSpecificityNoMatch;
-      for i:=0 to ParentRule.SelectorCount-1 do
-      begin
-        Spec:=SelectorMatches(ParentRule.Selectors[i],TestNode,true,ParentRule);
-        if Spec>ParentSpecificity then
-          ParentSpecificity:=Spec;
-      end;
-      inc(Result,ParentSpecificity);
-      exit;
-    end;
-    // find ancestor element matching any of the css parent rule's selectors
-    aParent:=TestNode.GetCSSParent;
-    while aParent<>nil do
-    begin
-      for i:=0 to ParentRule.SelectorCount-1 do
-      begin
-        ParentSpecificity:=SelectorMatches(ParentRule.Selectors[i],aParent,false,ParentRule);
-        if ParentSpecificity=CSSSpecificityInvalid then
-          exit(CSSSpecificityInvalid);
-        if ParentSpecificity>=0 then
-        begin
-          inc(Result,ParentSpecificity);
-          exit;
-        end;
-      end;
-      aParent:=aParent.GetCSSParent;
-    end;
-    Result:=CSSSpecificityNoMatch;
+    Result:=SelectorAndWhitespaceMatches(aSelector,TestNode,OnlySpecificity);
     exit;
   end;
 
@@ -1268,6 +1261,56 @@ begin
     Result:=CSSSpecificityInvalid;
   end else if TypeID=TestNode.GetCSSTypeID then
     Result:=CSSSpecificityType+FSourceSpecificity;
+end;
+
+function TCSSResolver.SelectorAndWhitespaceMatches(aRightSelector: TCSSElement;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
+var
+  aRule, aParentRule: TCSSRuleElement;
+  ParentSpecificity, Spec: TCSSSpecificity;
+  i: Integer;
+  aParent: ICSSNode;
+begin
+  Result:=SelectorMatches(aRightSelector,TestNode,OnlySpecificity,nil);
+  if Result<0 then exit;
+  aRule:=GetRuleOfSelector(aRightSelector);
+  if (aRule=nil) then
+    exit(CSSSpecificityInvalid);
+  if not (aRule.Parent is TCSSRuleElement) then
+    exit(CSSSpecificityInvalid);
+  aParentRule:=TCSSRuleElement(aRule.Parent);
+
+  if OnlySpecificity then
+  begin
+    // parent specificity = max of parent selectors (like :is())
+    ParentSpecificity:=CSSSpecificityNoMatch;
+    for i:=0 to aParentRule.SelectorCount-1 do
+    begin
+      Spec:=SelectorMatches(aParentRule.Selectors[i],TestNode,true,aParentRule);
+      if Spec>ParentSpecificity then
+        ParentSpecificity:=Spec;
+    end;
+    inc(Result,ParentSpecificity);
+  end else begin
+    // find ancestor element matching any of the css parent rule's selectors
+    aParent:=TestNode.GetCSSParent;
+    while aParent<>nil do
+    begin
+      for i:=0 to aParentRule.SelectorCount-1 do
+      begin
+        ParentSpecificity:=SelectorMatches(aParentRule.Selectors[i],aParent,false,aParentRule);
+        if ParentSpecificity=CSSSpecificityInvalid then
+          exit(CSSSpecificityInvalid);
+        if ParentSpecificity>=0 then
+        begin
+          inc(Result,ParentSpecificity);
+          exit;
+        end;
+      end;
+      aParent:=aParent.GetCSSParent;
+    end;
+    Result:=CSSSpecificityNoMatch;
+  end;
 end;
 
 function TCSSResolver.SelectorHashIdentifierMatches(

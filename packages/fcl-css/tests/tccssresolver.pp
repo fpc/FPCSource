@@ -383,6 +383,7 @@ type
     function AddButton(const aName: string; aParent: TDemoNode): TDemoButton;
     function AddDiv(const aName: string; aParent: TDemoNode): TDemoDiv;
     function AddSpan(const aName: string; aParent: TDemoNode): TDemoSpan;
+    function AddSpan_Class(const aName, aClass: string; aParent: TDemoNode): TDemoSpan;
   public
     property Doc: TDemoDocument read FDoc;
   end;
@@ -472,11 +473,12 @@ type
     // todo: procedure TestRes_Nested_AndHash; // &#id -> AND combinator
     procedure TestRes_Nested_Class; // .class -> Descendant combinator
     // todo: procedure TestRes_Nested_AndClass; // &.class -> AND combinator
-    // todo: procedure TestRes_Nested_AndSpaceClass; // & .class -> Descendant combinator
-    // todo: procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
+    procedure TestRes_Nested_AndSpaceClass; // & .class -> Descendant combinator
+    procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
     // todo: procedure TestRes_Nested_ClassCommaAndClass; // .class,&.class: AND combinator
+    procedure TestRes_Nested_ClassCommaAndSpaceClass; // .class,& .class: Descendant combinator
     // todo: procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append
-    procedure TestRes_Nested_AndType; // &type -> AND combinator
+    procedure TestRes_Nested_AndSpaceType; // & type -> Descendant combinator
     // todo: procedure TestRes_Nested_TypeCommaType; // OR combinator
     // todo: procedure TestRes_Nested_GTClass; // child combinator
     // todo: procedure TestRes_Nested_AndGTClass; // & child combinator
@@ -1523,6 +1525,13 @@ begin
   Result:=TDemoSpan.Create(nil);
   Result.Name:=aName;
   Result.Parent:=aParent;
+end;
+
+function TCustomTestNewCSSResolver.AddSpan_Class(const aName, aClass: string; aParent: TDemoNode
+  ): TDemoSpan;
+begin
+  Result:=AddSpan(aName,aParent);
+  Result.CSSClasses.Add(aClass);
 end;
 
 { TTestNewCSSResolver }
@@ -2823,17 +2832,16 @@ begin
 
   Div1:=AddDiv('Div1',Container);
 
-  // .Big { #Div1 { ... } } -> descendant combinator: .Big #Div1
   Doc.Style:=LinesToStr([
   '.Big {',
-  '  #Div1 {',
-  '    color:red;',
+  '  #Div1 {', // -> descendant combinator: .Big #Div1
+  '    width:10px;',
   '  }',
   '}']);
   ApplyStyle;
 
-  AssertEquals('Div1.Color','red',Div1.Color);
-  AssertEquals('Container.Color','',Container.Color);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Container.Width','',Container.Width);
 end;
 
 procedure TTestNewCSSResolver.TestRes_Nested_Class;
@@ -2851,51 +2859,149 @@ begin
 
   Div2:=AddDiv('Div2',Container);
 
-  // .Foo { .Bar { ... } } -> descendant combinator: .Foo .Bar
   Doc.Style:=LinesToStr([
   '.Foo {',
-  '  .Bar {',
-  '    color:red;',
+  '  .Bar {', // descendant combinator: .Foo .Bar
+  '    width:10px;',
   '  }',
   '}']);
   ApplyStyle;
 
-  AssertEquals('Container.Color','',Container.Color);
-  AssertEquals('Div1.Color','red',Div1.Color);
-  AssertEquals('Div2.Color','',Div2.Color);
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndType;
+procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceClass;
 var
-  Container, Div1, Span1, Span2, Span3: TDemoDiv;
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  // Container is the .Big parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan('Span1',Container);
+  Span1.CSSClasses.Add('Bar');
+  Span2:=AddSpan('Span2',Div1);
+  Span2.CSSClasses.Add('Bar');
+  Span3:=AddSpan('Span3',Span1);
+  Span3.CSSClasses.Add('Bar');
+
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  & .Bar {', // descendant combinator: .Foo .Bar
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Red');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Blue',Container);
+  Span2:=AddSpan_Class('Span2','Green',Div1);
+  Span3:=AddSpan_Class('Span3','Blue',Span1);
+  Span4:=AddSpan_Class('Span4','Blue',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Red {',
+  '  .Green,.Blue {', // 2x descendant combinator: .Red .Green,.Red .Blue
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaAndSpaceClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Red');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Blue',Container);
+  Span2:=AddSpan_Class('Span2','Green',Div1);
+  Span3:=AddSpan_Class('Span3','Blue',Span1);
+  Span4:=AddSpan_Class('Span4','Blue',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Red {',
+  '  .Green,& .Blue {', // 2x descendant combinator: .Red .Green,.Red .Blue
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceType;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
   Container:=AddDiv('Container',Doc.Root);
   Container.CSSClasses.Add('Foo');
 
   Div1:=AddDiv('Div1',Container);
   Div1.CSSClasses.Add('Bar');
 
-  Span1:=AddDiv('Span1',Container);
-  Span2:=AddDiv('Span2',Div1);
-  Span3:=AddDiv('Span3',Span1);
+  Span1:=AddSpan('Span1',Container);
+  Span2:=AddSpan('Span2',Div1);
+  Span3:=AddSpan('Span3',Span1);
 
-  // .Foo { & span { ... } } -> descendant combinator: .Foo span
   Doc.Style:=LinesToStr([
   '.Foo {',
-  '  & span {',
-  '    color:red;',
+  '  & span {', // descendant combinator: .Foo span
+  '    width:10px;',
   '  }',
   '}']);
   ApplyStyle;
 
-  AssertEquals('Container.Color','',Container.Color);
-  AssertEquals('Div1.Color','',Div1.Color);
-  AssertEquals('Span1.Color','red',Span1.Color);
-  AssertEquals('Span2.Color','red',Span2.Color);
-  AssertEquals('Span3.Color','red',Span3.Color);
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
 end;
 
 initialization
