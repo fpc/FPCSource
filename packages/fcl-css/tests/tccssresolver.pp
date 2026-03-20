@@ -482,10 +482,10 @@ type
     // todo: procedure TestRes_Nested_TypeCommaType; // OR combinator
     procedure TestRes_Nested_GTClass; // child combinator
     procedure TestRes_Nested_AndGTClass; // & child combinator
-    // todo: procedure TestRes_Nested_PlusType; // adjacent sibling combinator
-    // todo: procedure TestRes_Nested_AndPlusType; // & adjacent sibling combinator
-    // todo: procedure TestRes_Nested_TildeType; // general sibling combinator
-    // todo: procedure TestRes_Nested_AndTildeType; // & general sibling combinator
+    procedure TestRes_Nested_PlusClass; // adjacent sibling combinator
+    procedure TestRes_Nested_AndPlusType; // & adjacent sibling combinator
+    procedure TestRes_Nested_TildeClass; // general sibling combinator
+    procedure TestRes_Nested_AndTildeClass; // & general sibling combinator
     // todo: procedure TestRes_Nested_HasAtribute; // [attr]
     // todo: procedure TestRes_Nested_AndHasAtribute; // & [attr]
   end;
@@ -3068,6 +3068,118 @@ begin
   AssertEquals('Span2.Width','',Span2.Width);
   AssertEquals('Span3.Width','',Span3.Width);
   AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_PlusClass;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // immediate sibling of .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling but not adjacent to .Bird -> no match
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  + .Ant {', // adjacent sibling combinator: .Bird + .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndPlusType;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // immediate sibling of .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling but not adjacent to .Bird -> no match
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  & + .Ant {', // adjacent sibling combinator: .Bird + .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_TildeClass;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // sibling after .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling after .Bird (not adjacent) -> matches
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  ~ .Ant {', // general sibling combinator: .Bird ~ .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndTildeClass;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // sibling after .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling after .Bird (not adjacent) -> matches
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  & ~ .Ant {', // general sibling combinator: .Bird ~ .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
 end;
 
 initialization
