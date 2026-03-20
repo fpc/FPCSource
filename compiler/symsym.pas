@@ -457,17 +457,28 @@ interface
        end;
        tenumsymclass = class of tenumsym;
 
+       tsyssymlist = class;
+
        tsyssym = class(Tstoredsym)
           number : tinlinenumber;
-          constructor create(const n : TSymStr;l : tinlinenumber);virtual;
+          constructor create(const n : TSymStr;l : tinlinenumber;syssymlist: tsyssymlist);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
-          class function find_by_number(l:longint):tsyssym;
        end;
        tsyssymclass = class of tsyssym;
+
+       tsyssymlist = class
+       private
+         syssym_list : TFPHashObjectList;
+       public
+         constructor Create;
+         destructor Destroy; override;
+         function create_syssym(const n : TSymStr;l : tinlinenumber):tsyssym;
+         function find_by_number(l:longint):tsyssym;
+       end;
 
     const
        maxmacrolen=16*1024;
@@ -3115,33 +3126,31 @@ implementation
 ****************************************************************************}
 
 
-    var
-      syssym_list : TFPHashObjectList;
-
-
-    constructor tsyssym.create(const n : TSymStr;l : tinlinenumber);
+    constructor tsyssym.create(const n : TSymStr;l : tinlinenumber;syssymlist: tsyssymlist);
       var
         s : shortstring;
       begin
          inherited create(syssym,n);
          number:=l;
          str(longint(l),s);
-         if assigned(syssym_list.find(s)) then
+         if assigned(syssymlist.syssym_list.find(s)) then
            internalerror(2016060303);
-         syssym_list.add(s,self);
+         syssymlist.syssym_list.add(s,self);
       end;
 
     constructor tsyssym.ppuload(ppufile:tcompilerppufile);
       var
+        compiler: TCompilerBase;
         s : shortstring;
       begin
          inherited ppuload(syssym,ppufile);
+         compiler:=ppufile.compiler;;
          number:=tinlinenumber(ppufile.getlongint);
          ppuload_platform(ppufile);
          str(longint(number),s);
-         if assigned(syssym_list.find(s)) then
+         if assigned(compiler.syssymlist.syssym_list.find(s)) then
            internalerror(2016060304);
-         syssym_list.add(s,self);
+         compiler.syssymlist.syssym_list.add(s,self);
       end;
 
     destructor tsyssym.destroy;
@@ -3156,8 +3165,27 @@ implementation
          writeentry(ppufile,ibsyssym);
       end;
 
+{*****************************************************************************
+                                 TSysSymList
+*****************************************************************************}
 
-    class function tsyssym.find_by_number(l:longint):tsyssym;
+    constructor tsyssymlist.Create;
+      begin
+        syssym_list:=tfphashobjectlist.create(false);
+      end;
+
+    destructor tsyssymlist.Destroy;
+      begin
+        FreeAndNil(syssym_list);
+        inherited Destroy;
+      end;
+
+    function tsyssymlist.create_syssym(const n : TSymStr;l : tinlinenumber):tsyssym;
+      begin
+        result:=csyssym.create(n,l,Self);
+      end;
+
+    function tsyssymlist.find_by_number(l:longint):tsyssym;
       var
         s : shortstring;
       begin
@@ -3240,19 +3268,4 @@ implementation
       end;
 
 
-    procedure init_symsym(ACompilerGlobals: TCompilerGlobals);
-      begin
-        syssym_list:=tfphashobjectlist.create(false);
-      end;
-
-
-    procedure done_symsym(ACompilerGlobals: TCompilerGlobals);
-      begin
-        syssym_list.free;
-        syssym_list := nil;
-      end;
-
-
-initialization
-  register_initdone_proc(@init_symsym,@done_symsym);
 end.

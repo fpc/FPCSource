@@ -1918,7 +1918,7 @@ begin
       v:=parser.pexpr.get_intconst;
       if (v<int64(low(longint))) or (v>int64(high(longint))) then
         compiler.verbose.Message3(type_e_range_check_error_bounds,tostr(v),tostr(low(longint)),tostr(high(longint)))
-      else if not assigned(tsyssym.find_by_number(longint(v.svalue))) then
+      else if not assigned(compiler.syssymlist.find_by_number(longint(v.svalue))) then
         compiler.verbose.Message1(parser_e_invalid_internal_function_index,tostr(v))
       else
         tprocdef(pd).extnumber:=longint(v.svalue);

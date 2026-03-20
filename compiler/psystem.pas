@@ -70,72 +70,72 @@ implementation
         all intern procedures for the system unit
       }
       begin
-        systemunit.insertsym(csyssym.create('Concat',in_concat_x));
-        systemunit.insertsym(csyssym.create('Write',in_write_x));
-        systemunit.insertsym(csyssym.create('WriteLn',in_writeln_x));
-        systemunit.insertsym(csyssym.create('WriteStr',in_writestr_x));
-        systemunit.insertsym(csyssym.create('Assigned',in_assigned_x));
-        systemunit.insertsym(csyssym.create('Read',in_read_x));
-        systemunit.insertsym(csyssym.create('ReadLn',in_readln_x));
-        systemunit.insertsym(csyssym.create('ReadStr',in_readstr_x));
-        systemunit.insertsym(csyssym.create('Ofs',in_ofs_x));
-        systemunit.insertsym(csyssym.create('SizeOf',in_sizeof_x));
-        systemunit.insertsym(csyssym.create('BitSizeOf',in_bitsizeof_x));
-        systemunit.insertsym(csyssym.create('TypeOf',in_typeof_x));
-        systemunit.insertsym(csyssym.create('Low',in_low_x));
-        systemunit.insertsym(csyssym.create('High',in_high_x));
-        systemunit.insertsym(csyssym.create('Slice',in_slice_x));
-        systemunit.insertsym(csyssym.create('Seg',in_seg_x));
-        systemunit.insertsym(csyssym.create('Ord',in_ord_x));
-        systemunit.insertsym(csyssym.create('Chr',in_chr_byte));
-        systemunit.insertsym(csyssym.create('Pred',in_pred_x));
-        systemunit.insertsym(csyssym.create('Succ',in_succ_x));
-        systemunit.insertsym(csyssym.create('Exclude',in_exclude_x_y));
-        systemunit.insertsym(csyssym.create('Include',in_include_x_y));
-        systemunit.insertsym(csyssym.create('Pack',in_pack_x_y_z));
-        systemunit.insertsym(csyssym.create('Unpack',in_unpack_x_y_z));
-        systemunit.insertsym(csyssym.create('Break',in_break));
-        systemunit.insertsym(csyssym.create('Exit',in_exit));
-        systemunit.insertsym(csyssym.create('Continue',in_continue));
-        systemunit.insertsym(csyssym.create('Leave',in_leave)); {macpas only}
-        systemunit.insertsym(csyssym.create('Cycle',in_cycle)); {macpas only}
-        systemunit.insertsym(csyssym.create('Dec',in_dec_x));
-        systemunit.insertsym(csyssym.create('Inc',in_inc_x));
-        systemunit.insertsym(csyssym.create('Str',in_str_x_string));
-        systemunit.insertsym(csyssym.create('Assert',in_assert_x_y));
-        systemunit.insertsym(csyssym.create('Val',in_val_x));
-        systemunit.insertsym(csyssym.create('Addr',in_addr_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Concat',in_concat_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Write',in_write_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('WriteLn',in_writeln_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('WriteStr',in_writestr_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Assigned',in_assigned_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Read',in_read_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('ReadLn',in_readln_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('ReadStr',in_readstr_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Ofs',in_ofs_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('SizeOf',in_sizeof_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('BitSizeOf',in_bitsizeof_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('TypeOf',in_typeof_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Low',in_low_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('High',in_high_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Slice',in_slice_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Seg',in_seg_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Ord',in_ord_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Chr',in_chr_byte));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Pred',in_pred_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Succ',in_succ_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Exclude',in_exclude_x_y));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Include',in_include_x_y));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Pack',in_pack_x_y_z));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Unpack',in_unpack_x_y_z));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Break',in_break));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Exit',in_exit));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Continue',in_continue));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Leave',in_leave)); {macpas only}
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Cycle',in_cycle)); {macpas only}
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Dec',in_dec_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Inc',in_inc_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Str',in_str_x_string));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Assert',in_assert_x_y));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Val',in_val_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Addr',in_addr_x));
 {$ifdef i8086}
-        systemunit.insertsym(csyssym.create('FarAddr',in_faraddr_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('FarAddr',in_faraddr_x));
 {$endif i8086}
-        systemunit.insertsym(csyssym.create('TypeInfo',in_typeinfo_x));
-        systemunit.insertsym(csyssym.create('SetLength',in_setlength_x));
-        systemunit.insertsym(csyssym.create('Copy',in_copy_x));
-        systemunit.insertsym(csyssym.create('Initialize',in_initialize_x));
-        systemunit.insertsym(csyssym.create('Finalize',in_finalize_x));
-        systemunit.insertsym(csyssym.create('Length',in_length_x));
-        systemunit.insertsym(csyssym.create('New',in_new_x));
-        systemunit.insertsym(csyssym.create('Dispose',in_dispose_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('TypeInfo',in_typeinfo_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('SetLength',in_setlength_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Copy',in_copy_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Initialize',in_initialize_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Finalize',in_finalize_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Length',in_length_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('New',in_new_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Dispose',in_dispose_x));
 {$ifdef SUPPORT_GET_FRAME}
-        systemunit.insertsym(csyssym.create('Get_Frame',in_get_frame));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Get_Frame',in_get_frame));
 {$endif SUPPORT_GET_FRAME}
-        systemunit.insertsym(csyssym.create('Unaligned',in_unaligned_x));
-        systemunit.insertsym(csyssym.create('Aligned',in_aligned_x));
-        systemunit.insertsym(csyssym.create('Volatile',in_volatile_x));
-        systemunit.insertsym(csyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
-        systemunit.insertsym(csyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
-        systemunit.insertsym(csyssym.create('Default',in_default_x));
-        systemunit.insertsym(csyssym.create('SetString',in_setstring_x_y_z));
-        systemunit.insertsym(csyssym.create('Insert',in_insert_x_y_z));
-        systemunit.insertsym(csyssym.create('Delete',in_delete_x_y_z));
-        systemunit.insertsym(csyssym.create('GetTypeKind',in_gettypekind_x));
-        systemunit.insertsym(csyssym.create('IsManagedType',in_ismanagedtype_x));
-        systemunit.insertsym(csyssym.create('IsConstValue',in_isconstvalue_x));
-        systemunit.insertsym(csyssym.create('fpc_eh_return_data_regno', in_const_eh_return_data_regno));
-        systemunit.insertsym(csyssym.create('AtomicIncrement',in_atomic_inc));
-        systemunit.insertsym(csyssym.create('AtomicDecrement',in_atomic_dec));
-        systemunit.insertsym(csyssym.create('AtomicExchange',in_atomic_xchg));
-        systemunit.insertsym(csyssym.create('AtomicCmpExchange',in_atomic_cmp_xchg));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Unaligned',in_unaligned_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Aligned',in_aligned_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Volatile',in_volatile_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('ObjCSelector',in_objc_selector_x)); { objc only }
+        systemunit.insertsym(compiler.syssymlist.create_syssym('ObjCEncode',in_objc_encode_x)); { objc only }
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Default',in_default_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('SetString',in_setstring_x_y_z));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Insert',in_insert_x_y_z));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('Delete',in_delete_x_y_z));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('GetTypeKind',in_gettypekind_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('IsManagedType',in_ismanagedtype_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('IsConstValue',in_isconstvalue_x));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('fpc_eh_return_data_regno', in_const_eh_return_data_regno));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('AtomicIncrement',in_atomic_inc));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('AtomicDecrement',in_atomic_dec));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('AtomicExchange',in_atomic_xchg));
+        systemunit.insertsym(compiler.syssymlist.create_syssym('AtomicCmpExchange',in_atomic_cmp_xchg));
         systemunit.insertsym(cconstsym.create_ord('False',constord,0,pasbool1type));
         systemunit.insertsym(cconstsym.create_ord('True',constord,1,pasbool1type));
       end;

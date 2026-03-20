@@ -7059,7 +7059,7 @@ implementation
               s:=s+tabstractrecorddef(owner.defowner).RttiName+'.';
             if (po_compilerproc in procoptions) and (extnumber<>$ffff) then
               begin
-                syssym:=tsyssym.find_by_number(extnumber);
+                syssym:=compiler.syssymlist.find_by_number(extnumber);
                 if not assigned(syssym) then
                   internalerror(2016060305);
                 rn:=syssym.realname;

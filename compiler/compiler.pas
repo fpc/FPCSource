@@ -198,6 +198,8 @@ type
     Fmacrosymtablestack,
     Fsymtablestack        : TSymtablestack;
 
+    FSysSymList: tsyssymlist;
+
     { Current assignment node }
     Faktassignmentnode : tassignmentnode;
 
@@ -235,6 +237,7 @@ type
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
     property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
+    property syssymlist: tsyssymlist read FSysSymList;
     property aktassignmentnode : tassignmentnode read Faktassignmentnode write Faktassignmentnode;
   end;
 
@@ -259,6 +262,7 @@ type
     function GetProcDefUtil: TProcDefUtils; inline;
     function GetRTTIWriter: TRTTIWriter; inline;
     function Getsymtablestack: TSymtablestack; inline;
+    function GetSysSymList: tsyssymlist; inline;
     function GetTarget: TCompilerTarget; inline;
     function GetTime: TCompilerTime; inline;
     function GetVerbose: TVerbose; inline;
@@ -389,6 +393,7 @@ type
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
     property symtablestack: TSymtablestack read Getsymtablestack;
+    property syssymlist: tsyssymlist read GetSysSymList;
     property aktassignmentnode : tassignmentnode read Getaktassignmentnode write Setaktassignmentnode;
   end;
 
@@ -430,6 +435,7 @@ begin
   CompilerInited:=false;
   do_doneSymbolInfo;
   DoneSymtable(Self);
+  FreeAndNil(FSysSymList);
   FreeAndNil(FGlobals);
   DoneFileUtils;
   donetokens;
@@ -472,6 +478,7 @@ begin
   InitFileUtils;
   { globals depends on source_info so it must be after systems }
   FGlobals:=TCompilerGlobals.Create;
+  FSysSymList:=tsyssymlist.Create;
   { verbose depends on exe_path and must be after globals }
   FVerbose:=TVerbose.Create;
   inittokens;
@@ -807,6 +814,11 @@ end;
 function TCompilerHelper.Getsymtablestack: TSymtablestack;
 begin
   Result := TCompiler(Self).symtablestack;
+end;
+
+function TCompilerHelper.GetSysSymList: tsyssymlist; inline;
+begin
+  Result := TCompiler(Self).SysSymList;
 end;
 
 function TCompilerHelper.GetTarget: TCompilerTarget; inline;
