@@ -66,7 +66,7 @@ implementation
       cgbase,cga,
       ncnv,
       cpubase,cpuinfo,
-      cgutils,cgobj,hlcgobj,cgx86;
+      cgutils,cgobj,nodehelper,cgx86;
 
 
     function tx8664typeconvnode.first_nothing : tnode;

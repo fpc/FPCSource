@@ -329,7 +329,7 @@ implementation
       aasmbase,aasmdata,
       symconst,defutil,defcmp,
       htypechk,pass_1,
-      hlcgobj,
+      nodehelper,
       ncnv,nflw,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       pgenutil,
       ngenutil,objcutil,aasmcnst,

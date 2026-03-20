@@ -43,7 +43,7 @@ uses
   aasmbase,aasmdata,
   ncnv, ncon, pass_2,
   cgbase, cpubase,
-  tgobj, cgobj, hlcgobj, cgutils;
+  tgobj, cgobj, nodehelper, cgutils;
 
 
 {*****************************************************************************

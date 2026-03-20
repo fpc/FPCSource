@@ -78,7 +78,7 @@ implementation
       cpuinfo,
       cpubase,parabase,
       tgobj,
-      cgobj,hlcgobj,
+      cgobj,nodehelper,
       ncgbas,ncgflw,
       wpobase;
 

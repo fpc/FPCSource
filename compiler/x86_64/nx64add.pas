@@ -41,7 +41,7 @@ interface
       globtype,globals,verbose,
       aasmbase,aasmdata,
       defutil,
-      cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
+      cgbase,cgutils,cga,cgobj,nodehelper,cgx86,
       tgobj;
 
     function tx8664addnode.use_generic_mul64bit: boolean;

@@ -65,7 +65,7 @@ interface
       cgbase,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,cgobj,hlcgobj,cgx86,cgutils,
+      cga,cgobj,nodehelper,cgx86,cgutils,
       tgobj;
 
 

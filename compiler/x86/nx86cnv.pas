@@ -67,7 +67,7 @@ implementation
       cpuinfo,
       ncnv,
       cpubase,
-      cgutils,cgobj,hlcgobj,cgx86,
+      cgutils,cgobj,nodehelper,cgx86,
       tgobj;
 
 

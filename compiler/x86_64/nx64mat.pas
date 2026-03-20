@@ -47,7 +47,7 @@ implementation
       aasmdata,defutil,
       pass_2,
       ncon,
-      cgbase,cgutils,cgobj,hlcgobj;
+      cgbase,cgutils,cgobj,nodehelper;
 
 
 {*****************************************************************************

@@ -142,7 +142,7 @@ implementation
       pass_2,
       nld,ncnv,
       ncgutil,blockutl,
-      cgobj,tgobj,hlcgobj,
+      cgobj,tgobj,nodehelper,
       procinfo,
       aasmtai,
       wpobase;

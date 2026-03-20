@@ -76,7 +76,7 @@ interface
       cpubase,systems,
       pass_2,
       cgbase,
-      cgutils,cgobj,hlcgobj,
+      cgutils,cgobj,nodehelper,
       fmodule,
       tgobj
       ;

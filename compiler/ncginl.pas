@@ -83,7 +83,7 @@ implementation
       cpubase,procinfo,
       nadd,ncon,ncal,nutils,
       tgobj,ncgutil,
-      cgutils,cgobj,hlcgobj,
+      cgutils,cgobj,nodehelper,
       defcmp
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
       ,cg64f32

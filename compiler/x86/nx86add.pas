@@ -78,7 +78,7 @@ unit nx86add;
       cpuinfo,
       aasmbase,aasmdata,aasmcpu,
       symconst,symdef,
-      cgobj,hlcgobj,cgx86,cga,cgutils,
+      cgobj,nodehelper,cgx86,cga,cgutils,
       tgobj,ncgutil,nutils,
       ncon,nset,ninl,ncnv,ncal,nmat,
       defutil,defcmp,constexp,

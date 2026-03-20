@@ -52,7 +52,7 @@ implementation
       cgbase,pass_2,tgobj,
       ncon,
       cpubase,
-      cga,cgobj,hlcgobj,cgutils,ncgutil,
+      cga,cgobj,nodehelper,cgutils,ncgutil,
       cgx86,
       procinfo;
 

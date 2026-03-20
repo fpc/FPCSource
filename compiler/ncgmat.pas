@@ -137,7 +137,7 @@ implementation
       parabase,
       pass_2,
       ncon,
-      tgobj,cgobj,cgutils,paramgr,hlcgobj;
+      tgobj,cgobj,cgutils,paramgr,nodehelper;
 
 {*****************************************************************************
                           TCGUNARYMINUSNODE

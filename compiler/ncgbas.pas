@@ -80,7 +80,7 @@ interface
       aasmbase,aasmcpu,
       symsym,symconst,defutil,
       pass_2,ncgutil,
-      cgbase,cgobj,hlcgobj,
+      cgbase,cgobj,nodehelper,
       procinfo,
       cpuinfo,
       tgobj

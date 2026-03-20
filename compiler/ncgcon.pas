@@ -76,7 +76,7 @@ implementation
       symconst,symdef,aasmtai,aasmdata,defutil,
       cpuinfo,cpubase,
       cgbase,cgutils,
-      hlcgobj,cclasses
+      nodehelper,cclasses
       ;
 
 

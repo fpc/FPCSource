@@ -714,17 +714,6 @@ unit hlcgobj;
        end;
      thlcgobjclass = class of thlcgobj;
 
-     { tnodehelper }
-
-     tnodehelper = class helper for tnode
-     private
-       function GetHLCG: thlcgobj; inline;
-       function GetParaManager: TParaManager; inline;
-     public
-       property hlcg: thlcgobj read GetHLCG;
-       property paramanager: TParaManager read GetParaManager;
-     end;
-
     var
        { class type of high level code generator class (also valid when hlcg is
          nil, in order to be able to call its virtual class methods) }
@@ -5844,19 +5833,6 @@ implementation
       result:=a_call_name(list,pd,pd.mangledname,paras,forceresdef,false);
       deallocallcpuregisters(list);
     end;
-
-  { tnodehelper }
-
-  function tnodehelper.GetHLCG: thlcgobj; inline;
-    begin
-      result:=self.compiler.hlcg;
-    end;
-
-  function tnodehelper.GetParaManager: TParaManager; inline;
-    begin
-      result:=self.compiler.paramanager;
-    end;
-
 
 
 end.

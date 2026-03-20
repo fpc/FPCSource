@@ -88,7 +88,7 @@ implementation
       aasmbase,aasmdata,
       procinfo,pass_2,parabase,
       ncon,nadd,nutils,
-      cgobj,hlcgobj,
+      cgobj,nodehelper,
       objcgutl;
 
 

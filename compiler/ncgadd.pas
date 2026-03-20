@@ -79,7 +79,7 @@ interface
       aasmbase,aasmdata,defutil,
       pass_2,tgobj,
       nutils,nset,ncgutil,cgobj,cgutils,
-      hlcgobj
+      nodehelper
       ;
 
 

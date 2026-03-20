@@ -100,7 +100,7 @@ implementation
 {$ifdef WASM}
       hlcgcpu,aasmcpu,
 {$endif WASM}
-      ncgutil,hlcgobj;
+      ncgutil,nodehelper;
 
 
 {*****************************************************************************

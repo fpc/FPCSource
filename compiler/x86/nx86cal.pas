@@ -50,7 +50,7 @@ implementation
     uses
       globtype,cgobj,
       cgbase,cpubase,cgx86,cga,aasmdata,aasmcpu,
-      hlcgobj;
+      nodehelper;
 
 
 {*****************************************************************************

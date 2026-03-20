@@ -152,7 +152,8 @@ implementation
       pass_1,ppu,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,ngenutil,
       nobjc,objcdef,
-      cgbase,procinfo,hlcgobj,
+      cgbase,procinfo,
+      nodehelper,
       compiler;
 
    function geninlinenode(number : tinlinenumber;is_const:boolean;l : tnode;acompiler:TCompilerBase) : tinlinenode;

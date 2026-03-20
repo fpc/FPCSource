@@ -119,7 +119,7 @@ implementation
       fmodule,
       cpubase,
       tgobj,paramgr,
-      cgobj,hlcgobj,nutils
+      cgobj,nodehelper,nutils
 {$ifndef SkipABIEH}
       ,psabiehpi
 {$endif}

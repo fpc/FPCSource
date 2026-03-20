@@ -101,7 +101,7 @@ implementation
       cpuinfo,cpubase,nutils,
       ncal,ncgutil,nld,ncon,nadd,nmat,constexp,
       tgobj,
-      cga,cgutils,cgx86,cgobj,hlcgobj,cutils;
+      cga,cgutils,cgx86,cgobj,nodehelper,cutils;
 
 
 {*****************************************************************************
