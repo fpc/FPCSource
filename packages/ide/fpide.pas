@@ -994,7 +994,9 @@ begin
       NewItem(menu_compile_compilermessages,menu_key_compile_compilermessages, kbF12, cmCompilerMessages, hcCompilerMessages,
       nil)))))))))),
     NewSubMenu(menu_debug, hcDebugMenu, NewMenu(
+{$if not defined(Unix) and not defined(Amiga)} { skip all Unixes, it is not possible to capture user screen there }
       NewItem(menu_debug_output,'', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
+{$endif not Unix and not Amiga}
       NewItem(menu_debug_userscreen,menu_key_debug_userscreen, kbAltF5, cmUserScreen, hcUserScreen,
       NewLine(
 {$ifdef SUPPORT_REMOTE}
@@ -1017,7 +1019,10 @@ begin
 {$ifdef SUPPORT_REMOTE}
       )
 {$endif SUPPORT_REMOTE}
-      ))))))))))))))))),
+{$if not defined(Unix) and not defined(Amiga)}
+      )
+{$endif not Unix and not Amiga}
+      )))))))))))))))),
     NewSubMenu(menu_tools, hcToolsMenu, NewMenu(
       NewItem(menu_tools_messages,menu_key_tools_messages, kbF11, cmToolsMessages, hcToolsMessages,
       NewItem(menu_tools_msgnext,menu_key_tools_msgnext, kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
