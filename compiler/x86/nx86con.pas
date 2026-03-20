@@ -42,7 +42,8 @@ implementation
       defutil,
       cpubase,
       aasmdata,
-      cga,cgx86,cgobj,cgbase,cgutils;
+      cga,cgx86,cgobj,cgbase,cgutils,
+      nodehelper;
 
 {*****************************************************************************
                            TX86REALCONSTNODE

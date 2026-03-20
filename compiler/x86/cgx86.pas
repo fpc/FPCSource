@@ -2565,10 +2565,10 @@ unit cgx86;
             exit;
           end;
 {$endif x86_64}
-        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+        a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_const_reg(A_CMP,tcgsize2opsize[size],a,reg));
         a_jmp_cond(list,cmp_op,l);
-        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+        a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2594,10 +2594,10 @@ unit cgx86;
             exit;
           end;
 {$endif x86_64}
-        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+        a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_const_ref(A_CMP,TCgSize2OpSize[size],a,tmpref));
         a_jmp_cond(list,cmp_op,l);
-        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+        a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2607,10 +2607,10 @@ unit cgx86;
       begin
         check_register_size(size,reg1);
         check_register_size(size,reg2);
-        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+        a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(A_CMP,TCgSize2OpSize[size],reg1,reg2));
         a_jmp_cond(list,cmp_op,l);
-        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+        a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2621,10 +2621,10 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
-        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+        a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_ref_reg(A_CMP,TCgSize2OpSize[size],tmpref,reg));
         a_jmp_cond(list,cmp_op,l);
-        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+        a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2635,10 +2635,10 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
-        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+        a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_ref(A_CMP,TCgSize2OpSize[size],reg,tmpref));
         a_jmp_cond(list,cmp_op,l);
-        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+        a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -3592,7 +3592,7 @@ unit cgx86;
                     ((po_exports in current_procinfo.procdef.procoptions) and
                      (compiler.target.info.system=system_i8086_win16))) and
                     is_proc_far(current_procinfo.procdef) then
-                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,1,current_procinfo.framepointer);
+                  a_op_const_reg(list,OP_ADD,OS_ADDR,1,current_procinfo.framepointer);
 {$endif i8086}
                 { push <frame_pointer> }
                 inc(stackmisalignment,sizeof(pint));

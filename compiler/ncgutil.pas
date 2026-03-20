@@ -131,7 +131,9 @@ implementation
     procedure location_free(list: TAsmList; const location : TLocation);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         case location.loc of
           LOC_VOID:
             ;
@@ -233,6 +235,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
+        cg: tcg;
     {
       produces jumps to true respectively false labels using boolean expressions
     }
@@ -242,6 +245,7 @@ implementation
         tmpreg : tregister;
       begin
          hlcg:=compiler.hlcg;
+         cg:=compiler.cg;
          if tnf_error in p.transientflags then
            exit;
          storepos:=compiler.globals.current_filepos;
@@ -418,8 +422,12 @@ implementation
 
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         reg : tregister;
       begin
+        cg:=compiler.cg;
         if (l.loc<>LOC_MMREGISTER)  and
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
           begin
@@ -436,8 +444,10 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
+        cg: tcg;
       begin
         hlcg:=compiler.hlcg;
+        cg:=compiler.cg;
         l.size:=def_cgsize(def);
         if (def.typ=floatdef) and
            not(cs_fp_emulation in current_settings.moduleswitches) then
@@ -572,8 +582,10 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
+        cg: tcg;
       begin
         hlcg:=compiler.hlcg;
+        cg:=compiler.cg;
         case loc.loc of
           LOC_CREGISTER:
             begin
@@ -614,6 +626,7 @@ implementation
     procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym; allocreg: boolean);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
 
       procedure set_para_regvar_initial_location;
         var
@@ -689,6 +702,7 @@ implementation
         usedef: tdef;
         varloc: tai_varloc;
       begin
+        cg:=compiler.cg;
         if allocreg then
           begin
             if sym.typ=paravarsym then
@@ -905,7 +919,11 @@ implementation
 
 
     procedure gen_save_used_regs(list:TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         if po_noreturn in current_procinfo.procdef.procoptions then
           exit;
         { Pure assembler routines need to save the registers themselves }
@@ -917,7 +935,11 @@ implementation
 
 
     procedure gen_restore_used_regs(list:TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         if po_noreturn in current_procinfo.procdef.procoptions then
           exit;
         { Pure assembler routines need to save the registers themselves }
@@ -1244,8 +1266,12 @@ implementation
 
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         count: longint;
       begin
+        cg:=compiler.cg;
         for count := 1 to rv.intregvars.length do
           cg.a_reg_sync(list,newreg(R_INTREGISTER,rv.intregvars.readidx(count-1),R_SUBWHOLE));
         for count := 1 to rv.addrregvars.length do
@@ -1259,9 +1285,13 @@ implementation
 
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         i   : longint;
         sym : tsym;
       begin
+        cg:=compiler.cg;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
@@ -1380,8 +1410,12 @@ implementation
 
     procedure gen_load_frame_for_exceptfilter(list : TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         para: tparavarsym;
       begin
+        cg:=compiler.cg;
         para:=tparavarsym(current_procinfo.procdef.paras[0]);
         if not (vo_is_parentfp in para.varoptions) then
           InternalError(201201142);

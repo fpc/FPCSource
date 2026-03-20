@@ -48,7 +48,8 @@ implementation
       cpubase,cgbase,cgutils,cgobj,compiler,
       symconst,symcpu,nld,
       aasmtai,aasmdata,aasmcpu,
-      cpupi;
+      cpupi,
+      nodehelper;
 
     procedure tx8664callnode.do_syscall;
       var

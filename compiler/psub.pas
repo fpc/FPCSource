@@ -28,7 +28,7 @@ unit psub;
 interface
 
     uses
-      globals,cclasses,compilerbase,hlcgobj,
+      globals,cclasses,compilerbase,hlcgobj,cgobj,
       node,nbas,nutils,aasmdata,
       symdef,procinfo,optdfa;
 
@@ -46,6 +46,7 @@ interface
       private
         tempinfo_flags_map : TFPList;
         tempflags_swapped : boolean;
+        function GetCG: tcg; inline;
         function GetHLCG: thlcgobj; inline;
         procedure swap_tempflags;
         function store_node_tempflags(var n: tnode; arg: pointer): foreachnoderesult;
@@ -54,6 +55,7 @@ interface
         function GetUserCode: tnode;
         procedure maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
         procedure add_entry_exit_code;
+        procedure translate_registers(p:TObject;list:pointer);
         procedure setup_tempgen;
         procedure OptimizeNodeTree;
         procedure convert_captured_syms;
@@ -66,6 +68,7 @@ interface
       protected
         procedure generate_code_exceptfilters;
         property hlcg: thlcgobj read GetHLCG;
+        property cg: tcg read GetCG;
       public
         { code for the subroutine as tree }
         code : tnode;
@@ -176,7 +179,7 @@ implementation
        scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,parser,
        { codegen }
-       tgobj,cgbase,cgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,hlcgcpu,dbgbase,
 
        ncgflw,
        ncgutil,
@@ -1056,7 +1059,7 @@ implementation
       end;
 
 
-    procedure translate_registers(p:TObject;list:pointer);
+    procedure tcgprocinfo.translate_registers(p:TObject;list:pointer);
       begin
          if (tsym(p).typ in [localvarsym,paravarsym,staticvarsym]) and
             (tabstractnormalvarsym(p).localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
@@ -1500,6 +1503,12 @@ implementation
       end;
 
 
+    function tcgprocinfo.GetCG: tcg; inline;
+      begin
+        result:=compiler.cg;
+      end;
+
+
     procedure tcgprocinfo.apply_tempflags;
       begin
         if tempflags_swapped then
@@ -1750,9 +1759,9 @@ implementation
         { flush code generated this far }
         aktproccode.concatlist(current_asmdata.CurrAsmList);
         { save the codegen }
-        saved_cg:=cg;
+        saved_cg:=compiler.cg;
         saved_hlcg:=compiler.hlcg;
-        cg:=nil;
+        tcompiler(compiler).cg:=nil;
         tcompiler(compiler).hlcg:=nil;
 {$ifdef cpu64bitalu}
         saved_cg128:=cg128;
@@ -1764,7 +1773,7 @@ implementation
         nestedpi.generate_code;
         { prevents generating code the second time when processing nested procedures }
         nestedpi.resetprocdef;
-        cg:=saved_cg;
+        tcompiler(compiler).cg:=saved_cg;
         tcompiler(compiler).hlcg:=saved_hlcg;
 {$ifdef cpu64bitalu}
         cg128:=saved_cg128;

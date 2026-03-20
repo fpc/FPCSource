@@ -39,7 +39,7 @@ interface
 {$i fpcdefs.inc}
 
     uses
-      node,paramgr,hlcgobj;
+      node,paramgr,hlcgobj,cgobj;
 
     type
 
@@ -47,10 +47,12 @@ interface
 
       tnodehelper = class helper for tnode
       private
+        function GetCG: tcg; inline;
         function GetHLCG: thlcgobj; inline;
         function GetParaManager: TParaManager; inline;
       public
         property hlcg: thlcgobj read GetHLCG;
+        property cg: tcg read GetCG;
         property paramanager: TParaManager read GetParaManager;
       end;
 
@@ -60,6 +62,11 @@ implementation
     compiler;
 
   { tnodehelper }
+
+  function tnodehelper.GetCG: tcg; inline;
+    begin
+      result:=self.compiler.cg;
+    end;
 
   function tnodehelper.GetHLCG: thlcgobj; inline;
     begin

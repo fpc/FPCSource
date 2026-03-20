@@ -557,8 +557,8 @@ unit cgcpu;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        cg:=tcgx86_64.create(compiler);
-        cg128:=tcg128.create;
+        tcompiler(compiler).cg:=tcgx86_64.create(compiler);
+        cg128:=tcg128.create(compiler.cg);
       end;
 
 end.

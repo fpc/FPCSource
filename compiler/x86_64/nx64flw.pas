@@ -60,7 +60,8 @@ implementation
     cpubase,htypechk,compiler,
     pass_1,pass_2,
     aasmbase,aasmtai,aasmdata,aasmcpu,
-    procinfo,cpupi,procdefutil;
+    procinfo,cpupi,procdefutil,
+    nodehelper;
 
   var
     endexceptlabel: tasmlabel;
@@ -248,8 +249,12 @@ function tx64tryfinallynode.simplify(forinline: boolean): tnode;
 
 procedure emit_nop;
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    cg: tcg;
+  var
     dummy: TAsmLabel;
   begin
+    cg:=compiler.cg;
     { To avoid optimizing away the whole thing, prepend a jumplabel with increased refcount }
     current_asmdata.getjumplabel(dummy);
     dummy.increfs;

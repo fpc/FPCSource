@@ -35,7 +35,7 @@ unit hlcgobj;
 
     uses
        cclasses,globtype,constexp,
-       cpubase,cgbase,cgutils,parabase,paramgr,compilerbase,
+       cpubase,cgbase,cgutils,parabase,paramgr,compilerbase,cgobj,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symbase,symtype,symsym,symdef,
        node,nutils,
@@ -66,10 +66,12 @@ unit hlcgobj;
        thlcgobj = class
        private
           FCompiler: TCompilerBase;
+          function GetCG: TCG; inline;
           function GetParaManager: TParaManager; inline;
        protected
           property Compiler: TCompilerBase read FCompiler;
           property ParaManager: TParaManager read GetParaManager;
+          property CG: TCG read GetCG;
        public
           {************************************************}
           {                 basic routines                 }
@@ -731,7 +733,7 @@ implementation
        symtable,
        nbas,ncon,nld,nmem,
        ncgrtti,pass_2,
-       cgobj,cutils,procinfo,
+       cutils,procinfo,
        ngenutil,
 {$ifdef x86}
        cgx86,
@@ -752,6 +754,11 @@ implementation
   function thlcgobj.GetParaManager: TParaManager; inline;
     begin
       result:=compiler.paramanager;
+    end;
+
+  function thlcgobj.GetCG: TCG; inline;
+    begin
+      result:=compiler.cg;
     end;
 
   constructor thlcgobj.create(ACompiler: TCompilerBase);

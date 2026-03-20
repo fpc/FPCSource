@@ -46,7 +46,8 @@ implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,
       cpubase,procinfo,
-      cga,cgutils,cgobj,cgx86;
+      cga,cgutils,cgobj,cgx86,
+      nodehelper;
 
 
 {*****************************************************************************

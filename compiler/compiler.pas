@@ -157,7 +157,7 @@ uses
 {$endif GENERIC_CPU}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
-  ,hlcgobj
+  ,hlcgobj,cgobj
   ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept,paramgr
   ,opt,optloop
   ,aasmdata
@@ -191,6 +191,7 @@ type
     FLinker: TLinker;
     FExceptionStateHandler: tcgexceptionstatehandler;
     Fhlcg: thlcgobj;
+    Fcg: tcg;
     Fparamanager : tparamanager;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -235,6 +236,8 @@ type
     property ExceptionStateHandler: tcgexceptionstatehandler read FExceptionStateHandler;
     {# Main high level code generator class }
     property hlcg: thlcgobj read Fhlcg write Fhlcg;
+    { Main code generator class }
+    property cg: tcg read Fcg write Fcg;
     property paramanager: tparamanager read Fparamanager;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
@@ -249,6 +252,7 @@ type
   private
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
+    function GetCG: tcg; inline;
     function GetExceptionStateHandler: tcgexceptionstatehandler; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function GetHLCG: thlcgobj; inline;
@@ -393,6 +397,7 @@ type
     property Linker: TLinker read GetLinker;
     property ExceptionStateHandler: tcgexceptionstatehandler read GetExceptionStateHandler;
     property hlcg: thlcgobj read GetHLCG;
+    property cg: tcg read GetCG;
     property paramanager: tparamanager read GetParaManager;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -743,6 +748,11 @@ end;
 function TCompilerHelper.GetBlockUtl: TBlockUtils; inline;
 begin
   Result := TCompiler(Self).BlockUtl;
+end;
+
+function TCompilerHelper.GetCG: tcg; inline;
+begin
+  Result := TCompiler(Self).cg;
 end;
 
 function TCompilerHelper.GetExceptionStateHandler: tcgexceptionstatehandler; inline;

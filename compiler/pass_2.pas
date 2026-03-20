@@ -181,12 +181,14 @@ implementation
      procedure secondpass(p : tnode);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
          oldexecutionweight : longint;
       begin
+         cg:=compiler.cg;
          if not assigned(p) then
           internalerror(200208221);
          if not(tnf_error in p.transientflags) then

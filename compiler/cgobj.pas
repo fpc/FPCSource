@@ -484,6 +484,13 @@ unit cgobj;
        for 128 Bit operations, it applies currently only to 64 Bit CPUs and supports only simple operations
     }
     tcg128 = class
+       private
+        FCG: tcg;
+       protected
+        property cg: tcg read Fcg;
+       public
+        constructor create(acg: tcg);
+
         procedure a_load128_reg_reg(list : TAsmList;regsrc,regdst : tregister128);virtual;
         procedure a_load128_reg_ref(list : TAsmList;reg : tregister128;const ref : treference);virtual;
         procedure a_load128_ref_reg(list : TAsmList;const ref : treference;reg : tregister128);virtual;
@@ -591,8 +598,6 @@ unit cgobj;
 {$endif cpu64bitalu}
 
     var
-       { Main code generator class }
-       cg : tcg;
 {$ifdef cpu64bitalu}
        { Code generator class for all operations working with 128-Bit operands }
        cg128 : tcg128;
@@ -3394,6 +3399,12 @@ implementation
       end;
 
 
+    constructor tcg128.create(acg: tcg);
+      begin
+        FCG:=acg;
+      end;
+
+
     procedure tcg128.a_load128_reg_reg(list: TAsmList; regsrc,
       regdst: tregister128);
       begin
@@ -3570,9 +3581,11 @@ implementation
       end;
 
     procedure destroy_codegen;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        cg.free;
-        cg:=nil;
+        tcompiler(compiler).cg.free;
+        tcompiler(compiler).cg:=nil;
 {$ifdef cpu64bitalu}
         cg128.free;
         cg128:=nil;

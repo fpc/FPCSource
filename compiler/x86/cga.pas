@@ -29,7 +29,8 @@ interface
     uses
        globtype,
        cpubase,cgbase,cgutils,
-       aasmbase,aasmdata,aasmcpu;
+       aasmbase,aasmdata,aasmcpu,
+       compilerbase;
 
     procedure emit_none(i : tasmop;s : topsize);
 
@@ -54,7 +55,8 @@ implementation
 
     uses
        verbose,
-       cgobj,cgx86;
+       cgobj,cgx86,
+       compiler;
 
 
 {*****************************************************************************
@@ -72,7 +74,11 @@ implementation
       end;
 
     procedure emit_ref(i : tasmop;s : topsize;ref : treference);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
         current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(i,s,ref));
       end;
@@ -83,28 +89,44 @@ implementation
       end;
 
     procedure emit_const_ref(i : tasmop;s : topsize;c : aint;ref : treference);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
         current_asmdata.CurrAsmList.concat(Taicpu.Op_const_ref(i,s,c,ref));
       end;
 
     procedure emit_ref_reg(i : tasmop;s : topsize;ref : treference;reg : tregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
         current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg(i,s,ref,reg));
       end;
 
     procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : treference);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
         current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_ref(i,s,reg,ref));
       end;
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
 
     var instr:Taicpu;
 
     begin
+      cg:=compiler.cg;
       if not ((reg1=reg2) and (i=A_MOV)) then
         begin
           instr:=Taicpu.op_reg_reg(i,s,reg1,reg2);
@@ -125,13 +147,21 @@ implementation
       end;
 
     procedure emit_ref_reg_reg(i : tasmop;s : topsize;ref : treference;reg1,reg2 : tregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
         current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg_reg(i,s,ref,reg1,reg2));
       end;
 
     procedure emit_reg_ref_reg(i : tasmop;s : topsize; reg1 : tregister; ref : treference; reg2 : tregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
         current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_ref_reg(i,s,reg1,ref,reg2));
       end;

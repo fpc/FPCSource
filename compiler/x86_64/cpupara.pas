@@ -1400,7 +1400,7 @@ unit cpupara;
         win64_saved_std_regs : tcpuregisterarray = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
         others_saved_std_regs : tcpuregisterarray = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
       begin
-        if tcgx86_64(cg).use_ms_abi then
+        if tcgx86_64(compiler.cg).use_ms_abi then
           result:=win64_saved_std_regs
         else
           result:=others_saved_std_regs;
@@ -1412,7 +1412,7 @@ unit cpupara;
         win64_saved_xmm_regs : tcpuregisterarray = (RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
       begin
-        if tcgx86_64(cg).use_ms_abi then
+        if tcgx86_64(compiler.cg).use_ms_abi then
           result:=win64_saved_xmm_regs
         else
           SetLength(result,0);

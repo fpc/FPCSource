@@ -45,7 +45,8 @@ implementation
       cutils,verbose,
       aasmdata,
       cgutils,cgobj,
-      symconst,symcpu;
+      symconst,symcpu,
+      nodehelper;
 
 {*****************************************************************************
                            TX86DEREFNODE

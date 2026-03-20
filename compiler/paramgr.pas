@@ -204,7 +204,8 @@ implementation
        globals,compiler,
        cgobj,tgobj,
        defutil,verbose,
-       hlcgobj;
+       hlcgobj,
+       paramgrhelper;
 
     constructor tparamanager.Create(ACompiler: TCompilerBase);
       begin
