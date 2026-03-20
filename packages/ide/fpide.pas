@@ -1629,9 +1629,11 @@ begin
       begin
         Write(' Press any key to return to IDE');
         InitKeyBoard;
+        write(#27'[?1011s'#27'[?1011h'); { Scroll to cursor on key press }
         Keyboard.GetKeyEvent;
         while (Keyboard.PollKeyEvent<>0) do
          Keyboard.GetKeyEvent;
+        write(#27'[?1011l'#27'[?1011r');
         DoneKeyboard;
       end;
 {$endif}

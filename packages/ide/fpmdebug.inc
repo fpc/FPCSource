@@ -74,6 +74,9 @@ begin
   ShowUserScreen;
 
   InitKeyBoard;
+{$ifdef unix}
+  write(#27'[?1011s'#27'[?1011h'); { Scroll to cursor on key press }
+{$endif unix}
   { closing the user screen on mouse events makes copy paste impossible }
   repeat
     repeat
@@ -99,6 +102,9 @@ begin
   until Event.what=evKeyboard;
   while (Keyboard.PollKeyEvent<>0) do
     Keyboard.GetKeyEvent;
+{$ifdef unix}
+  write(#27'[?1011l'#27'[?1011r');
+{$endif unix}
   DoneKeyboard;
 
   ShowIDEScreen;
