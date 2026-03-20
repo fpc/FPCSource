@@ -472,7 +472,7 @@ interface
 
        tsyssymlist = class
        private
-         syssym_list : TFPHashObjectList;
+         Fsyssym_list : TFPHashObjectList;
        public
          constructor Create;
          destructor Destroy; override;
@@ -3133,9 +3133,9 @@ implementation
          inherited create(syssym,n);
          number:=l;
          str(longint(l),s);
-         if assigned(syssymlist.syssym_list.find(s)) then
+         if assigned(syssymlist.Fsyssym_list.find(s)) then
            internalerror(2016060303);
-         syssymlist.syssym_list.add(s,self);
+         syssymlist.Fsyssym_list.add(s,self);
       end;
 
     constructor tsyssym.ppuload(ppufile:tcompilerppufile);
@@ -3148,9 +3148,9 @@ implementation
          number:=tinlinenumber(ppufile.getlongint);
          ppuload_platform(ppufile);
          str(longint(number),s);
-         if assigned(compiler.syssymlist.syssym_list.find(s)) then
+         if assigned(compiler.syssymlist.Fsyssym_list.find(s)) then
            internalerror(2016060304);
-         compiler.syssymlist.syssym_list.add(s,self);
+         compiler.syssymlist.Fsyssym_list.add(s,self);
       end;
 
     destructor tsyssym.destroy;
@@ -3171,12 +3171,12 @@ implementation
 
     constructor tsyssymlist.Create;
       begin
-        syssym_list:=tfphashobjectlist.create(false);
+        Fsyssym_list:=tfphashobjectlist.create(false);
       end;
 
     destructor tsyssymlist.Destroy;
       begin
-        FreeAndNil(syssym_list);
+        FreeAndNil(Fsyssym_list);
         inherited Destroy;
       end;
 
@@ -3190,7 +3190,7 @@ implementation
         s : shortstring;
       begin
         str(l,s);
-        result:=tsyssym(syssym_list.find(s));
+        result:=tsyssym(Fsyssym_list.find(s));
       end;
 
 {*****************************************************************************
