@@ -742,6 +742,11 @@ Const
 
         LTOExt: TCmdStr;
 
+        { resources (comprsrc unit) }
+        ResCompiler : String;
+        RCCompiler  : String;
+        RCForceFPCRes : Boolean;
+
         constructor Create;
         destructor Destroy; override;
       end;

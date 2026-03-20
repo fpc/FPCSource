@@ -3105,7 +3105,7 @@ begin
         include(init_settings.moduleswitches,cs_explicit_codepage);
       end;
     'C' :
-      RCCompiler:=More;
+      compiler.globals.RCCompiler:=More;
     'd' :
       if UnsetBool(more, 0, opt, true) then
         init_settings.disabledircache:=false
@@ -3130,7 +3130,7 @@ begin
         else
           IllegalPara(opt);
     'F' :
-      RCForceFPCRes:=true;
+      compiler.globals.RCForceFPCRes:=true;
     'i' :
       begin
         if ispara then
@@ -3200,7 +3200,7 @@ begin
     'r' :
       compiler.verbose.Msgfilename:=More;
     'R' :
-      ResCompiler:=More;
+      compiler.globals.ResCompiler:=More;
     't' :
       begin
         AllowedFilenameTransFormations:=[ftNone,ftLowerCase];

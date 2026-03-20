@@ -77,11 +77,6 @@ type
 procedure CompileResourceFiles;
 procedure CollectResourceFiles;
 
-Var
-  ResCompiler : String;
-  RCCompiler  : String;
-  RCForceFPCRes : Boolean;
-
 implementation
 
 uses
@@ -130,7 +125,7 @@ var
 begin
   if output=roRES then
     begin
-      if RCForceFPCRes then
+      if compiler.globals.RCForceFPCRes then
         s:=FPCResRCArgs
       else
         s:=compiler.target.res.rccmd;
@@ -169,12 +164,12 @@ var
 begin
   Result:=true;
   if output=roRES then
-    if RCForceFPCRes then
-      Bin:=SelectBin(RCCompiler,FPCResUtil)
+    if compiler.globals.RCForceFPCRes then
+      Bin:=SelectBin(compiler.globals.RCCompiler,FPCResUtil)
     else
-      Bin:=SelectBin(RCCompiler,compiler.target.res.rcbin)
+      Bin:=SelectBin(compiler.globals.RCCompiler,compiler.target.res.rcbin)
   else
-    Bin:=SelectBin(ResCompiler,compiler.target.res.resbin);
+    Bin:=SelectBin(compiler.globals.ResCompiler,compiler.target.res.resbin);
   if bin='' then
   begin
     Result:=false;
@@ -277,11 +272,11 @@ begin
   srcfilepath:=ExtractFilePath(current_module.mainsource);
   if output=roRES then
     begin
-      if RCForceFPCRes then
+      if compiler.globals.RCForceFPCRes then
         s:=FPCResRCArgs
       else
         s:=compiler.target.res.rccmd;
-      if (compiler.target.res.rcbin = 'windres') and not RCForceFPCRes then
+      if (compiler.target.res.rcbin = 'windres') and not compiler.globals.RCForceFPCRes then
         Replace(s,'$RC',WindresFileName(fname))
       else
         Replace(s,'$RC',maybequoted(fname));
@@ -332,7 +327,7 @@ begin
   if respath='' then
     respath:='.';
   Replace(s,'$INC',maybequoted(respath));
-  if (output=roRes) and (compiler.target.res.rcbin='windres') and not RCForceFPCRes then
+  if (output=roRes) and (compiler.target.res.rcbin='windres') and not compiler.globals.RCForceFPCRes then
   begin
     { try to find a preprocessor }
     preprocessorbin := respath+'cpp'+source_info.exeext;
@@ -508,7 +503,7 @@ begin
       else
         begin
           res.FPStr:=ExtractFileName(res.FPStr);
-          if (compiler.target.res.rcbin='') and (RCCompiler='') then
+          if (compiler.target.res.rcbin='') and (compiler.globals.RCCompiler='') then
             begin
               { if target does not have .rc to .res compiler, create obj }
               outfmt:=roOBJ;
@@ -560,7 +555,7 @@ var
   s : TCmdStr;
 begin
   if (compiler.target.info.res=res_none) or ((compiler.target.res.resbin='')
-    and (ResCompiler='')) then
+    and (compiler.globals.ResCompiler='')) then
       exit;
 //  if cs_link_nolink in current_settings.globalswitches then
 //    exit;
@@ -583,9 +578,9 @@ end;
 
 procedure initglobals(ACompilerGlobals: TCompilerGlobals);
 begin
-  ResCompiler:='';
-  RCCompiler:='';
-  RCForceFPCRes:=false;
+  ACompilerGlobals.ResCompiler:='';
+  ACompilerGlobals.RCCompiler:='';
+  ACompilerGlobals.RCForceFPCRes:=false;
 end;
 
 initialization
