@@ -430,7 +430,6 @@ begin
   CompilerInited:=false;
   do_doneSymbolInfo;
   DoneSymtable(Self);
-  DoneGlobals;
   FreeAndNil(FGlobals);
   DoneFileUtils;
   donetokens;

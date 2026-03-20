@@ -552,6 +552,7 @@ Const
         procedure callinitprocs;
         procedure calldoneprocs;
         procedure InitGlobals;
+        procedure DoneGlobals;
       public
         { specified inputfile }
         inputfilepath     : string;
@@ -742,6 +743,7 @@ Const
         LTOExt: TCmdStr;
 
         constructor Create;
+        destructor Destroy; override;
       end;
 
     procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
@@ -753,7 +755,6 @@ Const
     { discern +0.0 and -0.0 }
     function get_real_sign(r: bestreal): longint;
 
-    procedure DoneGlobals;
     procedure register_initdone_proc(init,done:TInitDoneProc);
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
@@ -1739,32 +1740,30 @@ implementation
      end;
 
 
-   procedure DoneGlobals;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   procedure TCompilerGlobals.DoneGlobals;
      begin
-       compiler.globals.calldoneprocs;
-       compiler.globals.librarysearchpath.Free;
-       compiler.globals.librarysearchpath := nil;
-       compiler.globals.unitsearchpath.Free;
-       compiler.globals.unitsearchpath := nil;
-       compiler.globals.objectsearchpath.Free;
-       compiler.globals.objectsearchpath := nil;
-       compiler.globals.includesearchpath.Free;
-       compiler.globals.includesearchpath := nil;
-       compiler.globals.frameworksearchpath.Free;
-       compiler.globals.frameworksearchpath := nil;
-       compiler.globals.LinkLibraryAliases.Free;
-       compiler.globals.LinkLibraryAliases := nil;
-       compiler.globals.LinkLibraryOrder.Free;
-       compiler.globals.LinkLibraryOrder := nil;
-       compiler.globals.packagesearchpath.Free;
-       compiler.globals.packagesearchpath := nil;
-       compiler.globals.namespacelist.Free;
-       compiler.globals.namespacelist := nil;
-       compiler.globals.premodule_namespacelist.Free;
-       compiler.globals.premodule_namespacelist := nil;
-       compiler.globals.current_namespacelist:=Nil;
+       calldoneprocs;
+       librarysearchpath.Free;
+       librarysearchpath := nil;
+       unitsearchpath.Free;
+       unitsearchpath := nil;
+       objectsearchpath.Free;
+       objectsearchpath := nil;
+       includesearchpath.Free;
+       includesearchpath := nil;
+       frameworksearchpath.Free;
+       frameworksearchpath := nil;
+       LinkLibraryAliases.Free;
+       LinkLibraryAliases := nil;
+       LinkLibraryOrder.Free;
+       LinkLibraryOrder := nil;
+       packagesearchpath.Free;
+       packagesearchpath := nil;
+       namespacelist.Free;
+       namespacelist := nil;
+       premodule_namespacelist.Free;
+       premodule_namespacelist := nil;
+       current_namespacelist:=Nil;
      end;
 
    procedure TCompilerGlobals.InitGlobals;
@@ -1877,6 +1876,12 @@ implementation
    constructor TCompilerGlobals.Create;
      begin
        InitGlobals;
+     end;
+
+   destructor TCompilerGlobals.Destroy;
+     begin
+       DoneGlobals;
+       inherited Destroy;
      end;
 
 initialization
