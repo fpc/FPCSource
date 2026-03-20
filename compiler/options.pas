@@ -2525,7 +2525,7 @@ begin
          begin
            s:=upper(copy(more,j+1));
            tmpabi:=compiler.target.info.abi;
-           if not(SetAbiType(s,tmpabi)) then
+           if not(SetAbiType(s,compiler.target,tmpabi)) then
              IllegalPara(opt);
            compiler.target.set_target_abi(tmpabi);
            ABISetExplicitly:=true;

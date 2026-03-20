@@ -766,7 +766,7 @@ Const
     function  guid2string(const GUID: TGUID): string;
 
     function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
-    function Setabitype(const s:string;var a:tabi):boolean;
+    function Setabitype(const s:string;target:TCompilerTarget;var a:tabi):boolean;
     function Setoptimizecputype(const s:string;var a:tcputype):boolean;
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
@@ -1416,9 +1416,7 @@ implementation
       end;
 
 
-    function Setabitype(const s:string;var a:tabi):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function Setabitype(const s:string;target:TCompilerTarget;var a:tabi):boolean;
       var
         t  : tabi;
         hs : string;
@@ -1431,7 +1429,7 @@ implementation
             begin
               a:=t;
               { abi_old_win32_gnu is a win32 i386 specific "feature" }
-              if (t<>abi_old_win32_gnu) or (compiler.target.info.system=system_i386_win32) then
+              if (t<>abi_old_win32_gnu) or (target.info.system=system_i386_win32) then
                 result:=true;
               break;
             end;
