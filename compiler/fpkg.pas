@@ -101,32 +101,28 @@ implementation
     end;
 
 
-    procedure packageinit;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure packageinit(ACompilerGlobals: TCompilerGlobals);
       begin
-        compiler.globals.packagelist:=TFPHashList.Create;
+        ACompilerGlobals.packagelist:=TFPHashList.Create;
       end;
 
 
-    procedure packagedone;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure packagedone(ACompilerGlobals: TCompilerGlobals);
       var
         i : longint;
         pkgentry : ppackageentry;
       begin
-        if assigned(compiler.globals.packagelist) then
+        if assigned(ACompilerGlobals.packagelist) then
           begin
-            for i:=0 to compiler.globals.packagelist.count-1 do
+            for i:=0 to ACompilerGlobals.packagelist.count-1 do
               begin
-                pkgentry:=ppackageentry(compiler.globals.packagelist[i]);
+                pkgentry:=ppackageentry(ACompilerGlobals.packagelist[i]);
                 FreeAndNil(pkgentry^.package);
                 dispose(pkgentry);
               end;
           end;
-        compiler.globals.packagelist.Free;
-        compiler.globals.packagelist:=nil;
+        ACompilerGlobals.packagelist.Free;
+        ACompilerGlobals.packagelist:=nil;
       end;
 
 

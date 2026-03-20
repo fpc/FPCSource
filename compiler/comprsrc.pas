@@ -581,7 +581,7 @@ begin
   resourcefile := nil;
 end;
 
-procedure initglobals;
+procedure initglobals(ACompilerGlobals: TCompilerGlobals);
 begin
   ResCompiler:='';
   RCCompiler:='';

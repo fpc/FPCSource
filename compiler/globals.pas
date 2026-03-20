@@ -540,11 +540,17 @@ Const
         function getrealtime : real;
       end;
 
+      TCompilerGlobals = class;
+
+      TInitDoneProc = procedure(ACompilerGlobals: TCompilerGlobals);
+
       { TCompilerGlobals }
 
       TCompilerGlobals = class
       private
         procedure get_exepath;
+        procedure callinitprocs;
+        procedure calldoneprocs;
         procedure InitGlobals;
       public
         { specified inputfile }
@@ -748,7 +754,7 @@ Const
     function get_real_sign(r: bestreal): longint;
 
     procedure DoneGlobals;
-    procedure register_initdone_proc(init,done:tprocedure);
+    procedure register_initdone_proc(init,done:TInitDoneProc);
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
@@ -1686,8 +1692,8 @@ implementation
 
    type
      tinitdoneentry=record
-       init:tprocedure;
-       done:tprocedure;
+       init:TInitDoneProc;
+       done:TInitDoneProc;
      end;
      pinitdoneentry=^tinitdoneentry;
 
@@ -1696,7 +1702,7 @@ implementation
      initdoneprocs : TFPList = nil;
 
 
-   procedure register_initdone_proc(init,done:tprocedure);
+   procedure register_initdone_proc(init,done:TInitDoneProc);
      var
        entry : pinitdoneentry;
      begin
@@ -1707,7 +1713,7 @@ implementation
      end;
 
 
-   procedure callinitprocs;
+   procedure TCompilerGlobals.callinitprocs;
      var
        i : longint;
      begin
@@ -1716,11 +1722,11 @@ implementation
        for i:=0 to initdoneprocs.count-1 do
          with pinitdoneentry(initdoneprocs[i])^ do
            if assigned(init) then
-             init();
+             init(Self);
      end;
 
 
-   procedure calldoneprocs;
+   procedure TCompilerGlobals.calldoneprocs;
      var
        i : longint;
      begin
@@ -1729,7 +1735,7 @@ implementation
        for i:=0 to initdoneprocs.count-1 do
          with pinitdoneentry(initdoneprocs[i])^ do
            if assigned(done) then
-             done();
+             done(Self);
      end;
 
 
@@ -1737,7 +1743,7 @@ implementation
      var
        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
-       calldoneprocs;
+       compiler.globals.calldoneprocs;
        compiler.globals.librarysearchpath.Free;
        compiler.globals.librarysearchpath := nil;
        compiler.globals.unitsearchpath.Free;

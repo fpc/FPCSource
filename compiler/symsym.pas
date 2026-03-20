@@ -3240,13 +3240,13 @@ implementation
       end;
 
 
-    procedure init_symsym;
+    procedure init_symsym(ACompilerGlobals: TCompilerGlobals);
       begin
         syssym_list:=tfphashobjectlist.create(false);
       end;
 
 
-    procedure done_symsym;
+    procedure done_symsym(ACompilerGlobals: TCompilerGlobals);
       begin
         syssym_list.free;
         syssym_list := nil;
