@@ -60,6 +60,7 @@ type
   published
     procedure TestIndentedCodeBlock;
     procedure TestFencedCodeBlock;
+    procedure TestNormalFencedCodeBlockWithInfoString;
     procedure TestFencedCodeBlockWithInfoString;
     procedure TestNestedCodeBlock;
   end;
@@ -232,6 +233,19 @@ begin
   AssertNotNull('Block should be a code block', Block);
   AssertTrue('Should be a fenced code block', Block.Fenced);
 end;
+
+procedure TTestCodeBlocks.TestNormalFencedCodeBlockWithInfoString;
+var
+  Block: TMarkDownCodeBlock;
+begin
+  SetupParser('```pascal'#10'var i: Integer;'#10'```');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  Block := GetBlock(0) as TMarkDownCodeBlock;
+  AssertNotNull('Block should be a code block', Block);
+  AssertTrue('Should be a fenced code block', Block.Fenced);
+  AssertEquals('Language info string incorrect', 'pascal', Block.Lang);
+end;
+
 
 procedure TTestCodeBlocks.TestFencedCodeBlockWithInfoString;
 var
