@@ -470,11 +470,13 @@ type
     // nested rules
     procedure TestRes_Nested_Hash; // #id -> Descendant combinator
     // todo: procedure TestRes_Nested_AndHash; // &#id -> AND combinator
-    // todo: procedure TestRes_Nested_Class; // .class -> Descendant combinator
+    procedure TestRes_Nested_Class; // .class -> Descendant combinator
     // todo: procedure TestRes_Nested_AndClass; // &.class -> AND combinator
     // todo: procedure TestRes_Nested_AndSpaceClass; // & .class -> Descendant combinator
-    // todo: procedure TestRes_Nested_type; // type -> Descendant combinator
-    // todo: procedure TestRes_Nested_AndType; // &type -> AND combinator
+    // todo: procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
+    // todo: procedure TestRes_Nested_ClassCommaAndClass; // .class,&.class: AND combinator
+    // todo: procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append
+    procedure TestRes_Nested_AndType; // &type -> AND combinator
     // todo: procedure TestRes_Nested_TypeCommaType; // OR combinator
     // todo: procedure TestRes_Nested_GTClass; // child combinator
     // todo: procedure TestRes_Nested_AndGTClass; // & child combinator
@@ -484,9 +486,6 @@ type
     // todo: procedure TestRes_Nested_AndTildeType; // & general sibling combinator
     // todo: procedure TestRes_Nested_HasAtribute; // [attr]
     // todo: procedure TestRes_Nested_AndHasAtribute; // & [attr]
-    // todo: procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
-    // todo: procedure TestRes_Nested_ClassCommaAndClass; // .class,&.class: AND combinator
-    // todo: procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -2835,6 +2834,68 @@ begin
 
   AssertEquals('Div1.Color','red',Div1.Color);
   AssertEquals('Container.Color','',Container.Color);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_Class;
+var
+  Container, Div1, Div2: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  // Container is the .Big parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Bar');
+
+  Div2:=AddDiv('Div2',Container);
+
+  // .Foo { .Bar { ... } } -> descendant combinator: .Foo .Bar
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  .Bar {',
+  '    color:red;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Color','',Container.Color);
+  AssertEquals('Div1.Color','red',Div1.Color);
+  AssertEquals('Div2.Color','',Div2.Color);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndType;
+var
+  Container, Div1, Span1, Span2, Span3: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  // Container is the .Big parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Bar');
+
+  Span1:=AddDiv('Span1',Container);
+  Span2:=AddDiv('Span2',Div1);
+  Span3:=AddDiv('Span3',Span1);
+
+  // .Foo { & span { ... } } -> descendant combinator: .Foo span
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  & span {',
+  '    color:red;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Color','',Container.Color);
+  AssertEquals('Div1.Color','',Div1.Color);
+  AssertEquals('Span1.Color','red',Span1.Color);
+  AssertEquals('Span2.Color','red',Span2.Color);
+  AssertEquals('Span3.Color','red',Span3.Color);
 end;
 
 initialization

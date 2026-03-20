@@ -1194,7 +1194,7 @@ begin
       inc(Result,ParentSpecificity);
       exit;
     end;
-    // find ancestor matching any of the parent rule's selectors
+    // find ancestor element matching any of the css parent rule's selectors
     aParent:=TestNode.GetCSSParent;
     while aParent<>nil do
     begin
