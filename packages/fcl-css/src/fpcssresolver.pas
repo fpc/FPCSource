@@ -402,6 +402,7 @@ type
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
     function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorAndWhitespaceMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorAndGTMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -1180,6 +1181,7 @@ function TCSSResolver.SelectorMatches(aSelector: TCSSElement; const TestNode: IC
 var
   C: TClass;
   aBinary: TCSSBinaryElement;
+  aUnary: TCSSUnaryElement;
 begin
   Result:=CSSSpecificityInvalid;
 
@@ -1193,10 +1195,20 @@ begin
           and (aBinary.Left is TCSSIdentifierElement)
           and (TCSSIdentifierElement(aBinary.Left).Value='&') then
       begin
-        // nested rule with "& <descendant>" -> descendant combinator with & as parent selector:
+        // nested rule with "&<space><selector>" -> descendant combinator with & as parent selector:
         // right side must match TestNode AND an ancestor must match the parent rule.
         aBinary:=TCSSBinaryElement(aSelector);
         Result:=SelectorAndWhitespaceMatches(aBinary.Right,TestNode,OnlySpecificity);
+        exit;
+      end;
+    end else if (aSelector is TCSSUnaryElement) then
+    begin
+      aUnary:=TCSSUnaryElement(aSelector);
+      if aUnary.Operation=uoGT then
+      begin
+        // nested rule with "> <selector>" -> child combinator with implicit &:
+        // right side must match TestNode AND the direct parent must match the parent rule.
+        Result:=SelectorAndGTMatches(aUnary.Right,TestNode,OnlySpecificity);
         exit;
       end;
     end;
@@ -1308,6 +1320,54 @@ begin
         end;
       end;
       aParent:=aParent.GetCSSParent;
+    end;
+    Result:=CSSSpecificityNoMatch;
+  end;
+end;
+
+function TCSSResolver.SelectorAndGTMatches(aRightSelector: TCSSElement;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
+var
+  aRule, aParentRule: TCSSRuleElement;
+  ParentSpecificity, Spec: TCSSSpecificity;
+  i: Integer;
+  aParent: ICSSNode;
+begin
+  Result:=SelectorMatches(aRightSelector,TestNode,OnlySpecificity,nil);
+  if Result<0 then exit;
+  aRule:=GetRuleOfSelector(aRightSelector);
+  if (aRule=nil) then
+    exit(CSSSpecificityInvalid);
+  if not (aRule.Parent is TCSSRuleElement) then
+    exit(CSSSpecificityInvalid);
+  aParentRule:=TCSSRuleElement(aRule.Parent);
+
+  if OnlySpecificity then
+  begin
+    // parent specificity = max of parent selectors (like :is())
+    ParentSpecificity:=CSSSpecificityNoMatch;
+    for i:=0 to aParentRule.SelectorCount-1 do
+    begin
+      Spec:=SelectorMatches(aParentRule.Selectors[i],TestNode,true,aParentRule);
+      if Spec>ParentSpecificity then
+        ParentSpecificity:=Spec;
+    end;
+    inc(Result,ParentSpecificity);
+  end else begin
+    // child combinator: only the direct parent must match the parent rule's selectors
+    aParent:=TestNode.GetCSSParent;
+    if aParent=nil then
+      exit(CSSSpecificityNoMatch);
+    for i:=0 to aParentRule.SelectorCount-1 do
+    begin
+      ParentSpecificity:=SelectorMatches(aParentRule.Selectors[i],aParent,false,aParentRule);
+      if ParentSpecificity=CSSSpecificityInvalid then
+        exit(CSSSpecificityInvalid);
+      if ParentSpecificity>=0 then
+      begin
+        inc(Result,ParentSpecificity);
+        exit;
+      end;
     end;
     Result:=CSSSpecificityNoMatch;
   end;

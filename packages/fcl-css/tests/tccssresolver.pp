@@ -480,8 +480,8 @@ type
     // todo: procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append
     procedure TestRes_Nested_AndSpaceType; // & type -> Descendant combinator
     // todo: procedure TestRes_Nested_TypeCommaType; // OR combinator
-    // todo: procedure TestRes_Nested_GTClass; // child combinator
-    // todo: procedure TestRes_Nested_AndGTClass; // & child combinator
+    procedure TestRes_Nested_GTClass; // child combinator
+    procedure TestRes_Nested_AndGTClass; // & child combinator
     // todo: procedure TestRes_Nested_PlusType; // adjacent sibling combinator
     // todo: procedure TestRes_Nested_AndPlusType; // & adjacent sibling combinator
     // todo: procedure TestRes_Nested_TildeType; // general sibling combinator
@@ -3002,6 +3002,72 @@ begin
   AssertEquals('Span1.Width','10px',Span1.Width);
   AssertEquals('Span2.Width','10px',Span2.Width);
   AssertEquals('Span3.Width','10px',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_GTClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Ant',Container);
+  Span2:=AddSpan_Class('Span2','Ant',Div1);
+  Span3:=AddSpan_Class('Span3','Ant',Span1);
+  Span4:=AddSpan_Class('Span4','Ant',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  > .Ant {', // child combinator: .Bird > .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndGTClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Ant',Container);
+  Span2:=AddSpan_Class('Span2','Ant',Div1);
+  Span3:=AddSpan_Class('Span3','Ant',Span1);
+  Span4:=AddSpan_Class('Span4','Ant',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  & > .Ant {', // child combinator: .Bird > .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
 end;
 
 initialization
