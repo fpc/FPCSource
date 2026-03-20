@@ -407,6 +407,7 @@ type
     function SelectorAndGTMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndPlusMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorAndTildeMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
+    function SelectorAndCompoundMatches(aList: TCSSListElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -1222,6 +1223,7 @@ var
   C: TClass;
   aBinary: TCSSBinaryElement;
   aUnary: TCSSUnaryElement;
+  aList: TCSSListElement;
 begin
   Result:=CSSSpecificityInvalid;
 
@@ -1297,6 +1299,18 @@ begin
           Result:=SelectorAndTildeMatches(aUnary.Right,TestNode);
           exit;
         end;
+      end;
+    end else if (aSelector is TCSSListElement) then
+    begin
+      aList:=TCSSListElement(aSelector);
+      if (aList.ChildCount>0)
+          and (aList.Children[0] is TCSSIdentifierElement)
+          and (TCSSIdentifierElement(aList.Children[0]).Value='&') then
+      begin
+        // nested rule with "&<selector>" -> compound: TestNode must match
+        // both the parent rule's selectors and the remaining selectors.
+        Result:=SelectorAndCompoundMatches(aList,TestNode);
+        exit;
       end;
     end;
     // nested rule without & -> descendant combinator:
@@ -1490,6 +1504,46 @@ begin
       end;
     end;
     aSibling:=aSibling.GetCSSPreviousSibling;
+  end;
+  Result:=CSSSpecificityNoMatch;
+end;
+
+function TCSSResolver.SelectorAndCompoundMatches(aList: TCSSListElement;
+  const TestNode: ICSSNode): TCSSSpecificity;
+// Called for nested "&<selector>" compound: TestNode must match both the
+// parent rule's selectors and all non-& parts of the list.
+var
+  aParentRule: TCSSRuleElement;
+  ParentSpecificity, Spec: TCSSSpecificity;
+  i: Integer;
+  El: TCSSElement;
+begin
+  Result:=0;
+  // match all non-& parts against TestNode
+  for i:=0 to aList.ChildCount-1 do
+  begin
+    El:=aList.Children[i];
+    if (El is TCSSIdentifierElement) and (TCSSIdentifierElement(El).Value='&') then
+      continue;
+    Spec:=SelectorMatches(El,TestNode,false,nil);
+    if Spec<0 then exit(Spec);
+    inc(Result,Spec);
+  end;
+
+  // compound: TestNode itself must also match the parent rule's selectors
+  aParentRule:=GetRuleParentOfSelector(aList);
+  if aParentRule=nil then
+    exit(CSSSpecificityInvalid);
+  for i:=0 to aParentRule.SelectorCount-1 do
+  begin
+    ParentSpecificity:=SelectorMatches(aParentRule.Selectors[i],TestNode,false,aParentRule);
+    if ParentSpecificity=CSSSpecificityInvalid then
+      exit(CSSSpecificityInvalid);
+    if ParentSpecificity>=0 then
+    begin
+      inc(Result,ParentSpecificity);
+      exit;
+    end;
   end;
   Result:=CSSSpecificityNoMatch;
 end;

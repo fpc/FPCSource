@@ -470,24 +470,23 @@ type
 
     // nested rules
     procedure TestRes_Nested_Hash; // #id -> Descendant combinator
-    // todo: procedure TestRes_Nested_AndHash; // &#id -> AND combinator
     procedure TestRes_Nested_Class; // .class -> Descendant combinator
-    // todo: procedure TestRes_Nested_AndClass; // &.class -> AND combinator
+    procedure TestRes_Nested_AndClass; // & AND selector
     procedure TestRes_Nested_AndSpaceClass; // & .class -> Descendant combinator
     procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
-    // todo: procedure TestRes_Nested_ClassCommaAndClass; // .class,&.class: AND combinator
+    procedure TestRes_Nested_ClassCommaAndClass; // .class,&.class: descendant OR compound
     procedure TestRes_Nested_ClassCommaAndSpaceClass; // .class,& .class: Descendant combinator
     // todo: procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append
     procedure TestRes_Nested_AndSpaceType; // & type -> Descendant combinator
-    // todo: procedure TestRes_Nested_TypeCommaType; // OR combinator
     procedure TestRes_Nested_GTClass; // child combinator
     procedure TestRes_Nested_AndGTClass; // & child combinator
     procedure TestRes_Nested_PlusClass; // adjacent sibling combinator
     procedure TestRes_Nested_AndPlusType; // & adjacent sibling combinator
     procedure TestRes_Nested_TildeClass; // general sibling combinator
     procedure TestRes_Nested_AndTildeClass; // & general sibling combinator
-    // todo: procedure TestRes_Nested_HasAtribute; // [attr]
-    // todo: procedure TestRes_Nested_AndHasAtribute; // & [attr]
+    procedure TestRes_Nested_HasAtribute; // [attr]
+    procedure TestRes_Nested_AndHasAtribute; // &[attr]
+    procedure TestRes_Nested_AndHasSpaceAtribute; // & [attr]
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -2872,6 +2871,35 @@ begin
   AssertEquals('Div2.Width','',Div2.Width);
 end;
 
+procedure TTestNewCSSResolver.TestRes_Nested_AndClass;
+var
+  Div1, Div2, Div3: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('Bird');
+  Div1.CSSClasses.Add('Ant');   // has both classes -> matches
+
+  Div2:=AddDiv('Div2',Doc.Root);
+  Div2.CSSClasses.Add('Bird');  // only .Bird, not .Ant -> no match
+
+  Div3:=AddDiv('Div3',Doc.Root);
+  Div3.CSSClasses.Add('Ant');   // only .Ant, not .Bird -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  &.Ant {', // compound: element must match both .Bird and .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+  AssertEquals('Div3.Width','',Div3.Width);
+end;
+
 procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceClass;
 var
   Container, Div1: TDemoDiv;
@@ -2937,6 +2965,43 @@ begin
   AssertEquals('Span2.Width','10px',Span2.Width);
   AssertEquals('Span3.Width','10px',Span3.Width);
   AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaAndClass;
+var
+  Container, Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Ant');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Bird');        // descendant of .Ant with .Bird -> matches .Bird
+
+  Div2:=AddDiv('Div2',Container);
+  Div2.CSSClasses.Add('Cat');         // descendant of .Ant with .Cat, but not .Ant itself -> no match
+
+  Div3:=AddDiv('Div3',Doc.Root);
+  Div3.CSSClasses.Add('Ant');
+  Div3.CSSClasses.Add('Cat');         // has both .Ant and .Cat -> matches &.Cat
+
+  Div4:=AddDiv('Div4',Doc.Root);
+  Div4.CSSClasses.Add('Bird');        // .Bird but not a descendant of .Ant -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Ant {',
+  '  .Bird,&.Cat {', // .Bird: descendant of .Ant; &.Cat: element with both .Ant and .Cat
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+  AssertEquals('Div3.Width','10px',Div3.Width);
+  AssertEquals('Div4.Width','',Div4.Width);
 end;
 
 procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaAndSpaceClass;
@@ -3180,6 +3245,88 @@ begin
   AssertEquals('Span1.Width','10px',Span1.Width);
   AssertEquals('Span2.Width','10px',Span2.Width);
   AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_HasAtribute;
+var
+  Button1, Button2: TDemoButton;
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='100px';
+
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.ExplicitCaption:='Click Button1';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Button2:=AddButton('Button2',Div1);
+  Button2.ExplicitCaption:='Click Button2';
+
+  Doc.Style:=LinesToStr([
+  '[left] { [caption] { width: 3px;} }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Width','3px',Button1.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Button2.Width','3px',Button2.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndHasAtribute;
+var
+  Button1, Button2: TDemoButton;
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='100px';
+
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.ExplicitAttributes[naLeft]:='100px';
+  Button1.ExplicitCaption:='Click Button1';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Button2:=AddButton('Button2',Div1);
+  Button2.ExplicitCaption:='Click Button2';
+
+  Doc.Style:=LinesToStr([
+  '[left] { &[caption] { width: 3px;} }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Width','3px',Button1.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Button2.Width','',Button2.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndHasSpaceAtribute;
+var
+  Button1, Button2: TDemoButton;
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='100px';
+
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.ExplicitCaption:='Click Button1';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Button2:=AddButton('Button2',Div1);
+  Button2.ExplicitCaption:='Click Button2';
+
+  Doc.Style:=LinesToStr([
+  '[left] { & [caption] { width: 3px;} }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Width','3px',Button1.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Button2.Width','3px',Button2.Width);
 end;
 
 initialization
