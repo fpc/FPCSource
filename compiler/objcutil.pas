@@ -255,7 +255,7 @@ end;
               continue;
             { objcaddencodedtype always assumes a value parameter, so add
               a pointer indirection for var/out parameters.  }
-            if not paramanager.push_addr_param(vs_value,vs.vardef,pocall_cdecl) and
+            if not compiler.paramanager.push_addr_param(vs_value,vs.vardef,pocall_cdecl) and
                (vs.varspez in [vs_var,vs_out,vs_constref]) then
               result:=result+'^';
             { Add the parameter type.  }

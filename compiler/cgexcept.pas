@@ -30,7 +30,7 @@ unit cgexcept;
       globtype,compilerbase,
       aasmbase, aasmdata,
       symtype,symdef,
-      cgbase,cgutils,pass_2,hlcgobj;
+      cgbase,cgutils,pass_2,hlcgobj,paramgr;
 
     type
       { Utility class for exception handling state management that is used
@@ -43,9 +43,11 @@ unit cgexcept;
       private
         FCompiler: TCompilerBase;
         function GetHLCG: thlcgobj; inline;
+        function GetParaManager: TParaManager; inline;
       protected
         property Compiler: TCompilerBase read FCompiler;
         property hlcg: thlcgobj read GetHLCG;
+        property ParaManager: TParaManager read GetParaManager;
       public
        type
         texceptiontemps=record
@@ -102,7 +104,7 @@ unit cgexcept;
       compiler,
       aasmtai,
       symconst,symtable,defutil,
-      parabase,paramgr,
+      parabase,
       procinfo,
       tgobj;
 
@@ -118,6 +120,11 @@ unit cgexcept;
     function tcgexceptionstatehandler.GetHLCG: thlcgobj; inline;
       begin
         result:=compiler.hlcg;
+      end;
+
+    function tcgexceptionstatehandler.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
       end;
 
     function tcgexceptionstatehandler.use_cleanup(const exceptframekind: texceptframekind): boolean;

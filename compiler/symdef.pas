@@ -6236,7 +6236,10 @@ implementation
 
 
     procedure tabstractprocdef.init_paraloc_info(side: tcallercallee);
+      var
+        paramanager: TParaManager;
       begin
+        paramanager:=compiler.paramanager;
         if (side in [callerside,callbothsides]) and
            not(has_paraloc_info in [callerside,callbothsides]) then
           begin

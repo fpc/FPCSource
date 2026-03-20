@@ -29,7 +29,7 @@ interface
       cclasses,constexp,globtype,compilerbase,
       aasmbase,aasmcnst,
       symbase,symconst,symtype,symdef,symsym,
-      parabase;
+      parabase,paramgr;
 
     type
 
@@ -45,6 +45,7 @@ interface
         defaultpacking: shortint;
         { write comments ? }
         addcomments : boolean;
+        function GetParaManager: TParaManager; inline;
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
         procedure params_write_rtti(def:tabstractprocdef;rt:trttitype;allow_hidden:boolean);
         procedure fields_write_rtti_data(tcb: ttai_typedconstbuilder; def: tabstractrecorddef; rt: trttitype);
@@ -73,6 +74,8 @@ interface
         procedure write_param(tcb:ttai_typedconstbuilder;para:tparavarsym);
         procedure write_mop_offset_table(tcb:ttai_typedconstbuilder;def:tabstractrecorddef;mop:tmanagementoperator);
         procedure maybe_add_comment(tcb:ttai_typedconstbuilder;const comment : string); inline;
+      protected
+        property ParaManager: TParaManager read GetParaManager;
       public
         constructor create(ACompiler: TCompilerBase);
         procedure write_rtti(def:tdef;rt:trttitype);
@@ -97,8 +100,7 @@ implementation
        fmodule, procinfo,compiler,
        symtable,symutil,
        aasmtai,aasmdata,
-       defutil,
-       paramgr
+       defutil
        ;
 
 
@@ -745,6 +747,12 @@ implementation
                ) then
               write_rtti(tfieldvarsym(sym).vardef,rt);
           end;
+      end;
+
+
+    function TRTTIWriter.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
       end;
 
 

@@ -26,7 +26,7 @@ unit pstatmnt;
 interface
 
     uses
-      compilerbase,tokens,node;
+      compilerbase,tokens,node,paramgr;
 
 type
 
@@ -34,12 +34,15 @@ type
 
   TStatementsParser = class
   private
+    function GetParaManager: TParaManager; inline;
+  private
     FCompiler: TCompilerBase;
 
     { we use TObject instead of TParser to avoid cyclic unit reference }
     FParser: TObject;
 
     property Compiler: TCompilerBase read FCompiler;
+    property ParaManager: TParaManager read GetParaManager;
     function statement : tnode;
     function if_statement : tnode;
     function statements_til_end : tnode;
@@ -75,7 +78,6 @@ implementation
        cpubase,aasmtai,aasmdata,aasmbase,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
-       paramgr,
        { pass 1 }
        pass_1,htypechk,
        nutils,ngenutil,nbas,ncal,nmem,nset,ncnv,ncon,nld,nflw,ninl,
@@ -1377,6 +1379,12 @@ implementation
       begin
         FParser:=AParser;
         FCompiler:=ACompiler;
+      end;
+
+
+    function TStatementsParser.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
       end;
 
 

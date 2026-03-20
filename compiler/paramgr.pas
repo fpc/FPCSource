@@ -197,10 +197,6 @@ unit paramgr;
        end;
 
 
-    var
-       paramanager : tparamanager;
-
-
 implementation
 
     uses
@@ -878,9 +874,4 @@ implementation
           pd.is_implemented;
       end;
 
-initialization
-  ;
-finalization
-  paramanager.free;
-  paramanager := nil;
 end.

@@ -28,7 +28,8 @@ interface
     uses
       compilerbase,
       aasmdata,aasmbase,aasmcnst,
-      symbase,symconst,symtype,symdef;
+      symbase,symconst,symtype,symdef,
+      paramgr;
 
     type
       pprocdeftree = ^tprocdeftree;
@@ -38,9 +39,12 @@ interface
          l,r  : pprocdeftree;
       end;
 
+      { TVMTWriter }
+
       TVMTWriter=class
       private
         FCompiler: TCompilerBase;
+        function GetParaManager: TParaManager; inline;
       protected
         _Class : tobjectdef;
         { message tables }
@@ -83,6 +87,7 @@ interface
         function  gendmt : tasmlabel;
 {$endif WITHDMT}
         property Compiler: TCompilerBase read FCompiler;
+        property ParaManager: TParaManager read GetParaManager;
       public
         constructor create(c:tobjectdef); virtual;
         { write the VMT to al_globals }
@@ -112,7 +117,7 @@ implementation
 {$endif cpuhighleveltarget}
       aasmtai,
       wpobase,
-      cgbase,parabase,paramgr,
+      cgbase,parabase,
       hlcgobj,hlcgcpu,dbgbase,
       ncgrtti;
 
@@ -132,6 +137,12 @@ implementation
 {**************************************
            Message Tables
 **************************************}
+
+    function TVMTWriter.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
+      end;
+
 
     procedure TVMTWriter.disposeprocdeftree(p : pprocdeftree);
       begin

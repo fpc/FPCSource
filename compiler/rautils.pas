@@ -28,7 +28,7 @@ Interface
 Uses
   cutils,cclasses,
   globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,compilerbase,
-  symconst,symbase,symtype,symdef,symsym,constexp,symcpu;
+  symconst,symbase,symtype,symdef,symsym,constexp,symcpu,paramgr;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -98,11 +98,15 @@ type
 
   TInstruction = class;
 
+  { TOperand }
+
   TOperand = class
   private
     FCompiler: TCompilerBase;
+    function GetParaManager: TParaManager; inline;
   protected
     property Compiler: TCompilerBase read FCompiler;
+    property ParaManager: TParaManager read GetParaManager;
   public
     opr    : TOprRec;
     typesize : byte;
@@ -236,7 +240,7 @@ Implementation
 uses
   SysUtils,
   defutil,systems,verbose,globals,
-  symtable,paramgr,
+  symtable,
   aasmcpu,
   procinfo,ngenutil,
   compiler;
@@ -691,7 +695,12 @@ end;
                                    TOperand
 ****************************************************************************}
 
-constructor TOperand.Create(ACompiler: TCompilerBase);
+function TOperand.GetParaManager: TParaManager; inline;
+begin
+  result:=compiler.paramanager;
+end;
+
+constructor TOperand.create(ACompiler: TCompilerBase);
 begin
   FCompiler:=ACompiler;
   size:=OS_NO;
@@ -707,7 +716,7 @@ begin
 end;
 
 
-Procedure TOperand.SetSize(_size:longint;force:boolean);
+procedure TOperand.SetSize(_size: longint; force: boolean);
 begin
   if force or
      ((size = OS_NO) and (_size<=16)) then
@@ -724,7 +733,7 @@ begin
 end;
 
 
-Procedure TOperand.SetCorrectSize(opcode:tasmop);
+procedure TOperand.SetCorrectSize(opcode: tasmop);
 begin
 end;
 
@@ -752,7 +761,7 @@ begin
 end;
 
 
-Function TOperand.SetupSelf:boolean;
+function TOperand.SetupSelf: boolean;
 Begin
   SetupSelf:=false;
   if assigned(current_structdef) then
@@ -762,7 +771,7 @@ Begin
 end;
 
 
-Function TOperand.SetupOldEBP:boolean;
+function TOperand.SetupOldEBP: boolean;
 Begin
   SetupOldEBP:=false;
   if current_procinfo.procdef.parast.symtablelevel>normal_function_level then
@@ -772,7 +781,7 @@ Begin
 end;
 
 
-Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
+function TOperand.SetupVar(const s: string; GetOffset: boolean): Boolean;
 
   function symtable_has_localvarsyms(st:TSymtable):boolean;
   var
@@ -1267,7 +1276,7 @@ begin
   Fillchar(opr.ref,sizeof(treference),0);
 end;
 
-Function TOperand.CheckOperand(ins : TInstruction): boolean;
+function TOperand.CheckOperand(ins: TInstruction): boolean;
 {*********************************************************************}
 {  Description: This routine checks if the operand is of              }
 {  valid, and returns false if it isn't. Does nothing by default.     }

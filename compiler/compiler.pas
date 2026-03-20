@@ -158,7 +158,7 @@ uses
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
   ,hlcgobj
-  ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept
+  ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept,paramgr
   ,opt,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
@@ -191,6 +191,7 @@ type
     FLinker: TLinker;
     FExceptionStateHandler: tcgexceptionstatehandler;
     Fhlcg: thlcgobj;
+    Fparamanager : tparamanager;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
                                           given on the command line. Is common
@@ -234,6 +235,7 @@ type
     property ExceptionStateHandler: tcgexceptionstatehandler read FExceptionStateHandler;
     {# Main high level code generator class }
     property hlcg: thlcgobj read Fhlcg write Fhlcg;
+    property paramanager: tparamanager read Fparamanager;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
     property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
@@ -255,6 +257,7 @@ type
     function Getmacrosymtablestack: TSymtablestack; inline;
     function GetObjCGUtl: TObjCCodeGenUtils; inline;
     function GetObjCUtil: TObjectiveCUtils; inline;
+    function GetParaManager: tparamanager; inline;
     function GetParser: TParser; inline;
     function GetNodeUtils: TNodeUtils; inline;
     function GetOpt: TOptimizers; inline;
@@ -390,6 +393,7 @@ type
     property Linker: TLinker read GetLinker;
     property ExceptionStateHandler: tcgexceptionstatehandler read GetExceptionStateHandler;
     property hlcg: thlcgobj read GetHLCG;
+    property paramanager: tparamanager read GetParaManager;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
     property symtablestack: TSymtablestack read Getsymtablestack;
@@ -404,8 +408,7 @@ implementation
 uses
   finput,
   fppu,
-  aasmcpu,
-  paramgr;
+  aasmcpu;
 
 {$if defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}
@@ -440,6 +443,7 @@ begin
   DoneFileUtils;
   donetokens;
   DoneTaskHandler(FTaskHandler);
+  FreeAndNil(Fparamanager);
   FreeAndNil(FExceptionStateHandler);
   FreeAndNil(FTarget);
   FreeAndNil(FOpt);
@@ -471,7 +475,7 @@ begin
   FOptions:=TOptions.Create(Self);
   FOpt:=TOptimizers.Create(Self);
   CreateExceptionStateHandler(tcgexceptionstatehandler);
-  paramanager:=tcpuparamanager.Create(Self);
+  Fparamanager:=tcpuparamanager.Create(Self);
 { inits which need to be done before the arguments are parsed }
   FTarget:=TCompilerTarget.Create;
   { fileutils depends on source_info so it must be after systems }
@@ -779,6 +783,11 @@ end;
 function TCompilerHelper.GetObjCUtil: TObjectiveCUtils; inline;
 begin
   Result := TCompiler(Self).ObjCUtil;
+end;
+
+function TCompilerHelper.GetParaManager: tparamanager; inline;
+begin
+  Result := TCompiler(Self).paramanager;
 end;
 
 function TCompilerHelper.GetParser: TParser; inline;

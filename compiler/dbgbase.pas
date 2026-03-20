@@ -28,15 +28,19 @@ interface
     uses
       cclasses,
       systems,compilerbase,
-      parabase,
+      parabase,paramgr,
       symconst,symbase,symdef,symtype,symsym,
       fmodule,
       aasmtai,aasmdata;
 
     type
+
+      { TDebugInfo }
+
       TDebugInfo=class
       private
         FCompiler: TCompilerBase;
+        function GetParaManager: TParaManager; inline;
       protected
         { definitions }
         { collect all defs in one list so we can reset them easily }
@@ -84,6 +88,7 @@ interface
         procedure reset_unit_type_info;
         procedure write_used_unit_type_info(list:TAsmList;hp:tmodule);
         property Compiler: TCompilerBase read FCompiler;
+        property ParaManager: TParaManager read GetParaManager;
       public
         constructor Create(ACompiler: TCompilerBase);virtual;
         procedure inserttypeinfo;virtual;
@@ -232,6 +237,10 @@ implementation
       begin
       end;
 
+    function TDebugInfo.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
+      end;
 
     procedure TDebugInfo.appenddef(list:TAsmList;def:tdef);
       begin

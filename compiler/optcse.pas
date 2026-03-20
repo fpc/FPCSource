@@ -29,7 +29,7 @@ unit optcse;
   interface
 
     uses
-      sysutils,compilerbase,node,nutils;
+      sysutils,compilerbase,node,nutils,paramgr;
 
 type
 
@@ -37,10 +37,13 @@ type
 
   TCSEOptimizer = class
   private
+    function GetParaManager: TParaManager; inline;
+  private
     FCompiler: TCompilerBase;
     function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
     function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
     property Compiler: TCompilerBase read FCompiler;
+    property ParaManager: TParaManager read GetParaManager;
   public
     constructor Create(ACompiler: TCompilerBase);
     {
@@ -67,7 +70,6 @@ type
       nbas,nld,ninl,ncal,nadd,nmem,ncnv,
       pass_1,
       procinfo,
-      paramgr,
       cpubase,
       symconst,symdef,symsym,symtable,symtype,
       defutil,compiler,
@@ -311,6 +313,10 @@ type
 {$endif}
        end;
 
+    function TCSEOptimizer.GetParaManager: TParaManager; inline;
+      begin
+        Result:=Compiler.paramanager;
+      end;
 
     function TCSEOptimizer.searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
       var

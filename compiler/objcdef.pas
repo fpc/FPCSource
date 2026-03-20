@@ -28,7 +28,7 @@ unit objcdef;
 interface
 
     uses
-      symtype;
+      symtype,compilerbase;
 
     { The internals of Objective-C's @encode() functionality: encode a
       type into the internal format used by the run time. Returns false
@@ -56,7 +56,7 @@ implementation
     cutils,cclasses,
     verbose,
     symtable,symconst,symsym,symdef,
-    defutil,paramgr;
+    defutil,paramgr,compiler;
 
 {******************************************************************
                           Type encoding
@@ -147,6 +147,8 @@ implementation
 
 
     function objcaddencodedtype(def: tdef; recordinfostate: trecordinfostate; bpacked: boolean; var encodedstr: ansistring; out founderror: tdef): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         recname: ansistring;
         recdef: trecorddef;
@@ -323,7 +325,7 @@ implementation
             end;
           setdef :
             begin
-              addrpara:=paramanager.push_addr_param(vs_value,def,pocall_cdecl);
+              addrpara:=compiler.paramanager.push_addr_param(vs_value,def,pocall_cdecl);
               if not addrpara then
                 { encode as an record, they are always passed by value in C.  }
                 encodedstr:=encodedstr+'{?=';

@@ -37,7 +37,7 @@ unit cgobj;
 
     uses
        globtype,constexp,
-       cpubase,cgbase,cgutils,parabase,compilerbase,
+       cpubase,cgbase,cgutils,parabase,compilerbase,paramgr,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symtype,symdef,rgobj
        ;
@@ -58,8 +58,10 @@ unit cgobj;
        tcg = class
          private
           FCompiler: TCompilerBase;
+          function GetParaManager: TParaManager; inline;
          protected
           property Compiler: TCompilerBase read FCompiler;
+          property ParaManager: TParaManager read GetParaManager;
          public
           { how many times is this current code executed }
           executionweight : longint;
@@ -607,13 +609,18 @@ implementation
 
     uses
        globals,systems,fmodule,compiler,
-       verbose,paramgr,symsym,symtable,
+       verbose,symsym,symtable,
        tgobj,cutils,procinfo,
        cpuinfo;
 
 {*****************************************************************************
                             basic functionality
 ******************************************************************************}
+
+    function tcg.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
+      end;
 
     constructor tcg.create(ACompiler: TCompilerBase);
       begin
@@ -791,7 +798,8 @@ implementation
 {$endif cpu8bitalu or cpu16bitalu}
 
 
-    function Tcg.makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
+        function tcg.makeregsize(list: TAsmList; reg: Tregister; size: Tcgsize
+      ): Tregister;
       var
         subreg:Tsubregister;
       begin
@@ -2169,8 +2177,8 @@ implementation
       end;
 
 
-    procedure Tcg.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
-                                     a:tcgint;src,dst:Tregister);
+        procedure tcg.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize;
+      a: tcgint; src, dst: tregister);
     begin
       optimize_op_const(size, op, a);
       case op of
@@ -2613,7 +2621,8 @@ implementation
       end;
 
 
-    procedure tcg.a_loadmm_intreg_reg(list: tasmlist; fromsize,tosize: tcgsize; intreg,mmreg: tregister; shuffle: pmmshuffle);
+        procedure tcg.a_loadmm_intreg_reg(list: TAsmList; fromsize,
+      tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
       var
         tmpref: treference;
       begin
@@ -2627,7 +2636,8 @@ implementation
       end;
 
 
-    procedure tcg.a_loadmm_reg_intreg(list: tasmlist; fromsize,tosize: tcgsize; mmreg,intreg: tregister; shuffle: pmmshuffle);
+        procedure tcg.a_loadmm_reg_intreg(list: TAsmList; fromsize,
+      tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle);
       var
         tmpref: treference;
       begin
@@ -3051,7 +3061,8 @@ implementation
       end;
 
 
-    procedure tcg.a_mul_reg_reg_pair(list: TAsmList; size: TCgSize; src1,src2,dstlo,dsthi: TRegister);
+        procedure tcg.a_mul_reg_reg_pair(list: TAsmList; size: tcgsize; src1, src2,
+      dstlo, dsthi: TRegister);
       begin
         internalerror(2014060801);
       end;

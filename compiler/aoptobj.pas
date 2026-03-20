@@ -43,7 +43,8 @@ Unit AoptObj;
       cclasses,
       cgbase,cgutils,
       cpubase,
-      aoptbase,aoptcpub,aoptda;
+      aoptbase,aoptcpub,aoptda,
+      paramgr;
 
     { ************************************************************************* }
     { ********************************* Constants ***************************** }
@@ -248,8 +249,10 @@ Unit AoptObj;
       TAOptObj = class(TAoptBaseCpu)
       private
         FCompiler: TCompilerBase;
+        function GetParaManager: TParaManager; inline;
       protected
         property Compiler: TCompilerBase read FCompiler;
+        property ParaManager: TParaManager read GetParaManager;
       public
         { the PAasmOutput list this optimizer instance works on }
         AsmL: TAsmList;
@@ -483,7 +486,8 @@ Unit AoptObj;
 {$if defined(ARM)}
       cpuinfo,
 {$endif defined(ARM)}
-      procinfo;
+      procinfo,
+      compiler;
 
 
 {$ifdef DEBUG_AOPTOBJ}
@@ -976,8 +980,13 @@ Unit AoptObj;
       { ***************************** TAoptObj ********************************** }
       { ************************************************************************* }
 
-      Constructor TAoptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
-                                  _LabelInfo: PLabelInfo; _Compiler: TCompilerBase);
+    function TAOptObj.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
+      end;
+
+    constructor TAOptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
+        _LabelInfo: PLabelInfo; _Compiler: TCompilerBase);
       Begin
         FCompiler := _Compiler;
         AsmL := _AsmL;
@@ -1237,7 +1246,8 @@ Unit AoptObj;
       end;
 
 
-      class Function TAOptObj.RegInUsedRegs(reg : TRegister; var regs : TAllUsedRegs) : boolean;
+            class function TAOptObj.RegInUsedRegs(reg: TRegister;
+        var regs: TAllUsedRegs): boolean;
       begin
         result:=regs[getregtype(reg)].IsUsed(reg);
       end;
@@ -1269,7 +1279,7 @@ Unit AoptObj;
       end;
 
 
-      class function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
+            class function TAOptObj.FindLabel(L: TasmLabel; var hp: Tai): Boolean;
       Var TempP: Tai;
       Begin
         TempP := hp;
@@ -1326,7 +1336,7 @@ Unit AoptObj;
         GetInstructionDistance := false;
       End;
 
-      Procedure TAOptObj.InsertLLItem(prev, foll, new_one : TLinkedListItem);
+            procedure TAOptObj.InsertLLItem(prev, foll, new_one: TLinkedListItem);
       Begin
         If Assigned(prev) Then
           If Assigned(foll) Then

@@ -29,6 +29,7 @@ interface
       { common }
       cclasses,
       compilerbase,
+      paramgr,
       { scanner }
       tokens,
       { symtable }
@@ -67,6 +68,8 @@ interface
 
   TSubroutineDeclarationParser = class
   private
+    function GetParaManager: TParaManager; inline;
+  private
     FCompiler: TCompilerBase;
 
     { we use TObject instead of TParser to avoid cyclic unit reference }
@@ -103,6 +106,7 @@ interface
     function parse_proc_direc(pd:tabstractprocdef;var pdflags:tpdflags):boolean;
 
     property Compiler: TCompilerBase read FCompiler;
+    property ParaManager: TParaManager read GetParaManager;
   public
     constructor Create(AParser: TObject; ACompiler: TCompilerBase);
 
@@ -148,7 +152,7 @@ implementation
        { symtable }
        symbase,symcpu,symtable,symutil,defutil,defcmp,
        { parameter handling }
-       paramgr,cpupara,
+       cpupara,
        { pass 1 }
        fmodule,node,htypechk,ncon,nld,
        objcutil,
@@ -238,6 +242,12 @@ implementation
         result:=pop_child_hierarchy(obj);
         if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
           inc(result,pop_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
+      end;
+
+
+    function TSubroutineDeclarationParser.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
       end;
 
 

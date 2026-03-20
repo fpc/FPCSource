@@ -217,6 +217,7 @@ implementation
       htypechk,pass_1,procinfo,paramgr,
       nbas,ncon,nflw,ninl,ncnv,nmem,ncal,nutils,
       cgbase,
+      hlcgobj,
       optloadmodifystore,wpobase
       ;
 

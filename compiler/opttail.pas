@@ -26,13 +26,19 @@ unit opttail;
   interface
 
     uses
-      compilerbase,symdef,node;
+      compilerbase,symdef,node,paramgr;
 
 type
+
+  { TTailRecursionOptimization }
+
   TTailRecursionOptimization = class
+  private
+    function GetParaManager: TParaManager; inline;
   private
     FCompiler: TCompilerBase;
     property Compiler: TCompilerBase read FCompiler;
+    property ParaManager: TParaManager read GetParaManager;
   public
     constructor Create(ACompiler: TCompilerBase);
     procedure do_opttail(var n : tnode;p : tprocdef);
@@ -45,8 +51,13 @@ type
       symconst,symsym,
       defcmp,defutil,
       nutils,nbas,nflw,ncal,nld,ncnv,nmem,
-      pass_1,compiler,
-      paramgr;
+      pass_1,compiler;
+
+    function TTailRecursionOptimization.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
+      end;
+
 
     constructor TTailRecursionOptimization.Create(ACompiler: TCompilerBase);
       begin

@@ -151,7 +151,7 @@ unit rasm;
         isimplicitpointer:=
           (sym.typ=paravarsym) and
           (is_implicit_pointer_object_type(sym.vardef) or
-           paramanager.push_addr_param(sym.varspez,sym.vardef,current_procinfo.procdef.proccalloption));
+           compiler.paramanager.push_addr_param(sym.varspez,sym.vardef,current_procinfo.procdef.proccalloption));
 
         { sym.initiallloc/localloc is not yet initialised here }
 

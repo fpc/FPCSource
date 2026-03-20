@@ -35,7 +35,7 @@ unit hlcgobj;
 
     uses
        cclasses,globtype,constexp,
-       cpubase,cgbase,cgutils,parabase,compilerbase,
+       cpubase,cgbase,cgutils,parabase,paramgr,compilerbase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symbase,symtype,symsym,symdef,
        node,nutils,
@@ -66,8 +66,10 @@ unit hlcgobj;
        thlcgobj = class
        private
           FCompiler: TCompilerBase;
+          function GetParaManager: TParaManager; inline;
        protected
           property Compiler: TCompilerBase read FCompiler;
+          property ParaManager: TParaManager read GetParaManager;
        public
           {************************************************}
           {                 basic routines                 }
@@ -717,8 +719,10 @@ unit hlcgobj;
      tnodehelper = class helper for tnode
      private
        function GetHLCG: thlcgobj; inline;
+       function GetParaManager: TParaManager; inline;
      public
        property hlcg: thlcgobj read GetHLCG;
+       property paramanager: TParaManager read GetParaManager;
      end;
 
     var
@@ -734,7 +738,7 @@ implementation
     uses
        globals,systems,
        fmodule,
-       verbose,defutil,paramgr,
+       verbose,defutil,
        symtable,
        nbas,ncon,nld,nmem,
        ncgrtti,pass_2,
@@ -755,6 +759,11 @@ implementation
       end;
 
   { thlcgobj }
+
+  function thlcgobj.GetParaManager: TParaManager; inline;
+    begin
+      result:=compiler.paramanager;
+    end;
 
   constructor thlcgobj.create(ACompiler: TCompilerBase);
     begin
@@ -5841,6 +5850,11 @@ implementation
   function tnodehelper.GetHLCG: thlcgobj; inline;
     begin
       result:=self.compiler.hlcg;
+    end;
+
+  function tnodehelper.GetParaManager: TParaManager; inline;
+    begin
+      result:=self.compiler.paramanager;
     end;
 
 

@@ -129,6 +129,8 @@ implementation
 {$endif}
 
     procedure location_free(list: TAsmList; const location : TLocation);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case location.loc of
           LOC_VOID:
@@ -175,7 +177,7 @@ implementation
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-              if paramanager.use_fixed_stack then
+              if compiler.paramanager.use_fixed_stack then
                 location_freetemp(list,location);
             end;
           else
@@ -499,6 +501,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
+        paramanager: tparamanager;
       var
         href : treference;
         hsym : tparavarsym;
@@ -507,6 +510,7 @@ implementation
         needs_inittable : boolean;
       begin
         hlcg:=compiler.hlcg;
+        paramanager:=compiler.paramanager;
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) then
          begin
@@ -770,7 +774,7 @@ implementation
         { Notify the register allocator about memory location of
           the register which holds a value of a stack parameter }
         if (sym.typ=paravarsym) and
-           paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
+           compiler.paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
           set_para_regvar_initial_location;
       end;
 
@@ -858,10 +862,12 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
+        paramanager: tparamanager;
       var
         parasize : longint;
       begin
         hlcg:=compiler.hlcg;
+        paramanager:=compiler.paramanager;
         { c style clearstack does not need to remove parameters from the stack, only the
           return value when it was pushed by arguments }
         if current_procinfo.procdef.proccalloption in clearstack_pocalls then
@@ -930,6 +936,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
+        paramanager: tparamanager;
       var
         i       : longint;
         highsym,
@@ -939,6 +946,7 @@ implementation
         isaddr  : boolean;
       begin
         hlcg:=compiler.hlcg;
+        paramanager:=compiler.paramanager;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);

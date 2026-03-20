@@ -26,7 +26,7 @@ unit pparautl;
 interface
 
     uses
-      compilerbase,symtype,symconst,symdef;
+      compilerbase,symtype,symconst,symdef,paramgr;
 
     type
       // flags of the *handle_calling_convention routines
@@ -45,10 +45,17 @@ interface
       PD_VIRTUAL_MUTEXCLPO = [po_interrupt,po_exports,po_overridingmethod,po_inline,po_staticmethod];
 
 type
+
+  { TParaUtils }
+
   TParaUtils = class
   private
+    function GetParaManager: TParaManager; inline;
+  private
     FCompiler: TCompilerBase;
+    procedure set_addr_param_regable(p:TObject;arg:pointer);
     property Compiler: TCompilerBase read FCompiler;
+    property ParaManager: TParaManager read GetParaManager;
   public
     constructor Create(ACompiler: TCompilerBase);
     procedure insert_funcret_para(pd:tabstractprocdef);
@@ -80,8 +87,12 @@ implementation
 {$endif jvm}
       node,nbas,
       aasmbase,
-      paramgr,compiler;
+      compiler;
 
+    function TParaUtils.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
+      end;
 
     constructor TParaUtils.Create(ACompiler: TCompilerBase);
       begin
@@ -562,7 +573,7 @@ implementation
       end;
 
 
-    procedure set_addr_param_regable(p:TObject;arg:pointer);
+    procedure TParaUtils.set_addr_param_regable(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ<>paravarsym) then
          exit;

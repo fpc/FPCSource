@@ -143,7 +143,7 @@ implementation
           set in case the invoke function returns its result via a hidden
           parameter
       }
-      if paramanager.ret_in_param(invokepd.returndef,orgpd) then
+      if compiler.paramanager.ret_in_param(invokepd.returndef,orgpd) then
         result:=result or BLOCK_USE_STRET;
       { BLOCK_HAS_SIGNATURE:
           only if this bit is set, the above bit will actually be taken into

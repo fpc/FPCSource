@@ -41,7 +41,8 @@ uses
   CUtils,
   objects,
   cclasses,
-  symconst,symtable;
+  symconst,symtable,
+  compilerbase;
 
 const
   SymbolTypLen : integer = 6;
@@ -278,7 +279,8 @@ uses
   finput,fmodule,
   crefs,cpuinfo,cgbase,
   aasmbase,aasmtai,aasmdata,paramgr,
-  symsym,symdef,symtype,symbase,defutil;
+  symsym,symdef,symtype,symbase,defutil,
+  compiler;
 
 const
   RModuleNameCollection: TStreamRec = (
@@ -1623,6 +1625,9 @@ end;
   function ProcessAccessList(OwnerSym: PSymbol; var Owner: PSymbolCollection; List:tpropaccesslist):string; forward;
 
   procedure ProcessSym(OwnerSym: PSymbol; var Owner: PSymbolCollection;  Sym: TSym);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    paramanager: TParaManager;
 
   var MemInfo: TSymbolMemInfo;
       ObjDef: tobjectdef;
@@ -1634,6 +1639,7 @@ end;
       DefPos : TFilePosInfo;
       Symbol:PSymbol;
   begin
+        paramanager:=compiler.paramanager;
         if Sym.Typ <> unitsym then
           New(Symbol, Init(Sym.RealName,Sym.Typ,'',nil))
         else

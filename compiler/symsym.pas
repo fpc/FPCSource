@@ -2558,12 +2558,14 @@ implementation
       end;
 
     function tparavarsym.needs_finalization:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=(varspez=vs_value) and
           (is_managed_type(vardef) or
             (
               (not (tabstractprocdef(owner.defowner).proccalloption in cdecl_pocalls)) and
-              (not paramanager.use_stackalloc) and
+              (not compiler.paramanager.use_stackalloc) and
               (is_open_array(vardef) or is_array_of_const(vardef))
             )
           );

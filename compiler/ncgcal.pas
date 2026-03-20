@@ -31,10 +31,15 @@ interface
       globtype,
       parabase,cgutils,
       aasmdata,cgbase,
-      symdef,node,ncal;
+      symdef,symsym,node,ncal;
 
     type
+
+       { tcgcallparanode }
+
        tcgcallparanode = class(tcallparanode)
+       private
+          function can_skip_para_push(aparasym: tparavarsym): boolean;
        protected
           procedure push_addr_para;
           procedure push_value_para;virtual;
@@ -56,6 +61,7 @@ interface
 
        tcgcallnode = class(tcallnode)
        private
+          function can_skip_para_push(aparasym: tparavarsym): boolean;
           procedure handle_return_value;
           procedure release_unused_return_value;
           procedure copy_back_paras;
@@ -132,7 +138,7 @@ implementation
     uses
       systems,
       verbose,globals,cutils,compiler,
-      symconst,symtable,symtype,symsym,defutil,paramgr,
+      symconst,symtable,symtype,defutil,paramgr,
       pass_2,
       nld,ncnv,
       ncgutil,blockutl,
@@ -142,7 +148,7 @@ implementation
       wpobase;
 
 
-    function can_skip_para_push(parasym: tparavarsym): boolean;
+    function internal_can_skip_para_push(paramanager:tparamanager;parasym: tparavarsym): boolean;
       begin
         { We can skip passing the parameter when:
             the parameter can be optimized as unused
@@ -176,6 +182,10 @@ implementation
         inherited destroy;
       end;
 
+    function tcgcallparanode.can_skip_para_push(aparasym: tparavarsym): boolean;
+      begin
+        result:=internal_can_skip_para_push(paramanager,aparasym);
+      end;
 
     procedure tcgcallparanode.push_addr_para;
       var
@@ -610,6 +620,10 @@ implementation
       begin
       end;
 
+    function tcgcallnode.can_skip_para_push(aparasym: tparavarsym): boolean;
+      begin
+        result:=internal_can_skip_para_push(paramanager,aparasym);
+      end;
 
     procedure tcgcallnode.handle_return_value;
       var

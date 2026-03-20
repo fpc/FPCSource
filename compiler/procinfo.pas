@@ -33,7 +33,7 @@ unit procinfo;
       globtype,
       { symtable }
       symconst,symtype,symdef,symsym,
-      node,
+      node,paramgr,
       { aasm }
       cpubase,cgbase,cgutils,
       aasmbase,aasmdata;
@@ -52,12 +52,18 @@ unit procinfo;
        { This object gives information on the current routine being
          compiled.
        }
+
+       { tprocinfo }
+
        tprocinfo = class(tlinkedlistitem)
        private
           { list to store the procinfo's of the nested procedures }
           nestedprocs : tlinkedlist;
           { required alignment for this stackframe }
           fstackalignment : longint;
+          function GetParaManager: TParaManager; inline;
+       protected
+          property ParaManager: TParaManager read GetParaManager;
        public
           { the compiler instance }
           compiler : TCompilerBase;
@@ -234,6 +240,11 @@ implementation
 {****************************************************************************
                                  TProcInfo
 ****************************************************************************}
+
+    function tprocinfo.GetParaManager: TParaManager; inline;
+      begin
+        result:=compiler.paramanager;
+      end;
 
     constructor tprocinfo.create(aparent:tprocinfo;acompiler:tcompilerbase);
       begin

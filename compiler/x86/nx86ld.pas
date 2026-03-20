@@ -42,6 +42,7 @@ implementation
       cutils,verbose,systems,compiler,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgutils,cgobj,
+      hlcgobj,
       symconst,symdef,symtable,
       cgbase,cpubase,parabase,paramgr,
       procinfo;
