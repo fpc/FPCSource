@@ -67,11 +67,21 @@ unit hlcgobj;
        private
           FCompiler: TCompilerBase;
           function GetCG: TCG; inline;
+{$ifdef cpu64bitalu}
+          function GetCG128: TCG128; inline;
+{$else cpu64bitalu}
+          function GetCG64: TCG64; inline;
+{$endif cpu64bitalu}
           function GetParaManager: TParaManager; inline;
        protected
           property Compiler: TCompilerBase read FCompiler;
           property ParaManager: TParaManager read GetParaManager;
           property CG: TCG read GetCG;
+{$ifdef cpu64bitalu}
+          property CG128: TCG128 read GetCG128;
+{$else cpu64bitalu}
+          property CG64: TCG64 read GetCG64;
+{$endif cpu64bitalu}
        public
           {************************************************}
           {                 basic routines                 }
@@ -760,6 +770,18 @@ implementation
     begin
       result:=compiler.cg;
     end;
+
+{$ifdef cpu64bitalu}
+  function thlcgobj.GetCG128: TCG128; inline;
+    begin
+      result:=compiler.cg128;
+    end;
+{$else cpu64bitalu}
+  function thlcgobj.GetCG64: TCG64; inline;
+    begin
+      result:=compiler.cg64;
+    end;
+{$endif cpu64bitalu}
 
   constructor thlcgobj.create(ACompiler: TCompilerBase);
     begin

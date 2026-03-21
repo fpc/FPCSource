@@ -1764,11 +1764,11 @@ implementation
         tcompiler(compiler).cg:=nil;
         tcompiler(compiler).hlcg:=nil;
 {$ifdef cpu64bitalu}
-        saved_cg128:=cg128;
-        cg128:=nil;
+        saved_cg128:=compiler.cg128;
+        tcompiler(compiler).cg128:=nil;
 {$else cpu64bitalu}
-        saved_cg64:=cg64;
-        cg64:=nil;
+        saved_cg64:=compiler.cg64;
+        tcompiler(compiler).cg64:=nil;
 {$endif cpu64bitalu}
         nestedpi.generate_code;
         { prevents generating code the second time when processing nested procedures }
@@ -1776,9 +1776,9 @@ implementation
         tcompiler(compiler).cg:=saved_cg;
         tcompiler(compiler).hlcg:=saved_hlcg;
 {$ifdef cpu64bitalu}
-        cg128:=saved_cg128;
+        tcompiler(compiler).cg128:=saved_cg128;
 {$else cpu64bitalu}
-        cg64:=saved_cg64;
+        tcompiler(compiler).cg64:=saved_cg64;
 {$endif cpu64bitalu}
         add_reg_instruction_hook:=@cg.add_reg_instruction;
       end;

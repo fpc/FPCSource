@@ -1210,7 +1210,7 @@ unit cgcpu;
     procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg := tcg386.create(compiler);
-        cg64 := tcg64f386.create(compiler);
+        tcompiler(compiler).cg64 := tcg64f386.create(compiler);
       end;
 
 end.

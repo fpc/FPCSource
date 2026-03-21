@@ -45,6 +45,12 @@ unit cgobj;
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
 
+{$ifdef cpu64bitalu}
+       tcg128 = class;
+{$else cpu64bitalu}
+       tcg64 = class;
+{$endif cpu64bitalu}
+
        {# @abstract(Abstract code generator)
           This class implements an abstract instruction generator. Some of
           the methods of this class are generic, while others must
@@ -59,9 +65,19 @@ unit cgobj;
          private
           FCompiler: TCompilerBase;
           function GetParaManager: TParaManager; inline;
+{$ifdef cpu64bitalu}
+          function GetCG128: tcg128; inline;
+{$else cpu64bitalu}
+          function GetCG64: tcg64; inline;
+{$endif cpu64bitalu}
          protected
           property Compiler: TCompilerBase read FCompiler;
           property ParaManager: TParaManager read GetParaManager;
+{$ifdef cpu64bitalu}
+          property cg128: tcg128 read GetCG128;
+{$else cpu64bitalu}
+          property cg64: tcg64 read GetCG64;
+{$endif cpu64bitalu}
          public
           { how many times is this current code executed }
           executionweight : longint;
@@ -599,13 +615,10 @@ unit cgobj;
     function joinreg64(reglo,reghi : tregister) : tregister64;
 {$endif cpu64bitalu}
 
-    var
 {$ifdef cpu64bitalu}
+    var
        { Code generator class for all operations working with 128-Bit operands }
        cg128 : tcg128;
-{$else cpu64bitalu}
-       { Code generator class for all operations working with 64-Bit operands }
-       cg64 : tcg64;
 {$endif cpu64bitalu}
 
     function asmsym2indsymflags(sym: TAsmSymbol): tindsymflags;
@@ -628,6 +641,18 @@ implementation
       begin
         result:=compiler.paramanager;
       end;
+
+{$ifdef cpu64bitalu}
+    function tcg.GetCG128: tcg128; inline;
+      begin
+        result:=compiler.cg128;
+      end;
+{$else cpu64bitalu}
+    function tcg.GetCG64: tcg64; inline;
+      begin
+        result:=compiler.cg64;
+      end;
+{$endif cpu64bitalu}
 
     constructor tcg.create(ACompiler: TCompilerBase);
       begin
@@ -3593,11 +3618,11 @@ implementation
         tcompiler(acompiler).cg.free;
         tcompiler(acompiler).cg:=nil;
 {$ifdef cpu64bitalu}
-        cg128.free;
-        cg128:=nil;
+        tcompiler(acompiler).cg128.free;
+        tcompiler(acompiler).cg128:=nil;
 {$else cpu64bitalu}
-        cg64.free;
-        cg64:=nil;
+        tcompiler(acompiler).cg64.free;
+        tcompiler(acompiler).cg64:=nil;
 {$endif cpu64bitalu}
       end;
 
