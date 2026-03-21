@@ -487,6 +487,16 @@ type
     procedure TestRes_Nested_HasAtribute; // [attr]
     procedure TestRes_Nested_AndHasAtribute; // &[attr]
     procedure TestRes_Nested_AndHasSpaceAtribute; // & [attr]
+
+    // @media
+    // todo procedure TestRes_Media_Name  print | (print)
+    // todo procedure TestRes_Media_NameValue (display-mode: fullscreen)
+    // todo procedure TestRes_Media_Range (height > 600px) | (400px <= width <= 700px) | (min-width: 300px)
+    // todo procedure TestRes_Media_And  print and screen
+    // todo procedure TestRes_Media_Or  print or screen
+    // todo procedure TestRes_Media_Comma  (width>100px), (height>100px)
+    // todo procedure TestRes_Media_Not  not print
+
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
