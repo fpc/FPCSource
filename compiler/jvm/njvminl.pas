@@ -27,7 +27,8 @@ interface
 
     uses
        cpubase,
-       node,ninl,ncginl;
+       node,ninl,ncginl,
+       compilerbase;
 
     type
        tjvminlinenode = class(tcginlinenode)
@@ -78,7 +79,8 @@ implementation
       nadd,nbas,ncon,ncnv,nmat,nmem,ncal,nld,nflw,nutils,
       cgbase,pass_1,pass_2,
       cpuinfo,ncgutil,
-      cgutils,hlcgobj,hlcgcpu;
+      cgutils,hlcgobj,hlcgcpu,
+      compiler,nodehelper;
 
 
 {*****************************************************************************
@@ -146,7 +148,7 @@ implementation
                   end
                 else
                   begin
-                    inserttypeconv(tcallparanode(para.right).left,s32inttype);
+                    inserttypeconv(tcallparanode(para.right).left,s32inttype,compiler);
                     tcallparanode(para.right).get_paratype;
                   end;
                 para:=tcallparanode(para.right);
@@ -190,8 +192,8 @@ implementation
             else
               begin
                 { use special -1,-1 argument to copy the whole array }
-                len:=genintconstnode(-1);
-                start:=genintconstnode(-1);
+                len:=genintconstnode(-1,compiler);
+                start:=genintconstnode(-1,compiler);
               end;
             { currently there is one parameter left: the array itself }
             arr:=tcallparanode(left).left;
@@ -212,7 +214,7 @@ implementation
                 fpc_dynarray_copy(src: JLObject; start, len: longint; ndim: longint; eletype: jchar) }
             result:=compiler.ccallnode_intern('FPC_DYNARRAY_COPY',
               compiler.ccallparanode(compiler.cordconstnode(ord(finaltype),cwidechartype,false),
-                compiler.ccallparanode(genintconstnode(ndims),
+                compiler.ccallparanode(genintconstnode(ndims,compiler),
                   compiler.ccallparanode(len,
                     compiler.ccallparanode(start,
                       compiler.ccallparanode(compiler.ctypeconvnode_explicit(arr,java_jlobject),nil)
@@ -221,7 +223,7 @@ implementation
                 )
               )
             );
-            inserttypeconv_explicit(result,resultdef);
+            inserttypeconv_explicit(result,resultdef,compiler);
           end
         else
           result:=inherited first_copy;
@@ -236,7 +238,7 @@ implementation
         if is_dynamic_array(tcallparanode(left).left.resultdef) then
           begin
             result:=compiler.caddnode(unequaln,compiler.cinlinenode(
-              in_length_x,false,tcallparanode(left).left),genintconstnode(0));
+              in_length_x,false,tcallparanode(left).left),genintconstnode(0,compiler));
             tcallparanode(left).left:=nil;
           end
         else
@@ -259,7 +261,7 @@ implementation
         { get class wrapper type }
         jvmgetboxtype(left.resultdef,boxdef,boxparadef,true);
         { created wrapped instance }
-        inserttypeconv_explicit(tcallparanode(left).left,boxparadef);
+        inserttypeconv_explicit(tcallparanode(left).left,boxparadef,compiler);
         result:=compiler.ccallnode_internmethod(
           compiler.cloadvmtaddrnode(compiler.ctypenode(tobjectdef(boxdef))),'CREATE',left);
         { reused }
@@ -281,7 +283,7 @@ implementation
         { call the unboxing method }
         val:=compiler.ccallnode_internmethod(val,jvmgetunboxmethod(resultdef),nil);
         { add type conversion for shortint -> byte etc }
-        inserttypeconv_explicit(val,resultdef);
+        inserttypeconv_explicit(val,resultdef,compiler);
         result:=val;
       end;
 
@@ -371,13 +373,13 @@ implementation
         include(taddrnode(setpara).addrnodeflags,anf_typedaddr);
         if seteledef.typ=enumdef then
           begin
-            inserttypeconv_explicit(setpara,java_juenumset);
-            inserttypeconv_explicit(valuepara.left,tcpuenumdef(tenumdef(seteledef).getbasedef).classdef);
+            inserttypeconv_explicit(setpara,java_juenumset,compiler);
+            inserttypeconv_explicit(valuepara.left,tcpuenumdef(tenumdef(seteledef).getbasedef).classdef,compiler);
           end
         else
           begin
-            inserttypeconv_explicit(setpara,java_jubitset);
-            inserttypeconv_explicit(valuepara.left,s32inttype);
+            inserttypeconv_explicit(setpara,java_jubitset,compiler);
+            inserttypeconv_explicit(valuepara.left,s32inttype,compiler);
           end;
         if inlinenumber=in_include_x_y then
           procname:='ADD'
@@ -425,7 +427,7 @@ implementation
             inc(ndims);
             tcallparanode(ppn).right:=
               compiler.ccallparanode(
-                genintconstnode(tarraydef(eledef).elecount),nil);
+                genintconstnode(tarraydef(eledef).elecount,compiler),nil);
             ppn:=tcallparanode(ppn).right;
             eledef:=tarraydef(eledef).elementdef;
           end;
@@ -575,7 +577,7 @@ implementation
               stringclass:=java_ansistring
             else
               stringclass:=java_jlstring;
-            newblock:=internalstatements(newstatement);
+            newblock:=internalstatements(compiler,newstatement);
             { store left into a temp since it may contain a function call
               (which must not be evaluated twice) }
             if node_complexity(left)>4 then
@@ -606,7 +608,7 @@ implementation
             { else-path: length is 0 }
             stringnull:=compiler.cassignmentnode(
               compiler.ctemprefnode(lentemp),
-              genintconstnode(0));
+              genintconstnode(0,compiler));
             { complete if-statement }
             addstatement(newstatement,compiler.cifnode(ifcond,stringnonnull,stringnull));
             { free lefttemp }

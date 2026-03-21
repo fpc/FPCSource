@@ -1196,12 +1196,12 @@ implementation
           { java_jlobject may not have been parsed yet (system unit); in any
             case, we only use this to refer to the class type, so inheritance
             does not matter }
-          def:=cobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil,true);
+          def:=cobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil,true,compiler);
           include(def.objectoptions,oo_is_external);
           include(def.objectoptions,oo_is_sealed);
           def.objextname:=stringdup(curr.realmodulename^);
           typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def);
-          symtablestack.top.insertsym(typesym);
+          compiler.symtablestack.top.insertsym(typesym);
         end;
 {$endif jvm}
 

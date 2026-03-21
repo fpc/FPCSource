@@ -29,7 +29,8 @@ uses
   globtype,
   aasmdata,
   symtype,
-  symdef,symsym;
+  symdef,symsym,
+  compilerbase;
 
 type
   { defs }
@@ -225,7 +226,8 @@ implementation
     verbose,cutils,cclasses,globals,
     symconst,symbase,symtable,symcreat,jvmdef,
     pdecsub,pparautl,pjvm,
-    paramgr;
+    paramgr,
+    compiler;
 
 
   {****************************************************************************
@@ -233,6 +235,8 @@ implementation
   ****************************************************************************}
 
   procedure tcpupropertysym.create_getter_or_setter_for_property(orgaccesspd: tprocdef; getter: boolean);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       obj: tabstractrecorddef;
       ps: tprocsym;
@@ -255,7 +259,7 @@ implementation
         external classes }
       if oo_is_external in obj.objectoptions then
         exit;
-      symtablestack.push(obj.symtable);
+      compiler.symtablestack.push(obj.symtable);
 
       try
         if getter then
@@ -382,7 +386,7 @@ implementation
         { create procdef }
         if not assigned(orgaccesspd) then
           begin
-            pd:=cprocdef.create(normal_function_level,true);
+            pd:=cprocdef.create(normal_function_level,true,compiler);
             if df_generic in obj.defoptions then
               include(pd.defoptions,df_generic);
             { method of this objectdef }
@@ -491,21 +495,23 @@ implementation
         if not assigned(orgaccesspd) then
           begin
             { calling convention }
-            handle_calling_convention(pd,hcc_default_actions_intf_struct);
+            compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf_struct);
             { register forward declaration with procsym }
-            proc_add_definition(pd);
+            compiler.parser.pparautl.proc_add_definition(pd);
           end;
 
         { make the property call this new function }
         propaccesslist[accesstyp].addsym(sl_call,ps);
         propaccesslist[accesstyp].procdef:=pd;
       finally
-        symtablestack.pop(obj.symtable);
+        compiler.symtablestack.pop(obj.symtable);
       end;
     end;
 
 
   procedure tcpupropertysym.finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       orgaccesspd: tprocdef;
       pprefix: pshortstring;
@@ -709,7 +715,7 @@ implementation
               does achieve regular call-by-reference semantics though;
               formaldefs always have to be passed like that because their
               contents can be replaced }
-            if paramanager.push_copyout_param(vs.varspez,vs.vardef,proccalloption) then
+            if compiler.paramanager.push_copyout_param(vs.varspez,vs.vardef,proccalloption) then
               tmpresult:=tmpresult+'[';
             { Add the parameter type.  }
             if not jvmaddencodedtype(vs.vardef,false,tmpresult,signature,founderror) then
@@ -822,6 +828,8 @@ implementation
 ****************************************************************************}
 
   procedure tcpuprocsym.check_forward;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       curri, checki: longint;
       currpd, checkpd: tprocdef;

@@ -29,35 +29,36 @@ interface
     cclasses,
     node,nbas,
     fmodule,ngenutil,
-    symtype,symconst,symsym,symdef;
+    symtype,symconst,symsym,symdef,
+    compilerbase;
 
 
   type
     tjvmnodeutils = class(tnodeutils)
-      class function initialize_data_node(p:tnode; force: boolean):tnode; override;
-      class function finalize_data_node(p:tnode):tnode; override;
-      class procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); override;
-      class function force_init: boolean; override;
-      class procedure insertbssdata(sym: tstaticvarsym); override;
-      class function create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef; override;
+      function initialize_data_node(p:tnode; force: boolean):tnode; override;
+      function finalize_data_node(p:tnode):tnode; override;
+      procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); override;
+      function force_init: boolean; override;
+      procedure insertbssdata(sym: tstaticvarsym); override;
+      function create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef; override;
 
-      class function check_insert_trashing(pd: tprocdef): boolean; override;
-      class function  trashable_sym(p: tsym): boolean; override;
-      class procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); override;
+      function check_insert_trashing(pd: tprocdef): boolean; override;
+      function  trashable_sym(p: tsym): boolean; override;
+      procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); override;
 
-      class procedure InsertThreadvarTablesTable; override;
-      class procedure InsertThreadvars; override;
-      class procedure InsertWideInitsTablesTable; override;
-      class procedure InsertWideInits; override;
-      class procedure InsertResourceTablesTable; override;
-      class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
-      class procedure InsertResStrTablesTable; override;
-      class procedure InsertResStrInits; override;
-      class procedure InsertMemorySizes; override;
+      procedure InsertThreadvarTablesTable; override;
+      procedure InsertThreadvars; override;
+      procedure InsertWideInitsTablesTable; override;
+      procedure InsertWideInits; override;
+      procedure InsertResourceTablesTable; override;
+      procedure InsertResourceInfo(ResourcesUsed : boolean); override;
+      procedure InsertResStrTablesTable; override;
+      procedure InsertResStrInits; override;
+      procedure InsertMemorySizes; override;
      protected
-       class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
+       procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
      strict protected
-       class procedure add_main_procdef_paras(pd: tdef); override;
+       procedure add_main_procdef_paras(pd: tdef); override;
     end;
 
 
@@ -69,9 +70,10 @@ implementation
       symbase,symcpu,symtable,defutil,jvmdef,
       ncnv,ncon,ninl,ncal,nld,nmem,
       ppu,
-      pass_1;
+      pass_1,
+      compiler;
 
-  class function tjvmnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
+  function tjvmnodeutils.initialize_data_node(p:tnode; force: boolean):tnode;
     var
       normaldim: longint;
       temp: ttempcreatenode;
@@ -102,7 +104,7 @@ implementation
             interpret them correctly.
           }
           result:=compiler.cinlinenode(in_setlength_x,false,
-            compiler.ccallparanode(genintconstnode(0),
+            compiler.ccallparanode(genintconstnode(0,compiler),
               compiler.ccallparanode(p,nil)));
         end
       else if force then
@@ -130,7 +132,7 @@ implementation
                 end;
               paras:=compiler.ccallparanode(compiler.ctypeconvnode_explicit(p,
                 search_system_type('TJOBJECTARRAY').typedef),nil);
-              paras:=compiler.ccallparanode(genintconstnode(normaldim),paras);
+              paras:=compiler.ccallparanode(genintconstnode(normaldim,compiler),paras);
               if is_wide_or_unicode_string(def) then
                 proc:='fpc_initialize_array_unicodestring'
               else if is_ansistring(def) then
@@ -139,7 +141,7 @@ implementation
                 proc:='fpc_initialize_array_dynarr'
               else if is_record(def) then
                 begin
-                  result:=internalstatements(stat);
+                  result:=internalstatements(compiler,stat);
                   temp:=compiler.ctempcreatenode(def,def.size,tt_persistent,true);
                   addstatement(stat,temp);
                   paras:=compiler.ccallparanode(compiler.ctemprefnode(temp),paras);
@@ -165,7 +167,7 @@ implementation
     end;
 
 
-  class function tjvmnodeutils.finalize_data_node(p:tnode):tnode;
+  function tjvmnodeutils.finalize_data_node(p:tnode):tnode;
     begin
       // do nothing
       p.free;
@@ -173,13 +175,13 @@ implementation
     end;
 
 
-  class procedure tjvmnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
+  procedure tjvmnodeutils.append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode);
     begin
       { class constructors are implicitly called by the JVM runtime and cannot be called explicitly }
     end;
 
 
-  class function tjvmnodeutils.force_init: boolean;
+  function tjvmnodeutils.force_init: boolean;
     begin
       { we need an initialisation in case the al_globals list is not empty
         (that's where the initialisation for global records etc is added) }
@@ -189,7 +191,7 @@ implementation
       result:=true;
     end;
 
-  class procedure tjvmnodeutils.insertbssdata(sym: tstaticvarsym);
+  procedure tjvmnodeutils.insertbssdata(sym: tstaticvarsym);
     var
       enuminitsym,
       vs: tstaticvarsym;
@@ -225,7 +227,7 @@ implementation
           vs.set_mangledbasename(sym.realname);
 
           { add initialization code for the wrapper }
-          block:=internalstatements(stat);
+          block:=internalstatements(compiler,stat);
           if assigned(current_module.tcinitcode) then
             addstatement(stat,tnode(current_module.tcinitcode));
           current_module.tcinitcode:=block;
@@ -254,7 +256,7 @@ implementation
                   java_jlobject),
                 nil);
               jvmgetarraydimdef(sym.vardef,eledef,ndim);
-              initnode:=compiler.ccallparanode(genintconstnode(ndim),initnode);
+              initnode:=compiler.ccallparanode(genintconstnode(ndim,compiler),initnode);
               initnode:=compiler.ccallparanode(
                 compiler.cordconstnode(ord(jvmarrtype_setlength(eledef)),
                   cwidechartype,false),
@@ -285,7 +287,7 @@ implementation
               temp:=compiler.ctempcreatenode(sym.vardef,sym.vardef.size,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,compiler.cinlinenode(in_setlength_x,false,
-                compiler.ccallparanode(genintconstnode(0),
+                compiler.ccallparanode(genintconstnode(0,compiler),
                   compiler.ccallparanode(compiler.ctemprefnode(temp),nil))
                 )
               );
@@ -307,7 +309,7 @@ implementation
     end;
 
 
-  class function tjvmnodeutils.create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef;
+  function tjvmnodeutils.create_main_procdef(const name: string; potype: tproctypeoption; ps: tprocsym): tdef;
     begin
       if (potype=potype_proginit) then
         begin
@@ -320,7 +322,7 @@ implementation
     end;
 
 
-  class function tjvmnodeutils.check_insert_trashing(pd: tprocdef): boolean;
+  function tjvmnodeutils.check_insert_trashing(pd: tprocdef): boolean;
     begin
       { initialise locals with 0 }
       if ts_init_locals in current_settings.targetswitches then
@@ -329,7 +331,7 @@ implementation
     end;
 
 
-  class function tjvmnodeutils.trashable_sym(p: tsym): boolean;
+  function tjvmnodeutils.trashable_sym(p: tsym): boolean;
     begin
       result:=
         inherited and
@@ -337,7 +339,7 @@ implementation
     end;
 
 
-  class procedure tjvmnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
+  procedure tjvmnodeutils.maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode);
     var
       enumdef: tenumdef;
       trashintval: int64;
@@ -387,7 +389,7 @@ implementation
         inherited;
     end;
 
-  class procedure tjvmnodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
+  procedure tjvmnodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
 
     var
       unitinits : TAsmList;
@@ -435,61 +437,61 @@ implementation
     end;
 
 
-  class procedure tjvmnodeutils.InsertThreadvarTablesTable;
+  procedure tjvmnodeutils.InsertThreadvarTablesTable;
     begin
       { not yet supported }
     end;
 
 
-  class procedure tjvmnodeutils.InsertThreadvars;
+  procedure tjvmnodeutils.InsertThreadvars;
     begin
       { not yet supported }
     end;
 
 
-  class procedure tjvmnodeutils.InsertWideInitsTablesTable;
+  procedure tjvmnodeutils.InsertWideInitsTablesTable;
     begin
       { not required }
     end;
 
 
-  class procedure tjvmnodeutils.InsertWideInits;
+  procedure tjvmnodeutils.InsertWideInits;
     begin
       { not required }
     end;
 
 
-  class procedure tjvmnodeutils.InsertResourceTablesTable;
+  procedure tjvmnodeutils.InsertResourceTablesTable;
     begin
       { not supported }
     end;
 
 
-  class procedure tjvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
+  procedure tjvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     begin
       { not supported }
     end;
 
 
-  class procedure tjvmnodeutils.InsertResStrTablesTable;
+  procedure tjvmnodeutils.InsertResStrTablesTable;
     begin
       { not supported }
     end;
 
 
-  class procedure tjvmnodeutils.InsertResStrInits;
+  procedure tjvmnodeutils.InsertResStrInits;
     begin
       { not supported }
     end;
 
 
-  class procedure tjvmnodeutils.InsertMemorySizes;
+  procedure tjvmnodeutils.InsertMemorySizes;
     begin
       { not required }
     end;
 
 
-  class procedure tjvmnodeutils.add_main_procdef_paras(pd: tdef);
+  procedure tjvmnodeutils.add_main_procdef_paras(pd: tdef);
     var
       pvs: tparavarsym;
     begin

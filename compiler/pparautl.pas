@@ -1306,10 +1306,10 @@ implementation
         maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
         { don't add clone/FpcDeepCopy, because the field names are not all
           representable in source form and we don't need them anyway }
-        symtablestack.push(trecorddef(nestedvarsdef).symtable);
+        compiler.symtablestack.push(trecorddef(nestedvarsdef).symtable);
         maybe_add_public_default_java_constructor(trecorddef(nestedvarsdef));
         insert_struct_hidden_paras(trecorddef(nestedvarsdef));
-        symtablestack.pop(trecorddef(nestedvarsdef).symtable);
+        compiler.symtablestack.pop(trecorddef(nestedvarsdef).symtable);
   {$endif}
         compiler.symtablestack.free;
         tcompiler(compiler).symtablestack:=old_symtablestack.getcopyuntil(pd.localst);

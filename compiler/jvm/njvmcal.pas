@@ -28,10 +28,13 @@ interface
     uses
       cgbase,
       symtype,symdef,
-      node,ncal,ncgcal;
+      node,nbas,ncal,ncgcal,
+      compilerbase;
 
     type
        tjvmcallparanode = class(tcgcallparanode)
+        private
+         function replacewithtemp(var orgnode:tnode): ttempcreatenode;
         protected
          procedure push_formal_para; override;
          procedure push_copyout_para; override;
@@ -64,9 +67,10 @@ implementation
       symconst,symtable,symsym,symcpu,defutil,
       cgutils,tgobj,procinfo,htypechk,
       cpubase,aasmbase,aasmdata,aasmcpu,
-      hlcgobj,hlcgcpu,
-      pass_1,nutils,nadd,nbas,ncnv,ncon,nflw,ninl,nld,nmem,
-      jvmdef;
+      nodehelper,hlcgcpu,
+      pass_1,nutils,nadd,ncnv,ncon,nflw,ninl,nld,nmem,
+      jvmdef,
+      compiler;
 
 {*****************************************************************************
                            TJVMCALLPARANODE
@@ -140,7 +144,7 @@ implementation
       end;
 
 
-    function replacewithtemp(var orgnode:tnode): ttempcreatenode;
+    function tjvmcallparanode.replacewithtemp(var orgnode:tnode): ttempcreatenode;
       begin
         if valid_for_var(orgnode,false) then
           result:=compiler.ctempcreatenode_reference(
@@ -182,9 +186,9 @@ implementation
            (parasym.vardef.typ<>formaldef) then
            exit;
 
-        fparainit:=internalstatements(initstat);
-        fparacopyback:=internalstatements(copybackstat);
-        finiblock:=internalstatements(finistat);
+        fparainit:=internalstatements(compiler,initstat);
+        fparacopyback:=internalstatements(compiler,copybackstat);
+        finiblock:=internalstatements(compiler,finistat);
         getparabasenodes(left,realpara,realparaparent);
         { make sure we can get a copy of left safely, so we can use it both
           to load the original parameter value and to assign the result again
@@ -228,10 +232,10 @@ implementation
         if parasym.vardef.typ=formaldef then
           arreledef:=java_jlobject
         else if implicitptrpara then
-          arreledef:=cpointerdef.getreusable(orgparadef)
+          arreledef:=cpointerdef.getreusable(orgparadef,compiler)
         else
           arreledef:=parasym.vardef;
-        arrdef:=carraydef.getreusable(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches));
+        arrdef:=carraydef.getreusable(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches),compiler);
         { the -1 means "use the array's element count to determine the number
           of elements" in the JVM temp generator }
         arraytemp:=compiler.ctempcreatenode(arrdef,-1,tt_persistent,true);
@@ -274,13 +278,13 @@ implementation
               end;
             { put the parameter value in the array }
             addstatement(initstat,compiler.cassignmentnode(
-              compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0)),
+              compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0,compiler)),
               left));
             { and the copy for checking }
             if (cs_check_var_copyout in current_settings.localswitches) then
               addstatement(initstat,compiler.cassignmentnode(
-                compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1)),
-                compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0))));
+                compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1,compiler)),
+                compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0,compiler))));
           end
         else
           left.free;
@@ -304,7 +308,7 @@ implementation
             { add the extraction of the parameter and assign it back to the
               original location }
             tempn:=compiler.ctemprefnode(arraytemp);
-            tempn:=compiler.cvecnode(tempn,genintconstnode(0));
+            tempn:=compiler.cvecnode(tempn,genintconstnode(0,compiler));
             { unbox if necessary }
             if parasym.vardef.typ=formaldef then
               begin
@@ -312,7 +316,7 @@ implementation
                   tempn:=compiler.cinlinenode(in_unbox_x_y,false,compiler.ccallparanode(
                     compiler.ctypenode(orgparadef),compiler.ccallparanode(tempn,nil)))
                 else if implicitptrpara then
-                  tempn:=compiler.ctypeconvnode_explicit(tempn,cpointerdef.getreusable(orgparadef))
+                  tempn:=compiler.ctypeconvnode_explicit(tempn,cpointerdef.getreusable(orgparadef,compiler))
               end;
             if implicitptrpara then
               tempn:=compiler.cderefnode(tempn)
@@ -325,8 +329,8 @@ implementation
                     verifyout) and
                    (cs_check_var_copyout in current_settings.localswitches) then
                   begin
-                    unwrappedele0:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0));
-                    unwrappedele1:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1));
+                    unwrappedele0:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0,compiler));
+                    unwrappedele1:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1,compiler));
                     if (parasym.vardef.typ=formaldef) and
                        (orgparadef.typ in [orddef,floatdef]) then
                       begin
@@ -340,8 +344,8 @@ implementation
                         compiler.caddnode(unequaln,leftcopy.getcopy,compiler.ctypeconvnode_explicit(unwrappedele0,orgparadef)),
                         compiler.caddnode(unequaln,leftcopy.getcopy,compiler.ctypeconvnode_explicit(unwrappedele1,orgparadef))),
                       compiler.ccallnode_intern('fpc_var_copyout_mismatch',
-                        compiler.ccallparanode(genintconstnode(fileinfo.column),
-                          compiler.ccallparanode(genintconstnode(fileinfo.line),nil))
+                        compiler.ccallparanode(genintconstnode(fileinfo.column,compiler),
+                          compiler.ccallparanode(genintconstnode(fileinfo.line,compiler),nil))
                       ),nil
                     ));
                   end;

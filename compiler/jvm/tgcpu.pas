@@ -32,7 +32,8 @@ unit tgcpu;
        globtype,
        aasmdata,
        cgutils,
-       symtype,tgobj;
+       symtype,tgobj,
+       compilerbase;
 
     type
 
@@ -57,16 +58,21 @@ unit tgcpu;
        cgbase,
        symconst,symtable,symdef,symsym,symcpu,defutil,
        cpubase,aasmbase,aasmcpu,
-       hlcgobj,hlcgcpu;
+       hlcgobj,hlcgcpu,
+       compiler;
 
 
     { ttgjvm }
 
     procedure ttgjvm.getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         sym: tsym;
         pd: tprocdef;
       begin
+        hlcg:=compiler.hlcg;
         gettemp(list,java_jlobject.size,java_jlobject.alignment,temptype,ref);
         list.concat(taicpu.op_sym(a_new,current_asmdata.RefAsmSymbol(tabstractrecorddef(def).jvm_full_typename(true),AT_METADATA)));
         { the constructor doesn't return anything, so put a duplicate of the
@@ -94,11 +100,15 @@ unit tgcpu;
 
     function ttgjvm.getifspecialtemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference): boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+      var
         eledef: tdef;
         ndim: longint;
         sym: tsym;
         pd: tprocdef;
       begin
+        hlcg:=compiler.hlcg;
         result:=false;
         case def.typ of
           arraydef:

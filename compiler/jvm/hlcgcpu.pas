@@ -31,7 +31,7 @@ uses
   aasmbase,aasmdata,
   symbase,symconst,symtype,symdef,symsym,
   node,
-  cpubase, hlcgobj, cgbase, cgutils, parabase;
+  cpubase, hlcgobj, cgbase, cgutils, parabase, compilerbase;
 
   type
 
@@ -42,7 +42,7 @@ uses
       fevalstackheight,
       fmaxevalstackheight: longint;
      public
-      constructor create;
+      constructor create(acompiler: TCompilerBase);
 
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
@@ -247,7 +247,7 @@ implementation
     defutil,
     aasmtai,aasmcpu,
     symtable,symcpu,jvmdef,
-    procinfo,cpuinfo,cgcpu,tgobj;
+    procinfo,cpuinfo,cgcpu,tgobj,compiler;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(                       { not = xor -1 }
@@ -257,8 +257,9 @@ implementation
       A_None,A_None,a_ladd,a_land,A_none,a_ldiv,a_lmul,a_lmul,a_lneg,A_None,a_lor,a_lshr,a_lshl,a_lushr,a_lsub,a_lxor,A_None,A_None
     );
 
-  constructor thlcgjvm.create;
+  constructor thlcgjvm.create(acompiler: TCompilerBase);
     begin
+      inherited;
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
     end;
@@ -2571,10 +2572,10 @@ implementation
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgjvm.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgjvm.create(compiler);
+      create_codegen(compiler);
     end;
 
 begin

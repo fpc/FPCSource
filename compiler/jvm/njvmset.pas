@@ -27,7 +27,8 @@ interface
 
     uses
       globtype,
-      node,nset,ncgset;
+      node,nset,ncgset,
+      compilerbase;
 
     type
       tjvminnode = class(tcginnode)
@@ -46,7 +47,8 @@ implementation
       pass_1,
       ncal,ncnv,ncon,nmem,
       njvmcon,
-      cgbase;
+      cgbase,
+      compiler;
 
 {*****************************************************************************
                              TJVMINNODE
@@ -74,7 +76,7 @@ implementation
               else
                 { not very clean, since we now have "longint in enumset", but
                   the code generator doesn't really mind }
-                inserttypeconv_explicit(left,s32inttype);
+                inserttypeconv_explicit(left,s32inttype,compiler);
           end;
         result:=inherited pass_1;
         if assigned(result) then
@@ -87,13 +89,13 @@ implementation
         include(taddrnode(right).addrnodeflags,anf_typedaddr);
         if isenum then
           begin
-            inserttypeconv_explicit(left,java_jlenum);
-            inserttypeconv_explicit(right,java_juenumset);
+            inserttypeconv_explicit(left,java_jlenum,compiler);
+            inserttypeconv_explicit(right,java_juenumset,compiler);
           end
         else
           begin
-            inserttypeconv_explicit(left,s32inttype);
-            inserttypeconv_explicit(right,java_jubitset);
+            inserttypeconv_explicit(left,s32inttype,compiler);
+            inserttypeconv_explicit(right,java_jubitset,compiler);
           end;
         result:=compiler.ccallnode_internmethod(right,'CONTAINS',compiler.ccallparanode(left,nil));
         right:=nil;
@@ -111,7 +113,7 @@ implementation
           enums are class instances in the JVM. All labels are stored as
           ordinal values, so it doesn't matter that we change the type }
         if left.resultdef.typ=enumdef then
-          inserttypeconv_explicit(left,s32inttype);
+          inserttypeconv_explicit(left,s32inttype,compiler);
         result:=inherited pass_1;
       end;
 

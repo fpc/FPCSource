@@ -2868,8 +2868,8 @@ const
                     else if not(equal_defs(compiler.symtablestack,ld,rd)) then
                       IncompatibleTypes(ld,rd);
 {$if defined(jvm)}
-                    inserttypeconv_internal(left,java_jlobject);
-                    inserttypeconv_internal(right,java_jlobject);
+                    inserttypeconv_internal(left,java_jlobject,compiler);
+                    inserttypeconv_internal(right,java_jlobject,compiler);
 {$endif jvm}
                  end;
                ltn,lten,gtn,gten:

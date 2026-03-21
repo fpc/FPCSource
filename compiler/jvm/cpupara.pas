@@ -170,7 +170,7 @@ implementation
         else if jvmimplicitpointertype(result.def) then
           begin
             retcgsize:=OS_ADDR;
-            result.def:=cpointerdef.getreusable_no_free(result.def);
+            result.def:=cpointerdef.getreusable_no_free(result.def,compiler);
           end
         else
           begin
@@ -260,7 +260,7 @@ implementation
             else if jvmimplicitpointertype(hp.vardef) then
               begin
                 paracgsize:=OS_ADDR;
-                paradef:=cpointerdef.getreusable_no_free(hp.vardef);
+                paradef:=cpointerdef.getreusable_no_free(hp.vardef,compiler);
               end
             else
               begin
@@ -326,6 +326,4 @@ implementation
       end;
 
 
-begin
-   ParaManager:=tcpuparamanager.create;
 end.

@@ -29,7 +29,8 @@ interface
       globtype,
       node,
       symtype,symdef,
-      ngtcon;
+      ngtcon,
+      compilerbase;
 
 
     type
@@ -58,7 +59,8 @@ implementation
       globals,widestr,verbose,constexp,
       tokens,scanner,pexpr,
       defutil,
-      nbas,ncal,ncon,ncnv,njvmcon;
+      nbas,ncal,ncon,ncnv,njvmcon,
+      compiler;
 
 
     procedure init_arrstringdata(out data: tarrstringdata);
@@ -112,8 +114,8 @@ implementation
           end;
         // (const s: unicodestring; var arr: array of shortint; startintdex, len: longint);
         addstatement(statmnt,compiler.ccallnode_intern('fpc_tcon_'+procvariant+'_array_from_string',
-          compiler.ccallparanode(genintconstnode(arrstringdata.arrdatalen),
-            compiler.ccallparanode(genintconstnode(arrstringdata.arrdatastart),
+          compiler.ccallparanode(genintconstnode(arrstringdata.arrdatalen,compiler),
+            compiler.ccallparanode(genintconstnode(arrstringdata.arrdatastart,compiler),
               compiler.ccallparanode(arrstringdata.arraybase.getcopy,
                 compiler.ccallparanode(compiler.cstringconstnode_unistr(wstr),nil))))));
 
@@ -190,12 +192,12 @@ implementation
             { array of ansichar -> can be constant char/string; can't use plain
               assignment in this case, because it will result in a codepage
               conversion }
-            n:=comp_expr([ef_accept_equal]);
+            n:=compiler.parser.pexpr.comp_expr([ef_accept_equal]);
             if n.nodetype=stringconstn then
               begin
                 len:=tstringconstnode(n).len;
                 if (tstringconstnode(n).cst_type in [cst_unicodestring,cst_widestring]) then
-                  inserttypeconv(n,getansistringdef);
+                  inserttypeconv(n,getansistringdef,compiler);
                   if n.nodetype<>stringconstn then
                     internalerror(2010033010);
                   ca:=pbyte(tstringconstnode(n).asconstpchar);
@@ -212,7 +214,7 @@ implementation
                end
             else if is_constwidecharnode(n) and (current_settings.sourcecodepage<>CP_UTF8) then
                begin
-                 inserttypeconv(n,cansichartype);
+                 inserttypeconv(n,cansichartype,compiler);
                  if not is_constcharnode(n) then
                    internalerror(2010033007);
                  ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);

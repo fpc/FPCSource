@@ -28,7 +28,7 @@ interface
 
     uses
       globtype,
-      symconst,symtype,symbase,symdef,symsym;
+      symconst,symtype,symbase,symdef,symsym,compilerbase;
 
     { records are emulated via Java classes. They require a default constructor
       to initialise temps, a deep copy helper for assignments, and clone()
@@ -54,7 +54,7 @@ implementation
     parabase,aasmdata,
     ngenutil,pparautl,
     symtable,symcreat,defcmp,jvmdef,symcpu,nobj,
-    defutil,paramgr;
+    defutil,paramgr,compiler;
 
 
     procedure add_java_default_record_methods_intf(def: trecorddef);
@@ -109,10 +109,12 @@ implementation
 
 
     procedure setup_for_new_class(const scannername: string; out sstate: tscannerstate; out islocal: boolean; out oldsymtablestack: TSymtablestack);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         replace_scanner(scannername,sstate);
-        oldsymtablestack:=symtablestack;
-        islocal:=symtablestack.top.symtablelevel>=normal_function_level;
+        oldsymtablestack:=compiler.symtablestack;
+        islocal:=compiler.symtablestack.top.symtablelevel>=normal_function_level;
         if islocal then
           begin
             { we cannot add a class local to a procedure -> insert it in the
@@ -122,23 +124,27 @@ implementation
               saved to the ppu file (the locally defined enum type). Since this
               alias for the locally defined enumtype is only used while
               implementing the class' methods, this is however no problem. }
-            symtablestack:=symtablestack.getcopyuntil(current_module.localsymtable);
+            tcompiler(compiler).symtablestack:=compiler.symtablestack.getcopyuntil(current_module.localsymtable);
           end;
       end;
 
 
     procedure restore_after_new_class(const sstate: tscannerstate; const islocal: boolean; const oldsymtablestack: TSymtablestack);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if islocal then
           begin
-            symtablestack.free;
-            symtablestack:=oldsymtablestack;
+            tcompiler(compiler).symtablestack.free;
+            tcompiler(compiler).symtablestack:=oldsymtablestack;
           end;
         restore_scanner(sstate);
       end;
 
 
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         arrdef: tarraydef;
         arrsym: ttypesym;
@@ -165,7 +171,7 @@ implementation
         { create new class (different internal name than enum to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        enumclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+def.unique_id_str,java_jlenum,true);
+        enumclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+def.unique_id_str,java_jlenum,true,compiler);
         tcpuenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
@@ -207,7 +213,7 @@ implementation
         old_current_structdef:=current_structdef;
         current_structdef:=enumclass;
 
-        symtablestack.push(enumclass.symtable);
+        compiler.symtablestack.push(enumclass.symtable);
         { create static fields representing all enums }
         for i:=0 to tenumdef(def).symtable.symlist.count-1 do
           begin
@@ -225,7 +231,7 @@ implementation
           end;
         { create local "array of enumtype" type for the "values" functionality
           (used internally by the JDK) }
-        arrdef:=carraydef.create(0,tenumdef(def).symtable.symlist.count-1,s32inttype);
+        arrdef:=carraydef.create(0,tenumdef(def).symtable.symlist.count-1,s32inttype,compiler);
         arrdef.elementdef:=enumclass;
         arrsym:=ctypesym.create('__FPC_TEnumValues',arrdef);
         enumclass.symtable.insertsym(arrsym);
@@ -316,7 +322,7 @@ implementation
           internalerror(2011062303);
         pd.synthetickind:=tsk_jvm_enum_classconstr;
 
-        symtablestack.pop(enumclass.symtable);
+        compiler.symtablestack.pop(enumclass.symtable);
 
         build_vmt(enumclass);
 
@@ -326,6 +332,8 @@ implementation
 
 
     procedure jvm_create_procvar_class_intern(const name: TIDString; def: tdef; force_no_callback_intf: boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         oldsymtablestack: tsymtablestack;
         pvclass,
@@ -350,7 +358,7 @@ implementation
         { create new class (different internal name than pvar to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        pvclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+def.unique_id_str,java_procvarbase,true);
+        pvclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+def.unique_id_str,java_procvarbase,true,compiler);
         tcpuprocvardef(def).classdef:=pvclass;
         include(pvclass.objectoptions,oo_is_sealed);
         if df_generic in def.defoptions then
@@ -363,7 +371,7 @@ implementation
         else
           pvclass.objextname:=stringdup(pvclass.objrealname^);
 
-        symtablestack.push(pvclass.symtable);
+        compiler.symtablestack.push(pvclass.symtable);
 
         { inherit constructor and keep public }
         add_missing_parent_constructors_intf(pvclass,true,vis_public);
@@ -393,7 +401,7 @@ implementation
            not islocal and
            not force_no_callback_intf then
           begin
-            pvintf:=cobjectdef.create(odt_interfacejava,'Callback',nil,true);
+            pvintf:=cobjectdef.create(odt_interfacejava,'Callback',nil,true,compiler);
             pvintf.objextname:=stringdup('Callback');
             if df_generic in def.defoptions then
               include(pvintf.defoptions,df_generic);
@@ -402,7 +410,7 @@ implementation
 
             { add a method prototype matching the procvar (like the invoke
               in the procvarclass itself) }
-            symtablestack.push(pvintf.symtable);
+            compiler.symtablestack.push(pvintf.symtable);
             methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,'',true));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
             { can't be final/static/private/protected, and must be virtual
@@ -410,7 +418,7 @@ implementation
             methoddef.procoptions:=methoddef.procoptions-[po_staticmethod,po_finalmethod];
             include(methoddef.procoptions,po_virtualmethod);
             methoddef.visibility:=vis_public;
-            symtablestack.pop(pvintf.symtable);
+            compiler.symtablestack.pop(pvintf.symtable);
 
             { add an extra constructor to the procvarclass that takes an
               instance of this interface as parameter }
@@ -423,7 +431,7 @@ implementation
             current_structdef:=old_current_structdef;
           end;
 
-        symtablestack.pop(pvclass.symtable);
+        compiler.symtablestack.pop(pvclass.symtable);
 
         build_vmt(pvclass);
 
@@ -438,6 +446,8 @@ implementation
 
 
     procedure jvm_wrap_virtual_class_method(pd: tprocdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         wrapperpd: tprocdef;
         wrapperpv: tcpuprocvardef;
@@ -465,7 +475,7 @@ implementation
         pd.import_name:=stringdup(wrappername+'__fpcvirtualclassmethod__');
 
         { wrapper is part of the same symtable as the original procdef }
-        symtablestack.push(pd.owner);
+        compiler.symtablestack.push(pd.owner);
         { get a copy of the virtual class method }
         wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,'',true));
         { this one is not virtual nor override }
@@ -490,7 +500,7 @@ implementation
             { by default do not include this routine when looking for overloads }
             include(wrapperpd.procoptions,po_ignore_for_overload_resolution);
             wrapperpd.synthetickind:=tsk_anon_inherited;
-            symtablestack.pop(pd.owner);
+            compiler.symtablestack.pop(pd.owner);
             exit;
           end;
 
@@ -499,7 +509,7 @@ implementation
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
         wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal_no_hidden,'',true));
-        handle_calling_convention(wrapperpv,hcc_default_actions_intf);
+        compiler.parser.pparautl.handle_calling_convention(wrapperpv,hcc_default_actions_intf);
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
         jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv,true);
@@ -507,12 +517,14 @@ implementation
           Pascal code }
         typ:=ctypesym.create('__fpc_virtualclassmethod_pv_t'+wrapperpd.unique_id_str,wrapperpv);
         wrapperpv.classdef.typesym.visibility:=vis_strictprivate;
-        symtablestack.top.insertsym(typ);
-        symtablestack.pop(pd.owner);
+        compiler.symtablestack.top.insertsym(typ);
+        compiler.symtablestack.pop(pd.owner);
       end;
 
 
     procedure jvm_wrap_virtual_constructor(pd: tprocdef);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         wrapperpd: tprocdef;
       begin
@@ -524,7 +536,7 @@ implementation
            (oo_is_external in pd.struct.objectoptions) then
           exit;
         { wrapper is part of the same symtable as the original procdef }
-        symtablestack.push(pd.owner);
+        compiler.symtablestack.push(pd.owner);
         { get a copy of the constructor }
         wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc,'',true));
         { this one is a class method rather than a constructor }
@@ -548,7 +560,7 @@ implementation
             unreachable) }
         wrapperpd.synthetickind:=tsk_callthrough_nonabstract;
         wrapperpd.skpara:=pd;
-        symtablestack.pop(pd.owner);
+        compiler.symtablestack.pop(pd.owner);
         { and now wrap this generated virtual static method itself as well }
         jvm_wrap_virtual_class_method(wrapperpd);
       end;
@@ -577,6 +589,8 @@ implementation
 
 
     function jvm_add_typed_const_initializer(csym: tconstsym): tstaticvarsym;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         ssym: tstaticvarsym;
         esym: tenumsym;
@@ -631,16 +645,16 @@ implementation
                 def can also belong to that -> will be freed when the function
                 has been compiler -> insert a copy in the unit's staticsymtable
               }
-              symtablestack.push(current_module.localsymtable);
+              compiler.symtablestack.push(current_module.localsymtable);
               ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy]);
-              symtablestack.top.insertsym(ssym);
-              symtablestack.pop(current_module.localsymtable);
+              compiler.symtablestack.top.insertsym(ssym);
+              compiler.symtablestack.pop(current_module.localsymtable);
               { alias storage to the constsym }
               ssym.set_mangledname(csym.realname);
               { ensure that we allocate space for global symbols (won't actually
                 allocate space for this one, since it's external, but for the
                 constsym) }
-              cnodeutils.insertbssdata(ssym);
+              compiler.nodeutils.insertbssdata(ssym);
               elemdef:=tsetdef(csym.constdef).elementdef;
               if not assigned(elemdef) then
                 begin
@@ -675,6 +689,8 @@ implementation
 
     function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         obj: tabstractrecorddef;
         visname: string;
       begin
@@ -687,7 +703,7 @@ implementation
             result:=pd;
             exit
           end;
-        symtablestack.push(obj.symtable);
+        compiler.symtablestack.push(obj.symtable);
         result:=tprocdef(pd.getcopy);
         result.visibility:=vis;
         visname:=visibilityName[vis];
@@ -702,7 +718,7 @@ implementation
         result.synthetickind:=tsk_callthrough;
         { so we know the name of the routine to call through to }
         result.skpara:=pd;
-        symtablestack.pop(obj.symtable);
+        compiler.symtablestack.pop(obj.symtable);
       end;
 
 

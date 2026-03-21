@@ -26,7 +26,7 @@ interface
 
     uses
       globtype,cgbase,cpuinfo,cpubase,
-      node,ncgmem;
+      node,ncgmem,compilerbase;
 
     type
        tcgnestloadparentfpnode = class(tcgloadparentfpnode)
@@ -45,7 +45,8 @@ implementation
       procinfo,pass_2,parabase,paramgr,
       pass_1,ncnv,nmem,nld,ncon,nadd,nutils,
       cgutils,cgobj,hlcgobj,
-      tgobj,ncgutil,objcgutl
+      tgobj,ncgutil,objcgutl,
+      compiler
       ;
 
 
@@ -71,7 +72,7 @@ implementation
               (currpi.procdef.parast.symtablelevel>=parentpd.parast.symtablelevel) do
           begin
             if not assigned(currpi.procdef.parentfpstruct) then
-              build_parentfpstruct(currpi.procdef);
+              compiler.parser.pparautl.build_parentfpstruct(currpi.procdef);
             currpi:=currpi.parent;
           end;
         { mark all parent parentfp parameters for inclusion in the struct that

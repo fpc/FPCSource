@@ -27,7 +27,7 @@ interface
 
     uses
        cgbase,
-       node,ncgadd,cpubase;
+       node,ncgadd,cpubase,compilerbase;
 
     type
 
@@ -57,11 +57,12 @@ interface
       symconst,symtable,symdef,symcpu,
       paramgr,procinfo,pass_1,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
-      hlcgobj,hlcgcpu,cgutils,
+      nodehelper,hlcgcpu,cgutils,
       cpupara,
       nbas,ncon,nset,nadd,ncal,ncnv,ninl,nld,nmat,nmem,
       njvmcon,
-      cgobj;
+      cgobj,
+      compiler;
 
 {*****************************************************************************
                                tjvmaddnode
@@ -80,8 +81,8 @@ interface
               in constant expressions) }
             if not is_boolean(resultdef) then
               internalerror(2011062603);
-            inserttypeconv_explicit(left,s32inttype);
-            inserttypeconv_explicit(right,s32inttype);
+            inserttypeconv_explicit(left,s32inttype,compiler);
+            inserttypeconv_explicit(right,s32inttype,compiler);
           end;
         { special handling for sets: all sets are JUBitSet/JUEnumSet on the JVM
           target to ease interoperability with Java code }
@@ -96,14 +97,14 @@ interface
         if is_dynamic_array(left.resultdef) and
            (right.nodetype=niln) then
           begin
-           result:=compiler.caddnode(nodetype,compiler.cinlinenode(in_length_x,false,left),genintconstnode(0));
+           result:=compiler.caddnode(nodetype,compiler.cinlinenode(in_length_x,false,left),genintconstnode(0,compiler));
            left:=nil;
            exit;
           end;
         if is_dynamic_array(right.resultdef) and
            (left.nodetype=niln) then
           begin
-            result:=compiler.caddnode(nodetype,compiler.cinlinenode(in_length_x,false,right),genintconstnode(0));
+            result:=compiler.caddnode(nodetype,compiler.cinlinenode(in_length_x,false,right),genintconstnode(0,compiler));
             right:=nil;
             exit;
           end;
@@ -123,14 +124,14 @@ interface
         begin
           result:=compiler.ccallnode_internmethod(left,'CLONE',nil);
           if isenum then
-            inserttypeconv_explicit(result,java_juenumset)
+            inserttypeconv_explicit(result,java_juenumset,compiler)
           else
-            inserttypeconv_explicit(result,java_jubitset);
+            inserttypeconv_explicit(result,java_jubitset,compiler);
           if isenum then
             begin
               { all enum instance methods return a boolean, while we are
                 interested in the resulting set }
-              block:=internalstatements(stat);
+              block:=internalstatements(compiler,stat);
               temp:=compiler.ctempcreatenode(java_juenumset,4,tt_persistent,true);
               addstatement(stat,temp);
               addstatement(stat,compiler.cassignmentnode(
@@ -173,22 +174,22 @@ interface
             include(taddrnode(left).addrnodeflags,anf_typedaddr);
             if isenum then
               begin
-                inserttypeconv_explicit(left,java_juenumset);
+                inserttypeconv_explicit(left,java_juenumset,compiler);
                 if right.resultdef.typ=setdef then
                   begin
                     right:=compiler.caddrnode_internal(right);
                     include(taddrnode(right).addrnodeflags,anf_typedaddr);
-                    inserttypeconv_explicit(right,java_juenumset);
+                    inserttypeconv_explicit(right,java_juenumset,compiler);
                   end;
               end
             else
               begin
-                inserttypeconv_explicit(left,java_jubitset);
+                inserttypeconv_explicit(left,java_jubitset,compiler);
                 if right.resultdef.typ=setdef then
                   begin
                     right:=compiler.caddrnode_internal(right);
                     include(taddrnode(right).addrnodeflags,anf_typedaddr);
-                    inserttypeconv_explicit(right,java_jubitset);
+                    inserttypeconv_explicit(right,java_jubitset,compiler);
                   end;
               end;
           end
@@ -231,13 +232,13 @@ interface
                   procname:='OF';
                   if isenum then
                     begin
-                      inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef);
+                      inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef,compiler);
                       result:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
                     end
                   else
                     begin
                       { for boolean, char, etc }
-                      inserttypeconv_explicit(tsetelementnode(right).left,s32inttype);
+                      inserttypeconv_explicit(tsetelementnode(right).left,s32inttype,compiler);
                       result:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
                     end;
                   paras:=compiler.ccallparanode(tsetelementnode(right).left,nil);
@@ -247,11 +248,11 @@ interface
                       procname:='RANGE';
                       if isenum then
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef);
+                          inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef,compiler);
                         end
                       else
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
+                          inserttypeconv_explicit(tsetelementnode(right).right,s32inttype,compiler);
                         end;
                       paras:=compiler.ccallparanode(tsetelementnode(right).right,paras);
                       tsetelementnode(right).right:=nil;
@@ -268,12 +269,12 @@ interface
                       procname:='ADD';
                       if isenum then
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef);
+                          inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef,compiler);
                         end
                       else
                         begin
                           { for boolean, char, etc }
-                          inserttypeconv_explicit(tsetelementnode(right).left,s32inttype);
+                          inserttypeconv_explicit(tsetelementnode(right).left,s32inttype,compiler);
                         end;
                       paras:=compiler.ccallparanode(tsetelementnode(right).left,paras);
                       tsetelementnode(right).left:=nil;
@@ -284,12 +285,12 @@ interface
                             factory method, then add all of its elements }
                           if isenum then
                             begin
-                              inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef);
+                              inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef,compiler);
                               tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_juenumset));
                             end
                           else
                             begin
-                              inserttypeconv_explicit(tsetelementnode(right).right,s32inttype);
+                              inserttypeconv_explicit(tsetelementnode(right).right,s32inttype,compiler);
                               tmpn:=compiler.cloadvmtaddrnode(compiler.ctypenode(java_jubitset));
                             end;
                           paras:=compiler.ccallparanode(compiler.ccallnode_internmethod(tmpn,'RANGE',compiler.ccallparanode(tsetelementnode(right).right,paras)),nil);
@@ -324,7 +325,7 @@ interface
           evaluation }
         if not is_boolean(resultdef) then
           begin
-            inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
+            inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef,compiler),compiler);
             result:=compiler.cderefnode(result);
           end;
         { left and right are reused as parameters }

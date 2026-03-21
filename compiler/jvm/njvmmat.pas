@@ -26,7 +26,7 @@ unit njvmmat;
 interface
 
     uses
-      node,nmat,ncgmat,ncghlmat;
+      node,nmat,ncgmat,ncghlmat,compilerbase;
 
     type
       tjvmmoddivnode = class(tmoddivnode)
@@ -58,7 +58,8 @@ implementation
       cgbase,cgobj,pass_2,procinfo,
       ncon,
       cpubase,
-      hlcgobj,hlcgcpu,cgutils;
+      nodehelper,hlcgcpu,cgutils,
+      compiler;
 
 {*****************************************************************************
                              tjvmmoddivnode

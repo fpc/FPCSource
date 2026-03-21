@@ -32,7 +32,8 @@ interface
        node,
        symtype,
        nld,
-       ncgld;
+       ncgld,
+       compilerbase;
 
     type
        tcgnestloadnode = class(tcgloadnode)
@@ -61,7 +62,7 @@ implementation
       cpuinfo,
       symconst,symbase,symsym,symdef,symtable,pparautl,symcreat,
       ncon,ninl,ncnv,nmem,ncal,nutils,nbas,
-      pass_2,cgbase
+      pass_2,cgbase,compiler
       ;
 
 {*****************************************************************************
@@ -119,7 +120,7 @@ implementation
                   if not assigned(nestedvars) then
                     begin
                       { create this struct }
-                      build_parentfpstruct(tprocdef(symtable.defowner));
+                      compiler.parser.pparautl.build_parentfpstruct(tprocdef(symtable.defowner));
                       nestedvars:=tprocdef(symtable.defowner).parentfpstruct;
                     end;
                   {  store result for use in pass_1 }
@@ -164,7 +165,7 @@ implementation
                   if not assigned(nestedvars) then
                     begin
                       { create this struct }
-                      build_parentfpstruct(tprocdef(symtable.defowner));
+                      compiler.parser.pparautl.build_parentfpstruct(tprocdef(symtable.defowner));
                       nestedvars:=tprocdef(symtable.defowner).parentfpstruct;
                     end;
                   if nestedvars<>symtableentry then

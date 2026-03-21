@@ -26,7 +26,7 @@ unit njvmflw;
 interface
 
     uses
-      aasmbase,node,nflw,ncgflw;
+      aasmbase,node,nflw,ncgflw,compilerbase;
 
     type
        tjvmfornode = class(tcgfornode)
@@ -64,7 +64,8 @@ implementation
       cpubase,cpuinfo,
       nbas,nld,ncon,ncnv,
       tgobj,paramgr,
-      cgutils,hlcgobj,hlcgcpu
+      cgutils,nodehelper,hlcgcpu,
+      compiler
       ;
 
 {*****************************************************************************
@@ -93,14 +94,14 @@ implementation
         }
         if left.resultdef.typ=enumdef then
           begin
-            block:=internalstatements(stat);
+            block:=internalstatements(compiler,stat);
             iteratortmp:=compiler.ctempcreatenode(s32inttype,left.resultdef.size,tt_persistent,true);
             addstatement(stat,iteratortmp);
             olditerator:=left;
             left:=compiler.ctemprefnode(iteratortmp);
-            inserttypeconv_explicit(right,s32inttype);
-            inserttypeconv_explicit(t1,s32inttype);
-            newbody:=internalstatements(newbodystat);
+            inserttypeconv_explicit(right,s32inttype,compiler);
+            inserttypeconv_explicit(t1,s32inttype,compiler);
+            newbody:=internalstatements(compiler,newbodystat);
             addstatement(newbodystat,compiler.cassignmentnode(olditerator,
               compiler.ctypeconvnode_explicit(compiler.ctemprefnode(iteratortmp),
                 olditerator.resultdef)));

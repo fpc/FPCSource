@@ -28,7 +28,8 @@ interface
     uses
        globtype,aasmbase,
        symtype,
-       node,ncal,ncon,ncgcon;
+       node,ncal,ncon,ncgcon,
+       compilerbase;
 
     type
        tjvmordconstnode = class(tcgordconstnode)
@@ -68,7 +69,7 @@ interface
           setconsttype: tjvmsetconsttype;
           function pass_1: tnode; override;
           procedure pass_generate_code; override;
-          constructor create(s : pconstset;def:tdef);override;
+          constructor create(s : pconstset;def:tdef;acompiler: TCompilerBase);override;
           function docompare(p: tnode): boolean; override;
           function dogetcopy: tnode; override;
          protected
@@ -89,7 +90,8 @@ implementation
       symdef,symsym,symcpu,symtable,symconst,
       aasmdata,aasmcpu,defutil,
       nutils,ncnv,nld,nmem,pjvm,pass_1,
-      cgbase,hlcgobj,hlcgcpu,cgutils,cpubase
+      cgbase,nodehelper,hlcgcpu,cgutils,cpubase,
+      compiler
       ;
 
 
@@ -211,7 +213,7 @@ implementation
         paras:=compiler.ccallparanode(self.getcopy,nil);
         if wasansi then
           paras:=compiler.ccallparanode(
-            genintconstnode(tstringdef(resultdef).encoding),paras);
+            genintconstnode(tstringdef(resultdef).encoding,compiler),paras);
         { since self will be freed, have to make a copy }
         result:=compiler.ccallnode_internmethodres(
           compiler.cloadvmtaddrnode(compiler.ctypenode(strclass)),
@@ -318,7 +320,7 @@ implementation
             if len=0 then
               begin
                 enumele:=compiler.cloadvmtaddrnode(compiler.ctypenode(tcpuenumdef(tenumdef(eledef).getbasedef).classdef));
-                inserttypeconv_explicit(enumele,search_system_type('JLCLASS').typedef);
+                inserttypeconv_explicit(enumele,search_system_type('JLCLASS').typedef,compiler);
                 paras:=compiler.ccallparanode(enumele,nil);
                 result:=compiler.ccallnode_internmethod(mp,'NONEOF',paras)
               end
@@ -395,7 +397,7 @@ implementation
                 begin
                   result:=buildbitset;
                 end;
-              inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
+              inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef,compiler),compiler);
               result:=compiler.cderefnode(result);
             end;
         end;
@@ -416,9 +418,9 @@ implementation
         end;
       end;
 
-    constructor tjvmsetconstnode.create(s: pconstset; def: tdef);
+    constructor tjvmsetconstnode.create(s: pconstset; def: tdef;acompiler: TCompilerBase);
       begin
-        inherited create(s, def);
+        inherited;
         setconsttype:=sct_constsymbol;
       end;
 

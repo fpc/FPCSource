@@ -29,7 +29,8 @@ unit rgcpu;
       aasmbase,aasmcpu,aasmtai,aasmdata,
       cgbase,cgutils,
       cpubase,
-      rgobj;
+      rgobj,
+      compilerbase;
 
     type
       tspilltemps = array[tregistertype] of Tspill_temp_list;
@@ -52,7 +53,8 @@ implementation
       verbose,cutils,
       globtype,globals,
       cgobj,
-      tgobj;
+      tgobj,
+      compiler;
 
     { trgcpu }
 
@@ -326,6 +328,9 @@ implementation
 
     class procedure trgcpu.do_all_register_allocation(list: TAsmList; headertai: tai);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg:tcg;
+      var
         spill_temps : tspilltemps;
         templist : TAsmList;
         intrg,
@@ -333,6 +338,7 @@ implementation
         p,q      : tai;
         size     : longint;
       begin
+        cg:=compiler.cg;
         { Since there are no actual registers, we simply spill everything. We
           use tt_regallocator temps, which are not used by the temp allocator
           during code generation, so that we cannot accidentally overwrite

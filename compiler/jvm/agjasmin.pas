@@ -32,7 +32,8 @@ interface
       globtype,globals,
       symconst,symbase,symdef,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      assemble;
+      assemble,
+      compilerbase;
 
     type
       TJasminAssemblerOutputFile=class(TExternalAssemblerOutputFile)
@@ -72,10 +73,10 @@ interface
 
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; override;
        public
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean;acompiler: TCompilerBase); override;
         function MakeCmdLine: TCmdStr;override;
-        procedure WriteTree(p:TAsmList);override;
-        procedure WriteAsmList;override;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         destructor destroy; override;
        protected
         InstrWriter: TJasminInstrWriter;
@@ -107,7 +108,7 @@ implementation
       fmodule,finput,verbose,
       symtype,symcpu,symtable,jvmdef,
       itcpujas,cpubase,cpuinfo,cgutils,
-      widestr
+      widestr,compiler
       ;
 
     const
@@ -289,7 +290,7 @@ implementation
       end;
 
 
-    procedure TJasminAssembler.WriteTree(p:TAsmList);
+    procedure TJasminAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
       var
         ch       : char;
         hp       : tai;
@@ -522,7 +523,7 @@ implementation
         if current_module.mainsource<>'' then
           n:=ExtractFileName(current_module.mainsource)
         else
-          n:=InputFileName;
+          n:=compiler.globals.InputFileName;
         writer.AsmWriteLn('.source '+ExtractFileName(n));
 
         { class/interface name }
@@ -917,7 +918,7 @@ implementation
             writer.AsmWrite(tcpuprocdef(pd).jvmmangledbasename(true));
             writer.AsmWriteln('"');
           end;
-        WriteTree(tcpuprocdef(pd).exprasmlist);
+        WriteTree(tcpuprocdef(pd).exprasmlist,al_procedures);
         writer.AsmWriteln('.end method');
         writer.AsmLn;
       end;
@@ -1059,7 +1060,7 @@ implementation
       end;
 
 
-    constructor TJasminAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TJasminAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean;acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter:=TJasminInstrWriter.Create(self);
@@ -1067,7 +1068,7 @@ implementation
       end;
 
 
-    procedure TJasminAssembler.WriteAsmList;
+    procedure TJasminAssembler.WriteAsmList(asmdata: TAsmData);
       begin
         { the code for Java methods needs to be emitted class per class,
           so instead of iterating over all asmlists, we iterate over all types

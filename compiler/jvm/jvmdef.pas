@@ -30,7 +30,8 @@ interface
     uses
       globtype,
       node,
-      symbase,symtype,symdef;
+      symbase,symtype,symdef,
+      compilerbase;
 
     { returns whether a def can make use of an extra type signature (for
       Java-style generics annotations; not use for FPC-style generics or their
@@ -103,7 +104,8 @@ implementation
     fmodule,
     symtable,symconst,symsym,symcpu,symcreat,
     pparautl,
-    defutil,paramgr;
+    defutil,paramgr,
+    compiler;
 
 {******************************************************************
                           Type encoding
@@ -1040,6 +1042,8 @@ implementation
 *******************************************************************}
     procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         sym: tsym;
         ps: tprocsym;
         pd: tprocdef;
@@ -1107,7 +1111,7 @@ implementation
             while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable]) do
               topowner:=topowner.owner.defowner;
             { create procdef }
-            pd:=cprocdef.create(topowner.owner.symtablelevel+1,true);
+            pd:=cprocdef.create(topowner.owner.symtablelevel+1,true,compiler);
             if df_generic in obj.defoptions then
               include(pd.defoptions,df_generic);
             { method of this objectdef }
@@ -1130,11 +1134,11 @@ implementation
             if assigned(current_structdef) or
                (assigned(pd.owner.defowner) and
                 (pd.owner.defowner.typ=recorddef)) then
-              handle_calling_convention(pd,hcc_default_actions_intf_struct)
+              compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf_struct)
             else
-              handle_calling_convention(pd,hcc_default_actions_intf);
+              compiler.parser.pparautl.handle_calling_convention(pd,hcc_default_actions_intf);
             { register forward declaration with procsym }
-            proc_add_definition(pd);
+            compiler.parser.pparautl.proc_add_definition(pd);
           end;
 
         { also add class constructor if class fields that need wrapping, and

@@ -28,7 +28,8 @@ interface
     uses
       globtype,
       cgbase,cpubase,
-      node,nmem,ncgmem,ncgnstmm;
+      node,nmem,ncgmem,ncgnstmm,
+      compilerbase;
 
     type
        tjvmaddrnode = class(tcgaddrnode)
@@ -75,7 +76,8 @@ implementation
       nadd,ncal,ncnv,ncon,nld,nutils,
       pass_1,njvmcon,
       aasmdata,aasmcpu,pass_2,
-      cgutils,hlcgobj,hlcgcpu;
+      cgutils,nodehelper,hlcgcpu,
+      compiler;
 
 {*****************************************************************************
                               TJVMDEREFNODE
@@ -127,7 +129,7 @@ implementation
                not(resultdef.typ in [orddef,floatdef]) and
                not is_voidpointer(resultdef) and
                ((resultdef.typ<>objectdef) or
-                (find_real_class_definition(tobjectdef(resultdef),false)<>java_jlobject)) then
+                (compiler.symtablestack.find_real_class_definition(tobjectdef(resultdef),false)<>java_jlobject)) then
               location.reference.checkcast:=true;
           end
       end;
@@ -333,7 +335,7 @@ implementation
                (tsym(vs).typ<>procsym) then
               internalerror(2011041903);
             result:=compiler.ccallnode(nil,tprocsym(vs),vs.owner,left,[],nil);
-            inserttypeconv_explicit(result,resultdef);
+            inserttypeconv_explicit(result,resultdef,compiler);
             { reused }
             left:=nil;
           end;
@@ -391,7 +393,7 @@ implementation
               internalerror(2011031502);
             { Pascal strings are 1-based, Java strings 0-based }
             result:=compiler.ccallnode(compiler.ccallparanode(
-              compiler.caddnode(subn,right,genintconstnode(1)),nil),tprocsym(psym),
+              compiler.caddnode(subn,right,genintconstnode(1,compiler)),nil),tprocsym(psym),
               psym.owner,compiler.ctypeconvnode_explicit(left,stringclass),[],nil);
             left:=nil;
             right:=nil;

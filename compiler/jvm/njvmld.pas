@@ -30,7 +30,8 @@ uses
   aasmdata,
   symtype,
   cgutils,
-  node, ncgld, ncgnstld;
+  node, ncgld, ncgnstld,
+  compilerbase;
 
 type
   tjvmloadnode = class(tcgnestloadnode)
@@ -66,14 +67,15 @@ uses
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
   pass_1,
-  cpubase,cgbase,hlcgobj,cpuinfo;
+  cpubase,cgbase,hlcgobj,cpuinfo,
+  compiler,nodehelper;
 
 { tjvmassignmentnode }
 
 function tjvmassignmentnode.direct_shortstring_assignment: boolean;
   begin
     if maybe_find_real_class_definition(right.resultdef,false)=java_jlstring then
-      inserttypeconv_explicit(right,cunicodestringtype);
+      inserttypeconv_explicit(right,cunicodestringtype,compiler);
     result:=right.resultdef.typ=stringdef;
   end;
 
@@ -109,9 +111,9 @@ function tjvmassignmentnode.pass_1: tnode;
             word(unicodestr[x]):=1234;
         }
         if is_wide_or_unicode_string(tvecnode(target).left.resultdef) then
-          inserttypeconv_explicit(right,cwidechartype)
+          inserttypeconv_explicit(right,cwidechartype,compiler)
         else
-          inserttypeconv_explicit(right,cansichartype);
+          inserttypeconv_explicit(right,cansichartype,compiler);
         result:=compiler.ccallnode_intern('fpc_'+tstringdef(tvecnode(target).left.resultdef).stringtypname+'_setchar',
           compiler.ccallparanode(right,
             compiler.ccallparanode(tvecnode(target).right,
@@ -128,12 +130,12 @@ function tjvmassignmentnode.pass_1: tnode;
         { prevent errors in case of an expression such as
             byte(str[x]):=12;
         }
-        inserttypeconv_explicit(right,cansichartype);
+        inserttypeconv_explicit(right,cansichartype,compiler);
         { call ShortstringClass(@shortstring).setChar(index,char) }
         tvecnode(target).left:=compiler.caddrnode_internal(tvecnode(target).left);
         { avoid useless typecheck when casting to shortstringclass }
         include(taddrnode(tvecnode(target).left).addrnodeflags,anf_typedaddr);
-        inserttypeconv_explicit(tvecnode(target).left,java_shortstring);
+        inserttypeconv_explicit(tvecnode(target).left,java_shortstring,compiler);
         psym:=search_struct_member(tabstractrecorddef(java_shortstring),'SETCHAR');
         if not assigned(psym) or
            (psym.typ<>procsym) then
@@ -157,12 +159,12 @@ function tjvmassignmentnode.pass_1: tnode;
             { we have to assign the address of a deep copy of the type to the
               object in the formalpara -> create a temp, assign the value to
               the temp, then assign the address in the temp to the para }
-            block:=internalstatements(stat);
+            block:=internalstatements(compiler,stat);
             tempn:=compiler.ctempcreatenode_value(right.resultdef,right.resultdef.size,
               tt_persistent,false,right);
             addstatement(stat,tempn);
             right:=compiler.caddrnode(compiler.ctemprefnode(tempn));
-            inserttypeconv_explicit(right,java_jlobject);
+            inserttypeconv_explicit(right,java_jlobject,compiler);
             addstatement(stat,compiler.ctempdeletenode_normal_temp(tempn));
             addstatement(stat,compiler.ctypeconvnode_explicit(
               compiler.caddrnode(compiler.ctemprefnode(tempn)),java_jlobject));
@@ -221,7 +223,7 @@ function tjvmloadnode.handle_threadvar_access: tnode;
       end
     else
       begin
-        result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
+        result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef,compiler));
         result:=compiler.cderefnode(result);
       end;
   end;
@@ -308,7 +310,7 @@ procedure tjvmarrayconstructornode.wrapmanagedvarrec(var n: tnode);
     temp: ttempcreatenode;
   begin
     varrecdef:=trecorddef(search_system_type('TVARREC').typedef);
-    block:=internalstatements(stat);
+    block:=internalstatements(compiler,stat);
     temp:=compiler.ctempcreatenode(varrecdef,varrecdef.size,tt_persistent,false);
     addstatement(stat,temp);
     addstatement(stat,

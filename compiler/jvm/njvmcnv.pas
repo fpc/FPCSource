@@ -26,7 +26,8 @@ interface
 
     uses
       node,ncnv,ncgcnv,
-      symtype;
+      symtype,
+      compilerbase;
 
     type
        tjvmtypeconvnode = class(tcgtypeconvnode)
@@ -104,7 +105,8 @@ implementation
       nbas,ncon,ncal,ninl,nld,nmem,procinfo,
       nutils,paramgr,
       cpubase,cpuinfo,aasmcpu,
-      tgobj,hlcgobj,hlcgcpu;
+      tgobj,hlcgobj,hlcgcpu,
+      compiler,nodehelper;
 
 
 {*****************************************************************************
@@ -180,13 +182,13 @@ implementation
      begin
        if (left.nodetype = stringconstn) and
           (tstringconstnode(left).cst_type=cst_conststring) then
-         inserttypeconv(left,cunicodestringtype);
+         inserttypeconv(left,cunicodestringtype,compiler);
        { even constant strings have to be handled via a helper }
        if is_widechar(tarraydef(resultdef).elementdef) then
          chartype:='widechar'
        else
          chartype:='char';
-       newblock:=internalstatements(newstat);
+       newblock:=internalstatements(compiler,newstat);
        restemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
        addstatement(newstat,restemp);
        addstatement(newstat,compiler.ccallnode_intern('fpc_'+tstringdef(left.resultdef).stringtypname+
@@ -221,8 +223,8 @@ implementation
       { make sure the generic code gets a stringdef }
       if self.totypedef=java_jlstring then
         begin
-          inserttypeconv(left,cunicodestringtype);
-          inserttypeconv(left,totypedef);
+          inserttypeconv(left,cunicodestringtype,compiler);
+          inserttypeconv(left,totypedef,compiler);
           result:=left;
           left:=nil;
           exit;
@@ -262,9 +264,9 @@ implementation
            not is_currency(left.resultdef) then
           if is_signed(left.resultdef) or
              (left.resultdef.size<4) then
-            inserttypeconv(left,s32inttype)
+            inserttypeconv(left,s32inttype,compiler)
           else
-            inserttypeconv(left,u32inttype);
+            inserttypeconv(left,u32inttype,compiler);
         firstpass(left);
         result := nil;
         expectloc:=LOC_FPUREGISTER;
@@ -299,7 +301,7 @@ implementation
              not(tstringconstnode(left).cst_type in [cst_unicodestring,cst_widestring])) or
             is_constcharnode(left)) and
            (maybe_find_real_class_definition(resultdef,false)=java_jlstring) then
-          inserttypeconv(left,cunicodestringtype);
+          inserttypeconv(left,cunicodestringtype,compiler);
       end;
 
 
@@ -357,8 +359,8 @@ implementation
                 else
                   helpername:='fpc_enumset_to_bitset';
                 result:=compiler.ccallnode_intern(helpername,compiler.ccallparanode(
-                  genintconstnode(tsetdef(resultdef).setbase), compiler.ccallparanode(
-                    genintconstnode(tsetdef(left.resultdef).setbase),
+                  genintconstnode(tsetdef(resultdef).setbase,compiler), compiler.ccallparanode(
+                    genintconstnode(tsetdef(left.resultdef).setbase,compiler),
                       compiler.ccallparanode(left,nil))));
               end
             else
@@ -375,15 +377,15 @@ implementation
                   end;
                 left:=compiler.caddrnode_internal(left);
                 include(taddrnode(left).addrnodeflags,anf_typedaddr);
-                inserttypeconv_explicit(left,setclassdef);
+                inserttypeconv_explicit(left,setclassdef,compiler);
                 result:=compiler.ccallnode_internmethod(
                   compiler.cloadvmtaddrnode(compiler.ctypenode(setclassdef)),
                   helpername,compiler.ccallparanode(
-                    genintconstnode(tsetdef(resultdef).setbase), compiler.ccallparanode(
-                      genintconstnode(tsetdef(left.resultdef).setbase),
+                    genintconstnode(tsetdef(resultdef).setbase,compiler), compiler.ccallparanode(
+                      genintconstnode(tsetdef(left.resultdef).setbase,compiler),
                         compiler.ccallparanode(left,nil))));
               end;
-            inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
+            inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef,compiler),compiler);
             result:=compiler.cderefnode(result);
             { reused }
             left:=nil;
@@ -402,7 +404,7 @@ implementation
         result:=compiler.ccallnode_internmethod(
           compiler.cloadvmtaddrnode(compiler.ctypenode(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
-        result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
+        result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef,compiler));
         result:=compiler.cderefnode(result);
       end;
 
@@ -510,7 +512,7 @@ implementation
           result:=compiler.ctypeconvnode_explicit(result,resultdef)
         else
           begin
-            result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef));
+            result:=compiler.ctypeconvnode_explicit(result,cpointerdef.getreusable(resultdef,compiler));
             result:=compiler.cderefnode(result)
           end;
         { reused }
@@ -881,7 +883,7 @@ implementation
             tprocsym(psym),psym.owner,
             compiler.cloadvmtaddrnode(compiler.ctypenode(csym.typedef)),[],nil);
           { convert the result to the result type of this type conversion node }
-          inserttypeconv_explicit(result,resultdef);
+          inserttypeconv_explicit(result,resultdef,compiler);
           { left is reused }
           left:=nil;
         end;
@@ -900,7 +902,7 @@ implementation
             tprocsym(psym),psym.owner,
             compiler.cloadvmtaddrnode(compiler.ctypenode(todef.classdef)),[],nil);
           { convert the result to the result type of this type conversion node }
-          inserttypeconv_explicit(result,resultdef);
+          inserttypeconv_explicit(result,resultdef,compiler);
           { left is reused }
           left:=nil;
         end;
@@ -917,7 +919,7 @@ implementation
             internalerror(2011062602);
           result:=compiler.ccallnode(nil,tprocsym(psym),psym.owner,left,[],nil);
           { convert the result to the result type of this type conversion node }
-          inserttypeconv_explicit(result,resultdef);
+          inserttypeconv_explicit(result,resultdef,compiler);
           { left is reused }
           left:=nil;
         end;
@@ -942,7 +944,7 @@ implementation
          else
            helpername:=helpername+'long';
           result:=compiler.ccallnode_intern(helpername,compiler.ccallparanode(
-            genintconstnode(left.resultdef.size),compiler.ccallparanode(genintconstnode(tsetdef(left.resultdef).setbase),
+            genintconstnode(left.resultdef.size,compiler),compiler.ccallparanode(genintconstnode(tsetdef(left.resultdef).setbase,compiler),
             compiler.ccallparanode(compiler.ctypeconvnode_explicit(left,setconvdef),nil))));
           left:=nil;
         end;
@@ -955,14 +957,14 @@ implementation
         begin
           if tsetdef(resultdef).elementdef.typ=enumdef then
             begin
-              inserttypeconv_explicit(left,s64inttype);
+              inserttypeconv_explicit(left,s64inttype,compiler);
               enumclassdef:=tcpuenumdef(tenumdef(tsetdef(resultdef).elementdef).getbasedef).classdef;
               mp:=compiler.cloadvmtaddrnode(compiler.ctypenode(enumclassdef));
               helpername:='fpcLongToEnumSet';
               { enumclass.fpcLongToEnumSet(left,setbase,setsize) }
               result:=compiler.ccallnode_internmethod(mp,helpername,
-                compiler.ccallparanode(genintconstnode(resultdef.size),
-                  compiler.ccallparanode(genintconstnode(tsetdef(resultdef).setbase),
+                compiler.ccallparanode(genintconstnode(resultdef.size,compiler),
+                  compiler.ccallparanode(genintconstnode(tsetdef(resultdef).setbase,compiler),
                     compiler.ccallparanode(left,nil))));
             end
           else
@@ -970,16 +972,16 @@ implementation
               if left.resultdef.size<=4 then
                 begin
                   helpername:='fpc_int_to_bitset';
-                  inserttypeconv_explicit(left,s32inttype);
+                  inserttypeconv_explicit(left,s32inttype,compiler);
                 end
               else
                 begin
                   helpername:='fpc_long_to_bitset';
-                  inserttypeconv_explicit(left,s64inttype);
+                  inserttypeconv_explicit(left,s64inttype,compiler);
                 end;
               result:=compiler.ccallnode_intern(helpername,
-                compiler.ccallparanode(genintconstnode(resultdef.size),
-                  compiler.ccallparanode(genintconstnode(tsetdef(resultdef).setbase),
+                compiler.ccallparanode(genintconstnode(resultdef.size,compiler),
+                  compiler.ccallparanode(genintconstnode(tsetdef(resultdef).setbase,compiler),
                     compiler.ccallparanode(left,nil))));
             end;
         end;
@@ -1017,7 +1019,7 @@ implementation
           { must be procedure-of-object -> implicit pointer type -> get address
             before typecasting to corresponding classdef }
           left:=compiler.caddrnode_internal(left);
-          inserttypeconv_explicit(left,tcpuprocvardef(fromdef).classdef);
+          inserttypeconv_explicit(left,tcpuprocvardef(fromdef).classdef,compiler);
           fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
@@ -1279,7 +1281,7 @@ implementation
                   a proper checkcast is inserted }
                 if not check_only then
                   begin
-                    resnode:=compiler.ctypeconvnode_explicit(left,cpointerdef.getreusable(resultdef));
+                    resnode:=compiler.ctypeconvnode_explicit(left,cpointerdef.getreusable(resultdef,compiler));
                     resnode:=compiler.cderefnode(resnode);
                     left:=nil;
                   end;
@@ -1328,7 +1330,7 @@ implementation
             if not check_only then
               begin
                 if (left.resultdef.typ=enumdef) then
-                  inserttypeconv_explicit(left,s32inttype);
+                  inserttypeconv_explicit(left,s32inttype,compiler);
                 resnode:=int_real_explicit_typecast(tfloatdef(resultdef),'INTBITSTOFLOAT','LONGBITSTODOUBLE');
               end;
             result:=true;
@@ -1353,8 +1355,8 @@ implementation
                { convert via ordinal intermediate }
                if not check_only then
                  begin;
-                   inserttypeconv_explicit(left,s32inttype);
-                   inserttypeconv_explicit(left,resultdef);
+                   inserttypeconv_explicit(left,s32inttype,compiler);
+                   inserttypeconv_explicit(left,resultdef,compiler);
                    resnode:=left;
                    left:=nil
                  end;
@@ -1389,7 +1391,7 @@ implementation
                   begin
                     resnode:=from_set_explicit_typecast;
                     { convert to desired result }
-                    inserttypeconv_explicit(resnode,resultdef);
+                    inserttypeconv_explicit(resnode,resultdef,compiler);
                   end;
                 result:=true;
                 exit;
@@ -1401,7 +1403,7 @@ implementation
                   begin
                     resnode:=to_set_explicit_typecast;
                     { convert to desired result }
-                    inserttypeconv_explicit(resnode,cpointerdef.getreusable(resultdef));
+                    inserttypeconv_explicit(resnode,cpointerdef.getreusable(resultdef,compiler),compiler);
                     resnode:=compiler.cderefnode(resnode);
                   end;
                 result:=true;
@@ -1501,6 +1503,8 @@ implementation
 
   function asis_pass_1(node: tasisnode; const methodname: string): tnode;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       ps: tsym;
       call: tnode;
       jlclass: tobjectdef;
@@ -1545,8 +1549,12 @@ implementation
 
   function asis_generate_code(node: tasisnode; opcode: tasmop): boolean;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      hlcg: thlcgobj;
+    var
       checkdef: tdef;
     begin
+      hlcg:=compiler.hlcg;
       if (node.nodetype=asn) and
          assigned(tasnode(node).call) then
         begin

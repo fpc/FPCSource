@@ -309,7 +309,7 @@ implementation
                          typed const to do so (at least if they are visible
                          outside this routine, since we won't directly access
                          these symbols in the generated code) }
-                       if (symtablestack.top.symtablelevel<normal_function_level) and
+                       if (compiler.symtablestack.top.symtablelevel<normal_function_level) and
                           assigned(tconstsym(sym).constdef) and
                           (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
                          jvm_add_typed_const_initializer(tconstsym(sym));

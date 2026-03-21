@@ -36,7 +36,8 @@ implementation
     symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,comprsrc,rescmn,i_jvm,
-    cgutils,cgbase,cgobj,cpuinfo,ogbase;
+    cgutils,cgbase,cgobj,cpuinfo,ogbase,
+    compilerbase,compiler;
 
   type
     timportlibjvm=class(timportlib)
@@ -47,7 +48,7 @@ implementation
     end;
 
     tlinkerjvm=class(texternallinker)
-      constructor Create;override;
+      constructor Create(acompiler: TCompilerBase);override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
     end;
@@ -71,9 +72,9 @@ implementation
                               TLINKERJVM
 *****************************************************************************}
 
-Constructor  tlinkerjvm.Create;
+Constructor  tlinkerjvm.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
 end;
 
 

@@ -31,7 +31,7 @@ interface
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
-       rgcpu;
+       rgcpu,compilerbase;
 
     type
       TCgJvm=class(thlbasecgcpu)
@@ -44,7 +44,7 @@ interface
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
 implementation
 
@@ -52,7 +52,7 @@ implementation
     globals,verbose,systems,cutils,
     paramgr,fmodule,
     tgobj,
-    procinfo,cpupi;
+    procinfo,cpupi,compiler;
 
 
 {****************************************************************************
@@ -121,9 +121,9 @@ implementation
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=tcgjvm.Create;
+        tcompiler(compiler).cg:=tcgjvm.Create(compiler);
       end;
 
 end.

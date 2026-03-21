@@ -792,6 +792,8 @@ implementation
 
   procedure implement_jvm_procvar_invoke(pd: tprocdef);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       pvclass: tobjectdef;
       procvar: tprocvardef;
       paraname,str,endstr: ansistring;
@@ -867,7 +869,7 @@ implementation
             end;
           { var/out/constref parameters -> pass address through (same for
             implicit pointer types) }
-          if paramanager.push_copyout_param(pvs.varspez,paradef,procvar.proccalloption) or
+          if compiler.paramanager.push_copyout_param(pvs.varspez,paradef,procvar.proccalloption) or
              jvmimplicitpointertype(paradef) then
             begin
               paraname:='@'+paraname;
