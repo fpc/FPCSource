@@ -27,7 +27,8 @@ Unit raarmgas;
 
     uses
       raatt,raarm,
-      cpubase;
+      cpubase,
+      compilerbase;
 
     type
 
@@ -68,7 +69,8 @@ Unit raarmgas;
       symconst,symsym,symdef,
       procinfo,
       rabase,rautils,
-      cgbase,cgutils,paramgr;
+      cgbase,cgutils,paramgr,
+      compiler;
 
 
     function tarmunifiedattreader.is_unified: boolean;
@@ -1487,7 +1489,7 @@ Unit raarmgas;
       var
         instr : tarminstruction;
       begin
-        instr:=TarmInstruction.Create(TarmOperand);
+        instr:=TarmInstruction.Create(TarmOperand,compiler);
         BuildOpcode(instr);
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);

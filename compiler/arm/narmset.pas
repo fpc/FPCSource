@@ -29,7 +29,8 @@ interface
       globtype,constexp,
       symtype,
       cgbase,
-      node,nset,pass_1,ncgset;
+      node,nset,pass_1,ncgset,
+      compilerbase;
 
     type
 
@@ -56,7 +57,8 @@ implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,
-      cgcpu,hlcgobj;
+      cgcpu,nodehelper,
+      compiler;
 
 {*****************************************************************************
                             TARMINNODE

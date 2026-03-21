@@ -89,10 +89,14 @@ interface
          file.
       }
       TCPUInstrWriter = class
+       private
+        function GetCompiler: TCompilerBase; inline;
+       public
         constructor create(_owner: TGNUAssembler);
         procedure WriteInstruction(hp : tai); virtual; abstract;
        protected
         owner: TGNUAssembler;
+        property Compiler: TCompilerBase read GetCompiler;
       end;
 
 
@@ -2294,6 +2298,11 @@ implementation
        begin
          inherited create;
          owner := _owner;
+       end;
+
+     function TCPUInstrWriter.GetCompiler: TCompilerBase; inline;
+       begin
+         result:=owner.compiler;
        end;
 
 end.

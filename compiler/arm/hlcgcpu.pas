@@ -32,7 +32,8 @@ interface
     globtype,
     aasmdata,
     symdef,
-    hlcg2ll;
+    hlcg2ll,
+    compilerbase;
 
   type
     tbasehlcgarm = class(thlcg2ll)
@@ -54,7 +55,8 @@ implementation
     symconst,
     aasmbase,aasmtai,aasmcpu, cpuinfo,
     hlcgobj,
-    cgbase, cgutils, cpubase, cgobj, cgcpu;
+    cgbase, cgutils, cpubase, cgobj, cgcpu,
+    compiler;
 
   procedure tbasehlcgarm.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
 
@@ -181,7 +183,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      current_procinfo:=cprocinfo.create(nil);
+      current_procinfo:=cprocinfo.create(nil,compiler);
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);
@@ -255,13 +257,13 @@ implementation
 
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       if GenerateThumbCode then
-        hlcg:=tthumbhlcgcpu.create
+        tcompiler(compiler).hlcg:=tthumbhlcgcpu.create(compiler)
       else
-        hlcg:=tarmhlcgcpu.create;
-      create_codegen;
+        tcompiler(compiler).hlcg:=tarmhlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 begin

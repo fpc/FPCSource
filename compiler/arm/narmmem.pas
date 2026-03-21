@@ -28,7 +28,8 @@ interface
     uses
       globtype,
       symtype,
-      cgbase,cpubase,nmem,ncgmem;
+      cgbase,cpubase,nmem,ncgmem,
+      compilerbase;
 
     type
       tarmloadparentfpnode = class(tcgloadparentfpnode)
@@ -46,7 +47,9 @@ implementation
       cutils,verbose,globals,aasmdata,aasmcpu,cgobj,cgcpu,
       cpuinfo,
       cgutils,
-      procinfo;
+      procinfo,
+      compiler,
+      nodehelper;
 
 {*****************************************************************************
                         TARMLOADPARENTFPNODE

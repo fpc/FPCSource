@@ -28,7 +28,8 @@ interface
     uses
       globtype,
       symsym,
-      node,ncgld,pass_1,aasmbase;
+      node,ncgld,pass_1,aasmbase,
+      compilerbase;
 
     type
       tarmloadnode = class(tcgloadnode)
@@ -47,7 +48,9 @@ implementation
       nld,
       cpubase,
       parabase,
-      procinfo;
+      procinfo,
+      compiler,
+      nodehelper;
 
 {*****************************************************************************
                             TARMLOADNODE

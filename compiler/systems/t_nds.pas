@@ -33,14 +33,15 @@ implementation
        aasmbase,
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,cscript,fmodule,i_nds,link;
+       globtype,globals,systems,verbose,cscript,fmodule,i_nds,link,
+       compilerbase,compiler;
 
     type
        TlinkerNDS=class(texternallinker)
        private
           Function  WriteResponseFile: Boolean;
        public
-          constructor Create; override;
+          constructor Create(acompiler: TCompilerBase); override;
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
        end;
@@ -51,9 +52,9 @@ implementation
                                   TLINKERNDS
 *****************************************************************************}
 
-Constructor TLinkerNDS.Create;
+Constructor TLinkerNDS.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
   // set arm9 as default apptype

@@ -26,7 +26,8 @@ unit narmcal;
 interface
 
     uses
-      symdef,ncal,ncgcal;
+      symdef,ncal,ncgcal,
+      compilerbase;
 
     type
        tarmcallnode = class(tcgcallnode)
@@ -43,7 +44,8 @@ implementation
     symconst,symtype,symbase,symsym,symcpu,parabase,paramgr,
     cgbase,cgobj,cgutils,cpuinfo,cpubase,cutils,
     ncgutil,tgobj,nld,
-    systems;
+    systems,
+    compiler,nodehelper;
 
   procedure tarmcallnode.gen_syscall_para(para: tcallparanode);
     begin

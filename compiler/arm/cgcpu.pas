@@ -32,7 +32,8 @@ unit cgcpu;
        cgbase,cgutils,cgobj,
        aasmbase,aasmcpu,aasmtai,aasmdata,
        parabase,
-       cpubase,cpuinfo,cg64f32,rgcpu;
+       cpubase,cpuinfo,cg64f32,rgcpu,
+       compilerbase;
 
 
     type
@@ -233,7 +234,7 @@ unit cgcpu;
       winstackpagesize = 4096;
 
     function get_fpu_postfix(def : tdef) : toppostfix;
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
@@ -245,7 +246,8 @@ unit cgcpu;
        symconst,symsym,symtable,
        tgobj,
        procinfo,cpupi,
-       paramgr;
+       paramgr,
+       compiler;
 
 { Range check must be disabled explicitly as conversions between signed and unsigned
   32-bit values are done without explicit typecasts }
@@ -341,7 +343,7 @@ unit cgcpu;
                reference_reset(hr,4,[]);
 
                current_asmdata.getjumplabel(l);
-               cg.a_label(current_procinfo.aktlocaldata,l);
+               a_label(current_procinfo.aktlocaldata,l);
                hr.symboldata:=current_procinfo.aktlocaldata.last;
                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
@@ -1792,7 +1794,7 @@ unit cgcpu;
             ai.condition:=C_EQ;
             list.concat(ai);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-            cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
+            a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l);
             if clear then
@@ -2447,14 +2449,14 @@ unit cgcpu;
 
             reference_reset(ref,4,[]);
             current_asmdata.getglobaldatalabel(l);
-            cg.a_label(current_procinfo.aktlocaldata,l);
+            a_label(current_procinfo.aktlocaldata,l);
             ref.symbol:=l;
             ref.base:=NR_PC;
             ref.symboldata:=current_procinfo.aktlocaldata.last;
             list.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,ref));
             current_asmdata.getaddrlabel(l);
             current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),-8));
-            cg.a_label(list,l);
+            a_label(list,l);
             list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
             list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));
 
@@ -2545,7 +2547,7 @@ unit cgcpu;
         { create consts entry }
         reference_reset(tmpref,4,[]);
         current_asmdata.getjumplabel(l);
-        cg.a_label(current_procinfo.aktlocaldata,l);
+        a_label(current_procinfo.aktlocaldata,l);
         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
         piclabel:=nil;
         tmpreg:=NR_NO;
@@ -2630,7 +2632,7 @@ unit cgcpu;
 
         if assigned(piclabel) then
           begin
-            cg.a_label(list,piclabel);
+            a_label(list,piclabel);
             tmpreg2:=getaddressregister(list);
             a_op_reg_reg_reg(list,OP_ADD,OS_ADDR,tmpreg,NR_PC,tmpreg2);
             tmpreg:=tmpreg2
@@ -2699,7 +2701,7 @@ unit cgcpu;
           current_asmdata.getjumplabel(l);
           if count<size then size:=1;
           a_load_const_reg(list,OS_INT,count div size,countreg);
-          cg.a_label(list,l);
+          a_label(list,l);
           srcref.addressmode:=AM_POSTINDEXED;
           dstref.addressmode:=AM_POSTINDEXED;
           srcref.offset:=size;
@@ -2789,7 +2791,7 @@ unit cgcpu;
           current_asmdata.getjumplabel(l);
           if count<size then size:=1;
           a_load_const_reg(list,OS_INT,count div size,countreg);
-          cg.a_label(list,l);
+          a_label(list,l);
           r:=getintregister(list,size2opsize[size]);
           a_load_ref_reg(list,size2opsize[size],size2opsize[size],srcref,r);
           refincofs(srcref);
@@ -3056,8 +3058,8 @@ unit cgcpu;
             begin
               hflags:=ovloc.resflags;
               inverse_flags(hflags);
-              cg.a_jmp_flags(list,hflags,hl);
-              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+              a_jmp_flags(list,hflags,hl);
+              a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200409281);
@@ -4039,7 +4041,7 @@ unit cgcpu;
               reference_reset(hr,4,[]);
 
               current_asmdata.getjumplabel(l);
-              cg.a_label(current_procinfo.aktlocaldata,l);
+              a_label(current_procinfo.aktlocaldata,l);
               hr.symboldata:=current_procinfo.aktlocaldata.last;
               current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
@@ -4079,7 +4081,7 @@ unit cgcpu;
                         reference_reset(tmpref,4,[]);
                         current_asmdata.getjumplabel(l);
                         current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
-                        cg.a_label(current_procinfo.aktlocaldata,l);
+                        a_label(current_procinfo.aktlocaldata,l);
                         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
                         current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
                         tmpref.symbol:=l;
@@ -4102,7 +4104,7 @@ unit cgcpu;
                         reference_reset(tmpref,4,[]);
                         current_asmdata.getjumplabel(l);
                         current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
-                        cg.a_label(current_procinfo.aktlocaldata,l);
+                        a_label(current_procinfo.aktlocaldata,l);
                         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
                         current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ioffset));
                         tmpref.symbol:=l;
@@ -4364,10 +4366,10 @@ unit cgcpu;
         list.concat(ai);
         list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,reg,0),PF_S));
         list.concat(taicpu.op_sym(A_B,l2));
-        cg.a_label(list,l1);
+        a_label(list,l1);
         list.concat(setoppostfix(taicpu.op_reg_const(A_MOV,reg,1),PF_S));
         a_reg_dealloc(list,NR_DEFAULTFLAGS);
-        cg.a_label(list,l2);
+        a_label(list,l2);
       end;
 
 
@@ -4432,7 +4434,7 @@ unit cgcpu;
                reference_reset(hr,4,[]);
 
                current_asmdata.getjumplabel(l);
-               cg.a_label(current_procinfo.aktlocaldata,l);
+               a_label(current_procinfo.aktlocaldata,l);
                hr.symboldata:=current_procinfo.aktlocaldata.last;
                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
 
@@ -5191,7 +5193,7 @@ unit cgcpu;
             if assigned(ref.symbol) then
               begin
                 current_asmdata.getjumplabel(l);
-                cg.a_label(current_procinfo.aktlocaldata,l);
+                a_label(current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
                 if ref.refaddr=addr_gottpoff then
@@ -5485,26 +5487,26 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
         if GenerateThumb2Code then
           begin
-            cg:=tthumb2cgarm.create;
-            cg64:=tthumb2cg64farm.create;
+            tcompiler(compiler).cg:=tthumb2cgarm.create(compiler);
+            tcompiler(compiler).cg64:=tthumb2cg64farm.create(compiler);
 
             casmoptimizer:=TCpuThumb2AsmOptimizer;
           end
         else if GenerateThumbCode then
           begin
-            cg:=tthumbcgarm.create;
-            cg64:=tthumbcg64farm.create;
+            tcompiler(compiler).cg:=tthumbcgarm.create(compiler);
+            tcompiler(compiler).cg64:=tthumbcg64farm.create(compiler);
 
             // casmoptimizer:=TCpuThumbAsmOptimizer;
           end
         else
           begin
-            cg:=tarmcgarm.create;
-            cg64:=tarmcg64farm.create;
+            tcompiler(compiler).cg:=tarmcgarm.create(compiler);
+            tcompiler(compiler).cg64:=tarmcg64farm.create(compiler);
 
             casmoptimizer:=TCpuAsmOptimizer;
           end;

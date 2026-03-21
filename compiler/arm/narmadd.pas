@@ -26,7 +26,8 @@ unit narmadd;
 interface
 
     uses
-       node,ncgadd,cpubase;
+       node,ncgadd,cpubase,
+       compilerbase;
 
     type
        tarmaddnode = class(tcgaddnode)
@@ -59,7 +60,8 @@ interface
       cpuinfo,pass_1,pass_2,procinfo,
       ncon,nadd,ncnv,ncal,nmat,
       ncgutil,cgobj,cgcpu,
-      hlcgobj
+      nodehelper,
+      compiler
       ;
 
 {*****************************************************************************

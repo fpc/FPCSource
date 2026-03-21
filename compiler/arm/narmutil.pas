@@ -26,12 +26,13 @@ unit narmutil;
 interface
 
   uses
-    cclasses,ngenutil,fmodule;
+    cclasses,ngenutil,fmodule,
+    compilerbase;
 
   type
     tarmnodeutils = class(tnodeutils)
-      class procedure InsertObjectInfo; override;
-      class procedure insert_init_final_table(main : tmodule; entries: tfplist); override;
+      procedure InsertObjectInfo; override;
+      procedure insert_init_final_table(main : tmodule; entries: tfplist); override;
     end;
 
 
@@ -44,7 +45,8 @@ interface
       cpuinfo,cpubase,
       cgbase,cgutils,
       aasmbase,aasmdata,aasmtai,aasmcpu,
-      symdef;
+      symdef,
+      compiler;
 
     const
       Tag_File = 1;
@@ -90,7 +92,7 @@ interface
       Tag_T2EE_use = 66;
       Tag_Virtualization_use = 68;
 
-    class procedure tarmnodeutils.InsertObjectInfo;
+    procedure tarmnodeutils.InsertObjectInfo;
       begin
         inherited InsertObjectInfo;
         { write eabi attributes to object file? }
@@ -251,7 +253,7 @@ interface
           end;
       end;
 
-    class procedure tarmnodeutils.insert_init_final_table(main : tmodule; entries:tfplist);
+    procedure tarmnodeutils.insert_init_final_table(main : tmodule; entries:tfplist);
 
       procedure genentry(list : TAsmList);
         var

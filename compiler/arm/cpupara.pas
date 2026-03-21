@@ -30,7 +30,8 @@ unit cpupara;
        globtype,globals,
        aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symtype,symdef,parabase,paramgr,armpara;
+       symconst,symtype,symdef,parabase,paramgr,armpara,
+       compilerbase;
 
     type
        tcpuparamanager = class(tarmgenparamanager)
@@ -61,7 +62,8 @@ unit cpupara;
        verbose,systems,cutils,
        defutil,symsym,symcpu,symtable,symutil,
        { PowerPC uses procinfo as well in cpupara, so this should not hurt }
-       procinfo;
+       procinfo,
+       compiler;
 
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -105,7 +107,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=cpointerdef.getreusable_no_free(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef,compiler);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -441,7 +443,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-                paradef:=cpointerdef.getreusable_no_free(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                 loc:=LOC_REGISTER;
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[OS_ADDR];
@@ -631,7 +633,7 @@ unit cpupara;
                       if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                         begin
                           paraloc^.size:=OS_ADDR;
-                          paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
+                          paraloc^.def:=cpointerdef.getreusable_no_free(paradef,compiler);
                           assignintreg
                         end
                       else
@@ -919,6 +921,4 @@ unit cpupara;
         create_funcretloc_info(p,side);
       end;
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.

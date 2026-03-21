@@ -36,7 +36,8 @@ Interface
 uses
   cgbase, cgutils, cpubase, aasmtai,
   aasmcpu,
-  aopt, aoptobj, aoptarm;
+  aopt, aoptobj, aoptarm,
+  compilerbase;
 
 Type
 
@@ -121,7 +122,8 @@ Implementation
     cpuinfo,
     cgobj,procinfo,
     aasmbase,aasmdata,
-    aoptutils;
+    aoptutils,
+    compiler;
 
 { Range check must be disabled explicitly as conversions between signed and unsigned
   32-bit values are done without explicit typecasts }
@@ -162,6 +164,8 @@ Implementation
 
 
   function AlignedToQWord(const ref : treference) : boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { (safe) heuristics to ensure alignment }
       result:=(compiler.target.info.abi in [abi_eabi,abi_armeb,abi_eabihf]) and
@@ -2554,9 +2558,12 @@ Implementation
 
     procedure CheckLiveEnd(reg : tregister);
       var
+        cg: tcg;
+      var
         supreg : TSuperRegister;
         regtype : TRegisterType;
       begin
+        cg:=compiler.cg;
         if reg=NR_NO then
           exit;
         regtype:=getregtype(reg);
@@ -2569,9 +2576,12 @@ Implementation
 
     procedure CheckLiveStart(reg : TRegister);
       var
+        cg: tcg;
+      var
         supreg : TSuperRegister;
         regtype : TRegisterType;
       begin
+        cg:=compiler.cg;
         if reg=NR_NO then
           exit;
         regtype:=getregtype(reg);

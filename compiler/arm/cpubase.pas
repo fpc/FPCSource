@@ -34,7 +34,8 @@ unit cpubase;
     uses
       globtype,globals,
       cpuinfo,
-      cgbase
+      cgbase,
+      compilerbase
       ;
 
 
@@ -399,7 +400,7 @@ unit cpubase;
   implementation
 
     uses
-      systems,rgBase,verbose;
+      systems,rgBase,verbose,compiler;
 
 
     const
@@ -702,6 +703,8 @@ unit cpubase;
 
       { Low part of 64bit return value }
     function NR_FUNCTION_RESULT64_LOW_REG: tregister; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if compiler.target.info.endian=endian_little then
         result:=NR_R0
@@ -710,6 +713,8 @@ unit cpubase;
     end;
 
     function RS_FUNCTION_RESULT64_LOW_REG: shortint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if compiler.target.info.endian=endian_little then
         result:=RS_R0
@@ -719,6 +724,8 @@ unit cpubase;
 
       { High part of 64bit return value }
     function NR_FUNCTION_RESULT64_HIGH_REG: tregister; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if compiler.target.info.endian=endian_little then
         result:=NR_R1
@@ -727,6 +734,8 @@ unit cpubase;
     end;
 
     function RS_FUNCTION_RESULT64_HIGH_REG: shortint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if compiler.target.info.endian=endian_little then
         result:=RS_R1

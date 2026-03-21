@@ -26,7 +26,8 @@ unit narmmat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,nmat,ncgmat,
+      compilerbase;
 
     type
       tarmmoddivnode = class(tmoddivnode)
@@ -56,12 +57,13 @@ implementation
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,systems,
       symtype,symconst,symtable,
-      cgbase,cgobj,hlcgobj,cgutils,
+      cgbase,cgobj,nodehelper,cgutils,
       pass_2,procinfo,
       ncon,ncnv,ncal,ninl,
       cpubase,cpuinfo,
       ncgutil,
-      nadd,pass_1,symdef;
+      nadd,pass_1,symdef,
+      compiler;
 
 {*****************************************************************************
                              TARMMODDIVNODE
@@ -123,7 +125,7 @@ implementation
 
         { we may not change the result type here }
         if assigned(result) and (torddef(result.resultdef).ordtype<>torddef(resultdef).ordtype) then
-          inserttypeconv(result,resultdef);
+          inserttypeconv(result,resultdef,compiler);
       end;
 
 

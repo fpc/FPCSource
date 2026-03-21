@@ -32,11 +32,12 @@ unit agarmgas;
        globtype,systems,
        aasmtai,
        assemble,aggas,
-       cpubase,cpuinfo;
+       cpubase,cpuinfo,
+       compilerbase;
 
     type
       TARMGNUAssembler=class(TGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
@@ -48,7 +49,7 @@ unit agarmgas;
       end;
 
       TArmAppleGNUAssembler=class(TAppleGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         function MakeCmdLine: TCmdStr; override;
         procedure WriteExtraHeader; override;
       end;
@@ -85,13 +86,14 @@ unit agarmgas;
        cutils,globals,verbose,
        aasmcpu,
        itcpugas,
-       cgbase,cgutils;
+       cgbase,cgutils,
+       compiler;
 
 {****************************************************************************}
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TArmGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TArmGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);
@@ -164,7 +166,7 @@ unit agarmgas;
 {                      GNU/Apple ARM Assembler writer                        }
 {****************************************************************************}
 
-    constructor TArmAppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TArmAppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TArmInstrWriter.create(self);

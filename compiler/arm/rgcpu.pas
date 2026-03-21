@@ -34,7 +34,8 @@ unit rgcpu;
        {$ifdef DEBUG_SPILLING}
        cutils,
        {$endif}
-       rgobj;
+       rgobj,
+       compilerbase;
 
      type
        trgcpu = class(trgobj)
@@ -78,7 +79,8 @@ unit rgcpu;
     uses
       verbose,globtype,globals,cpuinfo,
       cgobj,
-      procinfo;
+      procinfo,
+      compiler;
 
     procedure trgintcputhumb2.add_cpu_interferences(p: tai);
       var
@@ -174,12 +176,16 @@ unit rgcpu;
 
     procedure trgcpu.spilling_create_load_store(list: TAsmList; pos: tai; const spilltemp:treference;tempreg:tregister; is_store: boolean);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         tmpref : treference;
         helplist : TAsmList;
         hreg : tregister;
         immshift: byte;
         a: aint;
     begin
+      cg:=compiler.cg;
       helplist:=TAsmList.create;
 
       { load consts entry }
@@ -436,11 +442,15 @@ unit rgcpu;
 
     procedure trgcputhumb2.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         tmpref : treference;
         helplist : TAsmList;
         l : tasmlabel;
         hreg : tregister;
       begin
+        cg:=compiler.cg;
         { don't load spilled register between
           mov lr,pc
           mov pc,r4
@@ -508,11 +518,15 @@ unit rgcpu;
 
     procedure trgcputhumb2.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         tmpref : treference;
         helplist : TAsmList;
         l : tasmlabel;
         hreg : tregister;
       begin
+        cg:=compiler.cg;
         if (pos.typ=ait_instruction) and
           (taicpu(pos).condition<>C_None) and
           (taicpu(pos).opcode<>A_B) then

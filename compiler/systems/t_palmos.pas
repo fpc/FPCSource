@@ -27,14 +27,15 @@ unit t_palmos;
 interface
 
   uses
-    link;
+    link,
+    compilerbase;
 
   type
     tlinkerPalmOS=class(texternallinker)
     private
        Function  WriteResponseFile : Boolean;
     public
-       constructor Create; override;
+       constructor Create(acompiler: TCompilerBase); override;
        procedure SetDefaultInfo; override;
        procedure InitSysInitUnitName; override;
        function  MakeExecutable:boolean; override;
@@ -47,15 +48,16 @@ implementation
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,cscript,fmodule,i_palmos,
-       comprsrc;
+       comprsrc,
+       compiler;
 
 {****************************************************************************
                                TLinkerPalmOS
 ****************************************************************************}
 
-Constructor TLinkerPalmOS.Create;
+Constructor TLinkerPalmOS.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -206,7 +208,7 @@ begin
         Replace(cmdstr,'$STRIP',StripStr);
 //        Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
         Replace(cmdstr,'$APPNAME',compiler.globals.palmos_applicationname);
-        Replace(cmdstr,'$APPID',compiler.palmos_applicationid);
+        Replace(cmdstr,'$APPID',compiler.globals.palmos_applicationid);
 
         success:=DoExec(binstr,cmdstr,(i=1),false);
         if not success then

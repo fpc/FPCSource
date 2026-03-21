@@ -341,6 +341,8 @@ unit scandir;
 
 {$if defined(m68k) or defined(arm)}
     procedure dir_appid;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.target.info.system<>system_m68k_palmos then
           compiler.verbose.Message(scan_w_appid_not_support);
@@ -351,6 +353,8 @@ unit scandir;
       end;
 
     procedure dir_appname;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.target.info.system<>system_m68k_palmos then
           compiler.verbose.Message(scan_w_appname_not_support);

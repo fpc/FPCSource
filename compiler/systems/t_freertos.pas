@@ -33,7 +33,8 @@ implementation
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,comphook,cscript,fmodule,i_freertos,link,
-       cpuinfo;
+       cpuinfo,
+       compilerbase,compiler;
 
     type
        TlinkerFreeRTOS=class(texternallinker)
@@ -43,7 +44,7 @@ implementation
           procedure GenerateDefaultLinkerScripts(var memory_filename,sections_filename: AnsiString);
 {$endif (XTENSA) or defined(RISCV32)}
        public
-          constructor Create; override;
+          constructor Create(acompiler: TCompilerBase); override;
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
           function postprocessexecutable(const fn : string;isdll:boolean):boolean;
@@ -54,9 +55,9 @@ implementation
                                   TlinkerEmbedded
 *****************************************************************************}
 
-constructor TlinkerFreeRTOS.Create;
+constructor TlinkerFreeRTOS.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
 end;

@@ -26,7 +26,8 @@ unit narmcon;
 interface
 
     uses
-      node,ncgcon,cpubase;
+      node,ncgcon,cpubase,
+      compilerbase;
 
     type
       tarmrealconstnode = class(tcgrealconstnode)
@@ -45,7 +46,9 @@ interface
       defutil,
       cgbase,cgutils,cgobj,
       procinfo,
-      ncon;
+      ncon,
+      compiler,
+      nodehelper;
 
 {*****************************************************************************
                            TARMREALCONSTNODE

@@ -26,7 +26,8 @@ unit narminl;
 interface
 
     uses
-      node,ninl,ncginl;
+      node,ninl,ncginl,
+      compilerbase;
 
     type
       tarminlinenode = class(tcgInlineNode)
@@ -69,8 +70,9 @@ implementation
       compinnr,cpuinfo,defutil,symdef,
       aasmdata,aasmcpu,aasmtai,
       cgbase,cgutils,pass_1,pass_2,
-      cpubase,ncgutil,cgobj,cgcpu, hlcgobj,
-      nutils,ncal;
+      cpubase,ncgutil,cgobj,cgcpu,nodehelper,
+      nutils,ncal,
+      compiler;
 
 {*****************************************************************************
                               tarminlinenode

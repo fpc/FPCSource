@@ -26,16 +26,18 @@ unit tripletcpu;
 interface
 
 uses
-  globtype;
+  globtype,compilerbase;
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
-  globals, cutils, systems, cpuinfo;
+  globals, cutils, systems, cpuinfo, compiler;
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
     if tripletstyle=triplet_llvmrt then
       begin

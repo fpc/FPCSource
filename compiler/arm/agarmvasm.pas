@@ -31,14 +31,15 @@ unit agarmvasm;
        aasmtai,aasmdata,
        assemble,aggas,agarmgas,
        cpubase,cgutils,
-       globtype;
+       globtype,
+       compilerbase;
 
   type
     TARMVASM = class(TARMGNUAssembler)
     protected
       function sectionattrs(atype:TAsmSectiontype):string; override;
     public
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
@@ -49,14 +50,15 @@ unit agarmvasm;
        cgbase,
        cscript,
        itcpugas,cpuinfo,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
 {****************************************************************************}
 {                         VASM m68k Assembler writer                         }
 {****************************************************************************}
 
 
-    constructor TARMVASM.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TARMVASM.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TARMInstrWriter.create(self);

@@ -30,7 +30,8 @@ implementation
   uses
     globtype,globals,cutils,cclasses,
     verbose, elfbase,
-    systems,aasmbase,ogbase,ogelf,assemble;
+    systems,aasmbase,ogbase,ogelf,assemble,
+    compilerbase,compiler;
 
   type
     TElfExeOutputARM=class(TElfExeOutput)

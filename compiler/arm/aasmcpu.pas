@@ -31,7 +31,8 @@ uses
   ogbase,
   symtype,
   cpubase,cpuinfo,cgbase,cgutils,
-  sysutils;
+  sysutils,
+  compilerbase;
 
     const
       { "mov reg,reg" source operand number }
@@ -321,7 +322,8 @@ implementation
 
   uses
     itcpugas,aoptcpu,
-    systems,symdef;
+    systems,symdef,
+    compiler;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
@@ -1711,6 +1713,8 @@ implementation
 
     procedure gather_it_info(list: TAsmList);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         curtai: tai;
         in_it: boolean;
         it_count: longint;
@@ -1833,6 +1837,8 @@ implementation
 
 
     procedure finalizearmcode(list, listtoinsert: TAsmList);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { Don't expand pseudo instructions when using GAS, it breaks on some thumb instructions }
         if compiler.target._asm.id<>as_gas then
@@ -2146,6 +2152,8 @@ implementation
 
     function taicpu.Pass1(objdata:TObjData):longint;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         ldr2op : array[PF_B..PF_T] of tasmop = (
           A_LDRB,A_LDRSB,A_LDRBT,A_LDRH,A_LDRSH,A_LDRT);
         str2op : array[PF_B..PF_T] of tasmop = (
@@ -2211,6 +2219,8 @@ implementation
 
 
     procedure taicpu.Pass2(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { error in pass1 ? }
         if insentry=nil then
@@ -2783,6 +2793,8 @@ implementation
 
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
       begin
         result:=false;
@@ -2830,6 +2842,8 @@ implementation
 
 
     procedure taicpu.gencode(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         CondVal : array[TAsmCond] of byte=(
          $E, $0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $A,
