@@ -54,7 +54,7 @@ unit cgcpu;
         function saved_xmm_reg_size: longint;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
@@ -553,9 +553,7 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg:=tcgx86_64.create(compiler);
         cg128:=tcg128.create(compiler.cg);
