@@ -806,7 +806,10 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=compiler.globals.current_filepos;
+        if assigned(compiler) and assigned(compiler.globals) then
+          result:=compiler.globals.current_filepos
+        else
+          FillChar(result,sizeof(result),0);
       end;
 
 
