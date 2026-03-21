@@ -44,7 +44,7 @@ interface
         function extended2str(e : extended) : string; override;
         function comp2str(d : bestreal) : string;
         procedure WriteTree(p:TAsmList);override;
-        procedure WriteAsmList;override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
       end;
@@ -1073,7 +1073,7 @@ implementation
     end;
 
 
-    procedure tx86IntelAssembler.WriteAsmList;
+    procedure tx86IntelAssembler.WriteAsmList(asmdata: TAsmData);
     var
       hal : tasmlisttype;
     begin

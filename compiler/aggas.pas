@@ -67,7 +67,7 @@ interface
        public
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
-        procedure WriteAsmList;override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         destructor destroy; override;
 {$ifdef WASM}
         procedure WriteFuncType(functype: TWasmFuncType);
@@ -2006,7 +2006,7 @@ implementation
     end;
 
 
-    procedure TGNUAssembler.WriteAsmList;
+    procedure TGNUAssembler.WriteAsmList(asmdata: TAsmData);
     var
       n : string;
       hal : tasmlisttype;

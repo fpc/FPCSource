@@ -197,7 +197,7 @@ interface
         {# This routine should be overridden for each assembler, it is used
            to actually write all the different abstract assembler streams
            by calling for each stream type, the @var(WriteTree) method.}
-        procedure WriteAsmList;virtual;
+        procedure WriteAsmList(asmdata: TAsmData);virtual;
 
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; virtual;
@@ -1390,7 +1390,7 @@ Implementation
       end;
 
 
-    procedure TExternalAssembler.WriteAsmList;
+    procedure TExternalAssembler.WriteAsmList(asmdata: TAsmData);
       begin
       end;
 
@@ -1402,7 +1402,7 @@ Implementation
         lastfileinfo.line := -1;
         lastinfile := nil;
         lastsectype := sec_none;
-        WriteAsmList;
+        WriteAsmList(asmdata);
         writer.AsmClose;
         if not(writer.ioerror) then
           DoAssemble;

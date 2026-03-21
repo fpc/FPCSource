@@ -74,7 +74,7 @@ interface
       public
         destructor Destroy;override;
         procedure WriteTree(p:TAsmList);override;
-        procedure WriteAsmList;override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         procedure WriteExternals;
         procedure WriteSmartExternals;
         procedure WriteHeader;
@@ -1388,7 +1388,7 @@ interface
       end;
 
 
-    procedure TX86NasmAssembler.WriteAsmList;
+    procedure TX86NasmAssembler.WriteAsmList(asmdata: TAsmData);
     var
       hal : tasmlisttype;
     begin
