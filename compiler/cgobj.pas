@@ -610,7 +610,7 @@ unit cgobj;
 
     function asmsym2indsymflags(sym: TAsmSymbol): tindsymflags;
 
-    procedure destroy_codegen;
+    procedure destroy_codegen(ACompiler: TCompilerBase);
 
 implementation
 
@@ -3588,12 +3588,10 @@ implementation
           include(result,is_weak);
       end;
 
-    procedure destroy_codegen;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure destroy_codegen(ACompiler: TCompilerBase);
       begin
-        tcompiler(compiler).cg.free;
-        tcompiler(compiler).cg:=nil;
+        tcompiler(acompiler).cg.free;
+        tcompiler(acompiler).cg:=nil;
 {$ifdef cpu64bitalu}
         cg128.free;
         cg128:=nil;

@@ -746,7 +746,7 @@ implementation
       begin
         tcompiler(acompiler).hlcg.free;
         tcompiler(acompiler).hlcg:=nil;
-        destroy_codegen;
+        destroy_codegen(acompiler);
       end;
 
   { thlcgobj }
