@@ -160,6 +160,7 @@ type
     FFrontMatterType: TFrontMatterType;
     FTerminal: String;
   public
+    class var lenient: Boolean;
     function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
     function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
@@ -1141,25 +1142,24 @@ begin
   Result := False;
   if aLine.LineNo <> 1 then
     Exit;
-  S := aLine.Remainder.Trim;
-  if S = '---' then
-    begin
+  S := aLine.Remainder;
+  if Lenient then
+    S:=TrimRight(S);
+  if length(s)<>3 then
+    exit;
+  Result:=True;
+  case S of
+  '---':
     FFrontMatterType := fmtYAML;
-    FTerminal := '---';
-    Result := True;
-    end
-  else if S = '+++' then
-    begin
+  '+++':
     FFrontMatterType := fmtTOML;
-    FTerminal := '+++';
-    Result := True;
-    end
-  else if S = ';;;' then
-    begin
+  ';;;':
     FFrontMatterType := fmtJSON;
-    FTerminal := ';;;';
-    Result := True;
-    end;
+  else
+    Result:=False;
+  end;
+  if Result then
+    FTerminal:=S;
 end;
 
 function TFrontmatterProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
@@ -1207,6 +1207,7 @@ begin
 end;
 
 initialization
+  TFrontmatterProcessor.Lenient:=False;
   TTableProcessor.DefaultStrict:=True;
   RegisterDefaultProcessors;
 end.
