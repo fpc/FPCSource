@@ -2034,18 +2034,18 @@ implementation
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          if not (current_asmdata.asmlists[hal].empty) then
+          if not (asmdata.asmlists[hal].empty) then
             begin
               writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-              writetree(current_asmdata.asmlists[hal]);
+              writetree(asmdata.asmlists[hal]);
               writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
             end;
         end;
 
       { add weak symbol markers }
-      for i:=0 to current_asmdata.asmsymboldict.count-1 do
-        if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
-          WriteWeakSymbolRef(tasmsymbol(current_asmdata.asmsymboldict[i]));
+      for i:=0 to asmdata.asmsymboldict.count-1 do
+        if (tasmsymbol(asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
+          WriteWeakSymbolRef(tasmsymbol(asmdata.asmsymboldict[i]));
 
       if create_smartlink_sections and
          (compiler.target.info.system in systems_darwin) then
