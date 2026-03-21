@@ -2091,7 +2091,8 @@ implementation
          inherited create(dt,acompiler);
          savesize := 0;
 {$ifdef EXTDEBUG}
-         fileinfo := compiler.globals.current_filepos;
+         if assigned(compiler) and assigned(compiler.globals) then
+           fileinfo := compiler.globals.current_filepos;
 {$endif}
          generictokenbuf:=nil;
          genericdef:=nil;
