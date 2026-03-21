@@ -35,7 +35,8 @@ uses
   aasmbase, aasmtai, aasmcpu, aasmdata,
   cpubase, cpuinfo,
   node, symconst, SymType, symdef,
-  rgcpu;
+  rgcpu,
+  compilerbase;
 
 type
   TCGMIPS = class(tcg)
@@ -106,7 +107,7 @@ type
   end;
 {$endif mips64}
 
-  procedure create_codegen;
+  procedure create_codegen(compiler: TCompilerBase);
 
   const
       TOpCmp2AsmCond : array[topcmp] of TAsmCond=(C_NONE,
@@ -120,7 +121,8 @@ uses
   paramgr, fmodule,
   symtable, symsym,
   tgobj,
-  procinfo, cpupi;
+  procinfo, cpupi,
+  compiler;
 
 
 const
@@ -2035,13 +2037,13 @@ end;
 {$endif mips64}
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=TCGMIPS.Create;
+        tcompiler(compiler).cg:=TCGMIPS.Create(compiler);
 {$ifdef mips64}
-        cg128:=tcg128.create;
+        tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
 {$else mips64}
-        cg64:=TCg64MPSel.Create;
+        tcompiler(compiler).cg64:=TCg64MPSel.Create(compiler);
 {$endif mips64}
       end;
 

@@ -33,7 +33,8 @@ uses
   aasmbase, aasmdata,
   cgbase, cgutils,
   symtype,symdef,
-  parabase, hlcgobj, hlcg2ll;
+  parabase, hlcgobj, hlcg2ll,
+  compilerbase;
 
   type
     thlcgmips = class(thlcg2ll)
@@ -57,7 +58,8 @@ implementation
     cgobj,
     cpubase,
     cpuinfo,
-    cgcpu,systems;
+    cgcpu,systems,
+    compiler;
 
   function thlcgmips.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     var
@@ -283,10 +285,10 @@ implementation
   end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgmips.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgmips.create(compiler);
+      create_codegen(compiler);
     end;
 
 begin

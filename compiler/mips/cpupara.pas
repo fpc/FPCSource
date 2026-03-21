@@ -28,7 +28,8 @@ interface
       cclasses,
       aasmtai,
       cpubase,cpuinfo,
-      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils;
+      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils,
+      compilerbase;
 
     const
       { The value below is OK for O32 and N32 calling conventions }
@@ -93,7 +94,8 @@ implementation
     uses
       cutils,verbose,systems,
       defutil, cpupi, procinfo,
-      cgobj;
+      cgobj,
+      compiler;
 
 
 
@@ -331,7 +333,7 @@ implementation
               begin
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[paracgsize];
-                paradef := cpointerdef.getreusable_no_free(paradef);
+                paradef := cpointerdef.getreusable_no_free(paradef,compiler);
               end
             else
               begin
@@ -591,6 +593,4 @@ implementation
       end;
 
 
-begin
-   ParaManager:=tcpuparamanager.create;
 end.

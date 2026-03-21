@@ -26,7 +26,8 @@ unit ncpuadd;
 interface
 
 uses
-  node, ncgadd, cpubase, aasmbase, cgbase;
+  node, ncgadd, cpubase, aasmbase, cgbase,
+  compilerbase;
 
 type
 
@@ -72,7 +73,9 @@ uses
   procinfo,
   symconst,symdef,
   ncon, nset, nadd,
-  ncgutil, hlcgobj, cgobj;
+  ncgutil, hlcgobj, cgobj,
+  compiler,
+  nodehelper;
 
 {*****************************************************************************
                                tmipsaddnode

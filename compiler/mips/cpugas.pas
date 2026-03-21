@@ -27,12 +27,13 @@ unit cpugas;
 
     uses
       cpubase, aasmbase, globtype, systems,
-      aasmtai, aasmcpu, assemble, aggas;
+      aasmtai, aasmcpu, assemble, aggas,
+      compilerbase;
 
     type
       TMIPSGNUAssembler = class(TGNUassembler)
         nomacro, noreorder, noat : boolean;
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
         procedure WriteExtraHeader; override;
@@ -54,7 +55,8 @@ unit cpugas;
 
     uses
       cutils, cpuinfo,
-      globals, verbose, itcpugas, cgbase, cgutils;
+      globals, verbose, itcpugas, cgbase, cgutils,
+      compiler;
 
 
       { float related options as accepted by
@@ -109,7 +111,7 @@ unit cpugas;
 {                         GNU MIPS  Assembler writer                           }
 {****************************************************************************}
 
-    constructor TMIPSGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TMIPSGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter:=TMIPSInstrWriter.create(self);

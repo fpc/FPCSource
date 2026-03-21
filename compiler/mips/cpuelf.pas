@@ -30,7 +30,8 @@ implementation
   uses
     globtype,sysutils,cutils,cclasses,
     verbose, elfbase,
-    systems,aasmbase,ogbase,ogelf,assemble;
+    systems,aasmbase,ogbase,ogelf,assemble,
+    compilerbase,compiler;
 
   type
     TElfExeOutputMIPS=class(TElfExeOutput)
@@ -64,7 +65,7 @@ implementation
       procedure DoRelocationFixup(objsec:TObjSection);override;
       procedure Do_Mempos;override;
     public
-      constructor Create;override;
+      constructor Create(acompiler: TCompilerBase);override;
       destructor Destroy;override;
       procedure FixupRelocations;override;
     end;
@@ -233,6 +234,8 @@ implementation
 
   procedure MaybeSwapElfReginfo(var h:TElfReginfo);
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       i: longint;
     begin
       if source_info.endian<>compiler.target.info.endian then
@@ -246,6 +249,8 @@ implementation
 
 
   procedure putword(sec:TObjSection;d:longword);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if source_info.endian<>compiler.target.info.endian then
         d:=swapendian(d);
@@ -312,9 +317,9 @@ implementation
                                  TElfExeOutputMIPS
 *****************************************************************************}
 
-  constructor TElfExeOutputMIPS.Create;
+  constructor TElfExeOutputMIPS.Create(acompiler: TCompilerBase);
     begin
-      inherited Create;
+      inherited;
       local_got_relocs:=TFPObjectList.Create(False);
       pic_stub_syms:=TFPObjectList.Create(False);
       pic_stubs:=THashSet.Create(64,True,False);

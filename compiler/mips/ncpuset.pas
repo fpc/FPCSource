@@ -28,7 +28,8 @@ interface
 uses
   globtype,
   nset,
-  ncgset;
+  ncgset,
+  compilerbase;
 
 type
   tcpucasenode = class(tcgcasenode)
@@ -48,7 +49,9 @@ uses
   cpubase,
   aasmbase, aasmtai, aasmcpu, aasmdata,
   cgbase, cgutils, cgobj,
-  defutil,procinfo;
+  defutil,procinfo,
+  compiler,
+  nodehelper;
 
 procedure tcpucasenode.optimizevalues(var max_linear_list: int64; var max_dist: qword);
 begin

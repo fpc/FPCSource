@@ -393,7 +393,7 @@ implementation
 {$endif z80}
 {$ifdef mips}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif mips}
 {$ifdef riscv32}
         create_fpu_types;

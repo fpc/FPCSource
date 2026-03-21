@@ -28,7 +28,8 @@ Interface
   uses
     cgbase,
     rautils,
-    raatt;
+    raatt,
+    compilerbase;
 
   type
     tMipsReader = class(tattreader)
@@ -60,7 +61,8 @@ Interface
       rabase,
       rgbase,
       itcpugas,
-      cgobj,paramgr
+      cgobj,paramgr,
+      compiler
       ;
 
 
@@ -522,7 +524,7 @@ Interface
       var
         instr : TInstruction;
       begin
-        instr:=TInstruction.Create(TOperand);
+        instr:=TInstruction.Create(TOperand,compiler);
         BuildOpcode(instr);
         with instr do
           begin

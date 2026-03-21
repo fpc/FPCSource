@@ -26,7 +26,8 @@ unit ncpuinln;
 interface
 
 uses
-  node, ninl, ncginl;
+  node, ninl, ncginl,
+  compilerbase;
 
 type
   tMIPSELinlinenode = class(tcgInlineNode)
@@ -53,7 +54,9 @@ uses
   cgbase, pass_2,
   cpubase, paramgr,
   nbas, ncon, ncal, ncnv, nld,
-  hlcgobj, ncgutil, cgobj, cgutils;
+  hlcgobj, ncgutil, cgobj, cgutils,
+  compiler,
+  nodehelper;
 
 {*****************************************************************************
                               tMIPSELinlinenode

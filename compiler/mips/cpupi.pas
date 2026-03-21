@@ -29,7 +29,8 @@ interface
     cutils,
     globtype,symdef,
     procinfo,cpuinfo,cpupara,
-    psub,aasmdata,cgutils;
+    psub,aasmdata,cgutils,
+    compilerbase;
 
   type
 
@@ -46,7 +47,7 @@ interface
       setnoat : boolean;
       //intparareg,
       //parasize : longint;
-      constructor create(aparent:tprocinfo);override;
+      constructor create(aparent:tprocinfo;acompiler:TCompilerBase);override;
       function calc_stackframe_size:longint;override;
       procedure set_first_temp_offset;override;
       procedure allocate_got_register(list:tasmlist);override;
@@ -62,11 +63,12 @@ implementation
     uses
       systems,globals,verbose,
       cpubase,cgbase,cgobj,
-      tgobj,paramgr,symconst,symcpu,aasmcpu;
+      tgobj,paramgr,symconst,symcpu,aasmcpu,
+      compiler;
 
-    constructor tcpuprocinfo.create(aparent: tprocinfo);
+    constructor tcpuprocinfo.create(aparent: tprocinfo;acompiler:TCompilerBase);
       begin
-        inherited create(aparent);
+        inherited;
         if (cs_generate_stackframes in current_settings.localswitches) or
            not (cs_opt_stackframe in current_settings.optimizerswitches) then
           include(flags,pi_needs_stackframe);

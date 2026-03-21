@@ -25,7 +25,8 @@ unit ncpucnv;
 interface
 
 uses
-  node, ncnv, ncgcnv, defcmp;
+  node, ncnv, ncgcnv, defcmp,
+  compilerbase;
 
 type
   tMIPSELtypeconvnode = class(TCgTypeConvNode)
@@ -63,7 +64,9 @@ uses
   ncgutil,
   cpubase, aasmcpu,
   tgobj, cgobj,
-  hlcgobj;
+  hlcgobj,
+  compiler,
+  nodehelper;
 
 
 {*****************************************************************************
@@ -95,7 +98,7 @@ begin
         left,nil));
       left:=nil;
       if (tfloatdef(resultdef).floattype=s32real) then
-        inserttypeconv(result,s32floattype);
+        inserttypeconv(result,s32floattype,compiler);
       firstpass(result);
       exit;
     end
@@ -103,10 +106,10 @@ begin
     { other integers are supposed to be 32 bit }
     begin
       if is_signed(left.resultdef) then
-        inserttypeconv(left,s32inttype)
+        inserttypeconv(left,s32inttype,compiler)
       else
         begin
-          inserttypeconv(left,u32inttype);
+          inserttypeconv(left,u32inttype,compiler);
           if (cs_create_pic in current_settings.moduleswitches) then
             include(current_procinfo.flags,pi_needs_got);
         end;

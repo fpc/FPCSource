@@ -29,7 +29,8 @@ interface
 
 uses
   symtype,
-  node, nmat, ncgmat, cgbase;
+  node, nmat, ncgmat, cgbase,
+  compilerbase;
 
 type
   tMIPSELmoddivnode = class(tmoddivnode)
@@ -64,7 +65,9 @@ uses
   cgobj, hlcgobj, pass_2,
   ncon,
   cpubase,
-  ncgutil, cgcpu, cgutils;
+  ncgutil, cgcpu, cgutils,
+  compiler,
+  nodehelper;
 
 {*****************************************************************************
                              TMipselMODDIVNODE

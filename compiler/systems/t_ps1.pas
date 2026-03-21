@@ -25,7 +25,7 @@ unit t_ps1;
 {$i fpcdefs.inc}
 
 interface
-uses link;
+uses link,compilerbase;
 
 type
     TLinkerPS1=class(TExternalLinker)
@@ -36,7 +36,7 @@ type
 
     public
 
-      constructor Create; override;
+      constructor Create(acompiler: TCompilerBase); override;
       procedure InitSysInitUnitName; override;
       procedure SetDefaultInfo; override;
       function  MakeExecutable: boolean; override;
@@ -49,12 +49,12 @@ uses
     sysutils, classes,
     cutils, cfileutl, cclasses,
     globtype, globals, systems, verbose, comphook, cscript, fmodule,
-    i_ps1;
+    i_ps1, compiler;
 
 
-constructor TLinkerPS1.Create;
+constructor TLinkerPS1.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
 end;
 
 Procedure TLinkerPS1.InitSysInitUnitName;
