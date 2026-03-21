@@ -192,6 +192,13 @@ type
     FExceptionStateHandler: tcgexceptionstatehandler;
     Fhlcg: thlcgobj;
     Fcg: tcg;
+{$ifdef cpu64bitalu}
+    { Code generator class for all operations working with 128-Bit operands }
+    Fcg128 : tcg128;
+{$else cpu64bitalu}
+    { Code generator class for all operations working with 64-Bit operands }
+    Fcg64 : tcg64;
+{$endif cpu64bitalu}
     Fparamanager : tparamanager;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -238,6 +245,13 @@ type
     property hlcg: thlcgobj read Fhlcg write Fhlcg;
     { Main code generator class }
     property cg: tcg read Fcg write Fcg;
+{$ifdef cpu64bitalu}
+    { Code generator class for all operations working with 128-Bit operands }
+    property cg128 : tcg128 read Fcg128 write Fcg128;
+{$else cpu64bitalu}
+    { Code generator class for all operations working with 64-Bit operands }
+    property cg64 : tcg64 read Fcg64 write Fcg64;
+{$endif cpu64bitalu}
     property paramanager: tparamanager read Fparamanager;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
@@ -253,6 +267,11 @@ type
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
     function GetCG: tcg; inline;
+{$ifdef cpu64bitalu}
+    function GetCG128 : tcg128; inline;
+{$else cpu64bitalu}
+    function GetCG64 : tcg64; inline;
+{$endif cpu64bitalu}
     function GetExceptionStateHandler: tcgexceptionstatehandler; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function GetHLCG: thlcgobj; inline;
@@ -398,6 +417,11 @@ type
     property ExceptionStateHandler: tcgexceptionstatehandler read GetExceptionStateHandler;
     property hlcg: thlcgobj read GetHLCG;
     property cg: tcg read GetCG;
+{$ifdef cpu64bitalu}
+    property cg128 : tcg128 read GetCG128;
+{$else cpu64bitalu}
+    property cg64 : tcg64 read GetCG64;
+{$endif cpu64bitalu}
     property paramanager: tparamanager read GetParaManager;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -754,6 +778,18 @@ function TCompilerHelper.GetCG: tcg; inline;
 begin
   Result := TCompiler(Self).cg;
 end;
+
+{$ifdef cpu64bitalu}
+function TCompilerHelper.GetCG128 : tcg128; inline;
+begin
+  Result := TCompiler(Self).cg128;
+end;
+{$else cpu64bitalu}
+function TCompilerHelper.GetCG64 : tcg64; inline;
+begin
+  Result := TCompiler(Self).cg64;
+end;
+{$endif cpu64bitalu}
 
 function TCompilerHelper.GetExceptionStateHandler: tcgexceptionstatehandler; inline;
 begin
