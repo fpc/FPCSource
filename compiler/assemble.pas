@@ -64,7 +64,7 @@ interface
         Constructor Create(info: pasminfo; smart:boolean; acompiler: TCompilerBase);virtual;
         Destructor Destroy;override;
         procedure NextSmartName(place:tcutplace);
-        procedure MakeObject;virtual;abstract;
+        procedure MakeObject(asmdata: TAsmData);virtual;abstract;
       end;
 
       TExternalAssembler = class;
@@ -204,7 +204,7 @@ interface
       public
         Constructor Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase); override; final;
         Constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); virtual;
-        procedure MakeObject;override;
+        procedure MakeObject(asmdata: TAsmData);override;
         destructor Destroy; override;
 
         property writer: TExternalAssemblerOutputFile read fwriter;
@@ -243,7 +243,7 @@ interface
       public
         constructor Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase);override;
         destructor  destroy;override;
-        procedure MakeObject;override;
+        procedure MakeObject(asmdata: TAsmData);override;
       end;
 
     TAssemblerClass = class of TAssembler;
@@ -1395,7 +1395,7 @@ Implementation
       end;
 
 
-    procedure TExternalAssembler.MakeObject;
+    procedure TExternalAssembler.MakeObject(asmdata: TAsmData);
       begin
         writer.AsmCreate(cut_normal);
         FillChar(lastfileinfo, sizeof(lastfileinfo), 0);
@@ -2897,7 +2897,7 @@ Implementation
       end;
 
 
-    procedure TInternalAssembler.MakeObject;
+    procedure TInternalAssembler.MakeObject(asmdata: TAsmData);
 
     var to_do:set of TasmlistType;
         i:TasmlistType;
@@ -2939,7 +2939,7 @@ Implementation
         if not assigned(CAssembler[compiler.target._asm.id]) then
           compiler.verbose.Message(asmw_f_assembler_output_not_supported);
         a:=CAssembler[compiler.target._asm.id].Create(@compiler.target._asm,smart,compiler);
-        a.MakeObject;
+        a.MakeObject(current_asmdata);
         a.Free;
         a := nil;
       end;
