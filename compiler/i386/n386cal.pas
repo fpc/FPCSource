@@ -54,7 +54,8 @@ implementation
       symdef,symsym,symcpu,symconst,
       cga,cgobj,cgx86,
       cpuinfo,
-      compiler;
+      compiler,
+      nodehelper;
 
 
 {*****************************************************************************

@@ -44,7 +44,8 @@ implementation
     cgbase,pass_2,
     cpuinfo,cpubase,
     cga,cgutils,cgx86,cgobj,hlcgobj,
-    ninl,ncon,ncal;
+    ninl,ncon,ncal,
+    nodehelper;
 
 
   function ti386inlinenode.first_sar: tnode;

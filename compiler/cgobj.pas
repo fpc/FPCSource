@@ -514,8 +514,10 @@ unit cgobj;
     tcg64 = class
        private
         FCompiler: TCompilerBase;
+        function GetCG: tcg; inline;
        protected
         property Compiler: TCompilerBase read FCompiler;
+        property cg: tcg read GetCG;
        public
         constructor create(ACompiler: TCompilerBase);
 
@@ -3149,6 +3151,12 @@ implementation
     constructor tcg64.create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
+      end;
+
+
+    function tcg64.GetCG: tcg; inline;
+      begin
+        result:=compiler.cg;
       end;
 
 

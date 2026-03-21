@@ -35,6 +35,9 @@ unit cgcpu;
 
     type
       tcg386 = class(tcgx86)
+      private
+        function use_push(const cgpara:tcgpara):boolean;
+      public
         procedure init_register_allocators;override;
 
         { passing parameter using push instead of mov }
@@ -70,7 +73,7 @@ unit cgcpu;
        paramgr,procinfo,fmodule,
        rgcpu,rgx86,cpuinfo,compiler;
 
-    function use_push(const cgpara:tcgpara):boolean;
+    function tcg386.use_push(const cgpara:tcgpara):boolean;
       begin
         result:=(not paramanager.use_fixed_stack) and
                 assigned(cgpara.location) and
@@ -485,10 +488,10 @@ unit cgcpu;
              current_asmdata.getjumplabel(again);
              current_asmdata.getjumplabel(ok);
              a_label(list,again);
-             cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+             a_reg_alloc(list,NR_DEFAULTFLAGS);
              list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,NR_EDI));
              a_jmp_cond(list,OC_B,ok);
-             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+             a_reg_dealloc(list,NR_DEFAULTFLAGS);
              list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
              list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
              list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,NR_EDI));
@@ -1208,7 +1211,7 @@ unit cgcpu;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        cg := tcg386.create(compiler);
+        tcompiler(compiler).cg := tcg386.create(compiler);
         cg64 := tcg64f386.create(compiler);
       end;
 

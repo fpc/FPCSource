@@ -61,7 +61,8 @@ implementation
     cpubase,htypechk,
     parabase,paramgr,pass_1,pass_2,ncgutil,cga,
     aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi,procdefutil,
-    compiler;
+    compiler,
+    nodehelper;
 
   var
     endexceptlabel: tasmlabel;
@@ -269,9 +270,13 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
 
 procedure emit_scope_start(handler,data: TAsmSymbol);
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    cg:tcg;
+  var
     href: treference;
     hreg: tregister;
   begin
+    cg:=compiler.cg;
     hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
     reference_reset_base(href,hreg,0,ctempposinvalid,sizeof(pint),[]);
     href.segment:=NR_FS;
@@ -285,9 +290,13 @@ procedure emit_scope_start(handler,data: TAsmSymbol);
 
 procedure emit_scope_end;
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    cg:tcg;
+  var
     href: treference;
     hreg,hreg2: tregister;
   begin
+    cg:=compiler.cg;
     hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
     reference_reset_base(href,hreg,0,ctempposinvalid,sizeof(pint),[]);

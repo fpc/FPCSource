@@ -56,7 +56,7 @@ implementation
       ncon,
       cpubase,cpuinfo,
       cga,ncgutil,cgobj,cgutils,
-      hlcgobj,
+      nodehelper,
       compiler;
 
 {*****************************************************************************

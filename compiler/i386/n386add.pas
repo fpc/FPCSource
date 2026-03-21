@@ -52,7 +52,7 @@ interface
       ncon,nset,cgutils,tgobj,
       cpuinfo,
       cga,ncgutil,cgobj,cg64f32,cgx86,
-      hlcgobj;
+      nodehelper;
 
 {*****************************************************************************
                                 use_generic_mul32to64
