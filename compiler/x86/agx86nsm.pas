@@ -1404,10 +1404,10 @@ interface
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          if not (current_asmdata.asmlists[hal].empty) then
+          if not (asmdata.asmlists[hal].empty) then
             begin
               writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-              writetree(current_asmdata.asmlists[hal]);
+              writetree(asmdata.asmlists[hal]);
               writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
             end;
         end;
