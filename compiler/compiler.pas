@@ -718,7 +718,7 @@ begin
           { in case of 50 errors, this could cause another exception,
             suppress this exception
           }
-          if not globals.exception_raised then
+          if assigned(globals) and not globals.exception_raised then
             begin
               globals.exception_raised:=true;
               verbose.Message(general_e_exception_raised);
