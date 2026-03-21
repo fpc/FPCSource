@@ -615,12 +615,6 @@ unit cgobj;
     function joinreg64(reglo,reghi : tregister) : tregister64;
 {$endif cpu64bitalu}
 
-{$ifdef cpu64bitalu}
-    var
-       { Code generator class for all operations working with 128-Bit operands }
-       cg128 : tcg128;
-{$endif cpu64bitalu}
-
     function asmsym2indsymflags(sym: TAsmSymbol): tindsymflags;
 
     procedure destroy_codegen(ACompiler: TCompilerBase);
