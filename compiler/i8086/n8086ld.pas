@@ -51,7 +51,7 @@ implementation
       symconst,symdef,symtable,symcpu,
       nld,
       cgbase,cgobj,cgutils,
-      hlcgobj,
+      nodehelper,
       cpubase,cpuinfo,
       parabase,paramgr;
 

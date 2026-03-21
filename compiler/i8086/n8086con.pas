@@ -26,14 +26,14 @@ unit n8086con;
 interface
 
     uses
-       globtype,symtype,ncon,ncgcon,nx86con;
+       globtype,symtype,ncon,ncgcon,nx86con,compilerbase;
 
     type
 
       { ti8086pointerconstnode }
 
       ti8086pointerconstnode = class(tcgpointerconstnode)
-        constructor create(v : TConstPtrUInt;def:tdef);override;
+        constructor create(v : TConstPtrUInt;def:tdef;acompiler: TCompilerBase);override;
         procedure printnodedata(var t: text);override;
 {$ifdef DEBUG_NODE_XML}
         procedure XMLPrintNodeData(var T: Text); override;
@@ -56,12 +56,12 @@ implementation
     *****************************************************************************}
 
 
-    constructor ti8086pointerconstnode.create(v: TConstPtrUInt; def: tdef);
+    constructor ti8086pointerconstnode.create(v: TConstPtrUInt; def: tdef;acompiler: TCompilerBase);
       begin
         { truncate near pointers }
         if (def.typ<>pointerdef) or not (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
           v := Word(v);
-        inherited create(v, def);
+        inherited;
       end;
 
 

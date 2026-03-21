@@ -29,7 +29,8 @@ unit cpupara;
        globtype,
        aasmtai,aasmdata,cpubase,cgbase,cgutils,
        symconst,symtype,symsym,symdef,
-       parabase,paramgr;
+       parabase,paramgr,
+       compilerbase;
 
     type
        tcpuparamanager = class(tparamanager)
@@ -70,7 +71,8 @@ unit cpupara;
        cutils,
        systems,verbose,
        symtable,symcpu,
-       globals,defutil;
+       globals,defutil,
+       compiler;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_AX,RS_DX,RS_BX);
@@ -263,7 +265,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=cpointerdef.getreusable_no_free(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef,compiler);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -455,7 +457,7 @@ unit cpupara;
               begin
                 paralen:=voidpointertype.size;
                 paracgsize:=int_cgsize(voidpointertype.size);
-                paradef:=cpointerdef.getreusable_no_free(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
               end
             else
               begin
@@ -596,7 +598,7 @@ unit cpupara;
                       begin
                         paralen:=voidpointertype.size;
                         paracgsize:=int_cgsize(voidpointertype.size);
-                        paradef:=cpointerdef.getreusable_no_free(paradef);
+                        paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                       end
                     else
                       begin
@@ -812,6 +814,4 @@ unit cpupara;
       end;
 
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.

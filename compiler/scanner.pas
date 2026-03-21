@@ -851,12 +851,12 @@ implementation
             if NewAppType=app_com then
               begin
                 targetinfos[compiler.target.info.system]^.exeext:='.com';
-                compiler.target.info.exeext:='.com';
+                compiler.target.set_target_exeext('.com');
               end
             else
               begin
                 targetinfos[compiler.target.info.system]^.exeext:='.exe';
-                compiler.target.info.exeext:='.exe';
+                compiler.target.set_target_exeext('.exe');
               end;
           end;
 {$endif i8086}
@@ -866,12 +866,12 @@ implementation
             app_cui:
               begin
                 targetinfos[compiler.target.info.system]^.exeext:='.ttp';
-                compiler.target.info.exeext:='.ttp';
+                compiler.target.set_target_exeext('.ttp');
               end;
             app_gui:
               begin
                 targetinfos[compiler.target.info.system]^.exeext:='.prg';
-                compiler.target.info.exeext:='.prg';
+                compiler.target.set_target_exeext('.prg');
               end;
             else
               ;

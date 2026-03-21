@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  globtype,
+  globtype,compilerbase,
   symconst,symtype,symdef,symsym,symx86,symi86;
 
 type
@@ -91,7 +91,7 @@ type
     procedure ppuload_platform(ppufile: tcompilerppufile); override;
     procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
    public
-    constructor create_from_pointer(def:tpointerdef);override;
+    constructor create_from_pointer(def:tpointerdef;acompiler:tcompilerbase);override;
     function getcopy: tstoreddef; override;
     function GetTypeName:string;override;
     property is_huge: Boolean read huge write huge;
@@ -109,7 +109,7 @@ type
   { tcpuprocvardef }
 
   tcpuprocvardef = class(ti86procvardef)
-    constructor create(level:byte;doregister:boolean);override;
+    constructor create(level:byte;doregister:boolean;acompiler:tcompilerbase);override;
     function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string;doregister:boolean):tstoreddef;override;
     function address_type:tdef;override;
     function ofs_address_type:tdef;override;
@@ -133,7 +133,7 @@ type
    protected
     procedure Setinterfacedef(AValue: boolean);override;
    public
-    constructor create(level:byte;doregister:boolean);override;
+    constructor create(level:byte;doregister:boolean;acompiler:tcompilerbase);override;
     function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string;doregister:boolean):tstoreddef;override;
     function address_type:tdef;override;
     function ofs_address_type:tdef;override;
@@ -241,7 +241,7 @@ const
 implementation
 
   uses
-    globals, cpuinfo, verbose, fmodule;
+    globals, cpuinfo, verbose, fmodule, compiler;
 
 
   function is_proc_far(p: tabstractprocdef): boolean;
@@ -307,10 +307,10 @@ implementation
                                tcpuarraydef
 ****************************************************************************}
 
-  constructor tcpuarraydef.create_from_pointer(def: tpointerdef);
+  constructor tcpuarraydef.create_from_pointer(def: tpointerdef;acompiler:tcompilerbase);
     begin
       huge:=tcpupointerdef(def).x86pointertyp=x86pt_huge;
-      inherited create_from_pointer(def);
+      inherited;
     end;
 
 
@@ -347,9 +347,9 @@ implementation
                              tcpuprocdef
 ****************************************************************************}
 
-  constructor tcpuprocdef.create(level: byte;doregister:boolean);
+  constructor tcpuprocdef.create(level: byte;doregister:boolean;acompiler:tcompilerbase);
     begin
-      inherited create(level,doregister);
+      inherited;
       if (current_settings.x86memorymodel in x86_far_code_models) and
          ((cs_huge_code in current_settings.moduleswitches) or
           (cs_force_far_calls in current_settings.localswitches)) then
@@ -440,9 +440,9 @@ implementation
                              tcpuprocvardef
 ****************************************************************************}
 
-  constructor tcpuprocvardef.create(level: byte;doregister:boolean);
+  constructor tcpuprocvardef.create(level: byte;doregister:boolean;acompiler:tcompilerbase);
     begin
-      inherited create(level,doregister);
+      inherited;
       if current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
     end;

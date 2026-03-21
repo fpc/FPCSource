@@ -31,7 +31,8 @@ interface
 uses
   cclasses,
   globtype,
-  owbase;
+  owbase,
+  compilerbase;
 
 type
 
@@ -135,7 +136,8 @@ implementation
       SysUtils,
       cstreams,cutils,
       globals,verbose,
-      omfbase;
+      omfbase,
+      compiler;
 
     const
       libbufsize = 65536;
@@ -202,8 +204,10 @@ implementation
 
 
     destructor TOmfLibObjectWriter.destroy;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if Errorcount=0 then
+        if compiler.verbose.Errorcount=0 then
           WriteLib;
         FLibData.Free;
         FLibData := nil;
@@ -345,6 +349,8 @@ implementation
       end;
 
     procedure TOmfLibObjectWriter.WriteLib;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         libf: TCCustomFileStream;
         DictStart, bytes: LongWord;
@@ -502,6 +508,8 @@ implementation
     end;
 
   procedure TOmfLibObjectReader.ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
       nbuckets=37;
       freespace=nbuckets;
@@ -562,6 +570,8 @@ implementation
     end;
 
   constructor TOmfLibObjectReader.createAr(const Aarfn: string; allow_nonar: boolean);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       RecType: Byte;
     begin

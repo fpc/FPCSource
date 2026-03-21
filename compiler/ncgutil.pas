@@ -1104,7 +1104,11 @@ implementation
 
 
     procedure add_regvars(var rv: tusedregvars; const location: tlocation);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         case location.loc of
           LOC_CREGISTER:
 {$if defined(cpu64bitalu)}

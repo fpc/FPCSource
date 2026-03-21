@@ -703,7 +703,7 @@ implementation
               { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
               if current_scanner.token<>_RKLAMMER then
                 p1:=sub_expr(opcompare,[ef_accept_equal],p1);
-              p1:=geninlinenode(in_faraddr_x,false,p1);
+              p1:=geninlinenode(in_faraddr_x,false,p1,compiler);
               got_addrn:=false;
               parser.pbase.consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -2440,12 +2440,12 @@ implementation
                              begin
 {$if defined(i8086)}
                                parser.pbase.consume(_COLON);
-                               inserttypeconv(p2,u16inttype);
-                               inserttypeconv_internal(p2,u32inttype);
+                               inserttypeconv(p2,u16inttype,compiler);
+                               inserttypeconv_internal(p2,u32inttype,compiler);
                                p3:=compiler.cshlshrnode(shln,p2,compiler.cordconstnode($10,s16inttype,false));
                                p2:=comp_expr([ef_accept_equal]);
-                               inserttypeconv(p2,u16inttype);
-                               inserttypeconv_internal(p2,u32inttype);
+                               inserttypeconv(p2,u16inttype,compiler);
+                               inserttypeconv_internal(p2,u32inttype,compiler);
                                p2:=compiler.caddnode(addn,p2,p3);
                                case tloadnode(p1).symtableentry.name of
                                  'MEM': p2:=compiler.ctypeconvnode_internal(p2,bytefarpointertype);

@@ -26,7 +26,7 @@ unit n8086add;
 interface
 
     uses
-       node,nadd,cpubase,nx86add;
+       node,nadd,cpubase,nx86add,compilerbase;
 
     type
 
@@ -60,7 +60,7 @@ interface
       nutils,cgbase,procinfo,
       ncal,ncon,nset,cgutils,tgobj,
       cga,ncgutil,cgobj,cg64f32,cgx86,
-      hlcgobj;
+      nodehelper,compiler;
 
 {*****************************************************************************
                                 simplify

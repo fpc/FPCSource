@@ -38,7 +38,8 @@ implementation
        fmodule,i_msdos,
        link,cpuinfo,
        aasmbase,aasmcnst,symbase,symdef,
-       omfbase,ogbase,ogomf,owomflib;
+       omfbase,ogbase,ogomf,owomflib,
+       compilerbase,compiler;
 
     type
       { Borland TLINK support }
@@ -46,7 +47,7 @@ implementation
       private
          Function  WriteResponseFile(isdll:boolean) : Boolean;
       public
-         constructor Create;override;
+         constructor Create(acompiler: TCompilerBase);override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
       end;
@@ -56,7 +57,7 @@ implementation
       private
          Function  WriteResponseFile(isdll:boolean) : Boolean;
       public
-         constructor Create;override;
+         constructor Create(acompiler: TCompilerBase);override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
       end;
@@ -67,7 +68,7 @@ implementation
          Function  WriteResponseFile(isdll:boolean) : Boolean;
          Function  PostProcessExecutable(const fn:string) : Boolean;
       public
-         constructor Create;override;
+         constructor Create(acompiler: TCompilerBase);override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
       end;
@@ -83,7 +84,7 @@ implementation
         function GetBssSize(aExeOutput: TExeOutput): QWord;override;
         procedure DefaultLinkScript;override;
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
       end;
 
       { tmsdostai_typedconstbuilder }
@@ -111,8 +112,10 @@ implementation
     end;
 
   class function tmsdostai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean;
+    var
+      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      result:=(tf_smartlink_library in compiler.target.info.flags) and is_smartlink_vectorized_dead_strip;
+      result:=(tf_smartlink_library in _compiler.target.info.flags) and is_smartlink_vectorized_dead_strip;
       if not result then
         exit;
       if tcalo_vectorized_dead_strip_start in options then
@@ -127,9 +130,11 @@ implementation
     end;
 
   class function tmsdostai_typedconstbuilder.is_smartlink_vectorized_dead_strip: boolean;
+    var
+      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
 {$ifdef USE_LINKER_WLINK}
-      result:=inherited or (tf_smartlink_library in compiler.target.info.flags);
+      result:=inherited or (tf_smartlink_library in _compiler.target.info.flags);
 {$else}
       result:=inherited and not (cs_link_extern in current_settings.globalswitches);
 {$endif USE_LINKER_WLINK}
@@ -139,9 +144,9 @@ implementation
                                TExternalLinkerMsDosTLink
 ****************************************************************************}
 
-Constructor TExternalLinkerMsDosTLink.Create;
+Constructor TExternalLinkerMsDosTLink.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -250,9 +255,9 @@ begin
   WriteResponseFile:=True;
 end;
 
-constructor TExternalLinkerMsDosALink.Create;
+constructor TExternalLinkerMsDosALink.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -366,9 +371,9 @@ begin
   WriteResponseFile:=True;
 end;
 
-constructor TExternalLinkerMsDosWLink.Create;
+constructor TExternalLinkerMsDosWLink.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -564,9 +569,9 @@ begin
   LinkScript.Concat('ENTRYNAME ..start');
 end;
 
-constructor TInternalLinkerMsDos.create;
+constructor TInternalLinkerMsDos.create(acompiler: TCompilerBase);
 begin
-  inherited create;
+  inherited;
   CArObjectReader:=TOmfLibObjectReader;
   CExeOutput:=TMZExeOutput;
   CObjInput:=TOmfObjInput;

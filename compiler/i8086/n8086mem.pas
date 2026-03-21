@@ -29,7 +29,8 @@ interface
       globtype,
       symtype,
       cgbase,cpuinfo,cpubase,
-      node,nmem,ncgmem,nx86mem,ni86mem;
+      node,nmem,ncgmem,nx86mem,ni86mem,
+      compilerbase;
 
     type
        ti8086addrnode = class(ti86addrnode)
@@ -63,8 +64,9 @@ implementation
       aasmtai,aasmdata,
       nld,ncon,nadd,ncal,ncnv,
       cgutils,cgobj,
-      defutil,hlcgobj,
-      pass_1,pass_2,ncgutil;
+      defutil,nodehelper,
+      pass_1,pass_2,ncgutil,
+      compiler;
 
 {*****************************************************************************
                              TI8086ADDRNODE
@@ -84,7 +86,7 @@ implementation
         if not(anf_typedaddr in addrnodeflags) then
           resultdef:=voidfarpointertype
         else
-          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);
+          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far,compiler);
       end;
 
 
@@ -164,7 +166,7 @@ implementation
                { can be NR_NO in case of LOC_CONSTANT }
                (location.reference.base<>NR_NO) then
              begin
-               if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
+               if not compiler.symtablestack.searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
                   (sym.typ<>procsym) then
                  internalerror(2012010603);
                pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
@@ -189,7 +191,7 @@ implementation
 
     function ti8086vecnode.get_address_type: tdef;
       begin
-        result:=tx86pointerdef(cpointerdef).getreusablex86(resultdef,x86pt_near);
+        result:=tx86pointerdef(cpointerdef).getreusablex86(resultdef,x86pt_near,compiler);
       end;
 
 
@@ -219,7 +221,7 @@ implementation
             result:=compiler.ccallnode_intern(procname,
               compiler.ccallparanode(right,
               compiler.ccallparanode(ttypeconvnode(left).left,nil)));
-            inserttypeconv_internal(result,tx86pointerdef(cpointerdef).getreusablex86(arraydef.elementdef,x86pt_huge));
+            inserttypeconv_internal(result,tx86pointerdef(cpointerdef).getreusablex86(arraydef.elementdef,x86pt_huge,compiler),compiler);
             result:=compiler.cderefnode(result);
 
             ttypeconvnode(left).left:=nil;

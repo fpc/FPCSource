@@ -26,7 +26,7 @@ unit cgcpu;
   interface
 
     uses
-       globtype,
+       globtype,compilerbase,
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,parabase,cgutils,
@@ -38,6 +38,9 @@ unit cgcpu;
       { tcg8086 }
 
       tcg8086 = class(tcgx86)
+      private
+        function use_push(const cgpara:tcgpara):boolean;
+      public
         procedure init_register_allocators;override;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
@@ -107,7 +110,7 @@ unit cgcpu;
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
@@ -117,13 +120,14 @@ unit cgcpu;
        rgcpu,rgx86,cpuinfo,
        symtype,symsym,symcpu,
        tgobj,
-       hlcgobj;
+       hlcgobj,
+       compiler;
 
 { Range check must be disabled explicitly as the code uses
   implicit typecast to aint troughout }
 {$R-}
 
-    function use_push(const cgpara:tcgpara):boolean;
+    function tcg8086.use_push(const cgpara:tcgpara):boolean;
       begin
         result:=(not paramanager.use_fixed_stack) and
                 assigned(cgpara.location) and
@@ -244,10 +248,10 @@ unit cgcpu;
                     end
                   else
                     begin
-                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      a_reg_alloc(list,NR_DEFAULTFLAGS);
                       list.concat(taicpu.op_const_reg(op1,S_W,aint(a and $FFFF),reg));
                       list.concat(taicpu.op_const_reg(op2,S_W,aint(a shr 16),GetNextReg(reg)));
-                      cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                      a_reg_dealloc(list,NR_DEFAULTFLAGS);
                     end;
                 end;
               OP_AND, OP_OR, OP_XOR:
@@ -466,24 +470,24 @@ unit cgcpu;
                           case op of
                             OP_SHR:
                               begin
-                                cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                                a_reg_alloc(list,NR_DEFAULTFLAGS);
                                 list.concat(taicpu.op_const_reg(A_SHR,S_W,1,GetNextReg(reg)));
                                 list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
-                                cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                                a_reg_dealloc(list,NR_DEFAULTFLAGS);
                               end;
                             OP_SAR:
                               begin
-                                cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                                a_reg_alloc(list,NR_DEFAULTFLAGS);
                                 list.concat(taicpu.op_const_reg(A_SAR,S_W,1,GetNextReg(reg)));
                                 list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
-                                cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                                a_reg_dealloc(list,NR_DEFAULTFLAGS);
                               end;
                             OP_SHL:
                               begin
-                                cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                                a_reg_alloc(list,NR_DEFAULTFLAGS);
                                 list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg));
                                 list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg)));
-                                cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                                a_reg_dealloc(list,NR_DEFAULTFLAGS);
                               end;
                             else
                               internalerror(2013030903);
@@ -502,24 +506,24 @@ unit cgcpu;
                               case op of
                                 OP_SHR:
                                   begin
-                                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                                     list.concat(taicpu.op_const_reg(A_SHR,S_W,1,GetNextReg(reg)));
                                     list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
-                                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                                    a_reg_dealloc(list,NR_DEFAULTFLAGS);
                                   end;
                                 OP_SAR:
                                   begin
-                                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                                     list.concat(taicpu.op_const_reg(A_SAR,S_W,1,GetNextReg(reg)));
                                     list.concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
-                                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                                    a_reg_dealloc(list,NR_DEFAULTFLAGS);
                                   end;
                                 OP_SHL:
                                   begin
-                                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                                     list.concat(taicpu.op_const_reg(A_SHL,S_W,1,reg));
                                     list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(reg)));
-                                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                                    a_reg_dealloc(list,NR_DEFAULTFLAGS);
                                   end;
                                 else
                                   internalerror(2013030907);
@@ -591,11 +595,11 @@ unit cgcpu;
                           end;
                         for i:=1 to rol_amount do
                           begin
-                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            a_reg_alloc(list,NR_DEFAULTFLAGS);
                             list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
                             list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
                             list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
-                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                            a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                       end;
                     rm_unrolledrightloop:
@@ -609,11 +613,11 @@ unit cgcpu;
                         for i:=1 to ror_amount do
                           begin
                             a_load_reg_reg(list,OS_16,OS_16,reg,tmpreg);
-                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            a_reg_alloc(list,NR_DEFAULTFLAGS);
                             list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
                             list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
                             list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
-                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                            a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                       end;
                     rm_loopleft:
@@ -632,11 +636,11 @@ unit cgcpu;
                         current_asmdata.getjumplabel(hl_loop_start);
                         a_label(list,hl_loop_start);
 
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(reg)));
                         list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,reg));
                         list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(reg)));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
                         ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
                         ai.is_jmp:=true;
@@ -662,11 +666,11 @@ unit cgcpu;
 
                         tmpreg:=getintregister(list,OS_16);
                         a_load_reg_reg(list,OS_16,OS_16,reg,tmpreg);
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
                         list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(reg)));
                         list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,reg));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
                         ai:=Taicpu.Op_Sym(A_LOOP,S_W,hl_loop_start);
                         ai.is_jmp:=true;
@@ -783,11 +787,11 @@ unit cgcpu;
                     end
                   else
                     begin
-                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      a_reg_alloc(list,NR_DEFAULTFLAGS);
                       list.concat(taicpu.op_const_ref(op1,S_W,aint(a and $FFFF),tmpref));
                       inc(tmpref.offset, 2);
                       list.concat(taicpu.op_const_ref(op2,S_W,aint(a shr 16),tmpref));
-                      cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                      a_reg_dealloc(list,NR_DEFAULTFLAGS);
                     end;
                 end;
               OP_AND, OP_OR, OP_XOR:
@@ -857,29 +861,29 @@ unit cgcpu;
                       case op of
                         OP_SHR:
                           begin
-                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            a_reg_alloc(list,NR_DEFAULTFLAGS);
                             inc(tmpref.offset, 2);
                             list.concat(taicpu.op_const_ref(A_SHR,S_W,1,tmpref));
                             dec(tmpref.offset, 2);
                             list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
-                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                            a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                         OP_SAR:
                           begin
-                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            a_reg_alloc(list,NR_DEFAULTFLAGS);
                             inc(tmpref.offset, 2);
                             list.concat(taicpu.op_const_ref(A_SAR,S_W,1,tmpref));
                             dec(tmpref.offset, 2);
                             list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
-                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                            a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                         OP_SHL:
                           begin
-                            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                            a_reg_alloc(list,NR_DEFAULTFLAGS);
                             list.concat(taicpu.op_const_ref(A_SHL,S_W,1,tmpref));
                             inc(tmpref.offset, 2);
                             list.concat(taicpu.op_const_ref(A_RCL,S_W,1,tmpref));
-                            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                            a_reg_dealloc(list,NR_DEFAULTFLAGS);
                           end;
                         else
                           internalerror(2015042501);
@@ -929,10 +933,10 @@ unit cgcpu;
                   if src<>dst then
                     a_load_reg_reg(list,size,size,src,dst);
                   list.concat(taicpu.op_reg(A_NOT, S_W, GetNextReg(dst)));
-                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_reg(A_NEG, S_W, dst));
                   list.concat(taicpu.op_const_reg(A_SBB, S_W,-1, GetNextReg(dst)));
-                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                  a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               OP_NOT:
                 begin
@@ -945,17 +949,17 @@ unit cgcpu;
                 begin
                   get_32bit_ops(op, op1, op2);
                   if op in [OP_ADD,OP_SUB] then
-                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_reg_reg(op1, S_W, src, dst));
                   list.concat(taicpu.op_reg_reg(op2, S_W, GetNextReg(src), GetNextReg(dst)));
                   if op in [OP_ADD,OP_SUB] then
-                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                    a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               OP_SHR,OP_SHL,OP_SAR:
                 begin
                   getcpuregister(list,NR_CX);
                   a_load_reg_reg(list,size,OS_16,src,NR_CX);
-                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
 
                   current_asmdata.getjumplabel(hl_skip);
@@ -963,7 +967,7 @@ unit cgcpu;
                   ai.SetCondition(C_Z);
                   ai.is_jmp:=true;
                   list.concat(ai);
-                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                  a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
                   current_asmdata.getjumplabel(hl_loop_start);
                   a_label(list,hl_loop_start);
@@ -971,24 +975,24 @@ unit cgcpu;
                   case op of
                     OP_SHR:
                       begin
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.concat(taicpu.op_const_reg(A_SHR,S_W,1,GetNextReg(dst)));
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,dst));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     OP_SAR:
                       begin
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.concat(taicpu.op_const_reg(A_SAR,S_W,1,GetNextReg(dst)));
                         list.concat(taicpu.op_const_reg(A_RCR,S_W,1,dst));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     OP_SHL:
                       begin
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.concat(taicpu.op_const_reg(A_SHL,S_W,1,dst));
                         list.concat(taicpu.op_const_reg(A_RCL,S_W,1,GetNextReg(dst)));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     else
                       internalerror(2013030908);
@@ -1006,7 +1010,7 @@ unit cgcpu;
                 begin
                   getcpuregister(list,NR_CX);
                   a_load_reg_reg(list,size,OS_16,src,NR_CX);
-                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
 
                   current_asmdata.getjumplabel(hl_skip);
@@ -1014,7 +1018,7 @@ unit cgcpu;
                   ai.SetCondition(C_Z);
                   ai.is_jmp:=true;
                   list.concat(ai);
-                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                  a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
                   current_asmdata.getjumplabel(hl_loop_start);
                   a_label(list,hl_loop_start);
@@ -1022,21 +1026,21 @@ unit cgcpu;
                   case op of
                     OP_ROL:
                       begin
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.Concat(taicpu.op_const_reg(A_SHL,S_W,1,GetNextReg(dst)));
                         list.Concat(taicpu.op_const_reg(A_RCL,S_W,1,dst));
                         list.Concat(taicpu.op_const_reg(A_ADC,S_W,0,GetNextReg(dst)));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     OP_ROR:
                       begin
                         tmpreg:=getintregister(list,OS_16);
                         a_load_reg_reg(list,OS_16,OS_16,dst,tmpreg);
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.Concat(taicpu.op_const_reg(A_SHR,S_W,1,tmpreg));
                         list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,GetNextReg(dst)));
                         list.Concat(taicpu.op_const_reg(A_RCR,S_W,1,dst));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     else
                       internalerror(2017042502);
@@ -1078,12 +1082,12 @@ unit cgcpu;
                 begin
                   get_32bit_ops(op, op1, op2);
                   if op in [OP_ADD,OP_SUB] then
-                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_ref_reg(op1, S_W, tmpref, reg));
                   inc(tmpref.offset, 2);
                   list.concat(taicpu.op_ref_reg(op2, S_W, tmpref, GetNextReg(reg)));
                   if op in [OP_ADD,OP_SUB] then
-                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                    a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               else
                 internalerror(2013050701);
@@ -1128,18 +1132,18 @@ unit cgcpu;
                 begin
                   get_32bit_ops(op, op1, op2);
                   if op in [OP_ADD,OP_SUB] then
-                    cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                    a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_reg_ref(op1, S_W, reg, tmpref));
                   inc(tmpref.offset, 2);
                   list.concat(taicpu.op_reg_ref(op2, S_W, GetNextReg(reg), tmpref));
                   if op in [OP_ADD,OP_SUB] then
-                    cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                    a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               OP_SHR,OP_SHL,OP_SAR:
                 begin
                   getcpuregister(list,NR_CX);
                   a_load_reg_reg(list,size,OS_16,reg,NR_CX);
-                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_const_reg(A_AND,S_W,$1f,NR_CX));
 
                   current_asmdata.getjumplabel(hl_skip);
@@ -1147,7 +1151,7 @@ unit cgcpu;
                   ai.SetCondition(C_Z);
                   ai.is_jmp:=true;
                   list.concat(ai);
-                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                  a_reg_dealloc(list,NR_DEFAULTFLAGS);
 
                   current_asmdata.getjumplabel(hl_loop_start);
                   a_label(list,hl_loop_start);
@@ -1155,29 +1159,29 @@ unit cgcpu;
                   case op of
                     OP_SHR:
                       begin
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         inc(tmpref.offset, 2);
                         list.concat(taicpu.op_const_ref(A_SHR,S_W,1,tmpref));
                         dec(tmpref.offset, 2);
                         list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     OP_SAR:
                       begin
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         inc(tmpref.offset, 2);
                         list.concat(taicpu.op_const_ref(A_SAR,S_W,1,tmpref));
                         dec(tmpref.offset, 2);
                         list.concat(taicpu.op_const_ref(A_RCR,S_W,1,tmpref));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     OP_SHL:
                       begin
-                        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                        a_reg_alloc(list,NR_DEFAULTFLAGS);
                         list.concat(taicpu.op_const_ref(A_SHL,S_W,1,tmpref));
                         inc(tmpref.offset, 2);
                         list.concat(taicpu.op_const_ref(A_RCL,S_W,1,tmpref));
-                        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        a_reg_dealloc(list,NR_DEFAULTFLAGS);
                       end;
                     else
                       internalerror(2013030909);
@@ -1225,11 +1229,11 @@ unit cgcpu;
                   inc(tmpref.offset, 2);
                   list.concat(taicpu.op_ref(A_NOT, S_W, tmpref));
                   dec(tmpref.offset, 2);
-                  cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                  a_reg_alloc(list,NR_DEFAULTFLAGS);
                   list.concat(taicpu.op_ref(A_NEG, S_W, tmpref));
                   inc(tmpref.offset, 2);
                   list.concat(taicpu.op_const_ref(A_SBB, S_W,-1, tmpref));
-                  cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                  a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
               OP_NOT:
                 begin
@@ -2033,7 +2037,7 @@ unit cgcpu;
       begin
         if size in [OS_32, OS_S32] then
           begin
-            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+            a_reg_alloc(list,NR_DEFAULTFLAGS);
             if (longint(a shr 16) = 0) then
               list.concat(taicpu.op_reg_reg(A_TEST,S_W,GetNextReg(reg),GetNextReg(reg)))
             else
@@ -2046,7 +2050,7 @@ unit cgcpu;
             else
               list.concat(taicpu.op_const_reg(A_CMP,S_W,longint(a and $ffff),reg));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_reg_dealloc(list,NR_DEFAULTFLAGS);
             a_label(list,hl_skip);
           end
         else
@@ -2064,14 +2068,14 @@ unit cgcpu;
             tmpref:=ref;
             make_simple_ref(list,tmpref);
             inc(tmpref.offset,2);
-            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+            a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a shr 16),tmpref));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             dec(tmpref.offset,2);
             list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a and $ffff),tmpref));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_reg_dealloc(list,NR_DEFAULTFLAGS);
             a_label(list,hl_skip);
           end
         else
@@ -2087,13 +2091,13 @@ unit cgcpu;
           begin
             check_register_size(size,reg1);
             check_register_size(size,reg2);
-            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+            a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_reg_reg(A_CMP,S_W,GetNextReg(reg1),GetNextReg(reg2)));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             list.concat(taicpu.op_reg_reg(A_CMP,S_W,reg1,reg2));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_reg_dealloc(list,NR_DEFAULTFLAGS);
             a_label(list,hl_skip);
           end
         else
@@ -2112,14 +2116,14 @@ unit cgcpu;
             make_simple_ref(list,tmpref);
             check_register_size(size,reg);
             inc(tmpref.offset,2);
-            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+            a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,GetNextReg(reg)));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             dec(tmpref.offset,2);
             list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,reg));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_reg_dealloc(list,NR_DEFAULTFLAGS);
             a_label(list,hl_skip);
           end
         else
@@ -2138,14 +2142,14 @@ unit cgcpu;
             make_simple_ref(list,tmpref);
             check_register_size(size,reg);
             inc(tmpref.offset,2);
-            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+            a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_reg_ref(A_CMP,S_W,GetNextReg(reg),tmpref));
             current_asmdata.getjumplabel(hl_skip);
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             dec(tmpref.offset,2);
             list.concat(taicpu.op_reg_ref(A_CMP,S_W,reg,tmpref));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_reg_dealloc(list,NR_DEFAULTFLAGS);
             a_label(list,hl_skip);
           end
         else
@@ -2374,10 +2378,10 @@ unit cgcpu;
       begin
         if cs_check_stack in current_settings.localswitches then
           begin
-            cg.getcpuregister(list,NR_AX);
-            cg.a_load_const_reg(list,OS_16, localsize,NR_AX);
-            cg.a_call_name(list,'FPC_STACKCHECK_I8086',false);
-            cg.ungetcpuregister(list, NR_AX);
+            getcpuregister(list,NR_AX);
+            a_load_const_reg(list,OS_16, localsize,NR_AX);
+            a_call_name(list,'FPC_STACKCHECK_I8086',false);
+            ungetcpuregister(list, NR_AX);
           end;
         if localsize>0 then
           list.concat(Taicpu.Op_const_reg(A_SUB,S_W,localsize,NR_STACK_POINTER_REG));
@@ -2446,7 +2450,7 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 if (stacksize<>0) then
-                  cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
+                  a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
             else
               begin
@@ -2455,7 +2459,7 @@ unit cgcpu;
                     ((po_exports in current_procinfo.procdef.procoptions) and
                      (compiler.target.info.system=system_i8086_win16))) and
                     is_proc_far(current_procinfo.procdef) then
-                  cg.a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
+                  a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
               end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
@@ -2561,12 +2565,12 @@ unit cgcpu;
         if ((ref.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or (ref.base<>NR_BP))) or
            (is_segment_reg(ref.segment) and segment_regs_equal(ref.segment,NR_DS)) then
           begin
-            hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
+            compiler.hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
             saved_ds:=false;
           end
         else
           begin
-            hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
+            compiler.hlcg.a_loadaddr_ref_reg(list,voidnearpointertype,voidnearpointertype,ref,NR_SI);
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DS));
             saved_ds:=true;
             if ref.segment<>NR_NO then
@@ -2597,13 +2601,13 @@ unit cgcpu;
         if (opsize=S_B) and not (cs_opt_size in current_settings.optimizerswitches) then
           begin
             { SHR CX,1 moves the lowest (odd/even) bit to the carry flag }
-            cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+            a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(Taicpu.op_const_reg(A_SHR,S_W,1,NR_CX));
             list.concat(Taicpu.op_none(A_REP,S_NO));
             list.concat(Taicpu.op_none(A_MOVSW,S_NO));
             { ADC CX,CX will set CX to 1 if the number of bytes was odd }
             list.concat(Taicpu.op_reg_reg(A_ADC,S_W,NR_CX,NR_CX));
-            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_reg_dealloc(list,NR_DEFAULTFLAGS);
             list.concat(Taicpu.op_none(A_REP,S_NO));
             list.concat(Taicpu.op_none(A_MOVSB,S_NO));
           end
@@ -3291,10 +3295,10 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg := tcg8086.create;
-        cg64 := tcg64f8086.create;
+        tcompiler(compiler).cg := tcg8086.create(compiler);
+        tcompiler(compiler).cg64 := tcg64f8086.create(compiler);
       end;
 
 end.

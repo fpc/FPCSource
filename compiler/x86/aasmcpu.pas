@@ -3589,6 +3589,8 @@ implementation
 
 
     procedure taicpu.write0x66prefix(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         b66: Byte=$66;
       begin
@@ -3601,6 +3603,8 @@ implementation
 
 
     procedure taicpu.write0x67prefix(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         b67: Byte=$67;
       begin

@@ -71,7 +71,7 @@ implementation
             if resultdef.typ<>procvardef then
               internalerror(2018040401);
             if po_far in tprocvardef(resultdef).procoptions then
-              resultdef:=cprocvardef.getreusableprocaddr(tabstractprocdef(left.resultdef),pc_offset);
+              resultdef:=cprocvardef.getreusableprocaddr(tabstractprocdef(left.resultdef),pc_offset,compiler);
           end
         else if (tcnf_proc_2_procvar_2_voidpointer in convnodeflags) and
                 (current_settings.x86memorymodel in x86_far_code_models) then
@@ -79,7 +79,7 @@ implementation
             if resultdef.typ<>procvardef then
               internalerror(2018040402);
             if not (po_far in tprocvardef(resultdef).procoptions) then
-              resultdef:=cprocvardef.getreusableprocaddr(tabstractprocdef(left.resultdef),pc_far_address);
+              resultdef:=cprocvardef.getreusableprocaddr(tabstractprocdef(left.resultdef),pc_far_address,compiler);
           end;
       end;
 

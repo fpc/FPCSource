@@ -30,7 +30,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,
+       cclasses,globtype,compilerbase,
        { target }
        systems,
        { assembler }
@@ -170,7 +170,7 @@ interface
       protected
         function writeData(Data:TObjData):boolean;override;
       public
-        constructor create(AWriter:TObjectWriter);override;
+        constructor create(AWriter:TObjectWriter;acompiler:tcompilerbase);override;
         destructor Destroy;override;
         procedure WriteDllImport(const dllname,afuncname,mangledname:string;ordnr:longint;isvar:boolean);
       end;
@@ -210,7 +210,7 @@ interface
         { Specifies whether symbol names (in EXTDEF and PUBDEF records) are case sensitive. }
         property CaseSensitiveSymbols: Boolean read FCaseSensitiveSymbols write FCaseSensitiveSymbols;
       public
-        constructor create;override;
+        constructor create(acompiler:tcompilerbase);override;
         destructor destroy;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
         function ReadObjData(AReader:TObjectreader;out objdata:TObjData):boolean;override;
@@ -342,7 +342,7 @@ interface
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
         function writeData:boolean;override;
       public
-        constructor create;override;
+        constructor create(acompiler:tcompilerbase);override;
         destructor destroy;override;
         procedure Load_Symbol(const aname:string);override;
         procedure MemPos_EndExeSection;override;
@@ -781,7 +781,7 @@ interface
         procedure DoRelocationFixup(objsec:TObjSection);override;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList;const aPattern:string);override;
       public
-        constructor create;override;
+        constructor create(acompiler:tcompilerbase);override;
         destructor destroy;override;
 
         procedure Order_ExeSection(const aname:string);override;
@@ -793,7 +793,7 @@ interface
       end;
 
       TOmfAssembler = class(tinternalassembler)
-        constructor create(info: pasminfo; smart:boolean);override;
+        constructor create(info: pasminfo; smart:boolean; acompiler:tcompilerbase);override;
       end;
 
     function StripDllExt(const DllName:TSymStr):TSymStr;
@@ -806,7 +806,8 @@ implementation
        cutils,verbose,globals,fpchash,
        fmodule,aasmtai,aasmdata,
        ogmap,owomflib,elfbase,
-       version
+       version,
+       compiler
        ;
 
     const win16stub : array[0..255] of byte=(
@@ -845,6 +846,8 @@ implementation
       end;
 
     procedure MayBeSwapTISTrailer(var h: TTISTrailer);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if source_info.endian<>compiler.target.info.endian then
           with h do
@@ -1703,9 +1706,9 @@ implementation
         result:=true;
       end;
 
-    constructor TOmfObjOutput.create(AWriter:TObjectWriter);
+    constructor TOmfObjOutput.create(AWriter:TObjectWriter;acompiler:tcompilerbase);
       begin
-        inherited create(AWriter);
+        inherited;
         cobjdata:=TOmfObjData;
         FLNames:=TOmfOrderedNameCollection.Create(False);
         FSegments:=TFPHashObjectList.Create;
@@ -2614,9 +2617,9 @@ implementation
         Result:=True;
       end;
 
-    constructor TOmfObjInput.create;
+    constructor TOmfObjInput.create(acompiler:tcompilerbase);
       begin
-        inherited create;
+        inherited;
         cobjdata:=TOmfObjData;
         FLNames:=TOmfOrderedNameCollection.Create(True);
         FExtDefs:=TFPHashObjectList.Create;
@@ -3459,13 +3462,13 @@ implementation
         ElfHeader.e_shentsize:=SizeOf(TElf32sechdr);
         ElfHeader.e_shnum:=elfsections_count;
         ElfHeader.e_shstrndx:=shstrndx;
-        MaybeSwapHeader(ElfHeader);
+        MaybeSwapHeader(compiler.target.info.endian,ElfHeader);
         Writer.write(ElfHeader,sizeof(ElfHeader));
 
         { write section headers }
         for I:=0 to elfsections_count-1 do
           begin
-            MaybeSwapSecHeader(elfsechdrs[I]);
+            MaybeSwapSecHeader(compiler.target.info.endian,elfsechdrs[I]);
             Writer.write(elfsechdrs[I],SizeOf(elfsechdrs[I]));
           end;
 
@@ -3823,9 +3826,9 @@ cleanup:
           Result:=writeDebugElf;
       end;
 
-    constructor TMZExeOutput.create;
+    constructor TMZExeOutput.create(acompiler:tcompilerbase);
       begin
-        inherited create;
+        inherited;
         CExeSection:=TMZExeSection;
         CObjData:=TOmfObjData;
         CObjSymbol:=TOmfObjSymbol;
@@ -4548,7 +4551,7 @@ cleanup:
         { the first entry in the resident-name table is the module name }
         TNewExeExportNameTableEntry.Create(ResidentNameTable,ExtractModuleName(current_module.exefilename),0);
         { the first entry in the nonresident-name table is the module description }
-        TNewExeExportNameTableEntry.Create(NonresidentNameTable,description,0);
+        TNewExeExportNameTableEntry.Create(NonresidentNameTable,compiler.globals.description,0);
         { add all symbols, exported by name to the resident and nonresident-name tables }
         AddExportedNames;
 
@@ -4761,9 +4764,9 @@ cleanup:
         ObjSectionList.Sort(@INewExeOmfObjSectionClassNameCompare);
       end;
 
-    constructor TNewExeOutput.create;
+    constructor TNewExeOutput.create(acompiler:tcompilerbase);
       begin
-        inherited create;
+        inherited;
         CObjData:=TOmfObjData;
         CObjSymbol:=TOmfObjSymbol;
         CExeSection:=TNewExeSection;
@@ -4909,7 +4912,7 @@ cleanup:
                                TOmfAssembler
 ****************************************************************************}
 
-    constructor TOmfAssembler.Create(info: pasminfo; smart:boolean);
+    constructor TOmfAssembler.Create(info: pasminfo; smart:boolean; acompiler:tcompilerbase);
       begin
         inherited;
         CObjOutput:=TOmfObjOutput;

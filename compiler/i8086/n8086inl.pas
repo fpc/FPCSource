@@ -26,7 +26,7 @@ unit n8086inl;
 interface
 
     uses
-       nx86inl,node;
+       nx86inl,node,compilerbase;
 
     type
        ti8086inlinenode = class(tx86inlinenode)
@@ -58,8 +58,9 @@ implementation
     cpuinfo,cpubase,paramgr,
     nbas,nadd,ncon,ncal,ncnv,nld,nmem,nmat,ncgutil,
     tgobj,
-    cga,cgutils,cgx86,cgobj,hlcgobj,
-    htypechk,procinfo;
+    cga,cgutils,cgx86,cgobj,nodehelper,
+    htypechk,procinfo,
+    compiler;
 
      function ti8086inlinenode.pass_typecheck_cpu: tnode;
        begin
@@ -98,16 +99,16 @@ implementation
            end
          else
            begin
-             seg_node:=geninlinenode(in_seg_x,false,left.getcopy);
-             inserttypeconv_internal(seg_node,u32inttype);
+             seg_node:=geninlinenode(in_seg_x,false,left.getcopy,compiler);
+             inserttypeconv_internal(seg_node,u32inttype,compiler);
              seg_node:=compiler.cshlshrnode(shln,seg_node,compiler.cordconstnode(16,u8inttype,false));
-             inserttypeconv_internal(addr_node,u32inttype);
+             inserttypeconv_internal(addr_node,u32inttype,compiler);
              left:=nil;
              result:=compiler.caddnode(addn,seg_node,addr_node);
              if addr_node_resultdef.typ=pointerdef then
-               inserttypeconv_internal(result,tcpupointerdef.getreusablex86(tpointerdef(addr_node_resultdef).pointeddef,x86pt_far))
+               inserttypeconv_internal(result,tcpupointerdef.getreusablex86(tpointerdef(addr_node_resultdef).pointeddef,x86pt_far,compiler),compiler)
              else
-               inserttypeconv_internal(result,voidfarpointertype);
+               inserttypeconv_internal(result,voidfarpointertype,compiler);
            end;
        end;
 

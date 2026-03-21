@@ -2241,9 +2241,11 @@ unit rgobj;
 
       function get_reg_name_full(r: tregister; include_prefix: boolean): string;
         var
+          cg:tcg;
           rr:tregister;
           sr:TSuperRegister;
         begin
+          cg:=compiler.cg;
           sr:=getsupreg(r);
           if reginfo[sr].live_start=nil then
             begin

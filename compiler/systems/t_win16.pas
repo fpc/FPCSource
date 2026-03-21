@@ -36,7 +36,8 @@ implementation
        import,export,fmodule,i_win16,
        link,aasmbase,cpuinfo,
        omfbase,ogbase,ogomf,owbase,owomflib,
-       symconst,symdef,symsym;
+       symconst,symdef,symsym,
+       compilerbase,compiler;
 
     type
 
@@ -64,7 +65,7 @@ implementation
       private
          Function  WriteResponseFile(isdll:boolean) : Boolean;
       public
-         constructor Create;override;
+         constructor Create(acompiler: TCompilerBase);override;
          procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
          function  MakeSharedLibrary:boolean;override;
@@ -79,7 +80,7 @@ implementation
         function GetBssSize(aExeOutput: TExeOutput): QWord;override;
         procedure DefaultLinkScript;override;
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
       end;
 
       { TDLLScannerWin16 }
@@ -115,7 +116,7 @@ var
 begin
   current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
   ObjWriter:=TOmfLibObjectWriter.CreateAr(current_module.importlibfilename,32);
-  ObjOutput:=TOmfObjOutput.Create(ObjWriter);
+  ObjOutput:=TOmfObjOutput.Create(ObjWriter,compiler);
   for i:=0 to current_module.ImportLibraryList.Count-1 do
     begin
       ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
@@ -173,7 +174,7 @@ begin
 
   current_module.linkotherofiles.add(current_module.exportfilename,link_always);
   ObjWriter:=TObjectWriter.Create;
-  ObjOutput:=TOmfObjOutput.Create(ObjWriter);
+  ObjOutput:=TOmfObjOutput.Create(ObjWriter,compiler);
   ObjWriter.createfile(current_module.exportfilename);
 
   { write header record }
@@ -247,7 +248,7 @@ begin
 
   LinkRes.Add('option quiet');
 
-  LinkRes.Add('option description '+maybequoted_for_script(description,script_unix));
+  LinkRes.Add('option description '+maybequoted_for_script(compiler.globals.description,script_unix));
 
   if compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
     LinkRes.Add('debug dwarf')
@@ -297,9 +298,9 @@ begin
   WriteResponseFile:=True;
 end;
 
-constructor TExternalLinkerWin16WLink.Create;
+constructor TExternalLinkerWin16WLink.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
@@ -455,9 +456,9 @@ begin
   LinkScript.Concat('ENTRYNAME ..start');
 end;
 
-constructor TInternalLinkerWin16.create;
+constructor TInternalLinkerWin16.create(acompiler: TCompilerBase);
 begin
-  inherited create;
+  inherited;
   CArObjectReader:=TOmfLibObjectReader;
   CExeOutput:=TNewExeOutput;
   CObjInput:=TOmfObjInput;
@@ -468,6 +469,8 @@ end;
 ****************************************************************************}
 
 function TDLLScannerWin16.Scan(const binname: string): boolean;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   hs,
   dllname : TCmdStr;

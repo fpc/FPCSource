@@ -28,14 +28,14 @@ unit cpupi;
   interface
 
     uses
-       psub,procinfo,aasmdata;
+       psub,procinfo,aasmdata,compilerbase;
 
     type
        tcpuprocinfo = class(tcgprocinfo)
        private
          procedure insert_8087_fwaits(list : TAsmList);
        public
-         constructor create(aparent:tprocinfo);override;
+         constructor create(aparent:tprocinfo;acompiler:tcompilerbase);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
@@ -52,11 +52,12 @@ unit cpupi;
       cgobj,tgobj,paramgr,
       cpubase,cpuinfo,
       cgutils,
-      symconst;
+      symconst,
+      compiler;
 
-    constructor tcpuprocinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo;acompiler:tcompilerbase);
       begin
-        inherited create(aparent);
+        inherited;
         got:=NR_EBX;
       end;
 

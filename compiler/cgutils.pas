@@ -30,7 +30,8 @@ unit cgutils;
       globtype,
       cclasses,
       aasmbase,
-      cpubase,cgbase;
+      cpubase,cgbase,
+      compilerbase;
 
     const
       { implementation of max function using only functionality that can be
@@ -235,7 +236,8 @@ uses
   verbose,
   globals,
   cpuinfo,
-  cgobj;
+  cgobj,
+  compiler;
 
 {****************************************************************************
                                   TReference
@@ -339,7 +341,11 @@ uses
 
 
     function location_reg2string(const locreg: tlocation): string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       begin
+        cg:=compiler.cg;
         if not (locreg.loc in [LOC_REGISTER,LOC_CREGISTER,
             LOC_MMXREGISTER,LOC_CMMXREGISTER,
             LOC_MMREGISTER,LOC_CMMREGISTER,

@@ -26,7 +26,7 @@ unit n8086mat;
 interface
 
     uses
-      node,nmat,ncgmat,nx86mat;
+      node,nmat,ncgmat,nx86mat,compilerbase;
 
     type
       ti8086moddivnode = class(tmoddivnode)
@@ -57,7 +57,7 @@ implementation
       ncon,
       cpubase,cpuinfo,
       cga,ncgutil,cgobj,cgutils,
-      hlcgobj;
+      nodehelper,compiler;
 
 {*****************************************************************************
                              ti8086moddivnode

@@ -26,7 +26,7 @@ unit n8086tcon;
 interface
 
     uses
-      node,symdef,ngtcon;
+      node,symdef,ngtcon,compilerbase;
 
 
     type
@@ -48,7 +48,8 @@ uses
   defcmp,defutil,
   aasmtai,
   symconst,symtype,symsym,symcpu,
-  htypechk;
+  htypechk,
+  compiler;
 
     { ti8086typedconstbuilder }
 

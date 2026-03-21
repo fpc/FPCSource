@@ -33,7 +33,8 @@ interface
     aasmdata,
     symtype,symdef,parabase,
     cgbase,cgutils,
-    hlcgobj, hlcgx86;
+    hlcgobj, hlcgx86,
+    compilerbase;
 
 
   type
@@ -101,7 +102,8 @@ implementation
     defutil,
     symconst,symcpu,
     procinfo,fmodule,
-    aasmcpu;
+    aasmcpu,
+    compiler;
 
   { thlcgcpu }
 
@@ -735,10 +737,10 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 

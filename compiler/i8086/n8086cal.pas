@@ -55,7 +55,7 @@ implementation
       cpubase,paramgr,
       aasmtai,aasmdata,aasmcpu,
       ncal,nbas,nmem,nld,ncnv,
-      hlcgobj,
+      nodehelper,
       symcpu,
       cga,cgobj,cgx86,cpuinfo;
 

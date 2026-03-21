@@ -544,7 +544,7 @@ implementation
         if resultdef.typ<>orddef then
           internalerror(2013031702);
         if torddef(result.resultdef).ordtype <> torddef(resultdef).ordtype then
-          inserttypeconv(result,resultdef);
+          inserttypeconv(result,resultdef,compiler);
       end;
 {$else cpuneedsdivhelper}
       begin
