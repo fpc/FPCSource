@@ -61,6 +61,7 @@ interface
         Procedure UpdateStatus(const filepos : tfileposinfo);
         function GetMessageState(m:longint):tmsgstate;
         Procedure Msg2Comment(s:ansistring;w:longint;const filepos : tfileposinfo;onqueue:tmsgqueueevent);
+        function get_current_filepos : tfileposinfo;
 
         procedure InitVerbose;
         procedure DoneVerbose;
@@ -468,7 +469,7 @@ implementation
       end;
 
 
-    Procedure TVerbose.UpdateStatus(const filepos : tfileposinfo);
+        procedure TVerbose.UpdateStatus(const filepos: tfileposinfo);
       var
         module : tmodule;
       begin
@@ -646,7 +647,7 @@ implementation
         if (l and V_LineInfoMask)<>0 then
           l:=l or V_LineInfo;
       { Create status info }
-        UpdateStatus(compiler.globals.current_filepos);
+        UpdateStatus(get_current_filepos);
       { Fix replacements }
         DefaultReplacements(s,false);
       { show comment }
@@ -672,7 +673,8 @@ implementation
         { todo }
       end;
 
-    Procedure TVerbose.Msg2Comment(s:ansistring;w:longint;const filepos : tfileposinfo;onqueue:tmsgqueueevent);
+        procedure TVerbose.Msg2Comment(s: ansistring; w: longint;
+      const filepos: tfileposinfo; onqueue: tmsgqueueevent);
       var
         idx,i,v : longint;
         dostop  : boolean;
@@ -800,6 +802,14 @@ implementation
       end;
 
 
+    function TVerbose.get_current_filepos: tfileposinfo;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      begin
+        result:=compiler.globals.current_filepos;
+      end;
+
+
     function  TVerbose.MessageStr(w:longint):TMsgStr;
       begin
         MaybeLoadMessageFile;
@@ -808,48 +818,38 @@ implementation
 
 
     procedure TVerbose.Message(w:longint;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[]),w,compiler.globals.current_filepos,onqueue);
+        Msg2Comment(msg^.Get(w,[]),w,get_current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message1(w:longint;const s1:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1]),w,compiler.globals.current_filepos,onqueue);
+        Msg2Comment(msg^.Get(w,[s1]),w,get_current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message2(w:longint;const s1,s2:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2]),w,compiler.globals.current_filepos,onqueue);
+        Msg2Comment(msg^.Get(w,[s1,s2]),w,get_current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message3(w:longint;const s1,s2,s3:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,compiler.globals.current_filepos,onqueue);
+        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,get_current_filepos,onqueue);
       end;
 
 
     procedure TVerbose.Message4(w:longint;const s1,s2,s3,s4:TMsgStr;onqueue:tmsgqueueevent=nil);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,compiler.globals.current_filepos,onqueue);
+        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,get_current_filepos,onqueue);
       end;
 
 
