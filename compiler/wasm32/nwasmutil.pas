@@ -27,7 +27,8 @@ interface
 
   uses
     ngenutil,
-    symsym;
+    symsym,
+    compilerbase;
 
   type
 
@@ -35,8 +36,8 @@ interface
 
     twasmnodeutils = class(tnodeutils)
     public
-      class procedure insertbssdata(sym : tstaticvarsym); override;
-      class procedure InsertObjectInfo; override;
+      procedure insertbssdata(sym : tstaticvarsym); override;
+      procedure InsertObjectInfo; override;
     end;
 
 implementation
@@ -48,11 +49,12 @@ implementation
     aasmbase,aasmdata,aasmtai,aasmcpu,
     hlcgobj,hlcgcpu,
     symdef,symtype,symconst,symcpu,
-    fmodule;
+    fmodule,
+    compiler;
 
   { twasmnodeutils }
 
-  class procedure twasmnodeutils.insertbssdata(sym: tstaticvarsym);
+  procedure twasmnodeutils.insertbssdata(sym: tstaticvarsym);
     var
       symcpu: tcpustaticvarsym;
     begin
@@ -68,7 +70,7 @@ implementation
         inherited;
     end;
 
-  class procedure twasmnodeutils.InsertObjectInfo;
+  procedure twasmnodeutils.InsertObjectInfo;
 
       procedure resetfunctypechecked;
       var
@@ -172,7 +174,7 @@ implementation
                   thlcgwasm(hlcg).g_procdef(list,proc,false);
             end;
          end;
-      create_hlcodegen;
+      create_hlcodegen(compiler);
       InsertModuleInfo(list,current_module);
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do
@@ -180,7 +182,7 @@ implementation
           InsertModuleInfo(list,cur_unit.u);
           cur_unit:=tused_unit(cur_unit.Next);
         end;
-      destroy_hlcodegen;
+      destroy_hlcodegen(compiler);
 
     end;
 

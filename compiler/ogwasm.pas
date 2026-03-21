@@ -29,7 +29,7 @@ interface
       { common }
       sysutils,cclasses,globtype,
       { target }
-      systems,cpubase,
+      systems,cpubase,compilerbase,
       { assembler }
       aasmbase,assemble,aasmcpu,
       { WebAssembly module format definitions }
@@ -235,7 +235,7 @@ interface
       protected
         function writeData(Data:TObjData):boolean;override;
       public
-        constructor create(AWriter:TObjectWriter);override;
+        constructor create(AWriter:TObjectWriter;acompiler: TCompilerBase);override;
         destructor destroy;override;
       end;
 
@@ -245,7 +245,7 @@ interface
       private
         FFuncTypes: array of TWasmFuncType;
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
         destructor Destroy;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
         function ReadObjData(AReader:TObjectreader;out ObjData:TObjData):boolean;override;
@@ -336,7 +336,7 @@ interface
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
         destructor destroy;override;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
         procedure AfterUnusedSectionRemoval;override;
@@ -347,13 +347,13 @@ interface
       { TWasmAssembler }
 
       TWasmAssembler = class(tinternalassembler)
-        constructor create(info: pasminfo; smart:boolean);override;
+        constructor create(info: pasminfo; smart:boolean;acompiler: TCompilerBase);override;
       end;
 
 implementation
 
     uses
-      cutils,verbose,version,globals,fmodule,ogmap;
+      cutils,verbose,version,globals,fmodule,ogmap,compiler;
 
     const
       StackPointerSymStr='__stack_pointer';
@@ -934,6 +934,8 @@ implementation
 ****************************************************************************}
 
     function TWasmObjData.is_smart_section(atype: TAsmSectiontype): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
@@ -948,6 +950,8 @@ implementation
 
     function TWasmObjData.sectionname_gas(atype: TAsmSectiontype;
         const aname: string; aorder: TAsmSectionOrder): string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -2424,7 +2428,7 @@ implementation
         result:=true;
       end;
 
-    constructor TWasmObjOutput.create(AWriter: TObjectWriter);
+    constructor TWasmObjOutput.create(AWriter: TObjectWriter;acompiler: TCompilerBase);
       var
         i: TWasmSectionID;
         j: TWasmCustomSectionType;
@@ -2499,9 +2503,9 @@ implementation
                                TWasmObjInput
 ****************************************************************************}
 
-    constructor TWasmObjInput.create;
+    constructor TWasmObjInput.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         cobjdata:=TWasmObjData;
       end;
 
@@ -5560,13 +5564,13 @@ implementation
           end;
       end;
 
-    constructor TWasmExeOutput.create;
+    constructor TWasmExeOutput.create(acompiler: TCompilerBase);
       var
         i: TWasmSectionID;
         j: TWasmCustomSectionType;
         k: TWasmNameSubsectionType;
       begin
-        inherited create;
+        inherited;
         CObjData:=TWasmObjData;
         SectionMemAlign:=16;
         MaxMemPos:=$FFFFFFFF;
@@ -6518,7 +6522,7 @@ implementation
                                TWasmAssembler
 ****************************************************************************}
 
-    constructor TWasmAssembler.Create(info: pasminfo; smart:boolean);
+    constructor TWasmAssembler.Create(info: pasminfo; smart:boolean;acompiler: TCompilerBase);
       begin
         inherited;
         CObjOutput:=TWasmObjOutput;

@@ -26,7 +26,7 @@ unit nwasminl;
 interface
 
     uses
-      node,ncginl,cpubase;
+      node,ncginl,cpubase,compilerbase;
 
     type
 
@@ -78,10 +78,11 @@ implementation
       ninl,ncal,compinnr,
       aasmbase,aasmdata,aasmcpu,
       cgbase,cgutils,
-      hlcgobj,hlcgcpu,
+      nodehelper,hlcgcpu,
       defutil,pass_2,verbose,
       symtype,symdef,symcpu,
-      tgobj,tgcpu;
+      tgobj,tgcpu,
+      compiler;
 
 {*****************************************************************************
                                twasminlinenode

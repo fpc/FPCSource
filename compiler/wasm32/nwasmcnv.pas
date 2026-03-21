@@ -25,7 +25,7 @@ unit nwasmcnv;
 interface
 
     uses
-      node,ncnv,ncgcnv;
+      node,ncnv,ncgcnv,compilerbase;
 
     type
 
@@ -51,7 +51,7 @@ implementation
       aasmbase,aasmcpu,
       symdef,symconst,
       tgobj,
-      hlcgobj,hlcgcpu;
+      nodehelper,hlcgcpu,compiler;
 
 
 { twasmtypeconvnode }
@@ -61,7 +61,7 @@ implementation
         first_int_to_real:=nil;
         if left.resultdef.size<4 then
           begin
-            inserttypeconv(left,s32inttype);
+            inserttypeconv(left,s32inttype,compiler);
             firstpass(left);
           end;
         expectloc:=LOC_FPUREGISTER;

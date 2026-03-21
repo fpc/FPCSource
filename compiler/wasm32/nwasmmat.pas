@@ -58,7 +58,7 @@ implementation
       cgbase,cgobj,pass_2,procinfo,
       ncon,
       cpubase,
-      hlcgobj,hlcgcpu,cgutils;
+      nodehelper,hlcgcpu,cgutils;
 
 {*****************************************************************************
                              twasmmoddivnode

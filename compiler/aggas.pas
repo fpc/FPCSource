@@ -1749,39 +1749,39 @@ implementation
                if hp is tai_wasmstruc_block then
                  begin
                    writer.AsmWriteLn('.err block {');
-                   WriteTree(tai_wasmstruc_block(hp).inner_asmlist);
+                   WriteTree(tai_wasmstruc_block(hp).inner_asmlist,al_procedures);
                    writer.AsmWriteLn('.err } end block');
                  end
                else if hp is tai_wasmstruc_loop then
                  begin
                    writer.AsmWriteLn('.err loop {');
-                   WriteTree(tai_wasmstruc_loop(hp).inner_asmlist);
+                   WriteTree(tai_wasmstruc_loop(hp).inner_asmlist,al_procedures);
                    writer.AsmWriteLn('.err } end loop');
                  end
                else if hp is tai_wasmstruc_if then
                  begin
                    writer.AsmWriteLn('.err if {');
-                   WriteTree(tai_wasmstruc_if(hp).then_asmlist);
+                   WriteTree(tai_wasmstruc_if(hp).then_asmlist,al_procedures);
                    writer.AsmWriteLn('.err } else {');
-                   WriteTree(tai_wasmstruc_if(hp).else_asmlist);
+                   WriteTree(tai_wasmstruc_if(hp).else_asmlist,al_procedures);
                    writer.AsmWriteLn('.err } endif');
                  end
                else if hp is tai_wasmstruc_legacy_try then
                  begin
                    writer.AsmWriteLn('.err try {');
-                   WriteTree(tai_wasmstruc_legacy_try(hp).try_asmlist);
+                   WriteTree(tai_wasmstruc_legacy_try(hp).try_asmlist,al_procedures);
                    if hp is tai_wasmstruc_legacy_try_catch then
                      with tai_wasmstruc_legacy_try_catch(hp) do
                        begin
                          for i:=low(catch_list) to high(catch_list) do
                            begin
                              writer.AsmWriteLn('.err catch');
-                             WriteTree(catch_list[i].asmlist);
+                             WriteTree(catch_list[i].asmlist,al_procedures);
                            end;
                          if assigned(catch_all_asmlist) then
                            begin
                              writer.AsmWriteLn('.err catch_all');
-                             WriteTree(catch_all_asmlist);
+                             WriteTree(catch_all_asmlist,al_procedures);
                            end;
                          writer.AsmWriteLn('.err } end try');
                        end

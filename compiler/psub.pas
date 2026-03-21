@@ -3002,14 +3002,14 @@ implementation
                  }
                  if (not result.forwarddef) and
                     (result.hasforward) and
-                    (proc_get_importname(result)<>'') then
+                    (parser.pdecsub.proc_get_importname(result)<>'') then
                    begin
                      { we cannot handle the callee-side of variadic functions (and
                        even if we could, e.g. LLVM cannot call through to something
                        else in that case) }
                      if is_c_variadic(result) then
                        compiler.verbose.Message1(parser_e_callthrough_varargs,result.fullprocname(false));
-                     call_through_new_name(result,proc_get_importname(result));
+                     call_through_new_name(result,parser.pdecsub.proc_get_importname(result));
                      include(result.implprocoptions,pio_thunk);
                    end
                  else

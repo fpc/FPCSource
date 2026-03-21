@@ -264,7 +264,7 @@ implementation
             else if push_addr_param(hp.varspez, hp.vardef,p.proccalloption) then
               begin
                 paracgsize:=OS_ADDR;
-                paradef:=cpointerdef.getreusable_no_free(hp.vardef);
+                paradef:=cpointerdef.getreusable_no_free(hp.vardef,compiler);
               end
             else
               begin
@@ -373,6 +373,4 @@ implementation
       end;
 
 
-initialization
-  ParaManager:=tcpuparamanager.create;
 end.

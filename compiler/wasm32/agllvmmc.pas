@@ -32,7 +32,8 @@ interface
     globtype,globals,
     symbase,symdef,symtype,symconst,symcpu,
     aasmbase,aasmtai,aasmdata,aasmcpu,
-    assemble,aggas;
+    assemble,aggas,
+    compilerbase;
 
   type
 
@@ -43,62 +44,62 @@ interface
       FLLVMMajorVersion: Integer;
       function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
     public
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       procedure WriteFuncTypeDirective(hp:tai_functype);override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV10 }
 
     TLLVMMachineCodePlaygroundAssemblerV10=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV11 }
 
     TLLVMMachineCodePlaygroundAssemblerV11=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV12 }
 
     TLLVMMachineCodePlaygroundAssemblerV12=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV13 }
 
     TLLVMMachineCodePlaygroundAssemblerV13=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV14 }
 
     TLLVMMachineCodePlaygroundAssemblerV14=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV15 }
 
     TLLVMMachineCodePlaygroundAssemblerV15=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV16 }
 
     TLLVMMachineCodePlaygroundAssemblerV16=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV17 }
 
     TLLVMMachineCodePlaygroundAssemblerV17=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TLLVMMachineCodePlaygroundAssemblerV18 }
 
     TLLVMMachineCodePlaygroundAssemblerV18=class(TLLVMMachineCodePlaygroundAssembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
     end;
 
     { TWASM32InstrWriter }
@@ -119,78 +120,79 @@ implementation
     itcpugas,
     cpubase,
     hlcgobj,hlcgcpu,
-    verbose;
+    verbose,
+    compiler;
 
   { TLLVMMachineCodePlaygroundAssemblerV10 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV10.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV10.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=10;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV11 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV11.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV11.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=11;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV12 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV12.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV12.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=12;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV13 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV13.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV13.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=13;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV14 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV14.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV14.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=14;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV15 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV15.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV15.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=15;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV16 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV16.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV16.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=16;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV17 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV17.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV17.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=17;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
   { TLLVMMachineCodePlaygroundAssemblerV18 }
 
-  constructor TLLVMMachineCodePlaygroundAssemblerV18.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssemblerV18.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       FLLVMMajorVersion:=18;
-      inherited CreateWithWriter(info, wr, freewriter, smart);
+      inherited;
     end;
 
 
@@ -209,7 +211,7 @@ implementation
     end;
 
 
-  constructor TLLVMMachineCodePlaygroundAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+  constructor TLLVMMachineCodePlaygroundAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
     begin
       inherited;
       InstrWriter:=TWASM32InstrWriter.create(self);

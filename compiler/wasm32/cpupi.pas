@@ -28,7 +28,7 @@ interface
   uses
     sysutils,cutils,globtype,aasmdata,aasmcpu,aasmtai,
     procinfo,cpubase,cpuinfo, symtype,aasmbase,cgbase,
-    psub, cclasses;
+    psub,compilerbase, cclasses;
 
   type
 
@@ -55,7 +55,7 @@ interface
       { label to the nearest local exception handler }
       CurrRaiseLabel : tasmlabel;
 
-      constructor create(aparent: tprocinfo); override;
+      constructor create(aparent: tprocinfo;acompiler: TCompilerBase); override;
       destructor destroy; override;
       function calc_stackframe_size : longint;override;
       procedure setup_eh; override;
@@ -71,7 +71,7 @@ implementation
     uses
       systems,verbose,globals,tgcpu,cgexcept,
       tgobj,paramgr,symconst,symdef,symtable,symcpu,cgutils,pass_2,parabase,
-      fmodule,hlcgobj,hlcgcpu,defutil,itcpugas;
+      fmodule,hlcgobj,hlcgcpu,defutil,itcpugas,compiler;
 
 {*****************************************************************************
                      twasmexceptionstatehandler_noexceptions
@@ -82,14 +82,14 @@ implementation
       { twasmexceptionstatehandler_noexceptions }
 
       twasmexceptionstatehandler_noexceptions = class(tcgexceptionstatehandler)
-        class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
-        class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
-        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
-        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+        procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
+        procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
+        procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
       end;
 
-    class procedure twasmexceptionstatehandler_noexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
+    procedure twasmexceptionstatehandler_noexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
       begin
         if not assigned(exceptionreasontype) then
           exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
@@ -98,12 +98,12 @@ implementation
         tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
       end;
 
-    class procedure twasmexceptionstatehandler_noexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
+    procedure twasmexceptionstatehandler_noexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
       begin
         tg.ungettemp(list,t.reasonbuf);
       end;
 
-    class procedure twasmexceptionstatehandler_noexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+    procedure twasmexceptionstatehandler_noexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
         exceptstate.exceptionlabel:=nil;
         exceptstate.oldflowcontrol:=flowcontrol;
@@ -112,11 +112,11 @@ implementation
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
-    class procedure twasmexceptionstatehandler_noexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+    procedure twasmexceptionstatehandler_noexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
       end;
 
-    class procedure twasmexceptionstatehandler_noexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+    procedure twasmexceptionstatehandler_noexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
         list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
       end;
@@ -130,16 +130,16 @@ implementation
       { twasmexceptionstatehandler_nativeexnrefexceptions }
 
       twasmexceptionstatehandler_nativeexnrefexceptions = class(tcgexceptionstatehandler)
-        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
-        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+        procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
         { start of an "on" (catch) block }
-        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+        procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
         { end of an "on" (catch) block }
-        class procedure end_catch(list: TAsmList); override;
+        procedure end_catch(list: TAsmList); override;
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexnrefexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+    procedure twasmexceptionstatehandler_nativeexnrefexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
         exceptstate.exceptionlabel:=nil;
         exceptstate.oldflowcontrol:=flowcontrol;
@@ -148,16 +148,16 @@ implementation
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexnrefexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+    procedure twasmexceptionstatehandler_nativeexnrefexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexnrefexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+    procedure twasmexceptionstatehandler_nativeexnrefexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
         compiler.verbose.Message1(parser_f_unsupported_feature,'nested exception');
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexnrefexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+    procedure twasmexceptionstatehandler_nativeexnrefexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
         pd: tprocdef;
         href2: treference;
@@ -199,7 +199,7 @@ implementation
         exceptlocreg:=exceptloc.register;
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexnrefexceptions.end_catch(list: TAsmList);
+    procedure twasmexceptionstatehandler_nativeexnrefexceptions.end_catch(list: TAsmList);
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
       end;
@@ -214,16 +214,16 @@ implementation
       { twasmexceptionstatehandler_nativelegacyexceptions }
 
       twasmexceptionstatehandler_nativelegacyexceptions = class(tcgexceptionstatehandler)
-        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
-        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+        procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
         { start of an "on" (catch) block }
-        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+        procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
         { end of an "on" (catch) block }
-        class procedure end_catch(list: TAsmList); override;
+        procedure end_catch(list: TAsmList); override;
       end;
 
-    class procedure twasmexceptionstatehandler_nativelegacyexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+    procedure twasmexceptionstatehandler_nativelegacyexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
         exceptstate.exceptionlabel:=nil;
         exceptstate.oldflowcontrol:=flowcontrol;
@@ -232,16 +232,16 @@ implementation
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
-    class procedure twasmexceptionstatehandler_nativelegacyexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+    procedure twasmexceptionstatehandler_nativelegacyexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
       end;
 
-    class procedure twasmexceptionstatehandler_nativelegacyexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+    procedure twasmexceptionstatehandler_nativelegacyexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
         compiler.verbose.Message1(parser_f_unsupported_feature,'nested exception');
       end;
 
-    class procedure twasmexceptionstatehandler_nativelegacyexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+    procedure twasmexceptionstatehandler_nativelegacyexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
         pd: tprocdef;
         href2: treference;
@@ -283,7 +283,7 @@ implementation
         exceptlocreg:=exceptloc.register;
       end;
 
-    class procedure twasmexceptionstatehandler_nativelegacyexceptions.end_catch(list: TAsmList);
+    procedure twasmexceptionstatehandler_nativelegacyexceptions.end_catch(list: TAsmList);
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
       end;
@@ -297,16 +297,16 @@ implementation
       { twasmexceptionstatehandler_bfexceptions }
 
       twasmexceptionstatehandler_bfexceptions = class(tcgexceptionstatehandler)
-        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
-        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
+        procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
+        procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
         { start of an "on" (catch) block }
-        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+        procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
         { end of an "on" (catch) block }
-        class procedure end_catch(list: TAsmList); override;
+        procedure end_catch(list: TAsmList); override;
       end;
 
-    class procedure twasmexceptionstatehandler_bfexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+    procedure twasmexceptionstatehandler_bfexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
         exceptstate.exceptionlabel:=nil;
         exceptstate.oldflowcontrol:=flowcontrol;
@@ -315,16 +315,16 @@ implementation
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
-    class procedure twasmexceptionstatehandler_bfexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+    procedure twasmexceptionstatehandler_bfexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
       end;
 
-    class procedure twasmexceptionstatehandler_bfexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+    procedure twasmexceptionstatehandler_bfexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
         compiler.verbose.Message1(parser_f_unsupported_feature,'nested exception');
       end;
 
-    class procedure twasmexceptionstatehandler_bfexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+    procedure twasmexceptionstatehandler_bfexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
         pd: tprocdef;
         href2: treference;
@@ -366,7 +366,7 @@ implementation
         exceptlocreg:=exceptloc.register;
       end;
 
-    class procedure twasmexceptionstatehandler_bfexceptions.end_catch(list: TAsmList);
+    procedure twasmexceptionstatehandler_bfexceptions.end_catch(list: TAsmList);
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
       end;
@@ -491,9 +491,9 @@ implementation
         result:=FLocals[localidx];
       end;
 
-    constructor tcpuprocinfo.create(aparent: tprocinfo);
+    constructor tcpuprocinfo.create(aparent: tprocinfo;acompiler: TCompilerBase);
       begin
-        inherited create(aparent);
+        inherited;
         FGotoTargets:=TFPHashObjectList.Create(false);
         if ts_wasm_bf_exceptions in current_settings.targetswitches then
           current_asmdata.getjumplabel(CurrRaiseLabel);
@@ -514,13 +514,13 @@ implementation
     procedure tcpuprocinfo.setup_eh;
       begin
         if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
-          cexceptionstatehandler:=twasmexceptionstatehandler_nativeexnrefexceptions
+          tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_nativeexnrefexceptions)
         else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
-          cexceptionstatehandler:=twasmexceptionstatehandler_nativelegacyexceptions
+          tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_nativelegacyexceptions)
         else if ts_wasm_no_exceptions in current_settings.targetswitches then
-          cexceptionstatehandler:=twasmexceptionstatehandler_noexceptions
+          tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_noexceptions)
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
-          cexceptionstatehandler:=twasmexceptionstatehandler_bfexceptions
+          tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_bfexceptions)
         else
           internalerror(2021091701);
       end;

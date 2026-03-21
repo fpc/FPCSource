@@ -31,7 +31,8 @@ interface
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
-       rgcpu;
+       rgcpu,
+       compilerbase;
 
     type
       TCgWasm=class(thlbasecgcpu)
@@ -47,7 +48,7 @@ interface
         procedure a_label_pascal_goto_target(list : TAsmList;l : tasmlabel);override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
 implementation
 
@@ -55,7 +56,8 @@ implementation
     globals,verbose,systems,cutils,
     paramgr,fmodule,
     tgobj,
-    procinfo,cpupi;
+    procinfo,cpupi,
+    compiler;
 
 
 {****************************************************************************
@@ -149,9 +151,9 @@ implementation
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=tcgwasm.Create;
+        tcompiler(compiler).cg:=tcgwasm.Create(compiler);
       end;
 
 end.

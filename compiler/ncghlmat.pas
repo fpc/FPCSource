@@ -43,7 +43,7 @@ uses
   aasmbase,aasmdata,
   defutil,
   procinfo,
-  cgbase,cgutils,pass_2,hlcgobj;
+  cgbase,cgutils,pass_2,nodehelper;
 
 {*****************************************************************************
                                tcghlnotnode

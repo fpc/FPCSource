@@ -31,7 +31,8 @@ uses
   aasmbase,aasmdata,aasmcpu,
   symbase,symconst,symtype,symdef,symsym,
   node,
-  cpubase, hlcgobj, cgbase, cgutils, parabase, wasmdef;
+  cpubase, hlcgobj, cgbase, cgutils, parabase, wasmdef,
+  compilerbase;
 
   type
 
@@ -58,7 +59,7 @@ uses
      public
       fntypelookup : TWasmProcTypeLookup;
 
-      constructor create;
+      constructor create(acompiler: TCompilerBase);
       destructor Destroy; override;
 
       function RefStackPointerSym: TWasmGlobalAsmSymbol;
@@ -256,7 +257,8 @@ implementation
     defutil,cpupi,
     aasmtai,
     symtable,symcpu,
-    procinfo,cpuinfo,cgobj,cgcpu,tgobj,tgcpu,paramgr;
+    procinfo,cpuinfo,cgobj,cgcpu,tgobj,tgcpu,paramgr,
+    compiler;
 
   const
     TOpCG2IAsmOp : array[topcg] of TAsmOp=(
@@ -364,8 +366,9 @@ implementation
       result.WasmGlobalType:=wbt_i32;
     end;
 
-  constructor thlcgwasm.create;
+  constructor thlcgwasm.create(acompiler: TCompilerBase);
     begin
+      inherited;
       fevalstackheight:=0;
       fmaxevalstackheight:=0;
       fntypelookup:=TWasmProcTypeLookup.Create;
@@ -472,7 +475,7 @@ implementation
       else
         current_asmdata.CurrAsmList.Concat(taicpu.op_functype(a_call_indirect,tcpuprocdef(pd).create_functype));
       decstack(list,1);
-      result:=hlcg.get_call_result_cgpara(pd, nil);
+      result:=get_call_result_cgpara(pd, nil);
     end;
 
 
@@ -995,77 +998,77 @@ implementation
     begin
       a_cmp_const_loc_stack(list,size,cmp_op,a,loc);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_const_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; const ref: treference; br: Integer);
     begin
       a_cmp_const_ref_stack(list,size,cmp_op,a,ref);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_const_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; br: Integer);
     begin
       a_cmp_const_reg_stack(list,size,cmp_op,a,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_ref_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; br: Integer);
     begin
       a_cmp_ref_reg_stack(list,size,cmp_op,ref,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_reg_ref_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; br: Integer);
     begin
       a_cmp_reg_ref_stack(list,size,cmp_op,reg,ref);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_reg_reg_br(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; br: Integer);
     begin
       a_cmp_reg_reg_stack(list,size,cmp_op,reg1,reg2);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_subsetreg_reg_br(list: TAsmList; fromsubsetsize, cmpsize: tdef; cmp_op: topcmp; const sreg: tsubsetregister; reg: tregister; br: Integer);
     begin
       a_cmp_subsetreg_reg_stack(list,fromsubsetsize,cmpsize,cmp_op,sreg,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_subsetref_reg_br(list: TAsmList; fromsubsetsize, cmpsize: tdef; cmp_op: topcmp; const sref: tsubsetreference; reg: tregister; br: Integer);
     begin
       a_cmp_subsetref_reg_stack(list,fromsubsetsize,cmpsize,cmp_op,sref,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_loc_reg_br(list : TAsmList;size : tdef;cmp_op : topcmp; const loc: tlocation; reg : tregister; br: Integer);
     begin
       a_cmp_loc_reg_stack(list,size,cmp_op,loc,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_reg_loc_br(list : TAsmList;size : tdef;cmp_op : topcmp; reg: tregister; const loc: tlocation; br: Integer);
     begin
       a_cmp_reg_loc_stack(list,size,cmp_op,reg,loc);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_ref_loc_br(list: TAsmList; size: tdef;cmp_op: topcmp; const ref: treference; const loc: tlocation; br: Integer);
     begin
       a_cmp_ref_loc_stack(list,size,cmp_op,ref,loc);
       current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br_if,br));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation);
@@ -2003,35 +2006,35 @@ implementation
     begin
       a_cmp_const_ref_stack(list,size,cmp_op,a,ref);
       current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_const_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
     begin
       a_cmp_const_reg_stack(list,size,cmp_op,a,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
     begin
       a_cmp_ref_reg_stack(list,size,cmp_op,ref,reg);
       current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_reg_ref_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg: tregister; const ref: treference; l: tasmlabel);
     begin
       a_cmp_reg_ref_stack(list,size,cmp_op,reg,ref);
       current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_cmp_reg_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
     begin
       a_cmp_reg_reg_stack(list,size,cmp_op,reg1,reg2);
       current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_br_if,l));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
     end;
 
   procedure thlcgwasm.a_jmp_always(list: TAsmList; l: tasmlabel);
@@ -2371,7 +2374,7 @@ implementation
                   (lto > aintmax) then
                  begin
                    g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
-                   hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+                   g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
                    exit
                  end;
                { from is signed and to is unsigned -> when looking at to }
@@ -2387,7 +2390,7 @@ implementation
                   (hto < 0) then
                  begin
                    g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
-                   hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+                   g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
                    exit
                  end;
                { from is unsigned and to is signed -> when looking at to }
@@ -2414,10 +2417,10 @@ implementation
       a_cmp_stack_stack(list,maxdef,OC_A);
 
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
-      thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
+      decstack(current_asmdata.CurrAsmList,1);
 
       g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
-      hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+      g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
 
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
     end;
@@ -2438,7 +2441,7 @@ implementation
       list.concat(taicpu.op_none(a_block));
       a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
-      hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+      g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
       list.concat(taicpu.op_none(a_end_block));
       a_label(list,hl);
     end;
@@ -2609,7 +2612,7 @@ implementation
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
       decstack(current_asmdata.CurrAsmList,1);
       g_call_system_proc(list,'fpc_invalidpointer',[],nil);
-      hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
+      g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
     end;
 
@@ -2925,10 +2928,10 @@ implementation
         end;
     end;
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgwasm.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgwasm.create(compiler);
+      create_codegen(compiler);
     end;
 
 initialization

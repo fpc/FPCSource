@@ -25,7 +25,7 @@ unit nwasmmem;
 interface
 
     uses
-      node,nmem,ncgmem;
+      node,nmem,ncgmem,compilerbase;
 
     type
 
@@ -40,7 +40,8 @@ implementation
     uses
       globals,
       verbose,
-      symcpu;
+      symcpu,
+      compiler;
 
     { twasmaddrnode }
 

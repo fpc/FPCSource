@@ -27,8 +27,8 @@ interface
 
     uses
       cgbase,
-      symtype,symdef,cgutils,parabase,
-      node,ncal,ncgcal,hlcgobj,aasmcpu,cpubase, wasmdef;
+      symtype,symdef,cgutils,parabase,compilerbase,
+      node,ncal,ncgcal,aasmcpu,cpubase, wasmdef;
 
     type
        { twasmcallparanode }
@@ -55,7 +55,8 @@ interface
 implementation
 
     uses
-      globals, globtype, verbose, aasmdata, defutil, tgobj, hlcgcpu, symconst, symsym, symcpu;
+      globals, globtype, verbose, aasmdata, defutil, tgobj, hlcgcpu, symconst, symsym, symcpu,
+      nodehelper, compiler;
 
       { twasmcallparanode }
 

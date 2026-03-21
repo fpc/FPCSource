@@ -30,7 +30,7 @@ interface
 uses
   systems,
 
-  globtype, globals,
+  globtype, globals, compilerbase,
   aasmbase,
   cfileutl, cutils, cclasses,
 
@@ -63,7 +63,7 @@ type
 
   tlinkerwasi=class(texternallinker)
   public
-    constructor Create;override;
+    constructor Create(acompiler: TCompilerBase);override;
     procedure SetDefaultInfo;override;
 
     procedure InitSysInitUnitName;override;
@@ -83,7 +83,7 @@ type
     function GetDataSize(aExeOutput: TExeOutput): QWord;override;
     function GetBssSize(aExeOutput: TExeOutput): QWord;override;
   public
-    constructor create;override;
+    constructor create(acompiler: TCompilerBase);override;
 
     procedure InitSysInitUnitName;override;
   end;
@@ -94,7 +94,8 @@ implementation
 uses
   SysUtils,
   verbose,
-  comprsrc,rescmn;
+  comprsrc,rescmn,
+  compiler;
 
 { timportlibwasi }
 
@@ -104,9 +105,9 @@ uses
 
 { tlinkerwasi }
 
-constructor tlinkerwasi.Create;
+constructor tlinkerwasi.Create(acompiler: TCompilerBase);
 begin
-  inherited Create;
+  inherited;
 end;
 
 procedure tlinkerwasi.SetDefaultInfo;
@@ -379,9 +380,9 @@ begin
           GetExeSectionSize(aExeOutput,'fpc.reshandles');
 end;
 
-constructor TInternalLinkerWasi.create;
+constructor TInternalLinkerWasi.create(acompiler: TCompilerBase);
 begin
-  inherited create;
+  inherited;
   CExeOutput:=TWasmExeOutput;
   CObjInput:=TWasmObjInput;
 end;

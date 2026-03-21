@@ -30,7 +30,8 @@ Unit rawasmtext;
       cclasses,
       globtype,
       rasm,rawasm,
-      aasmbase,cpubase;
+      aasmbase,cpubase,
+      compilerbase;
 
     type
       tasmtoken = (
@@ -77,7 +78,7 @@ Unit rawasmtext;
       cutils,
       { global }
       globals,verbose,
-      systems,
+      systems,compiler,
       { aasm }
       cpuinfo,aasmtai,aasmdata,aasmcpu,
       { symtable }
@@ -597,7 +598,7 @@ Unit rawasmtext;
                     HasInstructions:=False;
                     HasThen:=False;
                     HasElse:=False;
-                    instr:=TWasmInstruction.create(TWasmOperand);
+                    instr:=TWasmInstruction.create(TWasmOperand,compiler);
                     instr.opcode:=actopcode;
                     HasLabel:=False;
                     if actasmtoken=AS_ID then
@@ -726,7 +727,7 @@ Unit rawasmtext;
         case actasmtoken of
           AS_OPCODE:
             begin
-              result:=TWasmInstruction.create(TWasmOperand);
+              result:=TWasmInstruction.create(TWasmOperand,compiler);
               result.opcode:=actopcode;
               Consume(AS_OPCODE);
               case result.opcode of
@@ -983,7 +984,7 @@ Unit rawasmtext;
                             begin
                               result.ops:=1;
                               result.operands[1].opr.typ:=OPR_SYMBOL;
-                              result.operands[1].opr.symbol:=thlcgwasm(hlcg).RefStackPointerSym;
+                              result.operands[1].opr.symbol:=thlcgwasm(compiler.hlcg).RefStackPointerSym;
                               Consume(AS_ID);
                             end;
                           '$'+TLS_SIZE_SYM,
@@ -1073,7 +1074,7 @@ Unit rawasmtext;
           a_block,
           a_loop:
             begin
-              instr:=TWasmInstruction.create(TWasmOperand);
+              instr:=TWasmInstruction.create(TWasmOperand,compiler);
               instr.opcode:=actopcode;
               Consume(AS_OPCODE);
               {TODO: implement the rest}
@@ -1098,7 +1099,7 @@ Unit rawasmtext;
         curlist:=TAsmList.Create;
 
         { we might need to know which parameters are passed in registers }
-        if not parse_generic then
+        if not compiler.parser.pbase.parse_generic then
           current_procinfo.generate_parameter_info;
 
         { start tokenizer }

@@ -61,7 +61,7 @@ interface
       symconst,symtable,symdef,symcpu,
       paramgr,procinfo,pass_1,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
-      hlcgobj,hlcgcpu,cgutils,
+      nodehelper,hlcgcpu,cgutils,
       cpupara,
       nbas,ncon,nset,nadd,ncal,ncnv,ninl,nld,nmat,nmem,
       //njvmcon,

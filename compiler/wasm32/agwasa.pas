@@ -38,7 +38,8 @@ interface
     ,cpubase, cgbase
     ,fmodule
     ,verbose, itcpuwasm
-    ,cfileutl, tgcpu;
+    ,cfileutl, tgcpu
+    ,compilerbase;
 
   type
      TWatInstrWriter = class;
@@ -74,9 +75,9 @@ interface
        procedure WriteConstString(lbl: tai_label; str: tai_string);
        procedure WriteConstants(p: TAsmList);
      public
-       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-       procedure WriteTree(p:TAsmList);override;
-       procedure WriteAsmList;override;
+       constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
+       procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
+       procedure WriteAsmList(asmdata: TAsmData);override;
        Function  DoAssemble:boolean;override;
      end;
 
@@ -100,6 +101,9 @@ interface
      end;
 
 implementation
+
+    uses
+      compiler;
 
     type
       t64bitarray = array[0..7] of byte;
@@ -329,7 +333,7 @@ implementation
 
       if not stub then begin
         //WriteTempAlloc(tcpuprocdef(pd).exprasmlist);
-        WriteTree(tcpuprocdef(pd).exprasmlist);
+        WriteTree(tcpuprocdef(pd).exprasmlist,al_procedures);
       end else begin
         if stubUnreachable then
           writer.AsmWriteLn(#9#9'unreachable');
@@ -394,7 +398,7 @@ implementation
         writer.AsmLn;
       end;
 
-    procedure TWasaTextAssembler.WriteTree(p: TAsmList);
+    procedure TWasaTextAssembler.WriteTree(p: TAsmList;asmlisttype:TAsmListType);
       var
         ch       : char;
         hp       : tai;
@@ -640,7 +644,7 @@ implementation
          end;
     end;
 
-    procedure TWasaTextAssembler.WriteAsmList;
+    procedure TWasaTextAssembler.WriteAsmList(asmdata: TAsmData);
       var
         hal : tasmlisttype;
       begin
@@ -648,13 +652,13 @@ implementation
         writer.AsmWriteLn('(module ');
         writer.AsmWriteLn('(import "env" "memory" (memory 0)) ;;');
         WriteImports;
-        WriteConstants(current_asmdata.asmlists[al_const]);
-        WriteConstants(current_asmdata.asmlists[al_typedconsts]);
+        WriteConstants(asmdata.asmlists[al_const]);
+        WriteConstants(asmdata.asmlists[al_typedconsts]);
 
-        //current_asmdata.CurrAsmList.labe
+        //asmdata.CurrAsmList.labe
 
         { print all global variables }
-        //current_asmdata.AsmSymbolDict
+        //asmdata.AsmSymbolDict
 
         // for every unit __stack_top is a weak symbol
         // __stack_top is strong only for libraries or programs.
@@ -673,7 +677,7 @@ implementation
         WriteSymtableProcdefs(current_module.localsymtable);
 
         if current_module.islibrary then begin
-          WriteExports(current_asmdata.asmlists[al_exports]);
+          WriteExports(asmdata.asmlists[al_exports]);
         end else
           WriteUnitExports(current_module.globalsymtable);
 
@@ -705,9 +709,9 @@ implementation
       end;
 
     constructor TWasaTextAssembler.CreateWithWriter(info: pasminfo;
-      wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+      wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
-        inherited CreateWithWriter(info, wr, freewriter, smart);
+        inherited;
       end;
 
     procedure TWasaTextAssembler.WriteSymtableProcdefs(st: TSymtable);

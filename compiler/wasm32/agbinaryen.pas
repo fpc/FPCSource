@@ -30,7 +30,8 @@ interface
       globtype,globals,
       symconst,symbase,symdef,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      assemble;
+      assemble,
+      compilerbase;
 
     type
       TBinaryenAssemblerOutputFile=class(TExternalAssemblerOutputFile)
@@ -54,9 +55,9 @@ interface
 
         function CreateNewAsmWriter: TExternalAssemblerOutputFile; override;
        public
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-        procedure WriteTree(p:TAsmList);override;
-        procedure WriteAsmList;override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         destructor destroy; override;
        protected
         InstrWriter: TBinaryenInstrWriter;
@@ -88,7 +89,8 @@ implementation
       fmodule,finput,verbose,
       symtype,symcpu,symtable,
       itcpuwasm,cpubase,cpuinfo,cgutils,
-      widestr
+      widestr,
+      compiler
       ;
 
     const
@@ -226,7 +228,7 @@ implementation
       end;
 
 
-    procedure TBinaryenAssembler.WriteTree(p:TAsmList);
+    procedure TBinaryenAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
       var
         ch       : char;
         hp       : tai;
@@ -476,7 +478,7 @@ implementation
       end;
 
 
-    constructor TBinaryenAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TBinaryenAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter:=TBinaryenInstrWriter.Create(self);
@@ -484,7 +486,7 @@ implementation
       end;
 
 
-    procedure TBinaryenAssembler.WriteAsmList;
+    procedure TBinaryenAssembler.WriteAsmList(asmdata: TAsmData);
       var
         hal : tasmlisttype;
       begin
@@ -493,10 +495,10 @@ implementation
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          if not (current_asmdata.asmlists[hal].empty) then
+          if not (asmdata.asmlists[hal].empty) then
             begin
               writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-              writetree(current_asmdata.asmlists[hal]);
+              writetree(asmdata.asmlists[hal],hal);
               writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
             end;
         end;

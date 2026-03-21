@@ -32,7 +32,8 @@ uses
   aasmdata,
   symtype,
   symdef,symsym,
-  cgutils;
+  cgutils,
+  compilerbase;
 
 type
   { defs }
@@ -67,7 +68,7 @@ type
   public
     { flag, indicating whether the pointer is a WebAssembly externref reference type }
     is_wasm_externref: boolean;
-    constructor create_externref(def: tdef);
+    constructor create_externref(def: tdef;acompiler:TCompilerBase);
     function getcopy: tstoreddef; override;
     function GetTypeName: string; override;
     function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
@@ -230,7 +231,8 @@ implementation
     pdecsub,pparautl,paramgr,
     // high-level code generator is needed to get access to type index for ncall
     hlcgobj,hlcgcpu,
-    tgcpu
+    tgcpu,
+    compiler
     ;
 
   function is_wasm_funcref(p: tdef): boolean;
@@ -279,9 +281,9 @@ implementation
     end;
 
 
-  constructor tcpupointerdef.create_externref(def: tdef);
+  constructor tcpupointerdef.create_externref(def: tdef;acompiler:TCompilerBase);
     begin
-      inherited create(def);
+      inherited create(def,acompiler);
       is_wasm_externref:=true;
     end;
 
@@ -312,7 +314,7 @@ implementation
 ****************************************************************************}
 
 
-  function create_functype_common(pd: tabstractprocdef): TWasmFuncType;
+  function create_functype_common(pd: tabstractprocdef;paramanager:tparamanager): TWasmFuncType;
     var
       i: Integer;
       prm: tcpuparavarsym;
@@ -368,7 +370,7 @@ implementation
 
   function tcpuprocdef.create_functype: TWasmFuncType;
     begin
-      Result:=create_functype_common(self);
+      Result:=create_functype_common(self,compiler.paramanager);
     end;
 
 
@@ -419,7 +421,7 @@ implementation
 
     function tcpuprocvardef.create_functype: TWasmFuncType;
       begin
-        Result:=create_functype_common(Self);
+        Result:=create_functype_common(Self,compiler.paramanager);
       end;
 
     function tcpuprocvardef.is_pushleftright: boolean;

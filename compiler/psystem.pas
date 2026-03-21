@@ -409,7 +409,7 @@ implementation
 {$endif jvm}
 {$ifdef wasm}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif wasm}
 {$ifdef xtensa}
         create_fpu_types;
@@ -463,7 +463,7 @@ implementation
         tarraydef(x86_m256itype).elementdef:=s32floattype;
 {$endif x86}
 {$ifdef wasm}
-        wasmvoidexternreftype:=tcpupointerdefclass.create_externref(voidtype);
+        wasmvoidexternreftype:=tcpupointerdefclass.create_externref(voidtype,compiler);
 {$endif wasm}
         set_default_ptr_types;
         openchararraytype:=carraydef.create_openarray(compiler);

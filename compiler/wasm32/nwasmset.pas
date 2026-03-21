@@ -27,7 +27,7 @@ interface
 
     uses
       node,nset,ncgset,
-      aasmbase;
+      aasmbase,compilerbase;
 
     type
 
@@ -57,10 +57,10 @@ implementation
       cpubase,
       cgbase,cgutils,
       aasmdata,aasmcpu,
-      hlcgobj,hlcgcpu,
+      nodehelper,hlcgcpu,
       nbas,
       symtype,
-      pass_2,defutil,verbose,constexp;
+      pass_2,defutil,verbose,constexp,compiler;
 
 {*****************************************************************************
                                  TWASMINNODE

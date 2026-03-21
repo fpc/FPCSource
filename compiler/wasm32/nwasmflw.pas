@@ -26,7 +26,7 @@ unit nwasmflw;
 interface
 
     uses
-      aasmbase,node,nflw,ncgflw, cutils;
+      aasmbase,node,nflw,ncgflw,cutils,compilerbase;
 
     type
 
@@ -106,7 +106,7 @@ implementation
       cpubase,cpuinfo,cpupi,
       nbas,nld,ncon,ncnv,ncal,ninl,nmem,nadd,nutils,
       tgobj,paramgr,
-      cgutils,hlcgobj,hlcgcpu;
+      cgutils,nodehelper,hlcgcpu,compiler;
 
 {*****************************************************************************
                            twasmwhilerepeatnode
@@ -241,7 +241,7 @@ implementation
         //current_addr : tlabelnode;
         raisenode : tcallnode;
       begin
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
 
         if assigned(left) then
           begin
@@ -298,7 +298,7 @@ implementation
         //current_addr : tlabelnode;
         raisenode : tcallnode;
       begin
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
 
         if assigned(left) then
           begin
@@ -355,7 +355,7 @@ implementation
         //current_addr : tlabelnode;
         raisenode : tcallnode;
       begin
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
 
         if assigned(left) then
           begin
@@ -412,7 +412,7 @@ implementation
         //current_addr : tlabelnode;
         raisenode : tcallnode;
       begin
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
 
         if assigned(left) then
           begin
@@ -517,7 +517,7 @@ implementation
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
@@ -528,7 +528,7 @@ implementation
         if compiler.verbose.codegenerror then
           goto errorexit;
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
@@ -562,7 +562,7 @@ implementation
                 reference_reset(destroytemps.envbuf,0,[]);
                 reference_reset(destroytemps.jmpbuf,0,[]);
                 reference_reset(destroytemps.reasonbuf,0,[]);
-                cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
+                compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
                 { the flowcontrol from the default except-block must be merged
                   with the flowcontrol flags potentially set by the
                   on-statements handled above (secondpass(right)), as they are
@@ -604,7 +604,7 @@ implementation
 
                 secondpass(t1);
 
-                cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
+                compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                 current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,6));
@@ -703,7 +703,7 @@ implementation
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
 
@@ -712,7 +712,7 @@ implementation
         if compiler.verbose.codegenerror then
           goto errorexit;
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
 
@@ -744,7 +744,7 @@ implementation
                 reference_reset(destroytemps.envbuf,0,[]);
                 reference_reset(destroytemps.jmpbuf,0,[]);
                 reference_reset(destroytemps.reasonbuf,0,[]);
-                cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
+                compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
                 { the flowcontrol from the default except-block must be merged
                   with the flowcontrol flags potentially set by the
                   on-statements handled above (secondpass(right)), as they are
@@ -784,7 +784,7 @@ implementation
 
                 secondpass(t1);
 
-                cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
+                compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                 current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4));
@@ -884,7 +884,7 @@ implementation
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
 
@@ -898,7 +898,7 @@ implementation
         if compiler.verbose.codegenerror then
           goto errorexit;
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
 
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
@@ -935,7 +935,7 @@ implementation
                 reference_reset(destroytemps.envbuf,0,[]);
                 reference_reset(destroytemps.jmpbuf,0,[]);
                 reference_reset(destroytemps.reasonbuf,0,[]);
-                cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
+                compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,destroytemps,tek_except,doobjectdestroyandreraisestate);
                 { the flowcontrol from the default except-block must be merged
                   with the flowcontrol flags potentially set by the
                   on-statements handled above (secondpass(right)), as they are
@@ -980,7 +980,7 @@ implementation
 
                 secondpass(t1);
 
-                cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
+                compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
                 current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4));
@@ -1124,8 +1124,8 @@ implementation
           continue and break (they still need to execute the 'finally'
           statements), so for this we need excepttemps.reasonbuf, and for this
           reason, we need to allocate excepttemps }
-        cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
+        compiler.exceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
 
         { the finally block must catch break, continue and exit }
         { statements                                            }
@@ -1171,7 +1171,7 @@ implementation
         { don't generate line info for internal cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
@@ -1229,7 +1229,7 @@ implementation
         if fc_continue in finallyexceptionstate.newflowcontrol then
           generate_exceptreason_check_br(4,oldContinueLabel);
 
-        cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
 
         { end cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -1309,8 +1309,8 @@ implementation
           continue and break (they still need to execute the 'finally'
           statements), so for this we need excepttemps.reasonbuf, and for this
           reason, we need to allocate excepttemps }
-        cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
+        compiler.exceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
 
         { the finally block must catch break, continue and exit }
         { statements                                            }
@@ -1362,7 +1362,7 @@ implementation
         { don't generate line info for internal cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { exit the inner 'try_table..end_try_table' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
@@ -1431,7 +1431,7 @@ implementation
           generate_exceptreason_check_br(4,oldContinueLabel);
         generate_exceptreason_throw(1);
 
-        cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
 
         { end cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -1511,8 +1511,8 @@ implementation
           continue and break (they still need to execute the 'finally'
           statements), so for this we need excepttemps.reasonbuf, and for this
           reason, we need to allocate excepttemps }
-        cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
+        compiler.exceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
 
         { the finally block must catch break, continue and exit }
         { statements                                            }
@@ -1561,7 +1561,7 @@ implementation
         { don't generate line info for internal cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
@@ -1628,7 +1628,7 @@ implementation
           generate_exceptreason_check_br(4,oldContinueLabel);
         generate_exceptreason_throw(1);
 
-        cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
 
         { end cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -1712,8 +1712,8 @@ implementation
           continue and break (they still need to execute the 'finally'
           statements), so for this we need excepttemps.reasonbuf, and for this
           reason, we need to allocate excepttemps }
-        cexceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
+        compiler.exceptionstatehandler.get_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,exceptframekind,finallyexceptionstate);
 
         { the finally block must catch break, continue and exit }
         { statements                                            }
@@ -1765,7 +1765,7 @@ implementation
         { don't generate line info for internal cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
@@ -1835,7 +1835,7 @@ implementation
           generate_exceptreason_check_br(4,oldContinueLabel);
         generate_exceptreason_reraise(1);
 
-        cexceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
+        compiler.exceptionstatehandler.unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
 
         { end cleanup }
         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
@@ -1901,7 +1901,7 @@ implementation
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
-        cexceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
+        compiler.exceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
 
         { Retrieve exception variable }
         if assigned(excepTSymtable) then
@@ -1916,7 +1916,7 @@ implementation
             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
 
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
 
         { in the case that another exception is risen
           we've to destroy the old one, so create a new
@@ -1955,7 +1955,7 @@ implementation
         if assigned(right) then
           secondpass(right);
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,7));
@@ -2010,7 +2010,7 @@ implementation
             tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
             exceptvarsym.localloc.loc:=LOC_INVALID;
           end;
-        cexceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
+        compiler.exceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
 
         { propagate exit/break/continue }
         flowcontrol:=doobjectdestroyandreraisestate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
@@ -2048,7 +2048,7 @@ implementation
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
-        cexceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
+        compiler.exceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
 
         { Retrieve exception variable }
         if assigned(excepTSymtable) then
@@ -2063,7 +2063,7 @@ implementation
             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
 
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
 
         { in the case that another exception is risen
           we've to destroy the old one, so create a new
@@ -2100,7 +2100,7 @@ implementation
         if assigned(right) then
           secondpass(right);
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,5));
@@ -2153,7 +2153,7 @@ implementation
             tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
             exceptvarsym.localloc.loc:=LOC_INVALID;
           end;
-        cexceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
+        compiler.exceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
 
         { propagate exit/break/continue }
         flowcontrol:=doobjectdestroyandreraisestate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
@@ -2194,7 +2194,7 @@ implementation
 
         in_loop:=assigned(current_procinfo.CurrBreakLabel);
 
-        cexceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
+        compiler.exceptionstatehandler.begin_catch(current_asmdata.CurrAsmList,excepttype,nil,exceptlocdef,exceptlocreg);
 
         { Retrieve exception variable }
         if assigned(excepTSymtable) then
@@ -2209,7 +2209,7 @@ implementation
             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList, exceptlocdef, exceptvarsym.vardef, exceptlocreg, exceptvarsym.localloc.reference);
           end;
 
-        cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
+        compiler.exceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,doobjectdestroyandreraisestate);
 
         { in the case that another exception is risen
           we've to destroy the old one, so create a new
@@ -2251,7 +2251,7 @@ implementation
         if assigned(right) then
           secondpass(right);
 
-        cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
+        compiler.exceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,6));
@@ -2308,7 +2308,7 @@ implementation
             tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
             exceptvarsym.localloc.loc:=LOC_INVALID;
           end;
-        cexceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
+        compiler.exceptionstatehandler.end_catch(current_asmdata.CurrAsmList);
 
         { propagate exit/break/continue }
         flowcontrol:=doobjectdestroyandreraisestate.oldflowcontrol+(doobjectdestroyandreraisestate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);

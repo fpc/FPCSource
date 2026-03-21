@@ -31,7 +31,8 @@ interface
     cclasses,globtype,
     fmodule,
     aasmbase,aasmdata,
-    node,nbas,symtype,symsym,symconst,symdef;
+    node,nbas,symtype,symsym,symconst,symdef,
+    hlcgobj;
 
 
   type
@@ -44,12 +45,15 @@ interface
     end;
     pinitfinalentry = ^tinitfinalentry;
 
+    { tnodeutils }
+
     tnodeutils = class
       function call_fail_node:tnode; virtual;
       function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
       function finalize_data_node(p:tnode):tnode; virtual;
      strict private
       procedure AddToThreadvarList(p:TObject;arg:pointer);
+      function GetHLCG: thlcgobj; inline;
      strict protected
       FCompiler: TCompilerBase;
       type
@@ -63,6 +67,7 @@ interface
       procedure sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
       procedure append_struct_initfinis(u: tmodule; initfini: tstructinifinipotype; var stat: tstatementnode); virtual;
       property Compiler: TCompilerBase read FCompiler;
+      property hlcg: thlcgobj read GetHLCG;
      public
       constructor Create(ACompiler: TCompilerBase); virtual;
       procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
@@ -1394,6 +1399,12 @@ implementation
          { size of threadvar }
          tcb.emit_ord_const(tstaticvarsym(p).getsize,u32inttype);
        end;
+    end;
+
+
+  function tnodeutils.GetHLCG: thlcgobj; inline;
+    begin
+      result:=compiler.hlcg;
     end;
 
 
