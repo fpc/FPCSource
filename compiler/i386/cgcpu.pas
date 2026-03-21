@@ -64,7 +64,7 @@ unit cgcpu;
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
@@ -1207,9 +1207,7 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure create_codegen(compiler: TCompilerBase);
       begin
         tcompiler(compiler).cg := tcg386.create(compiler);
         cg64 := tcg64f386.create(compiler);

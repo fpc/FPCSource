@@ -445,7 +445,7 @@ implementation
   procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
       tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
-      create_codegen;
+      create_codegen(compiler);
     end;
 
 
