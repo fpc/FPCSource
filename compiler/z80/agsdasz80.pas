@@ -33,7 +33,8 @@ unit agsdasz80;
        globtype,systems,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        assemble,
-       cpubase;
+       cpubase,
+       compilerbase;
 
     type
 
@@ -48,10 +49,10 @@ unit agsdasz80;
         procedure WriteInstruction(hp: taicpu);
         procedure WriteOper(const o:toper; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
-        procedure WriteExternals;
+        procedure WriteExternals(asmdata: TAsmData);
       public
-        procedure WriteTree(p : TAsmList); override;
-        procedure WriteAsmList;override;
+        procedure WriteTree(p : TAsmList;asmlisttype:TAsmListType); override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -64,7 +65,8 @@ unit agsdasz80;
 {$ifdef FPC_SOFT_FPUX80}
        sfpux80,
 {$endif FPC_SOFT_FPUX80}
-       finput;
+       finput,
+       compiler;
 
     const
       line_length = 70;
@@ -478,22 +480,22 @@ unit agsdasz80;
         end;
       end;
 
-    procedure TSdccSdasZ80Assembler.WriteExternals;
+    procedure TSdccSdasZ80Assembler.WriteExternals(asmdata: TAsmData);
       var
         sym : TAsmSymbol;
         i   : longint;
       begin
         writer.AsmWriteln('; Begin externals');
-        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
+        for i:=0 to asmdata.AsmSymbolDict.Count-1 do
           begin
-            sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
+            sym:=TAsmSymbol(asmdata.AsmSymbolDict[i]);
             if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
               writer.AsmWriteln(#9'.globl'#9+ApplyAsmSymbolRestrictions(sym.name));
           end;
         writer.AsmWriteln('; End externals');
       end;
 
-    procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList);
+    procedure TSdccSdasZ80Assembler.WriteTree(p: TAsmList;asmlisttype:TAsmListType);
 
       procedure doalign(alignment: byte; use_op: boolean; fillop: byte; maxbytes: byte; out last_align: longint;lasthp:tai);
         var
@@ -527,7 +529,7 @@ unit agsdasz80;
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
-                 and (p=current_asmdata.asmlists[al_procedures]));
+                 and (asmlisttype=al_procedures));
       hp:=tai(p.first);
       while assigned(hp) do
         begin
@@ -861,16 +863,16 @@ unit agsdasz80;
     end;
 
 
-    procedure TSdccSdasZ80Assembler.WriteAsmList;
+    procedure TSdccSdasZ80Assembler.WriteAsmList(asmdata: TAsmData);
       var
         hal: TAsmListType;
       begin
-        WriteExternals;
+        WriteExternals(asmdata);
 
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
             writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-            writetree(current_asmdata.asmlists[hal]);
+            writetree(asmdata.asmlists[hal],hal);
             writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
           end;
       end;

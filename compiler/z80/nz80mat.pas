@@ -48,7 +48,7 @@ implementation
       ncon,
       cpubase,cpuinfo,
       ncgutil,cgobj,cgutils,
-      hlcgobj;
+      nodehelper;
 
 {*****************************************************************************
                                 tz80notnode

@@ -385,11 +385,11 @@ implementation
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif avr}
 {$ifdef z80}
-        s32floattype:=cfloatdef.create(s32real,true);
-        s64floattype:=cfloatdef.create(s64real,true);
-        s80floattype:=cfloatdef.create(s80real,true);
-        sc80floattype:=cfloatdef.create(sc80real,true);
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+        s32floattype:=cfloatdef.create(s32real,true,compiler);
+        s64floattype:=cfloatdef.create(s64real,true,compiler);
+        s80floattype:=cfloatdef.create(s80real,true,compiler);
+        sc80floattype:=cfloatdef.create(sc80real,true,compiler);
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif z80}
 {$ifdef mips}
         create_fpu_types;

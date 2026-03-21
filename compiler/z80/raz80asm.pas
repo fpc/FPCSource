@@ -29,7 +29,8 @@ Unit raz80asm;
       cclasses,
       globtype,
       rasm,raz80,
-      aasmbase,cpubase;
+      aasmbase,cpubase,
+      compilerbase;
 
     type
       tasmtoken = (
@@ -135,7 +136,8 @@ Unit raz80asm;
       scanner,pbase,
       procinfo,
       rabase,rautils,
-      cgbase,cgutils,cgobj
+      cgbase,cgutils,cgobj,
+      compiler
       ;
 
 
@@ -338,7 +340,7 @@ Unit raz80asm;
                     parse the identifier }
                   if (c='.') then
                    begin
-                     searchsym(actasmpattern,srsym,srsymtable);
+                     compiler.symtablestack.searchsym(actasmpattern,srsym,srsymtable);
                      if assigned(srsym) and
                         (srsym.typ=unitsym) and
                         (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
@@ -1948,7 +1950,7 @@ Unit raz80asm;
 
                 if actasmtoken=AS_LPAREN then
                   begin
-                    tmpoper:=Tz80Operand.create;
+                    tmpoper:=Tz80Operand.create(compiler);
                     BuildReference(tmpoper);
                     AddReferences(oper,tmpoper);
                     tmpoper.Free;
@@ -2324,7 +2326,7 @@ Unit raz80asm;
       var
         instr: TZ80Instruction;
       begin
-        instr:=TZ80Instruction.create(TZ80Operand);
+        instr:=TZ80Instruction.create(TZ80Operand,compiler);
         BuildOpcode(instr);
         with instr do
           begin
@@ -2373,7 +2375,7 @@ Unit raz80asm;
         curlist:=TAsmList.Create;
 
         { we might need to know which parameters are passed in registers }
-        if not parse_generic then
+        if not compiler.parser.pbase.parse_generic then
           current_procinfo.generate_parameter_info;
 
         { start tokenizer }

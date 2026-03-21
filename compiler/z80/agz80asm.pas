@@ -33,7 +33,8 @@ unit agz80asm;
        globtype,systems,
        aasmtai,aasmdata,
        assemble,
-       cpubase;
+       cpubase,
+       compilerbase;
 
     type
 
@@ -43,8 +44,8 @@ unit agz80asm;
       private
         function EscapeLabel(s: ansistring): ansistring;
       public
-        procedure WriteTree(p : TAsmList); override;
-        procedure WriteAsmList;override;
+        procedure WriteTree(p : TAsmList;asmlisttype:TAsmListType); override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -54,7 +55,8 @@ unit agz80asm;
        cutils,globals,verbose,
        aasmbase,aasmcpu,
        cpuinfo,
-       cgbase,cgutils;
+       cgbase,cgutils,
+       compiler;
 
     const
       line_length = 70;
@@ -84,7 +86,7 @@ unit agz80asm;
             result:=result+('_'+HexStr(Ord(s[i]),2));
       end;
 
-    procedure TZ80AsmAssembler.WriteTree(p: TAsmList);
+    procedure TZ80AsmAssembler.WriteTree(p: TAsmList;asmlisttype:TAsmListType);
 
       function getreferencestring(var ref : treference) : string;
         var
@@ -406,14 +408,14 @@ unit agz80asm;
     end;
 
 
-    procedure TZ80AsmAssembler.WriteAsmList;
+    procedure TZ80AsmAssembler.WriteAsmList(asmdata: TAsmData);
       var
         hal: TAsmListType;
       begin
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
             writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-            writetree(current_asmdata.asmlists[hal]);
+            writetree(asmdata.asmlists[hal],hal);
             writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
           end;
       end;

@@ -36,7 +36,8 @@ implementation
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,cscript,
        fmodule,i_msxdos,
-       link,aasmbase,cpuinfo,ogrel,owar;
+       link,aasmbase,cpuinfo,ogrel,owar,
+       compilerbase,compiler;
 
     const
       DefaultOrigin = $100;
@@ -71,7 +72,7 @@ implementation
          procedure DefaultLinkScript;override;
          function ExecutableFilename:String;override;
        public
-         constructor create;override;
+         constructor create(acompiler: TCompilerBase);override;
          procedure InitSysInitUnitName;override;
          function MakeExecutable: boolean; override;
          function postprocessexecutable(const fn : string): boolean;
@@ -385,9 +386,9 @@ procedure TInternalLinkerMSXDOS.DefaultLinkScript;
     LinkScript.Concat('ENTRYNAME start');
   end;
 
-constructor TInternalLinkerMSXDOS.create;
+constructor TInternalLinkerMSXDOS.create(acompiler: TCompilerBase);
   begin
-    inherited create;
+    inherited;
     CArObjectReader:=TArObjectReader;
     CExeOutput:=TIntelHexExeOutput;
     CObjInput:=TRelObjInput;

@@ -33,7 +33,8 @@ implementation
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,comphook,cscript,fmodule,i_zxspectrum,link,
-       cpuinfo,ogbase,ogrel,owar;
+       cpuinfo,ogbase,ogrel,owar,
+       compilerbase,compiler;
 
     const
        DefaultOrigin=23800;
@@ -69,7 +70,7 @@ implementation
        protected
          procedure DefaultLinkScript;override;
        public
-         constructor create;override;
+         constructor create(acompiler: TCompilerBase);override;
          procedure InitSysInitUnitName;override;
          function MakeExecutable: boolean; override;
          function postprocessexecutable(const fn : string): boolean;
@@ -397,9 +398,9 @@ procedure TInternalLinkerZXSpectrum.DefaultLinkScript;
     LinkScript.Concat('ENTRYNAME start');
   end;
 
-constructor TInternalLinkerZXSpectrum.create;
+constructor TInternalLinkerZXSpectrum.create(acompiler: TCompilerBase);
   begin
-    inherited create;
+    inherited;
     CArObjectReader:=TArObjectReader;
     CExeOutput:=TZXSpectrumIntelHexExeOutput;
     CObjInput:=TRelObjInput;

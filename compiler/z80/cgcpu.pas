@@ -32,7 +32,8 @@ unit cgcpu;
        cgbase,cgutils,cgobj,
        aasmbase,aasmcpu,aasmtai,aasmdata,
        parabase,
-       cpubase,cpuinfo,node,cg64f32,rgcpu;
+       cpubase,cpuinfo,node,cg64f32,rgcpu,
+       compilerbase;
 
     type
       tregisterlist = array of tregister;
@@ -40,6 +41,9 @@ unit cgcpu;
       { tcgz80 }
 
       tcgz80 = class(tcg)
+      private
+        function use_push(const cgpara:tcgpara):boolean;
+      public
         { true, if the next arithmetic operation should modify the flags }
         cgsetflags : boolean;
         procedure init_register_allocators;override;
@@ -127,7 +131,7 @@ unit cgcpu;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_LD,A_ADD,A_AND,A_NONE,
@@ -141,10 +145,11 @@ unit cgcpu;
        symconst,symsym,symtable,
        tgobj,rgobj,
        procinfo,cpupi,
-       paramgr;
+       paramgr,
+       compiler;
 
 
-    function use_push(const cgpara:tcgpara):boolean;
+    function tcgz80.use_push(const cgpara:tcgpara):boolean;
       begin
         result:=(not paramanager.use_fixed_stack) and
                 assigned(cgpara.location) and
@@ -830,7 +835,7 @@ unit cgcpu;
                    else
                      ;
                  end;
-               cg.a_label(list,l1);
+               a_label(list,l1);
                case op of
                  OP_SHL:
                    list.concat(taicpu.op_reg(A_SLA,dst));
@@ -872,7 +877,7 @@ unit cgcpu;
                instr.is_jmp:=true;
                list.concat(instr);
                ungetcpuregister(list,NR_B);
-               cg.a_label(list,l2);
+               a_label(list,l2);
              end;
 
            OP_AND,OP_OR,OP_XOR:
@@ -1052,7 +1057,7 @@ unit cgcpu;
                          ;
                      end;
                    if a>1 then
-                     cg.a_label(list,l1);
+                     a_label(list,l1);
                    case op of
                      OP_SHL:
                        list.concat(taicpu.op_reg(A_SLA,reg));
@@ -1242,9 +1247,9 @@ unit cgcpu;
              alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
              a_call_name(list,upper(name),false);
              dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-             cg.a_reg_alloc(list,NR_L);
-             cg.a_load_reg_reg(list,OS_8,OS_8,NR_L,dst);
-             cg.a_reg_dealloc(list,NR_L);
+             a_reg_alloc(list,NR_L);
+             a_load_reg_reg(list,OS_8,OS_8,NR_L,dst);
+             a_reg_dealloc(list,NR_L);
              paraloc2.done;
              paraloc1.done;
            end
@@ -1270,12 +1275,12 @@ unit cgcpu;
              alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
              a_call_name(list,upper(name),false);
              dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-             cg.a_reg_alloc(list,NR_L);
-             cg.a_reg_alloc(list,NR_H);
-             cg.a_load_reg_reg(list,OS_8,OS_8,NR_L,dst);
-             cg.a_reg_dealloc(list,NR_L);
-             cg.a_load_reg_reg(list,OS_8,OS_8,NR_H,GetNextReg(dst));
-             cg.a_reg_dealloc(list,NR_H);
+             a_reg_alloc(list,NR_L);
+             a_reg_alloc(list,NR_H);
+             a_load_reg_reg(list,OS_8,OS_8,NR_L,dst);
+             a_reg_dealloc(list,NR_L);
+             a_load_reg_reg(list,OS_8,OS_8,NR_H,GetNextReg(dst));
+             a_reg_dealloc(list,NR_H);
              paraloc2.done;
              paraloc1.done;
            end
@@ -1757,7 +1762,7 @@ unit cgcpu;
                 current_asmdata.getjumplabel(tmpl);
                 a_jmp_flags(list,F_PO,tmpl);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                cg.a_label(current_asmdata.CurrAsmList,tmpl);
+                a_label(current_asmdata.CurrAsmList,tmpl);
                 case cmp_op of
                   OC_LT:
                     a_jmp_flags(list,F_M,l);
@@ -1776,7 +1781,7 @@ unit cgcpu;
                 current_asmdata.getjumplabel(tmpl);
                 a_jmp_flags(list,F_PO,tmpl);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                cg.a_label(current_asmdata.CurrAsmList,tmpl);
+                a_label(current_asmdata.CurrAsmList,tmpl);
                 case cmp_op of
                   OC_GT:
                     a_jmp_flags(list,F_M,l);
@@ -1809,7 +1814,7 @@ unit cgcpu;
                 end;
               end;
             if cmp_op=OC_EQ then
-              cg.a_label(current_asmdata.CurrAsmList,tmpl);
+              a_label(current_asmdata.CurrAsmList,tmpl);
           end
         else if cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE,OC_BE,OC_B,OC_AE,OC_A] then
           begin
@@ -1863,7 +1868,7 @@ unit cgcpu;
                     internalerror(2020042224);
                 end;
               end;
-            cg.a_label(current_asmdata.CurrAsmList,tmpl);
+            a_label(current_asmdata.CurrAsmList,tmpl);
             ungetcpuregister(list,NR_A);
           end
         else
@@ -1918,7 +1923,7 @@ unit cgcpu;
             current_asmdata.getjumplabel(skiplabel);
             a_jmp_flags(list,F_E,skiplabel);
             a_jmp_flags(list,F_NC,onabove);
-            cg.a_label(list,skiplabel);
+            a_label(list,skiplabel);
           end
         else if (onbelow= nil) and (onequal<>nil) and (onabove= nil) then
           a_jmp_flags(list,F_E,onequal)
@@ -1989,9 +1994,9 @@ unit cgcpu;
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            cg.a_label(current_asmdata.CurrAsmList,l);
+            a_label(current_asmdata.CurrAsmList,l);
             a_jmp_flags(list,F_P,ongreater);
-            cg.a_label(list,skiplabel);
+            a_label(list,skiplabel);
           end
         else if (onless= nil) and (onequal<>nil) and (ongreater= nil) then
           a_jmp_flags(list,F_E,onequal)
@@ -2002,7 +2007,7 @@ unit cgcpu;
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            cg.a_label(current_asmdata.CurrAsmList,l);
+            a_label(current_asmdata.CurrAsmList,l);
             a_jmp_flags(list,F_P,ongreater);
           end
         else if (onless<>nil) and (onequal= nil) and (ongreater= nil) then
@@ -2010,7 +2015,7 @@ unit cgcpu;
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            cg.a_label(current_asmdata.CurrAsmList,l);
+            a_label(current_asmdata.CurrAsmList,l);
             a_jmp_flags(list,F_M,onless);
           end
         else if (onless<>nil) and (onequal= nil) and (ongreater<>nil) then
@@ -2024,10 +2029,10 @@ unit cgcpu;
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                cg.a_label(current_asmdata.CurrAsmList,l);
+                a_label(current_asmdata.CurrAsmList,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
-                cg.a_label(list,skiplabel);
+                a_label(list,skiplabel);
               end;
           end
         else if (onless<>nil) and (onequal<>nil) and (ongreater= nil) then
@@ -2036,7 +2041,7 @@ unit cgcpu;
             current_asmdata.getjumplabel(l);
             a_jmp_flags(list,F_PO,l);
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-            cg.a_label(current_asmdata.CurrAsmList,l);
+            a_label(current_asmdata.CurrAsmList,l);
             a_jmp_flags(list,F_M,onless);
           end
         else if (onless<>nil) and (onequal<>nil) and (ongreater<>nil) then
@@ -2048,7 +2053,7 @@ unit cgcpu;
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                cg.a_label(current_asmdata.CurrAsmList,l);
+                a_label(current_asmdata.CurrAsmList,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
               end
@@ -2058,7 +2063,7 @@ unit cgcpu;
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                cg.a_label(current_asmdata.CurrAsmList,l);
+                a_label(current_asmdata.CurrAsmList,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
               end
@@ -2074,7 +2079,7 @@ unit cgcpu;
                 current_asmdata.getjumplabel(l);
                 a_jmp_flags(list,F_PO,l);
                 current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const(A_XOR,NR_A,$80));
-                cg.a_label(current_asmdata.CurrAsmList,l);
+                a_label(current_asmdata.CurrAsmList,l);
                 a_jmp_flags(list,F_M,onless);
                 a_jmp_always(list,ongreater);
               end;
@@ -2107,7 +2112,7 @@ unit cgcpu;
             inverse_flags(tmpflags);
             a_jmp_flags(list,tmpflags,l);
             list.concat(taicpu.op_reg(A_INC,reg));
-            cg.a_label(list,l);
+            a_label(list,l);
           end;
       end;
 
@@ -2479,10 +2484,10 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=tcgz80.create;
-        cg64:=tcg64fz80.create;
+        tcompiler(compiler).cg:=tcgz80.create(compiler);
+        tcompiler(compiler).cg64:=tcg64fz80.create(compiler);
       end;
 
 end.

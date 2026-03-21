@@ -30,7 +30,8 @@ uses
   globtype,globals,verbose,
   aasmbase,aasmtai,aasmdata,aasmsym,
   cgbase,cgutils,cpubase,cpuinfo,
-  ogbase;
+  ogbase,
+  compilerbase;
 
     const
       { "mov reg,reg" source operand number }
@@ -173,6 +174,9 @@ uses
     function is_ref_in_opertypes(const ref:treference;const refopertypes:trefoperandtypes): Boolean;
 
 implementation
+
+    uses
+      compiler;
 
 {****************************************************************************
                                 Instruction table
@@ -399,6 +403,8 @@ implementation
 
 
     function taicpu.FindInsentry(objdata: TObjData): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
       begin
@@ -1177,6 +1183,8 @@ implementation
 
 
     function taicpu.Pass1(objdata: TObjData): longint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Pass1:=0;
         { Save the old offset and set the new offset }
@@ -1200,6 +1208,8 @@ implementation
 
 
     procedure taicpu.Pass2(objdata: TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { error in pass1 ? }
         if insentry=nil then

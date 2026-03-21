@@ -28,7 +28,7 @@ interface
 
     uses
        { common }
-       cclasses,globtype,
+       cclasses,globtype,compilerbase,
        { target }
        systems,
        { assembler }
@@ -87,13 +87,13 @@ interface
       protected
         function writeData(Data:TObjData):boolean;override;
       public
-        constructor create(AWriter:TObjectWriter);override;
+        constructor create(AWriter:TObjectWriter;acompiler: TCompilerBase);override;
       end;
 
       { TRelAssembler }
 
       TRelAssembler = class(tinternalassembler)
-        constructor create(info: pasminfo; smart:boolean);override;
+        constructor create(info: pasminfo; smart:boolean;acompiler: TCompilerBase);override;
       end;
 
       { TRelObjInput }
@@ -113,7 +113,7 @@ interface
         function PeekChar(out c: char): boolean;
         function ReadLine(out s: string): boolean;
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
         function ReadObjData(AReader:TObjectreader;out Data:TObjData):boolean;override;
         class function CanReadObjData(AReader:TObjectreader):boolean;override;
       end;
@@ -128,14 +128,14 @@ interface
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
       end;
 
       { TZXSpectrumIntelHexExeOutput }
 
       TZXSpectrumIntelHexExeOutput = class(TIntelHexExeOutput)
       public
-        constructor create;override;
+        constructor create(acompiler: TCompilerBase);override;
       end;
 
 implementation
@@ -145,7 +145,8 @@ implementation
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
        ogmap,owar,
-       version
+       version,
+       compiler
        ;
 
     function tohex(q: qword): string;
@@ -564,7 +565,7 @@ implementation
         result:=true;
       end;
 
-    constructor TRelObjOutput.create(AWriter: TObjectWriter);
+    constructor TRelObjOutput.create(AWriter: TObjectWriter;acompiler: TCompilerBase);
       begin
         inherited;
         cobjdata:=TRelObjData;
@@ -574,7 +575,7 @@ implementation
                                 TRelAssembler
 *****************************************************************************}
 
-    constructor TRelAssembler.create(info: pasminfo; smart: boolean);
+    constructor TRelAssembler.create(info: pasminfo; smart: boolean;acompiler: TCompilerBase);
       begin
         inherited;
         CObjOutput:=TRelObjOutput;
@@ -685,9 +686,9 @@ implementation
         result:=true;
       end;
 
-    constructor TRelObjInput.create;
+    constructor TRelObjInput.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         cobjdata:=TRelObjData;
         FBufSize:=0;
         FBufPos:=0;
@@ -1211,11 +1212,13 @@ implementation
 
     class function TRelObjInput.CanReadObjData(AReader: TObjectreader): boolean;
       var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         s: string;
         instance: TRelObjInput;
       begin
         result:=false;
-        instance:=TRelObjInput.Create;
+        instance:=TRelObjInput.Create(_compiler);
         instance.FReader:=AReader;
         with instance do
           while not AtEoF do
@@ -1348,9 +1351,9 @@ implementation
           end;
       end;
 
-    constructor TIntelHexExeOutput.create;
+    constructor TIntelHexExeOutput.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         CObjData:=TRelObjData;
         MaxMemPos:=$FFFF;
       end;
@@ -1359,9 +1362,9 @@ implementation
                          TZXSpectrumIntelHexExeOutput
 *****************************************************************************}
 
-    constructor TZXSpectrumIntelHexExeOutput.create;
+    constructor TZXSpectrumIntelHexExeOutput.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         { The ZX Spectrum RTL switches to interrupt mode 2, and install an
           interrupt handler + table, starting at address $FDFD, so we must limit
           program size to $FDFC }

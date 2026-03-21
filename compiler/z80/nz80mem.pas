@@ -41,7 +41,8 @@ implementation
 
     uses
       aasmdata,aasmcpu,
-      cgobj;
+      cgobj,
+      nodehelper;
 
 
 {*****************************************************************************

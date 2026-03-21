@@ -58,7 +58,7 @@ interface
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
-      hlcgobj;
+      nodehelper;
 
 {*****************************************************************************
                                TZ80AddNode

@@ -47,7 +47,8 @@ unit nz80inl;
       pass_2,
       ncal,
       cgbase, cgobj, cgutils,
-      cpubase;
+      cpubase,
+      nodehelper;
 
 
     function tz80inlinenode.pass_typecheck_cpu : tnode;

@@ -29,7 +29,7 @@ unit tgcpu;
   interface
 
     uses
-      tgobj,globtype,aasmdata,cgutils,symtype;
+      tgobj,globtype,aasmdata,cgutils,symtype,compilerbase;
 
     type
 
@@ -46,11 +46,14 @@ uses
   globals,
   verbose,
   cpubase,
-  cutils;
+  cutils,
+  compiler;
 
 { ttgz80 }
 
 procedure ttgz80.setfirsttemp(l: asizeint);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
     { this is a negative value normally }
     if l>0 then

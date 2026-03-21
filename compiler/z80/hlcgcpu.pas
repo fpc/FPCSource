@@ -31,14 +31,15 @@ interface
   uses
     aasmdata,
     symdef,
-    hlcg2ll;
+    hlcg2ll,
+    compilerbase;
 
   type
     thlcgcpu = class(thlcg2ll)
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen(compiler: TCompilerBase);
 
 implementation
 
@@ -47,7 +48,8 @@ implementation
     aasmbase,aasmtai,
     cgcpu,
     symconst,
-    verbose,fmodule,cutils;
+    verbose,fmodule,cutils,
+    compiler;
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
     var
@@ -77,10 +79,10 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 begin

@@ -30,7 +30,8 @@ unit cpupara;
        globtype,globals,
        aasmtai,aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symbase,symtype,symdef,parabase,paramgr;
+       symconst,symbase,symtype,symdef,parabase,paramgr,
+       compilerbase;
 
     type
        tcpuparamanager = class(tparamanager)
@@ -52,7 +53,8 @@ unit cpupara;
     uses
        verbose,systems,
        rgobj,
-       defutil,symsym;
+       defutil,symsym,
+       compiler;
 
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -256,7 +258,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-                paradef:=cpointerdef.getreusable_no_free(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                 loc:=LOC_REGISTER;
                 paracgsize:=OS_ADDR;
                 paralen:=tcgsize2size[OS_ADDR];
@@ -355,7 +357,7 @@ unit cpupara;
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
                             paraloc^.size:=OS_ADDR;
-                            paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
+                            paraloc^.def:=cpointerdef.getreusable_no_free(paradef,compiler);
                             assignintreg
                           end
                         else
@@ -528,6 +530,4 @@ unit cpupara;
           internalerror(2004102302);
       end;
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.

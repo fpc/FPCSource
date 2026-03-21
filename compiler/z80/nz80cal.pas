@@ -41,7 +41,8 @@ implementation
       cpubase,
       aasmdata,aasmcpu,
       ncal,
-      cgobj;
+      cgobj,
+      nodehelper;
 
 
 {*****************************************************************************
