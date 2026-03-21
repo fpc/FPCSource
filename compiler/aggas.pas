@@ -66,7 +66,7 @@ interface
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
        public
         function MakeCmdLine: TCmdStr; override;
-        procedure WriteTree(p:TAsmList);override;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
         destructor destroy; override;
 {$ifdef WASM}
@@ -749,7 +749,7 @@ implementation
 {$endif WASM}
 
 
-    procedure TGNUAssembler.WriteTree(p:TAsmList);
+    procedure TGNUAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
 
       function needsObject(hp : tai_symbol) : boolean;
         begin
@@ -902,7 +902,7 @@ implementation
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
-                 and (p=current_asmdata.asmlists[al_procedures]));
+                 and (asmlisttype=al_procedures));
       lasthp:=nil;
       hp:=tai(p.first);
       while assigned(hp) do
@@ -2037,7 +2037,7 @@ implementation
           if not (asmdata.asmlists[hal].empty) then
             begin
               writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-              writetree(asmdata.asmlists[hal]);
+              writetree(asmdata.asmlists[hal],hal);
               writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
             end;
         end;

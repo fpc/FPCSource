@@ -43,7 +43,7 @@ interface
         function double2str(d : double) : string; override;
         function extended2str(e : extended) : string; override;
         function comp2str(d : bestreal) : string;
-        procedure WriteTree(p:TAsmList);override;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
@@ -509,7 +509,7 @@ implementation
        PadTabs:=s+#9;
     end;
 
-    procedure tx86IntelAssembler.WriteTree(p:TAsmList);
+    procedure tx86IntelAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
     var
       s,
       prefix,
@@ -1107,7 +1107,7 @@ implementation
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
           writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal]);
+          writetree(current_asmdata.asmlists[hal],hal);
           writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
         end;
 

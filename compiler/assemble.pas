@@ -192,7 +192,7 @@ interface
 
         {# This routine should be overridden for each assembler, it is used
            to actually write the abstract assembler stream to file.}
-        procedure WriteTree(p:TAsmList);virtual;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);virtual;
 
         {# This routine should be overridden for each assembler, it is used
            to actually write all the different abstract assembler streams
@@ -1385,7 +1385,7 @@ Implementation
       end;
 
 
-    procedure TExternalAssembler.WriteTree(p:TAsmList);
+    procedure TExternalAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
       begin
       end;
 

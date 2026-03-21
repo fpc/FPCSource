@@ -73,7 +73,7 @@ interface
         function extended2str(e: extended): string; override;
       public
         destructor Destroy;override;
-        procedure WriteTree(p:TAsmList);override;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
         procedure WriteExternals;
         procedure WriteSmartExternals;
@@ -727,7 +727,7 @@ interface
 {$endif i8086}
       end;
 
-    procedure TX86NasmAssembler.WriteTree(p:TAsmList);
+    procedure TX86NasmAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
 {$ifdef cpuextended}
     type
       t80bitarray = array[0..9] of byte;
@@ -758,7 +758,7 @@ interface
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
-                 and (p=current_asmdata.asmlists[al_procedures]));
+                 and (asmlisttype=al_procedures));
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -1407,7 +1407,7 @@ interface
           if not (asmdata.asmlists[hal].empty) then
             begin
               writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-              writetree(asmdata.asmlists[hal]);
+              writetree(asmdata.asmlists[hal],hal);
               writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
             end;
         end;
