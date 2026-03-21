@@ -194,6 +194,15 @@ type
     class function BlockClass : TMarkdownBlockClass; override;
   end;
 
+  { TLaTeXMarkdownFrontmatterBlockRenderer }
+
+  TLaTeXMarkdownFrontmatterBlockRenderer = class(TLaTeXMarkdownBlockRenderer)
+  protected
+    procedure Dorender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
   { TLaTeXMarkdownDocumentRenderer }
 
   TLaTeXMarkdownDocumentRenderer = class(TLaTeXMarkdownBlockRenderer)
@@ -783,6 +792,18 @@ begin
 end;
 
 
+{ TLaTeXMarkdownFrontmatterBlockRenderer }
+
+procedure TLaTeXMarkdownFrontmatterBlockRenderer.Dorender(aElement: TMarkdownBlock);
+begin
+  // Frontmatter produces no visible output
+end;
+
+class function TLaTeXMarkdownFrontmatterBlockRenderer.BlockClass: TMarkdownBlockClass;
+begin
+  Result := TMarkdownFrontmatterBlock;
+end;
+
 { TLaTeXMarkdownDocumentRenderer }
 
 procedure TLaTeXMarkdownDocumentRenderer.Dorender(aElement: TMarkdownBlock);
@@ -836,6 +857,7 @@ initialization
   TLaTeXMarkdownThematicBreakBlockRenderer.RegisterRenderer(TMarkdownLaTeXRenderer);
   TLaTeXMarkdownTableBlockRenderer.RegisterRenderer(TMarkdownLaTeXRenderer);
   TLaTeXMarkdownTableRowBlockRenderer.RegisterRenderer(TMarkdownLaTeXRenderer);
+  TLaTeXMarkdownFrontmatterBlockRenderer.RegisterRenderer(TMarkdownLaTeXRenderer);
   TLaTeXMarkdownDocumentRenderer.RegisterRenderer(TMarkdownLaTeXRenderer);
   TLaTeXMarkdownTextRenderer.RegisterRenderer(TMarkdownLaTeXRenderer);
 end.

@@ -153,6 +153,17 @@ type
     function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
   end;
 
+  { TFrontmatterProcessor }
+
+  TFrontmatterProcessor = class(TMarkdownBlockProcessor)
+  private
+    FFrontMatterType: TFrontMatterType;
+    FTerminal: String;
+  public
+    function HandlesLine(aParent : TMarkdownContainerBlock; aLine: TMarkdownLine): boolean; override;
+    function processLine(aParent : TMarkdownContainerBlock; aLine : TMarkdownLine; aContext : TMarkdownBlockProcessingContext) : Boolean; override;
+  end;
+
   { TParagraphProcessor }
 
   TParagraphProcessor = class(TMarkdownBlockProcessor)
@@ -1117,9 +1128,71 @@ begin
   Result:=true;
 end;
 
+{ ---------------------------------------------------------------------
+  TFrontmatterProcessor
+  ---------------------------------------------------------------------}
+
+function TFrontmatterProcessor.HandlesLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine): boolean;
+
+var
+  S : String;
+
+begin
+  Result := False;
+  if aLine.LineNo <> 1 then
+    Exit;
+  S := aLine.Remainder.Trim;
+  if S = '---' then
+    begin
+    FFrontMatterType := fmtYAML;
+    FTerminal := '---';
+    Result := True;
+    end
+  else if S = '+++' then
+    begin
+    FFrontMatterType := fmtTOML;
+    FTerminal := '+++';
+    Result := True;
+    end
+  else if S = ';;;' then
+    begin
+    FFrontMatterType := fmtJSON;
+    FTerminal := ';;;';
+    Result := True;
+    end;
+end;
+
+function TFrontmatterProcessor.processLine(aParent: TMarkdownContainerBlock; aLine: TMarkdownLine; aContext: TMarkdownBlockProcessingContext): Boolean;
+
+var
+  lBlock : TMarkdownFrontmatterBlock;
+  lLine : TMarkdownLine;
+
+begin
+  lBlock := TMarkdownFrontmatterBlock.Create(aParent, aLine.LineNo);
+  lBlock.FrontMatterType := FFrontMatterType;
+  while True do
+    begin
+    lLine := PeekLine;
+    if lLine = nil then
+      Break;
+    if lLine.Remainder.Trim = FTerminal then
+      begin
+      NextLine;
+      Break;
+      end;
+    lLine := NextLine;
+    lBlock.Content.Add(lLine.Remainder);
+    end;
+  if aParent is TMarkdownDocument then
+    TMarkdownDocument(aParent).Frontmatter := lBlock;
+  Result := True;
+end;
+
 Procedure RegisterDefaultProcessors;
 
 begin
+  TFrontmatterProcessor.Register('frontmatter');
   TMarkdownQuoteProcessor.Register('quote');
   // Must be registered before thematic break
   TSeTextHeaderProcessor.register('setextheader');

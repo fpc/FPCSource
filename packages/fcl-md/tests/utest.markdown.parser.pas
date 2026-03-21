@@ -101,6 +101,19 @@ type
     procedure TestSimpleTable;
   end;
 
+  { TTestFrontmatter }
+  TTestFrontmatter = class(TBlockTestCase)
+  published
+    procedure TestYAMLFrontmatter;
+    procedure TestTOMLFrontmatter;
+    procedure TestJSONFrontmatter;
+    procedure TestFrontmatterNotOnLine1;
+    procedure TestFrontmatterWithContent;
+    procedure TestNoFrontmatter;
+    procedure TestEmptyFrontmatter;
+    procedure TestUnclosedFrontmatter;
+  end;
+
 implementation
 
 { TBlockTestCase }
@@ -573,7 +586,7 @@ end;
 
 procedure TTestThematicBreaks.TestUnderscoreBreak;
 begin
-  SetupParser('---');
+  SetupParser('___');
   AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
   AssertTrue('Block should be a thematic break', GetBlock(0) is TMarkDownThematicBreakBlock);
 end;
@@ -610,9 +623,89 @@ begin
 end;
 
 
+{ TTestFrontmatter }
+
+procedure TTestFrontmatter.TestYAMLFrontmatter;
+var
+  Block: TMarkdownFrontmatterBlock;
+begin
+  SetupParser('---'#10'title: Hello'#10'---'#10#10'# Content');
+  AssertNotNull('Document frontmatter should exist', Doc.Frontmatter);
+  Block := Doc.Frontmatter;
+  AssertEquals('Frontmatter type should be YAML', Ord(fmtYAML), Ord(Block.FrontMatterType));
+  AssertEquals('Frontmatter content count', 1, Block.Content.Count);
+  AssertEquals('Frontmatter content', 'title: Hello', Block.Content[0]);
+  AssertTrue('Document should have blocks after frontmatter', Doc.Blocks.Count > 1);
+end;
+
+procedure TTestFrontmatter.TestTOMLFrontmatter;
+var
+  Block: TMarkdownFrontmatterBlock;
+begin
+  SetupParser('+++'#10'title = "Hello"'#10'+++');
+  AssertNotNull('Document frontmatter should exist', Doc.Frontmatter);
+  Block := Doc.Frontmatter;
+  AssertEquals('Frontmatter type should be TOML', Ord(fmtTOML), Ord(Block.FrontMatterType));
+  AssertEquals('Frontmatter content count', 1, Block.Content.Count);
+  AssertEquals('Frontmatter content', 'title = "Hello"', Block.Content[0]);
+end;
+
+procedure TTestFrontmatter.TestJSONFrontmatter;
+var
+  Block: TMarkdownFrontmatterBlock;
+begin
+  SetupParser(';;;'#10'{"title":"Hello"}'#10';;;');
+  AssertNotNull('Document frontmatter should exist', Doc.Frontmatter);
+  Block := Doc.Frontmatter;
+  AssertEquals('Frontmatter type should be JSON', Ord(fmtJSON), Ord(Block.FrontMatterType));
+  AssertEquals('Frontmatter content count', 1, Block.Content.Count);
+  AssertEquals('Frontmatter content', '{"title":"Hello"}', Block.Content[0]);
+end;
+
+procedure TTestFrontmatter.TestFrontmatterNotOnLine1;
+begin
+  SetupParser(#10'---'#10'title: Test'#10'---');
+  AssertNull('Document should have no frontmatter', Doc.Frontmatter);
+end;
+
+procedure TTestFrontmatter.TestFrontmatterWithContent;
+var
+  lBlock: TMarkdownBlock;
+begin
+  SetupParser('---'#10'title: Test'#10'---'#10#10'Hello world');
+  AssertNotNull('Document frontmatter should exist', Doc.Frontmatter);
+  AssertEquals('Document should have 2 blocks', 2, Doc.Blocks.Count);
+  lBlock := Doc.Blocks[1];
+  AssertTrue('Second block should be a paragraph', lBlock is TMarkdownParagraphBlock);
+end;
+
+procedure TTestFrontmatter.TestNoFrontmatter;
+begin
+  SetupParser('# Just a heading');
+  AssertNull('Document should have no frontmatter', Doc.Frontmatter);
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  AssertTrue('Block should be a heading', Doc.Blocks[0] is TMarkdownHeadingBlock);
+end;
+
+procedure TTestFrontmatter.TestEmptyFrontmatter;
+begin
+  SetupParser('---'#10'---'#10#10'Content');
+  AssertNotNull('Document frontmatter should exist', Doc.Frontmatter);
+  AssertEquals('Frontmatter content should be empty', 0, Doc.Frontmatter.Content.Count);
+end;
+
+procedure TTestFrontmatter.TestUnclosedFrontmatter;
+begin
+  SetupParser('---'#10'title: Test'#10'more content');
+  AssertNotNull('Document frontmatter should exist', Doc.Frontmatter);
+  AssertEquals('Frontmatter content count', 2, Doc.Frontmatter.Content.Count);
+  AssertEquals('Frontmatter line 1', 'title: Test', Doc.Frontmatter.Content[0]);
+  AssertEquals('Frontmatter line 2', 'more content', Doc.Frontmatter.Content[1]);
+end;
+
 initialization
   RegisterTests('Parser',[TTestParagraphs, TTestHeadings, TTestCodeBlocks,
                           TTestBlockQuotes, TTestLists, TTestThematicBreaks,
-                          TTestTables]);
+                          TTestTables, TTestFrontmatter]);
 end.
 

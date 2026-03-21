@@ -209,6 +209,15 @@ type
     class function BlockClass : TMarkdownBlockClass; override;
   end;
 
+  { TFPDocMarkdownFrontmatterBlockRenderer }
+
+  TFPDocMarkdownFrontmatterBlockRenderer = class(TFPDocMarkdownBlockRenderer)
+  protected
+    procedure Dorender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
   { TFPDocMarkdownDocumentRenderer }
 
   TFPDocMarkdownDocumentRenderer = class(TFPDocMarkdownBlockRenderer)
@@ -811,6 +820,18 @@ begin
   Result:=TMarkdownTableBlock;
 end;
 
+{ TFPDocMarkdownFrontmatterBlockRenderer }
+
+procedure TFPDocMarkdownFrontmatterBlockRenderer.Dorender(aElement: TMarkdownBlock);
+begin
+  // Frontmatter produces no visible output
+end;
+
+class function TFPDocMarkdownFrontmatterBlockRenderer.BlockClass: TMarkdownBlockClass;
+begin
+  Result := TMarkdownFrontmatterBlock;
+end;
+
 { TFPDocMarkdownDocumentRenderer }
 
 procedure TFPDocMarkdownDocumentRenderer.Dorender(aElement: TMarkdownBlock);
@@ -902,6 +923,7 @@ initialization
   TFPDocMarkdownThematicBreakBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTableBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTableRowBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
+  TFPDocMarkdownFrontmatterBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownDocumentRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTextRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
 end.
