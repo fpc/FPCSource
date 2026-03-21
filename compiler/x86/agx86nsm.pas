@@ -75,7 +75,7 @@ interface
         destructor Destroy;override;
         procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
         procedure WriteAsmList(asmdata: TAsmData);override;
-        procedure WriteExternals;
+        procedure WriteExternals(asmdata: TAsmData);
         procedure WriteSmartExternals;
         procedure WriteHeader;
         function  MakeCmdLine: TCmdStr;override;
@@ -1346,14 +1346,14 @@ interface
     end;
 
 
-    procedure TX86NasmAssembler.WriteExternals;
+    procedure TX86NasmAssembler.WriteExternals(asmdata: TAsmData);
       var
         sym : TAsmSymbol;
         i   : longint;
       begin
-        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
+        for i:=0 to asmdata.AsmSymbolDict.Count-1 do
           begin
-            sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
+            sym:=TAsmSymbol(asmdata.AsmSymbolDict[i]);
             if sym.bind in [AB_EXTERNAL,AB_EXTERNAL_INDIRECT] then
               writer.AsmWriteln('EXTERN'#9+ApplyAsmSymbolRestrictions(sym.name));
           end;
@@ -1400,7 +1400,7 @@ interface
       WriteHeader;
       writer.AsmLn;
 
-      WriteExternals;
+      WriteExternals(asmdata);
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
