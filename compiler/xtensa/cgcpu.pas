@@ -32,7 +32,8 @@ interface
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
        rgcpu,
-       cg64f32;
+       cg64f32,
+       compilerbase;
 
     type
       tcgcpu=class(tcg)
@@ -101,7 +102,7 @@ interface
         //procedure a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64);override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
     const
       TOpCG2AsmOp: array[topcg] of TAsmOp = (
@@ -126,7 +127,8 @@ implementation
     paramgr,fmodule,
     symtable,symsym,
     tgobj,
-    procinfo,cpupi;
+    procinfo,cpupi,
+    compiler;
 
   const
     TOpCmp2AsmCond: array[TOpCmp] of TAsmCond = (
@@ -1311,7 +1313,7 @@ implementation
           end;
 
         current_asmdata.getjumplabel(Result);
-        cg.a_label(current_procinfo.aktlocaldata,Result);
+        a_label(current_procinfo.aktlocaldata,Result);
 
         if assigned(symbol) then
           current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(symbol,offset))
@@ -1526,10 +1528,10 @@ implementation
       end;
 
 {$warnings off}
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=tcgcpu.Create;
-        cg64:=tcg64fxtensa.Create;
+        tcompiler(compiler).cg:=tcgcpu.Create(compiler);
+        tcompiler(compiler).cg64:=tcg64fxtensa.Create(compiler);
       end;
 
 end.

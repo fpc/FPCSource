@@ -26,7 +26,8 @@ unit ncpuadd;
 interface
 
     uses
-       cgbase,node,ncgadd,cpubase;
+       cgbase,node,ncgadd,cpubase,
+       compilerbase;
 
     type
        TCPUAddNode = class(tcgaddnode)
@@ -62,7 +63,7 @@ interface
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
-      hlcgobj;
+      nodehelper,compiler;
 
 {*****************************************************************************
                                TCPUAddNode

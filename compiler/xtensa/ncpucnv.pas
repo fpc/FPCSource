@@ -26,7 +26,7 @@ unit ncpucnv;
 interface
 
     uses
-      node,ncnv,ncgcnv;
+      node,ncnv,ncgcnv,compilerbase;
 
     type
        tcputypeconvnode = class(tcgtypeconvnode)
@@ -45,7 +45,7 @@ implementation
       cgbase,cgutils,
       pass_1,pass_2,procinfo,ncal,
       ncgutil,
-      cpubase,cpuinfo,aasmcpu,cgobj,hlcgobj,cgcpu;
+      cpubase,cpuinfo,aasmcpu,cgobj,nodehelper,cgcpu,compiler;
 
 
 {*****************************************************************************
@@ -203,7 +203,7 @@ implementation
         else
           begin
             { other integers are supposed to be 32 bit }
-            inserttypeconv(left,s32inttype);
+            inserttypeconv(left,s32inttype,compiler);
             firstpass(left);
             result:=nil;
             expectloc:=LOC_FPUREGISTER;

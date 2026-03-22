@@ -28,7 +28,8 @@ interface
       globtype,
       cgbase,cpubase,
       symtype,
-      nmem,ncgmem;
+      nmem,ncgmem,
+      compilerbase;
 
     type
       tcpuvecnode = class(tcgvecnode)
@@ -41,7 +42,8 @@ implementation
       cutils,verbose,
       aasmdata,aasmcpu,
       cgutils,cgobj,
-      symconst,symcpu;
+      symconst,symcpu,
+      compiler,nodehelper;
 
 {*****************************************************************************
                              TCPUVECNODE

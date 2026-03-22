@@ -29,13 +29,14 @@ interface
     cclasses,
     node,nbas,
     ngenutil,
-    symtype,symconst,symsym,symdef,fmodule;
+    symtype,symconst,symsym,symdef,fmodule,
+    compilerbase;
 
 
   type
     txtensanodeutils = class(tnodeutils)
     protected
-      class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
+      procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
     end;
 
 implementation
@@ -49,10 +50,11 @@ implementation
       systems,
       CPUInfo,
       ppu,
-      pass_1;
+      pass_1,
+      compiler;
 
 
-  class procedure txtensanodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
+  procedure txtensanodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
     var
       callop, retop: TAsmOp;
       initList, finalList, header: TAsmList;

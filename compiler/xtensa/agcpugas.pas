@@ -32,7 +32,8 @@ unit agcpugas;
        globtype,systems,
        aasmtai,
        assemble,aggas,
-       cpubase,cpuinfo;
+       cpubase,cpuinfo,
+       compilerbase;
 
     type
       TXtensaInstrWriter=class(TCPUInstrWriter)
@@ -40,7 +41,7 @@ unit agcpugas;
       end;
 
       TXtensaGNUAssembler=class(TGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -50,13 +51,14 @@ unit agcpugas;
        cutils,globals,verbose,
        aasmcpu,
        itcpugas,
-       cgbase,cgutils;
+       cgbase,cgutils,
+       compiler;
 
 {****************************************************************************}
 {                         GNU Xtensa Assembler writer                           }
 {****************************************************************************}
 
-    constructor TXtensaGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TXtensaGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TXtensaInstrWriter.create(self);

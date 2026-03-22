@@ -26,7 +26,8 @@ unit ncpumat;
 interface
 
     uses
-      cgbase,node,nmat,ncgmat;
+      cgbase,node,nmat,ncgmat,
+      compilerbase;
 
     type
       tcpumoddivnode = class(tcgmoddivnode)
@@ -63,7 +64,8 @@ implementation
       ncon,ncnv,ncal,ninl,
       cpubase,cpuinfo,
       ncgutil,
-      nadd,pass_1,symdef;
+      nadd,pass_1,symdef,
+      compiler,nodehelper;
 
 {*****************************************************************************
                              TCPUMODDIVNODE

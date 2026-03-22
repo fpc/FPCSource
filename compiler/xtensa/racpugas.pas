@@ -27,7 +27,8 @@ Unit racpugas;
 
     uses
       raatt,raxtensa,
-      cpubase;
+      cpubase,
+      compilerbase;
 
     type
 
@@ -59,7 +60,8 @@ Unit racpugas;
       symconst,symsym,symdef,
       procinfo,
       rabase,rautils,
-      cgbase,cgutils,paramgr;
+      cgbase,cgutils,paramgr,
+      compiler;
 
 
     function txtensaattreader.is_register(const s:string):boolean;
@@ -836,7 +838,7 @@ Unit racpugas;
       var
         instr : TXtensaInstruction;
       begin
-        instr:=TXtensaInstruction.Create(TXtensaOperand);
+        instr:=TXtensaInstruction.Create(TXtensaOperand,compiler);
         BuildOpcode(instr);
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);

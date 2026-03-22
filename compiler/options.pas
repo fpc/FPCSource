@@ -5452,9 +5452,9 @@ begin
   if (compiler.target.info.system in [system_xtensa_embedded,system_xtensa_freertos]) and not(option.ABISetExplicitly) then
     begin
       if CPUXTENSA_REGWINDOW in cpu_capabilities[init_settings.cputype] then
-        compiler.target.info.abi:=abi_xtensa_windowed
+        compiler.target.set_target_abi(abi_xtensa_windowed)
       else
-        compiler.target.info.abi:=abi_xtensa_call0;
+        compiler.target.set_target_abi(abi_xtensa_call0);
     end;
 {$endif xtensa}
 

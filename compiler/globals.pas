@@ -1146,7 +1146,7 @@ implementation
 {$endif openbsd}
 {$ifdef xtensa}
          if compiler.globals.idf_version > 0 then
-           Replace(s,'$IDF_VERSION',idfversionstring(idf_version));
+           Replace(s,'$IDF_VERSION',idfversionstring(compiler.globals.idf_version));
          if compiler.globals.idfpath <> '' then
            Replace(s,'$IDFPATH',compiler.globals.idfpath);
 {$endif xtensa}

@@ -29,7 +29,8 @@ unit cpupara;
        aasmtai,aasmdata,
        cpubase,
        symconst,symtype,symdef,symsym,
-       paramgr,parabase,cgbase,cgutils;
+       paramgr,parabase,cgbase,cgutils,
+       compilerbase;
 
     type
        tcpuparamanager = class(tparamanager)
@@ -60,7 +61,8 @@ unit cpupara;
        verbose,systems,
        defutil,
        symtable,symcpu,
-       procinfo,cpupi;
+       procinfo,cpupi,
+       compiler;
 
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -334,7 +336,7 @@ unit cpupara;
         if (not(funcret) and push_addr_param(varspez,paradef,p.proccalloption)) or
           (funcret and (paralen>24)) then
           begin
-            paradef:=cpointerdef.getreusable_no_free(paradef);
+            paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
             locpara:=LOC_REGISTER;
             paracgsize:=OS_ADDR;
             paralen:=tcgsize2size[OS_ADDR];
@@ -425,7 +427,7 @@ unit cpupara;
                        if paraloc^.size<>OS_NO then
                          paraloc^.def:=cgsize_orddef(paraloc^.size)
                        else
-                         paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
+                         paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen,compiler);
                      end;
                    else
                      internalerror(2020031405);
@@ -493,6 +495,4 @@ unit cpupara;
         create_funcretloc_info(p,side);
       end;
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.

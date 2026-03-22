@@ -31,7 +31,8 @@ unit cpupi;
        cutils,globtype,
        cpubase,
        cgbase,aasmdata,
-       procinfo,cpuinfo,psub;
+       procinfo,cpuinfo,psub,
+       compilerbase;
 
     type
       txtensaprocinfo = class(tcgprocinfo)
@@ -44,7 +45,7 @@ unit cpupi;
         maxcall : Byte;
         // procedure handle_body_start;override;
         // procedure after_pass1;override;
-        constructor create(aparent: tprocinfo); override;
+        constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
         procedure set_first_temp_offset;override;
         function calc_stackframe_size:longint;override;
         procedure init_framepointer;override;
@@ -63,11 +64,12 @@ unit cpupi;
        cgutils,
        cgobj,
        defutil,
-       aasmcpu;
+       aasmcpu,
+       compiler,nodehelper;
 
-    constructor txtensaprocinfo.create(aparent: tprocinfo);
+    constructor txtensaprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
       begin
-        inherited create(aparent);
+        inherited;
         maxpushedparasize:=0;
         if compiler.target.info.abi=abi_xtensa_windowed then
           begin

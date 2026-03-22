@@ -33,7 +33,8 @@ interface
     aasmdata,
     symdef,
     cgbase,cgutils,
-    hlcgobj, hlcg2ll;
+    hlcgobj, hlcg2ll,
+    compilerbase;
 
   type
     thlcgxtensa = class(thlcg2ll)
@@ -49,12 +50,13 @@ implementation
     symconst,symsym,defutil,
     cpubase,aasmcpu,parabase,
     procinfo,
-    cgobj,cgcpu;
+    cgobj,cgcpu,
+    compiler;
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgxtensa.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgxtensa.create(compiler);
+      create_codegen(compiler);
     end;
 
 
@@ -87,7 +89,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      current_procinfo:=cprocinfo.create(nil);
+      current_procinfo:=cprocinfo.create(nil,compiler);
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);

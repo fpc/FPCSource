@@ -30,7 +30,8 @@ unit rgcpu;
       cgbase,cgutils,
       cpubase,
       globtype,
-      rgobj;
+      rgobj,
+      compilerbase;
 
     type
       trgcpu=class(trgobj)
@@ -48,7 +49,8 @@ implementation
 
     uses
       verbose,cutils,
-      cgobj;
+      cgobj,
+      compiler;
 
     procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
@@ -84,12 +86,16 @@ implementation
 
     procedure trgcpu.do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         helpins  : tai;
         tmpref   : treference;
         helplist : TAsmList;
         hreg     : tregister;
         isload   : boolean;
       begin
+        cg:=compiler.cg;
         isload:=op in [A_L32I,A_LSI];
 
         if abs(spilltemp.offset)>1020 then

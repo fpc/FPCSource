@@ -26,7 +26,7 @@ unit ncpuinl;
   interface
 
     uses
-      node,ninl,ncginl,aasmbase;
+      node,ninl,ncginl,aasmbase,compilerbase;
 
     type
       tcpuinlinenode = class(tcginlinenode)
@@ -50,12 +50,13 @@ unit ncpuinl;
       aasmcpu,
       symdef,
       defutil,
-      hlcgobj,
+      nodehelper,
       pass_2,
       procinfo,
       cgbase, cgobj, cgutils,
       ncal,nutils,
-      cpubase;
+      cpubase,
+      compiler;
 
     procedure tcpuinlinenode.second_abs_long;
       var
