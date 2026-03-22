@@ -32,7 +32,8 @@ unit agcpugas;
        globtype,systems,
        aasmtai,aasmdata,aasmbase,
        assemble,aggas,
-       cpubase,cpuinfo;
+       cpubase,cpuinfo,
+       compilerbase;
 
     type
       TAArch64InstrWriter=class(TCPUInstrWriter)
@@ -40,12 +41,12 @@ unit agcpugas;
       end;
 
       TAArch64Assembler=class(TGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
       TAArch64AppleAssembler=class(TAppleGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -56,7 +57,7 @@ unit agcpugas;
         function sectionflags(secflags:TSectionFlags):string;override;
       public
         function MakeCmdLine: TCmdStr; override;
-        procedure WriteAsmList; override;
+        procedure WriteAsmList(asmdata: TAsmData); override;
       end;
 
     const
@@ -102,7 +103,8 @@ unit agcpugas;
        cutils,cclasses,globals,verbose,
        aasmcpu,
        itcpugas,
-       cgbase,cgutils;
+       cgbase,cgutils,
+       compiler;
 
 
     function GetmarchStr : String;
@@ -149,7 +151,7 @@ unit agcpugas;
 {                      AArch64 Assembler writer                              }
 {****************************************************************************}
 
-    constructor TAArch64Assembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TAArch64Assembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
@@ -168,7 +170,7 @@ unit agcpugas;
 {                      Apple AArch64 Assembler writer                        }
 {****************************************************************************}
 
-    constructor TAArch64AppleAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TAArch64AppleAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TAArch64InstrWriter.create(self);
@@ -655,16 +657,16 @@ unit agcpugas;
       end;
 
 
-    procedure TAArch64ClangGASAssembler.WriteAsmList;
+    procedure TAArch64ClangGASAssembler.WriteAsmList(asmdata: TAsmData);
       begin
         { clang does not support all the directives we need, so we need to
           manually transform them to pdata/xdata records }
         if compiler.target.info.system=system_aarch64_win64 then
           begin
-            TransformSEHDirectives(current_asmdata.AsmLists[al_pure_assembler]);
-            TransformSEHDirectives(current_asmdata.AsmLists[al_procedures]);
+            TransformSEHDirectives(asmdata.AsmLists[al_pure_assembler]);
+            TransformSEHDirectives(asmdata.AsmLists[al_procedures]);
           end;
-        inherited WriteAsmList;
+        inherited;
       end;
 
 
@@ -673,6 +675,8 @@ unit agcpugas;
 {****************************************************************************}
 
     function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         darwin_addrpage2str: array[addr_page..addr_gotpageoffset] of string[11] =
            ('@PAGE','@PAGEOFF','@GOTPAGE','@GOTPAGEOFF');

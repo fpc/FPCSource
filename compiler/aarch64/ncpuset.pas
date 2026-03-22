@@ -26,7 +26,8 @@ unit ncpuset;
 interface
 
     uses
-       node,nset,ncgset,cpubase,cgbase,cgobj,aasmbase,aasmtai,aasmdata,globtype;
+       node,nset,ncgset,cpubase,cgbase,cgobj,aasmbase,aasmtai,aasmdata,globtype,
+       compilerbase;
 
     type
        taarch64casenode = class(tcgcasenode)
@@ -50,7 +51,8 @@ implementation
       ncon,
       tgobj,ncgutil,rgobj,aasmcpu,
       procinfo,
-      cgutils;
+      cgutils,
+      compiler,nodehelper;
 
 {*****************************************************************************
                             TCGCASENODE

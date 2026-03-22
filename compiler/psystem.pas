@@ -375,7 +375,7 @@ implementation
 {$endif arm}
 {$ifdef aarch64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif aarch64}
 {$ifdef avr}
         s32floattype:=cfloatdef.create(s32real,true);

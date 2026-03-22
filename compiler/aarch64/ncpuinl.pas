@@ -26,7 +26,7 @@ unit ncpuinl;
 interface
 
     uses
-      node,ninl,ncginl;
+      node,ninl,ncginl,compilerbase;
 
     type
       taarch64inlinenode = class(tcgInlineNode)
@@ -68,7 +68,7 @@ implementation
       cgbase,cgutils,pass_1,pass_2,
       procinfo,
       ncal,nutils,
-      cpubase,ncgutil,cgobj,cgcpu,hlcgobj;
+      cpubase,ncgutil,cgobj,cgcpu,compiler,nodehelper;
 
 {*****************************************************************************
                               taarch64inlinenode

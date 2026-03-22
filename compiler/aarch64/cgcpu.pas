@@ -31,7 +31,8 @@ interface
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
-       rgcpu;
+       rgcpu,
+       compilerbase;
 
     type
 
@@ -110,7 +111,7 @@ interface
         procedure load_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
     const
       TOpCG2AsmOpReg: array[topcg] of TAsmOp = (
@@ -133,7 +134,8 @@ implementation
     symtable,symsym,
     tgobj,
     ncgutil,
-    procinfo,cpupi;
+    procinfo,cpupi,
+    compiler;
 
 
     procedure tcgaarch64.make_simple_ref(list:TAsmList; var op: tasmop; size: tcgsize; oppostfix: toppostfix; var ref: treference; preferred_newbasereg: tregister);
@@ -1733,7 +1735,7 @@ implementation
             begin
               hflags:=ovloc.resflags;
               inverse_flags(hflags);
-              cg.a_jmp_flags(list,hflags,hl);
+              a_jmp_flags(list,hflags,hl);
             end;
           else
             internalerror(2014112304);
@@ -2680,7 +2682,7 @@ implementation
             list.concat(ai);
             a_label(list,l1);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-            cg.a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
+            a_call_name(list,'FPC_THROWFPUEXCEPTION',false);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l2);
             if clear then
@@ -2701,10 +2703,10 @@ implementation
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=tcgaarch64.Create;
-        cg128:=tcg128.Create;
+        tcompiler(compiler).cg:=tcgaarch64.Create(compiler);
+        tcompiler(compiler).cg128:=tcg128.Create(compiler.cg);
       end;
 
 end.

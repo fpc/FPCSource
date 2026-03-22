@@ -29,7 +29,8 @@ Unit racpugas;
     uses
       raatt,racpu,
       aasmtai,
-      cgbase,cpubase;
+      cgbase,cpubase,
+      compilerbase;
 
     type
 
@@ -69,7 +70,8 @@ Unit racpugas;
       symconst,symsym,symdef,
       procinfo,
       rabase,rautils,
-      cgutils,paramgr;
+      cgutils,paramgr,
+      compiler;
 
 
     function taarch64attreader.is_register(const s:string):boolean;
@@ -1268,7 +1270,7 @@ Unit racpugas;
       var
         instr: taarch64instruction;
       begin
-        instr:=taarch64instruction.Create(taarch64operand);
+        instr:=taarch64instruction.Create(taarch64operand,compiler);
         BuildOpcode(instr);
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);

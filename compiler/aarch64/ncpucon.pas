@@ -26,7 +26,8 @@ unit ncpucon;
 interface
 
     uses
-      node,ncgcon,cpubase;
+      node,ncgcon,cpubase,
+      compilerbase;
 
     type
       taarch64realconstnode = class(tcgrealconstnode)
@@ -45,7 +46,8 @@ interface
       defutil,
       cgbase,cgutils,cgobj,
       procinfo,
-      ncon;
+      ncon,
+      compiler,nodehelper;
 
 {*****************************************************************************
                            TARMREALCONSTNODE

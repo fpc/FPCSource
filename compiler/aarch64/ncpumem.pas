@@ -29,7 +29,8 @@ interface
     globtype,
     cgbase,
     symtype,
-    node,nmem,ncgmem;
+    node,nmem,ncgmem,
+    compilerbase;
 
   type
     taarch64loadparentfpnode = class(tcgloadparentfpnode)
@@ -50,7 +51,8 @@ implementation
     defutil,
     aasmdata,cpubase,
     cgutils,
-    cgobj;
+    cgobj,
+    compiler,nodehelper;
 
   { taarch64loadparentfpnode }
 

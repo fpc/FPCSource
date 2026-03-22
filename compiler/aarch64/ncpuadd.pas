@@ -26,7 +26,7 @@ unit ncpuadd;
 interface
 
     uses
-       node,ncgadd,cpubase;
+       node,ncgadd,cpubase,compilerbase;
 
     type
        taarch64addnode = class(tcgaddnode)
@@ -59,7 +59,8 @@ interface
       cgbase,cgcpu,cgutils,
       cpupara,
       ncon,nset,nadd,nmat,
-      hlcgobj, ncgutil,cgobj,pass_2;
+      nodehelper, ncgutil,cgobj,pass_2,
+      compiler;
 
 {*****************************************************************************
                                taarch64addnode

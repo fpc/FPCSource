@@ -30,7 +30,8 @@ unit racpu;
       cgbase,
       cpubase,
       aasmtai,aasmdata,
-      rautils;
+      rautils,
+      compilerbase;
 
     type
       TAArch64Operand=class(TOperand)
@@ -47,7 +48,8 @@ unit racpu;
 
     uses
       verbose,
-      aasmcpu;
+      aasmcpu,
+      compiler;
 
     function TAArch64Instruction.ConcatInstruction(p:TAsmList) : tai;
       begin

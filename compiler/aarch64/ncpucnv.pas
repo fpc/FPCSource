@@ -25,7 +25,7 @@ unit ncpucnv;
 interface
 
     uses
-      node,ncnv,ncgcnv;
+      node,ncnv,ncgcnv,compilerbase;
 
     type
       taarch64typeconvnode = class(TCgTypeConvNode)
@@ -63,7 +63,7 @@ implementation
     cgbase,cgutils,procinfo,
     cpubase,aasmcpu,
     pass_2,cgobj,
-    hlcgobj;
+    compiler,nodehelper;
 
 
 {*****************************************************************************
@@ -94,9 +94,9 @@ implementation
       if left.resultdef.size<4 then
         begin
           if is_signed(left.resultdef) then
-            inserttypeconv(left,s32inttype)
+            inserttypeconv(left,s32inttype,compiler)
           else
-            inserttypeconv(left,u32inttype)
+            inserttypeconv(left,u32inttype,compiler)
         end;
       result:=inherited;
     end;

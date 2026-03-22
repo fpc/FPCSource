@@ -26,7 +26,8 @@ unit ncpuflw;
 interface
 
   uses
-    node,nflw,ncgflw,psub;
+    node,nflw,ncgflw,psub,
+    compilerbase;
 
   type
     taarch64raisenode=class(tcgraisenode)
@@ -43,8 +44,8 @@ interface
 
     taarch64tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
-      constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r:TNode);override;
+      constructor create(l,r:TNode;acompiler:TCompilerBase);override;
+      constructor create_implicit(l,r:TNode;acompiler:TCompilerBase);override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
       function dogetcopy:tnode;override;
@@ -60,7 +61,8 @@ implementation
     cpubase,htypechk,
     pass_1,pass_2,
     aasmbase,aasmtai,aasmdata,aasmcpu,
-    procinfo,cpupi,procdefutil;
+    procinfo,cpupi,procdefutil,
+    compiler,nodehelper;
 
   var
     endexceptlabel: tasmlabel;
@@ -78,7 +80,7 @@ function taarch64raisenode.pass_1 : tnode;
       result:=inherited pass_1
     else
       begin
-        result:=internalstatements(statements);
+        result:=internalstatements(compiler,statements);
         raisenode:=compiler.ccallnode_intern('fpc_reraise',nil);
         include(raisenode.callnodeflags,cnf_call_never_returns);
         addstatement(statements,raisenode);
@@ -156,9 +158,9 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
     result:=fen_true;
   end;
 
-constructor taarch64tryfinallynode.create(l, r: TNode);
+constructor taarch64tryfinallynode.create(l, r: TNode;acompiler:TCompilerBase);
   begin
-    inherited create(l,r);
+    inherited;
     if (compiler.target.info.system=system_aarch64_win64) and
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
@@ -175,9 +177,9 @@ constructor taarch64tryfinallynode.create(l, r: TNode);
       end;
   end;
 
-constructor taarch64tryfinallynode.create_implicit(l, r: TNode);
+constructor taarch64tryfinallynode.create_implicit(l, r: TNode;acompiler:TCompilerBase);
   begin
-    inherited create_implicit(l, r);
+    inherited;
     if (compiler.target.info.system=system_aarch64_win64) then
       begin
         if df_generic in current_procinfo.procdef.defoptions then
@@ -217,8 +219,12 @@ function taarch64tryfinallynode.simplify(forinline: boolean): tnode;
 
 procedure emit_nop;
   var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    cg: tcg;
+  var
     dummy: TAsmLabel;
   begin
+    cg:=compiler.cg;
     { To avoid optimizing away the whole thing, prepend a jumplabel with increased refcount }
     current_asmdata.getjumplabel(dummy);
     dummy.increfs;
@@ -365,9 +371,9 @@ function taarch64tryfinallynode.dogetcopy: tnode;
     n:=taarch64tryfinallynode(inherited dogetcopy);
     if (compiler.target.info.system=system_aarch64_win64) then
       begin
-        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
+        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent,compiler));
         n.finalizepi.force_nested;
-        n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+        n.finalizepi.procdef:=compiler.procdefutil.create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
         n.finalizepi.entrypos:=finalizepi.entrypos;
         n.finalizepi.entryswitches:=finalizepi.entryswitches;
         n.finalizepi.exitpos:=finalizepi.exitpos;

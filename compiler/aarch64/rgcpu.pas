@@ -30,7 +30,8 @@ unit rgcpu;
       cgbase,cgutils,
       cpubase,
       globtype,
-      rgobj;
+      rgobj,
+      compilerbase;
 
     type
       trgcpu=class(trgobj)
@@ -50,7 +51,8 @@ implementation
 
     uses
       verbose,cutils,
-      cgobj;
+      cgobj,
+      compiler;
 
     function  trgcpu.get_spill_subreg(r:tregister) : tsubregister;
       begin
@@ -75,12 +77,16 @@ implementation
 
     procedure trgcpu.do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         helpins  : tai;
         tmpref   : treference;
         helplist : TAsmList;
         hreg     : tregister;
         isload   : boolean;
       begin
+        cg:=compiler.cg;
         isload:=op=A_LDR;
         { offset out of range for regular load/store? }
         if simple_ref_type(op,reg_cgsize(tempreg),PF_None,spilltemp)<>sr_simple then

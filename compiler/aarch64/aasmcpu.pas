@@ -30,7 +30,8 @@ uses
   aasmbase,aasmtai,aasmdata,aasmsym,
   ogbase,
   symtype,
-  cpubase,cpuinfo,cgbase,cgutils;
+  cpubase,cpuinfo,cgbase,cgutils,
+  compilerbase;
 
     const
       { "mov reg,reg" source operand number }
@@ -259,7 +260,8 @@ uses
 implementation
 
   uses
-    cutils,rgobj,itcpugas,aoptcpu;
+    cutils,rgobj,itcpugas,aoptcpu,
+    compiler;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
@@ -1703,6 +1705,8 @@ implementation
 
 
     procedure taicpu.Pass2(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { error in pass1 ? }
         compiler.globals.current_filepos:=fileinfo;

@@ -33,7 +33,8 @@ interface
     aasmdata,
     symdef,
     cgbase,cgutils,
-    hlcgobj, hlcg2ll;
+    hlcgobj, hlcg2ll,
+    compilerbase;
 
   type
     thlcgaarch64 = class(thlcg2ll)
@@ -52,7 +53,8 @@ implementation
     aasmbase,aasmtai,
     symconst,symsym,defutil,
     cpubase,aasmcpu,parabase,
-    cgobj,cgcpu;
+    cgobj,cgcpu,
+    compiler;
 
   procedure thlcgaarch64.a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);
     var
@@ -97,7 +99,11 @@ implementation
 
 
   procedure makeregssamesize(list: tasmlist; fromsize, tosize: tcgsize; orgfromreg, orgtoreg: tregister; out newfromreg, newtoreg: tregister);
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      cg: tcg;
     begin
+      cg:=compiler.cg;
       if (fromsize in [OS_S64,OS_64])<>
          (tosize in [OS_S64,OS_64]) then
         begin
@@ -221,10 +227,10 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgaarch64.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgaarch64.create(compiler);
+      create_codegen(compiler);
     end;
 
 

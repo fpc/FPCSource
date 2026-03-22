@@ -26,7 +26,7 @@ unit ncpumat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,nmat,ncgmat,compilerbase;
 
     type
       taarch64moddivnode = class(tmoddivnode)
@@ -51,10 +51,11 @@ implementation
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgobj,hlcgobj,pass_2,procinfo,
+      cgbase,cgobj,nodehelper,pass_2,procinfo,
       ncon,nutils,
       cpubase,
-      ncgutil,cgcpu,cgutils;
+      ncgutil,cgcpu,cgutils,
+      compiler;
 
 {*****************************************************************************
                              taarch64moddivnode

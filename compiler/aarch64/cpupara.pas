@@ -30,7 +30,8 @@ unit cpupara;
        globtype,globals,
        aasmtai,aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symbase,symtype,symdef,parabase,paramgr,armpara;
+       symconst,symbase,symtype,symdef,parabase,paramgr,armpara,
+       compilerbase;
 
     type
        tcpuparamanager = class(tarmgenparamanager)
@@ -62,7 +63,8 @@ unit cpupara;
     uses
        verbose,systems,cutils,
        rgobj,
-       defutil,symsym,symtable;
+       defutil,symsym,symtable,
+       compiler;
 
     const
       RS_FIRST_INT_PARAM_SUPREG = RS_X0;
@@ -265,7 +267,7 @@ unit cpupara;
                 hp.paraloc[side].size:=OS_ADDR;
                 hp.paraloc[side].alignment:=voidpointertype.alignment;
                 hp.paraloc[side].intsize:=voidpointertype.size;
-                hp.paraloc[side].def:=cpointerdef.getreusable_no_free(hp.vardef);
+                hp.paraloc[side].def:=cpointerdef.getreusable_no_free(hp.vardef,compiler);
                 with hp.paraloc[side].add_location^ do
                   begin
                     size:=OS_ADDR;
@@ -375,7 +377,7 @@ unit cpupara;
 
         if push_addr_param(varspez,paradef,p.proccalloption) then
           begin
-            paradef:=cpointerdef.getreusable_no_free(paradef);
+            paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
             loc:=LOC_REGISTER;
             paracgsize:=OS_ADDR;
             paralen:=tcgsize2size[OS_ADDR];
@@ -604,7 +606,7 @@ unit cpupara;
                   paraloc^.size:=paracgsize;
                   paraloc^.loc:=LOC_REFERENCE;
                   if assigned(hfabasedef) then
-                    paraloc^.def:=carraydef.getreusable_no_free(hfabasedef,paralen div hfabasedef.size)
+                    paraloc^.def:=carraydef.getreusable_no_free(hfabasedef,paralen div hfabasedef.size,compiler)
                   else
                     paraloc^.def:=paradef;
 
@@ -695,6 +697,4 @@ unit cpupara;
         create_funcretloc_info(p,side);
       end;
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.

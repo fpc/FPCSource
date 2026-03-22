@@ -28,7 +28,8 @@ interface
   uses
     procinfo,
     psub,
-    aasmdata,aasmbase;
+    aasmdata,aasmbase,
+    compilerbase;
 
   type
     tcpuprocinfo=class(tcgprocinfo)
@@ -37,7 +38,7 @@ interface
       scopecount: longint;
       unwindflags: byte;
     public
-      constructor create(aparent: tprocinfo); override;
+      constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
       destructor destroy; override;
       procedure set_first_temp_offset; override;
       procedure add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
@@ -53,14 +54,15 @@ implementation
     symtable,
     tgobj,
     cpubase,
-    aasmtai;
+    aasmtai,
+    compiler;
 
   const
     SCOPE_FINALLY=0;
     SCOPE_CATCHALL=1;
     SCOPE_IMPLICIT=2;
 
-  constructor tcpuprocinfo.create(aparent: tprocinfo);
+  constructor tcpuprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
     begin
       inherited;
       { use the stack pointer as framepointer, because
