@@ -29,7 +29,8 @@ interface
       aasmtai,aasmdata,
       cpubase,cpuinfo,
       sppara,
-      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils;
+      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils,
+      compilerbase;
 
     type
       tcpuparamanager=class(TSparcParaManager)
@@ -49,7 +50,8 @@ implementation
     uses
       cutils,verbose,systems,
       defutil,
-      cgobj;
+      cgobj,
+      compiler;
 
     { true if a parameter is too large to copy and only the address is pushed }
     function tcpuparamanager.push_addr_param_intern(varspez:tvarspez;def : tdef;calloption : tproccalloption;recsizelimit : aword) : boolean;
@@ -179,7 +181,7 @@ implementation
         if push_addr_param_intern(varspez,paradef,p.proccalloption,recsizelimit) then
           begin
             paracgsize:=OS_ADDR;
-            paradef:=cpointerdef.getreusable_no_free(paradef);
+            paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
           end
         else
           begin
@@ -364,6 +366,4 @@ implementation
       end;
 
 
-begin
-   ParaManager:=tcpuparamanager.create;
 end.

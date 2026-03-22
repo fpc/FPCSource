@@ -32,7 +32,8 @@ interface
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
        rgcpu,
-       cgsparc;
+       cgsparc,
+       compilerbase;
 
     type
       TCGSparc64=class(TCGSparcGen)
@@ -42,13 +43,14 @@ interface
        procedure a_load_const_reg(list : TAsmList; size : TCGSize; a : tcgint; reg : TRegister);override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
     uses
       verbose,
-      systems;
+      systems,
+      compiler;
 
     procedure TCGSparc64.a_load_reg_reg(list:TAsmList;fromsize,tosize:tcgsize;reg1,reg2:tregister);
       var
@@ -139,7 +141,7 @@ interface
           begin
             { split into two 32 bit stores }
             href:=ref;
-            if not(TCGSparc64(cg).IsSimpleRef(href)) then
+            if not(IsSimpleRef(href)) then
               begin
                 hreg1:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,href,hreg1);
@@ -194,14 +196,14 @@ interface
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=TCgSparc64.Create;
+        tcompiler(compiler).cg:=TCgSparc64.Create(compiler);
         if compiler.target.info.system=system_sparc64_linux then
-          TCgSparc64(cg).use_unlimited_pic_mode:=true
+          TCgSparc64(compiler.cg).use_unlimited_pic_mode:=true
         else
-          TCgSparc64(cg).use_unlimited_pic_mode:=false;
-        cg128:=tcg128.create;
+          TCgSparc64(compiler.cg).use_unlimited_pic_mode:=false;
+        tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
       end;
 
 end.
