@@ -1411,16 +1411,16 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        assign(compiler.globals.printnodefile,treelogfilename);
+        assign(printnodefile,treelogfilename);
         {$push}{$I-}
-         rewrite(compiler.globals.printnodefile);
+         rewrite(printnodefile);
         {$pop}
         if ioresult<>0 then
          begin
            compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
-        close(compiler.globals.printnodefile);
+        close(printnodefile);
       end;
 
 
