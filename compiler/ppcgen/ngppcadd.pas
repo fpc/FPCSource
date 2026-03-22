@@ -28,7 +28,7 @@ unit ngppcadd;
 interface
 
     uses
-       node,nadd,ncgadd,cpubase;
+       node,nadd,ncgadd,cpubase,compilerbase;
 
     type
        tgenppcaddnode = class(tcgaddnode)
@@ -58,7 +58,7 @@ implementation
       cgbase,cpuinfo,pass_1,pass_2,
       cpupara,cgcpu,cgutils,procinfo,
       ncon,nset,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,nodehelper,compiler;
 
 
 {*****************************************************************************

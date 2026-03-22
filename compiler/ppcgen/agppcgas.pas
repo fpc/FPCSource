@@ -35,7 +35,8 @@ unit agppcgas;
        aasmtai,aasmdata,
        assemble,aggas,
        cpubase,cgutils,
-       globtype;
+       globtype,
+       compilerbase;
 
   type
     TPPCInstrWriter=class(TCPUInstrWriter)
@@ -43,23 +44,23 @@ unit agppcgas;
     end;
 
     TPPCGNUAssembler=class(TGNUassembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       function MakeCmdLine: TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
 
     TPPCAppleGNUAssembler=class(TAppleGNUassembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
     TPPCAIXAssembler=class(TPPCGNUAssembler)
       max_alignment : array[TAsmSectionType] of longint;
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
      protected
       function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
       procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None); override;
-      procedure WriteAsmList; override;
+      procedure WriteAsmList(asmdata: TAsmData); override;
       procedure WriteExtraHeader; override;
       procedure WriteExtraFooter; override;
       procedure WriteDirectiveName(dir: TAsmDirective); override;
@@ -80,7 +81,8 @@ unit agppcgas;
        cutils,globals,verbose,
        cgbase,
        itcpugas,cpuinfo,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
 {$ifdef cpu64bitaddr}
     const
@@ -96,6 +98,8 @@ unit agppcgas;
 
 
     function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       s : string;
     begin
@@ -282,6 +286,8 @@ unit agppcgas;
 
 
     function cond2str(op: tasmop; c: tasmcond): string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { note: no checking is performed whether the given combination of }
     { conditions is valid                                             }
     var
@@ -411,7 +417,7 @@ unit agppcgas;
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TPPCGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TPPCInstrWriter.create(self);
@@ -451,7 +457,7 @@ unit agppcgas;
 {                      GNU/Apple PPC Assembler writer                        }
 {****************************************************************************}
 
-    constructor TPPCAppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TPPCAppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TPPCInstrWriter.create(self);
@@ -480,7 +486,7 @@ unit agppcgas;
 {                         AIX PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCAIXAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TPPCAIXAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       var
          cur_sectype : TAsmSectionType;
       begin
@@ -499,7 +505,7 @@ unit agppcgas;
         Inherited WriteSection(atype,aname,aorder,secalign,secflags,secprogbits);
       end;
 
-    procedure TPPCAIXAssembler.WriteAsmList;
+    procedure TPPCAIXAssembler.WriteAsmList(asmdata: TAsmData);
       var
         cur_sectype : TAsmSectionType;
         hal : tasmlisttype;
@@ -509,10 +515,10 @@ unit agppcgas;
         { Parse all asmlists to get maximum alignment used for all types }
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
-            if not (current_asmdata.asmlists[hal].empty) then
+            if not (asmdata.asmlists[hal].empty) then
               begin
                 cur_sectype:=sec_none;
-                hp:=tai(current_asmdata.asmlists[hal].First);
+                hp:=tai(asmdata.asmlists[hal].First);
                 while assigned(hp) do
                   begin
                     case hp.typ of
@@ -521,7 +527,7 @@ unit agppcgas;
                          if tai_align_abstract(hp).aligntype > max_alignment[cur_sectype] then
                            begin
                              max_alignment[cur_sectype]:=tai_align_abstract(hp).aligntype;
-                             current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Alignment put to '+tostr(tai_align_abstract(hp).aligntype))),hp);
+                             asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Alignment put to '+tostr(tai_align_abstract(hp).aligntype))),hp);
                            end;
                        end;
                      ait_section :
@@ -530,7 +536,7 @@ unit agppcgas;
                          if tai_section(hp).secalign > max_alignment[cur_sectype] then
                            begin
                              max_alignment[cur_sectype]:=tai_section(hp).secalign;
-                             current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Section '
+                             asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Section '
                                +sectionname(tai_section(hp).sectype,'',secorder_default)+' alignment put to '+tostr(tai_section(hp).secalign))),hp);
                            end;
                        end;
@@ -550,7 +556,7 @@ unit agppcgas;
         max_alignment[sec_data]:=max_al;
         max_alignment[sec_rodata]:=max_al;
         max_alignment[sec_bss]:=max_al;
-        Inherited WriteAsmList;
+        Inherited;
       end;
 
     procedure TPPCAIXAssembler.WriteExtraHeader;

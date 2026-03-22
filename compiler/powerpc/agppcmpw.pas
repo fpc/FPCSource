@@ -34,12 +34,13 @@ interface
     uses
        aasmtai,aasmdata,
        globals,aasmbase,aasmcpu,assemble,
-       cpubase;
+       cpubase,
+       compilerbase;
 
     type
       TPPCMPWAssembler = class(TExternalAssembler)
-        procedure WriteTree(p:TAsmList);override;
-        procedure WriteAsmList;override;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
         procedure WriteAsmFileHeader;
@@ -59,7 +60,8 @@ interface
       cutils,globtype,systems,cclasses,
       verbose,finput,fmodule,cscript,cpuinfo,
       cgbase,cgutils,
-      itcpugas
+      itcpugas,
+      compiler
       ;
 
     const
@@ -719,7 +721,7 @@ interface
         (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
 
 
-    procedure TPPCMPWAssembler.WriteTree(p:TAsmList);
+    procedure TPPCMPWAssembler.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
     var
       s        : string;
       hp       : tai;
@@ -738,7 +740,7 @@ interface
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=((cs_asm_source in current_settings.globalswitches) or
                 (cs_lineinfo in current_settings.moduleswitches))
-                 and (p=current_asmdata.asmlists[al_procedures]);
+                 and (asmlisttype=al_procedures);
       DoNotSplitLine:=false;
       hp:=tai(p.first);
       while assigned(hp) do
@@ -1206,7 +1208,7 @@ interface
       writer.AsmLn;
     end;
 
-    procedure TPPCMPWAssembler.WriteAsmList;
+    procedure TPPCMPWAssembler.WriteAsmList(asmdata: TAsmData);
     var
       hal : tasmlisttype;
     begin
@@ -1221,7 +1223,7 @@ interface
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
           writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmListTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal]);
+          writetree(asmdata.asmlists[hal],hal);
           writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmListTypeStr[hal]);
         end;
 

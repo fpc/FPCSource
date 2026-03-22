@@ -31,14 +31,15 @@ unit agppcvasm;
        aasmtai,aasmdata,
        assemble,aggas,agppcgas,
        cpubase,cgutils,
-       globtype;
+       globtype,
+       compilerbase;
 
   type
     tppcvasm = class(TPPCGNUassembler)
     protected
       function sectionattrs(atype:TAsmSectiontype):string; override;
     public
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       function MakeCmdLine: TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
@@ -50,7 +51,8 @@ unit agppcvasm;
        cgbase,
        cscript,
        itcpugas,cpuinfo,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
 
 {****************************************************************************}
@@ -58,7 +60,7 @@ unit agppcvasm;
 {****************************************************************************}
 
 
-    constructor tppcvasm.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor tppcvasm.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TPPCInstrWriter.create(self);

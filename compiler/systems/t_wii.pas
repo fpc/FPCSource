@@ -33,14 +33,15 @@ implementation
        aasmbase,
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,cscript,fmodule,i_wii,link;
+       globtype,globals,systems,verbose,cscript,fmodule,i_wii,link,
+       compilerbase,compiler;
 
     type
        TlinkerWii=class(texternallinker)
        private
           Function  WriteResponseFile: Boolean;
        public
-          constructor Create; override;
+          constructor Create(acompiler: TCompilerBase); override;
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
        end;
@@ -51,9 +52,9 @@ implementation
                                TLinkerWii
 ****************************************************************************}
 
-Constructor TLinkerWii.Create;
+Constructor TLinkerWii.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
 end;

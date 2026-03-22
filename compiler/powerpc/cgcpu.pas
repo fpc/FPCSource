@@ -30,7 +30,8 @@ unit cgcpu;
        cgbase,cgobj,cgppc,
        aasmbase,aasmcpu,aasmtai,aasmdata,
        cpubase,cpuinfo,cgutils,cg64f32,rgcpu,
-       parabase;
+       parabase,
+       compilerbase;
 
     type
       tcgppc = class(tcgppcgen)
@@ -101,7 +102,7 @@ unit cgcpu;
        procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
      end;
 
-  procedure create_codegen;
+  procedure create_codegen(compiler: TCompilerBase);
 
 const
   TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_NONE,A_MR,A_ADDI,A_ANDI_,A_DIVWU,
@@ -116,7 +117,8 @@ const
     uses
        globals,verbose,systems,cutils,
        symconst,symsym,fmodule,
-       rgobj,tgobj,cpupi,procinfo,paramgr;
+       rgobj,tgobj,cpupi,procinfo,paramgr,
+       compiler;
 
 
     procedure tcgppc.init_register_allocators;
@@ -1784,10 +1786,10 @@ const
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg := tcgppc.create;
-        cg64 :=tcg64fppc.create;
+        tcompiler(compiler).cg := tcgppc.create(compiler);
+        tcompiler(compiler).cg64 :=tcg64fppc.create(compiler);
       end;
 
 end.

@@ -26,7 +26,7 @@ unit nppcmat;
 interface
 
     uses
-      node,nmat, ncgmat;
+      node,nmat, ncgmat,compilerbase;
 
     type
       tppcmoddivnode = class(tmoddivnode)
@@ -59,7 +59,8 @@ implementation
       cgbase,cgutils,cgobj,hlcgobj,pass_2,
       ncon,procinfo,
       cpubase,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,
+      compiler,nodehelper;
 
 
 {*****************************************************************************

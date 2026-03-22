@@ -1887,8 +1887,8 @@ implementation
              { TODO: check whether this is also for AIX }
              if (compiler.target.info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) and
                 is_first_type and
-                (symtablestack.top.symtabletype=recordsymtable) and
-                (trecordsymtable(symtablestack.top).usefieldalignment=C_alignment) then
+                (compiler.symtablestack.top.symtabletype=recordsymtable) and
+                (trecordsymtable(compiler.symtablestack.top).usefieldalignment=C_alignment) then
                begin
                  tempdef:=hdef;
                  while tempdef.typ=arraydef do
@@ -1899,8 +1899,8 @@ implementation
                    maxpadalign:=trecorddef(tempdef).padalignment;
 
                  if (maxpadalign>4) and
-                    (maxpadalign>trecordsymtable(symtablestack.top).padalignment) then
-                   trecordsymtable(symtablestack.top).padalignment:=maxpadalign;
+                    (maxpadalign>trecordsymtable(compiler.symtablestack.top).padalignment) then
+                   trecordsymtable(compiler.symtablestack.top).padalignment:=maxpadalign;
                  is_first_type:=false;
                end;
 {$endif powerpc or powerpc64}

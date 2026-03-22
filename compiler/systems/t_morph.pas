@@ -32,7 +32,8 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,rescmn,comprsrc,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_morph,link;
+       globtype,globals,systems,verbose,cscript,fmodule,i_morph,link,
+       compilerbase,compiler;
 
     type
        PlinkerMorphOS=^TlinkerMorphOS;
@@ -41,7 +42,7 @@ implementation
           UseVLink: Boolean;
           Function  WriteResponseFile(isdll:boolean) : Boolean;
        public
-          constructor Create; override;
+          constructor Create(acompiler: TCompilerBase); override;
           procedure SetDefaultInfo; override;
           procedure InitSysInitUnitName; override;
           function  MakeExecutable:boolean; override;
@@ -52,11 +53,11 @@ implementation
                                TLinkerMorphOS
 ****************************************************************************}
 
-Constructor TLinkerMorphOS.Create;
+Constructor TLinkerMorphOS.Create(acompiler: TCompilerBase);
 begin
   UseVLink:=(cs_link_vlink in current_settings.globalswitches);
 
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

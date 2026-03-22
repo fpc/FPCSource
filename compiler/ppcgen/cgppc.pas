@@ -29,7 +29,8 @@ unit cgppc;
        cgbase,cgobj,
        aasmbase,aasmdef,aasmcpu,aasmtai,aasmdata,
        cpubase,cpuinfo,cgutils,rgcpu,
-       parabase;
+       parabase,
+       compilerbase;
 
     type
       tcgppcgen = class(tcg)
@@ -136,7 +137,8 @@ unit cgppc;
        {$ifdef extdebug}sysutils,{$endif}
        globals,verbose,systems,cutils,
        symconst,symsym,symtable,fmodule,
-       rgobj,tgobj,cpupi,procinfo,paramgr;
+       rgobj,tgobj,cpupi,procinfo,paramgr,
+       compiler;
 
 { We know that macos_direct_globals is a const boolean
   but we don't care about this warning }

@@ -30,7 +30,8 @@ interface
   uses
     aasmdata,
     symtype,
-    cgbase,cgutils,hlcgobj,hlcgppc;
+    cgbase,cgutils,hlcgobj,hlcgppc,
+    compilerbase;
 
   type
     thlcgcpu = class(thlcgppcgen)
@@ -46,7 +47,8 @@ implementation
     verbose,
     cpubase,aasmcpu,
     defutil,
-    cgobj,cgcpu;
+    cgobj,cgcpu,
+    compiler;
 
   { thlcgppc }
 
@@ -109,10 +111,10 @@ implementation
 
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 

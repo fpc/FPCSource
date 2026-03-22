@@ -29,7 +29,8 @@ unit cpupara;
        aasmtai,aasmdata,
        cpubase,
        symconst,symtype,symdef,symsym,
-       paramgr,parabase,cgbase,cgutils;
+       paramgr,parabase,cgbase,cgutils,
+       compilerbase;
 
     type
        tcpuparamanager = class(tparamanager)
@@ -43,6 +44,7 @@ unit cpupara;
           function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
+          function getparaloc(p : tdef) : tcgloc;
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
@@ -54,7 +56,8 @@ unit cpupara;
     uses
        verbose,systems,
        defutil,symtable,
-       procinfo,cpupi;
+       procinfo,cpupi,
+       compiler;
 
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -100,7 +103,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=cpointerdef.getreusable_no_free(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef,compiler);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -132,7 +135,7 @@ unit cpupara;
 
 
 
-    function getparaloc(p : tdef) : tcgloc;
+    function tcpuparamanager.getparaloc(p : tdef) : tcgloc;
 
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
@@ -401,7 +404,7 @@ unit cpupara;
 
               if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                 begin
-                  paradef:=cpointerdef.getreusable_no_free(paradef);
+                  paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                   loc:=LOC_REGISTER;
                   paracgsize := OS_ADDR;
                   paralen := tcgsize2size[OS_ADDR];
@@ -582,7 +585,7 @@ unit cpupara;
                              if paraloc^.size<>OS_NO then
                                paraloc^.def:=cgsize_orddef(paraloc^.size)
                              else
-                               paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
+                               paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen,compiler);
                            end;
                          else
                            internalerror(2006011101);
@@ -759,6 +762,4 @@ unit cpupara;
         result:=true;
       end;
 
-begin
-   paramanager:=tcpuparamanager.create;
 end.

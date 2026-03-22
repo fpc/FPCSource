@@ -30,7 +30,8 @@ unit cpupi;
     uses
        cutils,globtype,
        cgbase,aasmdata,
-       procinfo,cpuinfo,psub;
+       procinfo,cpuinfo,psub,
+       compilerbase;
 
     type
        tcpuprocinfo = class(tcgprocinfo)
@@ -38,7 +39,7 @@ unit cpupi;
 
           { offset where the frame pointer from the outer procedure is stored. }
           parent_framepointer_offset : longint;
-          constructor create(aparent:tprocinfo);override;
+          constructor create(aparent:tprocinfo;acompiler: TCompilerBase);override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
 
@@ -64,12 +65,13 @@ unit cpupi;
        tgobj,cgobj,
        symconst,symsym,paramgr,symutil,symtable,
        verbose,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
-    constructor tcpuprocinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo;acompiler: TCompilerBase);
 
       begin
-         inherited create(aparent);
+         inherited;
          first_save_int_reg:=32;
          first_save_fpu_reg:=32;
          needs_frame_pointer:=false;

@@ -27,7 +27,7 @@ interface
 
     uses
        cpubase,
-       node,ninl,ncginl;
+       node,ninl,ncginl,compilerbase;
 
     type
        tgppcinlinenode = class(tcginlinenode)
@@ -64,7 +64,7 @@ implementation
       defutil,
       cgbase,pass_2,
       cpuinfo,ncgutil,nutils,
-      hlcgobj,cgutils,cgobj,rgobj,tgobj;
+      nodehelper,cgutils,cgobj,rgobj,tgobj,compiler;
 
 
 {*****************************************************************************

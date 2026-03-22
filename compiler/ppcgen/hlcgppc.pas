@@ -31,7 +31,8 @@ uses
   globtype,globals,
   aasmdata,
   symtype,symdef,
-  cgbase,cgutils,hlcgobj,hlcg2ll;
+  cgbase,cgutils,hlcgobj,hlcg2ll,
+  compilerbase;
 
 type
   thlcgppcgen = class(thlcg2ll)
@@ -52,7 +53,8 @@ implementation
     aasmbase,aasmtai,aasmcpu,
     cpubase,
     procinfo,cpupi,cgobj,cgppc,
-    defutil;
+    defutil,
+    compiler;
 
 { thlcgppc }
 

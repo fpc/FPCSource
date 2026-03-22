@@ -28,7 +28,7 @@ Interface
 
 {$i fpcdefs.inc}
 
-uses cpubase, cgbase, aoptobj, aoptcpub, aopt, aasmtai,aasmdata, aasmcpu, aoptppc;
+uses cpubase, cgbase, aoptobj, aoptcpub, aopt, aasmtai,aasmdata, aasmcpu, aoptppc, compilerbase;
 
 Type
   TCpuAsmOptimizer = class(TPPCAsmOptimizer)
@@ -44,7 +44,7 @@ Type
 Implementation
 
   uses
-    cutils, verbose, cgcpu, cgobj;
+    cutils, verbose, cgcpu, cgobj, compiler;
 
   function TCpuAsmOptimizer.cmpi_mfcr_opt(p, next1, next2: taicpu): boolean;
     var
@@ -168,9 +168,12 @@ Implementation
 
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
+      cg: tcg;
+    var
       next1, next2: tai;
       l1, l2, shlcount: longint;
     begin
+      cg:=compiler.cg;
       result := false;
       case p.typ of
         ait_instruction:

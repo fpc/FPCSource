@@ -29,7 +29,8 @@ interface
   uses
     aasmdata,
     symsym,symdef,ppu,
-    import,export,expunix,link;
+    import,export,expunix,link,
+    compilerbase;
 
   type
     timportlibaix=class(timportlib)
@@ -46,7 +47,7 @@ interface
       assumebinutils,use_gld : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-      constructor Create;override;
+      constructor Create(acompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
@@ -63,7 +64,8 @@ implementation
     aasmbase,aasmtai,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
     comprsrc,
-    rescmn, i_aix
+    rescmn, i_aix,
+    compiler
     ;
 
 {*****************************************************************************
@@ -96,9 +98,9 @@ implementation
                                   TLinkerAIX
 *****************************************************************************}
 
-Constructor TLinkerAIX.Create;
+Constructor TLinkerAIX.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   if not compiler.globals.Dontlinkstdlibpath then
     if not(cs_profile in current_settings.moduleswitches) then
       compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=/usr/X11R6/lib;=/opt/freeware/lib',true)

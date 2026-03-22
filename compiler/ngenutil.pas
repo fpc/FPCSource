@@ -1702,8 +1702,8 @@ implementation
          { note: won't work for m68k amigaos or morphos. (KB) }
          str(compiler.globals.stacksize,s);
          s:='$STACK: '+s+#0;
-         def:=carraydef.getreusable(cansichartype,length(s));
-         tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+         def:=carraydef.getreusable(cansichartype,length(s),compiler);
+         tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
          tcb.maybe_begin_aggregate(def);
          tcb.emit_tai(Tai_string.Create(s),def);
          tcb.maybe_end_aggregate(def);

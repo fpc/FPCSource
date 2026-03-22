@@ -26,7 +26,7 @@ unit nppccal;
 interface
 
     uses
-      symdef,node,ncal,ncgcal;
+      symdef,node,ncal,ncgcal,compilerbase;
 
     type
        tppccallnode = class(tcgcallnode)
@@ -48,7 +48,7 @@ implementation
       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cgutils,cgobj,tgobj,rgobj,rgcpu,
-      cg64f32,cgcpu,cpupi,procinfo;
+      cg64f32,cgcpu,cpupi,procinfo,compiler,nodehelper;
 
     procedure tppccallnode.gen_syscall_para(para: tcallparanode);
       begin
