@@ -1691,7 +1691,7 @@ Implementation
               write a the value field with relocation }
             oldsec:=ObjData.CurrObjSec;
             ObjData.SetSection(ObjData.StabsSec);
-            MaybeSwapStab(stab);
+            MaybeSwapStab(compiler.target.info.endian,stab);
             ObjData.Writebytes(stab,sizeof(TObjStabEntry)-4);
             ObjData.Writereloc(stab.nvalue,4,relocsym,RELOC_ABSOLUTE32);
             ObjData.setsection(oldsec);

@@ -797,7 +797,7 @@ interface
     function align_aword(v:aword;a:longword):aword;
     function align_qword(v:qword;a:longword):qword;
     function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
-    procedure MaybeSwapStab(var v:TObjStabEntry);
+    procedure MaybeSwapStab(target_endian:systems.tendian;var v:TObjStabEntry);
 
 implementation
 
@@ -843,11 +843,9 @@ implementation
       end;
 
 
-    procedure MaybeSwapStab(var v:TObjStabEntry);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure MaybeSwapStab(target_endian:systems.tendian;var v:TObjStabEntry);
       begin
-        if source_info.endian<>compiler.target.info.endian then
+        if source_info.endian<>target_endian then
           begin
             v.strpos:=SwapEndian(v.strpos);
             v.nvalue:=SwapEndian(v.nvalue);
@@ -2020,6 +2018,8 @@ implementation
 
     procedure TObjData.afterwrite;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hstab : TObjStabEntry;
       begin
         FObjSectionList.ForEachCall(@section_afterwrite,nil);
@@ -2038,7 +2038,7 @@ implementation
             hstab.ndesc:=(StabsSec.Size div sizeof(TObjStabEntry))-1;
 {$pop}
             hstab.nvalue:=StabStrSec.Size;
-            MaybeSwapStab(hstab);
+            MaybeSwapStab(compiler.target.info.endian,hstab);
             StabsSec.Data.seek(0);
             StabsSec.Data.write(hstab,sizeof(hstab));
           end;
@@ -3632,7 +3632,7 @@ implementation
                     hstabreloc:=nil;
                     skipstab:=false;
                     currstabsec.Data.read(hstab,sizeof(TObjStabEntry));
-                    MaybeSwapStab(hstab);
+                    MaybeSwapStab(compiler.target.info.endian,hstab);
                     { Only include first hdrsym stab }
                     if hstab.ntype=0 then
                       skipstab:=true;
@@ -3713,7 +3713,7 @@ implementation
                             mergedstabsec.ObjRelocations.Add(hstabreloc);
                           end;
                         { Write updated stab }
-                        MaybeSwapStab(hstab);
+                        MaybeSwapStab(compiler.target.info.endian,hstab);
                         mergedstabsec.write(hstab,sizeof(hstab));
                         inc(mergestabcnt);
                       end;
@@ -3738,7 +3738,7 @@ implementation
             hstab.nother:=0;
             hstab.ndesc:=word(mergestabcnt-1);
             hstab.nvalue:=mergedstabstrsec.Size;
-            MaybeSwapStab(hstab);
+            MaybeSwapStab(compiler.target.info.endian,hstab);
             mergedstabsec.Data.seek(0);
             mergedstabsec.Data.write(hstab,sizeof(hstab));
           end;
