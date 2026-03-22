@@ -26,27 +26,25 @@ unit tripletcpu;
 interface
 
 uses
-  globtype,compilerbase;
+  globtype, systems;
 
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
-  globals, systems, cpuinfo, compiler;
+  globals, cpuinfo;
 
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
   begin
     if tripletstyle in [triplet_llvm,triplet_llvmrt] then
       begin
-        if compiler.target.info.system in systems_android then
+        if target.info.system in systems_android then
           result:='i686'
         else
           result:='i386'
       end
-    else if (compiler.target.info.system in systems_darwin) or
+    else if (target.info.system in systems_darwin) or
        (current_settings.cputype<cpu_Pentium2) then
       result:='i386'
     else

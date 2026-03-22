@@ -41,7 +41,7 @@ uses
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { architecture }
-      result:=tripletcpustr(tripletstyle);
+      result:=tripletcpustr(target,tripletstyle);
       { vendor and/or OS }
       if target.info.system in systems_darwin then
         begin

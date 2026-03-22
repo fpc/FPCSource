@@ -26,20 +26,15 @@ unit tripletcpu;
 interface
 
 uses
-  globtype,compilerbase;
+  globtype, systems;
 
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
-uses
-  globals, systems, cpuinfo, compiler;
-
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
   begin
-    if compiler.target.info.endian=endian_big then
+    if target.info.endian=endian_big then
       result:='mips'
     else
       result:='mipsel'

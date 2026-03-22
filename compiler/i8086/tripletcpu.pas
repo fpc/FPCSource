@@ -26,16 +26,13 @@ unit tripletcpu;
 interface
 
 uses
-  globtype;
+  globtype, systems;
 
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
-uses
-  globals, cpuinfo;
-
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
   begin
     result:='i8086';
   end;

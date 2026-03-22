@@ -26,23 +26,21 @@ unit tripletcpu;
 interface
 
 uses
-  globtype,compilerbase;
+  globtype,systems;
 
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
 
 implementation
 
 uses
-  globals, cutils, systems, cpuinfo, compiler;
+  globals, cutils, cpuinfo;
 
-function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
   begin
     if tripletstyle=triplet_llvmrt then
       begin
-        if (compiler.target.info.abi=abi_eabihf) and
-           not(compiler.target.info.system in systems_windows) then
+        if (target.info.abi=abi_eabihf) and
+           not(target.info.system in systems_windows) then
           result:='armhf'
         else
           result:='arm';
@@ -53,7 +51,7 @@ function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
     if (tripletstyle=triplet_llvm) and
        (current_settings.instructionset=is_thumb) then
       result:='thumb'+copy(result,4,255);
-    if compiler.target.info.endian=endian_big then
+    if target.info.endian=endian_big then
       result:=result+'be';
   end;
 
