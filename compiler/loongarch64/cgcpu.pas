@@ -30,7 +30,8 @@ unit cgcpu;
       cgbase, cgobj,
       aasmbase, aasmcpu, aasmtai,aasmdata,
       cpubase, cpuinfo, cgutils, rgcpu,
-      parabase;
+      parabase,
+      compilerbase;
 
     type
       tfixref = (
@@ -98,7 +99,7 @@ unit cgcpu;
         procedure maybeadjustresult(list: TAsmList; op: topcg; size: tcgsize; dst: tregister);
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   { OP_NONE,OP_MOVE,OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,
     OP_NOT,OP_OR,OP_SAR,OP_SHL,OP_SHR,OP_SUB,OP_XOR,OP_ROL,OP_ROR }
@@ -127,7 +128,8 @@ implementation
       sysutils, cclasses,
       globals, verbose, systems, cutils,
       symconst, fmodule, symtable,
-      rgobj, tgobj, cpupi, procinfo, paramgr, cpupara;
+      rgobj, tgobj, cpupi, procinfo, paramgr, cpupara,
+      compiler;
 
 
     procedure tcgloongarch64.init_register_allocators;
@@ -1675,10 +1677,10 @@ implementation
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg := tcgloongarch64.create;
-        cg128:=tcg128.create;
+        tcompiler(compiler).cg := tcgloongarch64.create(compiler);
+        tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
       end;
 
 end.

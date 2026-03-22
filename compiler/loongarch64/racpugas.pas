@@ -28,7 +28,8 @@ unit racpugas;
     uses
       globtype,
       raatt,racpu,
-      cpubase;
+      cpubase,
+      compilerbase;
 
     const
       NRCalMax=64;
@@ -76,7 +77,8 @@ unit racpugas;
       scanner,
       procinfo,
       rabase,rautils,
-      cgbase,cgobj
+      cgbase,cgobj,
+      compiler
       ;
 
 
@@ -324,7 +326,7 @@ unit racpugas;
       var
         instr : tloongarch64instruction;
       begin
-        instr:=tloongarch64instruction.create(tloongarch64operand);
+        instr:=tloongarch64instruction.create(tloongarch64operand,compiler);
         BuildOpCode(instr);
         { TODO instruction field }
         instr.ConcatInstruction(curlist);

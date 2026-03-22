@@ -31,7 +31,8 @@ unit rgcpu;
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cgbase,cgutils,
        cpubase,
-       rgobj;
+       rgobj,
+       compilerbase;
 
      type
        trgcpu = class(trgobj)
@@ -47,16 +48,21 @@ unit rgcpu;
     uses
       verbose, cutils,globtype,
       cgobj,
-      procinfo;
+      procinfo,
+      compiler;
 
 
     procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
       var
         tmpref : treference;
         helplist : TAsmList;
         hreg : tregister;
         helpins: Taicpu;
       begin
+        cg:=compiler.cg;
         if not is_simm12(spilltemp.offset) then
           begin
             helplist:=tasmlist.create;
@@ -82,10 +88,14 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         tmpref   : treference;
         helplist : tasmlist;
         hreg     : tregister;
       begin
+        cg:=compiler.cg;
         if not is_simm12(spilltemp.offset) then
           begin
             helplist:=tasmlist.create;

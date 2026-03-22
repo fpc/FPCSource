@@ -29,7 +29,8 @@ interface
     cclasses,globtype,
     dbgbase,dbgstabs,cgbase,
     symtype,symdef,symsym,symtable,symbase,
-    aasmtai,aasmdata;
+    aasmtai,aasmdata,
+    compilerbase;
 
   type
     TDebugInfoStabx = class(TDebugInfoStabs)
@@ -47,7 +48,7 @@ interface
       procedure insertmoduleinfo; override;
       procedure referencesections(list: TAsmList); override;
 
-      constructor create;override;
+      constructor create(acompiler: TCompilerBase);override;
     end;
 
 implementation
@@ -56,7 +57,8 @@ implementation
     globals,cutils,cfileutl,verbose,
     systems,finput,fmodule,
     aasmbase,
-    symconst;
+    symconst,
+    compiler;
 
   const
     STABX_N_GSYM = $80;
@@ -456,9 +458,9 @@ implementation
     end;
 
 
-  constructor TDebugInfoStabx.create;
+  constructor TDebugInfoStabx.create(acompiler: TCompilerBase);
     begin
-      inherited create;
+      inherited;
       dbgtype:=dbg_stabx;
       stabsdir:=stab_stabx;
 

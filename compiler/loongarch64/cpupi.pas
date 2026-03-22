@@ -30,7 +30,8 @@ unit cpupi;
     uses
       cutils,aasmdata,
       globtype, cgutils, cgbase,
-      procinfo, cpuinfo, psub;
+      procinfo, cpuinfo, psub,
+      compilerbase;
 
     type
       tloongarch64procinfo = class(tcgprocinfo)
@@ -40,7 +41,7 @@ unit cpupi;
 
         needs_frame_pointer: boolean;
 
-        constructor create(aparent: tprocinfo); override;
+        constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
         procedure set_first_temp_offset; override;
         function calc_stackframe_size: longint; override;
       end;
@@ -54,12 +55,13 @@ implementation
       tgobj,cgobj,
       symconst, symsym, paramgr, symutil, symtable,
       verbose,
-      aasmcpu;
+      aasmcpu,
+      compiler;
 
 
-    constructor tloongarch64procinfo.create(aparent: tprocinfo);
+    constructor tloongarch64procinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
       begin
-        inherited create(aparent);
+        inherited;
         maxpushedparasize := 0;
         { GCC option -fomit-frame-pointer is default. }
         framepointer:=NR_STACK_POINTER_REG;

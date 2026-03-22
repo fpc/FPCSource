@@ -27,7 +27,8 @@ unit ncpuadd;
   interface
 
     uses
-       node,nadd,ncgadd,cpubase;
+       node,nadd,ncgadd,cpubase,
+       compilerbase;
 
     type
       tloongarch64addnode = class(tcgaddnode)
@@ -61,7 +62,8 @@ implementation
       cgbase,cpuinfo,pass_1,pass_2,
       cpupara,cgcpu,cgutils,procinfo,
       ncon,nset,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,nodehelper,
+      compiler;
 
 
     procedure tloongarch64addnode.Cmp(signed,is_smallset: boolean);

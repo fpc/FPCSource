@@ -36,7 +36,8 @@ unit agcpugas;
        aggas,
        assemble,
        cpubase,cgutils,
-       globtype;
+       globtype,
+       compilerbase;
 
   type
     TLoongArch64InstrWriter=class(TCPUInstrWriter)
@@ -44,7 +45,7 @@ unit agcpugas;
     end;
 
     TLoongArch64GNUAssembler=class(TGNUassembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler:TCompilerBase); override;
     end;
 
   var
@@ -56,7 +57,8 @@ unit agcpugas;
        cutils,globals,verbose,
        cgbase,rgbase,
        itcpugas,cpuinfo,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
     function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
@@ -198,7 +200,7 @@ unit agcpugas;
 {                     GNU LoongArch Assembler writer                         }
 {****************************************************************************}
 
-    constructor TLoongArch64GNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TLoongArch64GNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler:TCompilerBase);
       begin
         inherited;
         InstrWriter := TLoongArch64InstrWriter.create(self);

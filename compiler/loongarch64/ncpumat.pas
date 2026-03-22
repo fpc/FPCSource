@@ -27,7 +27,8 @@ unit ncpumat;
 
     uses
       node,nmat, ncgmat,
-      cgbase;
+      cgbase,
+      compilerbase;
 
     type
       tloongarch64moddivnode = class(tcgmoddivnode)
@@ -57,11 +58,12 @@ implementation
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgutils,cgobj,hlcgobj,
+      cgutils,cgobj,nodehelper,
       pass_1,pass_2,htypechk,
       ncon,procinfo,
       cpubase,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,
+      compiler;
 
     procedure tloongarch64notnode.second_boolean;
       var
@@ -140,7 +142,7 @@ implementation
 
         { we may not change the result type here }
         if assigned(result) and (torddef(result.resultdef).ordtype<>torddef(resultdef).ordtype) then
-          inserttypeconv(result,resultdef);
+          inserttypeconv(result,resultdef,compiler);
       end;
 
 begin

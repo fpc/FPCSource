@@ -77,7 +77,7 @@ implementation
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=cpointerdef.getreusable_no_free(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef,compiler);
         cgpara.reset;
         cgpara.size := def_cgsize(pdef);
         cgpara.intsize := tcgsize2size[cgpara.size];
@@ -319,7 +319,7 @@ implementation
         paraaligned:=false;
         if push_addr_param(varspez, paradef, p.proccalloption) then
           begin
-            paradef := cpointerdef.getreusable_no_free(paradef);
+            paradef := cpointerdef.getreusable_no_free(paradef,compiler);
             loc := LOC_REGISTER;
             paracgsize := OS_ADDR;
             paralen := tcgsize2size[OS_ADDR];
@@ -614,7 +614,5 @@ implementation
      end;
 
 
-begin
-  paramanager := tcpuparamanager.create;
 end.
 

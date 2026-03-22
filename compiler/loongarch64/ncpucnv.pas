@@ -26,7 +26,8 @@ unit ncpucnv;
 interface
 
     uses
-      node,ncnv,ncgcnv;
+      node,ncnv,ncgcnv,
+      compilerbase;
 
     type
        tloongarch64typeconvnode = class(tcgtypeconvnode)
@@ -64,7 +65,8 @@ implementation
       ncon, ncal,procinfo,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,hlcgobj;
+      rgobj,tgobj,cgobj,nodehelper,
+      compiler;
 
 
     {*****************************************************************************
@@ -89,7 +91,7 @@ implementation
                 result := compiler.ccallnode_intern(fname,compiler.ccallparanode(left,nil));
                 left:=nil;
                 if (tfloatdef(resultdef).floattype=s32real) then
-                  inserttypeconv(result,s32floattype);
+                  inserttypeconv(result,s32floattype,compiler);
                 firstpass(result);
                 exit;
               end;
@@ -98,9 +100,9 @@ implementation
           begin
             { Else signed supposed to be 32 bit, or unsigned supposed to be 64 bit }
             if is_signed(left.resultdef) then
-              inserttypeconv(left,s32inttype)
+              inserttypeconv(left,s32inttype,compiler)
             else
-              inserttypeconv(left,s64inttype);
+              inserttypeconv(left,s64inttype,compiler);
             firstpass(left);
           end;
         result := nil;
