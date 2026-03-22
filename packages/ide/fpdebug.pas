@@ -745,7 +745,8 @@ begin
         s:=copy(f,1,i-1);
         system.delete(f,1,i);
       end;
-    DefaultReplacements(s);
+    {TODO(nickysn): fix call to DefaultReplacements, once the IDE starts using the TCompiler class}
+    //DefaultReplacements(s);
     if (pos('*',s)=0) and ExistsDir(s) then
       begin
         if s<>'' then
