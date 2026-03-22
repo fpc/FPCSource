@@ -5025,7 +5025,7 @@ begin
     else
       set_system_compvar('FPC_SUBTARGET',Option.parasubtarget);
     // So it can be used in macro substitution.
-    compiler.globals.subtarget:=Option.parasubtarget;
+    compiler.target.subtarget:=Option.parasubtarget;
     end;
 
   { make cpu makros available when reading the config files the second time }

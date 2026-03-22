@@ -577,6 +577,9 @@ interface
         procedure default_target(t:tsystem);
         procedure InitSystems;
       public
+        { selected subtarget }
+        subtarget         : string;
+
         constructor Create;
         function set_target(t:tsystem):boolean;
         function set_target_asm(t:tasm):boolean;

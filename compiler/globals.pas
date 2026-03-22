@@ -561,8 +561,6 @@ Const
         outputfilename    : string;
         outputprefix      : pshortstring;
         outputsuffix      : pshortstring;
-        { selected subtarget }
-        subtarget         : string;
 
         { specified with -FE or -FU }
         outputexedir      : TPathStr;
@@ -1120,8 +1118,8 @@ implementation
          if (tf_use_8_3 in Source_Info.Flags) or
             (tf_use_8_3 in compiler.target.info.Flags) then
            Replace(s,'$FPCTARGET',compiler.target.os_string)
-         else if compiler.globals.subtarget<>'' then
-           Replace(s,'$FPCTARGET',compiler.target.full_string+'-'+lower(compiler.globals.subtarget))
+         else if compiler.target.subtarget<>'' then
+           Replace(s,'$FPCTARGET',compiler.target.full_string+'-'+lower(compiler.target.subtarget))
          else
            Replace(s,'$FPCTARGET',compiler.target.full_string);
          Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
