@@ -68,6 +68,8 @@ interface
       public
         codegenerror : boolean;           { true if there is an error reported }
 
+        paraprintnodetree : byte;
+
         constructor Create;
         destructor Destroy; override;
 
@@ -272,8 +274,6 @@ implementation
 
 
     function TVerbose.SetVerbosity(const s:TCmdStr):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         message_verbosity:array[boolean] of tmsgstate=(ms_off_global,ms_on_global);
       var
@@ -320,9 +320,9 @@ implementation
                          end;
                  'P' : begin
                          if inverse then
-                          compiler.globals.paraprintnodetree:=0
+                          paraprintnodetree:=0
                          else
-                          compiler.globals.paraprintnodetree:=1;
+                          paraprintnodetree:=1;
                        end;
                  'Q' : begin
                           if inverse then

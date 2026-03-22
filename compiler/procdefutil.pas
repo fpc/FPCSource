@@ -885,7 +885,7 @@ implementation
       procedure print_procinfo(pi:tcgprocinfo);
         begin
           { Print the node to tree.log }
-          if compiler.globals.paraprintnodetree <> 0 then
+          if compiler.verbose.paraprintnodetree <> 0 then
             pi.printproc('after parsing');
 
 {$ifdef DEBUG_NODE_XML}
