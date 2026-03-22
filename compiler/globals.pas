@@ -747,6 +747,8 @@ Const
 
         constructor Create;
         destructor Destroy; override;
+
+        function HandleFeature(const s : string) : boolean;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -767,7 +769,6 @@ Const
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-    function HandleFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
     {# Routine to get the required alignment for size of data, which will
@@ -1384,9 +1385,7 @@ implementation
       end;
 
 
-    function HandleFeature(const s : string) : boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TCompilerGlobals.HandleFeature(const s : string) : boolean;
       var
         i : tfeature;
       begin
@@ -1394,7 +1393,7 @@ implementation
         for i:=low(tfeature) to high(tfeature) do
           if s=featurestr[i] then
             begin
-              include(compiler.globals.features,i);
+              include(features,i);
               exit;
             end;
         { Also support -Sfnoheap to exclude heap }
@@ -1402,7 +1401,7 @@ implementation
           for i:=low(tfeature) to high(tfeature) do
             if s='NO'+featurestr[i] then
               begin
-                exclude(compiler.globals.features,i);
+                exclude(features,i);
                 exit;
               end;
         result:=false;

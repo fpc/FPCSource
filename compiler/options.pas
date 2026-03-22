@@ -3697,7 +3697,7 @@ begin
                 end
               else
                 begin
-                  if (HandleFeature(upper(copy(more,j)))) then
+                  if (compiler.globals.HandleFeature(upper(copy(more,j)))) then
                     j:=length(more)
                   else
                     IllegalPara(opt);
