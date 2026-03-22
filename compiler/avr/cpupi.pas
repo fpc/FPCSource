@@ -29,7 +29,8 @@ unit cpupi;
 
     uses
        globtype,cutils,
-       procinfo,cpuinfo,psub;
+       procinfo,cpuinfo,psub,
+       compilerbase;
 
     type
        tcpuprocinfo = class(tcgprocinfo)
@@ -51,7 +52,8 @@ unit cpupi;
        symconst,symsym,paramgr,
        cgbase,
        cgobj,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
     procedure tcpuprocinfo.set_first_temp_offset;
       begin

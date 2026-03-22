@@ -26,7 +26,8 @@ unit navrmat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,nmat,ncgmat,
+      compilerbase;
 
     type
       tavrnotnode = class(tcgnotnode)
@@ -47,11 +48,12 @@ implementation
       symtype,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgobj,hlcgobj,cgutils,
+      cgbase,cgobj,nodehelper,cgutils,
       pass_1,pass_2,procinfo,
       ncon,
       cpubase,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,
+      compiler;
 
 {*****************************************************************************
                                TAVRNOTNODE

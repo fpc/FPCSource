@@ -30,7 +30,8 @@ interface
     fmodule,
     node,nbas,
     ngenutil,
-    symtype,symconst,symsym,symdef;
+    symtype,symconst,symsym,symdef,
+    compilerbase;
 
 
   type
@@ -39,9 +40,9 @@ interface
 
     tavrnodeutils = class(tnodeutils)
     protected
-      class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
+      procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
     public
-      class procedure InsertMemorySizes; override;
+      procedure InsertMemorySizes; override;
     end;
 
 implementation
@@ -55,10 +56,11 @@ implementation
       systems,
       CPUInfo,
       ppu,
-      pass_1;
+      pass_1,
+      compiler;
 
 
-  class procedure tavrnodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
+  procedure tavrnodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
     var
       op : TAsmOp;
       initList, finalList, header: TAsmList;
@@ -113,7 +115,7 @@ implementation
       inherited insert_init_final_table(main,entries);
     end;
 
-  class procedure tavrnodeutils.InsertMemorySizes;
+  procedure tavrnodeutils.InsertMemorySizes;
     var
       tcb: ttai_typedconstbuilder;
       notename, strtable: shortstring;
@@ -140,13 +142,13 @@ implementation
 
       notename:='AVR'#0;
       strtable:=#0+lower(embedded_controllers[current_settings.controllertype].controllertypestr)+#0#0;
-      tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip]);
-      defu32:=corddef.create(u32bit,0,$FFFFFFFF,false);
+      tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip],compiler);
+      defu32:=corddef.create(u32bit,0,$FFFFFFFF,false,compiler);
       tcb.maybe_begin_aggregate(defu32);
       tcb.emit_tai(tai_const.Create_32bit_unaligned(length(notename)),defu32);
       tcb.emit_tai(tai_const.Create_32bit_unaligned(length(strtable)+32),defu32);
       tcb.emit_tai(tai_const.Create_32bit_unaligned(1),defu32);
-      defstr:=carraydef.getreusable(cansichartype,length(notename));
+      defstr:=carraydef.getreusable(cansichartype,length(notename),compiler);
       tcb.maybe_begin_aggregate(defstr);
       tcb.emit_tai(Tai_string.Create(notename),defstr);
       tcb.maybe_begin_aggregate(defu32);

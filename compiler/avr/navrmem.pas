@@ -26,7 +26,8 @@ unit navrmem;
   interface
 
     uses
-      nmem,ncgmem;
+      nmem,ncgmem,
+      compilerbase;
 
     type
       tavraddrnode = class(tcgaddrnode)
@@ -40,9 +41,10 @@ unit navrmem;
       cpubase,
       aasmdata,
       cgbase,cgutils,
-      hlcgobj,
+      nodehelper,
       node,
-      pass_2;
+      pass_2,
+      compiler;
 
     procedure tavraddrnode.pass_generate_code;
       var

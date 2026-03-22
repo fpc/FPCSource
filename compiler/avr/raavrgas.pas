@@ -27,7 +27,8 @@ Unit raavrgas;
 
     uses
       raatt,raavr,
-      cpubase;
+      cpubase,
+      compilerbase;
 
     type
       tavrattreader = class(tattreader)
@@ -59,7 +60,8 @@ Unit raavrgas;
       procinfo,
       itcpugas,
       rabase,rautils,
-      cgbase,cgutils,cgobj,paramgr
+      cgbase,cgutils,cgobj,paramgr,
+      compiler
       ;
 
 
@@ -703,7 +705,7 @@ Unit raavrgas;
       var
         instr : tavrinstruction;
       begin
-        instr:=tavrinstruction.Create(tavroperand);
+        instr:=tavrinstruction.Create(tavroperand,compiler);
         BuildOpcode(instr);
 {        if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr); }

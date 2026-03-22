@@ -32,14 +32,15 @@ unit agavrgas;
        globtype,systems,
        aasmtai,aasmdata,
        assemble,aggas,
-       cpubase;
+       cpubase,
+       compilerbase;
 
     type
 
       { TAVRGNUAssembler }
 
       TAVRGNUAssembler=class(TGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
        function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -55,13 +56,14 @@ unit agavrgas;
        aasmbase,aasmcpu,
        itcpugas,
        cpuinfo,
-       cgbase,cgutils;
+       cgbase,cgutils,
+       compiler;
 
 {****************************************************************************}
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TAVRGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TAVRGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TAVRInstrWriter.create(self);

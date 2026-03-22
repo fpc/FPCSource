@@ -26,7 +26,8 @@ unit navrinl;
   interface
 
     uses
-      node,ninl,ncginl, aasmbase;
+      node,ninl,ncginl, aasmbase,
+      compilerbase;
 
     type
       tavrinlinenode = class(tcginlinenode)
@@ -47,11 +48,12 @@ unit navrinl;
       aasmcpu,
       symdef,
       defutil,
-      hlcgobj,
+      nodehelper,
       pass_2,
       cgbase, cgobj, cgutils,
       ncon,ncal,
-      cpubase;
+      cpubase,
+      compiler;
 
     procedure tavrinlinenode.second_abs_long;
       var

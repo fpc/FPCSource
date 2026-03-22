@@ -29,7 +29,8 @@ unit raavr;
       cpubase,
       aasmtai,aasmdata,
       rautils,
-      globtype;
+      globtype,
+      compilerbase;
 
     type
        TAVROperand=class(TOperand)
@@ -265,7 +266,7 @@ unit raavr;
 
   implementation
     uses
-      aasmcpu, verbose, cgbase, itcpugas;
+      aasmcpu, verbose, cgbase, itcpugas, compiler;
 
     function TAVRInstruction.ConcatInstruction(p:TAsmList) : tai;
       var

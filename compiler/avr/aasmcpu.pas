@@ -30,7 +30,8 @@ uses
   globtype,globals,verbose,
   aasmbase,aasmtai,aasmdata,aasmsym,
   cgbase,cgutils,cpubase,cpuinfo,
-  ogbase;
+  ogbase,
+  compilerbase;
 
     const
       { "mov reg,reg" source operand number }
@@ -111,6 +112,9 @@ uses
     function finalizeavrcode(list : TAsmList) : Boolean;
 
 implementation
+
+  uses
+    compiler;
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -319,6 +323,8 @@ implementation
 
 
     function taicpu.Pass1(objdata:TObjData):longint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Pass1:=0;
         { Save the old offset and set the new offset }
@@ -397,6 +403,8 @@ implementation
 
 
     function finalizeavrcode(list : TAsmList) : Boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         CurrOffset : longint;
         curtai, firstinstruction, hp: tai;

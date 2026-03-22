@@ -26,7 +26,8 @@ unit navradd;
 interface
 
     uses
-       node,ncgadd,cpubase;
+       node,ncgadd,cpubase,
+       compilerbase;
 
     type
        TAVRAddNode = class(tcgaddnode)
@@ -53,7 +54,8 @@ interface
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
-      hlcgobj;
+      nodehelper,
+      compiler;
 
 {*****************************************************************************
                                TAVRAddNode
