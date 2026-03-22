@@ -30,7 +30,8 @@ unit cgcpu;
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,parabase,compilerbase,
        symdef,
-       symconst,rgx86,procinfo;
+       symconst,rgx86,procinfo,
+       systems;
 
     type
       tcgx86_64 = class(tcgx86)
@@ -48,7 +49,10 @@ unit cgcpu;
         procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
 
-        function use_ms_abi: boolean;
+        { This is a class function and not a regular method, because it is
+          sometimes called, during the time that the code generator is not
+          constructed (i.e. compiler.cg=nil) }
+        class function use_ms_abi(target: TCompilerTarget): boolean;
       private
         function use_push: boolean;
         function saved_xmm_reg_size: longint;
@@ -59,7 +63,7 @@ unit cgcpu;
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,cclasses,compiler,
+       globtype,globals,verbose,cutils,cclasses,compiler,
        cpuinfo,
        symtable,paramgr,cpupi,
        rgcpu,ncgutil;
@@ -71,7 +75,7 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
 
-        ms_abi:=use_ms_abi;
+        ms_abi:=use_ms_abi(compiler.target);
         if ms_abi then
           begin
             if (cs_userbp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
@@ -544,12 +548,12 @@ unit cgcpu;
       end;
 
 
-    function tcgx86_64.use_ms_abi: boolean;
+    class function tcgx86_64.use_ms_abi(target: TCompilerTarget): boolean;
       begin
         if assigned(current_procinfo) then
-          use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption,compiler.target)
+          use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption,target)
         else
-          use_ms_abi:=compiler.target.info.system=system_x86_64_win64;
+          use_ms_abi:=target.info.system=system_x86_64_win64;
       end;
 
 
