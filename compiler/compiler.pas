@@ -815,18 +815,26 @@ function idfversionstring(version : longint):string;
       Replace(s,'$FPCVERSION',version_string);
       Replace(s,'$FPCFULLVERSION',full_version_string);
       Replace(s,'$FPCDATE',date_string);
-      Replace(s,'$FPCCPU',target.cpu_string);
-      Replace(s,'$FPCOS',target.os_string);
-      Replace(s,'$FPCBINDIR',globals.exepath);
-      if (tf_use_8_3 in Source_Info.Flags) or
-         (tf_use_8_3 in target.info.Flags) then
-        Replace(s,'$FPCTARGET',target.os_string)
-      else if target.subtarget<>'' then
-        Replace(s,'$FPCTARGET',target.full_string+'-'+lower(target.subtarget))
-      else
-        Replace(s,'$FPCTARGET',target.full_string);
+      if assigned(target) then
+        begin
+          Replace(s,'$FPCCPU',target.cpu_string);
+          Replace(s,'$FPCOS',target.os_string);
+        end;
+      if assigned(globals) then
+        Replace(s,'$FPCBINDIR',globals.exepath);
+      if assigned(target) then
+        begin
+          if (tf_use_8_3 in Source_Info.Flags) or
+             (tf_use_8_3 in target.info.Flags) then
+            Replace(s,'$FPCTARGET',target.os_string)
+          else if target.subtarget<>'' then
+            Replace(s,'$FPCTARGET',target.full_string+'-'+lower(target.subtarget))
+          else
+            Replace(s,'$FPCTARGET',target.full_string);
+        end;
       Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
-      Replace(s,'$FPCABI',lower(abiinfo[target.info.abi].name));
+      if assigned(target) then
+        Replace(s,'$FPCABI',lower(abiinfo[target.info.abi].name));
 {$ifdef i8086}
       Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[init_settings.x86memorymodel]));
 {$else i8086}
@@ -846,16 +854,22 @@ function idfversionstring(version : longint):string;
       Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
 {$endif openbsd}
 {$ifdef xtensa}
-      if globals.idf_version > 0 then
-        Replace(s,'$IDF_VERSION',idfversionstring(globals.idf_version));
-      if globals.idfpath <> '' then
-        Replace(s,'$IDFPATH',globals.idfpath);
+      if assigned(globals) then
+        begin
+          if globals.idf_version > 0 then
+            Replace(s,'$IDF_VERSION',idfversionstring(globals.idf_version));
+          if globals.idfpath <> '' then
+            Replace(s,'$IDFPATH',globals.idfpath);
+        end;
 {$endif xtensa}
 {$ifdef riscv32}
-      if globals.idf_version > 0 then
-        Replace(s,'$IDF_VERSION',idfversionstring(globals.idf_version));
-      if globals.idfpath <> '' then
-        Replace(s,'$IDFPATH',globals.idfpath);
+      if assigned(globals) then
+        begin
+          if globals.idf_version > 0 then
+            Replace(s,'$IDF_VERSION',idfversionstring(globals.idf_version));
+          if globals.idfpath <> '' then
+            Replace(s,'$IDFPATH',globals.idfpath);
+        end;
 {$endif riscv32}
 
       if not substitute_env_variables then
