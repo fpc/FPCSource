@@ -1014,7 +1014,8 @@ begin
     EXEFile:=FixFileName(GetEXEPath)+NameOf(MainFile)+GetTargetExeExt
   else
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
-  DefaultReplacements(ExeFile);
+  {TODO(nickysn): fix call to DefaultReplacements, once the IDE starts using the TCompiler class}
+  //DefaultReplacements(ExeFile);
   { tokens are created and destroyed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and
