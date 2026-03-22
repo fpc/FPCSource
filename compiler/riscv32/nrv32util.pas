@@ -30,12 +30,13 @@ interface
     fmodule,
     node,nbas,
     nrvutil,
-    symtype,symconst,symsym,symdef;
+    symtype,symconst,symsym,symdef,
+    compilerbase;
 
   type
     trv32nodeutils = class(trvnodeutils)
     protected
-      class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
+      procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
     end;
 
 implementation
@@ -51,10 +52,11 @@ implementation
       CPUInfo,
       ppu,
       pass_1,
-      ngenutil;
+      ngenutil,
+      compiler;
 
 
-  class procedure trv32nodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
+  procedure trv32nodeutils.insert_init_final_table(main: tmodule; entries:tfplist);
 
     procedure genentry(list : TAsmList);
       var

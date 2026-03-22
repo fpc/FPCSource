@@ -4139,7 +4139,7 @@ begin
              end
 {$if defined(XTENSA) or defined(RISCV32)}
            else if (compiler.target.info.system in [system_xtensa_freertos,system_riscv32_freertos]) and
-              ParseVersionStr(idf_version,'IDF_VERSION',copy(More,2)) then
+              ParseVersionStr(compiler.globals.idf_version,'IDF_VERSION',copy(More,2)) then
              begin
                break;
              end

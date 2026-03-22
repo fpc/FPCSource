@@ -28,7 +28,8 @@ interface
     uses
       node,nmat, ncgmat,
       nrvmat,
-      cgbase;
+      cgbase,
+      compilerbase;
 
     type
       trv32moddivnode = class(tcgmoddivnode)
@@ -60,7 +61,8 @@ implementation
       cgutils,cgobj,hlcgobj,pass_2,
       cpubase,cpuinfo,
       ncon,procinfo,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,
+      compiler,nodehelper;
 
     procedure trv32notnode.second_boolean;
       var

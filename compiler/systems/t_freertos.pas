@@ -1530,7 +1530,7 @@ begin
   { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
   if compiler.globals.idfpath='' then
     compiler.globals.idfpath := trim(GetEnvironmentVariable('IDF_PATH'));
-  compiler.globals.idfpath:=ExcludeTrailingBackslash(idfpath);
+  compiler.globals.idfpath:=ExcludeTrailingBackslash(compiler.globals.idfpath);
 
 {$ifdef XTENSA}
   case current_settings.controllertype of

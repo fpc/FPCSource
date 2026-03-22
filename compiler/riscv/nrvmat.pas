@@ -26,7 +26,7 @@ unit nrvmat;
   interface
 
     uses
-      ncgmat;
+      ncgmat,compilerbase;
 
     type
       trvunaryminusnode = class(tcgunaryminusnode)
@@ -43,9 +43,10 @@ implementation
       aasmdata,aasmcpu,
       cgbase,cgobj,cgcpu,cgutils,
       symdef,
-      hlcgobj,
+      nodehelper,
       defutil,
-      pass_2;
+      pass_2,
+      compiler;
 
 
     procedure trvunaryminusnode.second_float;

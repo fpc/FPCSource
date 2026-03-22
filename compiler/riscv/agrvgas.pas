@@ -36,7 +36,8 @@ unit agrvgas;
        aggas,
        assemble,
        cpubase,cgutils,
-       globtype;
+       globtype,
+       compilerbase;
 
   type
     TRVInstrWriter=class(TCPUInstrWriter)
@@ -44,7 +45,7 @@ unit agrvgas;
     end;
 
     TRVGNUAssembler=class(TGNUassembler)
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
@@ -54,7 +55,8 @@ unit agrvgas;
        cutils,globals,verbose,
        cgbase, comphook,
        itcpugas,cpuinfo,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
 
     function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
@@ -233,7 +235,7 @@ unit agrvgas;
 {                         GNU RiscV Assembler writer                           }
 {****************************************************************************}
 
-    constructor TRVGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TRVGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TRVInstrWriter.create(self);

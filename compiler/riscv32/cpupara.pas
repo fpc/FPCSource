@@ -34,6 +34,4 @@ unit cpupara;
 
   implementation
 
-begin
-  paramanager:=tcpuparamanager.create;
 end.

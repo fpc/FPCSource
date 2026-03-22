@@ -30,13 +30,14 @@ interface
   uses
     aasmdata,
     symtype,
-    cgbase,cgutils,hlcgobj,hlcgrv;
+    cgbase,cgutils,hlcgobj,hlcgrv,
+    compilerbase;
 
   type
     thlcgcpu = class(thlcgriscv)
     end;
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen(compiler: TCompilerBase);
 
 implementation
 
@@ -44,14 +45,15 @@ implementation
     verbose,
     cpubase,aasmcpu,
     defutil,
-    cgobj,cgcpu;
+    cgobj,cgcpu,
+    compiler;
 
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 

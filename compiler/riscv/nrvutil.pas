@@ -26,12 +26,12 @@ unit nrvutil;
 interface
 
   uses
-    ngenutil;
+    ngenutil,compilerbase;
 
 
   type
     trvnodeutils = class(tnodeutils)
-      class procedure InsertObjectInfo; override;
+      procedure InsertObjectInfo; override;
     end;
 
 implementation
@@ -40,7 +40,8 @@ implementation
     globtype,globals,
     systems,
     cpuinfo,
-    aasmdata,aasmtai;
+    aasmdata,aasmtai,
+    compiler;
 
   const
     tag_stack_align = 4;
@@ -50,11 +51,11 @@ implementation
     tag_priv_spec_minor = 10;
     tag_priv_spec_revision = 12;
 
-  class procedure trvnodeutils.InsertObjectInfo;
+  procedure trvnodeutils.InsertObjectInfo;
     var
      attr_arch: String;
     begin
-      inherited InsertObjectInfo;
+      inherited;
       if (compiler.target.info.system in systems_linux) then
         begin
           if (cs_create_pic in current_settings.moduleswitches) then

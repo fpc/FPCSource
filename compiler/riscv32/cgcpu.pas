@@ -30,7 +30,7 @@ unit cgcpu;
        cgbase,cgobj,cgrv,
        aasmbase,aasmcpu,aasmtai,aasmdata,
        cpubase,cpuinfo,cgutils,cg64f32,rgcpu,
-       parabase;
+       parabase,compilerbase;
 
     type
       tcgrv32 = class(tcgrv)
@@ -56,7 +56,7 @@ unit cgcpu;
        procedure a_load64_reg_ref(list: TAsmList; reg: tregister64; const ref: treference);override;
      end;
 
-  procedure create_codegen;
+  procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
@@ -64,7 +64,7 @@ unit cgcpu;
        symtable,
        globals,verbose,systems,cutils,
        symconst,symsym,fmodule,
-       rgobj,tgobj,cpupi,procinfo,paramgr;
+       rgobj,tgobj,cpupi,procinfo,paramgr,compiler;
 
 {$undef AVOID_OVERFLOW}
 {$ifopt Q+}
@@ -519,10 +519,10 @@ unit cgcpu;
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg := tcgrv32.create;
-        cg64 :=tcg64frv.create;
+        tcompiler(compiler).cg := tcgrv32.create(compiler);
+        tcompiler(compiler).cg64 :=tcg64frv.create(compiler);
       end;
 
 end.

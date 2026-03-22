@@ -26,7 +26,7 @@ unit nrvcon;
 interface
 
     uses
-      node,ncgcon,cpubase;
+      node,ncgcon,cpubase,compilerbase;
 
     type
       trvrealconstnode = class(tcgrealconstnode)
@@ -47,7 +47,7 @@ implementation
       defutil,
       cpuinfo,
       cgbase,cgobj,cgutils,
-      ncon;
+      ncon,compiler,nodehelper;
 
 {*****************************************************************************
                            TARMREALCONSTNODE

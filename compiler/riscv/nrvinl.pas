@@ -27,7 +27,8 @@ interface
 
     uses
        cpubase,
-       node,ninl,ncginl;
+       node,ninl,ncginl,
+       compilerbase;
 
     type
       trvinlinenode = class(tcginlinenode)
@@ -71,7 +72,7 @@ implementation
       procinfo,
       cgbase,pass_2,
       cpuinfo,ncgutil,
-      hlcgobj,cgutils,cgobj,rgobj,tgobj;
+      nodehelper,cgutils,cgobj,rgobj,tgobj,compiler;
 
 
 {*****************************************************************************

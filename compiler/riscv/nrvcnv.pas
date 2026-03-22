@@ -26,7 +26,7 @@ unit nrvcnv;
 interface
 
     uses
-      node,ncnv,ncgcnv;
+      node,ncnv,ncgcnv,compilerbase;
 
     type
        trvtypeconvnode = class(tcgtypeconvnode)
@@ -63,7 +63,7 @@ implementation
       cgbase,cgutils,pass_1,pass_2,
       ncgutil,procinfo,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,hlcgobj;
+      rgobj,tgobj,cgobj,nodehelper,compiler;
 
 
     procedure trvtypeconvnode.second_int_to_bool;

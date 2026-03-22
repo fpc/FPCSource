@@ -28,7 +28,7 @@ unit nrvadd;
   interface
 
     uses
-       node,nadd,ncgadd,cpubase;
+       node,nadd,ncgadd,cpubase,compilerbase;
 
     type
       trvaddnode = class(tcgaddnode)
@@ -62,7 +62,7 @@ implementation
       aasmbase,aasmdata,aasmcpu,defutil,
       cgbase,cpuinfo,pass_1,pass_2,
       cpupara,cgutils,procinfo,
-      ncgutil,cgobj,hlcgobj;
+      ncgutil,cgobj,nodehelper,compiler;
 
 {$undef AVOID_OVERFLOW}
 {$ifopt Q+}

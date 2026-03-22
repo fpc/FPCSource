@@ -30,7 +30,8 @@ unit cpupi;
     uses
        cutils,globtype,
        cgbase,aasmdata,
-       procinfo,cpuinfo,psub;
+       procinfo,cpuinfo,psub,
+       compilerbase;
 
     type
       trv32procinfo = class(tcgprocinfo)
@@ -45,7 +46,7 @@ unit cpupi;
           needs_frame_pointer: boolean;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
-          constructor create(aparent: tprocinfo); override;
+          constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
           procedure set_first_temp_offset;override;
           function calc_stackframe_size:longint;override;
       end;
@@ -61,12 +62,13 @@ unit cpupi;
        cgutils,
        cgobj,
        defutil,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
 
-    constructor trv32procinfo.create(aparent: tprocinfo);
+    constructor trv32procinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
       begin
-        inherited create(aparent);
+        inherited;
         maxpushedparasize := 0;
       end;
 

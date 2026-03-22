@@ -31,7 +31,8 @@ uses
   globals,
   aasmdata,
   symtype,symdef,
-  cgbase,cgutils,hlcgobj,hlcg2ll, parabase;
+  cgbase,cgutils,hlcgobj,hlcg2ll, parabase,
+  compilerbase;
 
 type
 
@@ -54,7 +55,8 @@ implementation
     aasmbase,aasmtai,aasmcpu,
     cpubase,globtype,
     procinfo,cpupi,cgobj,cgrv,
-    defutil;
+    defutil,
+    compiler;
 
 { thlcgriscv }
 
@@ -156,7 +158,7 @@ implementation
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
-      current_procinfo:=cprocinfo.create(nil);
+      current_procinfo:=cprocinfo.create(nil,compiler);
 
       { set param1 interface to self  }
       procdef.init_paraloc_info(callerside);
@@ -257,9 +259,9 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgriscv.create;
+      tcompiler(compiler).hlcg:=thlcgriscv.create(compiler);
 //      create_codegen;
     end;
 

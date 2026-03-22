@@ -27,7 +27,8 @@ unit rarvgas;
 
     uses
       raatt,rarv,
-      cpubase;
+      cpubase,
+      compilerbase;
 
     type
       trvgasreader = class(tattreader)
@@ -59,7 +60,8 @@ unit rarvgas;
       { parser }
       procinfo,
       rabase,rautils,
-      cgbase,cgobj,cgrv
+      cgbase,cgobj,cgrv,
+      compiler
       ;
 
     function trvgasreader.is_targetdirective(const s: string): boolean;
@@ -807,7 +809,7 @@ unit rarvgas;
       var
         instr : trvinstruction;
       begin
-        instr:=trvinstruction.Create(trvoperand);
+        instr:=trvinstruction.Create(trvoperand,compiler);
         BuildOpcode(instr);
         instr.condition := actcondition;
         {

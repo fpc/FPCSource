@@ -29,7 +29,8 @@ unit cgrv;
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,aasmdata,
        cpubase,cpuinfo,cgutils,rgcpu,
-       parabase;
+       parabase,
+       compilerbase;
 
     type
       tcgrv = class(tcg)
@@ -106,7 +107,7 @@ unit cgrv;
        {$ifdef extdebug}sysutils,{$endif}
        globals,verbose,systems,cutils,
        symconst,symsym,symtable,fmodule,
-       rgobj,tgobj,cpupi,procinfo,paramgr;
+       rgobj,tgobj,cpupi,procinfo,paramgr,compiler;
 
 {$ifdef extdebug}
      function ref2string(const ref : treference) : string;
@@ -332,9 +333,9 @@ unit cgrv;
                 alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                 a_call_name(list,upper(name),false);
                 dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-                cg.a_load_reg_reg(list,size,size,NR_FUNCTION_RESULT_REG,dst);
-                cg.a_reg_dealloc(list,NR_FUNCTION_RESULT_REG);
+                a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+                a_load_reg_reg(list,size,size,NR_FUNCTION_RESULT_REG,dst);
+                a_reg_dealloc(list,NR_FUNCTION_RESULT_REG);
                 paraloc2.done;
                 paraloc1.done;
               end
@@ -1247,7 +1248,7 @@ unit cgrv;
             ai.condition:=C_EQ;
             list.concat(ai);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_THROWFPUEXCEPTION',false);
+            a_call_name(current_asmdata.CurrAsmList,'FPC_THROWFPUEXCEPTION',false);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_label(list,l);
           end;

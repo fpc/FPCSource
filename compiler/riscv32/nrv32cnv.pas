@@ -26,7 +26,7 @@ unit nrv32cnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,nrvcnv;
+      node,ncnv,ncgcnv,nrvcnv,compilerbase;
 
     type
        trv32typeconvnode = class(trvtypeconvnode)
@@ -63,7 +63,7 @@ implementation
       ncon,ncal,
       ncgutil,procinfo,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,hlcgobj;
+      rgobj,tgobj,cgobj,nodehelper,compiler;
 
 
 {*****************************************************************************
@@ -100,9 +100,9 @@ implementation
               { other integers are supposed to be 32 bit }
               begin
                 if is_signed(left.resultdef) then
-                  inserttypeconv(left,s32inttype)
+                  inserttypeconv(left,s32inttype,compiler)
                 else
-                  inserttypeconv(left,u32inttype);
+                  inserttypeconv(left,u32inttype,compiler);
                 firstpass(left);
               end;
             result := nil;

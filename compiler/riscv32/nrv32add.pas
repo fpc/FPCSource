@@ -27,7 +27,7 @@ unit nrv32add;
 
     uses
       node, ncgadd, aasmbase, nrvadd, cpubase,
-      cgbase;
+      cgbase, compilerbase;
 
     type
       trv32addnode = class(trvaddnode)
@@ -50,7 +50,7 @@ unit nrv32add;
       cgcpu,cgutils,nadd,
       cpupara,
       ncon,nset,
-      hlcgobj, ncgutil,cgobj;
+      nodehelper, ncgutil,cgobj,compiler;
 
     const
       cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);

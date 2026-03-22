@@ -29,7 +29,8 @@ unit pararv;
       aasmdata,
       symconst,symtype,symdef,
       cgbase,cgutils,
-      parabase,paramgr;
+      parabase,paramgr,
+      compilerbase;
 
     type
       trvparamanager = class(tparamanager)
@@ -68,9 +69,12 @@ implementation
       symtable,
       defutil,
       cpubase,
-      procinfo,cpupi;
+      procinfo,cpupi,
+      compiler;
 
     function getparaloc(p : tdef) : tcgloc;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          case p.typ of
             orddef:
@@ -173,7 +177,7 @@ implementation
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=cpointerdef.getreusable_no_free(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef,compiler);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -393,7 +397,7 @@ implementation
         paraaligned:=false;
         if push_addr_param(varspez, paradef, p.proccalloption) then
           begin
-            paradef := cpointerdef.getreusable_no_free(paradef);
+            paradef := cpointerdef.getreusable_no_free(paradef,compiler);
             loc := LOC_REGISTER;
             paracgsize := OS_ADDR;
             paralen := tcgsize2size[OS_ADDR];
