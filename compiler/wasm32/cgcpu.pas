@@ -69,19 +69,19 @@ implementation
         inherited init_register_allocators;
 {$ifndef cpu64bitaddr}
         rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBD,
-          [RS_R0],first_int_imreg,[]);
+          [RS_R0],first_int_imreg,[],compiler);
 {$else not cpu64bitaddr}
         rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBQ,
-          [RS_R0],first_int_imreg,[]);
+          [RS_R0],first_int_imreg,[],compiler);
 {$endif not cpu64bitaddr}
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBFS,
-          [RS_R0],first_fpu_imreg,[]);
+          [RS_R0],first_fpu_imreg,[],compiler);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
-          [RS_R0],first_mm_imreg,[]);
+          [RS_R0],first_mm_imreg,[],compiler);
         rg[R_FUNCREFREGISTER]:=Trgcpu.create(R_FUNCREFREGISTER,R_SUBNONE,
-          [RS_R0],first_funcref_imreg,[]);
+          [RS_R0],first_funcref_imreg,[],compiler);
         rg[R_EXTERNREFREGISTER]:=Trgcpu.create(R_EXTERNREFREGISTER,R_SUBNONE,
-          [RS_R0],first_externref_imreg,[]);
+          [RS_R0],first_externref_imreg,[],compiler);
       end;
 
 

@@ -86,7 +86,6 @@ implementation
 
     procedure trgcpu.do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
       var
         helpins  : tai;

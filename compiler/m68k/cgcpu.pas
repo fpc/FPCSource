@@ -263,7 +263,7 @@ unit cgcpu;
         address_regs:=nil;
         rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
           [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7],
-          first_int_imreg,[]);
+          first_int_imreg,[],compiler);
 
         { set up the array of address registers to use }
         for reg:=RS_A0 to RS_A6 do
@@ -277,11 +277,11 @@ unit cgcpu;
             address_regs[length(address_regs)-1]:=reg;
           end;
         rg[R_ADDRESSREGISTER]:=trgcpu.create(R_ADDRESSREGISTER,R_SUBWHOLE,
-          address_regs, first_addr_imreg, []);
+          address_regs, first_addr_imreg, [],compiler);
 
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
           [RS_FP0,RS_FP1,RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7],
-          first_fpu_imreg,[]);
+          first_fpu_imreg,[],compiler);
       end;
 
 

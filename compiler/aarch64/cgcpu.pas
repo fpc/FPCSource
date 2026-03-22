@@ -537,14 +537,14 @@ implementation
              { maybe we can enable this in the future for leaf functions (it's
                the frame pointer)
              ,RS_X29 }],
-            first_int_imreg,[]);
+            first_int_imreg,[],compiler);
 
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBMMD,
             [RS_Q0,RS_Q1,RS_Q2,RS_Q3,RS_Q4,RS_Q5,RS_Q6,RS_Q7,
              RS_Q8,RS_Q9,RS_Q10,RS_Q11,RS_Q12,RS_Q13,RS_Q14,RS_Q15,
              RS_Q16,RS_Q17,RS_Q18,RS_Q19,RS_Q20,RS_Q21,RS_Q22,RS_Q23,
              RS_Q24,RS_Q25,RS_Q26,RS_Q27,RS_Q28,RS_Q29,RS_Q30,RS_Q31],
-            first_mm_imreg,[]);
+            first_mm_imreg,[],compiler);
       end;
 
 

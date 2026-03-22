@@ -283,11 +283,11 @@ unit cgcpu;
               if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_R11) then
                 rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
                     [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-                     RS_R9,RS_R10,RS_R11,RS_R14],first_int_imreg,[])
+                     RS_R9,RS_R10,RS_R11,RS_R14],first_int_imreg,[],compiler)
               else
                 rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
                     [RS_R0,RS_R1,RS_R2,RS_R3,RS_R12,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-                     RS_R9,RS_R10,RS_R14],first_int_imreg,[])
+                     RS_R9,RS_R10,RS_R14],first_int_imreg,[],compiler)
             end
         else
           { r7 is not available on Darwin, it's used as frame pointer (always,
@@ -295,10 +295,10 @@ unit cgcpu;
             r9 is volatile }
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R9,RS_R12,RS_R4,RS_R5,RS_R6,RS_R8,
-               RS_R10,RS_R11,RS_R14],first_int_imreg,[]);
+               RS_R10,RS_R11,RS_R14],first_int_imreg,[],compiler);
         if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
           rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[],compiler);
 
         init_mmregister_allocator;
       end;
@@ -592,18 +592,18 @@ unit cgcpu;
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
-              ],first_mm_imreg,[])
+              ],first_mm_imreg,[],compiler)
         else if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFS,
               [RS_S0,RS_S1,RS_S2,RS_S3,RS_S4,RS_S5,RS_S6,RS_S7,
                RS_S16,RS_S17,RS_S18,RS_S19,RS_S20,RS_S21,RS_S22,RS_S23,RS_S24,RS_S25,RS_S26,RS_S27,RS_S28,RS_S29,RS_S30,RS_S31,
                RS_S8,RS_S9,RS_S10,RS_S11,RS_S12,RS_S13,RS_S14,RS_S15
-              ],first_mm_imreg,[])
+              ],first_mm_imreg,[],compiler)
         else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
-              ],first_mm_imreg,[]);
+              ],first_mm_imreg,[],compiler);
       end;
 
 
@@ -3689,10 +3689,10 @@ unit cgcpu;
         inherited init_register_allocators;
         if assigned(current_procinfo) and (current_procinfo.framepointer=NR_R7) then
           rg[R_INTREGISTER]:=trgintcputhumb.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6],first_int_imreg,[])
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6],first_int_imreg,[],compiler)
         else
           rg[R_INTREGISTER]:=trgintcputhumb.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7],first_int_imreg,[]);
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7],first_int_imreg,[],compiler);
       end;
 
 
@@ -4380,15 +4380,15 @@ unit cgcpu;
         if (compiler.target.info.system<>system_arm_ios) then
           rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-               RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])
+               RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[],compiler)
         else
           { r9 is not available on Darwin according to the llvm code generator }
           rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-               RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
+               RS_R10,RS_R12,RS_R14],first_int_imreg,[],compiler);
         if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
           rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[],compiler);
 
         init_mmregister_allocator;
       end;

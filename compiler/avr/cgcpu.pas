@@ -152,12 +152,12 @@ unit cgcpu;
         inherited init_register_allocators;
         if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-              [RS_R18,RS_R19,RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],first_int_imreg,[])
+              [RS_R18,RS_R19,RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25],first_int_imreg,[],compiler)
         else
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R18,RS_R19,RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25,
                RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,
-               RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17],first_int_imreg,[]);
+               RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17],first_int_imreg,[],compiler);
       end;
 
 

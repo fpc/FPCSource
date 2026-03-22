@@ -173,7 +173,8 @@ unit rgobj;
                            Adefaultsub:Tsubregister;
                            const Ausable:array of tsuperregister;
                            Afirst_imaginary:Tsuperregister;
-                           Apreserved_by_proc:Tcpuregisterset);
+                           Apreserved_by_proc:Tcpuregisterset;
+                           Acompiler: TCompilerBase);
         destructor destroy;override;
 
         { Allocate a register. An internalerror will be generated if there is
@@ -236,6 +237,10 @@ unit rgobj;
         { Highest register allocated until now.}
         reginfo           : TReginfoArray;
         usable_registers_cnt : word;
+      private
+        FCompiler: TCompilerBase;
+      protected
+        property Compiler: TCompilerBase read FCompiler;
       private
         int_live_range_direction: TRADirection;
         { First imaginary register.}
@@ -434,10 +439,12 @@ unit rgobj;
                               Adefaultsub:Tsubregister;
                               const Ausable:array of tsuperregister;
                               Afirst_imaginary:Tsuperregister;
-                              Apreserved_by_proc:Tcpuregisterset);
+                              Apreserved_by_proc:Tcpuregisterset;
+                              Acompiler: TCompilerBase);
        var
          i : cardinal;
        begin
+         FCompiler:=Acompiler;
          { empty super register sets can cause very strange problems }
          if high(Ausable)=-1 then
            internalerror(200210181);
@@ -530,8 +537,6 @@ unit rgobj;
 
 
     function trgobj.getnewreg(subreg:tsubregister):tsuperregister;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         oldmaxreginfo : tsuperregister;
       begin
@@ -762,8 +767,6 @@ unit rgobj;
 
 {$ifdef EXTDEBUG}
     procedure trgobj.writegraph(loopidx:longint);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     {This procedure writes out the current interference graph in the
     register allocator.}
@@ -2046,8 +2049,6 @@ unit rgobj;
 
 
     procedure trgobj.generate_interference_graph(list:TAsmList;headertai:tai);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure RecordUse(var r : Treginfo);
         begin
@@ -2236,8 +2237,6 @@ unit rgobj;
 
 
     procedure trgobj.translate_registers(list: TAsmList);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function get_reg_name_full(r: tregister; include_prefix: boolean): string;
         var
@@ -2462,8 +2461,6 @@ unit rgobj;
 
 
     function trgobj.spill_registers(list:TAsmList;headertai:tai):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     { Returns true if any help registers have been used }
       var
         i : cardinal;

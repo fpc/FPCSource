@@ -292,17 +292,17 @@ implementation
             [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,
              RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7,
              RS_I0,RS_I1,RS_I2,RS_I3,RS_I4,RS_I5],
-            first_int_imreg,[]);
+            first_int_imreg,[],compiler);
 
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBFS,
             [RS_F0,{RS_F1,}RS_F2,{RS_F3,}RS_F4,{RS_F5,}RS_F6,{RS_F7,}
              RS_F8,{RS_F9,}RS_F10,{RS_F11,}RS_F12,{RS_F13,}RS_F14,{RS_F15,}
              RS_F16,{RS_F17,}RS_F18,{RS_F19,}RS_F20,{RS_F21,}RS_F22,{RS_F23,}
              RS_F24,{RS_F25,}RS_F26,{RS_F27,}RS_F28,{RS_F29,}RS_F30{,RS_F31}],
-            first_fpu_imreg,[]);
+            first_fpu_imreg,[],compiler);
         { needs at least one element for rgobj not to crash }
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
-            [RS_L0],first_mm_imreg,[]);
+            [RS_L0],first_mm_imreg,[],compiler);
       end;
 
 

@@ -57,7 +57,6 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
       var
         tmpref : treference;
@@ -112,7 +111,6 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
       var
         tmpref : treference;

@@ -151,18 +151,18 @@ implementation
         if compiler.target.info.abi = abi_xtensa_call0 then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_A2,RS_A3,RS_A4,RS_A5,RS_A6,RS_A7,{RS_A8,}RS_A9,
-               RS_A10,RS_A11,RS_A12,RS_A13,RS_A14{,RS_A15}],first_int_imreg,[])
+               RS_A10,RS_A11,RS_A12,RS_A13,RS_A14{,RS_A15}],first_int_imreg,[],compiler)
         else
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_A2,RS_A3,RS_A4,RS_A5,RS_A6,RS_A7,RS_A8,RS_A9,
-               RS_A10,RS_A11,RS_A12,RS_A13,RS_A14,RS_A15],first_int_imreg,[]);
+               RS_A10,RS_A11,RS_A12,RS_A13,RS_A14,RS_A15],first_int_imreg,[],compiler);
 
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
-             RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15],first_fpu_imreg,[]);
+             RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15],first_fpu_imreg,[],compiler);
         rg[R_SPECIALREGISTER]:=trgcpu.create(R_SPECIALREGISTER,R_SUBNONE,
             [RS_B0,RS_B1,RS_B2,RS_B3,RS_B4,RS_B5,RS_B6,RS_B7,RS_B8,RS_B9,
-             RS_B10,RS_B11,RS_B12,RS_B13,RS_B14,RS_B15],first_flag_imreg,[]);
+             RS_B10,RS_B11,RS_B12,RS_B13,RS_B14,RS_B15],first_flag_imreg,[],compiler);
       end;
 
 

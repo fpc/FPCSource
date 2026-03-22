@@ -328,7 +328,7 @@ implementation
 
     class procedure trgcpu.do_all_register_allocation(list: TAsmList; headertai: tai);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg:tcg;
       var
         spill_temps : tspilltemps;
@@ -338,7 +338,7 @@ implementation
         p,q      : tai;
         size     : longint;
       begin
-        cg:=compiler.cg;
+        cg:=_compiler.cg;
         { Since there are no actual registers, we simply spill everything. We
           use tt_regallocator temps, which are not used by the temp allocator
           during code generation, so that we cannot accidentally overwrite
