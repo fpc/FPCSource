@@ -36,7 +36,7 @@ unit cgobj;
   interface
 
     uses
-       globtype,constexp,
+       globtype,constexp,systems,
        cpubase,cgbase,cgutils,parabase,compilerbase,paramgr,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symtype,symdef,rgobj
@@ -531,9 +531,11 @@ unit cgobj;
        private
         FCompiler: TCompilerBase;
         function GetCG: tcg; inline;
+        function GetTarget: TCompilerTarget; inline;
        protected
         property Compiler: TCompilerBase read FCompiler;
         property cg: tcg read GetCG;
+        property Target: TCompilerTarget read GetTarget;
        public
         constructor create(ACompiler: TCompilerBase);
 
@@ -622,7 +624,7 @@ unit cgobj;
 implementation
 
     uses
-       globals,systems,fmodule,compiler,
+       globals,fmodule,compiler,
        verbose,symsym,symtable,
        tgobj,cutils,procinfo,
        cpuinfo;
@@ -3176,6 +3178,12 @@ implementation
     function tcg64.GetCG: tcg; inline;
       begin
         result:=compiler.cg;
+      end;
+
+
+    function tcg64.GetTarget: TCompilerTarget; inline;
+      begin
+        result:=compiler.target;
       end;
 
 
