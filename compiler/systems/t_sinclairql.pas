@@ -27,7 +27,7 @@ unit t_sinclairql;
 interface
 
     uses
-      rescmn, comprsrc, link;
+      rescmn, comprsrc, link, compilerbase;
 
 type
   PLinkerSinclairQL = ^TLinkerSinclairQL;
@@ -39,7 +39,7 @@ type
       procedure SetSinclairQLInfo;
       function MakeSinclairQLExe: boolean;
     public
-      constructor Create; override;
+      constructor Create(acompiler: TCompilerBase); override;
       procedure SetDefaultInfo; override;
       procedure InitSysInitUnitName; override;
       function  MakeExecutable: boolean; override;
@@ -50,7 +50,7 @@ implementation
 
     uses
        sysutils,cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_sinclairql;
+       globtype,globals,systems,verbose,cscript,fmodule,i_sinclairql,compiler;
 
     type
       TQLHeader = packed record
@@ -89,11 +89,11 @@ implementation
        ProgramHeaderName = 'main';
 
 
-constructor TLinkerSinclairQL.Create;
+constructor TLinkerSinclairQL.Create(acompiler: TCompilerBase);
 begin
   UseVLink:=(cs_link_vlink in current_settings.globalswitches);
 
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

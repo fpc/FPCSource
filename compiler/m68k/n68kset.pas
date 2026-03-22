@@ -29,7 +29,8 @@ interface
       globtype,
       symtype,
       cgbase,cpuinfo,cpubase,
-      node,nset,ncgset;
+      node,nset,ncgset,
+      compilerbase;
 
     type
       tcpucasenode = class(tcgcasenode)
@@ -45,7 +46,8 @@ implementation
       aasmtai,aasmdata,
       nflw,constexp,
       cgutils,cgobj,hlcgobj,
-      defutil,cgcpu;
+      defutil,cgcpu,
+      compiler,nodehelper;
 
     procedure tcpucasenode.genlinearlist(hp : pcaselabel);
 

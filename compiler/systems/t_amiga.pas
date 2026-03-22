@@ -27,7 +27,7 @@ unit t_amiga;
 interface
 
     uses
-      rescmn, comprsrc, link;
+      rescmn, comprsrc, link, compilerbase;
 
 
 type
@@ -41,7 +41,7 @@ type
       function MakeAmiga68kExe: boolean;
       function MakeAmigaPPCExe: boolean;
     public
-      constructor Create; override;
+      constructor Create(acompiler: TCompilerBase); override;
       procedure SetDefaultInfo; override;
       procedure InitSysInitUnitName; override;
       function  MakeExecutable: boolean; override;
@@ -53,7 +53,7 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_amiga;
+       globtype,globals,systems,verbose,cscript,fmodule,i_amiga,compiler;
 
 
 
@@ -61,11 +61,11 @@ implementation
                                TLinkerAmiga
 ****************************************************************************}
 
-constructor TLinkerAmiga.Create;
+constructor TLinkerAmiga.Create(acompiler: TCompilerBase);
 begin
   UseVLink:=(cs_link_vlink in current_settings.globalswitches);
 
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

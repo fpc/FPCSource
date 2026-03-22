@@ -29,7 +29,8 @@ interface
       globtype,
       symtype,
       cgbase,cpuinfo,cpubase,
-      node,nmem,ncgmem;
+      node,nmem,ncgmem,
+      compilerbase;
 
     type
        t68kvecnode = class(tcgvecnode)
@@ -47,7 +48,8 @@ implementation
       aasmtai,aasmdata,
       nld,ncon,nadd,
       cgutils,cgobj,
-      defutil;
+      defutil,
+      compiler,nodehelper;
 
 
 {*****************************************************************************

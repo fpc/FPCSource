@@ -26,7 +26,8 @@ unit n68kcnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,defcmp;
+      node,ncnv,ncgcnv,defcmp,
+      compilerbase;
 
     type
        tm68ktypeconvnode = class(tcgtypeconvnode)
@@ -47,7 +48,8 @@ implementation
       ncon,ncal,ninl,compinnr,
       ncgutil,
       cpubase,cpuinfo,aasmcpu,
-      rgobj,tgobj,cgobj,hlcgobj,cgutils,globtype,cgcpu,cutils;
+      rgobj,tgobj,cgobj,nodehelper,cgutils,globtype,cgcpu,cutils,
+      compiler;
 
 
     function tm68ktypeconvnode.typecheck_int_to_int : tnode;
@@ -111,7 +113,7 @@ implementation
               and we have a special codepath for 32bit unsigned in second pass (KB) }
             if not (is_32bitint(left.resultdef) or is_signed(left.resultdef)) then
               begin
-                inserttypeconv(left,s32inttype);
+                inserttypeconv(left,s32inttype,compiler);
                 firstpass(left);
               end;
           end;

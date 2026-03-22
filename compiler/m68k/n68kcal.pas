@@ -26,7 +26,7 @@ unit n68kcal;
 interface
 
     uses
-      symdef,node,ncal,ncgcal;
+      symdef,node,ncal,ncgcal,compilerbase;
 
     type
        tm68kcallnode = class(tcgcallnode)
@@ -48,7 +48,8 @@ implementation
       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cgutils,cgobj,tgobj,rgobj,rgcpu,
-      cg64f32,cgcpu,cpupi,procinfo;
+      cg64f32,cgcpu,cpupi,procinfo,
+      compiler,nodehelper;
 
 
     procedure tm68kcallnode.pop_parasize(pop_size: longint);

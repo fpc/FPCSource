@@ -26,7 +26,8 @@ unit n68kinl;
 interface
 
     uses
-      node,ninl,ncginl,symtype,cpubase;
+      node,ninl,ncginl,symtype,cpubase,
+      compilerbase;
 
     type
       t68kinlinenode = class(tcgInlineNode)
@@ -69,7 +70,8 @@ implementation
       globtype,verbose,globals,cutils,
       cpuinfo,defutil,symdef,aasmbase,aasmdata,aasmcpu,aasmtai,
       cgbase,cgutils,pass_1,pass_2,symconst,
-      ncnv,ncgutil,cgobj,cgcpu,hlcgobj;
+      ncnv,ncgutil,cgobj,cgcpu,nodehelper,
+      compiler;
 
 {*****************************************************************************
                               t68kinlinenode

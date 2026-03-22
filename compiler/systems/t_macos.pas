@@ -26,7 +26,7 @@ unit t_macos;
 interface
 
   uses
-     import,symsym,symdef,link;
+     import,symsym,symdef,link,compilerbase;
 
   type
     timportlibmacos=class(timportlib)
@@ -37,7 +37,7 @@ interface
     private
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
-      constructor Create;override;
+      constructor Create(acompiler: TCompilerBase);override;
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
     end;
@@ -49,7 +49,7 @@ interface
       procedure SetMacOS68kInfo;
       function MakeMacOSExe: boolean;
     public
-      constructor Create; override;
+      constructor Create(acompiler: TCompilerBase); override;
       procedure SetDefaultInfo; override;
       {procedure InitSysInitUnitName; override;}
       function  MakeExecutable: boolean; override;
@@ -63,7 +63,8 @@ implementation
        cutils,cfileutl,cclasses,aasmbase,
        globtype,globals,systems,verbose,cscript,fmodule,i_macos,
        ogbase,
-       symconst;
+       symconst,
+       compiler;
 
 {*****************************************************************************
                                TIMPORTLIBMACOS
@@ -85,9 +86,9 @@ implementation
                                   TLINKERMPW
 *****************************************************************************}
 
-Constructor TLinkerMPW.Create;
+Constructor TLinkerMPW.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   //compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib',true);
 end;
 
@@ -255,9 +256,9 @@ end;
                                 TLINKERMACOS
 *****************************************************************************}
 
-constructor TLinkerMacOS.Create;
+constructor TLinkerMacOS.Create(acompiler: TCompilerBase);
 begin
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

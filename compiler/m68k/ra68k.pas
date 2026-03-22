@@ -27,7 +27,8 @@ unit ra68k;
 
     uses
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      cpubase,rautils,cclasses;
+      cpubase,rautils,cclasses,
+      compilerbase;
 
     type
       Tm68kOperand=class(TOperand)
@@ -42,7 +43,7 @@ unit ra68k;
   implementation
 
      uses
-       verbose,cgbase;
+       verbose,cgbase,compiler;
 
 {*****************************************************************************
                                 TM68kInstruction

@@ -28,11 +28,12 @@ interface
     uses
       cclasses,cpubase,systems,
       globals,globtype,
-      aasmbase,aasmtai,aasmdata,aasmcpu,assemble,aggas;
+      aasmbase,aasmtai,aasmdata,aasmcpu,assemble,aggas,
+      compilerbase;
 
     type
       Tm68kGNUAssembler=class(TGNUassembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         function MakeCmdLine : TCmdStr; override;
       end;
 
@@ -41,7 +42,7 @@ interface
         protected
           function sectionattrs(atype:TAsmSectiontype):string; override;
         public
-          constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+          constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
           function MakeCmdLine : TCmdStr; override;
       end;
 
@@ -61,10 +62,13 @@ interface
     uses
       cutils,
       cgbase,cgutils,cpuinfo,
-      verbose,itcpugas;
+      verbose,itcpugas,
+      compiler;
 
 
     function GasMachineArg: string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         MachineArgNewOld: array[boolean] of string = ('-march=','-m');
       begin
@@ -75,7 +79,7 @@ interface
  {                         GNU m68k Assembler writer                          }
  {****************************************************************************}
 
- constructor Tm68kGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+ constructor Tm68kGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
    begin
      inherited;
      InstrWriter := Tm68kInstrWriter.create(self);
@@ -92,7 +96,7 @@ interface
  {                         GNU m68k Aout Assembler writer                     }
  {****************************************************************************}
 
- constructor Tm68kAoutGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+ constructor Tm68kAoutGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
    begin
      inherited;
      InstrWriter := Tm68kInstrWriter.create(self);
@@ -110,6 +114,8 @@ interface
     end;
 
     function getreferencestring(var ref : treference) : string;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         s: string absolute getreferencestring; { shortcut name to result }
         basestr, indexstr : string;

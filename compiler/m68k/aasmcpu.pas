@@ -29,7 +29,8 @@ uses
   cclasses,aasmtai,aasmdata,aasmsym,
   aasmbase,globals,verbose,symtype,
   cpubase,cpuinfo,cgbase,cgutils,
-  ogbase;
+  ogbase,
+  compilerbase;
 
 
 const
@@ -255,7 +256,7 @@ type
   implementation
 
     uses
-      globtype, itcpugas;
+      globtype, itcpugas, compiler;
 
 
 {*****************************************************************************
@@ -863,6 +864,8 @@ type
 
     function taicpu.FindInsEntry(objdata: TObjData): boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
       begin
         result:=false;
@@ -962,6 +965,8 @@ type
 
 
    function taicpu.Pass1(objdata:TObjData):longint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Pass1:=0;
         { Save the old offset and set the new offset }
@@ -984,6 +989,8 @@ type
       end;
 
     procedure taicpu.Pass2(objdata: TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { error in pass1 ? }
         if InsEntry=nil then

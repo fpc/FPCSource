@@ -30,7 +30,8 @@ unit cpupara;
       cpubase,
       aasmdata,
       symconst,symtype,symdef,symsym,
-      parabase,paramgr,cgbase,cgutils;
+      parabase,paramgr,cgbase,cgutils,
+      compilerbase;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -71,7 +72,8 @@ unit cpupara;
        cpuinfo,
        defutil,
        cutils,
-       hlcgobj;
+       hlcgobj,
+       compiler;
 
     const
       intparasupregs : array[0..1] of tsuperregister = (RS_D0,RS_D1);
@@ -361,7 +363,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-                paradef:=cpointerdef.getreusable_no_free(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[OS_ADDR];
               end
@@ -495,7 +497,7 @@ unit cpupara;
                       begin
                         paralen:=sizeof(aint);
                         paracgsize:=OS_ADDR;
-                        paradef:=cpointerdef.getreusable_no_free(paradef);
+                        paradef:=cpointerdef.getreusable_no_free(paradef,compiler);
                       end
                     else
                       begin
@@ -688,6 +690,4 @@ unit cpupara;
       end;
 
 
-begin
-  paramanager:=tcpuparamanager.create;
 end.

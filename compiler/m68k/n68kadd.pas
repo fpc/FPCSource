@@ -26,7 +26,8 @@ unit n68kadd;
 interface
 
     uses
-       node,nadd,ncgadd,cpubase,cgbase;
+       node,nadd,ncgadd,cpubase,cgbase,
+       compilerbase;
 
 
     type
@@ -60,7 +61,8 @@ implementation
       cpuinfo,pass_1,pass_2,
       cpupara,cgutils,procinfo,
       ncon,nset,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cgcpu,hlcgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,cgcpu,nodehelper,cg64f32,
+      compiler;
 
 {*****************************************************************************
                                   Helpers

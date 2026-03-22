@@ -31,10 +31,14 @@ unit cgcpu;
        cpubase,cpuinfo,
        parabase,cpupara,
        node,symconst,symtype,symdef,
-       cgutils,cg64f32;
+       cgutils,cg64f32,
+       compilerbase;
 
     type
       tcg68k = class(tcg)
+      private
+        function use_push(const cgpara:tcgpara):boolean;
+      public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -129,14 +133,15 @@ unit cgcpu;
      function isvalidrefoffset(const ref: treference): boolean;
      function isvalidreference(const ref: treference): boolean;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
     uses
        globals,verbose,systems,cutils,
        symsym,symtable,defutil,paramgr,procinfo,
-       rgobj,tgobj,rgcpu,fmodule;
+       rgobj,tgobj,rgcpu,fmodule,
+       compiler;
 
 { Range check must be disabled explicitly as conversions between signed and unsigned
   32-bit values are done without explicit typecasts }
@@ -240,7 +245,7 @@ unit cgcpu;
 {****************************************************************************}
 
 
-    function use_push(const cgpara:tcgpara):boolean;
+    function tcg68k.use_push(const cgpara:tcgpara):boolean;
       begin
         result:=(not paramanager.use_fixed_stack) and
                 assigned(cgpara.location) and
@@ -585,8 +590,8 @@ unit cgcpu;
 
         g_call(list,name);
 
-        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-        cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg);
+        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+        a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg);
         paraloc2.done;
         paraloc1.done;
       end;
@@ -609,8 +614,8 @@ unit cgcpu;
 
         g_call(list,name);
 
-        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-        cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg2);
+        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+        a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg2);
         paraloc2.done;
         paraloc1.done;
       end;
@@ -902,7 +907,7 @@ unit cgcpu;
         opsize:=TCGSize2OpSize[fromsize];
         if isaddressregister(reg2) and not (opsize in [S_L]) then
           begin
-            hreg:=cg.getintregister(list,OS_ADDR);
+            hreg:=getintregister(list,OS_ADDR);
             instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,hreg);
             add_move_instruction(instr);
             list.concat(instr);
@@ -1165,11 +1170,11 @@ unit cgcpu;
                     inc(href2.offset,8);
                     fixref(list,href2,true);
                     href2.direction := dir_dec;
-                    cg.a_load_ref_ref(list,OS_32,OS_32,href2,href);
-                    cg.a_load_ref_ref(list,OS_32,OS_32,href2,href);
+                    a_load_ref_ref(list,OS_32,OS_32,href2,href);
+                    a_load_ref_ref(list,OS_32,OS_32,href2,href);
                   end;
                 OS_F32:
-                  cg.a_load_ref_ref(list,OS_32,OS_32,ref,href);
+                  a_load_ref_ref(list,OS_32,OS_32,ref,href);
                 else
                   internalerror(2017052110);
               end;
@@ -1986,7 +1991,7 @@ unit cgcpu;
                         { return to the caller with the paras freed. (KB) }
 
                         hregister:=NR_A1;
-                        cg.a_reg_alloc(list,hregister);
+                        a_reg_alloc(list,hregister);
                         reference_reset_base(ref,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
                         list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
 
@@ -2717,10 +2722,10 @@ unit cgcpu;
       end;
 
 
-procedure create_codegen;
+procedure create_codegen(compiler: TCompilerBase);
   begin
-    cg := tcg68k.create;
-    cg64 :=tcg64f68k.create;
+    tcompiler(compiler).cg := tcg68k.create(compiler);
+    tcompiler(compiler).cg64 :=tcg64f68k.create(compiler);
   end;
 
 end.

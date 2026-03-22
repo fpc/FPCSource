@@ -26,7 +26,8 @@ unit n68kmat;
 interface
 
     uses
-      node,nmat,ncgmat,cpubase,cgbase;
+      node,nmat,ncgmat,cpubase,cgbase,
+      compilerbase;
 
     type
 
@@ -62,7 +63,8 @@ implementation
       pass_1,pass_2,procinfo,
       ncon,
       cpuinfo,paramgr,defutil,parabase,
-      tgobj,ncgutil,cgobj,hlcgobj,cgutils,rgobj,rgcpu,cgcpu,cg64f32;
+      tgobj,ncgutil,cgobj,nodehelper,cgutils,rgobj,rgcpu,cgcpu,cg64f32,
+      compiler;
 
 
 

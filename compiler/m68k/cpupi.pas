@@ -28,7 +28,8 @@ unit cpupi;
   interface
 
     uses
-      psub;
+      psub,
+      compilerbase;
 
     type
       tcpuprocinfo = class(tcgprocinfo)
@@ -40,7 +41,8 @@ unit cpupi;
     uses
       procinfo,
       cpubase,
-      systems;
+      systems,
+      compiler;
 
   { tcpuprocinfo }
 

@@ -34,7 +34,8 @@ interface
     aasmbase, aasmdata,
     cgbase, cgutils,
     symconst,symtype,symdef,
-    hlcg2ll;
+    hlcg2ll,
+    compilerbase;
 
   type
     thlcgcpu = class(thlcg2ll)
@@ -56,7 +57,8 @@ implementation
     defutil,
     hlcgobj,
     cpuinfo, cgobj, cpubase, cgcpu,
-    parabase, procinfo;
+    parabase, procinfo,
+    compiler;
 
 
 
@@ -262,10 +264,10 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 begin

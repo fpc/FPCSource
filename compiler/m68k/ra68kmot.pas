@@ -52,7 +52,8 @@ unit ra68kmot;
       globtype,cclasses,cpubase,
       symconst,
       aasmbase,
-      rabase,rasm,ra68k,rautils;
+      rabase,rasm,ra68k,rautils,
+      compilerbase;
 
     type
       tasmtoken = (
@@ -110,7 +111,8 @@ Implementation
        nbas,
        { parser }
        scanner,ag68kgas,
-       itcpugas
+       itcpugas,
+       compiler
        ;
 
 const
@@ -1730,7 +1732,7 @@ const
                 end;
               AS_OPCODE:
                 begin
-                  instr:=TM68kInstruction.Create(tm68koperand);
+                  instr:=TM68kInstruction.Create(tm68koperand,compiler);
                   BuildOpcode(instr);
 //                  instr.AddReferenceSizes;
 //                  instr.SetInstructionOpsize;

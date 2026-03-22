@@ -31,14 +31,15 @@ unit ag68kvasm;
        aasmtai,aasmdata,
        assemble,aggas,ag68kgas,
        cpubase,cgutils,
-       globtype;
+       globtype,
+       compilerbase;
 
   type
     tm68kvasm = class(Tm68kGNUassembler)
     protected
       function sectionattrs(atype:TAsmSectiontype):string; override;
     public
-      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
@@ -49,7 +50,8 @@ unit ag68kvasm;
        cgbase,
        cscript,
        itcpugas,cpuinfo,
-       aasmcpu;
+       aasmcpu,
+       compiler;
 
 
 {****************************************************************************}
@@ -57,7 +59,7 @@ unit ag68kvasm;
 {****************************************************************************}
 
 
-    constructor tm68kvasm.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor tm68kvasm.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := Tm68kInstrWriter.create(self);

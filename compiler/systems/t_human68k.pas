@@ -27,7 +27,7 @@ unit t_human68k;
 interface
 
     uses
-      rescmn, comprsrc, link;
+      rescmn, comprsrc, link, compilerbase;
 
 type
   PLinkerHuman68k = ^TLinkerHuman68k;
@@ -39,7 +39,7 @@ type
       procedure SetHuman68kInfo;
       function MakeHuman68kExe: boolean;
     public
-      constructor Create; override;
+      constructor Create(acompiler: TCompilerBase); override;
       procedure SetDefaultInfo; override;
       procedure InitSysInitUnitName; override;
       function  MakeExecutable: boolean; override;
@@ -50,14 +50,14 @@ implementation
 
     uses
        sysutils,cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_human68k;
+       globtype,globals,systems,verbose,cscript,fmodule,i_human68k,compiler;
 
 
-constructor TLinkerHuman68k.Create;
+constructor TLinkerHuman68k.Create(acompiler: TCompilerBase);
 begin
   UseVLink:=(cs_link_vlink in current_settings.globalswitches);
 
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;

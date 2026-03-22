@@ -27,7 +27,7 @@ unit t_atari;
 interface
 
     uses
-      rescmn, comprsrc, link;
+      rescmn, comprsrc, link, compilerbase;
 
 type
   PLinkerAtari = ^TLinkerAtari;
@@ -38,7 +38,7 @@ type
       procedure SetAtariInfo;
       function MakeAtariExe: boolean;
     public
-      constructor Create; override;
+      constructor Create(acompiler: TCompilerBase); override;
       procedure SetDefaultInfo; override;
       procedure InitSysInitUnitName; override;
       function  MakeExecutable: boolean; override;
@@ -49,14 +49,14 @@ implementation
 
     uses
        sysutils,cutils,cfileutl,cclasses,aasmbase,
-       globtype,globals,systems,verbose,cscript,fmodule,i_atari;
+       globtype,globals,systems,verbose,cscript,fmodule,i_atari,compiler;
 
 
-constructor TLinkerAtari.Create;
+constructor TLinkerAtari.Create(acompiler: TCompilerBase);
 begin
   UseVLink:=(cs_link_vlink in current_settings.globalswitches);
 
-  Inherited Create;
+  Inherited;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
