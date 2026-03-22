@@ -1399,7 +1399,7 @@ implementation
                     WriteHiddenSymbol(tai_symbol(hp).sym);
                 end;
                if (compiler.target.info.system=system_powerpc64_linux) and
-                  use_dotted_functions and
+                  compiler.target.use_dotted_functions and
                  (tai_symbol(hp).sym.typ=AT_FUNCTION) then
                  begin
                    writer.AsmWriteLn('.section ".opd", "aw"');
@@ -1533,7 +1533,7 @@ implementation
                   writer.AsmWriteLn(s+':');
                   writer.AsmWrite(#9'.size'#9);
                   if (compiler.target.info.system=system_powerpc64_linux) and
-                     use_dotted_functions and
+                     compiler.target.use_dotted_functions and
                      (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
                     writer.AsmWrite('.');
                   if replaceforbidden then
@@ -1542,7 +1542,7 @@ implementation
                     writer.AsmWrite(tai_symbol_end(hp).sym.name);
                   writer.AsmWrite(', '+s+' - ');
                   if (compiler.target.info.system=system_powerpc64_linux) and
-                     use_dotted_functions and
+                     compiler.target.use_dotted_functions and
                      (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
                     writer.AsmWrite('.');
                   if replaceforbidden then

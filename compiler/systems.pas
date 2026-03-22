@@ -581,6 +581,9 @@ interface
         subtarget         : string;
 
         constructor Create;
+
+        function use_dotted_functions: boolean;
+
         function set_target(t:tsystem):boolean;
         function set_target_asm(t:tasm):boolean;
         function set_target_ar(t:tar):boolean;
@@ -667,6 +670,13 @@ Begin
 End;
 {$endif}
 
+
+function TCompilerTarget.use_dotted_functions: boolean;
+  begin
+    result:=
+      (info.system in systems_dotted_function_names) and
+      (info.abi<>abi_powerpc_elfv2);
+  end;
 
 {****************************************************************************
                               Target setting

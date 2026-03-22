@@ -2155,7 +2155,7 @@ implementation
             current_asmdata.getlabel(procendlabel,alt_dbgtype);
             current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),def.procendtai);
 
-            if use_dotted_functions then
+            if compiler.target.use_dotted_functions then
               procentry := '.' + def.mangledname
             else
               procentry := def.mangledname;
