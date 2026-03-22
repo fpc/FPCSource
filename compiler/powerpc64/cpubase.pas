@@ -29,7 +29,7 @@ interface
 
 uses
   strings, globtype,
-  cutils, cclasses, aasmbase, cpuinfo, cgbase;
+  cutils, cclasses, aasmbase, cpuinfo, cgbase, compilerbase;
 
 {*****************************************************************************
                                 Assembler Opcodes
@@ -406,7 +406,7 @@ function eh_return_data_regno(nr: longint): longint;
 implementation
 
 uses
-  rgBase, globals, verbose, itcpugas;
+  rgBase, globals, verbose, itcpugas, compiler;
 
 const
   std_regname_table: TRegNameTable = (
@@ -486,6 +486,8 @@ function condition_in(const Subset, c: TAsmCond): Boolean;
   end;
 
 function flags_to_cond(const f: TResFlags): TAsmCond;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 const
   flag_2_cond: array[F_EQ..F_SO] of TAsmCondFlag =
   (C_EQ, C_NE, C_LT, C_LE, C_GT, C_GE, C_SO);

@@ -5946,12 +5946,12 @@ begin
     begin
       if (compiler.target.info.abi=abi_powerpc_sysv) and
          (compiler.target.info.endian=endian_little) then
-        compiler.target.info.abi:=abi_powerpc_elfv2;
+        compiler.target.set_target_abi(abi_powerpc_elfv2);
      if (compiler.target.info.abi=abi_powerpc_elfv2) and
          (compiler.target.info.endian=endian_big) then
-        compiler.target.info.abi:=abi_powerpc_sysv;
+        compiler.target.set_target_abi(abi_powerpc_sysv);
     if (compiler.target.info.system=system_powerpc64_freebsd)  then
-        compiler.target.info.abi:=abi_powerpc_elfv2;
+        compiler.target.set_target_abi(abi_powerpc_elfv2);
     end;
 {$endif}
 

@@ -31,7 +31,8 @@ uses
   globtype,
   aasmdata,
   symtype,
-  cgbase,cgutils,hlcgobj,hlcgppc;
+  cgbase,cgutils,hlcgobj,hlcgppc,
+  compilerbase;
 
 type
   thlcgcpu = class(thlcgppcgen)
@@ -49,7 +50,7 @@ implementation
 {$ifdef extdebug}
     aasmtai,cutils,cgppc,
 {$endif}
-    cgobj,cgcpu;
+    cgobj,cgcpu,compiler;
 
   { thlcgcpu }
 
@@ -124,10 +125,10 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 

@@ -27,7 +27,7 @@ unit rappcgas;
 interface
 
 uses
-  raatt, rappc;
+  raatt, rappc, compilerbase;
 
 type
   tppcattreader = class(tattreader)
@@ -58,7 +58,7 @@ uses
   { parser }
   procinfo,
   rabase, rautils,
-  cgbase, cgobj, cgppc, paramgr
+  cgbase, cgobj, cgppc, paramgr, compiler
   ;
 
 procedure tppcattreader.ReadSym(oper: tppcoperand);
@@ -132,6 +132,8 @@ begin
 end;
 
 procedure tppcattreader.BuildReference(oper: tppcoperand);
+var
+  cg: tcg;
 
   procedure Consume_RParen;
   begin
@@ -157,6 +159,7 @@ var
   asmsymtyp: tasmsymtype;
 
 begin
+  cg:=compiler.cg;
   Consume(AS_LPAREN);
   case actasmtoken of
     AS_INTNUM,
@@ -820,7 +823,7 @@ procedure tppcattreader.handleopcode;
 var
   instr: tppcinstruction;
 begin
-  instr := TPPCInstruction.Create(TPPCOperand);
+  instr := TPPCInstruction.Create(TPPCOperand,compiler);
   BuildOpcode(instr);
   instr.condition := actcondition;
   if is_calljmp(instr.opcode) then

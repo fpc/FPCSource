@@ -29,7 +29,8 @@ uses
   aasmtai,aasmdata,
   cpubase,
   symconst, symtype, symdef, symsym,
-  paramgr, parabase, cgbase, cgutils;
+  paramgr, parabase, cgbase, cgutils,
+  compilerbase;
 
 type
   tcpuparamanager = class(tparamanager)
@@ -64,7 +65,8 @@ implementation
 uses
   verbose, systems,
   defutil,symtable,symcpu,
-  procinfo, cpupi;
+  procinfo, cpupi,
+  compiler;
 
 function tcpuparamanager.get_volatile_registers_int(calloption:
   tproccalloption): tcpuregisterset;
@@ -101,7 +103,7 @@ begin
   psym:=tparavarsym(pd.paras[nr-1]);
   pdef:=psym.vardef;
   if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-    pdef:=cpointerdef.getreusable_no_free(pdef);
+    pdef:=cpointerdef.getreusable_no_free(pdef,compiler);
   cgpara.reset;
   cgpara.size := def_cgsize(pdef);
   cgpara.intsize := tcgsize2size[cgpara.size];
@@ -445,7 +447,7 @@ begin
     next 8 byte boundary? }
   paraaligned:=false;
   if push_addr_param(varspez, paradef, p.proccalloption) then begin
-    paradef := cpointerdef.getreusable_no_free(paradef);
+    paradef := cpointerdef.getreusable_no_free(paradef,compiler);
     loc := LOC_REGISTER;
     paracgsize := OS_ADDR;
     paralen := tcgsize2size[OS_ADDR];
@@ -831,7 +833,5 @@ begin
 end;
 
 
-begin
-  paramanager := tcpuparamanager.create;
 end.
 

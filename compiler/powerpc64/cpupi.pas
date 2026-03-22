@@ -29,7 +29,7 @@ interface
 
 uses
   cutils,aasmdata,
-  procinfo, cpuinfo, psub;
+  procinfo, cpuinfo, psub, compilerbase;
 
 type
   tcpuprocinfo = class(tcgprocinfo)
@@ -40,7 +40,7 @@ type
 
     needs_frame_pointer : boolean;
 
-    constructor create(aparent: tprocinfo); override;
+    constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
     procedure set_first_temp_offset; override;
     function calc_stackframe_size: longint; override;
     function calc_stackframe_size(numgpr, numfpr : longint): longint;
@@ -58,12 +58,13 @@ uses
   tgobj,cgobj,
   symconst, symsym, paramgr, symutil, symtable,
   verbose,
-  aasmcpu;
+  aasmcpu,
+  compiler;
 
-constructor tcpuprocinfo.create(aparent: tprocinfo);
+constructor tcpuprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
 
 begin
-  inherited create(aparent);
+  inherited;
   maxpushedparasize := 0;
   needs_frame_pointer := false;
 end;

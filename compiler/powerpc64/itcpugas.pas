@@ -26,7 +26,7 @@ unit itcpugas;
 interface
 
 uses
-  cpubase, cgbase;
+  cpubase, cgbase, compilerbase;
 
 const
   gas_op2str: array[tasmop] of string[14] = ('<none>',
@@ -104,7 +104,7 @@ implementation
 
 uses
   globtype, globals,aasmbase,
-  cutils, verbose, systems;
+  cutils, verbose, systems, compiler;
 
 const
   gas_regname_table: array[tregisterindex] of string[7] = (
@@ -143,6 +143,8 @@ begin
 end;
 
 function gas_regname(r: Tregister): string;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   p: longint;
 begin

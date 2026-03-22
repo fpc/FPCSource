@@ -30,7 +30,8 @@ uses
   cgbase, cgobj,cgppc,
   aasmbase, aasmcpu, aasmtai,aasmdata,
   cpubase, cpuinfo, cgutils, rgcpu,
-  parabase;
+  parabase,
+  compilerbase;
 
 type
   tcgppc = class(tcgppcgen)
@@ -130,7 +131,7 @@ type
     procedure profilecode_restorepara(para : tparavarsym; list : TAsmList);
   end;
 
-  procedure create_codegen;
+  procedure create_codegen(compiler: TCompilerBase);
 
 const
   TShiftOpCG2AsmOpConst : array[boolean, OP_SAR..OP_SHR] of TAsmOp = (
@@ -143,7 +144,8 @@ uses
   sysutils, cclasses,
   globals, verbose, systems, cutils,
   symconst, fmodule,
-  rgobj, tgobj, cpupi, procinfo, paramgr, cpupara;
+  rgobj, tgobj, cpupi, procinfo, paramgr, cpupara,
+  compiler;
 
 function is_signed_cgsize(const size : TCgSize) : Boolean;
 begin
@@ -1192,7 +1194,7 @@ begin
       current_asmdata.getlabel(lab,alt_addr);
       getcpuregister(list,NR_R12);
       getcpuregister(list,NR_R2);
-      cg.a_label(list,lab);
+      a_label(list,lab);
       reference_reset_symbol(href,current_asmdata.RefAsmSymbol('.TOC.',AT_DATA),0,sizeof(PInt),[]);
       href.relsymbol:=lab;
       href.refaddr:=addr_higha;
@@ -1879,10 +1881,10 @@ begin
 end;
 
 
-procedure create_codegen;
+procedure create_codegen(compiler: TCompilerBase);
 begin
-  cg := tcgppc.create;
-  cg128:=tcg128.create;
+  tcompiler(compiler).cg := tcgppc.create(compiler);
+  tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
 end;
 
 end.

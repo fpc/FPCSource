@@ -355,7 +355,7 @@ implementation
 {$endif powerpc}
 {$ifdef POWERPC64}
         create_fpu_types;
-        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true,compiler);
 {$endif POWERPC64}
 {$ifdef sparc}
         create_fpu_types;

@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  symtype,symdef,symsym;
+  symtype,symdef,symsym,compilerbase;
 
 type
   { defs }
@@ -181,7 +181,7 @@ const
 implementation
 
   uses
-    symconst, symutil, defutil, defcmp;
+    symconst, symutil, defutil, defcmp, compiler;
 
 { tcpurecorddef }
 

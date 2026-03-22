@@ -27,7 +27,7 @@ interface
 
 uses
   aasmdata, cgbase,
-  symdef, node, ncal, ncgcal;
+  symdef, node, ncal, ncgcal, compilerbase;
 
 type
 
@@ -53,7 +53,7 @@ uses
   cpuinfo, cpubase, aasmbase, aasmtai, aasmcpu,
   nmem, nld, ncnv,
   ncgutil, cgutils, cgobj, tgobj, rgobj, rgcpu,
-  cgcpu, cpupi, procinfo;
+  cgcpu, cpupi, procinfo, compiler, nodehelper;
 
 
 function tppccallnode.get_call_reg(list: TAsmList): tregister;

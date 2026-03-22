@@ -26,7 +26,7 @@ unit nppccnv;
 interface
 
 uses
-  node, ncnv, ncgcnv, ngppccnv;
+  node, ncnv, ncgcnv, ngppccnv, compilerbase;
 
 type
   tppctypeconvnode = class(tgenppctypeconvnode)
@@ -63,7 +63,7 @@ uses
   ncon, ncal,procinfo,
   ncgutil,
   cpubase, aasmcpu,
-  rgobj, tgobj, cgobj, hlcgobj;
+  rgobj, tgobj, cgobj, nodehelper, compiler;
 
 {*****************************************************************************
                              FirstTypeConv
@@ -80,7 +80,7 @@ begin
     // integer - because the int_to_real conversion is faster for 64 bit
     // signed ints compared to 64 bit unsigned ints.
     if (not (torddef(left.resultdef).ordtype in [s64bit, u64bit, scurrency])) then begin
-      inserttypeconv(left, s64inttype);
+      inserttypeconv(left, s64inttype, compiler);
     end;
   end;
   firstpass(left);
