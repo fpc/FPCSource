@@ -737,24 +737,24 @@ implementation
 
     procedure tcgprocinfo.printproc(pass:string);
       begin
-        assign(compiler.globals.printnodefile,treelogfilename);
+        assign(compiler.verbose.printnodefile,treelogfilename);
         {$push}{$I-}
-         append(compiler.globals.printnodefile);
+         append(compiler.verbose.printnodefile);
          if ioresult<>0 then
-          rewrite(compiler.globals.printnodefile);
+          rewrite(compiler.verbose.printnodefile);
         {$pop}
         if ioresult<>0 then
          begin
            compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
-        writeln(compiler.globals.printnodefile);
-        writeln(compiler.globals.printnodefile,'*******************************************************************************');
-        writeln(compiler.globals.printnodefile, pass);
-        writeln(compiler.globals.printnodefile,procdef.fullprocname(false));
-        writeln(compiler.globals.printnodefile,'*******************************************************************************');
-        printnode(compiler.globals.printnodefile,code);
-        close(compiler.globals.printnodefile);
+        writeln(compiler.verbose.printnodefile);
+        writeln(compiler.verbose.printnodefile,'*******************************************************************************');
+        writeln(compiler.verbose.printnodefile, pass);
+        writeln(compiler.verbose.printnodefile,procdef.fullprocname(false));
+        writeln(compiler.verbose.printnodefile,'*******************************************************************************');
+        printnode(compiler.verbose.printnodefile,code);
+        close(compiler.verbose.printnodefile);
       end;
 
 

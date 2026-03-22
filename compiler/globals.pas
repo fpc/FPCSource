@@ -583,7 +583,6 @@ Const
 {$ifdef PREPROCWRITE}
         parapreprocess    : boolean;
 {$endif PREPROCWRITE}
-        printnodefile     : text;
 
         {  typical cross compiling params}
 
@@ -1410,16 +1409,16 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        assign(printnodefile,treelogfilename);
+        assign(compiler.verbose.printnodefile,treelogfilename);
         {$push}{$I-}
-         rewrite(printnodefile);
+         rewrite(compiler.verbose.printnodefile);
         {$pop}
         if ioresult<>0 then
          begin
            compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
-        close(printnodefile);
+        close(compiler.verbose.printnodefile);
       end;
 
 

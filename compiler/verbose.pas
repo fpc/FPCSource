@@ -69,6 +69,7 @@ interface
         codegenerror : boolean;           { true if there is an error reported }
 
         paraprintnodetree : byte;
+        printnodefile     : text;
 
         constructor Create;
         destructor Destroy; override;
