@@ -150,7 +150,7 @@ type
 
   TFPDocMarkdownListBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -159,7 +159,7 @@ type
 
   TFPDocMarkdownListItemBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -168,7 +168,7 @@ type
 
   TFPDocMarkdownCodeBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -177,7 +177,7 @@ type
 
   TFPDocMarkdownHeadingBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -186,7 +186,7 @@ type
 
   TFPDocMarkdownThematicBreakBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -195,7 +195,7 @@ type
 
   TFPDocMarkdownTableBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -204,7 +204,16 @@ type
 
   TFPDocMarkdownTableRowBlockRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  { TFPDocMarkdownFrontmatterBlockRenderer }
+
+  TFPDocMarkdownFrontmatterBlockRenderer = class(TFPDocMarkdownBlockRenderer)
+  protected
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -213,7 +222,7 @@ type
 
   TFPDocMarkdownDocumentRenderer = class(TFPDocMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -708,7 +717,7 @@ begin
   Result:=TMarkdownQuoteBlock;
 end;
 
-procedure TFPDocMarkdownListBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure TFPDocMarkdownListBlockRenderer.DoRender(aElement : TMarkdownBlock);
 
 var
   lNode : TMarkdownListBlock absolute aElement;
@@ -729,7 +738,7 @@ begin
 end;
 
 
-procedure TFPDocMarkdownListItemBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure TFPDocMarkdownListItemBlockRenderer.DoRender(aElement : TMarkdownBlock);
 var
   lItemBlock : TMarkdownListItemBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -758,7 +767,7 @@ begin
   Result:=TMarkdownListItemBlock;
 end;
 
-procedure TFPDocMarkdownCodeBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure TFPDocMarkdownCodeBlockRenderer.DoRender(aElement : TMarkdownBlock);
 var
   lNode : TMarkdownCodeBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -778,7 +787,7 @@ begin
   Result:=TMarkdownCodeBlock;
 end;
 
-procedure TFPDocMarkdownThematicBreakBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure TFPDocMarkdownThematicBreakBlockRenderer.DoRender(aElement : TMarkdownBlock);
 
 begin
   if Not Assigned(aElement) then;
@@ -791,7 +800,7 @@ end;
 
 { TMarkdownTableBlock }
 
-procedure TFPDocMarkdownTableBlockRenderer.Dorender(aElement: TMarkdownBlock);
+procedure TFPDocMarkdownTableBlockRenderer.DoRender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownTableBlock absolute aElement;
   i : integer;
@@ -811,9 +820,21 @@ begin
   Result:=TMarkdownTableBlock;
 end;
 
+{ TFPDocMarkdownFrontmatterBlockRenderer }
+
+procedure TFPDocMarkdownFrontmatterBlockRenderer.DoRender(aElement: TMarkdownBlock);
+begin
+  // Frontmatter produces no visible output
+end;
+
+class function TFPDocMarkdownFrontmatterBlockRenderer.BlockClass: TMarkdownBlockClass;
+begin
+  Result := TMarkdownFrontmatterBlock;
+end;
+
 { TFPDocMarkdownDocumentRenderer }
 
-procedure TFPDocMarkdownDocumentRenderer.Dorender(aElement: TMarkdownBlock);
+procedure TFPDocMarkdownDocumentRenderer.DoRender(aElement: TMarkdownBlock);
 
 begin
   Renderer.RenderChildren(aElement as TMarkdownDocument);
@@ -826,7 +847,7 @@ end;
 
 { TMarkdownTableRowBlock }
 
-procedure TFPDocMarkdownTableRowBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure TFPDocMarkdownTableRowBlockRenderer.DoRender(aElement : TMarkdownBlock);
 const
   CellTypes : Array[Boolean] of string = ('td','th'); //
 var
@@ -853,7 +874,7 @@ begin
   Result:=TMarkdownTableRowBlock;
 end;
 
-procedure TFPDocMarkdownHeadingBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure TFPDocMarkdownHeadingBlockRenderer.DoRender(aElement : TMarkdownBlock);
 var
   lNode : TMarkdownHeadingBlock absolute aElement;
   lText : String;
@@ -902,6 +923,7 @@ initialization
   TFPDocMarkdownThematicBreakBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTableBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTableRowBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
+  TFPDocMarkdownFrontmatterBlockRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownDocumentRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
   TFPDocMarkdownTextRenderer.RegisterRenderer(TMarkdownFPDocRenderer);
 end.

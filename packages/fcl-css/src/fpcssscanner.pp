@@ -37,11 +37,11 @@ Type
     ctkWHITESPACE,
     ctkCOMMENT,
     ctkSEMICOLON,
-    ctkLPARENTHESIS,
+    ctkLPARENTHESIS, // round bracket
     ctkRPARENTHESIS,
-    ctkLBRACE,
+    ctkLBRACE, // curly bracket
     ctkRBRACE,
-    ctkLBRACKET,
+    ctkLBRACKET, // edged bracket
     ctkRBRACKET,
     ctkCOMMA,
     ctkEQUALS,

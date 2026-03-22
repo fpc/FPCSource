@@ -135,7 +135,7 @@ type
 
   THTMLMarkdownListBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -144,7 +144,7 @@ type
 
   THTMLMarkdownListItemBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -153,7 +153,7 @@ type
 
   THTMLMarkdownCodeBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -162,7 +162,7 @@ type
 
   THTMLMarkdownHeadingBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -171,7 +171,7 @@ type
 
   THTMLMarkdownThematicBreakBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -180,7 +180,7 @@ type
 
   THTMLMarkdownTableBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -189,7 +189,16 @@ type
 
   THTMLMarkdownTableRowBlockRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
+  public
+    class function BlockClass : TMarkdownBlockClass; override;
+  end;
+
+  { THTMLMarkdownFrontmatterBlockRenderer }
+
+  THTMLMarkdownFrontmatterBlockRenderer = class(THTMLMarkdownBlockRenderer)
+  protected
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -198,7 +207,7 @@ type
 
   THTMLMarkdownDocumentRenderer = class(THTMLMarkdownBlockRenderer)
   protected
-    procedure Dorender(aElement : TMarkdownBlock); override;
+    procedure DoRender(aElement : TMarkdownBlock); override;
   public
     class function BlockClass : TMarkdownBlockClass; override;
   end;
@@ -590,7 +599,7 @@ begin
   Result:=TMarkdownQuoteBlock;
 end;
 
-procedure THTMLMarkdownListBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure THTMLMarkdownListBlockRenderer.DoRender(aElement : TMarkdownBlock);
 
 var
   lNode : TMarkdownListBlock absolute aElement;
@@ -615,7 +624,7 @@ begin
 end;
 
 
-procedure THTMLMarkdownListItemBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure THTMLMarkdownListItemBlockRenderer.DoRender(aElement : TMarkdownBlock);
 var
   lItemBlock : TMarkdownListItemBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -651,7 +660,7 @@ begin
   Result:=TMarkdownListItemBlock;
 end;
 
-procedure THTMLMarkdownCodeBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure THTMLMarkdownCodeBlockRenderer.DoRender(aElement : TMarkdownBlock);
 var
   lNode : TMarkdownCodeBlock absolute aElement;
   lBlock : TMarkdownBlock;
@@ -677,7 +686,7 @@ begin
   Result:=TMarkdownCodeBlock;
 end;
 
-procedure THTMLMarkdownThematicBreakBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure THTMLMarkdownThematicBreakBlockRenderer.DoRender(aElement : TMarkdownBlock);
 
 begin
   if Not Assigned(aElement) then
@@ -693,7 +702,7 @@ end;
 
 { TMarkdownTableBlock }
 
-procedure THTMLMarkdownTableBlockRenderer.Dorender(aElement: TMarkdownBlock);
+procedure THTMLMarkdownTableBlockRenderer.DoRender(aElement: TMarkdownBlock);
 var
   lNode : TMarkdownTableBlock absolute aElement;
   i : integer;
@@ -717,9 +726,21 @@ begin
   Result:=TMarkdownTableBlock;
 end;
 
+{ THTMLMarkdownFrontmatterBlockRenderer }
+
+procedure THTMLMarkdownFrontmatterBlockRenderer.DoRender(aElement: TMarkdownBlock);
+begin
+  // Frontmatter produces no visible output
+end;
+
+class function THTMLMarkdownFrontmatterBlockRenderer.BlockClass: TMarkdownBlockClass;
+begin
+  Result := TMarkdownFrontmatterBlock;
+end;
+
 { THTMLMarkdownDocumentRenderer }
 
-procedure THTMLMarkdownDocumentRenderer.Dorender(aElement: TMarkdownBlock);
+procedure THTMLMarkdownDocumentRenderer.DoRender(aElement: TMarkdownBlock);
 var
   H : String;
 begin
@@ -757,7 +778,7 @@ end;
 
 { TMarkdownTableRowBlock }
 
-procedure THTMLMarkdownTableRowBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure THTMLMarkdownTableRowBlockRenderer.DoRender(aElement : TMarkdownBlock);
 const
   CellTypes : Array[Boolean] of string = ('td','th'); //
 var
@@ -792,7 +813,7 @@ begin
   Result:=TMarkdownTableRowBlock;
 end;
 
-procedure THTMLMarkdownHeadingBlockRenderer.Dorender(aElement : TMarkdownBlock);
+procedure THTMLMarkdownHeadingBlockRenderer.DoRender(aElement : TMarkdownBlock);
 
 var
   lNode : TMarkdownHeadingBlock absolute aElement;
@@ -820,6 +841,7 @@ initialization
   THTMLMarkdownThematicBreakBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
   THTMLMarkdownTableBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
   THTMLMarkdownTableRowBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
+  THTMLMarkdownFrontmatterBlockRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
   THTMLMarkdownDocumentRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
   THTMLMarkdownTextRenderer.RegisterRenderer(TMarkdownHTMLRenderer);
 end.

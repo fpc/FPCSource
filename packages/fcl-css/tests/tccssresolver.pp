@@ -380,6 +380,10 @@ type
     procedure TearDown; override;
     procedure ApplyStyle; virtual;
     procedure CheckWarnings; virtual;
+    function AddButton(const aName: string; aParent: TDemoNode): TDemoButton;
+    function AddDiv(const aName: string; aParent: TDemoNode): TDemoDiv;
+    function AddSpan(const aName: string; aParent: TDemoNode): TDemoSpan;
+    function AddSpan_Class(const aName, aClass: string; aParent: TDemoNode): TDemoSpan;
   public
     property Doc: TDemoDocument read FDoc;
   end;
@@ -389,80 +393,110 @@ type
   TTestNewCSSResolver = class(TCustomTestNewCSSResolver)
   published
     // invalid attributes while parsing stylesheet
-    procedure Test_ParseAttr_Keyword;
-    procedure Test_ParseAttr_Keyword_SkipInvalid;
-    procedure Test_ParseAttr_Float;
+    procedure TestRes_ParseAttr_Keyword;
+    procedure TestRes_ParseAttr_Keyword_SkipInvalid;
+    procedure TestRes_ParseAttr_Float;
 
-    procedure Test_Selector_Universal;
-    procedure Test_Selector_Type;
-    procedure Test_Selector_Type_Spaces;
-    procedure Test_Selector_Id;
-    procedure Test_Selector_Class;
-    procedure Test_Selector_ClassClass; // AND combinator
-    procedure Test_Selector_ClassSpaceClass; // Descendant combinator
-    procedure Test_Selector_TypeCommaType; // OR combinator
-    procedure Test_Selector_ClassGTClass; // child combinator
-    procedure Test_Selector_TypePlusType; // adjacent sibling combinator
-    procedure Test_Selector_TypeTildeType; // general sibling combinator
+    procedure TestRes_Selector_Universal;
+    procedure TestRes_Selector_Type;
+    procedure TestRes_Selector_Type_Spaces;
+    procedure TestRes_Selector_Id;
+    procedure TestRes_Selector_Class;
+    procedure TestRes_Selector_ClassClass; // AND combinator
+    procedure TestRes_Selector_ClassSpaceClass; // Descendant combinator
+    procedure TestRes_Selector_TypeCommaType; // OR combinator
+    procedure TestRes_Selector_ClassGTClass; // child combinator
+    procedure TestRes_Selector_TypePlusType; // adjacent sibling combinator
+    procedure TestRes_Selector_TypeTildeType; // general sibling combinator
 
     // explicit attributes, e.g. set by HTML
-    procedure Test_Selector_HasAttribute;
-    procedure Test_Selector_AttributeEquals;
-    procedure Test_Selector_AttributeEqualsI;
-    procedure Test_Selector_AttributeBeginsWith;
-    procedure Test_Selector_AttributeEndsWith;
-    procedure Test_Selector_AttributeBeginsWithHyphen;
-    procedure Test_Selector_AttributeContainsWord;
-    procedure Test_Selector_AttributeContainsSubstring;
+    procedure TestRes_Selector_HasAttribute;
+    procedure TestRes_Selector_AttributeEquals;
+    procedure TestRes_Selector_AttributeEqualsI;
+    procedure TestRes_Selector_AttributeBeginsWith;
+    procedure TestRes_Selector_AttributeEndsWith;
+    procedure TestRes_Selector_AttributeBeginsWithHyphen;
+    procedure TestRes_Selector_AttributeContainsWord;
+    procedure TestRes_Selector_AttributeContainsSubstring;
 
     // pseudo classes and functions
-    procedure Test_Selector_Root;
-    procedure Test_Selector_Empty;
-    procedure Test_Selector_FirstChild;
-    procedure Test_Selector_LastChild;
-    procedure Test_Selector_OnlyChild;
-    procedure Test_Selector_Not;
-    procedure Test_Selector_NthChild;
-    procedure Test_Selector_NthLastChild;
-    procedure Test_Selector_NthChildOf;
-    procedure Test_Selector_FirstOfType;
-    procedure Test_Selector_LastOfType;
-    procedure Test_Selector_OnlyOfType;
-    procedure Test_Selector_NthOfType;
-    procedure Test_Selector_NthLastOfType;
-    procedure Test_Selector_Is;
-    // ToDo: procedure Test_Selector_Is_Descendant;  :is(div button, .hawk .eagle)
-    procedure Test_Selector_Where;
+    procedure TestRes_Selector_Root;
+    procedure TestRes_Selector_Empty;
+    procedure TestRes_Selector_FirstChild;
+    procedure TestRes_Selector_LastChild;
+    procedure TestRes_Selector_OnlyChild;
+    procedure TestRes_Selector_Not;
+    procedure TestRes_Selector_NthChild;
+    procedure TestRes_Selector_NthLastChild;
+    procedure TestRes_Selector_NthChildOf;
+    procedure TestRes_Selector_FirstOfType;
+    procedure TestRes_Selector_LastOfType;
+    procedure TestRes_Selector_OnlyOfType;
+    procedure TestRes_Selector_NthOfType;
+    procedure TestRes_Selector_NthLastOfType;
+    procedure TestRes_Selector_Is;
+    // ToDo: procedure TestRes_Selector_Is_Descendant;  :is(div button, .hawk .eagle)
+    procedure TestRes_Selector_Where;
     // ToDo: div:has(>img)
     // ToDo: div:has(+img)
 
     // custom pseudo classes and functions
-    procedure Test_Selector_Hover;
+    procedure TestRes_Selector_Hover;
 
     // inline style
-    procedure Test_InlineStyle;
-    procedure Test_InlineStyle_DisplayNone;
+    procedure TestRes_InlineStyle;
+    procedure TestRes_InlineStyle_DisplayNone;
 
     // Specificity
-    procedure Test_Specificity_Id_Class;
-    procedure Test_Specificity_Important;
-    procedure Test_Specificity_Shorthand_OneRule;
-    procedure Test_Specificity_Shorthand_ClassClass;
-    procedure Test_Specificity_Longhand_All_Longhand;
-    procedure Test_Specificity_Shorthand_All_Shorthand;
+    procedure TestRes_Specificity_Id_Class;
+    procedure TestRes_Specificity_Important;
+    procedure TestRes_Specificity_Shorthand_OneRule;
+    procedure TestRes_Specificity_Shorthand_ClassClass;
+    procedure TestRes_Specificity_Longhand_All_Longhand;
+    procedure TestRes_Specificity_Shorthand_All_Shorthand;
 
     // origin
-    procedure Test_Origin_Id_Class;
+    procedure TestRes_Origin_Id_Class;
 
     // var()
-    procedure Test_Var_NoDefault;
-    procedure Test_Var_Inline_NoDefault;
-    procedure Test_Var_Defaults;
+    procedure TestRes_Var_NoDefault;
+    procedure TestRes_Var_Inline_NoDefault;
+    procedure TestRes_Var_Defaults;
 
     // pseudo elements (works like child combinator)
-    procedure Test_PseudoElement;
-    procedure Test_PseudoElement_Unary;
-    procedure Test_PseudoElement_PostfixSelectNothing;
+    procedure TestRes_PseudoElement;
+    procedure TestRes_PseudoElement_Unary;
+    procedure TestRes_PseudoElement_PostfixSelectNothing;
+
+    // nested rules
+    procedure TestRes_Nested_Hash; // #id -> Descendant combinator
+    procedure TestRes_Nested_Class; // .class -> Descendant combinator
+    procedure TestRes_Nested_AndClass; // & AND selector
+    procedure TestRes_Nested_AndSpaceClass; // & .class -> Descendant combinator
+    procedure TestRes_Nested_ClassCommaClass; // .class,.class: comma: no & is treated as whitespace -> Descendant combinator
+    procedure TestRes_Nested_ClassCommaAndClass; // .class,&.class: descendant OR compound
+    procedure TestRes_Nested_ClassCommaAndSpaceClass; // .class,& .class: Descendant combinator
+    procedure TestRes_Nested_ClassSpaceAnd; // .class & -> append: & is the subject
+    procedure TestRes_Nested_AndSpaceType; // & type -> Descendant combinator
+    procedure TestRes_Nested_GTClass; // child combinator
+    procedure TestRes_Nested_AndGTClass; // & child combinator
+    procedure TestRes_Nested_PlusClass; // adjacent sibling combinator
+    procedure TestRes_Nested_AndPlusType; // & adjacent sibling combinator
+    procedure TestRes_Nested_TildeClass; // general sibling combinator
+    procedure TestRes_Nested_AndTildeClass; // & general sibling combinator
+    procedure TestRes_Nested_HasAtribute; // [attr]
+    procedure TestRes_Nested_AndHasAtribute; // &[attr]
+    procedure TestRes_Nested_AndHasSpaceAtribute; // & [attr]
+
+    // @media
+    // todo procedure TestRes_Media_Name  print | (print)
+    // todo procedure TestRes_Media_NameValue (display-mode: fullscreen)
+    // todo procedure TestRes_Media_Range (height > 600px) | (400px <= width <= 700px) | (min-width: 300px)
+    // todo procedure TestRes_Media_And  print and screen
+    // todo procedure TestRes_Media_Or  print or screen
+    // todo procedure TestRes_Media_Comma  (width>100px), (height>100px)
+    // todo procedure TestRes_Media_Not  not print
+
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -1481,9 +1515,37 @@ begin
   end;
 end;
 
+function TCustomTestNewCSSResolver.AddButton(const aName: string; aParent: TDemoNode): TDemoButton;
+begin
+  Result:=TDemoButton.Create(nil);
+  Result.Name:=aName;
+  Result.Parent:=aParent;
+end;
+
+function TCustomTestNewCSSResolver.AddDiv(const aName: string; aParent: TDemoNode): TDemoDiv;
+begin
+  Result:=TDemoDiv.Create(nil);
+  Result.Name:=aName;
+  Result.Parent:=aParent;
+end;
+
+function TCustomTestNewCSSResolver.AddSpan(const aName: string; aParent: TDemoNode): TDemoSpan;
+begin
+  Result:=TDemoSpan.Create(nil);
+  Result.Name:=aName;
+  Result.Parent:=aParent;
+end;
+
+function TCustomTestNewCSSResolver.AddSpan_Class(const aName, aClass: string; aParent: TDemoNode
+  ): TDemoSpan;
+begin
+  Result:=AddSpan(aName,aParent);
+  Result.CSSClasses.Add(aClass);
+end;
+
 { TTestNewCSSResolver }
 
-procedure TTestNewCSSResolver.Test_ParseAttr_Keyword;
+procedure TTestNewCSSResolver.TestRes_ParseAttr_Keyword;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { direction: ltr; }';
@@ -1491,7 +1553,7 @@ begin
   AssertEquals('Root.direction','ltr',Doc.Root.Direction);
 end;
 
-procedure TTestNewCSSResolver.Test_ParseAttr_Keyword_SkipInvalid;
+procedure TTestNewCSSResolver.TestRes_ParseAttr_Keyword_SkipInvalid;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { direction: something ltr; }';
@@ -1499,7 +1561,7 @@ begin
   AssertEquals('Root.direction','ltr',Doc.Root.Direction);
 end;
 
-procedure TTestNewCSSResolver.Test_ParseAttr_Float;
+procedure TTestNewCSSResolver.TestRes_ParseAttr_Float;
 var
   Div1: TDemoDiv;
 begin
@@ -1517,9 +1579,7 @@ begin
     +'  width: .6cm;'
     +'  height: 6E+1rem;'
     +'}';
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   ApplyStyle;
   AssertEquals('Root.Left','10px',Doc.Root.Left);
@@ -1532,7 +1592,7 @@ begin
   AssertEquals('Div1.Height','60rem',Div1.Height);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Universal;
+procedure TTestNewCSSResolver.TestRes_Selector_Universal;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { left: 10px; }';
@@ -1540,30 +1600,25 @@ begin
   AssertEquals('Root.left','10px',Doc.Root.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Type;
+procedure TTestNewCSSResolver.TestRes_Selector_Type;
 var
   Button: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Button:=TDemoButton.Create(nil);
-  Button.Parent:=Doc.Root;
+  Button:=AddButton('Button',Doc.Root);
   Doc.Style:='button { left: 11px; }';
   ApplyStyle;
   AssertEquals('Root.left','',Doc.Root.Left);
   AssertEquals('Button.left','11px',Button.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Type_Spaces;
+procedure TTestNewCSSResolver.TestRes_Selector_Type_Spaces;
 var
   Button1, Button2: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
-
-  Button2:=TDemoButton.Create(nil);
-  Button2.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
+  Button2:=AddButton('Button2',Doc.Root);
 
   Doc.Style:='div, button ,span { left: 11px; }';
   ApplyStyle;
@@ -1572,48 +1627,43 @@ begin
   AssertEquals('Button2.left','11px',Button2.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Id;
+procedure TTestNewCSSResolver.TestRes_Selector_Id;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
   Doc.Style:='#Button1 { left: 12px; }';
   ApplyStyle;
   AssertEquals('Root.left','',Doc.Root.Left);
   AssertEquals('Button1.left','12px',Button1.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Class;
+procedure TTestNewCSSResolver.TestRes_Selector_Class;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
-  Button1:=TDemoButton.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
   Button1.CSSClasses.Add('west');
-  Button1.Parent:=Doc.Root;
   Doc.Style:='.west { left: 13px; }';
   ApplyStyle;
   AssertEquals('Root.left','',Doc.Root.Left);
   AssertEquals('Button1.left','13px',Button1.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_ClassClass;
+procedure TTestNewCSSResolver.TestRes_Selector_ClassClass;
 var
   Button1, Button2: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
   Button1.CSSClasses.Add('west');
-  Button1.Parent:=Doc.Root;
 
-  Button2:=TDemoButton.Create(nil);
+  Button2:=AddButton('Button2',Doc.Root);
   Button2.CSSClasses.DelimitedText:='west south';
   AssertEquals('Button2.CSSClasses.Count',2,Button2.CSSClasses.Count);
-  Button2.Parent:=Doc.Root;
 
   Doc.Style:='.west.south { left: 10px; }';
   ApplyStyle;
@@ -1622,16 +1672,15 @@ begin
   AssertEquals('Button2.left','10px',Button2.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_ClassSpaceClass;
+procedure TTestNewCSSResolver.TestRes_Selector_ClassSpaceClass;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.CSSClasses.Add('bird');
 
-  Button1:=TDemoButton.Create(nil);
+  Button1:=AddButton('Button1',Doc.Root);
   Button1.CSSClasses.Add('west');
-  Button1.Parent:=Doc.Root;
 
   Doc.Style:='.bird .west { left: 10px; }';
   ApplyStyle;
@@ -1639,18 +1688,16 @@ begin
   AssertEquals('Button1.left','10px',Button1.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_TypeCommaType;
+procedure TTestNewCSSResolver.TestRes_Selector_TypeCommaType;
 var
   Button1: TDemoButton;
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
   Doc.Style:='div, button { left: 10px; }';
   ApplyStyle;
@@ -1659,7 +1706,7 @@ begin
   AssertEquals('Div1.left','10px',Div1.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_ClassGTClass;
+procedure TTestNewCSSResolver.TestRes_Selector_ClassGTClass;
 var
   Div1, Div2: TDemoDiv;
 begin
@@ -1667,15 +1714,11 @@ begin
   Doc.Root.Name:='root';
   Doc.Root.CSSClasses.Add('lvl1');
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('lvl2');
-  Div1.Parent:=Doc.Root;
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
+  Div2:=AddDiv('Div2',Div1);
   Div2.CSSClasses.Add('lvl3');
-  Div2.Parent:=Div1;
 
   Doc.Style:=LinesToStr([
   '.lvl1>.lvl2 { left: 10px; }', // set
@@ -1694,7 +1737,7 @@ begin
   AssertEquals('Div2.width','12px',Div2.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_TypePlusType;
+procedure TTestNewCSSResolver.TestRes_Selector_TypePlusType;
 var
   Button1, Button2, Button3: TDemoButton;
   Div1: TDemoDiv;
@@ -1702,21 +1745,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Name:='Button2';
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('Button2',Doc.Root);
 
-  Button3:=TDemoButton.Create(nil);
-  Button3.Name:='Button3';
-  Button3.Parent:=Doc.Root;
+  Button3:=AddButton('Button3',Doc.Root);
 
   Doc.Style:='div+button { left: 10px; }'; // only Button2 has a prev sibling div
   ApplyStyle;
@@ -1727,24 +1762,20 @@ begin
   AssertEquals('Button3.left','',Button3.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_TypeTildeType;
+procedure TTestNewCSSResolver.TestRes_Selector_TypeTildeType;
 var
   Button1, Button2, Button3: TDemoButton;
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('',Doc.Root);
 
-  Button3:=TDemoButton.Create(nil);
-  Button3.Parent:=Doc.Root;
+  Button3:=AddButton('',Doc.Root);
 
   Doc.Style:='div~button { left: 10px; }';
   ApplyStyle;
@@ -1755,7 +1786,7 @@ begin
   AssertEquals('Button3.left','10px',Button3.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_HasAttribute;
+procedure TTestNewCSSResolver.TestRes_Selector_HasAttribute;
 var
   Button1: TDemoButton;
 begin
@@ -1763,9 +1794,7 @@ begin
   Doc.Root.Name:='root';
   Doc.Root.ExplicitAttributes[naLeft]:='100px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='2px';
   Button1.ExplicitCaption:='Click Button1';
 
@@ -1780,15 +1809,14 @@ begin
   AssertEquals('Button1.Width','4px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_AttributeEquals;
+procedure TTestNewCSSResolver.TestRes_Selector_AttributeEquals;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='2px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='3px';
   Button1.ExplicitAttributes[naColor]:='maybe black';
 
@@ -1802,15 +1830,14 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_AttributeEqualsI;
+procedure TTestNewCSSResolver.TestRes_Selector_AttributeEqualsI;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='2px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='3px';
   Button1.ExplicitAttributes[naColor]:='maybe Black';
 
@@ -1824,15 +1851,14 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_AttributeBeginsWith;
+procedure TTestNewCSSResolver.TestRes_Selector_AttributeBeginsWith;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
@@ -1846,15 +1872,14 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_AttributeEndsWith;
+procedure TTestNewCSSResolver.TestRes_Selector_AttributeEndsWith;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
@@ -1868,15 +1893,14 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_AttributeBeginsWithHyphen;
+procedure TTestNewCSSResolver.TestRes_Selector_AttributeBeginsWithHyphen;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo-Bar';
 
   Doc.Style:=LinesToStr([
@@ -1890,7 +1914,7 @@ begin
   AssertEquals('Button1.Width','',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_AttributeContainsWord;
+procedure TTestNewCSSResolver.TestRes_Selector_AttributeContainsWord;
 var
   Button1: TDemoButton;
 begin
@@ -1898,9 +1922,7 @@ begin
   Doc.Root.Name:='root';
   Doc.Root.ExplicitAttributes[naLeft]:='One Two Three';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Four Five';
 
   Doc.Style:=LinesToStr([
@@ -1923,15 +1945,14 @@ begin
   AssertEquals('Button1.Display','inline-block',Button1.Display);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_AttributeContainsSubstring;
+procedure TTestNewCSSResolver.TestRes_Selector_AttributeContainsSubstring;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
   Button1.ExplicitAttributes[naLeft]:='Foo Bar';
 
   Doc.Style:=LinesToStr([
@@ -1945,15 +1966,14 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Root;
+procedure TTestNewCSSResolver.TestRes_Selector_Root;
 var
   Button1: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.ExplicitAttributes[naLeft]:='Foo';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':roOt { top: 4px; }',
@@ -1963,20 +1983,17 @@ begin
   AssertEquals('Button1.Top','',Button1.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Empty;
+procedure TTestNewCSSResolver.TestRes_Selector_Empty;
 var
   Div1, Div11, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':eMpty { left: 1px; }',
@@ -1993,23 +2010,19 @@ begin
   AssertEquals('Div2.Top','2px',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_FirstChild;
+procedure TTestNewCSSResolver.TestRes_Selector_FirstChild;
 var
   Div1, Div11, Div12, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Div12:=TDemoDiv.Create(nil);
-  Div12.Parent:=Div1;
+  Div12:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':first-child { left: 1px; }',
@@ -2028,24 +2041,20 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_LastChild;
+procedure TTestNewCSSResolver.TestRes_Selector_LastChild;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':last-child { left: 6px; }',
@@ -2064,7 +2073,7 @@ begin
   AssertEquals('Div2.Top','7px',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_OnlyChild;
+procedure TTestNewCSSResolver.TestRes_Selector_OnlyChild;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2072,21 +2081,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Name:='Div11';
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('Div11',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Name:='Button12';
-  Button12.Parent:=Div2;
+  Button12:=AddButton('Button12',Div2);
 
   Doc.Style:=LinesToStr([
   ':only-child { left: 8px; }',
@@ -2105,7 +2106,7 @@ begin
   AssertEquals('Button12.Top','',Button12.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Not;
+procedure TTestNewCSSResolver.TestRes_Selector_Not;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2113,21 +2114,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Name:='Div11';
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('Div11',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Name:='Button12';
-  Button12.Parent:=Div2;
+  Button12:=AddButton('Button12',Div2);
 
   Doc.Style:=LinesToStr([
   ':not(:only-child) { left: 8px; }',
@@ -2146,23 +2139,19 @@ begin
   AssertEquals('Button12.Top','9px',Button12.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_NthChild;
+procedure TTestNewCSSResolver.TestRes_Selector_NthChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div:nth-child(2n+1) { left: 8px; }',
@@ -2199,23 +2188,19 @@ begin
   AssertEquals('Div4.Width','',Div4.Width);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_NthLastChild;
+procedure TTestNewCSSResolver.TestRes_Selector_NthLastChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':nth-last-child(2n+1) { left: 8px; }',
@@ -2228,30 +2213,22 @@ begin
   AssertEquals('Div4.Left','8px',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_NthChildOf;
+procedure TTestNewCSSResolver.TestRes_Selector_NthChildOf;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
   Div2.ExplicitAttributes[naTop]:='3px';
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Name:='Div3';
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('Div3',Doc.Root);
   Div3.ExplicitAttributes[naTop]:='3px';
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Name:='Div4';
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('Div4',Doc.Root);
   Div4.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
@@ -2265,27 +2242,22 @@ begin
   AssertEquals('Div4.Left','5px',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_FirstOfType;
+procedure TTestNewCSSResolver.TestRes_Selector_FirstOfType;
 var
   Div1, Div11, Div13, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div13:=TDemoDiv.Create(nil);
-  Div13.Parent:=Div1;
+  Div13:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':first-of-type { left: 6px; }',
@@ -2306,27 +2278,22 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_LastOfType;
+procedure TTestNewCSSResolver.TestRes_Selector_LastOfType;
 var
   Div1, Div11, Div13, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div13:=TDemoDiv.Create(nil);
-  Div13.Parent:=Div1;
+  Div13:=AddDiv('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':last-of-type { left: 6px; }',
@@ -2347,24 +2314,20 @@ begin
   AssertEquals('Div2.Top','7px',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_OnlyOfType;
+procedure TTestNewCSSResolver.TestRes_Selector_OnlyOfType;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('',Div1);
 
-  Button12:=TDemoButton.Create(nil);
-  Button12.Parent:=Div1;
+  Button12:=AddButton('',Div1);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':only-of-type { left: 6px; }',
@@ -2383,7 +2346,7 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_NthOfType;
+procedure TTestNewCSSResolver.TestRes_Selector_NthOfType;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
   Button1, Button2: TDemoButton;
@@ -2391,29 +2354,17 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Name:='Div3';
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('Div3',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Name:='Button2';
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('Button2',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Name:='Div4';
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('Div4',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':nth-of-type(2n+1) { left: 8px; }',
@@ -2428,30 +2379,24 @@ begin
   AssertEquals('Div4.Left','',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_NthLastOfType;
+procedure TTestNewCSSResolver.TestRes_Selector_NthLastOfType;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
   Button1, Button2: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Div3:=TDemoDiv.Create(nil);
-  Div3.Parent:=Doc.Root;
+  Div3:=AddDiv('',Doc.Root);
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('',Doc.Root);
 
-  Div4:=TDemoDiv.Create(nil);
-  Div4.Parent:=Doc.Root;
+  Div4:=AddDiv('',Doc.Root);
 
   Doc.Style:=LinesToStr([
   ':nth-last-of-type(2n+1) { left: 8px; }',
@@ -2466,7 +2411,7 @@ begin
   AssertEquals('Div4.Left','8px',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Is;
+procedure TTestNewCSSResolver.TestRes_Selector_Is;
 var
   Div1, Div2: TDemoDiv;
   Button1, Button2: TDemoButton;
@@ -2475,24 +2420,17 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.ExplicitAttributes[naTop]:='3px';
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Doc.Root;
+  Button1:=AddButton('Button1',Doc.Root);
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('',Doc.Root);
 
-  Span1:=TDemoSpan.Create(nil);
-  Span1.Parent:=Doc.Root;
+  Span1:=AddSpan('',Doc.Root);
   Span1.ExplicitAttributes[naTop]:='3px';
 
-  Button2:=TDemoButton.Create(nil);
-  Button2.Parent:=Doc.Root;
+  Button2:=AddButton('',Doc.Root);
   Button2.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
@@ -2507,21 +2445,17 @@ begin
   AssertEquals('Button2.Left','7px',Button2.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Where;
+procedure TTestNewCSSResolver.TestRes_Selector_Where;
 var
   Div1, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.ExplicitAttributes[naTop]:='3px';
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Div1;
+  Div2:=AddDiv('Div2',Div1);
   Div2.ExplicitAttributes[naTop]:='3px';
 
   Doc.Style:=LinesToStr([
@@ -2534,7 +2468,7 @@ begin
   AssertEquals('Div2.Left','2px',Div2.Left);
 end;
 
-procedure TTestNewCSSResolver.Test_Selector_Hover;
+procedure TTestNewCSSResolver.TestRes_Selector_Hover;
 var
   Div1, Div11: TDemoDiv;
   Button1: TDemoButton;
@@ -2542,19 +2476,13 @@ begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Root.Name:='root';
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.Hover:=true;
 
-  Button1:=TDemoButton.Create(nil);
-  Button1.Name:='Button1';
-  Button1.Parent:=Div1;
+  Button1:=AddButton('Button1',Div1);
   Button1.Hover:=true;
 
-  Div11:=TDemoDiv.Create(nil);
-  Div11.Name:='Div11';
-  Div11.Parent:=Div1;
+  Div11:=AddDiv('Div11',Div1);
 
   Doc.Style:=LinesToStr([
   ':hover { left: 1px; }',
@@ -2571,14 +2499,13 @@ begin
   AssertEquals('Div11.Top','',Div11.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_InlineStyle;
+procedure TTestNewCSSResolver.TestRes_InlineStyle;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
   Div1.InlineStyle:='left: 10px; top: 5px';
 
   Doc.Style:=LinesToStr([
@@ -2590,29 +2517,26 @@ begin
   AssertEquals('Div1.Top','5px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_InlineStyle_DisplayNone;
+procedure TTestNewCSSResolver.TestRes_InlineStyle_DisplayNone;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('',Doc.Root);
   Div1.InlineStyle:='display:none';
 
   ApplyStyle;
   AssertEquals('Div1.Display','none',Div1.Display);
 end;
 
-procedure TTestNewCSSResolver.Test_Specificity_Id_Class;
+procedure TTestNewCSSResolver.TestRes_Specificity_Id_Class;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
   Doc.Style:=LinesToStr([
@@ -2626,15 +2550,13 @@ begin
   AssertEquals('Div1.Top','8px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Specificity_Important;
+procedure TTestNewCSSResolver.TestRes_Specificity_Important;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
   Doc.Style:=LinesToStr([
@@ -2648,15 +2570,13 @@ begin
   AssertEquals('Div1.Top','9px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.Test_Specificity_Shorthand_OneRule;
+procedure TTestNewCSSResolver.TestRes_Specificity_Shorthand_OneRule;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
   Doc.Style:='.bird { border-color: blue; border: 6px red; border-width: 7px; }';
@@ -2665,15 +2585,13 @@ begin
   AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.Test_Specificity_Shorthand_ClassClass;
+procedure TTestNewCSSResolver.TestRes_Specificity_Shorthand_ClassClass;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
   Div1.CSSClasses.Add('eagle');
 
@@ -2687,15 +2605,13 @@ begin
   AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.Test_Specificity_Longhand_All_Longhand;
+procedure TTestNewCSSResolver.TestRes_Specificity_Longhand_All_Longhand;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
   Div1.CSSClasses.Add('eagle');
 
@@ -2711,20 +2627,16 @@ begin
   AssertEquals('Div1.Background','red',Div1.Background);
 end;
 
-procedure TTestNewCSSResolver.Test_Specificity_Shorthand_All_Shorthand;
+procedure TTestNewCSSResolver.TestRes_Specificity_Shorthand_All_Shorthand;
 var
   Div1, Div2: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('bird');
 
-  Div2:=TDemoDiv.Create(nil);
-  Div2.Name:='Div2';
-  Div2.Parent:=Doc.Root;
+  Div2:=AddDiv('Div2',Doc.Root);
   Div2.CSSClasses.Add('eagle');
 
   Doc.Style:=LinesToStr([
@@ -2740,15 +2652,13 @@ begin
   AssertEquals('Div2.BorderWidth','8px',Div2.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.Test_Origin_Id_Class;
+procedure TTestNewCSSResolver.TestRes_Origin_Id_Class;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.CSSResolver.AddStyleSheet(cssoUserAgent,'testagent',
   '#Div1 { border-width: 2px;'
@@ -2766,15 +2676,13 @@ begin
   AssertEquals('Div1.Background','green',Div1.Background);
 end;
 
-procedure TTestNewCSSResolver.Test_Var_NoDefault;
+procedure TTestNewCSSResolver.TestRes_Var_NoDefault;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div {',
@@ -2794,7 +2702,7 @@ begin
   AssertEquals('Div1.Color','',Div1.Color);
 end;
 
-procedure TTestNewCSSResolver.Test_Var_Inline_NoDefault;
+procedure TTestNewCSSResolver.TestRes_Var_Inline_NoDefault;
 var
   Div1: TDemoDiv;
 begin
@@ -2805,9 +2713,7 @@ begin
   '  --bird-color: red;',
   '}']);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.InlineStyle:='--bird-width: 3px; border-color: var(--bird-color); border-width: var(--bird-width);';
 
   ApplyStyle;
@@ -2815,15 +2721,13 @@ begin
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.Test_Var_Defaults;
+procedure TTestNewCSSResolver.TestRes_Var_Defaults;
 var
   Div1: TDemoDiv;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div {',
@@ -2840,16 +2744,14 @@ begin
   AssertEquals('Div1.Color','',Div1.Color);
 end;
 
-procedure TTestNewCSSResolver.Test_PseudoElement;
+procedure TTestNewCSSResolver.TestRes_PseudoElement;
 var
   Div1: TDemoDiv;
   FirstLine: TDemoFirstLine;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   'div {',
@@ -2872,16 +2774,14 @@ begin
   AssertEquals('Div1::first-line.Color','red',FirstLine.Color);
 end;
 
-procedure TTestNewCSSResolver.Test_PseudoElement_Unary;
+procedure TTestNewCSSResolver.TestRes_PseudoElement_Unary;
 var
   Div1: TDemoDiv;
   FirstLine: TDemoFirstLine;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
 
   Doc.Style:=LinesToStr([
   '::first-line {',
@@ -2898,16 +2798,14 @@ begin
   AssertEquals('Div1::first-line.Color','red',FirstLine.Color);
 end;
 
-procedure TTestNewCSSResolver.Test_PseudoElement_PostfixSelectNothing;
+procedure TTestNewCSSResolver.TestRes_PseudoElement_PostfixSelectNothing;
 var
   Div1: TDemoDiv;
   FirstLine: TDemoFirstLine;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
-  Div1:=TDemoDiv.Create(nil);
-  Div1.Name:='Div1';
-  Div1.Parent:=Doc.Root;
+  Div1:=AddDiv('Div1',Doc.Root);
   Div1.CSSClasses.Add('Big');
 
   Doc.Style:=LinesToStr([
@@ -2930,6 +2828,548 @@ begin
   AssertEquals('Div1::first-line.Color','',FirstLine.Color);
   AssertEquals('Div1::first-line.BorderColor','',FirstLine.BorderColor);
 end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_Hash;
+var
+  Container, Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  // Container is the .Big parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Big');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Doc.Style:=LinesToStr([
+  '.Big {',
+  '  #Div1 {', // -> descendant combinator: .Big #Div1
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Container.Width','',Container.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_Class;
+var
+  Container, Div1, Div2: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  // Container is the .Big parent; Div1 is a descendant of it
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Bar');
+
+  Div2:=AddDiv('Div2',Container);
+
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  .Bar {', // descendant combinator: .Foo .Bar
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndClass;
+var
+  Div1, Div2, Div3: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=AddDiv('Div1',Doc.Root);
+  Div1.CSSClasses.Add('Bird');
+  Div1.CSSClasses.Add('Ant');   // has both classes -> matches
+
+  Div2:=AddDiv('Div2',Doc.Root);
+  Div2.CSSClasses.Add('Bird');  // only .Bird, not .Ant -> no match
+
+  Div3:=AddDiv('Div3',Doc.Root);
+  Div3.CSSClasses.Add('Ant');   // only .Ant, not .Bird -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  &.Ant {', // compound: element must match both .Bird and .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+  AssertEquals('Div3.Width','',Div3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan('Span1',Container);
+  Span1.CSSClasses.Add('Bar');
+  Span2:=AddSpan('Span2',Div1);
+  Span2.CSSClasses.Add('Bar');
+  Span3:=AddSpan('Span3',Span1);
+  Span3.CSSClasses.Add('Bar');
+
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  & .Bar {', // descendant combinator: .Foo .Bar
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Red');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Blue',Container);
+  Span2:=AddSpan_Class('Span2','Green',Div1);
+  Span3:=AddSpan_Class('Span3','Blue',Span1);
+  Span4:=AddSpan_Class('Span4','Blue',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Red {',
+  '  .Green,.Blue {', // 2x descendant combinator: .Red .Green,.Red .Blue
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaAndClass;
+var
+  Container, Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Ant');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Bird');        // descendant of .Ant with .Bird -> matches .Bird
+
+  Div2:=AddDiv('Div2',Container);
+  Div2.CSSClasses.Add('Cat');         // descendant of .Ant with .Cat, but not .Ant itself -> no match
+
+  Div3:=AddDiv('Div3',Doc.Root);
+  Div3.CSSClasses.Add('Ant');
+  Div3.CSSClasses.Add('Cat');         // has both .Ant and .Cat -> matches &.Cat
+
+  Div4:=AddDiv('Div4',Doc.Root);
+  Div4.CSSClasses.Add('Bird');        // .Bird but not a descendant of .Ant -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Ant {',
+  '  .Bird,&.Cat {', // .Bird: descendant of .Ant; &.Cat: element with both .Ant and .Cat
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+  AssertEquals('Div3.Width','10px',Div3.Width);
+  AssertEquals('Div4.Width','',Div4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaAndSpaceClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Red');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Blue',Container);
+  Span2:=AddSpan_Class('Span2','Green',Div1);
+  Span3:=AddSpan_Class('Span3','Blue',Span1);
+  Span4:=AddSpan_Class('Span4','Blue',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Red {',
+  '  .Green,& .Blue {', // 2x descendant combinator: .Red .Green,.Red .Blue
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_ClassSpaceAnd;
+var
+  Container, Div1, Div2, Div3: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Ant');         // .Ant descendant of .Bird -> matches .Bird &
+
+  Div2:=AddDiv('Div2',Container);     // descendant of .Bird but not .Ant -> no match
+
+  Div3:=AddDiv('Div3',Doc.Root);
+  Div3.CSSClasses.Add('Ant');         // .Ant but not descendant of .Bird -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Ant {',
+  '  .Bird & {', // append: expands to .Bird .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div2.Width','',Div2.Width);
+  AssertEquals('Div3.Width','',Div3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceType;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Foo');
+
+  Div1:=AddDiv('Div1',Container);
+  Div1.CSSClasses.Add('Bar');
+
+  Span1:=AddSpan('Span1',Container);
+  Span2:=AddSpan('Span2',Div1);
+  Span3:=AddSpan('Span3',Span1);
+
+  Doc.Style:=LinesToStr([
+  '.Foo {',
+  '  & span {', // descendant combinator: .Foo span
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','10px',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_GTClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Ant',Container);
+  Span2:=AddSpan_Class('Span2','Ant',Div1);
+  Span3:=AddSpan_Class('Span3','Ant',Span1);
+  Span4:=AddSpan_Class('Span4','Ant',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  > .Ant {', // child combinator: .Bird > .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndGTClass;
+var
+  Container, Div1: TDemoDiv;
+  Span1, Span2, Span3, Span4: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Div1:=AddDiv('Div1',Container);
+
+  Span1:=AddSpan_Class('Span1','Ant',Container);
+  Span2:=AddSpan_Class('Span2','Ant',Div1);
+  Span3:=AddSpan_Class('Span3','Ant',Span1);
+  Span4:=AddSpan_Class('Span4','Ant',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  & > .Ant {', // child combinator: .Bird > .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+  AssertEquals('Span4.Width','',Span4.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_PlusClass;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // immediate sibling of .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling but not adjacent to .Bird -> no match
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  + .Ant {', // adjacent sibling combinator: .Bird + .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndPlusType;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // immediate sibling of .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling but not adjacent to .Bird -> no match
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  & + .Ant {', // adjacent sibling combinator: .Bird + .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_TildeClass;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // sibling after .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling after .Bird (not adjacent) -> matches
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  ~ .Ant {', // general sibling combinator: .Bird ~ .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndTildeClass;
+var
+  Container: TDemoDiv;
+  Span1, Span2, Span3: TDemoSpan;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Container:=AddDiv('Container',Doc.Root);
+  Container.CSSClasses.Add('Bird');
+
+  Span1:=AddSpan_Class('Span1','Ant',Doc.Root);   // sibling after .Bird -> matches
+  Span2:=AddSpan_Class('Span2','Ant',Doc.Root);   // sibling after .Bird (not adjacent) -> matches
+  Span3:=AddSpan_Class('Span3','Ant',Container);  // child of .Bird, not sibling -> no match
+
+  Doc.Style:=LinesToStr([
+  '.Bird {',
+  '  & ~ .Ant {', // general sibling combinator: .Bird ~ .Ant
+  '    width:10px;',
+  '  }',
+  '}']);
+  ApplyStyle;
+
+  AssertEquals('Container.Width','',Container.Width);
+  AssertEquals('Span1.Width','10px',Span1.Width);
+  AssertEquals('Span2.Width','10px',Span2.Width);
+  AssertEquals('Span3.Width','',Span3.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_HasAtribute;
+var
+  Button1, Button2: TDemoButton;
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='100px';
+
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.ExplicitCaption:='Click Button1';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Button2:=AddButton('Button2',Div1);
+  Button2.ExplicitCaption:='Click Button2';
+
+  Doc.Style:=LinesToStr([
+  '[left] { [caption] { width: 3px;} }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Width','3px',Button1.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Button2.Width','3px',Button2.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndHasAtribute;
+var
+  Button1, Button2: TDemoButton;
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='100px';
+
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.ExplicitAttributes[naLeft]:='100px';
+  Button1.ExplicitCaption:='Click Button1';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Button2:=AddButton('Button2',Div1);
+  Button2.ExplicitCaption:='Click Button2';
+
+  Doc.Style:=LinesToStr([
+  '[left] { &[caption] { width: 3px;} }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Width','3px',Button1.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Button2.Width','',Button2.Width);
+end;
+
+procedure TTestNewCSSResolver.TestRes_Nested_AndHasSpaceAtribute;
+var
+  Button1, Button2: TDemoButton;
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+  Doc.Root.ExplicitAttributes[naLeft]:='100px';
+
+  Button1:=AddButton('Button1',Doc.Root);
+  Button1.ExplicitCaption:='Click Button1';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Button2:=AddButton('Button2',Div1);
+  Button2.ExplicitCaption:='Click Button2';
+
+  Doc.Style:=LinesToStr([
+  '[left] { & [caption] { width: 3px;} }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Width','3px',Button1.Width);
+  AssertEquals('Div1.Width','',Div1.Width);
+  AssertEquals('Button2.Width','3px',Button2.Width);
+end;
+
 
 initialization
   RegisterTests([TTestNewCSSResolver]);

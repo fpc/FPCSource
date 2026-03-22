@@ -524,6 +524,8 @@ type
     rvkFunction,
     rvkFunctionUnknown,
     rvkString,
+    rvkBrackets, // []
+    rvkParenthesis, // ()
     rvkHexColor
     );
 
@@ -1903,6 +1905,27 @@ begin
         end;
       end;
     end;
+  '''','"':
+    if SkipString(p) then
+    begin
+      aComp.Kind:=rvkString;
+      aComp.EndP:=p;
+      exit;
+    end;
+  '[':
+    if SkipBrackets(p) then
+    begin
+      aComp.Kind:=rvkBrackets;
+      aComp.EndP:=p;
+      exit;
+    end;
+  '(':
+    if SkipBrackets(p) then
+    begin
+      aComp.Kind:=rvkParenthesis;
+      aComp.EndP:=p;
+      exit;
+    end;
   end;
 
   // skip unknown aComp
@@ -1916,6 +1939,7 @@ begin
     end;
   until false;
   aComp.EndP:=p;
+  Result:=false;
 end;
 
 class function TCSSBaseResolver.ReadNumber(var aComp: TCSSResCompValue): boolean;
@@ -2181,9 +2205,7 @@ begin
       inc(p);
       exit(true);
     end else if c=#0 then
-      exit
-    else
-      inc(p);
+      exit;
   until false;
 end;
 

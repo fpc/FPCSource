@@ -55,6 +55,7 @@ type
     procedure TestSkipRule_AttrSelectorNoIdent;
     procedure TestSkipRule_InvalidDotRule;
     procedure TestSkipRule_InvalidHashRule;
+    procedure TestSkipRule_InvalidPercentageRule;
   end;
 
 
@@ -266,6 +267,11 @@ end;
 procedure TTestCSSSkipInline.TestSkipRule_InvalidHashRule;
 begin
   ParseRules_SecondRule('# {}'+LineEnding+'div{}','div');
+end;
+
+procedure TTestCSSSkipInline.TestSkipRule_InvalidPercentageRule;
+begin
+  ParseRules_SecondRule('%invalid {}'+LineEnding+'div{}','div');
 end;
 
 initialization

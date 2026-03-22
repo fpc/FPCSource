@@ -19,8 +19,8 @@ program FP;
   is too big }
 {$maxstacksize 3000000}
 {$ifdef IncRes}
-{$R fpw32t.rc}
-{$R fpw32ico.rc}
+{ $R fpw32t.rc}
+{$R fpw.rc}
 {$endif IncRes}
 {$endif Windows}
 

@@ -747,7 +747,10 @@ begin
       end;
     DefaultReplacements(s);
     if (pos('*',s)=0) and ExistsDir(s) then
-      Command(AddSourceDirCommand+' '+GDBFileName(GetShortName(s)))
+      begin
+        if s<>'' then
+          Command(AddSourceDirCommand+' '+GDBFileName(GetShortName(s)));
+      end
     { we should also handle the /* cases of -Fu option }
     else if pos('*',s)>0 then
       begin

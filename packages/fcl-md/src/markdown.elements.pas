@@ -149,7 +149,30 @@ Type
     property Blocks : TMarkdownBlockList read FBlocks;
   end;
 
-  TMarkdownDocument = class (TMarkdownContainerBlock);
+  TFrontMatterType = (fmtYAML, fmtTOML, fmtJSON);
+
+  { TMarkdownFrontmatterBlock }
+
+  TMarkdownFrontmatterBlock = class (TMarkdownContainerBlock)
+  private
+    FFrontMatterType: TFrontMatterType;
+    FContent: TStringList;
+  public
+    constructor Create(aParent : TMarkdownBlock; aLine : Integer); override;
+    destructor Destroy; override;
+    function WhiteSpaceMode : TWhitespaceMode; override;
+    property FrontMatterType : TFrontMatterType read FFrontMatterType write FFrontMatterType;
+    property Content : TStringList read FContent;
+  end;
+
+  { TMarkdownDocument }
+
+  TMarkdownDocument = class (TMarkdownContainerBlock)
+  private
+    FFrontmatter: TMarkdownFrontmatterBlock;
+  public
+    property Frontmatter : TMarkdownFrontmatterBlock read FFrontmatter write FFrontmatter;
+  end;
 
   { TMarkdownParagraphBlock }
 
@@ -548,6 +571,25 @@ end;
 procedure TMarkdownContainerBlock.DeleteChild(aIndex: Integer);
 begin
   FBlocks.Delete(aIndex);
+end;
+
+{ TMarkdownFrontmatterBlock }
+
+constructor TMarkdownFrontmatterBlock.Create(aParent: TMarkdownBlock; aLine: Integer);
+begin
+  inherited Create(aParent, aLine);
+  FContent := TStringList.Create;
+end;
+
+destructor TMarkdownFrontmatterBlock.Destroy;
+begin
+  FreeAndNil(FContent);
+  inherited Destroy;
+end;
+
+function TMarkdownFrontmatterBlock.WhiteSpaceMode: TWhitespaceMode;
+begin
+  Result := wsLeave;
 end;
 
 { TMarkdownParagraphBlock }
