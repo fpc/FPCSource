@@ -326,7 +326,7 @@ unit cpupara;
           end;
 
         { win64 follows a different convention here }
-        if x86_64_use_ms_abi(calloption) then
+        if x86_64_use_ms_abi(calloption,compiler.target) then
           begin
             if aggregate_in_registers_win64(varspez,def.size) then
               begin
@@ -1297,7 +1297,7 @@ unit cpupara;
                  (varspez=vs_const) then
                 result:=true
               { Win ABI depends on size to pass it in a register or not }
-              else if x86_64_use_ms_abi(calloption) then
+              else if x86_64_use_ms_abi(calloption,compiler.target) then
                 begin
                   if calloption = pocall_vectorcall then
                     begin
@@ -1369,7 +1369,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        if x86_64_use_ms_abi(calloption) then
+        if x86_64_use_ms_abi(calloption,compiler.target) then
           result:=[RS_RAX,RS_RCX,RS_RDX,RS_R8,RS_R9,RS_R10,RS_R11]
         else
           result:=[RS_RAX,RS_RCX,RS_RDX,RS_RSI,RS_RDI,RS_R8,RS_R9,RS_R10,RS_R11];
@@ -1378,7 +1378,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
-        if x86_64_use_ms_abi(calloption) then
+        if x86_64_use_ms_abi(calloption,compiler.target) then
           result:=[RS_XMM0..RS_XMM5]
         else
           result:=[RS_XMM0..RS_XMM15];
@@ -1561,7 +1561,7 @@ unit cpupara;
                         X86_64_SSE_CLASS:
                           begin
                             j := 1;
-                            if not (x86_64_use_ms_abi(p.proccalloption) and (p.proccalloption <> pocall_vectorcall)) then
+                            if not (x86_64_use_ms_abi(p.proccalloption,compiler.target) and (p.proccalloption <> pocall_vectorcall)) then
                               while i + j <= numclasses do
                                 begin
                                   if classes[i+j].typ <> X86_64_SSEUP_CLASS then
@@ -1599,7 +1599,7 @@ unit cpupara;
                             paraloc^.def:=carraydef.getreusable_no_free_vector(paraloc^.def,j,compiler);
                           end;
                         else
-                          if (x86_64_use_ms_abi(p.proccalloption) and (p.proccalloption <> pocall_vectorcall)) then
+                          if (x86_64_use_ms_abi(p.proccalloption,compiler.target) and (p.proccalloption <> pocall_vectorcall)) then
                             begin
                               setsubreg(paraloc^.register,R_SUBQ);
                               paraloc^.size:=OS_M64;
@@ -1666,7 +1666,7 @@ unit cpupara;
         use_ms_abi : boolean;
       begin
         procparaalign:=get_para_align(p.proccalloption);
-        use_ms_abi:=x86_64_use_ms_abi(p.proccalloption);
+        use_ms_abi:=x86_64_use_ms_abi(p.proccalloption,compiler.target);
         { Register parameters are assigned from left to right }
         for i:=0 to paras.count-1 do
           begin
@@ -2058,7 +2058,7 @@ unit cpupara;
       begin
         intparareg:=0;
         mmparareg:=0;
-        if x86_64_use_ms_abi(p.proccalloption) then
+        if x86_64_use_ms_abi(p.proccalloption,compiler.target) then
           parasize:=4*8
         else
           parasize:=0;
@@ -2086,7 +2086,7 @@ unit cpupara;
       begin
         intparareg:=0;
         mmparareg:=0;
-        if x86_64_use_ms_abi(p.proccalloption) then
+        if x86_64_use_ms_abi(p.proccalloption,compiler.target) then
           parasize:=4*8
         else
           parasize:=0;

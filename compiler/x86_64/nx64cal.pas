@@ -89,7 +89,7 @@ implementation
         mmregs : aint;
       begin
         { x86_64 requires %al to contain the no. SSE regs passed }
-        if (cnf_uses_varargs in callnodeflags) and not x86_64_use_ms_abi(procdefinition.proccalloption) then
+        if (cnf_uses_varargs in callnodeflags) and not x86_64_use_ms_abi(procdefinition.proccalloption,compiler.target) then
           begin
             if assigned(varargsparas) then
               mmregs:=varargsparas.mmregsused

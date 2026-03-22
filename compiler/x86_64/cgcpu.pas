@@ -547,7 +547,7 @@ unit cgcpu;
     function tcgx86_64.use_ms_abi: boolean;
       begin
         if assigned(current_procinfo) then
-          use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption)
+          use_ms_abi:=x86_64_use_ms_abi(current_procinfo.procdef.proccalloption,compiler.target)
         else
           use_ms_abi:=compiler.target.info.system=system_x86_64_win64;
       end;

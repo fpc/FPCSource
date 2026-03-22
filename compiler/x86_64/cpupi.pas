@@ -28,7 +28,7 @@ unit cpupi;
 interface
 
     uses
-       globtype,compilerbase,
+       globtype,compilerbase,systems,
        psub,
        procinfo,psabiehpi,
        aasmbase,aasmdata;
@@ -49,12 +49,11 @@ interface
          destructor destroy;override;
        end;
 
-    function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
+    function x86_64_use_ms_abi(proccall: tproccalloption; target: TCompilerTarget): boolean;
 
 implementation
 
     uses
-      systems,
       globals,
       compiler,
       cutils,
@@ -172,12 +171,10 @@ implementation
       end;
 
 
-    function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function x86_64_use_ms_abi(proccall: tproccalloption; target: TCompilerTarget): boolean;
       begin
         result:=
-          ((compiler.target.info.system=system_x86_64_win64) and
+          ((target.info.system=system_x86_64_win64) and
             not(proccall in [pocall_sysv_abi_default,pocall_sysv_abi_cdecl])) or
           (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl]);
       end;
