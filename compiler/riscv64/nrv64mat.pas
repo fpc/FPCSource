@@ -28,7 +28,8 @@ unit nrv64mat;
     uses
       node, nmat, ncgmat,
       nrvmat,
-      cgbase;
+      cgbase,
+      compilerbase;
 
     type
       trv64moddivnode = class(tcgmoddivnode)
@@ -62,7 +63,8 @@ implementation
       pass_1,pass_2,htypechk,
       ncon,procinfo,
       cpubase,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,
+      compiler,nodehelper;
 
     procedure trv64notnode.second_boolean;
       var
@@ -152,7 +154,7 @@ implementation
 
         { we may not change the result type here }
         if assigned(result) and (torddef(result.resultdef).ordtype<>torddef(resultdef).ordtype) then
-          inserttypeconv(result,resultdef);
+          inserttypeconv(result,resultdef,compiler);
       end;
 
 begin

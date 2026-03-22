@@ -26,7 +26,7 @@ unit nrv64cnv;
   interface
 
     uses
-      node, ncnv, ncgcnv, nrvcnv;
+      node, ncnv, ncgcnv, nrvcnv, compilerbase;
 
     type
       trv64typeconvnode = class(trvtypeconvnode)
@@ -63,7 +63,7 @@ unit nrv64cnv;
       ncon, ncal,procinfo,
       ncgutil,
       cpubase, aasmcpu,
-      rgobj, tgobj, cgobj, hlcgobj;
+      rgobj, tgobj, cgobj, nodehelper, compiler;
 
     {*****************************************************************************
                                  FirstTypeConv
@@ -85,7 +85,7 @@ unit nrv64cnv;
               // integer - because the int_to_real conversion is faster for 64 bit
               // signed ints compared to 64 bit unsigned ints.
               if (not (torddef(left.resultdef).ordtype in [s64bit, u64bit, scurrency])) then begin
-                inserttypeconv(left, s64inttype);
+                inserttypeconv(left, s64inttype, compiler);
               end;
             end;
             firstpass(left);

@@ -30,7 +30,8 @@ unit cgcpu;
       cgbase, cgobj,cgrv,
       aasmbase, aasmcpu, aasmtai,aasmdata,
       cpubase, cpuinfo, cgutils, rgcpu,
-      parabase;
+      parabase,
+      compilerbase;
 
     type
       tcgrv64 = class(tcgrv)
@@ -44,7 +45,7 @@ unit cgcpu;
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: aint); override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
 implementation
 
@@ -52,7 +53,8 @@ implementation
       sysutils, cclasses,
       globals, verbose, systems, cutils,
       symconst, fmodule, symtable,
-      rgobj, tgobj, cpupi, procinfo, paramgr, cpupara;
+      rgobj, tgobj, cpupi, procinfo, paramgr, cpupara,
+      compiler;
 
 { Range check must be disabled explicitly as conversions between signed and unsigned
   64-bit and 32-bit values are done without explicit typecasts }
@@ -179,7 +181,7 @@ implementation
 
                 current_asmdata.getjumplabel(l);
                 current_procinfo.aktlocaldata.Concat(cai_align.Create(8));
-                cg.a_label(current_procinfo.aktlocaldata,l);
+                a_label(current_procinfo.aktlocaldata,l);
                 hr.symboldata:=current_procinfo.aktlocaldata.last;
                 current_procinfo.aktlocaldata.concat(tai_const.Create_64bit(a));
 
@@ -297,10 +299,10 @@ implementation
         end;
       end;
 
-procedure create_codegen;
+procedure create_codegen(compiler: TCompilerBase);
 begin
-  cg := tcgrv64.create;
-  cg128:=tcg128.create;
+  tcompiler(compiler).cg := tcgrv64.create(compiler);
+  tcompiler(compiler).cg128:=tcg128.create(compiler.cg);
 end;
 
 end.

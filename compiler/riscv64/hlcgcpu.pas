@@ -31,14 +31,15 @@ uses
   globtype,
   aasmdata,
   symtype,
-  cgbase,cgutils,hlcgobj,hlcgrv;
+  cgbase,cgutils,hlcgobj,hlcgrv,
+  compilerbase;
 
 type
   thlcgcpu = class(thlcgriscv)
     procedure a_load_const_subsetreg(list: TAsmlist; tosubsetsize: tdef; a: tcgint; const sreg: tsubsetregister); override;
   end;
 
-   procedure create_hlcodegen;
+   procedure create_hlcodegen(compiler: TCompilerBase);
 
 implementation
 
@@ -48,7 +49,7 @@ implementation
 {$ifdef extdebug}
     aasmtai,cutils,cgrv,
 {$endif}
-    cgobj,cgcpu;
+    cgobj,cgcpu,compiler;
 
   { thlcgcpu }
 
@@ -68,10 +69,10 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 

@@ -64,7 +64,5 @@ implementation
       end;
 
 
-begin
-  paramanager := tcpuparamanager.create;
 end.
 
