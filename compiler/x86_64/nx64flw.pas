@@ -247,14 +247,10 @@ function tx64tryfinallynode.simplify(forinline: boolean): tnode;
   end;
 
 
-procedure emit_nop;
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    cg: tcg;
+procedure emit_nop(cg:tcg);
   var
     dummy: TAsmLabel;
   begin
-    cg:=compiler.cg;
     { To avoid optimizing away the whole thing, prepend a jumplabel with increased refcount }
     current_asmdata.getjumplabel(dummy);
     dummy.increfs;
@@ -316,7 +312,7 @@ procedure tx64tryfinallynode.pass_generate_code;
       and fall into the same scope. However they should be seen in different scopes.
     }
 
-    emit_nop;
+    emit_nop(cg);
     cg.a_label(current_asmdata.CurrAsmList,trylabel);
 
     { try code }
@@ -454,7 +450,7 @@ procedure tx64tryexceptnode.pass_generate_code;
 
     { start of scope }
     current_asmdata.getjumplabel(trylabel);
-    emit_nop;
+    emit_nop(cg);
     cg.a_label(current_asmdata.CurrAsmList,trylabel);
 
     { control flow in try block needs no special handling,
@@ -567,7 +563,7 @@ procedure tx64tryexceptnode.pass_generate_code;
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
       end;
 
-    emit_nop;
+    emit_nop(cg);
     cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
     tcpuprocinfo(current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
 
