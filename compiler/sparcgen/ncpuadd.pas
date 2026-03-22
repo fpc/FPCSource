@@ -26,7 +26,7 @@ unit ncpuadd;
 interface
 
     uses
-       node,ncgadd,cpubase;
+       node,ncgadd,cpubase,compilerbase;
 
     type
        tsparcaddnode = class(tcgaddnode)
@@ -59,7 +59,7 @@ interface
       cgbase,cgsparc,cgcpu,cgutils,
       cpuinfo,cpupara,
       ncon,nset,nadd,
-      hlcgobj,ncgutil,cgobj;
+      nodehelper,ncgutil,cgobj,compiler;
 
 {*****************************************************************************
                                TSparcAddNode

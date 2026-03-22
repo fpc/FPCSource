@@ -33,7 +33,8 @@ interface
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
        rgcpu,
-       cgsparc;
+       cgsparc,
+       compilerbase;
 
     type
       TCGSparc=class(TCGSparcGen)
@@ -56,13 +57,14 @@ interface
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
   implementation
 
     uses
       verbose,
-      systems;
+      systems,
+      compiler;
 
     procedure TCGSparc.a_load_reg_reg(list:TAsmList;fromsize,tosize:tcgsize;reg1,reg2:tregister);
       var
@@ -323,14 +325,14 @@ interface
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=TCgSparc.Create;
+        tcompiler(compiler).cg:=TCgSparc.Create(compiler);
         if compiler.target.info.system=system_sparc_linux then
-          TCgSparc(cg).use_unlimited_pic_mode:=true
+          TCgSparc(compiler.cg).use_unlimited_pic_mode:=true
         else
-          TCgSparc(cg).use_unlimited_pic_mode:=false;
-        cg64:=TCg64Sparc.Create;
+          TCgSparc(compiler.cg).use_unlimited_pic_mode:=false;
+        tcompiler(compiler).cg64:=TCg64Sparc.Create(compiler);
       end;
 
 end.

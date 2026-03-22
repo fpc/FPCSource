@@ -26,7 +26,7 @@ unit ncpucall;
 interface
 
     uses
-      ncgcal;
+      ncgcal,compilerbase;
 
     type
        tsparccallnode = class(tcgcallnode)
@@ -41,7 +41,8 @@ implementation
       aasmtai,aasmdata,
       aasmcpu,
       paramgr,
-      ncal;
+      ncal,
+      compiler,nodehelper;
 
 
     procedure tsparccallnode.extra_post_call_code;

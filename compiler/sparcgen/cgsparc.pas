@@ -34,7 +34,8 @@ interface
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,symdef,
-       rgcpu;
+       rgcpu,
+       compilerbase;
 
     type
       TCGSparcGen=class(tcg)
@@ -125,7 +126,8 @@ implementation
     paramgr,fmodule,
     symtable,symsym,
     tgobj,
-    procinfo,cpupi;
+    procinfo,cpupi,
+    compiler;
 
 
     function TCGSparcGen.IsSimpleRef(const ref:treference):boolean;
@@ -980,7 +982,7 @@ implementation
             begin
               hflags:=ovloc.resflags;
               inverse_flags(hflags);
-              cg.a_jmp_flags(list,hflags,hl);
+              a_jmp_flags(list,hflags,hl);
             end;
           else
             internalerror(200409281);
@@ -1033,7 +1035,7 @@ implementation
             reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),4,sizeof(pint),[]);
             ref.refaddr:=addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,ref,NR_L7));
-            cg.a_label(list,hl);
+            a_label(list,hl);
             ref.refaddr:=addr_low;
             ref.offset:=8;
             list.concat(Taicpu.Op_reg_ref_reg(A_OR,NR_L7,ref,NR_L7));

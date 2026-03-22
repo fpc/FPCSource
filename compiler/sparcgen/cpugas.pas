@@ -28,11 +28,12 @@ interface
     uses
       cpubase,systems,
       aasmtai,aasmdata,aasmcpu,assemble,aggas,
-      cgutils,globtype;
+      cgutils,globtype,
+      compilerbase;
 
     type
       TGasSPARC=class(TGnuAssembler)
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
       end;
@@ -47,14 +48,15 @@ implementation
 
     uses
       cutils,globals,cpuinfo,procinfo,
-      verbose,itcpugas,cgbase;
+      verbose,itcpugas,cgbase,
+      compiler;
 
 
 {****************************************************************************}
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TGasSPARC.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TGasSPARC.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter := TSPARCInstrWriter.create(self);

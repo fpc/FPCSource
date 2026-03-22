@@ -26,7 +26,7 @@ unit ncpuinln;
 interface
 
     uses
-      node,ninl,ncginl;
+      node,ninl,ncginl,compilerbase;
 
     type
       tsparcinlinenode = class(tcgInlineNode)
@@ -51,7 +51,7 @@ implementation
       cgbase,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      hlcgobj,ncgutil,cgobj,cgutils;
+      nodehelper,ncgutil,cgobj,cgutils,compiler;
 
 {*****************************************************************************
                               tsparcinlinenode

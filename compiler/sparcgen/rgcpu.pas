@@ -29,7 +29,8 @@ unit rgcpu;
       aasmbase,aasmcpu,aasmtai,aasmsym,aasmdata,
       cgbase,cgutils,
       cpubase,
-      rgobj;
+      rgobj,
+      compilerbase;
 
     type
       trgcpu=class(trgobj)
@@ -46,7 +47,8 @@ implementation
     uses
       verbose,cutils,
       globtype,
-      cgobj;
+      cgobj,
+      compiler;
 
     procedure trgcpu.add_constraints(reg:tregister);
       var
@@ -92,11 +94,15 @@ implementation
 
     procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         helpins  : tai;
         tmpref   : treference;
         helplist : TAsmList;
         hreg     : tregister;
       begin
+        cg:=compiler.cg;
         if abs(spilltemp.offset)>4095 then
           begin
             helplist:=TAsmList.create;
@@ -140,10 +146,14 @@ implementation
 
     procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         tmpref   : treference;
         helplist : TAsmList;
         hreg     : tregister;
       begin
+        cg:=compiler.cg;
         if abs(spilltemp.offset)>4095 then
           begin
             helplist:=TAsmList.create;

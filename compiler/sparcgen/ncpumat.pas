@@ -26,7 +26,7 @@ unit ncpumat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,nmat,ncgmat,compilerbase;
 
     type
       tSparcmoddivnode = class(tmoddivnode)
@@ -63,7 +63,7 @@ implementation
       cgbase,cgobj,hlcgobj,pass_2,procinfo,
       ncon,
       cpubase,
-      ncgutil,cgcpu,cgutils;
+      ncgutil,cgcpu,cgutils,compiler,nodehelper;
 
 {*****************************************************************************
                              TSparcMODDIVNODE

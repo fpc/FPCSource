@@ -25,7 +25,7 @@ unit ncpucnv;
 interface
 
     uses
-      node,ncnv,ncgcnv,defcmp;
+      node,ncnv,ncgcnv,defcmp,compilerbase;
 
     type
        tsparctypeconvnode = class(TCgTypeConvNode)
@@ -63,7 +63,7 @@ implementation
       ncgutil,
       cpuinfo,cpubase,aasmcpu,
       tgobj,cgobj,
-      hlcgobj;
+      nodehelper,compiler;
 
 
 {*****************************************************************************
@@ -90,7 +90,7 @@ implementation
               left,nil));
             left:=nil;
             if (tfloatdef(resultdef).floattype=s32real) then
-              inserttypeconv(result,s32floattype);
+              inserttypeconv(result,s32floattype,compiler);
             firstpass(result);
             exit;
           end
@@ -98,10 +98,10 @@ implementation
           { other integers are supposed to be 32 bit }
           begin
             if is_signed(left.resultdef) then
-              inserttypeconv(left,s32inttype)
+              inserttypeconv(left,s32inttype,compiler)
             else
               begin
-                inserttypeconv(left,u32inttype);
+                inserttypeconv(left,u32inttype,compiler);
                 if (cs_create_pic in current_settings.moduleswitches) and
                   (tf_pic_uses_got in compiler.target.info.flags) then
                   include(current_procinfo.flags,pi_needs_got);

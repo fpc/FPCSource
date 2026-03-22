@@ -34,7 +34,8 @@ interface
     symdef,
     hlcg2ll,
     cgutils,
-    tgobj;
+    tgobj,
+    compilerbase;
 
   type
     thlcgcpu = class(thlcg2ll)
@@ -49,7 +50,8 @@ implementation
     aasmbase,aasmtai,aasmcpu,
     parabase,
     symconst,symtype,symsym,
-    cgbase,cgobj,hlcgobj,cpubase,cgcpu;
+    cgbase,cgobj,hlcgobj,cpubase,cgcpu,
+    compiler;
 
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
@@ -133,10 +135,10 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_cpu;
+  procedure create_hlcodegen_cpu(compiler: TCompilerBase);
     begin
-      hlcg:=thlcgcpu.create;
-      create_codegen;
+      tcompiler(compiler).hlcg:=thlcgcpu.create(compiler);
+      create_codegen(compiler);
     end;
 
 begin

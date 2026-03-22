@@ -29,7 +29,8 @@ unit ncpuset;
        globtype,
        node,
        nset,
-       ncgset;
+       ncgset,
+       compilerbase;
 
     type
        tcpucasenode = class(tcgcasenode)
@@ -48,7 +49,8 @@ unit ncpuset;
       cpubase,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,cgutils,cgobj,
-      defutil,procinfo;
+      defutil,procinfo,
+      compiler,nodehelper;
 
     procedure tcpucasenode.optimizevalues(var max_linear_list:int64;var max_dist:qword);
       begin

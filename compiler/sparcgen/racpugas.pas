@@ -26,7 +26,7 @@ Unit racpugas;
 Interface
 
   uses
-    cgbase,raatt,racpu;
+    cgbase,raatt,racpu,compilerbase;
 
   type
     tSparcReader = class(tattreader)
@@ -57,7 +57,8 @@ Interface
       scanner,
       procinfo,
       rabase,rautils,
-      cgobj,paramgr
+      cgobj,paramgr,
+      compiler
       ;
 
 
@@ -609,7 +610,7 @@ Interface
       var
         instr : tSparcinstruction;
       begin
-        instr:=TSparcInstruction.Create(TSparcOperand);
+        instr:=TSparcInstruction.Create(TSparcOperand,compiler);
         BuildOpcode(instr);
         with instr do
           begin
