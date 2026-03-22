@@ -649,7 +649,7 @@ implementation
       { Create status info }
         UpdateStatus(get_current_filepos);
       { Fix replacements }
-        DefaultReplacements(s,false);
+        compiler.DefaultReplacements(s,false);
       { show comment }
         if do_comment(l,s) or dostop then
           raise ECompilerAbort.Create;
@@ -673,8 +673,10 @@ implementation
         { todo }
       end;
 
-        procedure TVerbose.Msg2Comment(s: ansistring; w: longint;
+    procedure TVerbose.Msg2Comment(s: ansistring; w: longint;
       const filepos: tfileposinfo; onqueue: tmsgqueueevent);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         idx,i,v : longint;
         dostop  : boolean;
@@ -782,7 +784,7 @@ implementation
       { fix status }
         UpdateStatus(filepos);
       { Fix replacements }
-        DefaultReplacements(s,false);
+        compiler.DefaultReplacements(s,false);
         if status.showmsgnrs and ((v and V_Normal)=0) then
           s:='('+tostr(w)+') '+s;
         if doqueue then

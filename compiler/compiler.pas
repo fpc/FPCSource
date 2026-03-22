@@ -220,6 +220,8 @@ type
   public
     function Compile(const cmd:TCmdStr):longint;
 
+    procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
+
     procedure CreateExceptionStateHandler(eshclass: tcgexceptionstatehandlerclass);
 
     procedure InitLinker;
@@ -400,6 +402,8 @@ type
     function crangenode(l,r : tnode):trangenode; inline;
     function ccasenode(l:tnode):tcasenode; inline;
 
+    procedure DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
+
     property Target: TCompilerTarget read GetTarget;
     property Verbose: TVerbose read GetVerbose;
     property Time: TCompilerTime read GetTime;
@@ -437,7 +441,8 @@ implementation
 uses
   finput,
   fppu,
-  aasmcpu;
+  aasmcpu,
+  version;
 
 {$if defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}
@@ -744,6 +749,143 @@ begin
   else
     result:=1;
 end;
+
+function idfversionstring(version : longint):string;
+{
+  Convert back the numerical idf_version for esp32 to string
+}
+  begin
+    result := '';
+    if version > 0 then
+      begin
+        result := inttostr(version div 10000)+'.';
+        version := version - (version div 10000)*10000;
+        result := result + inttostr(version div 100)+'.';
+        version := version - (version div 100)*100;
+        result := result + inttostr(version);
+      end;
+  end;
+
+{****************************************************************************
+                       Default Macro Handling
+****************************************************************************}
+
+
+  procedure TCompiler.DefaultReplacements(var s:ansistring; substitute_env_variables:boolean=true);
+    var
+      compiler: TCompilerBase absolute self;
+{$ifdef mswindows}
+    procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
+      begin
+        // Only try to receive the special folders (and thus dynamically
+        // load shfolder.dll) when that's needed.
+        if pos(MacroName,s)>0 then
+          Replace(s,MacroName,GetWindowsSpecialDir(ID));
+      end;
+
+{$endif mswindows}
+{$ifdef openbsd}
+    function GetOpenBSDLocalBase: ansistring;
+      var
+        envvalue: pchar;
+      begin
+        envvalue := GetEnvPChar('LOCALBASE');
+        if assigned(envvalue) then
+          Result:=envvalue
+        else
+          Result:='/usr/local';
+        FreeEnvPChar(envvalue);
+      end;
+    function GetOpenBSDX11Base: ansistring;
+      var
+        envvalue: pchar;
+      begin
+        envvalue := GetEnvPChar('X11BASE');
+        if assigned(envvalue) then
+          Result:=envvalue
+        else
+          Result:='/usr/X11R6';
+        FreeEnvPChar(envvalue);
+      end;
+{$endif openbsd}
+    var
+      envstr: string;
+      envvalue: pchar;
+      i: integer;
+    begin
+      { Replace some macros }
+      Replace(s,'$FPCVERSION',version_string);
+      Replace(s,'$FPCFULLVERSION',full_version_string);
+      Replace(s,'$FPCDATE',date_string);
+      Replace(s,'$FPCCPU',compiler.target.cpu_string);
+      Replace(s,'$FPCOS',compiler.target.os_string);
+      Replace(s,'$FPCBINDIR',compiler.globals.exepath);
+      if (tf_use_8_3 in Source_Info.Flags) or
+         (tf_use_8_3 in compiler.target.info.Flags) then
+        Replace(s,'$FPCTARGET',compiler.target.os_string)
+      else if compiler.target.subtarget<>'' then
+        Replace(s,'$FPCTARGET',compiler.target.full_string+'-'+lower(compiler.target.subtarget))
+      else
+        Replace(s,'$FPCTARGET',compiler.target.full_string);
+      Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
+      Replace(s,'$FPCABI',lower(abiinfo[compiler.target.info.abi].name));
+{$ifdef i8086}
+      Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[init_settings.x86memorymodel]));
+{$else i8086}
+      Replace(s,'$FPCMEMORYMODEL','flat');
+{$endif i8086}
+{$ifdef mswindows}
+      ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
+      ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
+      ReplaceSpecialFolder('$COMMON_APPDATA',CSIDL_COMMON_APPDATA);
+      ReplaceSpecialFolder('$PERSONAL',CSIDL_PERSONAL);
+      ReplaceSpecialFolder('$PROGRAM_FILES',CSIDL_PROGRAM_FILES);
+      ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
+      ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
+{$endif mswindows}
+{$ifdef openbsd}
+      Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
+      Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
+{$endif openbsd}
+{$ifdef xtensa}
+      if compiler.globals.idf_version > 0 then
+        Replace(s,'$IDF_VERSION',idfversionstring(compiler.globals.idf_version));
+      if compiler.globals.idfpath <> '' then
+        Replace(s,'$IDFPATH',compiler.globals.idfpath);
+{$endif xtensa}
+{$ifdef riscv32}
+      if compiler.globals.idf_version > 0 then
+        Replace(s,'$IDF_VERSION',idfversionstring(compiler.globals.idf_version));
+      if compiler.globals.idfpath <> '' then
+        Replace(s,'$IDFPATH',compiler.globals.idfpath);
+{$endif riscv32}
+
+      if not substitute_env_variables then
+        exit;
+      { Replace environment variables between dollar signs }
+      i := pos('$',s);
+      while i>0 do
+       begin
+         envstr:=copy(s,i+1,length(s)-i);
+         i:=pos('$',envstr);
+         if i>0 then
+          begin
+            envstr := copy(envstr,1,i-1);
+            envvalue := GetEnvPChar(envstr);
+            if assigned(envvalue) then
+              begin
+              Replace(s,'$'+envstr+'$',envvalue);
+              // Look if there is another env.var in the string
+              i:=pos('$',s);
+              end
+            else
+              // if the env.var is not set, do not replace the env.variable
+              // and stop looking for more env.var within the string
+              i := 0;
+           FreeEnvPChar(envvalue);
+          end;
+       end;
+    end;
 
 procedure TCompiler.CreateExceptionStateHandler(eshclass: tcgexceptionstatehandlerclass);
 begin
@@ -1391,6 +1533,12 @@ end;
 function TCompilerHelper.ccasenode(l: tnode): tcasenode; inline;
 begin
   result:=nset.ccasenode.create(l,self);
+end;
+
+procedure TCompilerHelper.DefaultReplacements(var s: ansistring;
+  substitute_env_variables: boolean);
+begin
+  tcompiler(self).DefaultReplacements(s,substitute_env_variables);
 end;
 
 function Compile(const cmd:TCmdStr):longint;

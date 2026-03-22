@@ -1848,7 +1848,7 @@ begin
                if (s='WRITE') then
                 begin
                   Delete(opts,1,1);
-                  DefaultReplacements(opts);
+                  compiler.DefaultReplacements(opts);
                   WriteLn(opts);
                   Option_read:=true;
                 end
@@ -1856,7 +1856,7 @@ begin
                if (s='INCLUDE') then
                 begin
                   Delete(opts,1,1);
-                  DefaultReplacements(opts);
+                  compiler.DefaultReplacements(opts);
                   Interpret_file(opts);
                   Option_read:=true;
                 end
@@ -1864,7 +1864,7 @@ begin
                if (s='CFGDIR') then
                 begin
                   Delete(opts,1,1);
-                  DefaultReplacements(opts);
+                  compiler.DefaultReplacements(opts);
                   ParaIncludeCfgPath.AddPath(opts,false);
                   Option_read:=true;
                 end;
@@ -2938,7 +2938,7 @@ Var
 
 begin
     l:=Pos(':=',more);
-    DefaultReplacements(more);
+    compiler.DefaultReplacements(more);
     if l>0 then
       hs:=copy(more,1,l-1)
     else
@@ -3086,7 +3086,7 @@ begin
     IllegalPara(opt);
   c:=more[1];
   Delete(more,1,1);
-  DefaultReplacements(More);
+  compiler.DefaultReplacements(More);
   case c of
     'a' :
       compiler.globals.autoloadunits:=more;
@@ -3220,7 +3220,7 @@ begin
       begin
         if More<>'' then
           begin
-            DefaultReplacements(More);
+            compiler.DefaultReplacements(More);
             D:=ExtractFilePath(More);
             if (D<>'') then
               D:=FixPath(D,True);
@@ -3466,7 +3466,7 @@ var
 begin
   if More<>'' then
     begin
-      DefaultReplacements(More);
+      compiler.DefaultReplacements(More);
       D:=ExtractFilePath(More);
       if (D<>'') then
         compiler.globals.outputexedir:=FixPath(D,True);
@@ -4350,7 +4350,7 @@ begin
            if (compiler.target.info.system in suppported_targets_x_smallr) then
              begin
                compiler.globals.rlinkpath:=Copy(more,2);
-               DefaultReplacements(compiler.globals.rlinkpath);
+               compiler.DefaultReplacements(compiler.globals.rlinkpath);
              end
            else
              IgnoredPara('-Xr');
@@ -4359,7 +4359,7 @@ begin
        'R' :
          begin
            compiler.globals.sysrootpath:=copy(more,2);
-           defaultreplacements(compiler.globals.sysrootpath);
+           compiler.defaultreplacements(compiler.globals.sysrootpath);
            more:='';
          end;
        's' :
@@ -4408,7 +4408,7 @@ begin
        'P' :
          begin
            compiler.globals.utilsprefix:=Copy(more,2);
-           DefaultReplacements(compiler.globals.utilsprefix);
+           compiler.DefaultReplacements(compiler.globals.utilsprefix);
            More:='';
          end;
        'L' : begin  // -XLO is link order -XLA is link alias. -XLD avoids load defaults.
