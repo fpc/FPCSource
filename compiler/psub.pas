@@ -114,8 +114,6 @@ interface
       tread_proc_flags = set of tread_proc_flag;
 
 
-    procedure printnode_reset;
-
 {$ifdef DEBUG_NODE_XML}
     procedure XMLInitializeNodeFile(RootName, ModuleName: shortstring);
     procedure XMLFinalizeNodeFile(RootName: shortstring);
@@ -467,23 +465,6 @@ implementation
 {****************************************************************************
                        PROCEDURE/FUNCTION COMPILING
 ****************************************************************************}
-
-    procedure printnode_reset;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        assign(compiler.globals.printnodefile,treelogfilename);
-        {$push}{$I-}
-         rewrite(compiler.globals.printnodefile);
-        {$pop}
-        if ioresult<>0 then
-         begin
-           compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
-           exit;
-         end;
-        close(compiler.globals.printnodefile);
-      end;
-
 
     procedure tcgprocinfo.add_label_init(p:TObject;arg:pointer);
       begin
