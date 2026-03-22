@@ -747,7 +747,6 @@ Const
         destructor Destroy; override;
 
         function HandleFeature(const s : string) : boolean;
-        procedure printnode_reset;
       end;
 
     function  GetEnvPChar(const envname:ansistring):pchar;
@@ -1403,22 +1402,6 @@ implementation
                 exit;
               end;
         result:=false;
-      end;
-
-    procedure TCompilerGlobals.printnode_reset;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      begin
-        assign(compiler.verbose.printnodefile,treelogfilename);
-        {$push}{$I-}
-         rewrite(compiler.verbose.printnodefile);
-        {$pop}
-        if ioresult<>0 then
-         begin
-           compiler.verbose.Comment(V_Error,'Error creating '+treelogfilename);
-           exit;
-         end;
-        close(compiler.verbose.printnodefile);
       end;
 
 

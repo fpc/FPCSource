@@ -113,6 +113,8 @@ interface
 
         procedure FlushOutput;
 
+        procedure printnode_reset;
+
         property msgfilename: string read Fmsgfilename write Fmsgfilename;
       end;
 
@@ -1005,6 +1007,21 @@ implementation
             else
               Flush(Output);
           end;
+      end;
+
+
+    procedure TVerbose.printnode_reset;
+      begin
+        assign(printnodefile,treelogfilename);
+        {$push}{$I-}
+         rewrite(printnodefile);
+        {$pop}
+        if ioresult<>0 then
+         begin
+           Comment(V_Error,'Error creating '+treelogfilename);
+           exit;
+         end;
+        close(printnodefile);
       end;
 
 

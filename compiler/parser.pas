@@ -223,7 +223,7 @@ implementation
 
          { codegen }
          if compiler.verbose.paraprintnodetree<>0 then
-           compiler.globals.printnode_reset;
+           compiler.verbose.printnode_reset;
 
          { target specific stuff }
          case compiler.target.info.system of
