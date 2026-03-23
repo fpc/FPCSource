@@ -31,7 +31,7 @@ interface
       parabase,paramgr,
       symconst,symbase,symdef,symtype,symsym,
       fmodule,
-      aasmtai,aasmdata;
+      aasmbase,aasmtai,aasmdata;
 
     type
 
@@ -46,6 +46,7 @@ interface
         { collect all defs in one list so we can reset them easily }
         defnumberlist      : TFPObjectList;
         deftowritelist     : TFPObjectList;
+        function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
         procedure appenddef(list:TAsmList;def:tdef);
         procedure beforeappenddef(list:TAsmList;def:tdef);virtual;
         procedure afterappenddef(list:TAsmList;def:tdef);virtual;
@@ -240,6 +241,11 @@ implementation
     function TDebugInfo.GetParaManager: TParaManager; inline;
       begin
         result:=compiler.paramanager;
+      end;
+
+    function TDebugInfo.ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
+      begin
+        result:=aasmbase.ApplyAsmSymbolRestrictions(s,compiler.target);
       end;
 
     procedure TDebugInfo.appenddef(list:TAsmList;def:tdef);

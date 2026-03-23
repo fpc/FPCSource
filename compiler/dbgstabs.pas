@@ -200,7 +200,7 @@ implementation
       if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
         result:=ttypesym(Sym).FPrettyName;
       if compiler.target._asm.dollarsign<>'$' then
-        result:=ApplyAsmSymbolRestrictions(result);
+        result:=ApplyAsmSymbolRestrictions(result,compiler.target);
     end;
 
     function GetSymTableName(SymTable : TSymTable) : string;
@@ -212,7 +212,7 @@ implementation
       else
         result := SymTable.RealName^;
       if compiler.target._asm.dollarsign<>'$' then
-        result:=ApplyAsmSymbolRestrictions(result);
+        result:=ApplyAsmSymbolRestrictions(result,compiler.target);
     end;
 
     const
