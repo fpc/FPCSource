@@ -2050,10 +2050,10 @@ implementation
 
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
-        compiler: TCompilerBase;
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i : longint;
       begin
-        compiler:=objdata.compiler;
         result:=false;
       { Things which may only be done once, not when a second pass is done to
         optimize }
