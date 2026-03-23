@@ -431,7 +431,6 @@ interface
        FName       : TString80;
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
        property CObjSectionGroup: TObjSectionGroupClass read FCObjSectionGroup write FCObjSectionGroup;
-       property Compiler: TCompilerBase read FCompiler;
      public
        CurrPass  : byte;
        ExecStack : boolean;
@@ -499,6 +498,7 @@ interface
          Instructions, not supported by the given CPU should produce an error.
          A value of 'cpu_none' means no restrictions (all instructions should be accepted) }
        property CPUType : tcputype read FCPUType write FCPUType;
+       property Compiler: TCompilerBase read FCompiler;
      end;
      TObjDataClass = class of TObjData;
 

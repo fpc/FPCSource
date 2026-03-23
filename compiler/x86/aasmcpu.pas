@@ -1559,15 +1559,15 @@ implementation
       end;
 
     procedure taicpu.create_ot(objdata:TObjData);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       {
         this function will also fix some other fields which only needs to be once
       }
       var
+        compiler: TCompilerBase;
         i,l,relsize : longint;
         currsym : TObjSymbol;
       begin
+        compiler:=objdata.compiler;
         if ops=0 then
          exit;
         { update oper[].ot field }
@@ -2050,10 +2050,10 @@ implementation
 
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
+        compiler: TCompilerBase;
         i : longint;
       begin
+        compiler:=objdata.compiler;
         result:=false;
       { Things which may only be done once, not when a second pass is done to
         optimize }
@@ -2332,8 +2332,9 @@ implementation
 
     function taicpu.Pass1(objdata:TObjData):longint;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase;
       begin
+        compiler:=objdata.compiler;
         Pass1:=0;
         { Save the old offset and set the new offset }
         InsOffset:=ObjData.CurrObjSec.Size;
@@ -2389,8 +2390,9 @@ implementation
 
     procedure taicpu.Pass2(objdata:TObjData);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase;
       begin
+        compiler:=objdata.compiler;
         { error in pass1 ? }
         if insentry=nil then
          exit;
@@ -3589,36 +3591,30 @@ implementation
 
 
     procedure taicpu.write0x66prefix(objdata:TObjData);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         b66: Byte=$66;
       begin
 {$ifdef i8086}
         if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-          compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
+          objdata.compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
         objdata.writebytes(b66,1);
       end;
 
 
     procedure taicpu.write0x67prefix(objdata:TObjData);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         b67: Byte=$67;
       begin
 {$ifdef i8086}
         if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
-          compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
+          objdata.compiler.verbose.Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
         objdata.writebytes(b67,1);
       end;
 
 
         procedure taicpu.gencode(objdata: TObjData);
-          var
-            compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       {
        * the actual codes (C syntax, i.e. octal):
        * \0            - terminates the code. (Unless it's a literal of course.)
@@ -3702,6 +3698,7 @@ implementation
       }
 
       var
+        compiler: TCompilerBase;
 {$ifdef i8086}
         currval : longint;
 {$else i8086}
@@ -3904,6 +3901,7 @@ implementation
         EVEXmmm : byte;
 
       begin
+        compiler:=objdata.compiler;
         { safety check }
         if objdata.currobjsec.size<>longword(insoffset) then
           internalerror(200130121);
