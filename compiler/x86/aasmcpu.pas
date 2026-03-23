@@ -1559,15 +1559,15 @@ implementation
       end;
 
     procedure taicpu.create_ot(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       {
         this function will also fix some other fields which only needs to be once
       }
       var
-        compiler: TCompilerBase;
         i,l,relsize : longint;
         currsym : TObjSymbol;
       begin
-        compiler:=objdata.compiler;
         if ops=0 then
          exit;
         { update oper[].ot field }
