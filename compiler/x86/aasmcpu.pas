@@ -1558,6 +1558,7 @@ implementation
 {$endif x86_64}
       end;
 
+    { the objdata parameter can be nil!!! }
     procedure taicpu.create_ot(objdata:TObjData);
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
@@ -2048,6 +2049,7 @@ implementation
       end;
 
 
+    { the objdata parameter can be nil!!! }
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
