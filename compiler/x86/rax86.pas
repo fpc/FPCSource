@@ -37,7 +37,7 @@ function is_prefix(t:tasmop):boolean;
 function is_override(t:tasmop):boolean;
 Function CheckPrefix(prefixop,op:tasmop): Boolean;
 Function CheckOverride(overrideop,op:tasmop): Boolean;
-Procedure FWaitWarning;
+Procedure FWaitWarning(compiler: TCompilerBase);
 
 type
   Tx86Operand=class(TOperand)
@@ -185,9 +185,7 @@ Begin
 end;
 
 
-Procedure FWaitWarning;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Procedure FWaitWarning(compiler: TCompilerBase);
 begin
   if (compiler.target.info.system=system_i386_GO32V2) and (cs_fp_emulation in current_settings.moduleswitches) then
    compiler.verbose.Message(asmr_w_fwait_emu_prob);
