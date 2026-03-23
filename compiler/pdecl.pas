@@ -394,7 +394,7 @@ implementation
                    if not skip_initialiser then
                     begin
                       parser.pbase.consume(_EQ);
-                      maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner);
+                      maybe_guarantee_record_typesym(tstaticvarsym(sym).vardef,tstaticvarsym(sym).vardef.owner,compiler.target);
                       parser.ptconst.read_typed_const(current_asmdata.asmlists[asmtype],tstaticvarsym(sym),in_structure);
                     end;
                 end;

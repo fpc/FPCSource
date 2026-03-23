@@ -26,7 +26,7 @@ unit symutil;
 interface
 
     uses
-       symconst,symbase,symtype,symsym,compilerbase;
+       symconst,symbase,symtype,symsym,systems;
 
     function is_funcret_sym(p:TSymEntry):boolean;
 
@@ -34,7 +34,7 @@ interface
 
     function get_first_proc_str(Options: TProcOptions): ShortString;
 
-    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable);
+    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable; target: TCompilerTarget);
 
     function is_normal_fieldvarsym(sym: tsym): boolean; inline;
 
@@ -42,8 +42,7 @@ interface
 implementation
 
     uses
-       systems,
-       globtype,cpuinfo,constexp,verbose,compiler,
+       globtype,cpuinfo,constexp,verbose,
        widestr,
        symdef;
 
@@ -124,15 +123,13 @@ implementation
       end;
 
 
-    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure maybe_guarantee_record_typesym(def: tdef; st: tsymtable; target: TCompilerTarget);
       var
         ts: ttypesym;
       begin
         { create a dummy typesym for the JVM target, because the record
           has to be wrapped by a class }
-        if (compiler.target.info.system in systems_jvm) and
+        if (target.info.system in systems_jvm) and
            (def.typ=recorddef) and
            not assigned(def.typesym) then
           begin

@@ -1204,7 +1204,7 @@ implementation
               end;
             staticvarsym :
               begin
-                maybe_guarantee_record_typesym(vs.vardef,vs.vardef.owner);
+                maybe_guarantee_record_typesym(vs.vardef,vs.vardef.owner,compiler.target);
                 parser.ptconst.read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
               end;
             else
@@ -1506,7 +1506,7 @@ implementation
 {$endif}
 
              parser.ptype.read_anon_type(hdef,false,nil);
-             maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top);
+             maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top,compiler.target);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
@@ -1851,7 +1851,7 @@ implementation
                end;
 
              parser.ptype.read_anon_type(hdef,false,tstoreddef(gendef));
-             maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top);
+             maybe_guarantee_record_typesym(hdef,compiler.symtablestack.top,compiler.target);
 {$ifdef wasm}
              if is_wasm_reference_type(hdef) then
                compiler.verbose.MessagePos(typepos,sym_e_wasm_ref_types_cannot_be_used_in_records);

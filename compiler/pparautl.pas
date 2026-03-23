@@ -1303,7 +1303,7 @@ implementation
           current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,compiler);
         nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst,compiler);
   {$ifdef jvm}
-        maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
+        maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner,compiler.target);
         { don't add clone/FpcDeepCopy, because the field names are not all
           representable in source form and we don't need them anyway }
         compiler.symtablestack.push(trecorddef(nestedvarsdef).symtable);
