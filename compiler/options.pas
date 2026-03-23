@@ -5695,9 +5695,9 @@ begin
 
 {$ifdef llvm}
   { standard extension for llvm bitcode files }
-  compiler.target.info.asmext:='.ll';
+  compiler.target.set_target_asmext('.ll');
   { don't generate dwarf cfi, llvm will do that }
-  exclude(compiler.target.info.flags,tf_needs_dwarf_cfi);
+  compiler.target.set_target_flags(compiler.target.info.flags-[tf_needs_dwarf_cfi]);
 {$endif llvm}
 {$ifdef mipsel}
   case compiler.target.info.system of

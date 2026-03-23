@@ -318,7 +318,7 @@ implementation
         bool32type:=corddef.create(bool32bit,low(int64),high(int64),true,compiler);
         bool64type:=corddef.create(bool64bit,low(int64),high(int64),true,compiler);
 {$ifdef llvm}
-        llvmbool1type:=corddef.create(pasbool1,0,1,true);
+        llvmbool1type:=corddef.create(pasbool1,0,1,true,compiler);
 {$endif llvm}
         cansichartype:=corddef.create(uchar,0,255,true,compiler);
         cwidechartype:=corddef.create(uwidechar,0,65535,true,compiler);
@@ -617,7 +617,7 @@ implementation
         addtype('$qwordbool',bool64type);
 {$ifdef llvm}
         addtype('$llvmbool1',llvmbool1type);
-        llvm_metadatatype:=cformaldef.create(false);
+        llvm_metadatatype:=cformaldef.create(false,compiler);
         { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
         addtype('$metadata',llvm_metadatatype);
         addtype('LLVMMetadata',llvm_metadatatype);

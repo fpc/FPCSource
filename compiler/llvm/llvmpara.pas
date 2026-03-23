@@ -29,7 +29,8 @@ unit llvmpara;
       globtype,aasmdata,
       symconst,symtype,symdef,symsym,
       parabase,cgbase,
-      cpupara;
+      cpupara,
+      compilerbase;
 
     type
       { LLVM stands for "low level code generator", and regarding parameter
@@ -69,7 +70,8 @@ unit llvmpara;
       aasmbase,
       llvmsym,
       paramgr,defutil,llvmdef,
-      cgutils,tgobj,hlcgobj;
+      cgutils,tgobj,paramgrhelper,
+      compiler;
 
   { tllvmparamanager }
 
@@ -186,7 +188,7 @@ unit llvmpara;
           { varargs parameters do not have a parasym.owner, but they're always
             by value }
           if (assigned(parasym.owner) and
-              paramanager.push_addr_param(parasym.varspez,parasym.vardef,tabstractprocdef(parasym.owner.defowner).proccalloption)) or
+              {paramanager.}push_addr_param(parasym.varspez,parasym.vardef,tabstractprocdef(parasym.owner.defowner).proccalloption)) or
              not llvmbyvalparaloc(paraloc) then
             begin
               case paraloc^.loc of
@@ -232,7 +234,7 @@ unit llvmpara;
                 passed in registers, in some cases) }
               paraloc^.llvmvalueloc:=false;
               paraloc^.loc:=LOC_REGISTER;
-              paralocdef:=cpointerdef.getreusable_no_free(paraloc^.def);
+              paralocdef:=cpointerdef.getreusable_no_free(paraloc^.def,compiler);
               reducetosingleregparaloc(paraloc,paralocdef,hlcg.getaddressregister(list,paralocdef));
             end;
           paraloc^.llvmloc.loc:=paraloc^.loc;
@@ -322,7 +324,7 @@ unit llvmpara;
         { byval: a pointer to a type that should actually be passed by
             value (e.g. a record that should be passed on the stack) }
         paraloc^.llvmvalueloc:=
-          paramanager.push_addr_param(hp.varspez,hp.vardef,p.proccalloption) or
+          {paramanager.}push_addr_param(hp.varspez,hp.vardef,p.proccalloption) or
           not llvmbyvalparaloc(paraloc);
         paraloc:=paraloc^.next;
         inc(paralocnr);
@@ -342,16 +344,17 @@ unit llvmpara;
         end;
     end;
 
-begin
-  if not assigned(paramanager) then
-    begin
-      writeln('Internalerror 2018052006');
-      halt(1);
-    end;
-  { replace the native parameter manager. Maybe this has to be moved to a
-    procedure like the creations of the code generators, but possibly not since
-    we still call the original paramanager }
-  paramanager.free;
-  paramanager:=tllvmparamanager.create;
+
+//begin
+//  if not assigned(paramanager) then
+//    begin
+//      writeln('Internalerror 2018052006');
+//      halt(1);
+//    end;
+//  { replace the native parameter manager. Maybe this has to be moved to a
+//    procedure like the creations of the code generators, but possibly not since
+//    we still call the original paramanager }
+//  paramanager.free;
+//  paramanager:=tllvmparamanager.create;
 end.
 

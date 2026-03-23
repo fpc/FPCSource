@@ -442,7 +442,11 @@ uses
   finput,
   fppu,
   aasmcpu,
-  version;
+  version
+{$ifdef llvm}
+  ,llvmpara
+{$endif llvm}
+  ;
 
 {$if defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}
@@ -509,7 +513,11 @@ begin
   FOptions:=TOptions.Create(Self);
   FOpt:=TOptimizers.Create(Self);
   CreateExceptionStateHandler(tcgexceptionstatehandler);
+{$ifdef llvm}
+  Fparamanager:=tllvmparamanager.Create(Self);
+{$else llvm}
   Fparamanager:=tcpuparamanager.Create(Self);
+{$endif llvm}
 { inits which need to be done before the arguments are parsed }
   FTarget:=TCompilerTarget.Create;
   { fileutils depends on source_info so it must be after systems }

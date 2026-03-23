@@ -594,6 +594,7 @@ interface
         procedure set_target_endian(t: tendian);
         procedure set_target_flags(const t:tsystemflagset);
         procedure set_target_exeext(const s:string);
+        procedure set_target_asmext(const s:string);
         procedure set_target_llvmdatalayout(const s: ansistring);
         property cpu: tsystemcpu read Fcpu;
         property info : tsysteminfo read Finfo;
@@ -782,6 +783,12 @@ end;
 procedure TCompilerTarget.set_target_exeext(const s:string);
 begin
   Finfo.exeext:=s;
+end;
+
+
+procedure TCompilerTarget.set_target_asmext(const s: string);
+begin
+  Finfo.asmext:=s;
 end;
 
 

@@ -38,7 +38,8 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcnst,aasmllvm,aasmllvmmetadata,
       symbase,symconst,symtype,symdef,symsym,
       finput,
-      DbgBase, dbgdwarfconst;
+      DbgBase, dbgdwarfconst,
+      compilerbase;
 
     type
       TLLVMMetaDefHashSetItem = record
@@ -162,7 +163,7 @@ interface
         procedure collectglobalsyms;
         procedure updatelocalvardbginfo(hp: taillvm; pd: tprocdef; functionscope: tai_llvmspecialisedmetadatanode);
       public
-        constructor Create;override;
+        constructor Create(acompiler: TCompilerBase);override;
         destructor Destroy;override;
         procedure insertmoduleinfo;override;
         procedure inserttypeinfo;override;
@@ -178,7 +179,8 @@ implementation
       cpubase,cpuinfo,paramgr,
       fmodule,
       defutil,symtable,symcpu,ppu,
-      llvminfo,llvmbase
+      llvminfo,llvmbase,
+      compiler
       ;
 
 {$push}
@@ -440,9 +442,9 @@ implementation
         result:=llvm_getmetadatareftypedconst(def_meta_node(def));
       end;
 
-    constructor TDebugInfoLLVM.Create;
+    constructor TDebugInfoLLVM.Create(acompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
 
         fenums:=nil;
         fretainedtypes:=nil;
@@ -1305,7 +1307,7 @@ implementation
               inserted we can't build the vmt's def yet }
             if classorobject and
                (field=tobjectdef(def).vmt_field) then
-              fielddi.addmetadatarefto('baseType',def_meta_node(cpointerdef.getreusable(tobjectdef(def).vmt_def)))
+              fielddi.addmetadatarefto('baseType',def_meta_node(cpointerdef.getreusable(tobjectdef(def).vmt_def,compiler)))
             else
               fielddi.addmetadatarefto('baseType',def_meta_node(field.vardef));
             if bpackedrecst and
@@ -2750,7 +2752,7 @@ implementation
         if compiler.target.info.system in systems_darwin then
           fcunode.addenum('nameTableKind','GNU');
         current_asmdata.AsmLists[al_dwarf_info].Concat(fcunode);
-        culist:=tai_llvmnamedmetadatanode.create('llvm.dbg.cu');
+        culist:=tai_llvmnamedmetadatanode.create('llvm.dbg.cu',compiler);
         current_asmdata.AsmLists[al_dwarf_info].Concat(culist);
         culist.addvalue(llvm_getmetadatareftypedconst(fcunode));
 
