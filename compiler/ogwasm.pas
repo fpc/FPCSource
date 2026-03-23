@@ -934,8 +934,6 @@ implementation
 ****************************************************************************}
 
     function TWasmObjData.is_smart_section(atype: TAsmSectiontype): boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
@@ -950,8 +948,6 @@ implementation
 
     function TWasmObjData.sectionname_gas(atype: TAsmSectiontype;
         const aname: string; aorder: TAsmSectionOrder): string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',

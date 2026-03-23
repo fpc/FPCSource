@@ -1626,8 +1626,6 @@ const pemagic : array[0..3] of byte = (
 
     function TCoffObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         sep     : string[3];
         secname : string;
       begin
@@ -1661,8 +1659,6 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TCoffObjData.CreateDebugSections;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.target.dbg.id=dbg_stabs then
           begin
@@ -1673,8 +1669,6 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure TCoffObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         multi = record
           case integer of

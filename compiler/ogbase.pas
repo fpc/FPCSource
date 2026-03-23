@@ -431,6 +431,7 @@ interface
        FName       : TString80;
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
        property CObjSectionGroup: TObjSectionGroupClass read FCObjSectionGroup write FCObjSectionGroup;
+       property Compiler: TCompilerBase read FCompiler;
      public
        CurrPass  : byte;
        ExecStack : boolean;
@@ -1474,7 +1475,7 @@ implementation
 
     class function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {user} [oso_Data,oso_load,oso_write],
@@ -1559,18 +1560,18 @@ implementation
           {note} [oso_Data,oso_note]
         );
       begin
-        if compiler.target._asm.id in asms_int_coff then
+        if _compiler.target._asm.id in asms_int_coff then
           begin
             if (aType in [sec_rodata,sec_rodata_norel]) then
               begin
-                if (compiler.target.info.system in systems_all_windows) then
+                if (_compiler.target.info.system in systems_all_windows) then
                   aType:=sec_rodata_norel
                 else
                   aType:=sec_data;
               end;
           end;
         result:=secoptions[atype];
-        if (compiler.target.info.system in systems_wasm) and (atype=sec_bss) then
+        if (_compiler.target.info.system in systems_wasm) and (atype=sec_bss) then
           Result:=Result+[oso_data,oso_sparse_data];
 {$ifdef OMFOBJSUPPORT}
         { in the huge memory model, BSS data is actually written in the regular
@@ -2019,8 +2020,6 @@ implementation
 
 
     procedure TObjData.afterwrite;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hstab : TObjStabEntry;
       begin

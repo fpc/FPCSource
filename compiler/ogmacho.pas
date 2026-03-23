@@ -167,8 +167,6 @@ uses
   { TmachoObjData.CreateDebugSections. }
   { note: mach-o file has specific symbol table command (not sections) to keep symbols and symbol string }
   procedure TmachoObjData.CreateDebugSections;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       inherited CreateDebugSections;
       if compiler.target.dbg.id=dbg_stabs then

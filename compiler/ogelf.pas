@@ -513,8 +513,6 @@ implementation
 
 
     function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text','.data',
@@ -621,8 +619,6 @@ implementation
 
 
     procedure TElfObjData.CreateDebugSections;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if compiler.target.dbg.id=dbg_stabs then
           begin
@@ -633,8 +629,6 @@ implementation
 
 
     procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       type
         multi = record
           case integer of
