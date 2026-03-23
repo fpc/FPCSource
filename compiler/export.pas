@@ -90,10 +90,6 @@ type
 
    TExportLibClass=class of TExportLib;
 
-
-var
-  CExportLib : array[tsystem] of TExportLibClass;
-
 procedure RegisterExport(t:tsystem;c:TExportLibClass);
 function CreateExport(compiler: TCompilerBase): TExportLib;
 
@@ -101,6 +97,9 @@ implementation
 
 uses
   verbose,globals,compiler;
+
+var
+  CExportLib : array[tsystem] of TExportLibClass;
 
 {****************************************************************************
                            TExported_procedure
