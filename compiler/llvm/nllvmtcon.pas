@@ -26,10 +26,11 @@ unit nllvmtcon;
 interface
 
   uses
-    cclasses,constexp,globtype,
+    cclasses,constexp,globtype,systems,
     aasmbase,aasmtai,aasmcnst,aasmllvm,
     symconst,symbase,symtype,symdef,symsym,
-    ngtcon;
+    ngtcon,
+    compilerbase;
 
   type
     tllvmaggregateinformation = class(taggregateinformation)
@@ -115,12 +116,12 @@ interface
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
-      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean; override;
+      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean; override;
 
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
-      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
-      class function get_dynarray_symofs: pint; override;
+      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint; override;
+      class function get_dynarray_symofs(target: TCompilerTarget): pint; override;
 
       property appendingdef: boolean write fappendingdef;
     end;
@@ -129,12 +130,13 @@ interface
 implementation
 
   uses
-    verbose,systems,fmodule,globals,
+    verbose,fmodule,globals,
     aasmdata,
     procinfo,
     cpubase,cpuinfo,llvmbase,llvminfo,
     symtable,llvmdef,defutil,defcmp,
-    ngenutil;
+    ngenutil,
+    compiler;
 
   { tllvmaggregateinformation }
 
@@ -216,9 +218,9 @@ implementation
           why it's done like this, but this is how Clang does it) }
         if (compiler.target.info.system in systems_darwin) and
            (section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
-          cnodeutils.RegisterUsedAsmSym(asmsym,def,false)
+          compiler.nodeutils.RegisterUsedAsmSym(asmsym,def,false)
         else
-          cnodeutils.RegisterUsedAsmSym(asmsym,def,true);
+          compiler.nodeutils.RegisterUsedAsmSym(asmsym,def,true);
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
     end;
@@ -387,13 +389,13 @@ implementation
             arraydef:
               { in an array, all elements come right after each other ->
                 replace with a packed record }
-              newdef:=crecorddef.create_global_internal('',1,1);
+              newdef:=crecorddef.create_global_internal('',1,1,compiler);
             recorddef,
             objectdef:
               begin
                 newdef:=crecorddef.create_global_internal('',
                   tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).usefieldalignment,
-                  tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin);
+                  tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin,compiler);
                 tabstractrecordsymtable(newdef.symtable).recordalignment:=tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment;
               end
             else
@@ -410,7 +412,7 @@ implementation
   procedure tllvmtai_typedconstbuilder.emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef);
     begin
       if not pvdef.is_addressonly then
-        pvdef:=cprocvardef.getreusableprocaddr(pvdef,pc_address_only);
+        pvdef:=cprocvardef.getreusableprocaddr(pvdef,pc_address_only,compiler);
       emit_tai(p,pvdef);
     end;
 
@@ -443,11 +445,11 @@ implementation
             internalerror(2014080406);
           strrecdef:=trecorddef(typesym.typedef);
           { offset in the record of the the string data }
-          offset:=ctai_typedconstbuilder.get_string_symofs(st,winlikewidestring);
+          offset:=ctai_typedconstbuilder.get_string_symofs(st,winlikewidestring,compiler.target);
           { field corresponding to this offset }
           field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
           { pointerdef to the string data array }
-          dataptrdef:=cpointerdef.getreusable(field.vardef);
+          dataptrdef:=cpointerdef.getreusable(field.vardef,compiler);
           { the fields of the resourcestring record are declared as ansistring }
           strdef:=get_dynstring_def_for_type(st,winlikewidestring);
           queue_init(strdef);
@@ -483,7 +485,7 @@ implementation
           { field corresponding to this offset }
           field:=trecordsymtable(arrconstdatadef.symtable).findfieldbyoffset(ll.ofs);
           { pointerdef to the string data array }
-          dataptrdef:=cpointerdef.getreusable(field.vardef);
+          dataptrdef:=cpointerdef.getreusable(field.vardef,compiler);
           { the fields of the resourcestring record are declared as ansistring }
           queue_init(dataptrdef);
           queue_subscriptn(arrconstdatadef,field);
@@ -506,7 +508,7 @@ implementation
       if tck<>tck_simple then
         begin
           { create new typed const aggregate }
-          agg:=tai_aggregatetypedconst.create(tck,def);
+          agg:=tai_aggregatetypedconst.create(tck,def,compiler);
           { either add to the current typed const aggregate (if nested), or
             emit to the asmlist (if top level) }
           curagg:=tllvmaggregateinformation(curagginfo);
@@ -589,7 +591,7 @@ implementation
       realval: p80realval;
     begin
       { emit as an array of 10 bytes }
-      arrdef:=carraydef.getreusable(u8inttype,10);
+      arrdef:=carraydef.getreusable(u8inttype,10,compiler);
       maybe_begin_aggregate(arrdef);
       if (p.typ<>ait_realconst) then
         internalerror(2015062401);
@@ -668,8 +670,8 @@ implementation
         else
           internalerror(2014062203);
       end;
-      aityped:=wrap_with_type(ai,cpointerdef.getreusable(eledef));
-      update_queued_tai(cpointerdef.getreusable(eledef),aityped,ai,1);
+      aityped:=wrap_with_type(ai,cpointerdef.getreusable(eledef,compiler));
+      update_queued_tai(cpointerdef.getreusable(eledef,compiler),aityped,ai,1);
     end;
 
 
@@ -710,7 +712,7 @@ implementation
       getllvmfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,s32inttype,vs.llvmfieldnr,true);
       { getelementptr doesn't contain its own resultdef, so encode it via a
         tai_simpletypedconst tai }
-      getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,cpointerdef.getreusable(llvmfielddef));
+      getllvmfieldaddrtyped:=wrap_with_type(getllvmfieldaddr,cpointerdef.getreusable(llvmfielddef,compiler));
       { if it doesn't match the requested field exactly (variant record),
         fixup the result }
       getpascalfieldaddr:=getllvmfieldaddrtyped;
@@ -730,14 +732,14 @@ implementation
               { add the offset }
               getpascalfieldaddr:=taillvm.getelementptr_reg_tai_size_const(NR_NO,getpascalfieldaddr,ptrsinttype,vs.offsetfromllvmfield,true);
               { ... and set the result type of the getelementptr }
-              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,cpointerdef.getreusable(u8inttype));
+              getpascalfieldaddr:=wrap_with_type(getpascalfieldaddr,cpointerdef.getreusable(u8inttype,compiler));
               llvmfielddef:=u8inttype;
             end;
           { bitcast the data at the final offset to the right type }
           if llvmfielddef<>vs.vardef then
-            getpascalfieldaddr:=wrap_with_type(taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,cpointerdef.getreusable(vs.vardef)),cpointerdef.getreusable(vs.vardef));
+            getpascalfieldaddr:=wrap_with_type(taillvm.op_reg_tai_size(la_bitcast,NR_NO,getpascalfieldaddr,cpointerdef.getreusable(vs.vardef,compiler)),cpointerdef.getreusable(vs.vardef,compiler));
         end;
-      update_queued_tai(cpointerdef.getreusable(vs.vardef),getpascalfieldaddr,getllvmfieldaddr,1);
+      update_queued_tai(cpointerdef.getreusable(vs.vardef,compiler),getpascalfieldaddr,getllvmfieldaddr,1);
     end;
 
 
@@ -759,7 +761,7 @@ implementation
         the procdef }
       if (fromdef.typ=procdef) and
          (todef.typ<>procdef) then
-        fromdef:=cprocvardef.getreusableprocaddr(tprocdef(fromdef),pc_address_only);
+        fromdef:=cprocvardef.getreusableprocaddr(tprocdef(fromdef),pc_address_only,compiler);
       { typecasting a pointer-sized entity to a complex procvardef -> convert
         to the pointer-component of the complex procvardef (not always, because
         e.g. a tmethod to complex procvar initialises the entire complex
@@ -767,7 +769,7 @@ implementation
       if (todef.typ=procvardef) and
          not tprocvardef(todef).is_addressonly and
          (fromdef.size<todef.size) then
-        todef:=cprocvardef.getreusableprocaddr(tprocvardef(todef),pc_address_only);
+        todef:=cprocvardef.getreusableprocaddr(tprocvardef(todef),pc_address_only,compiler);
       op:=llvmconvop(fromdef,todef,false);
       case op of
         la_ptrtoint_to_x,
@@ -873,7 +875,7 @@ implementation
     end;
 
 
-  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean;
+  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean;
     begin
       result:=inherited;
       if result then
@@ -883,7 +885,7 @@ implementation
         sections }
       secname:=basename;
       { Darwin requires specifying a segment name too }
-      if compiler.target.info.system in systems_darwin then
+      if target.info.system in systems_darwin then
         secname:='__DATA,'+secname;
       result:=true;
     end;
@@ -905,14 +907,14 @@ implementation
     end;
 
 
-  class function tllvmtai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
+  class function tllvmtai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint;
     begin
       { LLVM does not support labels in the middle of a declaration }
       result:=get_string_header_size(typ,winlikewidestring);
     end;
 
 
-  class function tllvmtai_typedconstbuilder.get_dynarray_symofs: pint;
+  class function tllvmtai_typedconstbuilder.get_dynarray_symofs(target: TCompilerTarget): pint;
     begin
       { LLVM does not support labels in the middle of a declaration }
       result:=get_dynarray_header_size;

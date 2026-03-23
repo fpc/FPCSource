@@ -29,7 +29,8 @@ interface
       globtype,
       cgutils,
       symtype,
-      node,ncgld,ncgnstld;
+      node,ncgld,ncgnstld,
+      compilerbase;
 
     type
       tllvmloadnode = class(tcgnestloadnode)
@@ -53,7 +54,8 @@ implementation
        nld,
        symtable,symconst,symdef,symsym,defutil,
        procinfo,tgobj,
-       llvmbase,cgbase,hlcgobj;
+       llvmbase,cgbase,nodehelper,
+       compiler;
 
 function tllvmloadnode.pass_1: tnode;
   begin
@@ -92,7 +94,7 @@ procedure tllvmloadnode.pass_generate_code;
             (resultdef.typ in [symconst.procdef,procvardef]) and
              not tabstractprocdef(resultdef).is_addressonly then
             begin
-              pvdef:=cprocvardef.getreusableprocaddr(procdef,pc_normal);
+              pvdef:=cprocvardef.getreusableprocaddr(procdef,pc_normal,compiler);
               { on little endian, location.register contains proc and
                 location.registerhi contains self; on big endian, it's the
                 other way around }
@@ -114,10 +116,10 @@ procedure tllvmloadnode.pass_generate_code;
                   (left.resultdef.typ in [classrefdef,pointerdef]) then
                 selfdef:=left.resultdef
               else
-                selfdef:=cpointerdef.getreusable(left.resultdef);
+                selfdef:=cpointerdef.getreusable(left.resultdef,compiler);
               mpref:=href;
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef),cpointerdef.getreusable(methodpointertype),mpref);
-              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only),trecorddef(methodpointertype),procreg,'proc',mpref);
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef,compiler),cpointerdef.getreusable(methodpointertype,compiler),mpref);
+              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only,compiler),trecorddef(methodpointertype),procreg,'proc',mpref);
               hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(methodpointertype),selfreg,'self',mpref);
               location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment,href.volatility);
               location.reference:=href;
@@ -146,7 +148,7 @@ procedure tllvmarrayconstructornode.makearrayref(var ref: treference; eledef: td
   begin
     { the array elements are addressed as pointer to the individual elements ->
       convert }
-    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(eledef),ref);
+    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(eledef,compiler),ref);
   end;
 
 

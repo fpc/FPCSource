@@ -27,7 +27,8 @@ interface
 
     uses
       node,
-      nflw, ncgflw;
+      nflw, ncgflw,
+      compilerbase;
 
     type
       tcgnestgotonode = class(tcggotonode)
@@ -39,7 +40,8 @@ implementation
     uses
       globtype,globals,
       nld,
-      symdef,symsym,symcreat;
+      symdef,symsym,symcreat,
+      compiler;
 
 
     function tcgnestgotonode.pass_typecheck: tnode;

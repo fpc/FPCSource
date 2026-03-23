@@ -27,7 +27,8 @@ interface
 
     uses
       node,
-      ncginl;
+      ncginl,
+      compilerbase;
 
     type
       tllvminlinenode = class(tcginlinenode)
@@ -59,9 +60,10 @@ implementation
        compinnr,
        nutils,nadd,nbas,ncal,ncnv,ncon,nflw,ninl,nld,nmat,
        pass_2,
-       cgbase,cgutils,tgobj,hlcgobj,
+       cgbase,cgutils,tgobj,nodehelper,
        cpubase,
-       llvmbase,aasmllvm,aasmllvmmetadata;
+       llvmbase,aasmllvm,aasmllvmmetadata,
+       compiler;
 
      procedure tllvminlinenode.maybe_remove_round_trunc_typeconv;
        var
@@ -92,7 +94,7 @@ implementation
      function tllvminlinenode.first_get_frame: tnode;
        begin
          result:=compiler.ccallnode_intern('llvm_frameaddress',
-           compiler.ccallparanode(genintconstnode(0),nil));
+           compiler.ccallparanode(genintconstnode(0,compiler),nil));
        end;
 
     { in general, generate regular expression rather than intrinsics: according
@@ -108,7 +110,7 @@ implementation
         resulttemp: ttempcreatenode;
         stat: tstatementnode;
       begin
-        result:=internalstatements(stat);
+        result:=internalstatements(compiler,stat);
         lefttemp:=compiler.ctempcreatenode(left.resultdef,left.resultdef.size,tt_persistent,true);
         { assigned twice -> will be spilled if put in register }
         resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
@@ -173,7 +175,7 @@ implementation
         else
           procname:='LLVM_CTTZ';
         leftdef:=left.resultdef;
-        block:=internalstatements(stat);
+        block:=internalstatements(compiler,stat);
         resulttemp:=compiler.ctempcreatenode(resultdef,resultdef.size,tt_persistent,false);
         addstatement(stat,resulttemp);
         lefttemp:=maybereplacewithtemp(compiler,left,block,stat,left.resultdef.size,true);
@@ -194,18 +196,18 @@ implementation
             cntresult:=
               compiler.caddnode(xorn,
                 cntresult,
-                genintconstnode(leftdef.size*8-1)
+                genintconstnode(leftdef.size*8-1,compiler)
               );
           end;
         addstatement(stat,
-          compiler.cifnode(compiler.caddnode(unequaln,left.getcopy,genintconstnode(0)),
+          compiler.cifnode(compiler.caddnode(unequaln,left.getcopy,genintconstnode(0,compiler)),
             compiler.cassignmentnode(
               compiler.ctemprefnode(resulttemp),
               cntresult
             ),
             compiler.cassignmentnode(
               compiler.ctemprefnode(resulttemp),
-              genintconstnode(255)
+              genintconstnode(255,compiler)
             )
           )
         );
@@ -370,9 +372,9 @@ implementation
               internalerror(2014080806);
            { typecast the shortstring reference into a length byte reference }
            location_reset_ref(location,left.location.loc,def_cgsize(resultdef),left.location.reference.alignment,left.location.reference.volatility);
-           hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-           hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hregister);
-           hlcg.reference_reset_base(location.reference,cpointerdef.getreusable(resultdef),hregister,0,left.location.reference.temppos,left.location.reference.alignment,left.location.reference.volatility);
+           hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
+           hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),left.location.reference,hregister);
+           hlcg.reference_reset_base(location.reference,cpointerdef.getreusable(resultdef,compiler),hregister,0,left.location.reference.temppos,left.location.reference.alignment,left.location.reference.volatility);
          end
         else
          begin
@@ -383,13 +385,13 @@ implementation
            else
              lendef:=ossinttype;
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
-             left.resultdef,cpointerdef.getreusable(lendef),true);
+             left.resultdef,cpointerdef.getreusable(lendef,compiler),true);
            current_asmdata.getjumplabel(nillab);
            current_asmdata.getjumplabel(lengthlab);
-           hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,cpointerdef.getreusable(lendef),OC_EQ,0,left.location.register,nillab);
+           hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,cpointerdef.getreusable(lendef,compiler),OC_EQ,0,left.location.register,nillab);
            { volatility of the ansistring/widestring refers to the volatility of the
              string pointer, not of the string data }
-           hlcg.reference_reset_base(href,cpointerdef.getreusable(lendef),left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
+           hlcg.reference_reset_base(href,cpointerdef.getreusable(lendef,compiler),left.location.register,-lendef.size,ctempposinvalid,lendef.alignment,[]);
            hregister:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
            if is_widestring(left.resultdef) then

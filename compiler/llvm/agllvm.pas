@@ -30,7 +30,8 @@ interface
       globtype,globals,systems,
       aasmbase,aasmtai,aasmdata,
       assemble,
-      aasmllvm, aasmllvmmetadata;
+      aasmllvm, aasmllvmmetadata,
+      compilerbase;
 
     type
       tmetadatakind = (
@@ -71,9 +72,9 @@ interface
         procedure WriteOrdConst(hp: tai_const; inmetadatakind: tmetadatakind);
         procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; inmetadatakind: tmetadatakind; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
        public
-        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
-        procedure WriteTree(p:TAsmList);override;
-        procedure WriteAsmList;override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase); override;
+        procedure WriteTree(p:TAsmList;asmlisttype:TAsmListType);override;
+        procedure WriteAsmList(asmdata: TAsmData);override;
         procedure WriteFunctionInlineAsmList(list: tasmlist);
         destructor destroy; override;
        protected
@@ -122,7 +123,8 @@ implementation
       objcasm,
       aasmcnst,symconst,symdef,symtable,
       llvmbase,itllvm,llvmdef,
-      cgbase,cgutils,cpubase,cpuinfo,triplet,llvminfo;
+      cgbase,cgutils,cpubase,cpuinfo,triplet,llvminfo,
+      compiler;
 
     const
       line_length = 70;
@@ -820,7 +822,7 @@ implementation
       end;
 
 
-    procedure TLLVMAssember.WriteTree(p:TAsmList);
+    procedure TLLVMAssember.WriteTree(p:TAsmList;asmlisttype:TAsmListType);
     var
       hp       : tai;
       InlineLevel : cardinal;
@@ -837,7 +839,7 @@ implementation
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
-                 and (p=current_asmdata.asmlists[al_procedures]));
+                 and (asmlisttype=al_procedures));
       hp:=tai(p.first);
       while assigned(hp) do
        begin
@@ -1607,7 +1609,7 @@ implementation
       end;
 
 
-    constructor TLLVMAssember.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+    constructor TLLVMAssember.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean; acompiler: TCompilerBase);
       begin
         inherited;
         InstrWriter:=TLLVMInstrWriter.create(self);
@@ -1620,7 +1622,7 @@ implementation
       end;
 
 
-    procedure TLLVMAssember.WriteAsmList;
+    procedure TLLVMAssember.WriteAsmList(asmdata: TAsmData);
       var
         hal : tasmlisttype;
         a: TExternalAssembler;
@@ -1630,12 +1632,12 @@ implementation
 
         for hal:=low(TasmlistType) to high(TasmlistType) do
           begin
-            if not assigned(current_asmdata.asmlists[hal]) or
-               current_asmdata.asmlists[hal].Empty then
+            if not assigned(asmdata.asmlists[hal]) or
+               asmdata.asmlists[hal].Empty then
               continue;
             writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
             if not(hal in [al_pure_assembler,al_dwarf_frame]) then
-              writetree(current_asmdata.asmlists[hal])
+              writetree(asmdata.asmlists[hal],hal)
             else
               begin
                 { write routines using the target-specific external assembler
@@ -1644,7 +1646,7 @@ implementation
                 decorator:=TLLVMModuleInlineAssemblyDecorator.Create;
                 writer.decorator:=decorator;
                 a:=GetExternalGnuAssemblerWithAsmInfoWriter(asminfo,writer);
-                a.WriteTree(current_asmdata.asmlists[hal]);
+                a.WriteTree(asmdata.asmlists[hal],hal);
                 writer.decorator:=nil;
                 decorator.free;
                 a.free;
@@ -1666,7 +1668,7 @@ implementation
           internalerror(2016110201);
         writer.decorator:=ffuncinlasmdecorator;
         a:=GetExternalGnuAssemblerWithAsmInfoWriter(asminfo,writer);
-        a.WriteTree(list);
+        a.WriteTree(list,al_procedures);
         a.free;
         writer.decorator:=nil;
       end;

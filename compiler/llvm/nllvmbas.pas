@@ -29,7 +29,8 @@ interface
        globtype,cclasses,
        aasmbase,aasmtai,aasmdata,
        nbas,ncgbas,
-       symsym;
+       symsym,
+       compilerbase;
 
     type
        tllvmasmnode = class(tcgasmnode)
@@ -43,7 +44,7 @@ interface
          function getllvmasmparasym(sym: tabstractnormalvarsym): tasmsymbol;
          procedure ResolveRef(const filepos: tfileposinfo; var op: toper); override;
         public
-         constructor create(p : TAsmList); override;
+         constructor create(p : TAsmList; acompiler: TCompilerBase); override;
          destructor destroy; override;
          procedure pass_generate_code; override;
        end;
@@ -64,7 +65,8 @@ interface
       cgbase,cgutils,paramgr,
       symconst,symdef,procinfo,
       node,
-      cpubase,llvmbase,aasmllvm
+      cpubase,llvmbase,aasmllvm,
+      compiler,nodehelper
       ;
 
 {*****************************************************************************
@@ -84,10 +86,10 @@ interface
         res:=fsymbollookup.FindOrAdd(@key,sizeof(key));
         if not assigned(res^.Data) then
           begin
-            paradef:=cpointerdef.getreusable(sym.vardef);
+            paradef:=cpointerdef.getreusable(sym.vardef,compiler);
             if (sym.typ=paravarsym) and
                paramanager.push_addr_param(sym.varspez,sym.vardef,current_procinfo.procdef.proccalloption) then
-              paradef:=cpointerdef.getreusable(paradef);
+              paradef:=cpointerdef.getreusable(paradef,compiler);
             new(callpara,init(paradef,std_param_align,lve_none,[]));
             { address must be a temp register }
             if (sym.localloc.loc<>LOC_REFERENCE) or
@@ -178,7 +180,7 @@ interface
       end;
 
 
-    constructor tllvmasmnode.create(p: TAsmList);
+    constructor tllvmasmnode.create(p: TAsmList; acompiler: TCompilerBase);
       begin
         inherited;
       end;

@@ -31,7 +31,8 @@ interface
       aasmbase,
       parabase,
       symconst,symbase,symtype,symdef,
-      llvmbase;
+      llvmbase,
+      compilerbase;
 
    type
      { there are three different circumstances in which procdefs are used:
@@ -125,7 +126,8 @@ implementation
     symtable,symsym,
     llvmsym,hlcgobj,
     defutil,blockutl,cgbase,paramgr,
-    llvminfo,cpubase;
+    llvminfo,cpubase,
+    compiler;
 
 
 {******************************************************************
@@ -358,6 +360,8 @@ implementation
     tllvmencodeflags = set of tllvmencodeflag;
 
     procedure llvmaddencodedtype_intern(def: tdef; const flags: tllvmencodeflags; var encodedstr: TSymStr);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         def_is_address: boolean;
       begin
@@ -616,7 +620,7 @@ implementation
                 end
               else if is_block(def) then
                 begin
-                  llvmaddencodedtype_intern(get_block_literal_type_for_proc(tabstractprocdef(def)),flags,encodedstr);
+                  llvmaddencodedtype_intern(compiler.blockutl.get_block_literal_type_for_proc(tabstractprocdef(def)),flags,encodedstr);
                 end
               else
                 begin
@@ -780,6 +784,8 @@ implementation
 
     procedure llvmaddencodedparaloctype(hp: tparavarsym; proccalloption: tproccalloption; withparaname, withattributes: boolean; var first: boolean; var encodedstr: TSymStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         para: PCGPara;
         paraloc: PCGParaLocation;
         side: tcallercallee;
@@ -817,7 +823,7 @@ implementation
           if (hp.vardef=llvm_metadatatype) or
              not((llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
                  ((vo_is_funcret in hp.varoptions) or
-                  paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) or
+                  compiler.paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) or
                   llvmbyvalparaloc(paraloc))) then
             llvmaddencodedtype_intern(usedef,[],encodedstr)
           else
@@ -854,7 +860,7 @@ implementation
                       encodedstr:=encodedstr+' noalias nocapture';
                 end;
             end
-          else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
+          else if not compiler.paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
              llvmbyvalparaloc(paraloc) then
             begin
               if not (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
@@ -870,7 +876,7 @@ implementation
                 end
             end
           else if withattributes and
-             paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) then
+             compiler.paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) then
             begin
               { it's not valid to take the address of a parameter and store it for
                 use past the end of the function call (since the address can always
@@ -929,6 +935,8 @@ implementation
 
     procedure llvmaddencodedproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype; var encodedstr: TSymStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         callingconv: ansistring;
         usedef: tdef;
         paranr: longint;
@@ -953,7 +961,7 @@ implementation
         def.init_paraloc_info(useside);
         first:=true;
         { function result (return-by-ref is handled explicitly) }
-        if not paramanager.ret_in_param(def.returndef,def) or
+        if not compiler.paramanager.ret_in_param(def.returndef,def) or
            def.generate_safecall_wrapper then
           begin
             if not def.generate_safecall_wrapper then
@@ -1000,6 +1008,8 @@ implementation
 
 
     function llvmgettemprecorddef(const fieldtypes: array of tdef; packrecords, recordalignmin: shortint): trecorddef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       procedure addtypename(var typename: TSymStr; hdef: tdef);
         begin
@@ -1073,7 +1083,7 @@ implementation
         if not assigned(res^.Data) then
           begin
             res^.Data:=crecorddef.create_global_internal(typename,packrecords,
-              recordalignmin);
+              recordalignmin,compiler);
             for i:=low(fieldtypes) to high(fieldtypes) do
               trecorddef(res^.Data).add_field_by_def('F'+tostr(i),fieldtypes[i]);
           end;
@@ -1083,6 +1093,8 @@ implementation
 
 
     function llvmgetcgparadef(const cgpara: tcgpara; beforevalueext: boolean; callercallee: tcallercallee): tdef;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         retdeflist: array[0..9] of tdef;
         retloc: pcgparalocation;
@@ -1165,7 +1177,7 @@ implementation
                   paraslots:=sizeleft div cgpara.Alignment;
                   if (paraslots>1) and
                      ((paraslots*cgpara.Alignment)=sizeleft) then
-                    retdeflist[i]:=carraydef.getreusable(cgsize_orddef(int_cgsize(cgpara.Alignment)),paraslots)
+                    retdeflist[i]:=carraydef.getreusable(cgsize_orddef(int_cgsize(cgpara.Alignment)),paraslots,compiler)
                   else
                     retdeflist[i]:=retloc^.def;
                 end

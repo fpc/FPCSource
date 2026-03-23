@@ -37,7 +37,8 @@ interface
       symbase,symtype,symdef,symsym,
       aasmllvm,aasmcnst,
       finput,
-      dbgbase;
+      dbgbase,
+      compilerbase;
 
 
     { TLLVMTypeInfo }
@@ -95,7 +96,7 @@ interface
         procedure update_asmlist_alias_types(list: tasmlist);
 
       public
-        constructor Create;override;
+        constructor Create(acompiler: TCompilerBase);override;
         destructor Destroy;override;
         procedure inserttypeinfo;override;
       end;
@@ -108,7 +109,8 @@ implementation
       cpubase,cgbase,paramgr,
       fmodule,nobj,
       defutil,defcmp,symconst,symtable,
-      llvminfo,llvmbase,llvmdef
+      llvminfo,llvmbase,llvmdef,
+      compiler
       ;
 
 {****************************************************************************
@@ -176,8 +178,8 @@ implementation
         if not equal_llvm_defs(symdef, opcmpdef) then
           begin
             if symdef.typ=procdef then
-              symdef:=cpointerdef.getreusable(symdef);
-            result:=taillvm.op_reg_size_sym_size(la_bitcast, NR_NO, cpointerdef.getreusable(symdef), sym, opdef);
+              symdef:=cpointerdef.getreusable(symdef,compiler);
+            result:=taillvm.op_reg_size_sym_size(la_bitcast, NR_NO, cpointerdef.getreusable(symdef,compiler), sym, opdef);
           end;
       end;
 
@@ -228,9 +230,9 @@ implementation
       end;
 
 
-    constructor TLLVMTypeInfo.Create;
+    constructor TLLVMTypeInfo.Create(acompiler: TCompilerBase);
       begin
-        inherited Create;
+        inherited;
         asmsymtypes:=THashSet.Create(current_asmdata.AsmSymbolDict.Count,true,false);
       end;
 
@@ -368,7 +370,7 @@ implementation
                           is hardcoded to put things in the current module's
                           symtable) and "pointer to procedure" results in the
                           correct llvm type }
-                        symdef:=cpointerdef.getreusable(tprocdef(symdef));
+                        symdef:=cpointerdef.getreusable(tprocdef(symdef),compiler);
                       cnv:=taillvm.op_reg_size_sym_size(la_bitcast,NR_NO,symdef,p.oper[4]^.ref^.symbol,p.oper[3]^.def);
                       p.loadtai(4,cnv);
                     end;
@@ -444,7 +446,7 @@ implementation
                         refer to the data itself, just like you can't initialise
                         a Pascal (typed) constant with the contents of another
                         typed constant) }
-                      symdef:=cpointerdef.getreusable(symdef);
+                      symdef:=cpointerdef.getreusable(symdef,compiler);
                       if not equal_llvm_defs(symdef,p.def) then
                         begin
                           cnv:=taillvm.op_reg_tai_size(la_bitcast,NR_NO,tai_simpletypedconst.create(symdef,tai_simpletypedconst(p).val),p.def);

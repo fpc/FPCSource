@@ -28,21 +28,22 @@ interface
   uses
     globtype,cclasses,
     aasmbase,aasmdata,aasmllvmmetadata, ngenutil,
-    symtype,symconst,symsym,symdef;
+    symtype,symconst,symsym,symdef,
+    compilerbase;
 
 
   type
     tllvmnodeutils = class(tnodeutils)
      strict protected
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
-      class procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
-      class procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
-      class procedure InsertAsanGlobals;
+      procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
+      procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
+      procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
+      procedure InsertAsanGlobals;
      public
-      class procedure InsertObjectInfo; override;
-      class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
-      class procedure RegisterModuleInitFunction(pd: tprocdef); override;
-      class procedure RegisterModuleFiniFunction(pd: tprocdef); override;
+      procedure InsertObjectInfo; override;
+      procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
+      procedure RegisterModuleInitFunction(pd: tprocdef); override;
+      procedure RegisterModuleFiniFunction(pd: tprocdef); override;
     end;
 
 
@@ -54,9 +55,10 @@ implementation
       aasmcnst,nllvmtcon,
       symbase,symtable,defutil,
       llvminfo,llvmtype,llvmdef,
-      objcasm;
+      objcasm,
+      compiler;
 
-  class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
+  procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
     var
       asmsym: tasmsymbol;
       field1, field2: tsym;
@@ -102,7 +104,7 @@ implementation
     end;
 
 
-    class procedure tllvmnodeutils.InsertUsedList(var usedsyms: tfpobjectlist;
+    procedure tllvmnodeutils.InsertUsedList(var usedsyms: tfpobjectlist;
     const usedsymsname: TSymStr);
     var
       useddef: tdef;
@@ -131,9 +133,9 @@ implementation
               end;
           { emit uniques }
           prevasmsym:=nil;
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
-          useddef:=carraydef.getreusable(voidpointertype,uniquesyms);
+          useddef:=carraydef.getreusable(voidpointertype,uniquesyms,compiler);
           tcb.maybe_begin_aggregate(useddef);
           for i:=0 to usedsyms.count-1 do
             begin
@@ -162,7 +164,7 @@ implementation
     end;
 
 
-  class procedure tllvmnodeutils.InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
+  procedure tllvmnodeutils.InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
     var
       itemdef: trecorddef;
       arraydef: tarraydef;
@@ -175,15 +177,15 @@ implementation
         begin
           pd:=tprocdef(procdefs[0]);
           fields[0]:=s32inttype;
-          fields[1]:=cprocvardef.getreusableprocaddr(pd,pc_address_only);
+          fields[1]:=cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler);
           fields[2]:=voidpointertype;
           itemdef:=llvmgettemprecorddef(fields,C_alignment,
             targetinfos[compiler.target.info.system]^.alignment.recordalignmin);
           include(itemdef.defoptions,df_llvm_no_struct_packing);
           include(itemdef.defoptions,df_llvm_no_typename);
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section],compiler);
           tllvmtai_typedconstbuilder(tcb).appendingdef:=true;
-          arraydef:=carraydef.getreusable(itemdef,procdefs.Count);
+          arraydef:=carraydef.getreusable(itemdef,procdefs.Count,compiler);
           tcb.maybe_begin_aggregate(arraydef);
           for i:=0 to procdefs.count-1 do
             begin
@@ -206,7 +208,7 @@ implementation
     end;
 
 
-  class procedure tllvmnodeutils.InsertAsanGlobals;
+  procedure tllvmnodeutils.InsertAsanGlobals;
     var
       asanglobal,
       asanglobals,
@@ -237,7 +239,7 @@ implementation
                 begin
                   if not assigned(asanglobals) then
                     begin
-                      asanglobals:=tai_llvmnamedmetadatanode.create('llvm.asan.globals');
+                      asanglobals:=tai_llvmnamedmetadatanode.create('llvm.asan.globals',compiler);
                       current_asmdata.AsmLists[al_rotypedconsts].concat(asanglobals);
                     end;
                   hpdecl:=taillvmdecl(hp);
@@ -261,7 +263,7 @@ implementation
 
                   asanglobal:=tai_llvmunnamedmetadatanode.create;
                   current_asmdata.AsmLists[al_rotypedconsts].concat(asanglobal);
-                  asanglobal.addvalue(tai_simpletypedconst.create(cpointerdef.getreusable(hpdecl.def),tai_const.Create_sym(hpdecl.namesym)));
+                  asanglobal.addvalue(tai_simpletypedconst.create(cpointerdef.getreusable(hpdecl.def,compiler),tai_const.Create_sym(hpdecl.namesym)));
                   asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,llvm_getmetadatareftypedconst(globalfileloc)));
                   if assigned(hpdecl.sym) then
                     asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,tai_string.Create(hpdecl.sym.RealName)))
@@ -280,7 +282,7 @@ implementation
     end;
 
 
-  class procedure tllvmnodeutils.InsertObjectInfo;
+  procedure tllvmnodeutils.InsertObjectInfo;
     var
       llvmmoduleflags,
       objcmoduleflag,
@@ -289,7 +291,7 @@ implementation
     begin
       InsertAsanGlobals;
 
-      llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags');
+      llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags',compiler);
       current_asmdata.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
 
       if (m_objectivec1 in current_settings.modeswitches) then
@@ -366,7 +368,7 @@ implementation
           current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
         end;
 
-      symtablestack.push(current_module.localsymtable);
+      compiler.symtablestack.push(current_module.localsymtable);
 
       { add the llvm.compiler.used array }
       InsertUsedList(current_module.llvmcompilerusedsyms,'llvm.compiler.used');
@@ -378,17 +380,17 @@ implementation
       InsertInitFiniList(current_module.llvmfiniprocs,'llvm.global_dtors');
 
       { add "type xx = .." statements for all used recorddefs }
-      with TLLVMTypeInfo.Create do
+      with TLLVMTypeInfo.Create(compiler) do
         begin
           inserttypeinfo;
           free;
         end;
 
-      symtablestack.pop(current_module.localsymtable);
+      compiler.symtablestack.pop(current_module.localsymtable);
     end;
 
 
-  class procedure tllvmnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
+  procedure tllvmnodeutils.RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean);
     var
       last: TTypedAsmSym;
     begin
@@ -410,13 +412,13 @@ implementation
     end;
 
 
-  class procedure tllvmnodeutils.RegisterModuleInitFunction(pd: tprocdef);
+  procedure tllvmnodeutils.RegisterModuleInitFunction(pd: tprocdef);
     begin
       current_module.llvminitprocs.add(pd);
     end;
 
 
-  class procedure tllvmnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
+  procedure tllvmnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
     begin
       current_module.llvmfiniprocs.add(pd);
     end;

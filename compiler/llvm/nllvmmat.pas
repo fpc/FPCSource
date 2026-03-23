@@ -27,7 +27,8 @@ interface
 
 uses
   symtype,
-  node, nmat, ncgmat, ncghlmat, cgbase;
+  node, nmat, ncgmat, ncghlmat, cgbase,
+  compilerbase;
 
 type
   tllvmmoddivnode = class(tcgmoddivnode)
@@ -53,10 +54,11 @@ uses
   aasmbase, aasmllvm, aasmtai, aasmdata,
   defutil,
   procinfo,
-  hlcgobj, pass_2,
+  nodehelper, pass_2,
   ncon,
   llvmbase,
-  ncgutil, cgutils;
+  ncgutil, cgutils,
+  compiler;
 
 {*****************************************************************************
                                tllvmmoddivnode

@@ -27,7 +27,8 @@ interface
 
     uses
       symtype,
-      node,ncnv,ncgcnv,defcmp;
+      node,ncnv,ncgcnv,defcmp,
+      compilerbase;
 
     type
        tllvmtypeconvnode = class(tcgtypeconvnode)
@@ -70,12 +71,15 @@ uses
   procinfo,
   ncal,ncon,
   symconst,symdef,defutil,
-  cgbase,cgutils,tgobj,hlcgobj,pass_2;
+  cgbase,cgutils,tgobj,nodehelper,pass_2,
+  compiler;
 
 { tllvmtypeconvnode }
 
 
 class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
+  var
+    _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
     if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
        is_address(fromdef) and
@@ -104,7 +108,7 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
         (tfiledef(fromdef).filetyp=ft_typed) and
         (todef.typ=filedef) and
         (tfiledef(todef).filetyp=ft_typed) and
-        (not equal_defs(compiler.symtablestack,tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef) or
+        (not equal_defs(_compiler.symtablestack,tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef) or
          target_specific_need_equal_typeconv(tfiledef(fromdef).typedfiledef, tfiledef(todef).typedfiledef))
        )
       );
@@ -178,8 +182,8 @@ procedure tllvmtypeconvnode.second_pointer_to_array;
   begin
     inherited;
     { insert type conversion }
-    hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,cpointerdef.getreusable(resultdef),location.reference,hreg);
+    hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
+    hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tpointerdef(left.resultdef).pointeddef,cpointerdef.getreusable(resultdef,compiler),location.reference,hreg);
     reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
   end;
 
@@ -214,8 +218,8 @@ procedure tllvmtypeconvnode.second_proc_to_procvar;
         if location.loc<>LOC_REFERENCE then
           internalerror(2015111902);
         hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-          cpointerdef.getreusable(cprocvardef.getreusableprocaddr(tprocdef(left.resultdef),pc_normal)),
-          cpointerdef.getreusable(resultdef),
+          cpointerdef.getreusable(cprocvardef.getreusableprocaddr(tprocdef(left.resultdef),pc_normal,compiler),compiler),
+          cpointerdef.getreusable(resultdef,compiler),
           location.reference);
       end;
   end;
@@ -228,7 +232,7 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
     tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
     location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment,href.volatility);
     location.reference:=href;
-    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),href);
+    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler),cpointerdef.getreusable(methodpointertype,compiler),href);
     hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'proc',href);
     hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'self',href);
   end;
@@ -319,8 +323,8 @@ procedure tllvmtypeconvnode.second_nothing;
            (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);
         hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),left.location.reference,hreg);
+        hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
+        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef,compiler),left.location.reference,hreg);
         location_reset_ref(location,left.location.loc,def_cgsize(resultdef),left.location.reference.alignment,left.location.reference.volatility);
         reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
       end

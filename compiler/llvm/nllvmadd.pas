@@ -27,7 +27,8 @@ interface
 
     uses
       node,
-      ncgadd;
+      ncgadd,
+      compilerbase;
 
     type
       tllvmaddnode = class(tcgaddnode)
@@ -53,8 +54,9 @@ implementation
        symconst,symtype,symdef,defutil,
        llvmbase,aasmllvm,aasmllvmmetadata,
        cgbase,cgutils,pass_1,
-       hlcgobj,
-       nadd,ncal,ncnv,ncon
+       nodehelper,
+       nadd,ncal,ncnv,ncon,
+       compiler
        ;
 
 { tllvmaddnode }
@@ -97,8 +99,8 @@ implementation
               iscompcurrency:=tfloatdef(left.resultdef).floattype in [s64currency,s64comp];
               if iscompcurrency then
                 begin
-                  inserttypeconv_internal(left,s80floattype);
-                  inserttypeconv_internal(right,s80floattype);
+                  inserttypeconv_internal(left,s80floattype,compiler);
+                  inserttypeconv_internal(right,s80floattype,compiler);
                 end;
               exceptmode:=llvm_constrainedexceptmodestring;
               result:=compiler.ccallnode_intern(intrname,
@@ -420,8 +422,8 @@ implementation
       end;
 
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-      lv:=to_hwvectordef(tarraydef(left.resultdef),false);
-      rv:=to_hwvectordef(tarraydef(right.resultdef),false);
+      lv:=to_hwvectordef(tarraydef(left.resultdef),false,compiler);
+      rv:=to_hwvectordef(tarraydef(right.resultdef),false,compiler);
       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,lv,false);
       hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,rv,false);
       location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);

@@ -32,7 +32,8 @@ unit tgllvm;
       symtype,
       cpubase,cpuinfo,cgbase,cgutils,
       aasmbase,aasmtai,aasmdata,
-      tgobj;
+      tgobj,
+      compilerbase;
 
     type
 
@@ -83,7 +84,8 @@ implementation
        procinfo,
        llvmbase,aasmllvm,
        symconst,symtable,symdef,defutil,
-       paramgr,parabase,cgobj,hlcgobj
+       paramgr,parabase,cgobj,hlcgobj,
+       compiler
        ;
 
 
@@ -91,10 +93,14 @@ implementation
 
     procedure ttgllvm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        cg: tcg;
+      var
         tl: ptemprecord;
         reg: tregister;
         oldfileinfo: tfileposinfo;
       begin
+        cg:=compiler.cg;
         reg:=cg.gettempregister(list);
         new(tl);
 
@@ -148,10 +154,16 @@ implementation
 
     procedure ttgllvm.emit_lifetime(list: TAsmList; const procname: string; temp: ptemprecord);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        hlcg: thlcgobj;
+        paramanager: tparamanager;
+      var
         sizepara, ptrpara: tcgpara;
         pd: tprocdef;
         ref: treference;
       begin
+        hlcg:=compiler.hlcg;
+        paramanager:=compiler.paramanager;
         if (temp^.size<>0) and
            not is_managed_type(temp^.def) then
           begin

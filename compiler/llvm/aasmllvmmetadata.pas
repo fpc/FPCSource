@@ -30,7 +30,8 @@ interface
     globtype,cclasses,
     cgbase,
     aasmtai,aasmcnst,
-    symtype;
+    symtype,
+    compilerbase;
 
 {$push}{$ScopedEnums on}
   type
@@ -71,7 +72,7 @@ interface
      public
       procedure addvalue(val: tai_abstracttypedconst); override;
       property name: ansistring read getname;
-      constructor create; reintroduce;
+      constructor create(acompiler: TCompilerBase); reintroduce;
       class function isspecialised: boolean; virtual;
     end;
 
@@ -92,7 +93,7 @@ interface
       fname: ansistring;
       function getname: ansistring; override;
      public
-      constructor create(const aName: ansistring);
+      constructor create(const aName: ansistring; acompiler: TCompilerBase);
     end;
 
     { reference to a metadata node inside an expression, i.e., !X }
@@ -199,7 +200,8 @@ implementation
     fmodule,
     symdef,
     dbgdwarfconst,
-    aasmdata,aasmllvm;
+    aasmdata,aasmllvm,
+    compiler;
 
   function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
     begin
@@ -226,9 +228,9 @@ implementation
       fvalues.add(val);
     end;
 
-  constructor tai_llvmbasemetadatanode.create;
+  constructor tai_llvmbasemetadatanode.create(acompiler: TCompilerBase);
     begin
-      inherited create(tck_array, llvm_metadatatype);
+      inherited create(tck_array, llvm_metadatatype, acompiler);
       typ:=ait_llvmmetadatanode;
     end;
 
@@ -264,9 +266,9 @@ implementation
     end;
 
 
-  constructor tai_llvmnamedmetadatanode.create(const aName: ansistring);
+  constructor tai_llvmnamedmetadatanode.create(const aName: ansistring; acompiler: TCompilerBase);
     begin
-      inherited create;
+      inherited create(acompiler);
       fname:=aName;
     end;
 

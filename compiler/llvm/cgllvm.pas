@@ -28,7 +28,8 @@ interface
     uses
        globtype,parabase,
        cgbase,cgutils,cgobj,cghlcpu,
-       llvmbase,llvminfo,aasmbase,aasmtai,aasmdata,aasmllvm;
+       llvmbase,llvminfo,aasmbase,aasmtai,aasmdata,aasmllvm,
+       compilerbase;
 
     type
       tcgllvm=class(thlbasecgcpu)
@@ -41,7 +42,7 @@ interface
         function  getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
       end;
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
 
 implementation
 
@@ -49,7 +50,8 @@ implementation
     globals,verbose,systems,cutils,
     paramgr,fmodule,
     tgobj,rgllvm,cpubase,
-    procinfo,cpupi;
+    procinfo,cpupi,
+    compiler;
 
 
 {****************************************************************************
@@ -80,14 +82,14 @@ implementation
       begin
         inherited init_register_allocators;
         rg[R_INTREGISTER]:=Trgllvm.create(R_INTREGISTER,R_SUBWHOLE,
-          [0],first_int_imreg,[]);
+          [0],first_int_imreg,[],compiler);
         rg[R_FPUREGISTER]:=Trgllvm.create(R_FPUREGISTER,R_SUBWHOLE,
-          [0],first_fpu_imreg,[]);
+          [0],first_fpu_imreg,[],compiler);
         rg[R_MMREGISTER]:=Trgllvm.create(R_MMREGISTER,R_SUBWHOLE,
-          [0],first_mm_imreg,[]);
+          [0],first_mm_imreg,[],compiler);
         { every temp gets its own "base register" to uniquely identify it }
         rg[R_TEMPREGISTER]:=trgllvm.Create(R_TEMPREGISTER,R_SUBWHOLE,
-          [0],1,[]);
+          [0],1,[],compiler);
       end;
 
 
@@ -117,9 +119,9 @@ implementation
       end;
 
 
-    procedure create_codegen;
+    procedure create_codegen(compiler: TCompilerBase);
       begin
-        cg:=tcgllvm.Create;
+        tcompiler(compiler).cg:=tcgllvm.Create(compiler);
       end;
 
 end.

@@ -30,7 +30,8 @@ interface
       aasmbase,
       procinfo,
       cpupi,
-      aasmdata,aasmllvm;
+      aasmdata,aasmllvm,
+      compilerbase;
 
     type
       tllvmprocinfo = class(tcpuprocinfo)
@@ -38,7 +39,7 @@ interface
         fexceptlabelstack: tfplist;
         flandingpadstack: tfplist;
        public
-        constructor create(aparent: tprocinfo); override;
+        constructor create(aparent: tprocinfo; acompiler: TCompilerBase); override;
         destructor destroy; override;
         procedure pushexceptlabel(lab: TAsmLabel);
         { returns true if there no more landing pads on the stack }
@@ -60,7 +61,8 @@ implementation
       symconst,symtype,symdef,symsym,symtable,defutil,llvmdef,
       pass_2,
       parabase,paramgr,
-      cgbase,cgutils,cgexcept,tgobj,hlcgobj,llvmbase;
+      cgbase,cgutils,cgexcept,tgobj,hlcgobj,llvmbase,
+      compiler;
 
     {*****************************************************************************
                          tllvmexceptionstatehandler
@@ -68,25 +70,25 @@ implementation
 
     type
       tllvmexceptionstatehandler = class(tcgexceptionstatehandler)
-        class procedure get_exception_temps(list: TAsmList; var t: texceptiontemps); override;
-        class procedure unget_exception_temps(list: TAsmList; const t: texceptiontemps); override;
-        class procedure new_exception(list: TAsmList; const t: texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-        class procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps); override;
-        class procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); override;
-        class procedure cleanupobjectstack(list: TAsmList); override;
-        class procedure popaddrstack(list: TAsmList); override;
-        class procedure handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind); override;
-        class procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
-        class procedure end_catch(list: TAsmList); override;
-        class procedure catch_all_start(list: TAsmList); override;
-        class procedure catch_all_end(list: TAsmList); override;
+        procedure get_exception_temps(list: TAsmList; var t: texceptiontemps); override;
+        procedure unget_exception_temps(list: TAsmList; const t: texceptiontemps); override;
+        procedure new_exception(list: TAsmList; const t: texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
+        procedure emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps); override;
+        procedure end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel); override;
+        procedure cleanupobjectstack(list: TAsmList); override;
+        procedure popaddrstack(list: TAsmList); override;
+        procedure handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind); override;
+        procedure begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister); override;
+        procedure end_catch(list: TAsmList); override;
+        procedure catch_all_start(list: TAsmList); override;
+        procedure catch_all_end(list: TAsmList); override;
        protected
-        class procedure begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
-        class procedure catch_all_start_internal(list: TAsmList; add_catch: boolean);
+        procedure begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
+        procedure catch_all_start_internal(list: TAsmList; add_catch: boolean);
       end;
 
 
-      class procedure tllvmexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
+      procedure tllvmexceptionstatehandler.get_exception_temps(list: TAsmList; var t: texceptiontemps);
         begin
           if not assigned(exceptionreasontype) then
             exceptionreasontype:=ossinttype;
@@ -94,14 +96,14 @@ implementation
         end;
 
 
-      class procedure tllvmexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
+      procedure tllvmexceptionstatehandler.unget_exception_temps(list: TAsmList; const t: texceptiontemps);
         begin
           tg.ungettemp(list,t.reasonbuf);
           tllvmprocinfo(current_procinfo).poppad;
         end;
 
 
-      class procedure tllvmexceptionstatehandler.new_exception(list: TAsmList; const t: texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+      procedure tllvmexceptionstatehandler.new_exception(list: TAsmList; const t: texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
         var
           reg: tregister;
         begin
@@ -138,7 +140,7 @@ implementation
         end;
 
 
-      class procedure tllvmexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps);
+      procedure tllvmexceptionstatehandler.emit_except_label(list: TAsmList; exceptframekind: texceptframekind; var exceptionstate: texceptionstate;var exceptiontemps:texceptiontemps);
         var
           reg: tregister;
           landingpad: taillvm;
@@ -171,7 +173,7 @@ implementation
         end;
 
 
-      class procedure tllvmexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel);
+      procedure tllvmexceptionstatehandler.end_try_block(list: TAsmList; exceptframekind: texceptframekind; const t: texceptiontemps; var exceptionstate: texceptionstate; endlabel: TAsmLabel);
         var
           reg: tregister;
         begin
@@ -192,7 +194,7 @@ implementation
             hlcg.a_jmp_always(list,endlabel);
         end;
 
-      class procedure tllvmexceptionstatehandler.cleanupobjectstack(list: TAsmList);
+      procedure tllvmexceptionstatehandler.cleanupobjectstack(list: TAsmList);
         var
           landingpad: taillvm;
         begin
@@ -205,13 +207,13 @@ implementation
             end;
         end;
 
-      class procedure tllvmexceptionstatehandler.popaddrstack(list: TAsmList);
+      procedure tllvmexceptionstatehandler.popaddrstack(list: TAsmList);
         begin
           // nothing
         end;
 
 
-      class procedure tllvmexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
+      procedure tllvmexceptionstatehandler.handle_reraise(list: TAsmList; const t: texceptiontemps; const entrystate: texceptionstate; const exceptframekind: texceptframekind);
         var
           landingpad: taillvm;
           landingpadres: tregister;
@@ -245,32 +247,32 @@ implementation
         end;
 
 
-      class procedure tllvmexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+      procedure tllvmexceptionstatehandler.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
         begin
           begin_catch_internal(list,excepttype,nextonlabel,true,exceptlocdef,exceptlocreg);
         end;
 
 
-      class procedure tllvmexceptionstatehandler.end_catch(list: TAsmList);
+      procedure tllvmexceptionstatehandler.end_catch(list: TAsmList);
         begin
           hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
           inherited;
         end;
 
 
-      class procedure tllvmexceptionstatehandler.catch_all_start(list: TAsmList);
+      procedure tllvmexceptionstatehandler.catch_all_start(list: TAsmList);
         begin
           catch_all_start_internal(list,true);
         end;
 
 
-      class procedure tllvmexceptionstatehandler.catch_all_end(list: TAsmList);
+      procedure tllvmexceptionstatehandler.catch_all_end(list: TAsmList);
         begin
           hlcg.g_call_system_proc(list,'fpc_psabi_end_catch',[],nil).resetiftemp;
         end;
 
 
-      class procedure tllvmexceptionstatehandler.begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
+      procedure tllvmexceptionstatehandler.begin_catch_internal(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; add_catch: boolean; out exceptlocdef: tdef; out exceptlocreg: tregister);
         var
           catchstartlab: tasmlabel;
           landingpad: taillvm;
@@ -304,7 +306,7 @@ implementation
                           (cs_imported_data in current_settings.localswitches) and
                           otherunit;
                   { add "catch exceptiontype" clause to the landing pad }
-                  rttidef:=cpointerdef.getreusable(excepttype.vmt_def);
+                  rttidef:=cpointerdef.getreusable(excepttype.vmt_def,compiler);
                   rttisym:=current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname, AT_DATA, indirect);
                   landingpad.landingpad_add_clause(la_catch,rttidef,rttisym);
                 end
@@ -326,7 +328,7 @@ implementation
               paramanager.getcgtempparaloc(list,pd,1,paraloc1);
               reference_reset_symbol(rttiref,rttisym,0,rttidef.alignment,[]);
               rttiref.refaddr:=addr_full;
-              hlcg.a_load_ref_cgpara(list,cpointerdef.getreusable(rttidef),rttiref,paraloc1);
+              hlcg.a_load_ref_cgpara(list,cpointerdef.getreusable(rttidef,compiler),rttiref,paraloc1);
               typeidres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
               location_reset(exceptloc, LOC_REGISTER, def_cgsize(landingpadtypeiddef));
               exceptloc.register:=hlcg.getintregister(list,landingpadtypeiddef);
@@ -358,7 +360,7 @@ implementation
         end;
 
 
-      class procedure tllvmexceptionstatehandler.catch_all_start_internal(list: TAsmList; add_catch: boolean);
+      procedure tllvmexceptionstatehandler.catch_all_start_internal(list: TAsmList; add_catch: boolean);
         var
           exceptlocdef: tdef;
           exceptlocreg: tregister;
@@ -372,7 +374,7 @@ implementation
                      tllvmprocinfo
 *****************************************************************************}
 
-    constructor tllvmprocinfo.create(aparent: tprocinfo);
+    constructor tllvmprocinfo.create(aparent: tprocinfo; acompiler: TCompilerBase);
       begin
         inherited;
         fexceptlabelstack:=tfplist.create;
@@ -441,7 +443,7 @@ implementation
           inherited
         else
           begin
-            cexceptionstatehandler:=tllvmexceptionstatehandler;
+            tcompiler(compiler).CreateExceptionStateHandler(tllvmexceptionstatehandler);
           end;
       end;
 

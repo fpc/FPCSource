@@ -29,7 +29,8 @@ interface
       globtype,
       cgbase,cgutils,
       symtype,
-      node,ncgnstmm, ncgmem;
+      node,ncgnstmm, ncgmem,
+      compilerbase;
 
     type
       tllvmloadparentfpnode = class(tcgnestloadparentfpnode)
@@ -59,7 +60,8 @@ implementation
       aasmdata,aasmllvm,
       symtable,symconst,symdef,defutil,
       nmem,
-      cpubase,llvmbase,hlcgobj,hlcgllvm;
+      cpubase,llvmbase,nodehelper,hlcgllvm,
+      compiler;
 
   { tllvmsubscriptnode }
 
@@ -74,7 +76,7 @@ implementation
           begin
             { typecast the result to the expected type, but don't actually index
               (that still has to be done by the generic code, so return false) }
-            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
             if is_ordinal(resultdef) then
               fielddef:=
                 cgsize_orddef(
@@ -86,7 +88,7 @@ implementation
               fielddef:=resultdef;
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,
               left.resultdef,
-              cpointerdef.getreusable(fielddef),
+              cpointerdef.getreusable(fielddef,compiler),
               location.reference,newbase);
             reference_reset_base(location.reference,newbase,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
             result:=false;
@@ -129,9 +131,9 @@ implementation
           10 bytes) }
         if (resultdef.typ=floatdef) and
            (tfloatdef(resultdef).floattype=s80real) then
-          arrptrelementdef:=cpointerdef.getreusable(carraydef.getreusable(u8inttype,10))
+          arrptrelementdef:=cpointerdef.getreusable(carraydef.getreusable(u8inttype,10,compiler),compiler)
         else
-          arrptrelementdef:=cpointerdef.getreusable(resultdef);
+          arrptrelementdef:=cpointerdef.getreusable(resultdef,compiler);
       end;
 
     begin
@@ -152,7 +154,7 @@ implementation
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
           locref^:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
           if indirect then
-            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef),
+            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef,compiler),
               locref^,ptruinttype,constarrayoffset,true))
           else
             current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,left.resultdef,
@@ -166,8 +168,8 @@ implementation
        begin
          if not assigned(locref) then
            getarrelementptrdef;
-         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,cpointerdef.getreusable(resultdef),locref^.base,hreg);
+         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
+         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,cpointerdef.getreusable(resultdef,compiler),locref^.base,hreg);
          locref^.base:=hreg;
        end;
 
@@ -179,9 +181,9 @@ implementation
         begin
           getarrelementptrdef;
           packedloadsize:=packedbitsloadsize(tarraydef(left.resultdef).elementdef.packedbitsize);
-          arrptrelementdef:=cpointerdef.getreusable(cgsize_orddef(int_cgsize(packedloadsize)));
+          arrptrelementdef:=cpointerdef.getreusable(cgsize_orddef(int_cgsize(packedloadsize)),compiler);
           hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-            cpointerdef.getreusable(u8inttype),
+            cpointerdef.getreusable(u8inttype,compiler),
             arrptrelementdef,
             locref^);
         end;
@@ -201,14 +203,14 @@ implementation
           maybe_const_reg:=hreg;
           constarrayoffset:=0;
         end;
-      hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+      hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef,compiler));
       location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
       if not is_dynamicstring(left.resultdef) and
          not is_dynamic_array(left.resultdef) then
         begin
           { get address of indexed array element and convert pointer to array into
             pointer to the elementdef in the process }
-          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,cpointerdef.getreusable(left.resultdef),
+          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,cpointerdef.getreusable(left.resultdef,compiler),
             location.reference,ptruinttype,maybe_const_reg,true));
           arraytopointerconverted:=true;
         end
@@ -274,8 +276,8 @@ implementation
       offsetreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
       hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,ptruinttype,alignpower,hreg2,offsetreg);
       { index the array using this chunk index }
-      basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(defloadsize));
-      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef),
+      basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(defloadsize,compiler));
+      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef,compiler),
         sref.ref,ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
       reference_reset_base(sref.ref,basereg,0,sref.ref.temppos,sref.ref.alignment,sref.ref.volatility);

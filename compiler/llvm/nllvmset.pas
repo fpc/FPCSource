@@ -28,7 +28,8 @@ interface
   uses
     nset, ncgset,
     symtype,
-    cgbase;
+    cgbase,
+    compilerbase;
 
   type
     tllvminnode = class(tcginnode)
@@ -47,8 +48,9 @@ implementation
     uses
       globals,
       aasmbase, aasmdata,
-      hlcgobj,
-      llvminfo;
+      nodehelper,
+      llvminfo,
+      compiler;
 
     procedure tllvminnode.in_reg_const(uopdef: tdef; opsize: tcgsize);
       var

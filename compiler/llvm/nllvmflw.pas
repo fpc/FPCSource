@@ -30,7 +30,8 @@ interface
       symtype,symdef,
       aasmbase,aasmdata,
       cgbase,
-      node, nflw, ncgflw, ncgnstfl;
+      node, nflw, ncgflw, ncgnstfl,
+      compilerbase;
 
     type
       tllvmlabelnode = class(tcglabelnode)
@@ -55,9 +56,10 @@ implementation
     uses
       systems,globals,verbose,
       symconst,symtable,symsym,llvmdef,defutil,
-      pass_2,cgutils,hlcgobj,parabase,paramgr,tgobj,
+      pass_2,cgutils,nodehelper,parabase,paramgr,tgobj,
       llvmbase,aasmtai,aasmllvm,
-      procinfo,llvmpi;
+      procinfo,llvmpi,
+      compiler;
 
 
 {*****************************************************************************

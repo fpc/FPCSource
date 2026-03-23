@@ -30,14 +30,15 @@ uses
   globtype,cclasses,
   aasmbase,aasmdata,
   symbase,symconst,symtype,symdef,symsym,
-  cpubase, hlcgobj, cgbase, cgutils, parabase, tgobj;
+  cpubase, hlcgobj, cgbase, cgutils, parabase, tgobj,
+  compilerbase;
 
   type
 
     { thlcgllvm }
 
     thlcgllvm = class(thlcgobj)
-      constructor create;
+      constructor create(ACompiler: TCompilerBase);
 
       procedure a_load_reg_cgpara(list: TAsmList; size: tdef; r: tregister; const cgpara: TCGPara); override;
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
@@ -179,10 +180,11 @@ implementation
     symtable,symllvm,
     paramgr,
     pass_2,procinfo,llvmpi,cpuinfo,cgobj,cgllvm,cghlcpu,
-    cgcpu,hlcgcpu;
+    cgcpu,hlcgcpu,
+    compiler;
 
   var
-    create_hlcodegen_cpu: TProcedure = nil;
+    create_hlcodegen_cpu: procedure(acompiler: TCompilerBase) = nil;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -194,7 +196,7 @@ implementation
        la_none, la_none);
 
 
-  constructor thlcgllvm.create;
+  constructor thlcgllvm.create(ACompiler: TCompilerBase);
     begin
       inherited
     end;
@@ -277,7 +279,7 @@ implementation
               begin
                  if assigned(location^.next) then
                    internalerror(2010052901);
-                 reference_reset_base(ref,cpointerdef.getreusable(size),location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
+                 reference_reset_base(ref,cpointerdef.getreusable(size,compiler),location^.reference.index,location^.reference.offset,ctempposinvalid,newalignment(cgpara.alignment,cgpara.intsize-sizeleft),[]);
                  if (def_cgsize(size)<>OS_NO) and
                     (size.size=sizeleft) and
                     (sizeleft<=sizeof(aint)) then
@@ -353,16 +355,16 @@ implementation
         begin
           if refsize.size>=newrefsize.size then
             begin
-              reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
-              a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
-              reference_reset_base(newref,cpointerdef.getreusable(newrefsize),reg,0,initialref.temppos,initialref.alignment,initialref.volatility);
+              reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize,compiler));
+              a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize,compiler),initialref,reg);
+              reference_reset_base(newref,cpointerdef.getreusable(newrefsize,compiler),reg,0,initialref.temppos,initialref.alignment,initialref.volatility);
               refsize:=newrefsize;
             end
           else
             begin
               tg.gethltemp(list,newrefsize,newrefsize.size,tt_normal,newref);
-              reg:=getaddressregister(list,cpointerdef.getreusable(refsize));
-              a_loadaddr_ref_reg(list,newrefsize,cpointerdef.getreusable(refsize),newref,reg);
+              reg:=getaddressregister(list,cpointerdef.getreusable(refsize,compiler));
+              a_loadaddr_ref_reg(list,newrefsize,cpointerdef.getreusable(refsize,compiler),newref,reg);
               reference_reset_base(tmpref,refsize,reg,0,newref.temppos,newref.alignment,initialref.volatility);
               g_concatcopy(list,refsize,initialref,tmpref);
               refsize:=newrefsize;
@@ -425,7 +427,7 @@ implementation
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,symmetadatapara);
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,exprmetapara);
           { the local location of the var/para }
-          varmetapara.Location^.def:=cpointerdef.getreusable(def);
+          varmetapara.Location^.def:=cpointerdef.getreusable(def,compiler);
           varmetapara.Location^.register:=ref.base;
           { the variable/para metadata }
           symmetadatapara.Location^.llvmloc.loc:=LOC_CREFERENCE;
@@ -460,7 +462,7 @@ implementation
         have the same size as the shifted register }
       if bitnumbersize.size<>valuesize.size then
         begin
-          tmpbitnumberreg:=hlcg.getintregister(list,valuesize);
+          tmpbitnumberreg:=getintregister(list,valuesize);
           a_load_reg_reg(list,bitnumbersize,valuesize,bitnumber,tmpbitnumberreg);
           bitnumbersize:=valuesize;
           bitnumber:=tmpbitnumberreg;
@@ -477,7 +479,7 @@ implementation
         have the same size as the shifted register }
       if bitnumbersize.size<>destsize.size then
         begin
-          tmpbitnumberreg:=hlcg.getintregister(list,destsize);
+          tmpbitnumberreg:=getintregister(list,destsize);
           a_load_reg_reg(list,bitnumbersize,destsize,bitnumber,tmpbitnumberreg);
           bitnumbersize:=destsize;
           bitnumber:=tmpbitnumberreg;
@@ -487,6 +489,8 @@ implementation
 
 
   function get_call_pd(pd: tabstractprocdef): tdef;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if (pd.typ=procdef) or
          not pd.is_addressonly then
@@ -497,7 +501,7 @@ implementation
           is also much cheaper to create, and in llvm a provardef is a "function
           pointer", so a pointer to a procdef is the same as a procvar as far
           as llvm is concerned }
-        result:=cpointerdef.getreusable(pd)
+        result:=cpointerdef.getreusable(pd,compiler)
       else
         result:=pd
     end;
@@ -584,7 +588,7 @@ implementation
                           internalerror(2014012307)
                         else
                           begin
-                            reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
+                            reference_reset_base(href, cpointerdef.getreusable(callpara^.def,compiler), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
                             res:=getregisterfordef(list, paraloc^.def);
                             load_ref_anyreg(callpara^.def, href, res);
                             callpara^.loadreg(res);
@@ -646,7 +650,7 @@ implementation
     { if this is a complex procvar, get the non-tmethod-like equivalent }
     if (pd.typ=procvardef) and
        not pd.is_addressonly then
-      pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd,pc_address_only));
+      pd:=tprocvardef(cprocvardef.getreusableprocaddr(pd,pc_address_only,compiler));
   end;
 
 
@@ -724,7 +728,7 @@ implementation
          is_64bit(tosize) then
         begin
           sref:=make_simple_ref(list,ref,tosize);
-          list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,cpointerdef.getreusable(tosize),sref))
+          list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,cpointerdef.getreusable(tosize,compiler),sref))
         end
       else
         inherited;
@@ -781,9 +785,9 @@ implementation
                   tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
                   a_load_reg_ref(list,fromsize,fromsize,register,tmpref);
                   { typecast pointer to memory into pointer to integer type }
-                  hreg:=getaddressregister(list,cpointerdef.getreusable(tosize));
-                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize),tmpref,hreg);
-                  reference_reset_base(sref,cpointerdef.getreusable(tosize),hreg,0,tmpref.temppos,tmpref.alignment,tmpref.volatility);
+                  hreg:=getaddressregister(list,cpointerdef.getreusable(tosize,compiler));
+                  a_loadaddr_ref_reg(list,fromsize,cpointerdef.getreusable(tosize,compiler),tmpref,hreg);
+                  reference_reset_base(sref,cpointerdef.getreusable(tosize,compiler),hreg,0,tmpref.temppos,tmpref.alignment,tmpref.volatility);
                   { load the integer from the temp into the destination }
                   a_load_ref_ref(list,tosize,tosize,sref,ref);
                   tg.ungettemp(list,tmpref);
@@ -803,9 +807,9 @@ implementation
             end
           else
             begin
-              hreg2:=getaddressregister(list,cpointerdef.getreusable(fromsize));
-              a_loadaddr_ref_reg(list,tosize,cpointerdef.getreusable(fromsize),sref,hreg2);
-              reference_reset_base(sref,cpointerdef.getreusable(fromsize),hreg2,0,sref.temppos,sref.alignment,sref.volatility);
+              hreg2:=getaddressregister(list,cpointerdef.getreusable(fromsize,compiler));
+              a_loadaddr_ref_reg(list,tosize,cpointerdef.getreusable(fromsize,compiler),sref,hreg2);
+              reference_reset_base(sref,cpointerdef.getreusable(fromsize,compiler),hreg2,0,sref.temppos,sref.alignment,sref.volatility);
               tosize:=fromsize;
             end;
         end
@@ -814,7 +818,7 @@ implementation
           hreg:=getregisterfordef(list,tosize);
           a_load_reg_reg(list,fromsize,tosize,register,hreg);
         end;
-      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,cpointerdef.getreusable(tosize),sref));
+      list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,hreg,cpointerdef.getreusable(tosize,compiler),sref));
     end;
 
 
@@ -883,15 +887,15 @@ implementation
             begin
               tg.gethltemp(list,fromsize,fromsize.size,tt_normal,tmpref);
               tmpref2:=tmpref;
-              g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),tmpref2);
+              g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize,compiler),cpointerdef.getreusable(tosize,compiler),tmpref2);
             end
           else
             begin
               tg.gethltemp(list,tosize,tosize.size,tt_normal,tmpref);
               tmpref2:=tmpref;
-              g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(fromsize),tmpref);
+              g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize,compiler),cpointerdef.getreusable(fromsize,compiler),tmpref);
             end;
-          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,simpleref,cpointerdef.getreusable(fromsize),tmpref));
+          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,simpleref,cpointerdef.getreusable(fromsize,compiler),tmpref));
           case getregtype(register) of
             R_INTREGISTER,
             R_ADDRESSREGISTER:
@@ -924,7 +928,7 @@ implementation
             garbage, but they should never be used. }
           tg.gethltemp(list,tosize,tosize.size,tt_persistent,tmpref);
           tmpref2:=tmpref;
-          g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(fromsize),tmpref2);
+          g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize,compiler),cpointerdef.getreusable(fromsize,compiler),tmpref2);
           case getregtype(register) of
             R_INTREGISTER,
             R_ADDRESSREGISTER:
@@ -959,7 +963,7 @@ implementation
              itself if tosize<=fromsize but they are of different
              kinds, because we can't e.g. bitcast a loaded <{i32, i32}>
              to an i64 *)
-          g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),simpleref);
+          g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize,compiler),cpointerdef.getreusable(tosize,compiler),simpleref);
           fromsize:=tosize;
           result:=false;
         end;
@@ -992,7 +996,7 @@ implementation
           hreg:=register;
           if fromsize<>tosize then
             hreg:=getregisterfordef(list,fromsize);
-          list.concat(taillvm.op_reg_size_ref(la_load,hreg,cpointerdef.getreusable(fromsize),sref));
+          list.concat(taillvm.op_reg_size_ref(la_load,hreg,cpointerdef.getreusable(fromsize,compiler),sref));
           if hreg<>register then
             a_load_reg_reg(list,fromsize,tosize,hreg,register);
         end;
@@ -1007,7 +1011,7 @@ implementation
          (sref.refaddr=addr_full) then
         begin
           sdref:=make_simple_ref(list,dref,tosize);
-          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(tosize),sdref));
+          list.concat(taillvm.op_size_ref_size_ref(la_store,fromsize,sref,cpointerdef.getreusable(tosize,compiler),sdref));
         end
       else if (fromsize=tosize) and
               not(fromsize.typ in [orddef,floatdef,enumdef]) and
@@ -1027,7 +1031,7 @@ implementation
       if ref.refaddr=addr_full then
         internalerror(2013102306);
       if makefromsizepointer then
-        fromsize:=cpointerdef.getreusable(fromsize);
+        fromsize:=cpointerdef.getreusable(fromsize,compiler);
       sref:=make_simple_ref_ptr(list,ref,fromsize);
       list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,fromsize,sref,tosize));
     end;
@@ -1359,7 +1363,7 @@ implementation
              exit;
          end;
        { %tmpreg = load size* %ref }
-       list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,cpointerdef.getreusable(fromsize),href));
+       list.concat(taillvm.op_reg_size_ref(la_load,tmpreg,cpointerdef.getreusable(fromsize,compiler),href));
        if tmpreg<>reg then
          if fromcompcurr then
            { treat as extended as long as it's in a register }
@@ -1418,7 +1422,7 @@ implementation
        else
          tmpreg:=reg;
        { store tosize tmpreg, tosize* href }
-       list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,tmpreg,cpointerdef.getreusable(tosize),href));
+       list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,tmpreg,cpointerdef.getreusable(tosize,compiler),href));
      end;
 
 
@@ -1726,15 +1730,15 @@ implementation
       if implicitpointer then
         g_ptrtypecast_ref(list,recdef,currentstructdef,recref)
       else
-        g_ptrtypecast_ref(list,cpointerdef.getreusable(recdef),cpointerdef.getreusable(currentstructdef),recref);
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(recdef,compiler),cpointerdef.getreusable(currentstructdef,compiler),recref);
       { get the corresponding field in the llvm shadow symtable }
       llvmfield:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[field];
       if implicitpointer then
         subscriptdef:=currentstructdef
       else
-        subscriptdef:=cpointerdef.getreusable(currentstructdef);
+        subscriptdef:=cpointerdef.getreusable(currentstructdef,compiler);
       { load the address of that shadow field }
-      newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfield.def));
+      newbase:=getaddressregister(list,cpointerdef.getreusable(llvmfield.def,compiler));
       recref:=make_simple_ref(list,recref,recdef);
       list.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,recref,s32inttype,field.llvmfieldnr,true));
       reference_reset_base(recref,subscriptdef,newbase,field.offsetfromllvmfield,recref.temppos,newalignment(recref.alignment,llvmfield.fieldoffset+field.offsetfromllvmfield),recref.volatility);
@@ -1743,12 +1747,12 @@ implementation
         size for extended, which is usually larger) into an extended }
       if (llvmfield.def.typ=floatdef) and
          (tfloatdef(llvmfield.def).floattype=s80real) then
-        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10)),cpointerdef.getreusable(s80floattype),recref);
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10,compiler),compiler),cpointerdef.getreusable(s80floattype,compiler),recref);
       { if it doesn't match the requested field exactly (variant record),
         adjust the type of the pointer }
       if (field.offsetfromllvmfield<>0) or
          (llvmfield.def<>field.vardef) then
-        g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfield.def),cpointerdef.getreusable(field.vardef),recref);
+        g_ptrtypecast_ref(list,cpointerdef.getreusable(llvmfield.def,compiler),cpointerdef.getreusable(field.vardef,compiler),recref);
     end;
 
 
@@ -1774,9 +1778,9 @@ implementation
                     exit;
                 end;
               if fromsize<>tosize then
-                g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize),cpointerdef.getreusable(tosize),href);
+                g_ptrtypecast_ref(list,cpointerdef.getreusable(fromsize,compiler),cpointerdef.getreusable(tosize,compiler),href);
               { %reg = load size* %ref }
-              list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(tosize),href));
+              list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(tosize,compiler),href));
             end;
         end;
     end;
@@ -1795,7 +1799,7 @@ implementation
             internalerror(2013060220);
           href:=make_simple_ref(list,ref,tosize);
           { store tosize reg, tosize* href }
-          list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,reg,cpointerdef.getreusable(tosize),href))
+          list.concat(taillvm.op_size_reg_size_ref(la_store,tosize,reg,cpointerdef.getreusable(tosize,compiler),href))
         end;
     end;
 
@@ -1946,9 +1950,9 @@ implementation
             tg.gethltemp(list,llvmparadef,llvmparadef.size,tt_normal,href)
           else
             begin
-              hreg:=getaddressregister(list,cpointerdef.getreusable(llvmparadef));
-              a_loadaddr_ref_reg(list,vardef,cpointerdef.getreusable(llvmparadef),destloc.reference,hreg);
-              reference_reset_base(href,cpointerdef.getreusable(llvmparadef),hreg,0,destloc.reference.temppos,destloc.reference.alignment,destloc.reference.volatility);
+              hreg:=getaddressregister(list,cpointerdef.getreusable(llvmparadef,compiler));
+              a_loadaddr_ref_reg(list,vardef,cpointerdef.getreusable(llvmparadef,compiler),destloc.reference,hreg);
+              reference_reset_base(href,cpointerdef.getreusable(llvmparadef,compiler),hreg,0,destloc.reference.temppos,destloc.reference.alignment,destloc.reference.volatility);
             end;
           index:=0;
           ploc:=para.location;
@@ -2070,7 +2074,7 @@ implementation
 
   function thlcgllvm.make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
     begin
-      result:=make_simple_ref_ptr(list,ref,cpointerdef.getreusable(def));
+      result:=make_simple_ref_ptr(list,ref,cpointerdef.getreusable(def,compiler));
     end;
 
 
@@ -2279,19 +2283,19 @@ implementation
     end;
 
 
-  procedure create_hlcodegen_llvm;
+  procedure create_hlcodegen_llvm(compiler: TCompilerBase);
     begin
       if not assigned(current_procinfo) or
          not(po_assembler in current_procinfo.procdef.procoptions) then
         begin
           tgobjclass:=ttgllvm;
-          hlcg:=thlcgllvm.create;
-          cgllvm.create_codegen
+          tcompiler(compiler).hlcg:=thlcgllvm.create(compiler);
+          cgllvm.create_codegen(compiler)
         end
       else
         begin
           tgobjclass:=orgtgclass;
-          create_hlcodegen_cpu;
+          create_hlcodegen_cpu(compiler);
           { todo: handle/remove chlcgobj }
         end;
     end;

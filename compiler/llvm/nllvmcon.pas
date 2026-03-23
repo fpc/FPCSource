@@ -28,7 +28,8 @@ interface
 
     uses
       symtype,
-      node,ncgcon;
+      node,ncgcon,
+      compilerbase;
 
     type
        tllvmrealconstnode = class(tcgrealconstnode)
@@ -37,7 +38,7 @@ interface
        end;
 
        tllvmstringconstnode = class(tcgstringconstnode)
-          constructor createpchar(s: pchar; l: longint; def: tdef); override;
+          constructor createpchar(s: pchar; l: longint; def: tdef; acompiler: TCompilerBase); override;
           function pass_typecheck: tnode; override;
           function pass_1: tnode; override;
           procedure pass_generate_code; override;
@@ -52,15 +53,16 @@ implementation
       symbase,symtable,symconst,symdef,symsym,defutil,
       aasmbase,aasmdata,aasmcnst,
       ncon,
-      llvmbase,aasmllvm,aasmllvmmetadata,hlcgobj,
+      llvmbase,aasmllvm,aasmllvmmetadata,nodehelper,
       cgbase,cgutils,
-      cpubase;
+      cpubase,
+      compiler;
 
 {*****************************************************************************
                            tllvmstringconstnode
 *****************************************************************************}
 
-    constructor tllvmstringconstnode.createpchar(s: pchar; l: longint; def: tdef);
+    constructor tllvmstringconstnode.createpchar(s: pchar; l: longint; def: tdef; acompiler: TCompilerBase);
       begin
         inherited;
         if def=llvm_metadatatype then
@@ -118,18 +120,18 @@ implementation
                   constants (-> excludes terminating #0) and pchars (-> includes
                   terminating #0). The resultdef excludes the #0 while the data
                   includes it -> insert typecast from datadef to resultdef }
-                datadef:=carraydef.getreusable(cansichartype,len+1);
+                datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
               cst_shortstring:
                 { the resultdef of the string constant is the type of the
                   string to which it is assigned, which can be longer or shorter
                   than the length of the string itself -> typecast it to the
                   correct string type }
-                datadef:=carraydef.getreusable(cansichartype,min(len,255)+1);
+                datadef:=carraydef.getreusable(cansichartype,min(len,255)+1,compiler);
               else
                 internalerror(2014071203);
             end;
             { get address of array as pchar }
-            resptrdef:=cpointerdef.getreusable(resultdef);
+            resptrdef:=cpointerdef.getreusable(resultdef,compiler);
             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
             hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
@@ -159,21 +161,21 @@ implementation
             internalerror(2014040804);
         end;
         { get the recorddef for this string constant }
-        strrecdef:=ctai_typedconstbuilder.get_dynstring_rec(stringtype,winlikewidestring,len);
+        strrecdef:=ctai_typedconstbuilder.get_dynstring_rec(stringtype,winlikewidestring,len,compiler);
         { offset in the record of the the string data }
-        offset:=ctai_typedconstbuilder.get_string_symofs(stringtype,winlikewidestring);
+        offset:=ctai_typedconstbuilder.get_string_symofs(stringtype,winlikewidestring,compiler.target);
         { field corresponding to this offset }
         field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
         llvmfield:=trecordsymtable(strrecdef.symtable).llvmst[field];
         if llvmfield.fieldoffset<>field.fieldoffset then
           internalerror(2015061001);
         { pointerdef to the string data array }
-        dataptrdef:=cpointerdef.getreusable(field.vardef);
+        dataptrdef:=cpointerdef.getreusable(field.vardef,compiler);
         { load the address of the string data }
         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
         reference_reset_symbol(href,lab_str,0,const_align(strpointerdef.size),[]);
         current_asmdata.CurrAsmList.concat(
-          taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef),href,
+          taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef,compiler),href,
           s32inttype,field.llvmfieldnr,true));
         { convert into a pointer to the individual elements }
         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);

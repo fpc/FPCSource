@@ -31,12 +31,13 @@ unit rgllvm;
       symtype,
       cgbase,cgutils,
       cpubase,llvmbase,
-      rgobj;
+      rgobj,
+      compilerbase;
 
     type
       { trgllvm }
       trgllvm=class(trgobj)
-        constructor create(Aregtype: Tregistertype; Adefaultsub: Tsubregister; const Ausable: array of tsuperregister; Afirst_imaginary: Tsuperregister; Apreserved_by_proc: Tcpuregisterset); reintroduce;
+        constructor create(Aregtype: Tregistertype; Adefaultsub: Tsubregister; const Ausable: array of tsuperregister; Afirst_imaginary: Tsuperregister; Apreserved_by_proc: Tcpuregisterset; acompiler: TCompilerBase); reintroduce;
         procedure do_register_allocation(list: TAsmList; headertai: tai); override;
         procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
         procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
@@ -63,11 +64,12 @@ implementation
       globtype,globals,
       symdef,
       aasmllvm,
-      tgobj;
+      tgobj,
+      compiler;
 
     { trgllvm }
 
-     constructor trgllvm.create(Aregtype: Tregistertype; Adefaultsub: Tsubregister; const Ausable: array of tsuperregister; Afirst_imaginary: Tsuperregister; Apreserved_by_proc: Tcpuregisterset);
+     constructor trgllvm.create(Aregtype: Tregistertype; Adefaultsub: Tsubregister; const Ausable: array of tsuperregister; Afirst_imaginary: Tsuperregister; Apreserved_by_proc: Tcpuregisterset; acompiler: TCompilerBase);
        begin
          inherited;
          { tell the generic register allocator to generate SSA spilling code }
@@ -97,7 +99,7 @@ implementation
         def:=tdef(reginfo[orgsupreg].def);
         if not assigned(def) then
           internalerror(2013110803);
-        ins:=taillvm.op_reg_size_ref(la_load,tempreg,cpointerdef.getreusable(def),spilltemp);
+        ins:=taillvm.op_reg_size_ref(la_load,tempreg,cpointerdef.getreusable(def,compiler),spilltemp);
         list.insertafter(ins,pos);
         {$ifdef DEBUG_SPILLING}
         list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Read')),ins);
@@ -113,7 +115,7 @@ implementation
         def:=tdef(reginfo[orgsupreg].def);
         if not assigned(def) then
           internalerror(2013110802);
-        ins:=taillvm.op_size_reg_size_ref(la_store,def,tempreg,cpointerdef.getreusable(def),spilltemp);
+        ins:=taillvm.op_size_reg_size_ref(la_store,def,tempreg,cpointerdef.getreusable(def,compiler),spilltemp);
         list.insertafter(ins,pos);
         {$ifdef DEBUG_SPILLING}
         list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Write')),ins);
