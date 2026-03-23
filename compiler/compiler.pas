@@ -540,7 +540,7 @@ begin
 { inits which depend on arguments }
   FParser:=TParser.Create(self);
   InitImport;
-  InitExport;
+  InitExport(Self);
   InitLinker;
   InitAsm;
   InitWpo;

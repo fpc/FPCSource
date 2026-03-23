@@ -97,7 +97,7 @@ var
   ExportLib  : TExportLib;
 
 procedure RegisterExport(t:tsystem;c:TExportLibClass);
-procedure InitExport;
+procedure InitExport(compiler: TCompilerBase);
 procedure DoneExport;
 
 implementation
@@ -272,9 +272,7 @@ begin
 end;
 
 
-procedure InitExport;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure InitExport(compiler: TCompilerBase);
 begin
   if assigned(CExportLib[compiler.target.info.system]) then
    exportlib:=CExportLib[compiler.target.info.system].Create(compiler)
