@@ -88,6 +88,9 @@ interface
          to write a single instruction to the assembler
          file.
       }
+
+      { TCPUInstrWriter }
+
       TCPUInstrWriter = class
        private
         function GetCompiler: TCompilerBase; inline;
@@ -96,6 +99,7 @@ interface
         procedure WriteInstruction(hp : tai); virtual; abstract;
        protected
         owner: TGNUAssembler;
+        function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
         property Compiler: TCompilerBase read GetCompiler;
       end;
 
@@ -2298,6 +2302,11 @@ implementation
        begin
          inherited create;
          owner := _owner;
+       end;
+
+     function TCPUInstrWriter.ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
+       begin
+         result:=aasmbase.ApplyAsmSymbolRestrictions(s,compiler.target);
        end;
 
      function TCPUInstrWriter.GetCompiler: TCompilerBase; inline;
