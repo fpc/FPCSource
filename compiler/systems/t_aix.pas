@@ -349,7 +349,7 @@ begin
   WriteResponseFile(true);
 
  { Create some replacements }
-  InitFiniStr:='-binitfini:'+exportlib.initname+':'+exportlib.fininame;
+  InitFiniStr:='-binitfini:'+compiler.exportlib.initname+':'+compiler.exportlib.fininame;
   Replace(InitFiniStr,'$','.');
   if cs_link_strip in current_settings.globalswitches then
     StripStr:='-s'
@@ -376,13 +376,13 @@ begin
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   Replace(cmdstr,'$STRIP',StripStr);
   { exported symbols }
-  if not texportlibunix(exportlib).exportedsymnames.empty then
+  if not texportlibunix(compiler.exportlib).exportedsymnames.empty then
     begin
       assign(exportedsyms,compiler.globals.outputexedir+'linksyms.fpc');
       rewrite(exportedsyms);
       repeat
-        writeln(exportedsyms,texportlibunix(exportlib).exportedsymnames.getfirst);
-      until texportlibunix(exportlib).exportedsymnames.empty;
+        writeln(exportedsyms,texportlibunix(compiler.exportlib).exportedsymnames.getfirst);
+      until texportlibunix(compiler.exportlib).exportedsymnames.empty;
       close(exportedsyms);
       cmdstr:=cmdstr+' -bE:'+maybequoted(compiler.globals.outputexedir)+'linksyms.fpc';
     end;
