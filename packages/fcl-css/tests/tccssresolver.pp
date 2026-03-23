@@ -21,7 +21,7 @@ unit tcCSSResolver;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, fpcunit, testregistry, fpCSSTree,
+  Classes, SysUtils, Math, Contnrs, fpcunit, testregistry, fpCSSTree,
   fpCSSResParser, fpCSSResolver;
 
 type
@@ -155,6 +155,24 @@ type
     procedure OnSplit_Border(Resolver: TCSSBaseResolver;
       var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
   public
+
+    const
+      // keywords
+      kwNone=CSSKeywordNone;
+      kwRed=CSSKeyword_LastResolver+1;
+      kwGreen=kwRed+1;
+      kwBlue=kwGreen+1;
+      kwWhite=kwBlue+1;
+      kwBlack=kwWhite+1;
+      kwBlock=kwBlack+1;
+      kwInline_Block=kwBlock+1;
+      kwLTR=kwInline_Block+1;
+      kwRTL=kwLTR+1;
+      kwScreen=kwRTL+1;
+      kwWidth=kwScreen+1;
+      kwHeight=kwWidth+1;
+    var
+
     DemoAttrIDBase: TCSSNumericalID;
     DemoPseudoClassIDBase: TCSSNumericalID;
     DemoElementTypeIDBase: TCSSNumericalID;
@@ -162,18 +180,6 @@ type
     DemoAttrs: array[TDemoNodeAttribute] of TDemoCSSAttributeDesc;
     DemoPseudoClasses: array[TDemoPseudoClass] of TDemoCSSPseudoClassDesc;
     DemoTypes: array[TDemoElementType] of TDemoCSSTypeDesc;
-
-    // keywords
-    kwRed,
-    kwGreen,
-    kwBlue,
-    kwWhite,
-    kwBlack,
-    kwNone,
-    kwBlock,
-    kwInline_Block,
-    kwLTR,
-    kwRTL: TCSSNumericalID;
 
     // check parameters
     Chk_BorderWidth: TCSSCheckAttrParams_Dimension;
@@ -349,12 +355,26 @@ type
     property Caption: TCSSString read FCaption write SetCaption;
   end;
 
+  TDemoMediaRangeType = (
+    dmrtNone,
+    dmrtLength,
+    dmrtRatio
+    );
+  TDemoMediaRangeTypes = set of TDemoMediaRangeType;
+
   { TDemoDocument }
 
   TDemoDocument = class(TComponent)
   private
     FCSSResolver: TCSSResolver;
+    FHeight: integer;
     FStyle: TCSSString;
+    FWidth: integer;
+    function HasMediaBoolean(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID): boolean;
+    function IsMediaPlain(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+      const aValue: TCSSResCompValue): boolean;
+    function MediaCompare(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+      const aValue: TCSSResCompValue; out Cmp: integer): boolean;
     procedure OnResolverLog(Sender: TObject; Entry: TCSSResolverLogEntry);
   protected
     procedure ApplyTypeStyles; virtual;
@@ -368,6 +388,8 @@ type
     property Style: TCSSString read FStyle write SetStyle;
 
     property CSSResolver: TCSSResolver read FCSSResolver;
+    property Width: integer read FWidth write FWidth;
+    property Height: integer read FHeight write FHeight;
   end;
 
   { TCustomTestNewCSSResolver }
@@ -489,14 +511,21 @@ type
     procedure TestRes_Nested_AndHasSpaceAtribute; // & [attr]
 
     // @media
-    // todo procedure TestRes_Media_Name  print | (print)
+    procedure TestRes_Media_Name;
     // todo procedure TestRes_Media_NameValue (display-mode: fullscreen)
-    // todo procedure TestRes_Media_Range (height > 600px) | (400px <= width <= 700px) | (min-width: 300px)
+    // todo procedure TestRes_Media_Range_Name_Value (height > 600px)
+    // todo procedure TestRes_Media_Range_Cmp1 (300px <= height)
+    // todo procedure TestRes_Media_Range_Cmp2 (width = height)
+    // todo procedure TestRes_Media_Range_Cmp3 (width > 200em)
+    // todo procedure TestRes_Media_Range_LT_Interval (100px <= width < 300px)
+    // todo procedure TestRes_Media_Range_GT_Interval (100px > width >= 300px)
+    // todo procedure TestRes_Media_Ratio (aspect_ratio < 3/2)
     // todo procedure TestRes_Media_And  print and screen
     // todo procedure TestRes_Media_Or  print or screen
-    // todo procedure TestRes_Media_Comma  (width>100px), (height>100px)
+    // todo procedure TestRes_Media_Comma  print, screen
+    // todo procedure TestRes_Media_Comma  print, invalid, screen parsing recovers on next comma
     // todo procedure TestRes_Media_Not  not print
-
+    // todo procedure TestRes_Media_Not  not (print)
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -632,6 +661,12 @@ begin
   FCSSResolver:=TCSSResolver.Create(nil);
   FCSSResolver.CSSRegistry:=TDemoNode.CSSRegistry;
   FCSSResolver.OnLog:=@OnResolverLog;
+  FCSSResolver.HasMediaBoolean:=@HasMediaBoolean;
+  FCSSResolver.IsMediaPlain:=@IsMediaPlain;
+  FCSSResolver.MediaCompare:=@MediaCompare;
+
+  FWidth:=800;
+  FHeight:=600;
 end;
 
 destructor TDemoDocument.Destroy;
@@ -664,6 +699,93 @@ procedure TDemoDocument.OnResolverLog(Sender: TObject; Entry: TCSSResolverLogEnt
 begin
   if Sender=nil then ;
   if Entry=nil then ;
+end;
+
+function TDemoDocument.HasMediaBoolean(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID
+  ): boolean;
+begin
+  Result:=false;
+  case KW of
+  TDemoCSSRegistry.kwHeight,
+  TDemoCSSRegistry.kwScreen,
+  TDemoCSSRegistry.kwWidth: Result:=true;
+  end;
+  if aResolver=nil then ;
+end;
+
+function TDemoDocument.IsMediaPlain(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+  const aValue: TCSSResCompValue): boolean;
+var
+  Cmp: integer;
+begin
+  Result:=false;
+
+  case KW of
+  TDemoCSSRegistry.kwHeight,
+  TDemoCSSRegistry.kwWidth:
+    begin
+      // length
+      if not MediaCompare(aResolver,KW,aValue,Cmp) then exit;
+      exit(Cmp=0);
+    end;
+  else exit;
+  end;
+end;
+
+function TDemoDocument.MediaCompare(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+  const aValue: TCSSResCompValue; out Cmp: integer): boolean;
+var
+  LeftType: TDemoMediaRangeType;
+  LeftValue, RightValue: double;
+begin
+  Result:=false;
+
+  LeftType:=dmrtNone;
+  LeftValue:=NaN;
+  case KW of
+  TDemoCSSRegistry.kwHeight:
+    begin
+      LeftType:=dmrtLength;
+      LeftValue:=Height;
+    end;
+  TDemoCSSRegistry.kwWidth:
+    begin
+      LeftType:=dmrtLength;
+      LeftValue:=Width;
+    end;
+  else exit;
+  end;
+
+  case LeftType of
+  dmrtLength:
+    case aValue.Kind of
+    rvkFloat:
+      case aValue.FloatUnit of
+      cu_px: RightValue:=aValue.Float;
+      else exit;
+      end;
+    rvkKeyword:
+      case aValue.KeywordID of
+      TDemoCSSRegistry.kwHeight: RightValue:=Height;
+      TDemoCSSRegistry.kwWidth: RightValue:=Width;
+      else exit;
+      end;
+    end;
+  dmrtRatio:
+    exit;
+  else exit;
+  end;
+
+  Result:=true;
+
+  if SameValue(LeftValue,RightValue) then
+    Cmp:=0
+  else if LeftValue>RightValue then
+    Cmp:=1
+  else
+    Cmp:=-1;
+
+  if aResolver=nil then ;
 end;
 
 procedure TDemoDocument.ApplyTypeStyles;
@@ -905,20 +1027,25 @@ begin
   SetDemoElementTypeID(TDemoSpan);
   SetDemoElementTypeID(TDemoButton);
 
-  kwRed:=AddKeyword('red');
+  if AddKeyword('red')<>kwRed then
+    raise Exception.Create('20260322081212');
   kwFirstColor:=kwRed;
-  kwGreen:=AddKeyword('green');
-  kwBlue:=AddKeyword('blue');
-  kwWhite:=AddKeyword('white');
-  kwBlack:=AddKeyword('black');
+  AddKeyword('green');
+  AddKeyword('blue');
+  AddKeyword('white');
+  if AddKeyword('black')<>kwBlack then
+    raise Exception.Create('20260322081247');
   kwLastColor:=kwBlack;
 
-  kwNone:=CSSKeywordNone;
-  kwBlock:=AddKeyword('block');
-  kwInline_Block:=AddKeyword('inline-block');
+  AddKeyword('block');
+  AddKeyword('inline-block');
 
-  kwLTR:=AddKeyword('ltr');
-  kwRTL:=AddKeyword('rtl');
+  AddKeyword('ltr');
+  AddKeyword('rtl');
+  AddKeyword('screen');
+  AddKeyword('width');
+  if AddKeyword('height')<>kwHeight then
+    raise Exception.Create('20260322081506');
 
   // check attribute values - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -3370,6 +3497,25 @@ begin
   AssertEquals('Button2.Width','3px',Button2.Width);
 end;
 
+procedure TTestNewCSSResolver.TestRes_Media_Name;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media screen { div{ width: 10px; } }',
+//  '@media (screen) { div{ height: 11px; } }',
+//  '@media print { div{ width: 20px; } }',
+//  '@media (print) { div{ width: 21px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Width);
+end;
 
 initialization
   RegisterTests([TTestNewCSSResolver]);

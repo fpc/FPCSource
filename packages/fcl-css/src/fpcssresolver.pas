@@ -401,6 +401,9 @@ type
     function ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
     function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
     function GetRuleParentOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
+    function MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
+    function MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity; virtual;
+    function MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity; virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
     function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorAndWhitespaceMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
@@ -998,15 +1001,39 @@ var
   i: Integer;
   BestSpecificity, Specificity: TCSSSpecificity;
   aSelector: TCSSElement;
+  AtRule: TCSSAtRuleElement;
+  NestedRule: TCSSRuleElement;
 begin
   BestSpecificity:=CSSSpecificityNoMatch;
-  for i:=0 to aRule.SelectorCount-1 do
+
+  if aRule is TCSSAtRuleElement then
   begin
-    aSelector:=aRule.Selectors[i];
-    Specificity:=SelectorMatches(aSelector,FNode,false,aRule);
-    if Specificity>BestSpecificity then
-      BestSpecificity:=Specificity;
+    AtRule:=TCSSAtRuleElement(aRule);
+    case AtRule.AtKeyWord of
+    'media':
+      for i:=0 to aRule.SelectorCount-1 do
+      begin
+        aSelector:=aRule.Selectors[i];
+        Specificity:=MediaSelectorMatches(aSelector);
+        if Specificity>BestSpecificity then
+          BestSpecificity:=Specificity;
+      end;
+    else
+      {$IFDEF VerboseCSSResolver}
+      Log(etWarning,20260322092255,'Unknown CSS rule @'+AtRule.AtKeyWord);
+      {$ENDIF}
+      exit;
+    end;
+  end else begin
+    for i:=0 to aRule.SelectorCount-1 do
+    begin
+      aSelector:=aRule.Selectors[i];
+      Specificity:=SelectorMatches(aSelector,FNode,false,aRule);
+      if Specificity>BestSpecificity then
+        BestSpecificity:=Specificity;
+    end;
   end;
+
   if BestSpecificity>=0 then
   begin
     // match -> add rule to ruleset
@@ -1014,7 +1041,12 @@ begin
   end;
 
   for i:=0 to aRule.NestedRuleCount-1 do
+  begin
+    NestedRule:=aRule.NestedRules[i];
+    if (BestSpecificity<0) and (NestedRule is TCSSAtRuleElement) then
+      continue; // current rule mismatch -> do not check nested @-rule
     ComputeRule(aRule.NestedRules[i]);
+  end;
 end;
 
 function TCSSResolver.ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
@@ -1063,6 +1095,64 @@ begin
   if not (aRule.Parent is TCSSRuleElement) then
     exit;
   Result:=TCSSRuleElement(aRule.Parent);
+end;
+
+function TCSSResolver.MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement
+  ): TCSSSpecificity;
+var
+  KW: TCSSNumericalID;
+begin
+  Result:=CSSSpecificityNoMatch;
+  KW:=Identifier.NumericalID;
+  {$IFDEF VerboseCSSResolver}
+  writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' KW=',KW,' Node=',TestNode.GetCSSTypeID);
+  {$ENDIF}
+  if Assigned(HasMediaBoolean) and HasMediaBoolean(Self,KW) then
+    Result:=FSourceSpecificity;
+end;
+
+function TCSSResolver.MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity;
+var
+  C: TClass;
+begin
+  // todo: nested rule
+
+  C:=aSelector.ClassType;
+  if C=TCSSResolvedIdentifierElement then
+    Result:=MediaSelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector))
+  else if C=TCSSListElement then
+    Result:=MediaSelectorListMatches(TCSSListElement(aSelector))
+  else begin
+    // already warned by parser
+    {$IFDEF VerboseCSSResolver}
+    Log(etWarning,20260322092226,'Unknown CSS media selector element '+aSelector.ClassName,aSelector);
+    {$ENDIF}
+  end;
+end;
+
+function TCSSResolver.MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity;
+var
+  i: Integer;
+  El: TCSSElement;
+  Specificity: TCSSSpecificity;
+begin
+  Result:=0;
+  {$IFDEF VerboseCSSResolver}
+  writeln('TCSSResolver.MediaSelectorListMatches ChildCount=',aList.ChildCount);
+  {$ENDIF}
+  // todo: not() is a list with list[0] identifier 'not', and list[1] the condition
+
+  for i:=0 to aList.ChildCount-1 do
+  begin
+    El:=aList.Children[i];
+    {$IFDEF VerboseCSSResolver}
+    writeln('TCSSResolver.MediaSelectorListMatches ',i,' ',GetCSSObj(El),' AsString=',El.AsString);
+    {$ENDIF}
+    Specificity:=MediaSelectorMatches(El);
+    if Specificity<0 then
+      exit(Specificity);
+    inc(Result,Specificity);
+  end;
 end;
 
 function TCSSResolver.FindSharedRuleList(const Rules: TCSSSharedRuleArray

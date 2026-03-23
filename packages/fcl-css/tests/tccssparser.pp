@@ -106,7 +106,24 @@ type
     Procedure TestTwoDeclarationNoColon;
     Procedure TestOneEmptyDeclaration;
     Procedure TestImportAtKeyWord;
-    Procedure TestMediaPrint;
+    Procedure TestMediaBoolean;
+    Procedure TestMediaNotBoolean;
+    Procedure TestMediaCommaBoolean;
+    Procedure TestMediaCommaNotBoolean;
+    Procedure TestMediaPlain;
+    Procedure TestMediaNotPlain;
+    Procedure TestMediaNotIdentifier;
+    Procedure TestMediaOnlyIdentifier;
+    Procedure TestMediaRangeNameValue;
+    Procedure TestMediaRangeValueName;
+    Procedure TestMediaRangeValueLtNameLtValue;
+    Procedure TestMediaRangeValueGtNameGtValue;
+    Procedure TestMediaPlainAndPlain;
+    Procedure TestMediaPlainAndPlainBrackets;
+    Procedure TestMediaPlainOrPlain;
+    Procedure TestMediaPlainOrPlainBrackets;
+    Procedure TestMediaPlainCommaPlain;
+    Procedure TestMediaNestedBracket;
     Procedure TestSupportsFunction;
     Procedure TestSkipUnknownFunction;
     Procedure TestNestedRule;
@@ -811,9 +828,94 @@ begin
   AssertEquals('declaration count',0,R.ChildCount);
 end;
 
-procedure TTestCSSParser.TestMediaPrint;
+procedure TTestCSSParser.TestMediaBoolean;
 begin
   ParseRule('@media print { *, *:before {} }');
+end;
+
+procedure TTestCSSParser.TestMediaNotBoolean;
+begin
+  ParseRule('@media not (print) { }');
+end;
+
+procedure TTestCSSParser.TestMediaCommaBoolean;
+begin
+  ParseRule('@media print, screen { }');
+end;
+
+procedure TTestCSSParser.TestMediaCommaNotBoolean;
+begin
+  ParseRule('@media not print, not screen { }');
+end;
+
+procedure TTestCSSParser.TestMediaPlain;
+begin
+  ParseRule('@media (any-hover: hover) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaNotPlain;
+begin
+  ParseRule('@media not (any-hover: hover) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaNotIdentifier;
+begin
+  ParseRule('@media not screen {  }');
+end;
+
+procedure TTestCSSParser.TestMediaOnlyIdentifier;
+begin
+  ParseRule('@media only print {  }');
+end;
+
+procedure TTestCSSParser.TestMediaRangeNameValue;
+begin
+  ParseRule('@media (width > 100px) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaRangeValueName;
+begin
+  ParseRule('@media (100px <= width) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaRangeValueLtNameLtValue;
+begin
+  ParseRule('@media (100px <= width < 200px) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaRangeValueGtNameGtValue;
+begin
+  ParseRule('@media (1000px > height >= 200px) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaPlainAndPlain;
+begin
+  ParseRule('@media print and screen {  }');
+end;
+
+procedure TTestCSSParser.TestMediaPlainAndPlainBrackets;
+begin
+  ParseRule('@media (print and screen) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaPlainOrPlain;
+begin
+  ParseRule('@media print or screen {  }');
+end;
+
+procedure TTestCSSParser.TestMediaPlainOrPlainBrackets;
+begin
+  ParseRule('@media (print or screen) {  }');
+end;
+
+procedure TTestCSSParser.TestMediaPlainCommaPlain;
+begin
+  ParseRule('@media print, screen {  }');
+end;
+
+procedure TTestCSSParser.TestMediaNestedBracket;
+begin
+  ParseRule('@media ((print)) {  }');
 end;
 
 procedure TTestCSSParser.TestSupportsFunction;

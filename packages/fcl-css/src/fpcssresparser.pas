@@ -553,11 +553,23 @@ type
     function Fits(const ResValue: TCSSResCompValue): boolean; overload;
   end;
 
+  TCSSHasMediaBoolEvent = function(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID): boolean of object;
+  TCSSIsMediaPlainEvent = function(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+    const aValue: TCSSResCompValue): boolean of object;
+  TCSSMediaCompareEvent = function(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
+    const aValue: TCSSResCompValue;
+    out Cmp: integer // 0=equal, 1=KW is bigger, -1 aValue is bigger
+    ): boolean of object; // false = comparing apples with oranges
+
+
   { TCSSBaseResolver }
 
   TCSSBaseResolver = class(TComponent)
   private
     FCSSRegistry: TCSSRegistry;
+    FHasMediaBoolean: TCSSHasMediaBoolEvent;
+    FIsMediaPlain: TCSSIsMediaPlainEvent;
+    FMediaCompare: TCSSMediaCompareEvent;
   protected
     procedure SetCSSRegistry(const AValue: TCSSRegistry); virtual;
   public
@@ -604,6 +616,10 @@ type
     function GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID; virtual;
 
     property CSSRegistry: TCSSRegistry read FCSSRegistry write SetCSSRegistry;
+    // @media
+    property HasMediaBoolean: TCSSHasMediaBoolEvent read FHasMediaBoolean write FHasMediaBoolean;
+    property IsMediaPlain: TCSSIsMediaPlainEvent read FIsMediaPlain write FIsMediaPlain;
+    property MediaCompare: TCSSMediaCompareEvent read FMediaCompare write FMediaCompare;
   end;
 
   { TCSSResolverParser
