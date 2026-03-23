@@ -27,7 +27,7 @@ unit aasmcnst;
 interface
 
 uses
-  cclasses,globtype,constexp,widestr,compilerbase,
+  cclasses,globtype,constexp,widestr,compilerbase,systems,
   aasmbase,aasmdata,aasmtai,
   symconst,symbase,symtype,symdef,symsym;
 
@@ -475,7 +475,7 @@ type
        constant labels. On most platforms, this is 0 (with the header at a
        negative offset), but on some platforms such negative offsets are not
        supported this is equal to the header size }
-     class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
+     class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint; virtual;
 
      { returns the offset of the array data relative to dynamic array constant
        labels. On most platforms, this is 0 (with the header at a negative
@@ -531,7 +531,7 @@ implementation
 
    uses
      cutils,
-     verbose,globals,systems,
+     verbose,globals,
      fmodule,
      symtable,symutil,defutil,compiler;
 
@@ -1197,14 +1197,12 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
-     var
-       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean; target: TCompilerTarget): pint;
      begin
        { darwin's linker does not support negative offsets }
-       if not(_compiler.target.info.system in systems_darwin+systems_wasm) and
+       if not(target.info.system in systems_darwin+systems_wasm) and
           { it seems that clang's assembler has a bug with the ADRP instruction... }
-          (_compiler.target.info.system<>system_aarch64_win64) then
+          (target.info.system<>system_aarch64_win64) then
          result:=0
        else
          result:=get_string_header_size(typ,winlikewidestring);
@@ -1462,7 +1460,7 @@ implementation
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
        begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,sizeof(TConstPtrUInt),1);
-       string_symofs:=get_string_symofs(stringtype,false);
+       string_symofs:=get_string_symofs(stringtype,false,compiler.target);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
        inc(result.ofs,2);
@@ -1763,7 +1761,7 @@ implementation
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
-           string_symofs:=get_string_symofs(st_widestring,true);
+           string_symofs:=get_string_symofs(st_widestring,true,compiler.target);
            if string_symofs=0 then
              begin
                { yes }

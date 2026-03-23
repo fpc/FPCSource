@@ -294,7 +294,7 @@ implementation
                                lastlabel:=datatcb.emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
-                               if lastlabel.ofs<>datatcb.get_string_symofs(st_ansistring,false) then
+                               if lastlabel.ofs<>datatcb.get_string_symofs(st_ansistring,false,compiler.target) then
                                  internalerror(2012051703);
                              end;
                            { no contents of the datatcb itself to concatenate,
@@ -314,7 +314,7 @@ implementation
                                                winlikewidestring);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
-                               if lastlabel.ofs<>datatcb.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring) then
+                               if lastlabel.ofs<>datatcb.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring,compiler.target) then
                                  internalerror(2012051702);
                              end;
                            { no contents of the datatcb itself to concatenate,
@@ -387,7 +387,7 @@ implementation
         href: treference;
       begin
         reference_reset_symbol(href, lab_str,
-          ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype, winlikewidestring),
+          ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype, winlikewidestring, compiler.target),
           const_align(strpointerdef.size),[]);
         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, elementdef, strpointerdef, href, location.register)
       end;
