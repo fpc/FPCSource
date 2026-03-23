@@ -49,7 +49,6 @@ type
    TDLLScannerClass=class of TDLLScanner;
 
 var
-  CImportLib  : array[tsystem] of TImportLibClass;
   CDLLScanner : array[tsystem] of TDLLScannerClass;
   ImportLib   : TImportLib;
 
@@ -63,6 +62,9 @@ implementation
 
 uses
   verbose,globals,compiler;
+
+var
+  CImportLib  : array[tsystem] of TImportLibClass;
 
 {****************************************************************************
                               TImportLib
