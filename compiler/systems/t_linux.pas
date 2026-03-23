@@ -291,9 +291,7 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
   const defdynlinker='/lib64/ld-linux-loongarch-lp64d.so.1';
 {$endif loongarch64}
 
-procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure SetupDynlinker(compiler: TCompilerBase; out DynamicLinker:string;out libctype:TLibcType);
 begin
 {$ifdef powerpc64}
   if defdynlinker='' then
@@ -531,7 +529,7 @@ begin
      ExtDbgCmd[2]:='objcopy "--add-gnu-debuglink=$DBGX" $EXE';
      ExtDbgCmd[3]:='strip --strip-unneeded $EXE';
 
-     SetupDynlinker(DynamicLinker,libctype);
+     SetupDynlinker(compiler,DynamicLinker,libctype);
    end;
 end;
 
@@ -1071,7 +1069,7 @@ constructor TInternalLinkerLinux.Create(ACompiler: TCompilerBase);
 begin
   inherited;
   SetupLibrarySearchPath(ACompiler);
-  SetupDynlinker(dynlinker,libctype);
+  SetupDynlinker(compiler,dynlinker,libctype);
 
   CArObjectReader:=TArObjectReader;
   CExeOutput:=ElfExeOutputClass;
