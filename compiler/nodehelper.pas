@@ -39,7 +39,7 @@ interface
 {$i fpcdefs.inc}
 
     uses
-      node,paramgr,hlcgobj,cgobj;
+      node,paramgr,hlcgobj,cgobj,tgobj;
 
     type
 
@@ -55,6 +55,7 @@ interface
 {$endif cpu64bitalu}
         function GetHLCG: thlcgobj; inline;
         function GetParaManager: TParaManager; inline;
+        function GetTG: ttgobj; inline;
       public
         property hlcg: thlcgobj read GetHLCG;
         property cg: tcg read GetCG;
@@ -64,6 +65,7 @@ interface
         property cg64: tcg64 read GetCG64;
 {$endif cpu64bitalu}
         property paramanager: TParaManager read GetParaManager;
+        property tg: ttgobj read GetTG;
       end;
 
 implementation
@@ -98,6 +100,11 @@ implementation
   function tnodehelper.GetParaManager: TParaManager; inline;
     begin
       result:=self.compiler.paramanager;
+    end;
+
+  function tnodehelper.GetTG: ttgobj;
+    begin
+      result:=self.compiler.tg;
     end;
 
 end.

@@ -327,6 +327,7 @@ implementation
       var
         _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
+        _tg: ttgobj;
       var
         spill_temps : tspilltemps;
         templist : TAsmList;
@@ -351,6 +352,7 @@ implementation
 
       begin
         cg:=_compiler.cg;
+        _tg:=_compiler.tg;
         { Since there are no actual registers, we simply spill everything. We
           use tt_regallocator temps, which are not used by the temp allocator
           during code generation, so that we cannot accidentally overwrite
@@ -441,12 +443,12 @@ implementation
                     end;
                     case ra.ratype of
                       ra_alloc :
-                        tg.gethltemp(templist,def,
-                                     size,
-                                     tt_regallocator,spill_temps[getregtype(ra.reg)][getsupreg(ra.reg)]);
+                        _tg.gethltemp(templist,def,
+                                      size,
+                                      tt_regallocator,spill_temps[getregtype(ra.reg)][getsupreg(ra.reg)]);
                       ra_dealloc :
                         begin
-                          tg.ungettemp(templist,spill_temps[getregtype(ra.reg)][getsupreg(ra.reg)]);
+                          _tg.ungettemp(templist,spill_temps[getregtype(ra.reg)][getsupreg(ra.reg)]);
                           { don't invalidate the temp reference, may still be used one instruction
                             later }
                         end;

@@ -157,7 +157,7 @@ uses
 {$endif GENERIC_CPU}
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
-  ,hlcgobj,cgobj
+  ,hlcgobj,cgobj,tgobj
   ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept,paramgr,syscinfo
   ,opt,optloop
   ,aasmdata
@@ -202,6 +202,7 @@ type
     Fcg64 : tcg64;
 {$endif cpu64bitalu}
     Fparamanager : tparamanager;
+    Ftg: ttgobj;
     FDefaultSyscallConvention: TDefaultSyscallConvention;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
@@ -260,6 +261,7 @@ type
     property cg64 : tcg64 read Fcg64 write Fcg64;
 {$endif cpu64bitalu}
     property paramanager: tparamanager read Fparamanager;
+    property tg: ttgobj read Ftg write Ftg;
     property DefaultSyscallConvention: TDefaultSyscallConvention read FDefaultSyscallConvention;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
@@ -301,6 +303,7 @@ type
     function Getsymtablestack: TSymtablestack; inline;
     function GetSysSymList: tsyssymlist; inline;
     function GetTarget: TCompilerTarget; inline;
+    function GetTG: ttgobj; inline;
     function GetTime: TCompilerTime; inline;
     function GetVerbose: TVerbose; inline;
     procedure Setaktassignmentnode(AValue: tassignmentnode); inline;
@@ -438,6 +441,7 @@ type
     property cg64 : tcg64 read GetCG64;
 {$endif cpu64bitalu}
     property paramanager: tparamanager read GetParaManager;
+    property tg: ttgobj read GetTG;
     property DefaultSyscallConvention: TDefaultSyscallConvention read GetDefaultSyscallConvention;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
@@ -1071,6 +1075,11 @@ end;
 function TCompilerHelper.GetTarget: TCompilerTarget; inline;
 begin
   Result := TCompiler(Self).Target;
+end;
+
+function TCompilerHelper.GetTG: ttgobj; inline;
+begin
+  Result := TCompiler(Self).TG;
 end;
 
 function TCompilerHelper.GetTime: TCompilerTime;

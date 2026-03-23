@@ -40,7 +40,8 @@ unit rgobj;
     uses
       cutils, cpubase, compilerbase,
       aasmtai,aasmdata,aasmsym,aasmcpu,
-      cclasses,globtype,cgbase,cgutils;
+      cclasses,globtype,cgbase,cgutils,
+      tgobj;
 
     const
       interferenceBitmap2Size = 256;
@@ -163,6 +164,9 @@ unit rgobj;
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
+
+       { trgobj }
+
        trgobj=class
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
@@ -239,8 +243,10 @@ unit rgobj;
         usable_registers_cnt : word;
       private
         FCompiler: TCompilerBase;
+        function GetTG: ttgobj; inline;
       protected
         property Compiler: TCompilerBase read FCompiler;
+        property tg: ttgobj read GetTG;
       private
         int_live_range_direction: TRADirection;
         { First imaginary register.}
@@ -337,7 +343,7 @@ unit rgobj;
     uses
       sysutils,
       globals,
-      verbose,tgobj,procinfo,cgobj,compiler;
+      verbose,procinfo,cgobj,compiler;
 
     procedure sort_movelist(ml:Pmovelist);
 
@@ -517,7 +523,7 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.dispose_reginfo;
+        procedure trgobj.dispose_reginfo;
       var
         i : cardinal;
       begin
@@ -1002,7 +1008,7 @@ unit rgobj;
                 end;
     end;
 
-    procedure Trgobj.sort_simplify_worklist;
+        procedure trgobj.sort_simplify_worklist;
 
     {Sorts the simplifyworklist by the number of interferences the
      registers in it cause. This allows simplify to execute in
@@ -1056,7 +1062,7 @@ unit rgobj;
 
 
     { sort spilled nodes by increasing number of interferences }
-    procedure Trgobj.sort_spillednodes;
+        procedure trgobj.sort_spillednodes;
       var
         p,h,i,leni,lent:longword;
         t:Tsuperregister;
@@ -1150,7 +1156,7 @@ unit rgobj;
           end;
     end;
 
-    procedure Trgobj.decrement_degree(m:Tsuperregister);
+        procedure trgobj.decrement_degree(m: Tsuperregister);
 
     var adj : Psuperregisterworklist;
         n : tsuperregister;
@@ -2043,6 +2049,12 @@ unit rgobj;
       end;
 
 
+    function trgobj.GetTG: ttgobj; inline;
+      begin
+        result:=compiler.tg;
+      end;
+
+
     procedure trgobj.add_cpu_interferences(p : tai);
       begin
       end;
@@ -2658,7 +2670,9 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
+        procedure trgobj.do_spill_written(list: TAsmList; pos: tai;
+      const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister
+      );
       var
         ins:tai_cpu_abstract_sym;
       begin

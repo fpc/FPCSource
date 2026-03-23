@@ -28,7 +28,7 @@ unit psub;
 interface
 
     uses
-      globals,cclasses,compilerbase,hlcgobj,cgobj,
+      globals,cclasses,compilerbase,hlcgobj,cgobj,tgobj,
       node,nbas,nutils,aasmdata,
       symdef,procinfo,optdfa;
 
@@ -48,6 +48,7 @@ interface
         tempflags_swapped : boolean;
         function GetCG: tcg; inline;
         function GetHLCG: thlcgobj; inline;
+        function GetTG: ttgobj; inline;
         procedure swap_tempflags;
         function store_node_tempflags(var n: tnode; arg: pointer): foreachnoderesult;
         procedure CreateInlineInfo;
@@ -69,6 +70,7 @@ interface
         procedure generate_code_exceptfilters;
         property hlcg: thlcgobj read GetHLCG;
         property cg: tcg read GetCG;
+        property tg: ttgobj read GetTG;
       public
         { code for the subroutine as tree }
         code : tnode;
@@ -177,7 +179,7 @@ implementation
        scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,parser,
        { codegen }
-       tgobj,cgbase,hlcgcpu,dbgbase,
+       cgbase,hlcgcpu,dbgbase,
 
        ncgflw,
        ncgutil,
@@ -1066,7 +1068,7 @@ implementation
 
     procedure tcgprocinfo.setup_tempgen;
       begin
-        tg:=tgobjclass.create;
+        tcompiler(compiler).tg:=tgobjclass.create;
 
 {$if defined(i386) or defined(x86_64) or defined(arm) or defined(aarch64) or defined(m68k)}
 {$if defined(arm)}
@@ -1481,6 +1483,12 @@ implementation
     function tcgprocinfo.GetHLCG: thlcgobj; inline;
       begin
         Result:=compiler.hlcg;
+      end;
+
+
+    function tcgprocinfo.GetTG: ttgobj; inline;
+      begin
+        result:=compiler.tg;
       end;
 
 
@@ -2392,8 +2400,8 @@ implementation
             if (procdef.proctypeoption<>potype_exceptfilter) then
               begin
                 tg.resettempgen;
-                tg.free;
-                tg:=nil;
+                tcompiler(compiler).tg.free;
+                tcompiler(compiler).tg:=nil;
               end;
             { stop tempgen and ra }
             hlcg.done_register_allocators;

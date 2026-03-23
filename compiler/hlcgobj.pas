@@ -73,9 +73,11 @@ unit hlcgobj;
           function GetCG64: TCG64; inline;
 {$endif cpu64bitalu}
           function GetParaManager: TParaManager; inline;
+          function GetTG: TTGObj; inline;
        protected
           property Compiler: TCompilerBase read FCompiler;
           property ParaManager: TParaManager read GetParaManager;
+          property TG: TTGObj read GetTG;
           property CG: TCG read GetCG;
 {$ifdef cpu64bitalu}
           property CG128: TCG128 read GetCG128;
@@ -764,6 +766,11 @@ implementation
   function thlcgobj.GetParaManager: TParaManager; inline;
     begin
       result:=compiler.paramanager;
+    end;
+
+  function thlcgobj.GetTG: TTGObj; inline;
+    begin
+      result:=compiler.tg;
     end;
 
   function thlcgobj.GetCG: TCG; inline;

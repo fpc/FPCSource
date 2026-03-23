@@ -131,7 +131,6 @@ unit tgobj;
        ttgobjclass = class of ttgobj;
 
      var
-       tg: ttgobj;
        tgobjclass: ttgobjclass = ttgobj;
 
     procedure location_freetemp(list:TAsmList; const l : tlocation);
@@ -171,9 +170,11 @@ implementation
 *****************************************************************************}
 
     procedure location_freetemp(list:TAsmList; const l : tlocation);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-         tg.ungetiftemp(list,l.reference);
+          compiler.tg.ungetiftemp(list,l.reference);
       end;
 
 

@@ -830,11 +830,13 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         hlcg: thlcgobj;
+        tg: ttgobj;
       var
         hitemp,
         lotemp, stack_frame_size : longint;
       begin
         hlcg:=compiler.hlcg;
+        tg:=compiler.tg;
         { generate call frame marker for dwarf call frame info }
         current_asmdata.asmcfi.start_frame(list);
 
@@ -1291,11 +1293,13 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
+        tg: ttgobj;
       var
         i   : longint;
         sym : tsym;
       begin
         cg:=compiler.cg;
+        tg:=compiler.tg;
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);

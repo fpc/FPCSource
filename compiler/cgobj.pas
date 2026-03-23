@@ -39,7 +39,7 @@ unit cgobj;
        globtype,constexp,systems,
        cpubase,cgbase,cgutils,parabase,compilerbase,paramgr,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       symconst,symtype,symdef,rgobj
+       symconst,symtype,symdef,rgobj,tgobj
        ;
 
     type
@@ -70,6 +70,7 @@ unit cgobj;
 {$else cpu64bitalu}
           function GetCG64: tcg64; inline;
 {$endif cpu64bitalu}
+          function GetTG: ttgobj; inline;
          protected
           property Compiler: TCompilerBase read FCompiler;
           property ParaManager: TParaManager read GetParaManager;
@@ -78,6 +79,7 @@ unit cgobj;
 {$else cpu64bitalu}
           property cg64: tcg64 read GetCG64;
 {$endif cpu64bitalu}
+          property tg: ttgobj read GetTG;
          public
           { how many times is this current code executed }
           executionweight : longint;
@@ -527,14 +529,19 @@ unit cgobj;
        This class implements an abstract code generator class
        for 64 Bit operations.
     }
+
+    { tcg64 }
+
     tcg64 = class
        private
         FCompiler: TCompilerBase;
         function GetCG: tcg; inline;
         function GetTarget: TCompilerTarget; inline;
+        function GetTG: ttgobj; inline;
        protected
         property Compiler: TCompilerBase read FCompiler;
         property cg: tcg read GetCG;
+        property tg: ttgobj read GetTG;
         property Target: TCompilerTarget read GetTarget;
        public
         constructor create(ACompiler: TCompilerBase);
@@ -626,7 +633,7 @@ implementation
     uses
        globals,fmodule,compiler,
        verbose,symsym,symtable,
-       tgobj,cutils,procinfo,
+       cutils,procinfo,
        cpuinfo;
 
 {*****************************************************************************
@@ -649,6 +656,11 @@ implementation
         result:=compiler.cg64;
       end;
 {$endif cpu64bitalu}
+
+    function tcg.GetTG: ttgobj;
+      begin
+        result:=compiler.tg;
+      end;
 
     constructor tcg.create(ACompiler: TCompilerBase);
       begin
@@ -3184,6 +3196,12 @@ implementation
     function tcg64.GetTarget: TCompilerTarget; inline;
       begin
         result:=compiler.target;
+      end;
+
+
+    function tcg64.GetTG: ttgobj; inline;
+      begin
+        result:=compiler.tg;
       end;
 
 

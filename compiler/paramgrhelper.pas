@@ -27,7 +27,7 @@ interface
 {$i fpcdefs.inc}
 
     uses
-      paramgr,cgobj,hlcgobj;
+      paramgr,cgobj,hlcgobj,tgobj;
 
     type
 
@@ -37,9 +37,11 @@ interface
       private
         function GetCG: tcg; inline;
         function GetHLCG: thlcgobj; inline;
+        function GetTG: ttgobj; inline;
       public
         property cg: tcg read GetCG;
         property hlcg: thlcgobj read GetHLCG;
+        property tg: ttgobj read GetTG;
       end;
 
 implementation
@@ -57,6 +59,11 @@ implementation
   function tparamgrhelper.GetHLCG: thlcgobj; inline;
     begin
       result:=self.compiler.hlcg;
+    end;
+
+  function tparamgrhelper.GetTG: ttgobj; inline;
+    begin
+      result:=self.compiler.tg;
     end;
 
 end.
