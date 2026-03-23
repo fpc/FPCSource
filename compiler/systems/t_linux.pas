@@ -122,9 +122,7 @@ implementation
                                   TLINKERLINUX
 *****************************************************************************}
 
-procedure SetupLibrarySearchPath;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+procedure SetupLibrarySearchPath(compiler: TCompilerBase);
 begin
   if not compiler.globals.Dontlinkstdlibpath Then
     begin
@@ -404,7 +402,7 @@ end;
 Constructor TLinkerLinux.Create(ACompiler: TCompilerBase);
 begin
   Inherited;
-  SetupLibrarySearchPath;
+  SetupLibrarySearchPath(ACompiler);
 end;
 
 procedure TLinkerLinux.SetDefaultInfo;
@@ -1072,7 +1070,7 @@ function TLinkerLinux.postprocessexecutable(const fn : string;isdll:boolean):boo
 constructor TInternalLinkerLinux.Create(ACompiler: TCompilerBase);
 begin
   inherited;
-  SetupLibrarySearchPath;
+  SetupLibrarySearchPath(ACompiler);
   SetupDynlinker(dynlinker,libctype);
 
   CArObjectReader:=TArObjectReader;
