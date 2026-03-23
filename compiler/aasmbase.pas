@@ -253,7 +253,7 @@ interface
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
-    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring; target: TCompilerTarget): ansistring;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -307,9 +307,7 @@ implementation
       end;
 
 
-    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function ApplyAsmSymbolRestrictions(const s: ansistring; target: TCompilerTarget): ansistring;
       var
         i : longint;
         rchar, ochar: char;
@@ -317,8 +315,8 @@ implementation
         charstoremove: integer;
       begin
         Result:=s;
-        rchar:=compiler.target._asm.dollarsign;
-        if compiler.target._asm.id=as_i386_wasm then
+        rchar:=target._asm.dollarsign;
+        if target._asm.id=as_i386_wasm then
           ochar:='.'
         else
           ochar:='$';
@@ -326,14 +324,14 @@ implementation
           for  i:=1 to Length(Result) do
             if Result[i]=ochar then
               Result[i]:=rchar;
-        if (compiler.target._asm.labelmaxlen<>-1) and (Length(Result)>compiler.target._asm.labelmaxlen) then
+        if (target._asm.labelmaxlen<>-1) and (Length(Result)>target._asm.labelmaxlen) then
           begin
             crc:=0;
             crc:=UpdateCrc32(crc,Result[1],Length(Result));
-            charstoremove:=Length(Result)-compiler.target._asm.labelmaxlen+13;
+            charstoremove:=Length(Result)-target._asm.labelmaxlen+13;
             Delete(Result,(Length(Result)-charstoremove) div 2,charstoremove);
-            Result:='_'+compiler.target._asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
-            if Length(Result)>compiler.target._asm.labelmaxlen then
+            Result:='_'+target._asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
+            if Length(Result)>target._asm.labelmaxlen then
               Internalerror(2020042502);
           end;
       end;

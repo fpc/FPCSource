@@ -502,6 +502,8 @@ interface
      end;
      TObjDataClass = class of TObjData;
 
+     { TObjOutput }
+
      TObjOutput = class
       private
         FCompiler: TCompilerBase;
@@ -512,6 +514,7 @@ interface
         function  writeData(Data:TObjData):boolean;virtual;abstract;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
         procedure WriteSectionContent(Data:TObjData);
+        function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring; inline;
         property Compiler: TCompilerBase read FCompiler;
       public
         constructor create(AWriter:TObjectWriter;ACompiler: TCompilerBase);virtual;
@@ -2136,6 +2139,11 @@ implementation
                 FWriter.writearray(sec.data);
               end;
           end;
+      end;
+
+    function TObjOutput.ApplyAsmSymbolRestrictions(const s: ansistring): ansistring; inline;
+      begin
+        result:=aasmbase.ApplyAsmSymbolRestrictions(s,compiler.target);
       end;
 
 {****************************************************************************

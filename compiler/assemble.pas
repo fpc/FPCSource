@@ -43,10 +43,14 @@ interface
        AsmOutSize=32768*4;
 
     type
+
+      { TAssembler }
+
       TAssembler=class(TObject)
       private
         FCompiler: TCompilerBase;
       protected
+        function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring; inline;
         property Compiler: TCompilerBase read FCompiler;
       public
       {assembler info}
@@ -311,7 +315,14 @@ Implementation
                                    TAssembler
 *****************************************************************************}
 
-    Constructor TAssembler.Create(info: pasminfo; smart: boolean; acompiler: TCompilerBase);
+    function TAssembler.ApplyAsmSymbolRestrictions(const s: ansistring): ansistring; inline;
+      begin
+        result:=aasmbase.ApplyAsmSymbolRestrictions(s,compiler.target);
+      end;
+
+
+    constructor TAssembler.Create(info: pasminfo; smart: boolean;
+      acompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
         asminfo:=info;
@@ -332,7 +343,7 @@ Implementation
       end;
 
 
-    Destructor TAssembler.Destroy;
+    destructor TAssembler.Destroy;
       begin
       end;
 
