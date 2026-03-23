@@ -139,8 +139,8 @@ implementation
            (not curr.linkOtherSharedLibs.Empty) then
          begin
            { Init DLLScanner }
-           if assigned(CDLLScanner[compiler.target.info.system]) then
-            DLLScanner:=CDLLScanner[compiler.target.info.system].Create
+           if SystemHasDLLScanner(compiler.target.info.system) then
+            DLLScanner:=CreateDLLScanner(compiler.target.info.system)
            else
             internalerror(200104121);
            KeepShared:=TCmdStrList.Create;

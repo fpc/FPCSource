@@ -48,12 +48,11 @@ type
    TImportLibClass=class of TImportLib;
    TDLLScannerClass=class of TDLLScanner;
 
-var
-  CDLLScanner : array[tsystem] of TDLLScannerClass;
-
 procedure RegisterImport(t:tsystem;c:TImportLibClass);
 procedure RegisterDLLScanner(t:tsystem;c:TDLLScannerClass);
 function CreateImport(ACompiler: TCompilerBase): TImportLib;
+function SystemHasDLLScanner(t:tsystem): Boolean;
+function CreateDLLScanner(t:tsystem): TDLLScanner;
 
 
 implementation
@@ -63,6 +62,7 @@ uses
 
 var
   CImportLib  : array[tsystem] of TImportLibClass;
+  CDLLScanner : array[tsystem] of TDLLScannerClass;
 
 {****************************************************************************
                               TImportLib
@@ -119,6 +119,16 @@ begin
     result:=CImportLib[ACompiler.target.info.system].Create(ACompiler)
   else
     result:=TImportLib.Create(ACompiler);
+end;
+
+function SystemHasDLLScanner(t:tsystem): Boolean;
+begin
+  result:=assigned(CDLLScanner[t]);
+end;
+
+function CreateDLLScanner(t:tsystem): TDLLScanner;
+begin
+  result:=CDLLScanner[t].Create;
 end;
 
 end.
