@@ -158,7 +158,7 @@ uses
   ,ctask
   ,globtype,compinnr,cpuinfo,constexp,widestr,blockutl,pkgutil,procdefutil
   ,hlcgobj,cgobj
-  ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept,paramgr
+  ,ngenutil,pgentype,objcgutl,objcutil,ncgrtti,cgexcept,paramgr,syscinfo
   ,opt,optloop
   ,aasmdata
   ,symbase,symtype,symsym,symdef,symconst
@@ -202,6 +202,7 @@ type
     Fcg64 : tcg64;
 {$endif cpu64bitalu}
     Fparamanager : tparamanager;
+    FDefaultSyscallConvention: TDefaultSyscallConvention;
 
     Finitialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
                                           given on the command line. Is common
@@ -259,6 +260,7 @@ type
     property cg64 : tcg64 read Fcg64 write Fcg64;
 {$endif cpu64bitalu}
     property paramanager: tparamanager read Fparamanager;
+    property DefaultSyscallConvention: TDefaultSyscallConvention read FDefaultSyscallConvention;
     property initialmacrosymtable: TSymtable read Finitialmacrosymtable write Finitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Fmacrosymtablestack write Fmacrosymtablestack;
     property symtablestack: TSymtablestack read Fsymtablestack write Fsymtablestack;
@@ -275,6 +277,7 @@ type
     function GetCG: tcg; inline;
 {$ifdef cpu64bitalu}
     function GetCG128 : tcg128; inline;
+    function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
 {$else cpu64bitalu}
     function GetCG64 : tcg64; inline;
 {$endif cpu64bitalu}
@@ -435,6 +438,7 @@ type
     property cg64 : tcg64 read GetCG64;
 {$endif cpu64bitalu}
     property paramanager: tparamanager read GetParaManager;
+    property DefaultSyscallConvention: TDefaultSyscallConvention read GetDefaultSyscallConvention;
     property initialmacrosymtable: TSymtable read Getinitialmacrosymtable;
     property macrosymtablestack: TSymtablestack read Getmacrosymtablestack;
     property symtablestack: TSymtablestack read Getsymtablestack;
@@ -491,6 +495,7 @@ begin
   DoneTaskHandler(FTaskHandler);
   FreeAndNil(Fparamanager);
   FreeAndNil(FExceptionStateHandler);
+  FreeAndNil(FDefaultSyscallConvention);
   FreeAndNil(FTarget);
   FreeAndNil(FOpt);
   FreeAndNil(FOptions);
@@ -528,6 +533,7 @@ begin
 {$endif llvm}
 { inits which need to be done before the arguments are parsed }
   FTarget:=TCompilerTarget.Create;
+  FDefaultSyscallConvention:=TDefaultSyscallConvention.Create(FTarget);
   { fileutils depends on source_info so it must be after systems }
   InitFileUtils;
   { globals depends on source_info so it must be after systems }
@@ -954,6 +960,12 @@ function TCompilerHelper.GetCG128 : tcg128; inline;
 begin
   Result := TCompiler(Self).cg128;
 end;
+
+function TCompilerHelper.GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
+begin
+  Result := TCompiler(Self).DefaultSyscallConvention;
+end;
+
 {$else cpu64bitalu}
 function TCompilerHelper.GetCG64 : tcg64; inline;
 begin

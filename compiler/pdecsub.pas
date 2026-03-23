@@ -2309,7 +2309,7 @@ procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
           system_m68k_atari,
           system_m68k_amiga,
           system_powerpc_amiga:
-              include(pd.procoptions,get_default_syscall);
+              include(pd.procoptions,compiler.DefaultSyscallConvention.get_default_syscall);
           system_powerpc_morphos,
           system_arm_aros,
           system_i386_aros,
@@ -2325,7 +2325,7 @@ procedure TSubroutineDeclarationParser.pd_syscall(pd:tabstractprocdef);
                       end
                   end
                 else
-                  include(pd.procoptions,get_default_syscall);
+                  include(pd.procoptions,compiler.DefaultSyscallConvention.get_default_syscall);
               end;
           else
             compiler.verbose.Message(parser_e_syscall_format_not_support);

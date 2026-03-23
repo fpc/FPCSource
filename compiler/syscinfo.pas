@@ -51,10 +51,22 @@ const
       ( token: _BASELAST;  procoption: po_syscall_baselast;  validon: [system_powerpc_morphos,system_i386_aros,system_x86_64_aros,system_arm_aros] ),
       ( token: _BASEREG;   procoption: po_syscall_basereg;   validon: [system_powerpc_morphos,system_i386_aros,system_x86_64_aros] ));
 
+type
+
+  { TDefaultSyscallConvention }
+
+  TDefaultSyscallConvention = class
+  private
+    default_syscall_convention: tprocoption;
+    target: TCompilerTarget;
+  public
+    constructor Create(ATarget: TCompilerTarget);
+    function get_default_syscall: tprocoption;
+    procedure set_default_syscall(sc: tprocoption);
+  end;
+
 function get_syscall_by_token(const token: ttoken): psyscallinfo;
 function get_syscall_by_name(const name: string): psyscallinfo;
-function get_default_syscall: tprocoption;
-procedure set_default_syscall(sc: tprocoption);
 
 implementation
 
@@ -84,8 +96,13 @@ const
       ( system: system_i386_aros;       procoption: po_syscall_baselast ),
       ( system: system_x86_64_aros;     procoption: po_syscall_basereg ));
 
-var
-  default_syscall_convention: tprocoption = po_none;
+{ TDefaultSyscallConvention }
+
+constructor TDefaultSyscallConvention.Create(ATarget: TCompilerTarget);
+begin
+  target:=ATarget;
+  default_syscall_convention:=po_none;
+end;
 
 function get_syscall_by_token(const token: ttoken): psyscallinfo;
 var
@@ -113,16 +130,14 @@ begin
       end;
 end;
 
-function get_default_syscall: tprocoption;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function TDefaultSyscallConvention.get_default_syscall: tprocoption;
 var
   i: longint;
 begin
   if not (default_syscall_convention in syscall_conventions_po) then
     begin
       for i:=low(default_syscall_conventions) to high(default_syscall_conventions) do
-        if default_syscall_conventions[i].system = compiler.target.info.system then
+        if default_syscall_conventions[i].system = target.info.system then
           default_syscall_convention:=default_syscall_conventions[i].procoption;
       if not (default_syscall_convention in syscall_conventions_po) then
         internalerror(2016090302);
@@ -131,7 +146,7 @@ begin
   result:=default_syscall_convention;
 end;
 
-procedure set_default_syscall(sc: tprocoption);
+procedure TDefaultSyscallConvention.set_default_syscall(sc: tprocoption);
 begin
   if not (sc in syscall_conventions_po) then
     internalerror(2016090301);

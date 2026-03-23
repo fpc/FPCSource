@@ -1846,7 +1846,7 @@ unit scandir;
             if not (compiler.target.info.system in syscall^.validon) then
               compiler.verbose.Message(scan_w_syscall_convention_not_useable_on_target)
             else
-              set_default_syscall(syscall^.procoption);
+              compiler.DefaultSyscallConvention.set_default_syscall(syscall^.procoption);
             exit;
           end;
         compiler.verbose.Message(scan_w_syscall_convention_invalid);
