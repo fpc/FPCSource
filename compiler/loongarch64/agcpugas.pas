@@ -62,6 +62,8 @@ unit agcpugas;
 
     function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       s : string;
     begin
       { For LoongArch, we support only 4 cases
@@ -88,7 +90,7 @@ unit agcpugas;
                   internalerror(2022081003)
                 else if not assigned(symbol) then
                   internalerror(2022081004);
-                s:=ApplyAsmSymbolRestrictions(symbol.name);
+                s:=ApplyAsmSymbolRestrictions(symbol.name,compiler.target);
                 if offset<0 then
                   s:=s+tostr(offset)
                 else if offset>0 then
