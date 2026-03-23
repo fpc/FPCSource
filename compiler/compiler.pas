@@ -275,9 +275,9 @@ type
     function Getaktassignmentnode: tassignmentnode; inline;
     function GetBlockUtl: TBlockUtils; inline;
     function GetCG: tcg; inline;
+    function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
 {$ifdef cpu64bitalu}
     function GetCG128 : tcg128; inline;
-    function GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
 {$else cpu64bitalu}
     function GetCG64 : tcg64; inline;
 {$endif cpu64bitalu}
@@ -955,15 +955,15 @@ begin
   Result := TCompiler(Self).cg;
 end;
 
+function TCompilerHelper.GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
+begin
+  Result := TCompiler(Self).DefaultSyscallConvention;
+end;
+
 {$ifdef cpu64bitalu}
 function TCompilerHelper.GetCG128 : tcg128; inline;
 begin
   Result := TCompiler(Self).cg128;
-end;
-
-function TCompilerHelper.GetDefaultSyscallConvention: TDefaultSyscallConvention; inline;
-begin
-  Result := TCompiler(Self).DefaultSyscallConvention;
 end;
 
 {$else cpu64bitalu}
