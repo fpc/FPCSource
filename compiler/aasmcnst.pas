@@ -481,7 +481,7 @@ type
        labels. On most platforms, this is 0 (with the header at a negative
        offset), but on some platforms such negative offsets are not supported
        and thus this is equal to the header size }
-     class function get_dynarray_symofs:pint;virtual;
+     class function get_dynarray_symofs(target: TCompilerTarget):pint;virtual;
 
      { set the fieldvarsym whose data we will emit next; needed
        in case of variant records, so we know which part of the variant gets
@@ -1209,14 +1209,12 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_dynarray_symofs:pint;
-     var
-       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   class function ttai_typedconstbuilder.get_dynarray_symofs(target: TCompilerTarget):pint;
      begin
        { darwin's linker does not support negative offsets }
-       if not (_compiler.target.info.system in systems_darwin) and
+       if not (target.info.system in systems_darwin) and
           { it seems that clang's assembler has a bug with the ADRP instruction... }
-          (_compiler.target.info.system<>system_aarch64_win64) then
+          (target.info.system<>system_aarch64_win64) then
          result:=0
        else
          result:=get_dynarray_header_size;
@@ -1817,7 +1815,7 @@ implementation
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
        begin_anonymous_record('',1,sizeof(TConstPtrUInt),1);
-       dynarray_symofs:=get_dynarray_symofs;
+       dynarray_symofs:=get_dynarray_symofs(compiler.target);
        { what to do if ptrsinttype <> sizesinttype??? }
        emit_tai(tai_const.create_sizeint(-1),ptrsinttype);
        inc(result.ofs,ptrsinttype.size);
@@ -1846,7 +1844,7 @@ implementation
        arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),sizesinttype);
        arrlengthloc.free;
        arrlengthloc := nil;
-       if get_dynarray_symofs=0 then
+       if get_dynarray_symofs(compiler.target)=0 then
          emit_tai(tai_symbol_end.create(llofs.lab),arrdef);
        result:=end_anonymous_record;
      end;
