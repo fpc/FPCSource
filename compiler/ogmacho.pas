@@ -71,7 +71,7 @@ type
     TmachoObjData=class(TObjData)
       public
         debugcount: Integer;
-        constructor create(const n:string); override;
+        constructor create(const n:string;acompiler: TCompilerBase); override;
         procedure CreateDebugSections; override;
         function sectionname(atype:TAsmSectiontype; const aname:string; aorder:TAsmSectionOrder):string;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
@@ -157,9 +157,9 @@ uses
 
   { TmachoObjData }
 
-  constructor TmachoObjData.create(const n: string);
+  constructor TmachoObjData.create(const n: string;acompiler: TCompilerBase);
     begin
-      inherited create(n);
+      inherited;
       CObjSection:=TmachoObjSection;
     end;
 

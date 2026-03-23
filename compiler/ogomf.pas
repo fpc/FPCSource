@@ -129,7 +129,7 @@ interface
         FExportedSymbolList:TFPHashObjectList;
         class function CodeSectionName(const aname:string): string;
       public
-        constructor create(const n:string);override;
+        constructor create(const n:string;acompiler: TCompilerBase);override;
         destructor destroy;override;
         function sectiontype2align(atype:TAsmSectiontype):longint;override;
         class function sectiontype2class(atype:TAsmSectiontype):string;
@@ -1067,9 +1067,9 @@ implementation
           result:='_TEXT';
       end;
 
-    constructor TOmfObjData.create(const n: string);
+    constructor TOmfObjData.create(const n: string;acompiler: TCompilerBase);
       begin
-        inherited create(n);
+        inherited;
         CObjSymbol:=TOmfObjSymbol;
         CObjSection:=TOmfObjSection;
         createsectiongroup('DGROUP');
@@ -2665,7 +2665,7 @@ implementation
       begin
         FReader:=AReader;
         InputFileName:=AReader.FileName;
-        objdata:=CObjData.Create(InputFileName);
+        objdata:=CObjData.Create(InputFileName,compiler);
         result:=false;
         { the TOmfObjData constructor creates a group 'DGROUP', which is to be
           used by the code generator, when writing files. When reading object

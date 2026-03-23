@@ -307,7 +307,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
       TNLMCoffObjData = class(TCoffObjData)
-         constructor create(const n:string);override;
+         constructor create(const n:string;acompiler: TCompilerBase);override;
        end;
 
       TNLMCoffObjOutput = class(TCoffObjOutput)
@@ -1447,9 +1447,9 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                 TNLMCoffObjData
 ****************************************************************************}
 
-    constructor TNLMCoffObjData.create(const n:string);
+    constructor TNLMCoffObjData.create(const n:string;acompiler: TCompilerBase);
       begin
-        inherited createcoff(n,true,TNLMCoffObjSection);
+        inherited createcoff(n,true,TNLMCoffObjSection,acompiler);
       end;
 
 

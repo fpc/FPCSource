@@ -410,6 +410,7 @@ interface
 
      TObjData = class(TLinkedListItem)
      private
+       FCompiler: TCompilerBase;
        FCurrObjSec : TObjSection;
        FObjSectionList  : TFPHashObjectList;
        FCObjSymbol      : TObjSymbolClass;
@@ -436,7 +437,7 @@ interface
 {$ifdef ARM}
        ThumbFunc : boolean;
 {$endif ARM}
-       constructor create(const n:string);virtual;
+       constructor create(const n:string;acompiler: TCompilerBase);virtual;
        destructor  destroy;override;
        { Sections }
        function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;abstract;
@@ -1419,9 +1420,10 @@ implementation
                                 TObjData
 ****************************************************************************}
 
-    constructor TObjData.create(const n:string);
+    constructor TObjData.create(const n:string;acompiler: TCompilerBase);
       begin
         inherited create;
+        FCompiler:=ACompiler;
         FName:=ExtractFileName(n);
         FObjSectionList:=TFPHashObjectList.Create(true);
         FStabsObjSec:=nil;
@@ -2080,7 +2082,7 @@ implementation
 
     function TObjOutput.newObjData(const n:string):TObjData;
       begin
-        result:=CObjData.create(n);
+        result:=CObjData.create(n,compiler);
         if (cs_use_lineinfo in current_settings.globalswitches) or
            (cs_debuginfo in current_settings.moduleswitches) then
           result.CreateDebugSections;
@@ -2517,7 +2519,7 @@ implementation
         ObjDataList.Clear;
         { Globals defined in the linker script }
         if not assigned(internalObjData) then
-          internalObjData:=CObjData.create('*Internal*');
+          internalObjData:=CObjData.create('*Internal*',compiler);
         AddObjData(internalObjData);
         { Common Data section }
         commonObjSection:=internalObjData.createsection(sec_bss,'');

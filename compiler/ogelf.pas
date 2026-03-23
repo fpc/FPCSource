@@ -79,7 +79,7 @@ interface
 {$ifdef mips}
          gp_value: longword;
 {$endif mips}
-         constructor create(const n:string);override;
+         constructor create(const n:string;acompiler: TCompilerBase);override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
          procedure writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);override;
@@ -165,7 +165,7 @@ interface
        public
          soname_strofs: longword;
          vernaux_count: longword;
-         constructor create(const n:string);override;
+         constructor create(const n:string;acompiler: TCompilerBase);override;
          destructor destroy;override;
          property versiondefs:TFPHashObjectList read FVersionDefs;
        end;
@@ -505,9 +505,9 @@ implementation
                             TElfObjData
 ****************************************************************************}
 
-    constructor TElfObjData.create(const n:string);
+    constructor TElfObjData.create(const n:string;acompiler: TCompilerBase);
       begin
-        inherited create(n);
+        inherited;
         CObjSection:=TElfObjSection;
       end;
 
@@ -739,9 +739,9 @@ implementation
                             TElfDynamicObjData
 ****************************************************************************}
 
-    constructor TElfDynamicObjData.create(const n:string);
+    constructor TElfDynamicObjData.create(const n:string;acompiler: TCompilerBase);
       begin
-        inherited Create(n);
+        inherited;
         FVersionDefs:=TFPHashObjectList.create(true);
         { Default symversions with indices 0 and 1 }
         TElfVersionDef.create(FVersionDefs,'*local*');
@@ -1529,12 +1529,12 @@ implementation
 
         if dynobj then
           begin
-            objdata:=TElfDynamicObjData.Create(InputFilename);
+            objdata:=TElfDynamicObjData.Create(InputFilename,compiler);
             verdefs:=TElfDynamicObjData(objdata).versiondefs;
             CObjSymbol:=TVersionedObjSymbol;
           end
         else
-          objdata:=CObjData.Create(InputFilename);
+          objdata:=CObjData.Create(InputFilename,compiler);
 
         TElfObjData(objdata).ident:=header.e_ident;
         TElfObjData(objdata).flags:=header.e_flags;
