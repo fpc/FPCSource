@@ -20,10 +20,11 @@ Uses baseunix,UnixType;
 
 {$i osdefs.inc}       { Compile time defines }
 
-{$if 
-     defined(FreeBSD) or 
-     defined(Darwin) or 
-     defined(Haiku)
+{$if
+     defined(FreeBSD) or
+     defined(Darwin) or
+     defined(Haiku) or
+     defined(OpenBSD)
 }
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
