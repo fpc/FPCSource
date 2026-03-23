@@ -94,7 +94,7 @@ implementation
         procedure add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr); override;
       public
         class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean; override;
-        class function is_smartlink_vectorized_dead_strip: boolean; override;
+        class function is_smartlink_vectorized_dead_strip(target: TCompilerTarget): boolean; override;
       end;
 
 {****************************************************************************
@@ -103,7 +103,7 @@ implementation
 
   procedure tmsdostai_typedconstbuilder.add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr);
     begin
-      if (tf_smartlink_library in compiler.target.info.flags) and is_smartlink_vectorized_dead_strip then
+      if (tf_smartlink_library in compiler.target.info.flags) and is_smartlink_vectorized_dead_strip(compiler.target) then
         begin
           with current_module.linkorderedsymbols do
             if (Last=nil) or (TCmdStrListItem(Last).Str<>secname) then
@@ -115,7 +115,7 @@ implementation
     var
       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      result:=(tf_smartlink_library in _compiler.target.info.flags) and is_smartlink_vectorized_dead_strip;
+      result:=(tf_smartlink_library in _compiler.target.info.flags) and is_smartlink_vectorized_dead_strip(_compiler.target);
       if not result then
         exit;
       if tcalo_vectorized_dead_strip_start in options then
@@ -129,12 +129,10 @@ implementation
       secname:=make_mangledname(basename,st,secname);
     end;
 
-  class function tmsdostai_typedconstbuilder.is_smartlink_vectorized_dead_strip: boolean;
-    var
-      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  class function tmsdostai_typedconstbuilder.is_smartlink_vectorized_dead_strip(target: TCompilerTarget): boolean;
     begin
 {$ifdef USE_LINKER_WLINK}
-      result:=inherited or (tf_smartlink_library in _compiler.target.info.flags);
+      result:=inherited or (tf_smartlink_library in target.info.flags);
 {$else}
       result:=inherited and not (cs_link_extern in current_settings.globalswitches);
 {$endif USE_LINKER_WLINK}

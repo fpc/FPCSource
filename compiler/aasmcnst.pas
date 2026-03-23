@@ -349,7 +349,7 @@ type
      class function get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
      class function get_vectorized_dead_strip_section_symbol_end(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
      { returns true if smartlinking of the dead stripable vectorized lists is supported }
-     class function is_smartlink_vectorized_dead_strip: boolean; virtual;
+     class function is_smartlink_vectorized_dead_strip(target: TCompilerTarget): boolean; virtual;
 
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): TSymStr;
      class function get_dynstring_rec(typ: tstringtype; winlike: boolean; len: asizeint; acompiler: TCompilerBase): trecorddef;
@@ -1146,7 +1146,7 @@ implementation
              secname:=make_mangledname(basename,st,'2_'+itemname);
          end;
        add_link_ordered_symbol(asmsym,secname);
-       if is_smartlink_vectorized_dead_strip then
+       if is_smartlink_vectorized_dead_strip(compiler.target) then
          options:=options+[tcalo_new_section,tcalo_make_dead_strippable]
        else
          begin
@@ -1623,13 +1623,11 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.is_smartlink_vectorized_dead_strip: boolean;
-     var
-       _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   class function ttai_typedconstbuilder.is_smartlink_vectorized_dead_strip(target: TCompilerTarget): boolean;
      begin
-       result:=(tf_smartlink_sections in _compiler.target.info.flags) and
-               (not(_compiler.target.info.system in systems_darwin) or
-                (tf_supports_symbolorderfile in _compiler.target.info.flags));
+       result:=(tf_smartlink_sections in target.info.flags) and
+               (not(target.info.system in systems_darwin) or
+                (tf_supports_symbolorderfile in target.info.flags));
      end;
 
 
