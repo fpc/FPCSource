@@ -1455,7 +1455,7 @@ implementation
                     low(TObjCAsmSectionType)..high(TObjCAsmSectionType):
                       begin
                         writer.AsmWrite(', section "');
-                        writer.AsmWrite(objc_section_name(taillvmdecl(hp).sec));
+                        writer.AsmWrite(objc_section_name(taillvmdecl(hp).sec,compiler.target));
                         writer.AsmWrite('"');
                       end;
                     else

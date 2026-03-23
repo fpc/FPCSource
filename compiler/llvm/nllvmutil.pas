@@ -321,7 +321,7 @@ implementation
           objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
           objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
           objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Section')));
-          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info))));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info,compiler.target))));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
 

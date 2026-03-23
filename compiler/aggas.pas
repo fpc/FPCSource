@@ -2167,7 +2167,7 @@ implementation
               end;
             low(TObjCAsmSectionType)..high(TObjCAsmSectionType):
               begin
-                result:='.section '+objc_section_name(atype);
+                result:='.section '+objc_section_name(atype,compiler.target);
                 exit
               end;
             else
