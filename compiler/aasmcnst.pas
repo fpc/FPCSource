@@ -343,7 +343,7 @@ type
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
      class function get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions; start: boolean): tasmsymbol; virtual;
     public
-     class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean; virtual;
+     class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean; virtual;
      { get the start/end symbol for a dead stripable vectorized section, such
        as the resourcestring data of a unit }
      class function get_vectorized_dead_strip_section_symbol_start(const basename: string; st: tsymtable; options: ttcdeadstripsectionsymboloptions): tasmsymbol; virtual;
@@ -1105,7 +1105,7 @@ implementation
      begin
        fvectorized_finalize_called:=true;
        asmsym:=nil;
-       customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,options,secname);
+       customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,options,compiler.target,secname);
        if customsecname then
          sectype:=sec_user
        else
@@ -1605,7 +1605,7 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean;
+   class function ttai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean;
      begin
        result:=false;
      end;

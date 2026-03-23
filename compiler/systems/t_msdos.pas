@@ -93,7 +93,7 @@ implementation
       protected
         procedure add_link_ordered_symbol(sym: tasmsymbol; const secname: TSymStr); override;
       public
-        class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean; override;
+        class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean; override;
         class function is_smartlink_vectorized_dead_strip(target: TCompilerTarget): boolean; override;
       end;
 
@@ -111,11 +111,9 @@ implementation
         end;
     end;
 
-  class function tmsdostai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; out secname: TSymStr): boolean;
-    var
-      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  class function tmsdostai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; options: ttcasmlistoptions; target: TCompilerTarget; out secname: TSymStr): boolean;
     begin
-      result:=(tf_smartlink_library in _compiler.target.info.flags) and is_smartlink_vectorized_dead_strip(_compiler.target);
+      result:=(tf_smartlink_library in target.info.flags) and is_smartlink_vectorized_dead_strip(target);
       if not result then
         exit;
       if tcalo_vectorized_dead_strip_start in options then
