@@ -188,6 +188,7 @@ type
     FObjCUtil: TObjectiveCUtils;
     FOptions: TOptions;
     FRTTIWriter : TRTTIWriter;
+    FImportLib  : TImportLib;
     FExportLib  : TExportLib;
     FLinker: TLinker;
     FExceptionStateHandler: tcgexceptionstatehandler;
@@ -242,6 +243,7 @@ type
     property ObjCUtil: TObjectiveCUtils read FObjCUtil;
     property Options: TOptions read FOptions;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
+    property ImportLib: TImportLib read FImportLib;
     property ExportLib: TExportLib read FExportLib;
     property Linker: TLinker read FLinker;
     property ExceptionStateHandler: tcgexceptionstatehandler read FExceptionStateHandler;
@@ -280,6 +282,7 @@ type
     function GetExportLib: TExportLib; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function GetHLCG: thlcgobj; inline;
+    function GetImportLib: TImportLib; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
     function GetLinker: TLinker; inline;
     function Getmacrosymtablestack: TSymtablestack; inline;
@@ -420,6 +423,7 @@ type
     property ProcDefUtil: TProcDefUtils read GetProcDefUtil;
     property ObjCUtil: TObjectiveCUtils read GetObjCUtil;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
+    property ImportLib: TImportLib read GetImportLib;
     property ExportLib: TExportLib read GetExportLib;
     property Linker: TLinker read GetLinker;
     property ExceptionStateHandler: tcgexceptionstatehandler read GetExceptionStateHandler;
@@ -470,7 +474,7 @@ begin
    begin
      CompilerInitedAfterArgs:=false;
      FreeAndNil(FParser);
-     DoneImport;
+     FreeAndNil(FImportLib);
      FreeAndNil(FExportLib);
      DoneLinker;
      DoneAsm;
@@ -543,7 +547,7 @@ begin
   options.read_arguments(cmd);
 { inits which depend on arguments }
   FParser:=TParser.Create(self);
-  InitImport;
+  FImportLib:=CreateImport(Self);
   FExportLib:=CreateExport(Self);
   InitLinker;
   InitAsm;
@@ -975,6 +979,11 @@ end;
 function TCompilerHelper.GetHLCG: thlcgobj;
 begin
   Result := TCompiler(Self).hlcg;
+end;
+
+function TCompilerHelper.GetImportLib: TImportLib; inline;
+begin
+  Result := TCompiler(Self).ImportLib;
 end;
 
 function TCompilerHelper.Getinitialmacrosymtable: TSymtable; inline;

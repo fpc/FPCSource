@@ -50,12 +50,10 @@ type
 
 var
   CDLLScanner : array[tsystem] of TDLLScannerClass;
-  ImportLib   : TImportLib;
 
 procedure RegisterImport(t:tsystem;c:TImportLibClass);
 procedure RegisterDLLScanner(t:tsystem;c:TDLLScannerClass);
-procedure InitImport;
-procedure DoneImport;
+function CreateImport(ACompiler: TCompilerBase): TImportLib;
 
 
 implementation
@@ -115,22 +113,12 @@ begin
 end;
 
 
-procedure InitImport;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+function CreateImport(ACompiler: TCompilerBase): TImportLib;
 begin
-  if assigned(CImportLib[compiler.target.info.system]) then
-   importlib:=CImportLib[compiler.target.info.system].Create(compiler)
+  if assigned(CImportLib[ACompiler.target.info.system]) then
+    result:=CImportLib[ACompiler.target.info.system].Create(ACompiler)
   else
-   importlib:=TImportLib.Create(compiler);
-end;
-
-
-procedure DoneImport;
-begin
-  if assigned(importlib) then
-    importlib.free;
-    importlib := nil;
+    result:=TImportLib.Create(ACompiler);
 end;
 
 end.
