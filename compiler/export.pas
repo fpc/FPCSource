@@ -74,6 +74,15 @@ type
       procedure setinitname(list: TAsmList; const s: string); virtual;
       procedure setfininame(list: TAsmList; const s: string); virtual;
 
+      procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+      procedure exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+      { to export symbols not directly related to a tsym (e.g., the Objective-C
+        rtti) }
+      procedure exportname(const s : string; options: texportoptions);
+
+      procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
+      procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
+
       property initname: string read finitname;
       property fininame: string read ffininame;
       property ignoreduplicates : boolean read fignoreduplicates write fignoreduplicates;
@@ -82,23 +91,11 @@ type
    TExportLibClass=class of TExportLib;
 
 
-  procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
-  procedure exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
-  { to export symbols not directly related to a tsym (e.g., the Objective-C
-    rtti) }
-  procedure exportname(const s : string; options: texportoptions);
-
-  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
-  procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
-
-
 var
   CExportLib : array[tsystem] of TExportLibClass;
-  ExportLib  : TExportLib;
 
 procedure RegisterExport(t:tsystem;c:TExportLibClass);
-procedure InitExport(compiler: TCompilerBase);
-procedure DoneExport;
+function CreateExport(compiler: TCompilerBase): TExportLib;
 
 implementation
 
@@ -109,7 +106,7 @@ uses
                            TExported_procedure
 ****************************************************************************}
 
-procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+procedure texportlib.exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   var
     hp : texported_item;
   begin
@@ -118,11 +115,11 @@ procedure exportprocsym(sym: tsym; const s : string; index: longint; options: te
     hp.sym:=sym;
     hp.options:=options+[eo_name];
     hp.index:=index;
-    exportlib.exportprocedure(hp);
+    exportprocedure(hp);
   end;
 
 
-procedure exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+procedure texportlib.exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   var
     hp : texported_item;
   begin
@@ -132,17 +129,17 @@ procedure exportvarsym(sym: tsym; const s : string; index: longint; options: tex
     hp.is_var:=true;
     hp.options:=options+[eo_name];
     hp.index:=index;
-    exportlib.exportvar(hp);
+    exportvar(hp);
   end;
 
 
-procedure exportname(const s : string; options: texportoptions);
+procedure texportlib.exportname(const s : string; options: texportoptions);
   begin
     exportvarsym(nil,s,0,options);
   end;
 
 
-  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
+  procedure texportlib.exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
     var
       item: TCmdStrListItem;
     begin
@@ -159,7 +156,7 @@ procedure exportname(const s : string; options: texportoptions);
     end;
 
 
-  procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
+  procedure texportlib.exportallprocsymnames(ps: tprocsym; options: texportoptions);
     var
       i: longint;
     begin
@@ -272,20 +269,12 @@ begin
 end;
 
 
-procedure InitExport(compiler: TCompilerBase);
+function CreateExport(compiler: TCompilerBase): TExportLib;
 begin
   if assigned(CExportLib[compiler.target.info.system]) then
-   exportlib:=CExportLib[compiler.target.info.system].Create(compiler)
+    result:=CExportLib[compiler.target.info.system].Create(compiler)
   else
-   exportlib:=TExportLib.Create(compiler);
-end;
-
-
-procedure DoneExport;
-begin
-  if assigned(Exportlib) then
-    Exportlib.free;
-    Exportlib := nil;
+    result:=TExportLib.Create(compiler);
 end;
 
 

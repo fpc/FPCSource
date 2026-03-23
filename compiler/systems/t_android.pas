@@ -249,12 +249,12 @@ begin
           add('VERSION');
           add('{');
           add('  {');
-          if not texportlibunix(exportlib).exportedsymnames.empty then
+          if not texportlibunix(compiler.exportlib).exportedsymnames.empty then
             begin
               add('    global:');
               repeat
-                add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
-              until texportlibunix(exportlib).exportedsymnames.empty;
+                add('      '+texportlibunix(compiler.exportlib).exportedsymnames.getfirst+';');
+              until texportlibunix(compiler.exportlib).exportedsymnames.empty;
             end;
           add('    local:');
           add('      *;');

@@ -1486,7 +1486,7 @@ type
          dispose(s1);
 
          if (compiler.target.info.system in systems_unit_program_exports) then
-           exportlib.preparelib(curr.realmodulename^);
+           compiler.exportlib.preparelib(curr.realmodulename^);
 
          { parse hint directives }
          try_consume_hintdirective(curr.moduleoptions, curr.deprecatedmsg);
@@ -2039,7 +2039,7 @@ type
 
          curr.setmodulename(module_name);
          curr.ispackage:=true;
-         exportlib.preparelib(module_name);
+         compiler.exportlib.preparelib(module_name);
          pkg:=tpcppackage.create(module_name,compiler);
 
          if tf_library_needs_pic in compiler.target.info.flags then
@@ -2210,7 +2210,7 @@ type
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
-         if assigned(exportlib) and
+         if assigned(compiler.exportlib) and
             (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
             (mf_has_exports in curr.moduleflags) then
            current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
@@ -2272,7 +2272,7 @@ type
               loaded_units.remove(hp2);
           end;
 
-         exportlib.ignoreduplicates:=true;
+         compiler.exportlib.ignoreduplicates:=true;
 
          { force exports }
          uu:=tused_unit(usedunits.first);
@@ -2300,9 +2300,9 @@ type
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
-         exportlib.generatelib;
+         compiler.exportlib.generatelib;
 
-         exportlib.ignoreduplicates:=false;
+         compiler.exportlib.ignoreduplicates:=false;
 
          { create import libraries for all packages }
          if compiler.globals.packagelist.count>0 then
@@ -2578,7 +2578,7 @@ type
           current_debuginfo.inserttypeinfo;
 
         if islibrary or (compiler.target.info.system in systems_unit_program_exports) then
-          exportlib.generatelib;
+          compiler.exportlib.generatelib;
 
         { Reference all DEBUGINFO sections from the main .fpc section }
         if (cs_debuginfo in current_settings.moduleswitches) then
@@ -2794,7 +2794,7 @@ type
 
         { Add symbol to the exports section for win32 so smartlinking a
           DLL will include the edata section }
-        if assigned(exportlib) and
+        if assigned(compiler.exportlib) and
            (compiler.target.info.system in [system_i386_win32,system_i386_wdosx]) and
            (mf_has_exports in curr.moduleflags) then
           current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',curr.localsymtable,''),0));
@@ -2879,7 +2879,7 @@ type
          end;
         curr.setmodulename(program_name);
         curr.islibrary:=true;
-        exportlib.preparelib(program_name);
+        compiler.exportlib.preparelib(program_name);
 
         if tf_library_needs_pic in compiler.target.info.flags then
          begin
@@ -2916,7 +2916,7 @@ type
             end;
           curr.setmodulename(program_name);
           if (compiler.target.info.system in systems_unit_program_exports) then
-            exportlib.preparelib(program_name);
+            compiler.exportlib.preparelib(program_name);
           if current_scanner.token=_LKLAMMER then
             begin
                parser.pbase.consume(_LKLAMMER);
@@ -3027,7 +3027,7 @@ type
          else
            begin
              if (compiler.target.info.system in systems_unit_program_exports) then
-               exportlib.preparelib(curr.realmodulename^);
+               compiler.exportlib.preparelib(curr.realmodulename^);
 
              { setup things using the switches }
              setupglobalswitches;

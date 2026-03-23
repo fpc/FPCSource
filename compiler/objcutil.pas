@@ -303,7 +303,7 @@ end;
             { TODO: package visibility (private_extern) -- must not be exported
                either}
             if not(vf.visibility in [vis_private,vis_strictprivate]) then
-              exportname(prefix+vf.RealName,[]);
+              compiler.exportlib.exportname(prefix+vf.RealName,[]);
           end;
     end;
 
@@ -313,15 +313,15 @@ end;
         if (compiler.target.info.system in systems_objc_nfabi) then
           begin
             { export class and metaclass symbols }
-            exportname(def.rtti_mangledname(objcclassrtti),[]);
-            exportname(def.rtti_mangledname(objcmetartti),[]);
+            compiler.exportlib.exportname(def.rtti_mangledname(objcclassrtti),[]);
+            compiler.exportlib.exportname(def.rtti_mangledname(objcmetartti),[]);
             { export public/protected instance variable offset symbols }
             exportobjcclassfields(def);
           end
         else
           begin
              { export the class symbol }
-             exportname('.objc_class_name_'+def.objextname^,[]);
+             compiler.exportlib.exportname('.objc_class_name_'+def.objextname^,[]);
           end;
       end;
 

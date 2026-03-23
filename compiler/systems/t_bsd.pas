@@ -296,12 +296,12 @@ begin
       LinkRes.add('VERSION');
       LinkRes.add('{');
       LinkRes.add('  {');
-      if not texportlibunix(exportlib).exportedsymnames.empty then
+      if not texportlibunix(compiler.exportlib).exportedsymnames.empty then
         begin
           LinkRes.add('    global:');
           repeat
-            LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
-          until texportlibunix(exportlib).exportedsymnames.empty;
+            LinkRes.add('      '+texportlibunix(compiler.exportlib).exportedsymnames.getfirst+';');
+          until texportlibunix(compiler.exportlib).exportedsymnames.empty;
         end;
       LinkRes.add('    local:');
       LinkRes.add('      *;');

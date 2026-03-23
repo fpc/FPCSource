@@ -1782,13 +1782,13 @@ implementation
     begin
       { setinitname may generate a new section -> don't add to the
         current list, because we assume this remains a text section }
-      exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
+      compiler.exportlib.setinitname(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
     end;
 
 
   procedure tnodeutils.RegisterModuleFiniFunction(pd: tprocdef);
     begin
-      exportlib.setfininame(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
+      compiler.exportlib.setfininame(current_asmdata.AsmLists[al_pure_assembler],pd.mangledname);
     end;
 
 

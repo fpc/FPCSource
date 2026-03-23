@@ -188,6 +188,7 @@ type
     FObjCUtil: TObjectiveCUtils;
     FOptions: TOptions;
     FRTTIWriter : TRTTIWriter;
+    FExportLib  : TExportLib;
     FLinker: TLinker;
     FExceptionStateHandler: tcgexceptionstatehandler;
     Fhlcg: thlcgobj;
@@ -241,6 +242,7 @@ type
     property ObjCUtil: TObjectiveCUtils read FObjCUtil;
     property Options: TOptions read FOptions;
     property RTTIWriter : TRTTIWriter read FRTTIWriter write FRTTIWriter;
+    property ExportLib: TExportLib read FExportLib;
     property Linker: TLinker read FLinker;
     property ExceptionStateHandler: tcgexceptionstatehandler read FExceptionStateHandler;
     {# Main high level code generator class }
@@ -275,6 +277,7 @@ type
     function GetCG64 : tcg64; inline;
 {$endif cpu64bitalu}
     function GetExceptionStateHandler: tcgexceptionstatehandler; inline;
+    function GetExportLib: TExportLib; inline;
     function GetGlobals: TCompilerGlobals; inline;
     function GetHLCG: thlcgobj; inline;
     function Getinitialmacrosymtable: TSymtable; inline;
@@ -417,6 +420,7 @@ type
     property ProcDefUtil: TProcDefUtils read GetProcDefUtil;
     property ObjCUtil: TObjectiveCUtils read GetObjCUtil;
     property RTTIWriter : TRTTIWriter read GetRTTIWriter;
+    property ExportLib: TExportLib read GetExportLib;
     property Linker: TLinker read GetLinker;
     property ExceptionStateHandler: tcgexceptionstatehandler read GetExceptionStateHandler;
     property hlcg: thlcgobj read GetHLCG;
@@ -467,7 +471,7 @@ begin
      CompilerInitedAfterArgs:=false;
      FreeAndNil(FParser);
      DoneImport;
-     DoneExport;
+     FreeAndNil(FExportLib);
      DoneLinker;
      DoneAsm;
      DoneWpo;
@@ -540,7 +544,7 @@ begin
 { inits which depend on arguments }
   FParser:=TParser.Create(self);
   InitImport;
-  InitExport(Self);
+  FExportLib:=CreateExport(Self);
   InitLinker;
   InitAsm;
   InitWpo;
@@ -956,6 +960,11 @@ end;
 function TCompilerHelper.GetExceptionStateHandler: tcgexceptionstatehandler; inline;
 begin
   Result := TCompiler(Self).ExceptionStateHandler;
+end;
+
+function TCompilerHelper.GetExportLib: TExportLib; inline;
+begin
+  Result := TCompiler(Self).ExportLib;
 end;
 
 function TCompilerHelper.GetGlobals: TCompilerGlobals; inline;

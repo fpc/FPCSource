@@ -27,12 +27,21 @@ unit pkgutil;
 interface
 
   uses
-    fmodule,fpkg,link,cstreams,cclasses,compilerbase;
+    globtype,fmodule,fpkg,link,cstreams,cclasses,compilerbase,
+    symbase,symtype,symsym,symdef;
 
 type
   TPackageUtils = class
   private
     FCompiler: TCompilerBase;
+    procedure procexport(const s : string);
+    procedure varexport(const s : string);
+    procedure exportprocsym(sym:tprocsym;symtable:tsymtable);
+    procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
+    procedure exportname(const s:tsymstr);
+    procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
+    procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
+    procedure insert_export(sym : TObject;arg:pointer);
     property Compiler: TCompilerBase read FCompiler;
   public
     constructor Create(ACompiler: TCompilerBase);
@@ -50,11 +59,11 @@ implementation
 
   uses
     sysutils,
-    globtype,systems,compiler,
+    systems,compiler,
     cutils,
     globals,verbose,
     aasmbase,aasmdata,aasmcnst,
-    symtype,symconst,symsym,symdef,symbase,symtable,
+    symconst,symtable,
     psub,pdecsub,
     ppu,entfile,fpcp,
     export;
@@ -65,29 +74,29 @@ implementation
     end;
 
 
-  procedure procexport(const s : string);
+  procedure TPackageUtils.procexport(const s : string);
     var
       hp : texported_item;
     begin
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      exportlib.exportprocedure(hp);
+      compiler.exportlib.exportprocedure(hp);
     end;
 
 
-  procedure varexport(const s : string);
+  procedure TPackageUtils.varexport(const s : string);
     var
       hp : texported_item;
     begin
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      exportlib.exportvar(hp);
+      compiler.exportlib.exportvar(hp);
     end;
 
 
-  procedure exportprocsym(sym:tprocsym;symtable:tsymtable);
+  procedure TPackageUtils.exportprocsym(sym:tprocsym;symtable:tsymtable);
     var
       i : longint;
       pd : tprocdef;
@@ -109,16 +118,13 @@ implementation
                 )
               ) then
             begin
-              exportallprocdefnames(tprocsym(sym),pd,[eo_name,eo_no_sym_name]);
+              compiler.exportlib.exportallprocdefnames(tprocsym(sym),pd,[eo_name,eo_no_sym_name]);
             end;
         end;
     end;
 
 
-  procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable); forward;
-
-
-  procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
+  procedure TPackageUtils.exportabstractrecordsymproc(sym:tobject;arg:pointer);
     begin
       case tsym(sym).typ of
         typesym:
@@ -148,18 +154,18 @@ implementation
     end;
 
 
-  procedure exportname(const s:tsymstr);
+  procedure TPackageUtils.exportname(const s:tsymstr);
     var
       hp : texported_item;
     begin
       hp:=texported_item.create;
       hp.name:=stringdup(s);
       hp.options:=hp.options+[eo_name];
-      exportlib.exportvar(hp);
+      compiler.exportlib.exportvar(hp);
     end;
 
 
-  procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
+  procedure TPackageUtils.exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
     begin
       { for cross unit type aliases this might happen }
       if def.owner<>symtable then
@@ -182,7 +188,7 @@ implementation
     end;
 
 
-  procedure export_typedef(def:tdef;symtable:tsymtable;global:boolean);
+  procedure TPackageUtils.export_typedef(def:tdef;symtable:tsymtable;global:boolean);
     begin
       if not (global or is_class(def)) or
           ([df_internal,df_generic]*def.defoptions<>[]) or
@@ -204,7 +210,7 @@ implementation
     end;
 
 
-  procedure insert_export(sym : TObject;arg:pointer);
+  procedure TPackageUtils.insert_export(sym : TObject;arg:pointer);
     var
       isglobal,
       publiconly : boolean;

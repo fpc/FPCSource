@@ -238,12 +238,12 @@ begin
       LinkRes.add('VERSION');
       LinkRes.add('{ DEFAULT'); { gld 2.25 does not support anonymous version }
       LinkRes.add('  {');
-      if not texportlibunix(exportlib).exportedsymnames.empty then
+      if not texportlibunix(compiler.exportlib).exportedsymnames.empty then
         begin
           LinkRes.add('    global:');
           repeat
-            LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
-          until texportlibunix(exportlib).exportedsymnames.empty;
+            LinkRes.add('      '+texportlibunix(compiler.exportlib).exportedsymnames.getfirst+';');
+          until texportlibunix(compiler.exportlib).exportedsymnames.empty;
         end;
       LinkRes.add('    local:');
       LinkRes.add('      *;');
@@ -364,12 +364,12 @@ begin
       LinkRes2:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
       // LinkRes2.add('VERSION'); not needed for now
       LinkRes2.add('  {');
-      if not texportlibunix(exportlib).exportedsymnames.empty then
+      if not texportlibunix(compiler.exportlib).exportedsymnames.empty then
         begin
           LinkRes2.add('    global:');
           repeat
-            LinkRes2.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
-          until texportlibunix(exportlib).exportedsymnames.empty;
+            LinkRes2.add('      '+texportlibunix(compiler.exportlib).exportedsymnames.getfirst+';');
+          until texportlibunix(compiler.exportlib).exportedsymnames.empty;
         end;
       LinkRes2.add('    local:');
       LinkRes2.add('      *;');
@@ -589,30 +589,30 @@ begin
     begin
       InitFiniStr:='-init ';
       if need_quotes then
-        InitFiniStr:=InitFiniStr+''''+exportlib.initname+''''
+        InitFiniStr:=InitFiniStr+''''+compiler.exportlib.initname+''''
       else
-        InitFiniStr:=InitFiniStr+exportlib.initname;
-      if (exportlib.fininame<>'') then
+        InitFiniStr:=InitFiniStr+compiler.exportlib.initname;
+      if (compiler.exportlib.fininame<>'') then
         begin
           if need_quotes then
-            InitFiniStr:=InitFiniStr+' -fini '''+exportlib.initname+''''
+            InitFiniStr:=InitFiniStr+' -fini '''+compiler.exportlib.initname+''''
           else
-            InitFiniStr:=InitFiniStr+' -fini '+exportlib.fininame;
+            InitFiniStr:=InitFiniStr+' -fini '+compiler.exportlib.fininame;
         end;
     end
   else
     begin
       InitFiniStr:='-z initarray=';
       if need_quotes then
-        InitFiniStr:=InitFiniStr+''''+exportlib.initname+''''
+        InitFiniStr:=InitFiniStr+''''+compiler.exportlib.initname+''''
       else
-        InitFiniStr:=InitFiniStr+exportlib.initname;
-      if (exportlib.fininame<>'') then
+        InitFiniStr:=InitFiniStr+compiler.exportlib.initname;
+      if (compiler.exportlib.fininame<>'') then
         begin
           if need_quotes then
-            InitFiniStr:=InitFiniStr+' -z finiarray='''+exportlib.initname+''''
+            InitFiniStr:=InitFiniStr+' -z finiarray='''+compiler.exportlib.initname+''''
           else
-            InitFiniStr:=InitFiniStr+' -z finiarray='+exportlib.fininame;
+            InitFiniStr:=InitFiniStr+' -z finiarray='+compiler.exportlib.fininame;
         end;
     end;
 

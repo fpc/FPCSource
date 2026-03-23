@@ -3247,7 +3247,7 @@ implementation
       begin
         AllowUndefinedSymbols:=IsSharedLibrary;
         { add exported symbols to dynamic list }
-        exportlist:=texportlibunix(exportlib).exportedsymnames;
+        exportlist:=texportlibunix(compiler.exportlib).exportedsymnames;
         if not exportlist.empty then
           repeat
             sym:=TExeSymbol(ExeSymbolList.Find(exportlist.getfirst));

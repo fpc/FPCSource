@@ -713,14 +713,14 @@ implementation
         end;
 
       LinkSymsFileName:='';
-      if not texportlibunix(exportlib).exportedsymnames.empty then
+      if not texportlibunix(compiler.exportlib).exportedsymnames.empty then
         begin
           LinkSymsFileName:=UniqueName('linksyms')+'.fpc';
           assign(exportedsyms,compiler.globals.outputexedir+LinkSymsFileName);
           rewrite(exportedsyms);
           repeat
-            writeln(exportedsyms,texportlibunix(exportlib).exportedsymnames.getfirst);
-          until texportlibunix(exportlib).exportedsymnames.empty;
+            writeln(exportedsyms,texportlibunix(compiler.exportlib).exportedsymnames.getfirst);
+          until texportlibunix(compiler.exportlib).exportedsymnames.empty;
           close(exportedsyms);
           cmdstr:=cmdstr+' -exported_symbols_list '+maybequoted(compiler.globals.outputexedir+LinkSymsFileName);
         end;
