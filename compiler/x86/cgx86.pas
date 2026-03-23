@@ -40,6 +40,10 @@ unit cgx86;
 
       tcgx86 = class(tcg)
         rgfpu   : Trgx86fpu;
+
+        { Gets the byte alignment of a reference }
+        function GetRefAlignment(ref: treference): Byte; {$IFDEF USEINLINE}inline;{$ENDIF}
+
         procedure done_register_allocators;override;
 
         function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;override;
@@ -185,9 +189,6 @@ unit cgx86;
     { returns true, if the compiler should use leave instead of mov/pop }
     function UseLeave: boolean;
 
-    { Gets the byte alignment of a reference }
-    function GetRefAlignment(ref: treference): Byte; {$IFDEF USEINLINE}inline;{$ENDIF}
-
   implementation
 
     uses
@@ -222,9 +223,7 @@ unit cgx86;
 {$endif}
       end;
 
-    function GetRefAlignment(ref: treference): Byte; {$IFDEF USEINLINE}inline;{$ENDIF}
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function tcgx86.GetRefAlignment(ref: treference): Byte; {$IFDEF USEINLINE}inline;{$ENDIF}
       begin
 {$ifdef x86_64}
         { The stack pointer and base pointer will be aligned to 16-byte boundaries if the machine code is well-behaved }
