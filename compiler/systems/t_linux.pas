@@ -603,7 +603,7 @@ begin
    end;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
   with linkres do
     begin
       { Write path to search libraries }

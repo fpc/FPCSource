@@ -80,7 +80,7 @@ Var
 begin
 
     { Open link.res file }
-    LinkRes:= TLinkRes.Create(compiler.globals.outputexedir + Info.ResName, true);
+    LinkRes:= TLinkRes.Create(compiler.globals.outputexedir + Info.ResName, true, compiler);
 
 
     LinkRes.Add('MEMORY');

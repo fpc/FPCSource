@@ -212,7 +212,7 @@ begin
   if use_gnu_ld then
     begin
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -339,7 +339,7 @@ begin
   else { not use_gnu_ld }
     begin
    { Open TlinkRes, will not be written to disk }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName+'2',false);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName+'2',false,compiler);
 
  { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -361,7 +361,7 @@ begin
   { to the main program                                    }
   if (isdll) then
     begin
-      LinkRes2:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+      LinkRes2:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
       // LinkRes2.add('VERSION'); not needed for now
       LinkRes2.add('  {');
       if not texportlibunix(compiler.exportlib).exportedsymnames.empty then

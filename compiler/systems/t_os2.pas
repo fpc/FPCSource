@@ -413,7 +413,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);

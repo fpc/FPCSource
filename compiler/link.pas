@@ -683,7 +683,7 @@ Implementation
         if (OrderedSymbols.Empty) or
            not(tf_supports_symbolorderfile in compiler.target.info.flags) then
           exit;
-        symfile:=TScript.Create(compiler.globals.outputexedir+UniqueName('symbol_order')+'.fpc');
+        symfile:=TScript.Create(compiler.globals.outputexedir+UniqueName('symbol_order')+'.fpc',compiler);
         item:=TCmdStrListItem(OrderedSymbols.First);
         while assigned(item) do
           begin

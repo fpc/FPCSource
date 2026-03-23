@@ -392,7 +392,7 @@ end;
 procedure TWinLikeResourceFile.Collect(const fn: ansistring);
 begin
   if fResScript=nil then
-    fResScript:=TScript.Create(fScriptName);
+    fResScript:=TScript.Create(fScriptName,compiler);
   fResScript.Add(maybequoted_for_script(fn,script_fpcres));
   inc(fCollectCount);
 end;

@@ -33,11 +33,16 @@ uses
 
 type
   TScript=class
+  private
+    FCompiler: TCompilerBase;
+  protected
+    property Compiler: TCompilerBase read FCompiler;
+  public
     fn   : TCmdStr;
     data : TCmdStrList;
     executable : boolean;
-    constructor Create(const s:TCmdStr);
-    constructor CreateExec(const s:TCmdStr);
+    constructor Create(const s:TCmdStr; ACompiler: TCompilerBase);
+    constructor CreateExec(const s:TCmdStr; ACompiler: TCompilerBase);
     destructor Destroy;override;
     procedure AddStart(const s:TCmdStr);
     procedure Add(const s:TCmdStr);
@@ -46,7 +51,7 @@ type
   end;
 
   TAsmScript = class (TScript)
-    Constructor Create(Const ScriptName : TCmdStr); virtual;
+    Constructor Create(Const ScriptName : TCmdStr; ACompiler: TCompilerBase); virtual;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);virtual;abstract;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);virtual;abstract;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);virtual;abstract;
@@ -54,7 +59,7 @@ type
   end;
 
   TAsmScriptDos = class (TAsmScript)
-    Constructor Create (Const ScriptName : TCmdStr); override;
+    Constructor Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase); override;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);override;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);override;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);override;
@@ -63,7 +68,7 @@ type
   end;
 
   TAsmScriptAmiga = class (TAsmScript)
-    Constructor Create (Const ScriptName : TCmdStr); override;
+    Constructor Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase); override;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);override;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);override;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);override;
@@ -72,7 +77,7 @@ type
   end;
 
   TAsmScriptUnix = class (TAsmScript)
-    Constructor Create (Const ScriptName : TCmdStr);override;
+    Constructor Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase);override;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);override;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);override;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);override;
@@ -81,7 +86,7 @@ type
   end;
 
   TAsmScriptMPW = class (TAsmScript)
-    Constructor Create (Const ScriptName : TCmdStr); override;
+    Constructor Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase); override;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);override;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);override;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);override;
@@ -93,7 +98,7 @@ type
     section: string[30];
     fRealResponseFile: Boolean;
     fForceUseForwardSlash: Boolean;
-    constructor Create(const ScriptName : TCmdStr; RealResponseFile: Boolean);
+    constructor Create(const ScriptName : TCmdStr; RealResponseFile: Boolean; ACompiler: TCompilerBase);
     procedure Add(const s:TCmdStr);
     procedure AddFileName(const s:TCmdStr);
     procedure EndSection(const s:TCmdStr);
@@ -134,18 +139,18 @@ uses
                                   TScript
 ****************************************************************************}
 
-constructor TScript.Create(const s: TCmdStr);
+constructor TScript.Create(const s: TCmdStr; ACompiler: TCompilerBase);
 begin
+  FCompiler:=ACompiler;
   fn:=FixFileName(s);
   executable:=false;
   data:=TCmdStrList.Create;
 end;
 
 
-constructor TScript.CreateExec(const s:TCmdStr);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+constructor TScript.CreateExec(const s:TCmdStr; ACompiler: TCompilerBase);
 begin
+  FCompiler:=ACompiler;
   fn:=FixFileName(s);
   if cs_link_on_target in current_settings.globalswitches then
     fn:=ChangeFileExt(fn,compiler.target.info.scriptext)
@@ -182,8 +187,6 @@ end;
 
 procedure TScript.WriteToDisk;
 var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-var
   t : file;
   i : longint;
   s : TCmdStr;
@@ -219,9 +222,9 @@ end;
                                   Asm Response
 ****************************************************************************}
 
-Constructor TAsmScript.Create (Const ScriptName : TCmdStr);
+Constructor TAsmScript.Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase);
 begin
-  Inherited CreateExec(ScriptName);
+  Inherited CreateExec(ScriptName,ACompiler);
 end;
 
 
@@ -229,9 +232,9 @@ end;
                                   DOS Asm Response
 ****************************************************************************}
 
-Constructor TAsmScriptDos.Create (Const ScriptName : TCmdStr);
+Constructor TAsmScriptDos.Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase);
 begin
-  Inherited Create(ScriptName);
+  Inherited Create(ScriptName,ACompiler);
 end;
 
 
@@ -289,9 +292,9 @@ end;
 ****************************************************************************}
 
 
-Constructor TAsmScriptAmiga.Create (Const ScriptName : TCmdStr);
+Constructor TAsmScriptAmiga.Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase);
 begin
-  Inherited Create(ScriptName);
+  Inherited Create(ScriptName,ACompiler);
 end;
 
 
@@ -357,9 +360,9 @@ end;
                               Unix Asm Response
 ****************************************************************************}
 
-Constructor TAsmScriptUnix.Create (Const ScriptName : TCmdStr);
+Constructor TAsmScriptUnix.Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase);
 begin
-  Inherited Create(ScriptName);
+  Inherited Create(ScriptName,ACompiler);
 end;
 
 
@@ -416,9 +419,9 @@ end;
                                   MPW (MacOS) Asm Response
 ****************************************************************************}
 
-Constructor TAsmScriptMPW.Create (Const ScriptName : TCmdStr);
+Constructor TAsmScriptMPW.Create (Const ScriptName : TCmdStr; ACompiler: TCompilerBase);
 begin
-  Inherited Create(ScriptName);
+  Inherited Create(ScriptName,ACompiler);
 end;
 
 
@@ -432,8 +435,6 @@ end;
 
 
 Procedure TAsmScriptMPW.AddLinkCommand (Const Command, Options, FileName : TCmdStr);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if FileName<>'' then
     Add('Echo Linking '+ScriptFixFileName(FileName));
@@ -487,13 +488,13 @@ function GenerateScript(const st: TCmdStr): TAsmScript;
       scripttyp := source_info.script;
     case scripttyp of
       script_unix :
-        Result:=TAsmScriptUnix.Create(st);
+        Result:=TAsmScriptUnix.Create(st,compiler);
       script_dos :
-        Result:=TAsmScriptDos.Create(st);
+        Result:=TAsmScriptDos.Create(st,compiler);
       script_amiga :
-        Result:=TAsmScriptAmiga.Create(st);
+        Result:=TAsmScriptAmiga.Create(st,compiler);
       script_mpw :
-        Result:=TAsmScriptMPW.Create(st);
+        Result:=TAsmScriptMPW.Create(st,compiler);
       else
         internalerror(2013112805);
     end;
@@ -504,9 +505,9 @@ function GenerateScript(const st: TCmdStr): TAsmScript;
                                   Link Response
 ****************************************************************************}
 
-constructor TLinkRes.Create(const ScriptName: TCmdStr; RealResponseFile: Boolean);
+constructor TLinkRes.Create(const ScriptName: TCmdStr; RealResponseFile: Boolean; ACompiler: TCompilerBase);
 begin
-  inherited Create(ScriptName);
+  inherited Create(ScriptName,ACompiler);
   fRealResponseFile:=RealResponseFile;
   fForceUseForwardSlash:=false;
 end;
@@ -518,8 +519,6 @@ begin
 end;
 
 procedure TLinkRes.AddFileName(const s:TCmdStr);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 var
   ls: TCmdStr;
   i: longint;

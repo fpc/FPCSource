@@ -91,7 +91,7 @@ function TLinkerAmstradCPC.WriteResponseFile_Sdld: Boolean;
     prtobj:='prt0';
 
     { Open link.res file }
-    LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+    LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
     { Write the origin (i.e. the program load address) }
     LinkRes.Add('-b _CODE='+tostr(FOrigin));
@@ -140,7 +140,7 @@ function TLinkerAmstradCPC.WriteResponseFile_Vlink: Boolean;
     prtobj:='prt0';
 
     { Open link.res file }
-    LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+    LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
     if (source_info.dirsep <> '/') then
       LinkRes.fForceUseForwardSlash:=true;
 

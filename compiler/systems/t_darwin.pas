@@ -471,7 +471,7 @@ implementation
 
       { main objectfiles and static libraries: in filelist file to avoid overflowing command line limit }
       result:=UniqueName(compiler.globals.outputexedir+'linkfiles')+'.res';
-      FilesList:=TScript.Create(result);
+      FilesList:=TScript.Create(result,compiler);
       while not ObjectFiles.Empty do
         begin
           s:=ObjectFiles.GetFirst;

@@ -205,7 +205,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
 
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
@@ -275,7 +275,7 @@ begin
   WriteScript:=False;
 
   { Open link.res file }
-  ScriptRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ScriptName,true);
+  ScriptRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ScriptName,true,compiler);
   ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
   ScriptRes.Add('ENTRY(start)');
 

@@ -102,7 +102,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,true,compiler);
   if UseVLink and (source_info.dirsep <> '/') then
     LinkRes.fForceUseForwardSlash:=true;
 

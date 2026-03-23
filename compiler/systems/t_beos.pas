@@ -241,7 +241,7 @@ begin
    prtobj:=cprtobj;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,false);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,false,compiler);
   {
   if not isdll then
    LinkRes.Add('ld -o $1 $2 $3 $4 $5 $6 $7 $8 $9 \')

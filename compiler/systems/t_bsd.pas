@@ -264,7 +264,7 @@ begin
      ExpandAndApplyOrder(SharedLibFiles);
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,not LdSupportsNoResponseFile);
+  LinkRes:=TLinkRes.Create(compiler.globals.outputexedir+Info.ResName,not LdSupportsNoResponseFile,compiler);
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
