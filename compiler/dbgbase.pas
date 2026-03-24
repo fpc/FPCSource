@@ -647,8 +647,9 @@ implementation
 
     procedure InitDebugInfo(hp:tmodule; restore_current_debuginfo : boolean);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+        compiler: TCompilerBase;
       begin
+        compiler:=hp.compiler;
         if not assigned(CDebugInfo[compiler.target.dbg.id]) then
           begin
             compiler.verbose.Comment(V_Fatal,'cg_f_debuginfo_output_not_supported');
