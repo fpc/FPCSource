@@ -31,7 +31,8 @@ uses
   aasmbase,aasmtai,aasmdata,aasmsym,
   cgbase,cgutils,cpubase,cpuinfo,ogbase,
   symtype,
-  widestr;
+  widestr,
+  compilerbase;
 
     { fake, there are no "mov reg,reg" instructions here }
     const
@@ -412,7 +413,8 @@ uses
 implementation
 
 uses
-  ogwasm;
+  ogwasm,
+  compiler;
 
     function wasm_convert_first_item_to_structured(srclist: TAsmList): tai; forward;
     procedure map_structured_asmlist_inner(l: TAsmList; f: TAsmMapFunc; blockstack: twasmstruc_stack); forward;
@@ -2017,6 +2019,8 @@ uses
 *****************************************************************************}
 
     constructor taicpu.Create(op: tasmop);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create(op);
         if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and is_atomic_op(op) then

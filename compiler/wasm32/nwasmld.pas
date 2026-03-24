@@ -26,7 +26,8 @@ interface
 
     uses
       nld,ncgld,
-      symsym;
+      symsym,
+      compilerbase;
 
     type
 
@@ -43,7 +44,8 @@ implementation
       globtype,globals,
       aasmbase,aasmdata,
       cgbase,cgutils,
-      symconst;
+      symconst,
+      compiler;
 
     { twasmloadnode }
 

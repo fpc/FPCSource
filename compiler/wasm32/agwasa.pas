@@ -185,6 +185,8 @@ implementation
 
     function getopstr(const o:toper) : ansistring;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         d: double;
         s: single;
       begin

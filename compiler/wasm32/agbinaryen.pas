@@ -543,6 +543,8 @@ implementation
 
 
     function getopstr(const o:toper) : ansistring;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case o.typ of
           top_reg:

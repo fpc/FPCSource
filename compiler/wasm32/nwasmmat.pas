@@ -26,7 +26,8 @@ unit nwasmmat;
 interface
 
     uses
-      node,nmat,ncgmat,ncghlmat;
+      node,nmat,ncgmat,ncghlmat,
+      compilerbase;
 
     type
       twasmmoddivnode = class(tmoddivnode)
@@ -58,7 +59,8 @@ implementation
       cgbase,cgobj,pass_2,procinfo,
       ncon,
       cpubase,
-      nodehelper,hlcgcpu,cgutils;
+      nodehelper,hlcgcpu,cgutils,
+      compiler;
 
 {*****************************************************************************
                              twasmmoddivnode

@@ -27,7 +27,8 @@ interface
 
     uses
        cgbase,
-       node,ncgadd,cpubase, globals, pass_2;
+       node,ncgadd,cpubase, globals, pass_2,
+       compilerbase;
 
     type
 
@@ -65,7 +66,8 @@ interface
       cpupara,
       nbas,ncon,nset,nadd,ncal,ncnv,ninl,nld,nmat,nmem,
       //njvmcon,
-      cgobj, symtype, tgobj;
+      cgobj, symtype, tgobj,
+      compiler;
 
 {*****************************************************************************
                                twasmaddnode
