@@ -109,6 +109,8 @@ unit agcpugas;
 
     function GetmarchStr : String;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         cf: tcpuflags;
       begin
         Result:='-march='+cputype_to_gas_march[compiler.globals.current_settings.cputype];

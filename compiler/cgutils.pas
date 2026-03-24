@@ -585,6 +585,8 @@ uses
 
 
     function needs_check_for_fpu_exceptions: boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$if defined(AARCH64)}
         result:=cs_check_fpu_exceptions in compiler.globals.current_settings.localswitches;

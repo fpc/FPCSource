@@ -33,7 +33,7 @@ Unit aoptarm;
 Interface
 
 uses
-  cgbase, cgutils, globtype, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
+  cgbase, cgutils, globtype, cpubase, aasmtai, aasmcpu,aopt, aoptobj, compilerbase;
 
 Type
   { while ARM and AAarch64 look not very similar at a first glance,
@@ -88,7 +88,8 @@ Implementation
     systems,
     cpuinfo,
     cgobj,procinfo,
-    aasmbase,aasmdata,itcpugas;
+    aasmbase,aasmdata,itcpugas,
+    compiler;
 
 
 {$ifdef DEBUG_AOPTCPU}

@@ -35,7 +35,8 @@ Interface
       globtype, globals,
       cutils,
       cgbase, cpubase, aasmtai, aasmcpu,
-      aopt, aoptcpub, aoptarm, aoptobj;
+      aopt, aoptcpub, aoptarm, aoptobj,
+      compilerbase;
 
     Type
       TCpuAsmOptimizer = class(TARMAsmOptimizer)
@@ -90,7 +91,8 @@ Implementation
     cgutils,
     procinfo,
     paramgr,
-    verbose;
+    verbose,
+    compiler;
 
 {$ifdef DEBUG_AOPTCPU}
     const
@@ -1774,6 +1776,8 @@ Implementation
 
 
   function TCSELTracking.AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     var
       hp1: tai;
       RefModified: Boolean;
