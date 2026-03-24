@@ -2252,6 +2252,8 @@ implementation
 
 
     procedure taicpu.BuildArmMasks(objdata:TObjData);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         Masks: array[tcputype] of longint =
           (

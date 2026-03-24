@@ -3991,6 +3991,8 @@ const pemagic : array[0..3] of byte = (
 
 {$ifdef arm}
     function COFF_MAGIC: word;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if GenerateThumb2Code and (compiler.globals.current_settings.cputype>=cpu_armv7) then
           COFF_MAGIC:=$1c4 // IMAGE_FILE_MACHINE_ARMNT

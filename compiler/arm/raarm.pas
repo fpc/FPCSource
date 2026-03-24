@@ -28,7 +28,8 @@ unit raarm;
     uses
       cpubase,
       aasmtai,aasmdata,
-      rautils;
+      rautils,
+      compilerbase;
 
     type
       TARMOperand=class(TOperand)
@@ -45,7 +46,8 @@ unit raarm;
     uses
       globals,
       cpuinfo,
-      aasmcpu;
+      aasmcpu,
+      compiler;
 
     function TARMInstruction.ConcatInstruction(p:TAsmList) : tai;
       begin

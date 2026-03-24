@@ -318,6 +318,8 @@ implementation
 ****************************************************************************}
 
   function elf_arm_encodereloc(objrel:TObjRelocation):byte;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       case objrel.typ of
         RELOC_NONE:
