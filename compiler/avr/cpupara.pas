@@ -30,7 +30,8 @@ unit cpupara;
        globtype,globals,
        aasmtai,aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
-       symconst,symbase,symtype,symdef,parabase,paramgr;
+       symconst,symbase,symtype,symdef,parabase,paramgr,
+       compilerbase;
 
     type
        tcpuparamanager = class(tparamanager)
@@ -52,7 +53,8 @@ unit cpupara;
     uses
        verbose,systems,
        rgobj,
-       defutil,symsym;
+       defutil,symsym,
+       compiler;
 
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;

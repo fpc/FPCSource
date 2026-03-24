@@ -34,7 +34,8 @@ unit cpubase;
       globtype,globals,
       cpuinfo,
       aasmbase,
-      cgbase
+      cgbase,
+      compilerbase
       ;
 
 
@@ -315,7 +316,7 @@ unit cpubase;
   implementation
 
     uses
-      rgBase,verbose;
+      rgBase,verbose,compiler;
 
 
     const
@@ -469,6 +470,8 @@ unit cpubase;
 
 
     function GetDefaultTmpReg: TRegister;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
           Result:=NR_R16
@@ -478,6 +481,8 @@ unit cpubase;
 
 
     function GetDefaultZeroReg: TRegister;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
           Result:=NR_R17
