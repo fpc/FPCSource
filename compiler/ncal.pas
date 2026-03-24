@@ -1635,11 +1635,11 @@ implementation
            still be uppercased, because it needs to be matched when we
            encounter the implementation) }
          if not assigned(srsym) and
-            (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
+            (cs_compilesystem in acompiler.globals.current_settings.moduleswitches) then
            srsym := tsym(systemunit.Find(upper(name)));
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
-           compiler.verbose.Message1(cg_f_unknown_compilerproc,name);
+           acompiler.verbose.Message1(cg_f_unknown_compilerproc,name);
          create(params,tprocsym(srsym),srsym.owner,nil,[],nil,acompiler);
        end;
 
