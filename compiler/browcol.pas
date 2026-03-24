@@ -1964,6 +1964,8 @@ end;
 
 procedure CreateBrowserCol;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   path,module,
   name,msource : string;
 
