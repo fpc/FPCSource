@@ -36,7 +36,8 @@ uses
   globals, globtype,
   cgbase,
   aoptobj, aoptcpub, aopt,
-  aasmtai, aasmcpu;
+  aasmtai, aasmcpu,
+  compilerbase;
 
 type
   TRVCpuAsmOptimizer = class(TAsmOptimizer)
@@ -68,7 +69,8 @@ implementation
 
   uses
     cutils,
-    verbose;
+    verbose,
+    compiler;
 
   function MatchInstruction(const instr: tai; const ops : array of TAsmOp; const AConditions: TAsmConds = []): boolean;
     var
