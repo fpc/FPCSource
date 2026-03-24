@@ -427,7 +427,7 @@ implementation
     {   i386           }
     constructor trealconstnode.create(v : bestreal;def:tdef;acompiler:TCompilerBase);
       begin
-         if compiler.globals.current_settings.fputype=fpu_none then
+         if acompiler.globals.current_settings.fputype=fpu_none then
             internalerror(2008022401);
          inherited create(realconstn,acompiler);
          typedef:=def;
