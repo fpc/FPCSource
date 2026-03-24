@@ -41,6 +41,10 @@ unit agrvgas;
 
   type
     TRVInstrWriter=class(TCPUInstrWriter)
+      private
+       function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
+       function getopstr(asminfo: pasminfo; const o:toper) : string;
+      public
        procedure WriteInstruction(hp : tai);override;
     end;
 
@@ -59,7 +63,7 @@ unit agrvgas;
        compiler;
 
 
-    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
+    function TRVInstrWriter.getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
       s : string;
     begin
@@ -148,7 +152,7 @@ unit agrvgas;
     end;
 
 
-    function getopstr(asminfo: pasminfo; const o:toper) : string;
+    function TRVInstrWriter.getopstr(asminfo: pasminfo; const o:toper) : string;
     var
       hs : string;
     begin
