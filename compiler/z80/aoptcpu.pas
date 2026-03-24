@@ -32,7 +32,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cpubase, cgbase, aasmtai, aopt,AoptObj, aoptcpub;
+uses cpubase, cgbase, aasmtai, aopt,AoptObj, aoptcpub, compilerbase;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -59,7 +59,8 @@ Implementation
     cpuinfo,
     aasmbase,aasmcpu,aasmdata,
     globals,globtype,
-    cgutils;
+    cgutils,
+    compiler;
 
   type
     TAsmOpSet = set of TAsmOp;
