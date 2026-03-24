@@ -36,7 +36,8 @@ uses
   globals, globtype,
   cgbase, cutils,
   aoptobj, aoptcpub, aopt,
-  aasmtai, aasmcpu;
+  aasmtai, aasmcpu,
+  compilerbase;
 
 type
 
@@ -48,6 +49,9 @@ type
   end;
 
 implementation
+
+  uses
+    compiler;
 
   function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
     var
