@@ -212,6 +212,8 @@ implementation
     end;
 
   function llvm_constrainedexceptmodestring: ansistring;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       if not(cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) then
         result:='fpexcept.maytrap'

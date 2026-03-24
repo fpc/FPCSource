@@ -287,6 +287,8 @@ implementation
     end;
 
   function llvmparatypeattr(const attr: TSymStr; paradef: tdef; strippointer: boolean): TSymStr;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       result:=attr;
       if llvmflag_para_attr_type in llvmversion_properties[compiler.globals.current_settings.llvmversion] then

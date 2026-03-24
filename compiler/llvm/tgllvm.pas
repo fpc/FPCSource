@@ -216,6 +216,8 @@ implementation
 
 
     procedure ttgllvm.getlocal(list: TAsmList; size: asizeint; alignment, explicitalignment: shortint; def: tdef; sym : tsym; var ref: treference);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         alignment:=used_align(alignment,compiler.globals.current_settings.alignment.localalignmin,compiler.globals.current_settings.alignment.localalignmax);
         gethltempintern(list,def,alignment,size,tt_persistent,ref);

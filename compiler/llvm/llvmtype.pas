@@ -134,6 +134,8 @@ implementation
 
     function equal_llvm_defs(def1, def2: tdef): boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         def1str, def2str: TSymStr;
       begin
         if def1=def2 then

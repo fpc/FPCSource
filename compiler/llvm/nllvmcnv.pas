@@ -81,7 +81,7 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
   var
     _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    if (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
+    if (llvmflag_opaque_ptr in llvmversion_properties[_compiler.globals.current_settings.llvmversion]) and
        is_address(fromdef) and
        is_address(todef) then
       begin

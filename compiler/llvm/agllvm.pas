@@ -332,6 +332,8 @@ implementation
 
 
    procedure TLLVMInstrWriter.writeparas(const paras: tfplist; asmblock: boolean);
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
      var
        hp: tai;
