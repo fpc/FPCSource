@@ -1078,12 +1078,25 @@ type
 
   texprvalue = class
   private
+    class function Getbooldef: tdef; static;
+    class function Getrealdef: tdef; static;
+    class function Getsetdef: tdef; static;
+    class function Getstrdef: tdef; static;
+    class function Getuintdef: tdef; static;
+  private
     { we can't use built-in defs since they
       may be not created at the moment }
     class var
-       sintdef,uintdef,booldef,strdef,setdef,realdef: tdef;
-    class constructor createdefs;
+       Fsintdef,Fuintdef,Fbooldef,Fstrdef,Fsetdef,Frealdef: tdef;
+    class function GetSIntDef: tdef; static;
+    class procedure createdefs;
     class destructor destroydefs;
+    class property sintdef: tdef read GetSIntDef;
+    class property uintdef: tdef read Getuintdef;
+    class property booldef: tdef read Getbooldef;
+    class property strdef: tdef read Getstrdef;
+    class property setdef: tdef read Getsetdef;
+    class property realdef: tdef read Getrealdef;
   public
     consttyp: tconsttyp;
     value: tconstvalue;
@@ -1111,7 +1124,49 @@ type
     destructor destroy; override;
   end;
 
-  class constructor texprvalue.createdefs;
+  class function texprvalue.Getbooldef: tdef; static;
+    begin
+      if not Assigned(Fbooldef) then
+        createdefs;
+      result:=Fbooldef;
+    end;
+
+  class function texprvalue.Getrealdef: tdef; static;
+    begin
+      if not Assigned(Frealdef) then
+        createdefs;
+      result:=Frealdef;
+    end;
+
+  class function texprvalue.Getsetdef: tdef; static;
+    begin
+      if not Assigned(Fsetdef) then
+        createdefs;
+      result:=Fsetdef;
+    end;
+
+  class function texprvalue.Getstrdef: tdef; static;
+    begin
+      if not Assigned(Fstrdef) then
+        createdefs;
+      result:=Fstrdef;
+    end;
+
+  class function texprvalue.Getuintdef: tdef; static;
+    begin
+      if not Assigned(Fuintdef) then
+        createdefs;
+      result:=Fuintdef;
+    end;
+
+  class function texprvalue.GetSIntDef: tdef; static;
+    begin
+      if not Assigned(Fsintdef) then
+        createdefs;
+      result:=Fsintdef;
+    end;
+
+  class procedure texprvalue.createdefs;
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
@@ -1119,28 +1174,28 @@ type
         variables are initialised. Since these types are only used for
         compile-time evaluation of conditional expressions, it doesn't matter
         that we use the base types instead of the cpu-specific ones. }
-      sintdef:=torddef.create(s64bit,low(int64),high(int64),false,compiler);
-      uintdef:=torddef.create(u64bit,low(qword),high(qword),false,compiler);
-      booldef:=torddef.create(pasbool1,0,1,false,compiler);
-      strdef:=tstringdef.createansi(0,false,compiler);
-      setdef:=tsetdef.create(sintdef,0,255,false,compiler);
-      realdef:=tfloatdef.create(s80real,false,compiler);
+      Fsintdef:=torddef.create(s64bit,low(int64),high(int64),false,compiler);
+      Fuintdef:=torddef.create(u64bit,low(qword),high(qword),false,compiler);
+      Fbooldef:=torddef.create(pasbool1,0,1,false,compiler);
+      Fstrdef:=tstringdef.createansi(0,false,compiler);
+      Fsetdef:=tsetdef.create(sintdef,0,255,false,compiler);
+      Frealdef:=tfloatdef.create(s80real,false,compiler);
     end;
 
   class destructor texprvalue.destroydefs;
     begin
-      setdef.free;
-      setdef := nil;
-      sintdef.free;
-      sintdef := nil;
-      uintdef.free;
-      uintdef := nil;
-      booldef.free;
-      booldef := nil;
-      strdef.free;
-      strdef := nil;
-      realdef.free;
-      realdef := nil;
+      Fsetdef.free;
+      Fsetdef := nil;
+      Fsintdef.free;
+      Fsintdef := nil;
+      Fuintdef.free;
+      Fuintdef := nil;
+      Fbooldef.free;
+      Fbooldef := nil;
+      Fstrdef.free;
+      Fstrdef := nil;
+      Frealdef.free;
+      Frealdef := nil;
     end;
 
   constructor texprvalue.create_const(c: tconstsym);
