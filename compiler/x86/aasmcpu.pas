@@ -1751,6 +1751,8 @@ implementation
 
 
       function taicpu.Matches(p:PInsEntry):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       { * IF_SM stands for Size Match: any operand whose size is not
        * explicitly specified by the template is `really' intended to be
        * the same size as the first size-specified operand.

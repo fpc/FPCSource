@@ -772,6 +772,8 @@ implementation
 
 
     function segment_regs_equal(r1, r2: tregister): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not is_segment_reg(r1) or not is_segment_reg(r2) then
           internalerror(2013062301);

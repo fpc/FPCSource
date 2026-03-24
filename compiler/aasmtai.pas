@@ -1901,6 +1901,8 @@ implementation
 
 
     constructor tai_const.Create_sym_offset(_sym:tasmsymbol;ofs:asizeint);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          inherited Create;
          typ:=ait_const;
@@ -2047,6 +2049,8 @@ implementation
 
 
     constructor tai_const.Create_int_codeptr(_value: int64);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create;
         typ:=ait_const;
@@ -2068,6 +2072,8 @@ implementation
 
 
     constructor tai_const.Create_int_codeptr_unaligned(_value: int64);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create;
         typ:=ait_const;
@@ -2089,6 +2095,8 @@ implementation
 
 
     constructor tai_const.Create_int_dataptr(_value: int64);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create;
         typ:=ait_const;
@@ -2106,6 +2114,8 @@ implementation
 
 
     constructor tai_const.Create_int_dataptr_unaligned(_value: int64);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inherited Create;
         typ:=ait_const;

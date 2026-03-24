@@ -53,7 +53,8 @@ implementation
       cgbase,cgobj,cgutils,
       nodehelper,
       cpubase,cpuinfo,
-      parabase,paramgr;
+      parabase,paramgr,
+      compiler;
 
 {*****************************************************************************
                             TI8086LOADNODE

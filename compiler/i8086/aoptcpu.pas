@@ -48,7 +48,8 @@ unit aoptcpu;
       verbose,
       cpuinfo,
       aasmcpu,
-      aoptutils;
+      aoptutils,
+      compiler;
 
     function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p : tai) : boolean;
       var

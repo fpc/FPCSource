@@ -1053,11 +1053,13 @@ implementation
 ****************************************************************************}
 
     class function TOmfObjData.CodeSectionName(const aname: string): string;
+      var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef i8086}
-        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
+        if _compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           begin
-            if cs_huge_code in compiler.globals.current_settings.moduleswitches then
+            if cs_huge_code in _compiler.globals.current_settings.moduleswitches then
               result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';

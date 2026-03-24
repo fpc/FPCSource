@@ -1532,7 +1532,7 @@ unit aoptx86;
 {$else x86_64}
         Result :=
 {$ifdef i8086}
-          (compiler.globals.current_settings.cputype >= cpu_386) and
+          (_compiler.globals.current_settings.cputype >= cpu_386) and
 {$endif i8086}
           (
             { Always accept if optimising for size }

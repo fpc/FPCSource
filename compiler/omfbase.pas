@@ -30,7 +30,8 @@ interface
     sysutils,
     cclasses,
     aasmbase,
-    owbase;
+    owbase,
+    compilerbase;
 
   const
     { OMF segment names for the object sections, produced by the FPC code generator }
@@ -1333,7 +1334,8 @@ implementation
     cutils,globtype,globals,
     cpuinfo,
     verbose,
-    fmodule;
+    fmodule,
+    compiler;
 
   { TOmfOrderedNameCollection }
 
@@ -2896,6 +2898,8 @@ implementation
     end;
 
   function omf_segclass(atype: TAsmSectiontype): string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
       segclass : array[TAsmSectiontype] of string[length('DWARF')] = ('',
         {user} 'DATA',
@@ -3012,6 +3016,8 @@ implementation
     end;
 
   function section_belongs_to_dgroup(atype: TAsmSectiontype): Boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
 {$ifdef i8086}
       case omf_segclass(atype) of
@@ -3035,6 +3041,8 @@ implementation
     end;
 
   function omf_section_primary_group(atype: TAsmSectiontype;const aname:string): string;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
 {$ifdef i8086}
       if section_belongs_to_dgroup(atype) then

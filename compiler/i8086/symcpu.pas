@@ -528,8 +528,10 @@ implementation
 ****************************************************************************}
 
     class function tcpupointerdef.default_x86_data_pointer_type: tx86pointertyp;
+      var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
+        if _compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           result:=x86pt_far
         else
           result:=inherited;

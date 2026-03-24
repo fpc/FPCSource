@@ -50,7 +50,8 @@ implementation
       ncon,ncal,ncnv,nmem,n8086mem,
       cpubase,cpuinfo,
       cgutils,cgobj,hlcgobj,cgx86,ncgutil,
-      tgobj;
+      tgobj,
+      compiler;
 
     function t8086typeconvnode.typecheck_int_to_int: tnode;
       begin

@@ -57,7 +57,8 @@ implementation
       ncal,nbas,nmem,nld,ncnv,
       nodehelper,
       symcpu,
-      cga,cgobj,cgx86,cpuinfo;
+      cga,cgobj,cgx86,cpuinfo,
+      compiler;
 
 
 {*****************************************************************************
