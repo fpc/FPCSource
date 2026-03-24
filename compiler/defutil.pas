@@ -1657,7 +1657,7 @@ implementation
     function is_mmx_able_array(p : tdef) : boolean;
       begin
 {$ifdef SUPPORT_MMX}
-         if (cs_mmx_saturation in current_settings.localswitches) then
+         if (cs_mmx_saturation in compiler.globals.current_settings.localswitches) then
            begin
               is_mmx_able_array:=(p.typ=arraydef) and
                 not(is_special_array(p)) and
@@ -1735,6 +1735,8 @@ implementation
 
 
     function def_cgsize(def: tdef): tcgsize;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case def.typ of
           orddef,
@@ -1762,10 +1764,10 @@ implementation
           objectdef :
             result:=int_cgsize(def.size);
           floatdef:
-            if (cs_fp_emulation in current_settings.moduleswitches)
+            if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches)
 {$ifdef xtensa}
               or not(tfloatdef(def).floattype=s32real)
-              or not(FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype])
+              or not(FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype])
 {$endif xtensa}
               then
               result:=int_cgsize(def.size)
@@ -1782,7 +1784,7 @@ implementation
             begin
               if is_dynamic_array(def) or not is_special_array(def) then
                 begin
-                  if is_vector(def) and ((TArrayDef(def).elementdef.typ = floatdef) and not (cs_fp_emulation in current_settings.moduleswitches)) then
+                  if is_vector(def) and ((TArrayDef(def).elementdef.typ = floatdef) and not (cs_fp_emulation in compiler.globals.current_settings.moduleswitches)) then
                     begin
                       { Determine if, based on the floating-point type and the size
                         of the array, if it can be made into a vector }

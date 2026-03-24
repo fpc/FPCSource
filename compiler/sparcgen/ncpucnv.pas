@@ -102,7 +102,7 @@ implementation
             else
               begin
                 inserttypeconv(left,u32inttype,compiler);
-                if (cs_create_pic in current_settings.moduleswitches) and
+                if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
                   (tf_pic_uses_got in compiler.target.info.flags) then
                   include(current_procinfo.flags,pi_needs_got);
               end;
@@ -302,7 +302,7 @@ implementation
               { there are no ADDC/SUBC instructions working on xcc, i.e. the 64 bit flags }
               if left.location.size in [OS_64,OS_S64] then
                 begin
-                  if current_settings.cputype in [cpu_SPARC_V9] then
+                  if compiler.globals.current_settings.cputype in [cpu_SPARC_V9] then
                     begin
                       current_asmdata.CurrAsmList.Concat(taicpu.op_reg_const_reg(A_MOVRZ,hreg2,0,hreg1));
                       if is_pasbool(resultdef) then

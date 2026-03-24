@@ -1727,7 +1727,7 @@ implementation
         hl : tasmlabel;
         hflags : tresflags;
       begin
-        if not(cs_check_overflow in current_settings.localswitches) then
+        if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
         current_asmdata.getjumplabel(hl);
         case ovloc.loc of
@@ -2533,7 +2533,7 @@ implementation
             unscaledloadop:=A_LDUR;
           end;
         { we only need 4 instructions extra to call FPC_MOVE }
-        if cs_opt_size in current_settings.optimizerswitches then
+        if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
           maxlenunrolled:=maxlenunrolled div 2;
         if (len>maxlenunrolled) and
            (len>totalalign*8) and
@@ -2664,7 +2664,7 @@ implementation
         l1,l2: TAsmLabel;
       begin
         { so far, we assume all flavours of AArch64 need explicit floating point exception checking }
-        if ((cs_check_fpu_exceptions in current_settings.localswitches) and
+        if ((cs_check_fpu_exceptions in compiler.globals.current_settings.localswitches) and
             (force or current_procinfo.FPUExceptionCheckNeeded)) then
           begin
             r:=getintregister(list,OS_INT);

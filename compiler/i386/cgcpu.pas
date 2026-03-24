@@ -89,7 +89,7 @@ unit cgcpu;
         if assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
           begin
             { Sometimes, whole program optimization will forego a frame pointer on leaf functions }
-            if (cs_useebp in current_settings.optimizerswitches) then
+            if (cs_useebp in compiler.globals.current_settings.optimizerswitches) then
               rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[],compiler)
             else
               rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[],compiler);
@@ -254,13 +254,13 @@ unit cgcpu;
                       begin
                         if (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim]) and
                            ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
-                            (cs_create_pic in current_settings.moduleswitches)) then
+                            (cs_create_pic in compiler.globals.current_settings.moduleswitches)) then
                           begin
                             tmpreg:=getaddressregister(list);
                             a_loadaddr_ref_reg(list,dirref,tmpreg);
                             list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                           end
-                        else if cs_create_pic in current_settings.moduleswitches then
+                        else if cs_create_pic in compiler.globals.current_settings.moduleswitches then
                           begin
                             if offset<>0 then
                               begin
@@ -547,7 +547,7 @@ unit cgcpu;
             list.concat(Taicpu.op_const_reg(A_SHR,S_L,1,NR_ECX))
           end;
 
-        if ts_cld in current_settings.targetswitches then
+        if ts_cld in compiler.globals.current_settings.targetswitches then
           list.concat(Taicpu.op_none(A_CLD,S_NO));
         list.concat(Taicpu.op_none(A_REP,S_NO));
         case opsize of
@@ -741,7 +741,7 @@ unit cgcpu;
                     inc(tempref.offset,4);
                     list.Concat(taicpu.op_reg_reg_ref(A_SHLD,S_L,NR_CL,tmpreg,tempref));
                     dec(tempref.offset,4);
-                    if cs_opt_size in current_settings.optimizerswitches then
+                    if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
                       list.concat(taicpu.op_reg_ref(A_SHL,S_L,NR_CL,tempref))
                     else
                       begin
@@ -764,7 +764,7 @@ unit cgcpu;
                     dec(tempref.offset,4);
                     list.Concat(taicpu.op_reg_reg_ref(A_SHRD,S_L,NR_CL,tmpreg,tempref));
                     inc(tempref.offset,4);
-                    if cs_opt_size in current_settings.optimizerswitches then
+                    if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
                       list.concat(taicpu.op_reg_ref(A_SHR,S_L,NR_CL,tempref))
                     else
                       begin
@@ -788,7 +788,7 @@ unit cgcpu;
                     dec(tempref.offset,4);
                     list.Concat(taicpu.op_reg_reg_ref(A_SHRD,S_L,NR_CL,tmpreg,tempref));
                     inc(tempref.offset,4);
-                    if cs_opt_size in current_settings.optimizerswitches then
+                    if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
                       list.concat(taicpu.op_reg_ref(A_SAR,S_L,NR_CL,tempref))
                     else
                       begin
@@ -937,15 +937,15 @@ unit cgcpu;
               if value<>0 then
                 begin
                   if (value=1) and (op=OP_SHL) and
-                     (current_settings.optimizecputype<=cpu_486) and
-                     not (cs_opt_size in current_settings.optimizerswitches) then
+                     (compiler.globals.current_settings.optimizecputype<=cpu_486) and
+                     not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                     begin
                       cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,reg.reglo,reg.reglo));
                       list.concat(taicpu.op_reg_reg(A_ADC,S_L,reg.reghi,reg.reghi));
                       cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                     end
-                  else if (value=1) and (cs_opt_size in current_settings.optimizerswitches) then
+                  else if (value=1) and (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                     case op of
                       OP_SHR:
                         begin
@@ -1133,7 +1133,7 @@ unit cgcpu;
                           dec(tempref.offset,4);
                           list.concat(taicpu.op_const_reg_ref(A_SHRD,S_L,value,tmpreg,tempref));
                           inc(tempref.offset,4);
-                          if cs_opt_size in current_settings.optimizerswitches then
+                          if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
                             begin
                               if op=OP_SHR then
                                 list.concat(taicpu.op_const_ref(A_SHR,S_L,value,tempref))
@@ -1156,7 +1156,7 @@ unit cgcpu;
                           inc(tempref.offset,4);
                           list.concat(taicpu.op_const_reg_ref(A_SHLD,S_L,value,tmpreg,tempref));
                           dec(tempref.offset,4);
-                          if cs_opt_size in current_settings.optimizerswitches then
+                          if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
                             list.concat(taicpu.op_const_ref(A_SHL,S_L,value,tempref))
                           else
                             begin

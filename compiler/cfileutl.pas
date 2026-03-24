@@ -226,11 +226,13 @@ end;
 
 
     function TCachedDirectory.TryUseCache:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Result:=True;
         if FCached then
           exit;
-        if not current_settings.disabledircache then
+        if not compiler.globals.current_settings.disabledircache then
           ForceUseCache
         else
           Result:=False;
@@ -1298,7 +1300,7 @@ end;
       quote_char: ansichar;
       quoted : boolean;
     begin
-      if not(cs_link_on_target in current_settings.globalswitches) then
+      if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
         quote_script:=source_info.script
       else
         quote_script:=compiler.target.info.script;
@@ -1426,7 +1428,7 @@ end;
       var
         quote_script: tscripttype;
       begin
-        if not(cs_link_on_target in current_settings.globalswitches) then
+        if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
           quote_script:=source_info.script
         else
           quote_script:=compiler.target.info.script;
@@ -1501,7 +1503,7 @@ end;
         if do_checkverbosity(V_Executable) then
           do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
             ComLine+'"');
-        if (cs_link_on_target in current_settings.globalswitches) then
+        if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
           quote_script:=compiler.target.info.script
         else
           quote_script:=source_info.script;

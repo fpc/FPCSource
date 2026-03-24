@@ -72,7 +72,7 @@ interface
     function TCPUAddNode.use_fma : boolean;
       begin
         Result:=is_single(left.resultdef) and is_single(right.resultdef) and
-          (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]);
+          (FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]);
       end;
 
 
@@ -300,7 +300,7 @@ interface
       begin
         result:=inherited pass_1;
         if not(assigned(result)) and (nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) and
-          not((FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) and
+          not((FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
             is_single(left.resultdef) and (nodetype<>slashn)) then
           expectloc:=LOC_JUMP;
 {$ifdef dummy}
@@ -351,7 +351,7 @@ interface
       begin
         result := nil;
 
-        if (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) and
+        if (FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
           (tfloatdef(left.resultdef).floattype=s32real) and (nodetype<>slashn) then
           begin
             if nodetype in [equaln,unequaln,lten,ltn,gten,gtn] then
@@ -369,15 +369,15 @@ interface
 
     function TCPUAddNode.use_generic_mul32to64: boolean;
       begin
-        result:=not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[current_settings.cputype]) or needoverflowcheck;
+        result:=not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[compiler.globals.current_settings.cputype]) or needoverflowcheck;
       end;
 
 
     function TCPUAddNode.use_generic_mul64bit: boolean;
       begin
         result:=needoverflowcheck or
-          (cs_opt_size in current_settings.optimizerswitches) or
-          not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[current_settings.cputype]);
+          (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
+          not(CPUXTENSA_HAS_MUL32HIGH in cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
 
@@ -444,7 +444,7 @@ interface
         { initialize de result }
         if cmpop then
           begin
-            if CPUXTENSA_HAS_BOOLEAN_OPTION in cpu_capabilities[current_settings.cputype] then
+            if CPUXTENSA_HAS_BOOLEAN_OPTION in cpu_capabilities[compiler.globals.current_settings.cputype] then
               begin
                 location_reset(location,LOC_FLAGS,OS_NO);
                 location.resflags.register:=NR_B0;

@@ -141,7 +141,7 @@ implementation
               thlcgjvm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,s64inttype,u32inttype,false);
           end;
          thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
-         if (cs_check_overflow in current_settings.localswitches) and
+         if (cs_check_overflow in compiler.globals.current_settings.localswitches) and
             is_signed(resultdef) then
            begin
              { the JVM raises an exception for integer div-iby-zero -> only

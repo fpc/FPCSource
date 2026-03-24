@@ -202,7 +202,7 @@ implementation
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     begin
       if (atype=sec_fpc) or
-         ((atype=sec_threadvar) and not (ts_wasm_threads in current_settings.targetswitches)) then
+         ((atype=sec_threadvar) and not (ts_wasm_threads in compiler.globals.current_settings.targetswitches)) then
         atype:=sec_data;
       if atype=sec_threadvar then
         Result:=inherited sectionname(atype, aname, aorder)+',"T",@'
@@ -366,7 +366,7 @@ implementation
           top_reg:
             // should have been translated into a memory location by the
             // register allocator)
-            if (cs_no_regalloc in current_settings.globalswitches) then
+            if (cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
               getopstr:=std_regname(o.reg)
             else
               internalerror(2010122803);

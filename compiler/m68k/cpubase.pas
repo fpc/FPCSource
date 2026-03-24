@@ -451,7 +451,7 @@ implementation
       begin
         case regtype of
           R_INTREGISTER:
-            if (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
+            if (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) then
               case s of
                 OS_8,OS_S8:
                   cgsize2subreg:=R_SUBL;
@@ -500,7 +500,7 @@ implementation
           R_INTREGISTER :
             result:=OS_32;
           R_FPUREGISTER :
-            result:=fpureg_cgsize[current_settings.fputype = fpu_coldfire];
+            result:=fpureg_cgsize[compiler.globals.current_settings.fputype = fpu_coldfire];
           else
             internalerror(200303181);
         end;
@@ -554,19 +554,19 @@ implementation
       const
         fpu_regopsize: array[boolean] of TOpSize = ( S_FX, S_FD );
       begin
-        result:=fpu_regopsize[current_settings.fputype = fpu_coldfire];
+        result:=fpu_regopsize[compiler.globals.current_settings.fputype = fpu_coldfire];
       end;
 
     function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         fpu_regsize: array[boolean] of aint = ( 12, 8 ); { S_FX is 12 bytes on '881 }
       begin
-        result:=fpu_regsize[current_settings.fputype = fpu_coldfire];
+        result:=fpu_regsize[compiler.globals.current_settings.fputype = fpu_coldfire];
       end;
 
     function needs_unaligned(const refalignment: aint; const size: tcgsize): boolean;
       begin
-        result:=not(CPUM68K_HAS_UNALIGNED in cpu_capabilities[current_settings.cputype]) and
+        result:=not(CPUM68K_HAS_UNALIGNED in cpu_capabilities[compiler.globals.current_settings.cputype]) and
                 (refalignment = 1) and
                 (tcgsize2size[size] > 1);
       end;

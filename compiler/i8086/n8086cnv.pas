@@ -74,7 +74,7 @@ implementation
               resultdef:=cprocvardef.getreusableprocaddr(tabstractprocdef(left.resultdef),pc_offset,compiler);
           end
         else if (tcnf_proc_2_procvar_2_voidpointer in convnodeflags) and
-                (current_settings.x86memorymodel in x86_far_code_models) then
+                (compiler.globals.current_settings.x86memorymodel in x86_far_code_models) then
           begin
             if resultdef.typ<>procvardef then
               internalerror(2018040402);

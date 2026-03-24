@@ -341,7 +341,7 @@ unit optloadmodifystore;
                 exit;
               end;
 
-            if not (cs_opt_use_load_modify_store in current_settings.optimizerswitches) then
+            if not (cs_opt_use_load_modify_store in compiler.globals.current_settings.optimizerswitches) then
               exit;
             { *** Here are more complex optimizations which are performed only
               when cs_opt_use_load_modify_store is enabled.

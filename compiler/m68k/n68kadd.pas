@@ -186,13 +186,13 @@ implementation
         if nf_swapped in flags then
           swapleftright;
 
-        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
+        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2015010201);
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
 
         { have left in the register, right can be a memory location }
-        if (FPUM68K_HAS_FLOATIMMEDIATE in fpu_capabilities[current_settings.fputype]) and
+        if (FPUM68K_HAS_FLOATIMMEDIATE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
            inlineable_realconstnode(left) then
           begin
             location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -212,13 +212,13 @@ implementation
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,right.location.register,location.register));
           LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                if (FPUM68K_HAS_FLOATIMMEDIATE in fpu_capabilities[current_settings.fputype]) and
+                if (FPUM68K_HAS_FLOATIMMEDIATE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
                    inlineable_realconstnode(right) then
                   current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(op,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,location.register))
                 else
                   begin
                     href:=right.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
                   end;
               end
@@ -238,7 +238,7 @@ implementation
         if (nf_swapped in flags) then
           swapleftright;
 
-        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
+        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2019090601);
 
         location_reset(location,LOC_FLAGS,OS_NO);
@@ -252,7 +252,7 @@ implementation
                 if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                   begin
                     href:=left.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[left.location.size],href,right.location.register));
                     toggleflag(nf_swapped);
                     location.resflags:=getfloatresflags;
@@ -285,13 +285,13 @@ implementation
                 else
                   begin
                     hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-                    if not (current_settings.fputype = fpu_coldfire) and
+                    if not (compiler.globals.current_settings.fputype = fpu_coldfire) and
                        inlineable_realconstnode(right) then
                       current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FCMP,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,left.location.register))
                     else
                       begin
                         href:=right.location.reference;
-                        tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                        tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
                         current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
                       end;
                   end;
@@ -323,7 +323,7 @@ implementation
 
        { Coldfire supports byte/word compares only starting with ISA_B,
          See remark about Qemu weirdness in tcg68k.a_cmp_const_reg_label }
-       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
+       if (opsize<>S_L) and (compiler.globals.current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
          begin
            cmpsize:=OS_32;
            opsize:=S_L;
@@ -375,7 +375,7 @@ implementation
 
     function t68kaddnode.use_mul_helper: boolean;
       begin
-        result:=(nodetype=muln) and not (CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]);
+        result:=(nodetype=muln) and not (CPUM68K_HAS_32BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
     procedure t68kaddnode.second_addordinal;
@@ -474,7 +474,7 @@ implementation
 
         if ((location.size <> right.location.size) and not (right.location.loc in [LOC_CONSTANT])) or
            not (right.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_CONSTANT,LOC_REFERENCE,LOC_CREFERENCE]) or
-           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) and (nodetype = muln)) or
+           (not(CPUM68K_HAS_32BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]) and (nodetype = muln)) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and needs_unaligned(right.location.reference.alignment,def_cgsize(resultdef))) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
@@ -527,7 +527,7 @@ implementation
            else
              begin
                hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-               if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[current_settings.cputype])) and isaddressregister(left.location.register) then
+               if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                  begin
                    tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,cmpsize);
                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,cmpsize,left.location.register,tmpreg);
@@ -542,7 +542,7 @@ implementation
 
        { Coldfire supports byte/word compares only starting with ISA_B,
          !!see remark about Qemu weirdness in tcg68k.a_cmp_const_reg_label }
-       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
+       if (opsize<>S_L) and (compiler.globals.current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
          begin
            { 1) Extension is needed for LOC_REFERENCE, but what about LOC_REGISTER ? Perhaps after fixing cg we can assume
                 that high bits of registers are correct.
@@ -600,14 +600,14 @@ implementation
 
     function t68kaddnode.use_generic_mul32to64: boolean;
     begin
-      result:=not (CPUM68K_HAS_64BITMUL in cpu_capabilities[current_settings.cputype]);
+      result:=not (CPUM68K_HAS_64BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]);
     end;
 
     function t68kaddnode.use_generic_mul64bit: boolean;
     begin
       result:=needoverflowcheck  or
-        (cs_opt_size in current_settings.optimizerswitches) or
-        not (CPUM68K_HAS_64BITMUL in cpu_capabilities[current_settings.cputype]);
+        (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
+        not (CPUM68K_HAS_64BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]);
     end;
 
     procedure t68kaddnode.second_add64bit;

@@ -289,7 +289,7 @@ implementation
   function llvmparatypeattr(const attr: TSymStr; paradef: tdef; strippointer: boolean): TSymStr;
     begin
       result:=attr;
-      if llvmflag_para_attr_type in llvmversion_properties[current_settings.llvmversion] then
+      if llvmflag_para_attr_type in llvmversion_properties[compiler.globals.current_settings.llvmversion] then
         begin
           if not strippointer then
             result:=result+'('+llvmencodetypename(paradef)+')'
@@ -367,13 +367,13 @@ implementation
       begin
         def_is_address:=false;
         if ((lef_removeouterpointer in flags) or
-            (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion])) and
+            (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion])) and
            is_address(def) and
            (def<>llvm_metadatatype) then
           def_is_address:=true
         else if lef_removeouterpointer in flags then
           internalerror(2022060813);
-        if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+        if (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
            not(lef_removeouterpointer in flags) and
            def_is_address then
           begin
@@ -487,11 +487,11 @@ implementation
                   begin
                     { in case of ISO-like I/O, the typed file def includes a
                       get/put buffer of the size of the file's elements }
-                    if (m_isolike_io in current_settings.modeswitches) and
+                    if (m_isolike_io in compiler.globals.current_settings.modeswitches) and
                        not is_void(tfiledef(def).typedfiledef) then
                       encodedstr:=encodedstr+'<{';
                     llvmaddencodedtype_intern(search_system_type('FILEREC').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
-                    if (m_isolike_io in current_settings.modeswitches) and
+                    if (m_isolike_io in compiler.globals.current_settings.modeswitches) and
                        not is_void(tfiledef(def).typedfiledef) then
                       begin
                         encodedstr:=encodedstr+',[';
@@ -653,7 +653,7 @@ implementation
                 begin
                   { type is a pointer to a pointer to the vmt }
                   if ([lef_typedecl,lef_noimplicitderef]*flags=[]) and
-                     (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                     (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
                     encodedstr:=encodedstr+'ptr'
                   else
                     begin
@@ -671,7 +671,7 @@ implementation
                 begin
                   { opaque for now }
                   if not(lef_removeouterpointer in flags) then
-                    if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                    if (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
                       encodedstr:=encodedstr+'ptr'
                     else
                       encodedstr:=encodedstr+'i8*'
@@ -821,7 +821,7 @@ implementation
           if not first then
              encodedstr:=encodedstr+', ';
           if (hp.vardef=llvm_metadatatype) or
-             not((llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+             not((llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
                  ((vo_is_funcret in hp.varoptions) or
                   compiler.paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) or
                   llvmbyvalparaloc(paraloc))) then
@@ -863,7 +863,7 @@ implementation
           else if not compiler.paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
              llvmbyvalparaloc(paraloc) then
             begin
-              if not (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+              if not (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
                 encodedstr:=encodedstr+'*';
               if withattributes then
                 begin

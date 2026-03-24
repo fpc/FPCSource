@@ -1036,7 +1036,7 @@ implementation
                procname:='FPC_ABSTRACTERROR';
                generate_abstract_stub(current_asmdata.AsmLists[al_procedures],vmtpd);
              end
-           else if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
+           else if (cs_opt_remove_empty_proc in compiler.globals.current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
              begin
                procname:='FPC_EMPTYMETHOD';
                if current_module.globalsymtable<>systemunit then
@@ -1343,8 +1343,8 @@ implementation
                       hlcg.init_register_allocators;
                       hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);
                       hlcg.done_register_allocators;
-                      if ((cs_debuginfo in current_settings.moduleswitches) or
-                         (cs_use_lineinfo in current_settings.globalswitches)) and
+                      if ((cs_debuginfo in compiler.globals.current_settings.moduleswitches) or
+                         (cs_use_lineinfo in compiler.globals.current_settings.globalswitches)) and
                          (compiler.target.dbg.id<>dbg_stabx) then
                            current_debuginfo.insertlineinfo(tmplist);
                       list.concatlist(tmplist);

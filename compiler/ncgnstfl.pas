@@ -47,7 +47,7 @@ implementation
     function tcgnestgotonode.pass_typecheck: tnode;
       begin
         result:=inherited;
-        if (m_non_local_goto in current_settings.modeswitches) and
+        if (m_non_local_goto in compiler.globals.current_settings.modeswitches) and
            assigned(labelsym) and
            assigned(labelsym.jumpbuf) then
           begin

@@ -90,9 +90,9 @@ implementation
          floatsavesize : aword;
          regs: tcpuregisterset;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,8));
+        maxpushedparasize:=align(maxpushedparasize,max(compiler.globals.current_settings.alignment.localalignmin,8));
         floatsavesize:=0;
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fd:
             begin
               floatsavesize:=0;
@@ -104,8 +104,8 @@ implementation
           else
             ;
         end;
-        floatsavesize:=system.align(floatsavesize,max(current_settings.alignment.localalignmin,8));
-        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,8))+maxpushedparasize+aint(floatsavesize);
+        floatsavesize:=system.align(floatsavesize,max(compiler.globals.current_settings.alignment.localalignmin,8));
+        result:=Align(tg.direction*tg.lasttemp,max(compiler.globals.current_settings.alignment.localalignmin,8))+maxpushedparasize+aint(floatsavesize);
 
         if tg.direction=1 then
           floatregstart:=result-aint(floatsavesize)

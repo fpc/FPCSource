@@ -1907,14 +1907,14 @@ implementation
 {$ifdef i8086}
          if assigned(_sym) and (_sym.typ=AT_DATA) then
            begin
-             if current_settings.x86memorymodel in x86_far_data_models then
+             if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
                consttype:=aitconst_farptr
              else
                consttype:=aitconst_ptr;
            end
          else
            begin
-             if current_settings.x86memorymodel in x86_far_code_models then
+             if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
                consttype:=aitconst_farptr
              else
                consttype:=aitconst_ptr;
@@ -2051,7 +2051,7 @@ implementation
         inherited Create;
         typ:=ait_const;
 {$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           consttype:=aitconst_farptr
         else
 {$endif i8086}
@@ -2072,7 +2072,7 @@ implementation
         inherited Create;
         typ:=ait_const;
 {$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           consttype:=aitconst_farptr
         else
 {$endif i8086}
@@ -2093,7 +2093,7 @@ implementation
         inherited Create;
         typ:=ait_const;
 {$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           consttype:=aitconst_farptr
         else
 {$endif i8086}
@@ -2110,7 +2110,7 @@ implementation
         inherited Create;
         typ:=ait_const;
 {$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           consttype:=aitconst_farptr
         else
 {$endif i8086}
@@ -2979,6 +2979,8 @@ implementation
 
 
     procedure tai_cpu_abstract.loadref(opidx:longint;const r:treference);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 {$ifdef x86}
       var
         si_param: ShortInt;
@@ -3011,7 +3013,7 @@ implementation
               segprefix:=ref^.segment;
 {$endif}
 {$ifndef llvm}
-            if (cs_create_pic in current_settings.moduleswitches) and
+            if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
               assigned(r.symbol) and
               not assigned(r.relsymbol) and
               (r.refaddr=addr_no)

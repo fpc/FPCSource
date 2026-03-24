@@ -601,7 +601,7 @@ unit nx86add;
         else
           begin
             { can we use the BMI1 instruction andn? }
-            if (op=A_AND) and extra_not and (CPUX86_HAS_BMI1 in cpu_capabilities[current_settings.cputype]) and
+            if (op=A_AND) and extra_not and (CPUX86_HAS_BMI1 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
               (resultdef.size in [4{$ifdef x86_64},8{$endif x86_64}]) then
               begin
                 location_reset(location,LOC_REGISTER,left.location.size);
@@ -746,7 +746,7 @@ unit nx86add;
         case nodetype of
           addn :
             begin
-              if (cs_mmx_saturation in current_settings.localswitches) then
+              if (cs_mmx_saturation in compiler.globals.current_settings.localswitches) then
                 begin
                    case mmxbase of
                       mmxs8bit:
@@ -788,7 +788,7 @@ unit nx86add;
             end;
           subn :
             begin
-              if (cs_mmx_saturation in current_settings.localswitches) then
+              if (cs_mmx_saturation in compiler.globals.current_settings.localswitches) then
                 begin
                    case mmxbase of
                       mmxs8bit:
@@ -931,7 +931,7 @@ unit nx86add;
         tmp : tnode;
       begin
         sqr_sum:=false;
-        if (current_settings.fputype>=fpu_sse3) and
+        if (compiler.globals.current_settings.fputype>=fpu_sse3) and
            use_vectorfpu(resultdef) and
            (nodetype in [addn,subn]) and
           (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_sqr_real) and
@@ -1082,7 +1082,7 @@ unit nx86add;
       begin
         sqr_sum:=false;
 {$ifdef dummy}
-        if (current_settings.fputype>=fpu_sse3) and
+        if (compiler.globals.current_settings.fputype>=fpu_sse3) and
            use_vectorfpu(resultdef) and
            (nodetype in [addn,subn]) and
           (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_sqr_real) and
@@ -1280,9 +1280,9 @@ unit nx86add;
         DoOptimisation:=False;
 
 {$if defined(cpu64bitalu) or defined(cpu32bitalu) or defined(cpu16bitalu)}
-        if (cs_opt_level1 in current_settings.optimizerswitches) and
+        if (cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) and
           { The presence of overflow checks tends to cause internal errors with the multiplication nodes }
-          not (cs_check_overflow in current_settings.localswitches) and
+          not (cs_check_overflow in compiler.globals.current_settings.localswitches) and
           (nodetype in [equaln,unequaln]) then
           begin
             if (lt=modn) and (rt=ordconstn) and (TOrdConstNode(right).value.uvalue=0) then
@@ -1593,7 +1593,7 @@ unit nx86add;
 {$ifndef i8086}
         { test if the result stays in an xmm register, fiddeling with fpu registers and fma makes no sense }
         Result:=use_vectorfpu(resultdef) and
-          ((fpu_capabilities[current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[]);
+          ((fpu_capabilities[compiler.globals.current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[]);
 {$else i8086}
         Result:=inherited use_fma;
 {$endif i8086}
@@ -1818,7 +1818,7 @@ unit nx86add;
         force_left_and_right_fpureg;
 
 {$ifndef x86_64}
-        if current_settings.cputype<cpu_Pentium2 then
+        if compiler.globals.current_settings.cputype<cpu_Pentium2 then
           begin
             emit_none(A_FCOMPP,S_NO);
             tcgx86(cg).dec_fpu_stack;
@@ -1826,7 +1826,7 @@ unit nx86add;
 
             { load fpu flags }
 {$ifdef i8086}
-            if current_settings.cputype < cpu_286 then
+            if compiler.globals.current_settings.cputype < cpu_286 then
               begin
                 tg.gettemp(current_asmdata.CurrAsmList,2,2,tt_normal,tmpref);
                 emit_ref(A_FSTSW,S_NO,tmpref);
@@ -1846,7 +1846,7 @@ unit nx86add;
                 emit_none(A_SAHF,S_NO);
                 cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
               end;
-            if cs_fpu_fwait in current_settings.localswitches then
+            if cs_fpu_fwait in compiler.globals.current_settings.localswitches then
               current_asmdata.CurrAsmList.concat(Taicpu.Op_none(A_FWAIT,S_NO));
           end
         else
@@ -1985,10 +1985,10 @@ unit nx86add;
        opsize:=def_cgsize(left.resultdef);
 
 {$ifndef i8086}
-       if (cs_opt_level2 in current_settings.optimizerswitches) then
+       if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
          begin
            { BMI1 optimisations }
-           if (CPUX86_HAS_BMI1 in cpu_capabilities[current_settings.cputype]) then
+           if (CPUX86_HAS_BMI1 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
              begin
                { Can we turn "x and (not y)" into an ANDN instruction instead? }
                if (nodetype = andn) and
@@ -1999,7 +1999,7 @@ unit nx86add;
                      code once everything is moved into registers (as a side-note,
                      "const and (not const)" and "variable and (not const)" will
                      have been simplified earlier to remove the NOT operation). }
-                   not (cs_opt_size in current_settings.optimizerswitches) or
+                   not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
                    (
                      (left.location.loc <> LOC_CONSTANT) and
                      (right.location.loc <> LOC_CONSTANT)
@@ -2059,7 +2059,7 @@ unit nx86add;
              end;
 
            { BMI2 optimisations }
-           if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+           if (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
              (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) then
              begin
                case nodetype of
@@ -2175,7 +2175,7 @@ unit nx86add;
            { 3 op mul makes only sense if a constant is involved }
            ((nodetype<>muln) or (left.location.loc=LOC_CONSTANT) or (right.location.loc=LOC_CONSTANT)
 {$ifndef i8086}
-            or ((CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and (not(needoverflowcheck))
+            or ((CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and (not(needoverflowcheck))
                )
 {$endif i8086}
            ) and
@@ -2302,7 +2302,7 @@ unit nx86add;
     procedure tx86addnode.second_addboolean;
       begin
         if (nodetype in [orn,andn]) and
-           (not(cs_full_boolean_eval in current_settings.localswitches) or
+           (not(cs_full_boolean_eval in compiler.globals.current_settings.localswitches) or
           (anf_short_bool in addnodeflags)) then
           inherited second_addboolean
         else if is_64bit(left.resultdef) then

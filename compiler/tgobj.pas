@@ -343,17 +343,17 @@ implementation
                            ((not bestatend and
                              (direction=-1)) or
                             (bestatend and
-                             isbetteralignedthan(abs(bestslot^.pos+hp^.size-size),abs(adjustedpos+hp^.size-size),current_settings.alignment.localalignmax)));
+                             isbetteralignedthan(abs(bestslot^.pos+hp^.size-size),abs(adjustedpos+hp^.size-size),compiler.globals.current_settings.alignment.localalignmax)));
                          fitatbegin:=fitatbegin and
                            (not bestatend or
                             (direction=1)) and
-                           isbetteralignedthan(abs(adjustedpos+size),abs(bestslot^.pos+size),current_settings.alignment.localalignmax);
+                           isbetteralignedthan(abs(adjustedpos+size),abs(bestslot^.pos+size),compiler.globals.current_settings.alignment.localalignmax);
                        end;
                      if fitatend and
                         fitatbegin then
-                       if isbetteralignedthan(abs(adjustedpos+hp^.size-size),abs(adjustedpos+size),current_settings.alignment.localalignmax) then
+                       if isbetteralignedthan(abs(adjustedpos+hp^.size-size),abs(adjustedpos+size),compiler.globals.current_settings.alignment.localalignmax) then
                          fitatbegin:=false
-                       else if isbetteralignedthan(abs(adjustedpos+size),abs(adjustedpos+hp^.size-size),current_settings.alignment.localalignmax) then
+                       else if isbetteralignedthan(abs(adjustedpos+size),abs(adjustedpos+hp^.size-size),compiler.globals.current_settings.alignment.localalignmax) then
                          fitatend:=false
                        else if (direction=1) then
                          fitatend:=false
@@ -594,9 +594,11 @@ implementation
 
     procedure ttgobj.gettempinternal(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         varalign : shortint;
       begin
-        varalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
+        varalign:=used_align(alignment,compiler.globals.current_settings.alignment.localalignmin,compiler.globals.current_settings.alignment.localalignmax);
         alloctemp(list,size,varalign,temptype,def,fini,ref);
       end;
 
@@ -774,7 +776,7 @@ implementation
       var
         lalign : shortint;
       begin
-        lalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
+        lalign:=used_align(alignment,compiler.globals.current_settings.alignment.localalignmin,compiler.globals.current_settings.alignment.localalignmax);
         if (explicitalignment>lalign) then
           begin
             if assigned(sym) then
@@ -782,7 +784,7 @@ implementation
             else
               compiler.verbose.CGMessage1(scanner_w_local_alignment_larger_than_max,def.typename);
           end
-        else if (alignment>lalign) and (current_settings.alignment.localalignmax>1) then
+        else if (alignment>lalign) and (compiler.globals.current_settings.alignment.localalignmax>1) then
           begin
             if assigned(sym) then
               compiler.verbose.CGMessage1(scanner_n_local_alignment_larger_than_max,sym.name)

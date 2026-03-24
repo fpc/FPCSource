@@ -336,9 +336,9 @@ interface
     function TX86NasmAssembler.CodeSectionName(const aname:string): string;
       begin
 {$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           begin
-            if cs_huge_code in current_settings.moduleswitches then
+            if cs_huge_code in compiler.globals.current_settings.moduleswitches then
               result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';
@@ -719,7 +719,7 @@ interface
 {$ifdef i8086}
         if compiler.target.info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded] then
           begin
-            if current_settings.x86memorymodel=mm_huge then
+            if compiler.globals.current_settings.x86memorymodel=mm_huge then
               WriteSection(sec_data,'',2);
             writer.AsmLn;
             FGroups.ForEachCall(@WriteGroup,nil);
@@ -756,8 +756,8 @@ interface
       NewObject:=true;
 
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=(cs_asm_source in current_settings.globalswitches) or
-               ((cs_lineinfo in current_settings.moduleswitches)
+      do_line:=(cs_asm_source in compiler.globals.current_settings.globalswitches) or
+               ((cs_lineinfo in compiler.globals.current_settings.moduleswitches)
                  and (asmlisttype=al_procedures));
       hp:=tai(p.first);
       while assigned(hp) do
@@ -1384,7 +1384,7 @@ interface
         writer.AsmWriteLn('default rel');
         using_relative:=true;
 {$endif}
-        writer.AsmWriteLn('CPU '+nasm_cpu_name[current_settings.cputype]);
+        writer.AsmWriteLn('CPU '+nasm_cpu_name[compiler.globals.current_settings.cputype]);
       end;
 
 
@@ -1437,8 +1437,8 @@ interface
           system_i8086_embedded:
             begin
               FormatName:='obj';
-              if (cs_debuginfo in current_settings.moduleswitches) or
-                 (cs_asm_source in current_settings.globalswitches) then
+              if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) or
+                 (cs_asm_source in compiler.globals.current_settings.globalswitches) then
                 Replace(result,'$DEBUG','-g')
               else
                 Replace(result,'$DEBUG','');

@@ -156,9 +156,9 @@ implementation
                else
                  internalerror(2005070302);
             end;
-            if (cs_use_heaptrc in current_settings.globalswitches) and
-               (cs_checkpointer in current_settings.localswitches) and
-               not(cs_compilesystem in current_settings.moduleswitches) and
+            if (cs_use_heaptrc in compiler.globals.current_settings.globalswitches) and
+               (cs_checkpointer in compiler.globals.current_settings.localswitches) and
+               not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) and
    {$ifdef x86}
                (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
    {$endif x86}
@@ -178,7 +178,7 @@ implementation
                hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
                hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
                hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-               system.include(current_settings.moduleswitches,cs_checkpointer_called);
+               system.include(compiler.globals.current_settings.moduleswitches,cs_checkpointer_called);
              end;
           end
         else
@@ -211,7 +211,7 @@ implementation
               internalerror(2014080702);
 
             procname:='fpc_hugeptr_add_longint';
-            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+            if cs_hugeptr_arithmetic_normalization in compiler.globals.current_settings.localswitches then
               procname:=procname+'_normalized';
 
             if arraydef.elementdef.size>1 then

@@ -220,8 +220,8 @@ implementation
       list: TAsmList;
       asmlisttype: TAsmListType;
     begin
-      if not(cs_sanitize_address in current_settings.moduleswitches) or
-         (llvmflag_sanitizer_attributes in llvmversion_properties[current_settings.llvmversion]) then
+      if not(cs_sanitize_address in compiler.globals.current_settings.moduleswitches) or
+         (llvmflag_sanitizer_attributes in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
         exit;
       asanglobals:=nil;
       module:=get_module(compiler.globals.current_filepos.moduleindex);
@@ -294,7 +294,7 @@ implementation
       llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags',compiler);
       current_asmdata.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
 
-      if (m_objectivec1 in current_settings.modeswitches) then
+      if (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
         begin
           { Objective-C ABI version }
           if not(compiler.target.info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
@@ -338,7 +338,7 @@ implementation
         end;
 
       { debug information }
-      if (([cs_debuginfo,cs_lineinfo]*current_settings.moduleswitches)<>[]) and
+      if (([cs_debuginfo,cs_lineinfo]*compiler.globals.current_settings.moduleswitches)<>[]) and
          (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
         begin
           { the debug info version is the version of the debug info metadata
@@ -346,7 +346,7 @@ implementation
           dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
           dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
           dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Debug Info Version')));
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[current_settings.llvmversion])));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[compiler.globals.current_settings.llvmversion])));
           llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
           current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
 

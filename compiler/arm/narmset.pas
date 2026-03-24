@@ -171,7 +171,7 @@ implementation
             i:=last+1;
             while i<=t^._low-1 do
               begin
-                if cs_create_pic in current_settings.moduleswitches then
+                if cs_create_pic in compiler.globals.current_settings.moduleswitches then
                   list.concat(Tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,elselabel,picoffset))
                 else
                   list.concat(Tai_const.Create_sym(elselabel));
@@ -180,7 +180,7 @@ implementation
             i:=t^._low;
             while i<=t^._high do
               begin
-                if cs_create_pic in current_settings.moduleswitches then
+                if cs_create_pic in compiler.globals.current_settings.moduleswitches then
                   list.concat(Tai_const.Create_rel_sym_offset(aitconst_ptr,piclabel,blocklabel(t^.blockid),picoffset))
                 else
                   list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
@@ -230,7 +230,7 @@ implementation
 
         if GenerateThumb2Code then
           begin
-            if cs_create_pic in current_settings.moduleswitches then
+            if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               internalerror(2013082101);
             { adjust index }
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
@@ -249,7 +249,7 @@ implementation
           end
         else if GenerateThumbCode then
           begin
-            if cs_create_pic in current_settings.moduleswitches then
+            if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               internalerror(2013082102);
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
             current_asmdata.getaddrlabel(tablelabel);
@@ -280,7 +280,7 @@ implementation
           begin
             { adjust index }
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,
-              min_+ord(not(cs_create_pic in current_settings.moduleswitches)),
+              min_+ord(not(cs_create_pic in compiler.globals.current_settings.moduleswitches)),
               indexreg,indexreg);
             { create reference and generate jump table }
             reference_reset(href,4,[]);
@@ -288,7 +288,7 @@ implementation
             href.index:=indexreg;
             href.shiftmode:=SM_LSL;
             href.shiftimm:=2;
-            if cs_create_pic in current_settings.moduleswitches then
+            if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               begin
                 picoffset:=-8;
                 current_asmdata.getaddrlabel(piclabel);
@@ -426,7 +426,7 @@ implementation
              cond_gt:=F_GT
            else
              cond_gt:=F_HI;
-          current_asmdata.CurrAsmList.concat(cai_align.Create(current_settings.alignment.jumpalign));
+          current_asmdata.CurrAsmList.concat(cai_align.Create(compiler.globals.current_settings.alignment.jumpalign));
           cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
 
           { calculate labels for left and right }

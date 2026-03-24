@@ -201,7 +201,7 @@ unit agavrgas;
 
     function TAVRGNUAssembler.MakeCmdLine: TCmdStr;
       begin
-        result := '-mmcu='+lower(cputypestr[current_settings.cputype])+' '+inherited MakeCmdLine;
+        result := '-mmcu='+lower(cputypestr[compiler.globals.current_settings.cputype])+' '+inherited MakeCmdLine;
       end;
 
 

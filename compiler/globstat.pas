@@ -188,7 +188,7 @@ var
         ppcgen/cgppc.pas
         line 144 has a WARN 6018 OFF...
       }
-      flushpendingswitchesstate; { flushpendingswitchesstate before storing current_settings.pmessage, switchesstatestack etc }
+      flushpendingswitchesstate; { flushpendingswitchesstate before storing compiler.globals.current_settings.pmessage, switchesstatestack etc }
       old_switchesstatestack:=switchesstatestack;
       old_switchesstatestackpos:=switchesstatestackpos;
 
@@ -198,7 +198,7 @@ var
       { save akt... state }
       { handle the postponed case first }
       oldcurrent_filepos:=compiler.globals.current_filepos;
-      old_settings:=current_settings;
+      old_settings:=compiler.globals.current_settings;
       old_verbosity:=status.verbosity;
 
       old_asmdata:=current_asmdata;
@@ -279,11 +279,11 @@ var
         reload_symtable_stack(compiler.macrosymtablestack,stsk_macro);
       current_procinfo:=oldcurrent_procinfo;
       compiler.globals.current_filepos:=oldcurrent_filepos;
-      current_settings:=old_settings;
+      compiler.globals.current_settings:=old_settings;
       status.verbosity:=old_verbosity;
 
       { restore message settings which were recorded prior to unit switch }
-      compiler.verbose.RestoreLocalVerbosity(current_settings.pmessage);
+      compiler.verbose.RestoreLocalVerbosity(compiler.globals.current_settings.pmessage);
 
       // These can be different
       current_asmdata:=old_asmdata;
@@ -336,7 +336,7 @@ var
       switchesstatestack:=default(tswitchesstatestack);
       switchesstatestackpos:=0;
 
-      // keep "current_settings"
+      // keep "compiler.globals.current_settings"
 
       _compiler.parser.pbase.parse_only:=false;
       current_asmdata:=nil;

@@ -78,8 +78,8 @@ implementation
         if (nodetype=divn) and (right.nodetype=ordconstn) and
           is_signed(left.resultdef) and
           ispowerof2(tordconstnode(right).value.svalue,power) and
-          ((current_settings.optimizecputype = cpu_386) or
-           (cs_opt_size in current_settings.optimizerswitches)) then
+          ((compiler.globals.current_settings.optimizecputype = cpu_386) or
+           (cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
           begin
             { signed divide-by-power-of-two optimized for size }
             secondpass(left);

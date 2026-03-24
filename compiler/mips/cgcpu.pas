@@ -170,7 +170,7 @@ begin
     begin
       ref.base:=getintregister(list,OS_ADDR);
       reference_reset_symbol(tmpref,ref.symbol,ref.offset,ref.alignment,ref.volatility);
-      if (cs_create_pic in current_settings.moduleswitches) then
+      if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
         begin
           if not (pi_needs_got in current_procinfo.flags) then
             InternalError(2013060102);
@@ -194,7 +194,7 @@ begin
         list.concat(taicpu.op_reg_reg_reg(A_ADDU,ref.base,tmpreg,ref.base));
 
       if (ref.symbol.bind=AB_LOCAL) or
-         not (cs_create_pic in current_settings.moduleswitches) then
+         not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
         begin
           ref.refaddr:=addr_low;
           exit;
@@ -265,7 +265,7 @@ begin
   inherited init_register_allocators;
 
   { Keep RS_R25, i.e. $t9 for PIC call }
-  if (cs_create_pic in current_settings.moduleswitches) and assigned(current_procinfo) and
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and assigned(current_procinfo) and
     (pi_needs_got in current_procinfo.flags) then
     begin
       current_procinfo.got := NR_GP;
@@ -377,7 +377,7 @@ begin
   { Delay slot }
   list.concat(taicpu.op_none(A_NOP));
   { Restore GP if in PIC mode }
-  if (cs_create_pic in current_settings.moduleswitches) then
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
       if tcpuprocinfo(current_procinfo).save_gp_ref.offset=0 then
         InternalError(2013071001);
@@ -399,7 +399,7 @@ begin
   else
     sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
 
-  if (cs_create_pic in current_settings.moduleswitches) then
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     a_call_sym_pic(list,sym)
   else
     begin
@@ -422,7 +422,7 @@ begin
   { Delay slot }
   list.concat(taicpu.op_none(A_NOP));
   { Restore GP if in PIC mode }
-  if (cs_create_pic in current_settings.moduleswitches) then
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
       if tcpuprocinfo(current_procinfo).save_gp_ref.offset=0 then
         InternalError(2013071002);
@@ -578,7 +578,7 @@ begin
         done:=false;
       OS_S8:
       begin
-        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) then
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_SEB,reg2,reg1))
         else
           begin
@@ -588,7 +588,7 @@ begin
       end;
       OS_S16:
       begin
-        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) then
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_SEH,reg2,reg1))
         else
           begin
@@ -653,7 +653,7 @@ begin
     end;
 
   reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
-  if (cs_create_pic in current_settings.moduleswitches) then
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
       if not (pi_needs_got in current_procinfo.flags) then
         InternalError(2013060104);
@@ -680,7 +680,7 @@ begin
 
   { add low part if necessary }
   if (ref.symbol.bind=AB_LOCAL) or
-     not (cs_create_pic in current_settings.moduleswitches) then
+     not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
       href.refaddr:=addr_low;
       href.base:=NR_NO;
@@ -982,7 +982,7 @@ begin
       end;
     OP_MUL,OP_IMUL:
       begin
-        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) and
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
            (not setflags) then
           { NOTE: MUL is actually mips32r1 instruction; on older cores it is handled as macro }
           list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1))
@@ -1165,7 +1165,7 @@ procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags;
     case f.reg1 of
       NR_FCC0..NR_FCC7:
         begin
-          if (current_settings.cputype>=cpu_mips4) then
+          if (compiler.globals.current_settings.cputype>=cpu_mips4) then
             begin
               a_load_const_reg(list,size,1,reg);
               case f.cond of
@@ -1392,7 +1392,7 @@ begin
   list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
   if tcpuprocinfo(current_procinfo).setnoat then
     list.concat(Taicpu.op_none(A_P_SET_NOAT));
-  if (cs_create_pic in current_settings.moduleswitches) and
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
     begin
       list.concat(Taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
@@ -1429,7 +1429,7 @@ begin
         even use AT register, which is why we use R9 instead of AT here for -LocalSize }
       list.concat(Taicpu.op_none(A_P_SET_NOMACRO));
     end;
-  if (cs_create_pic in current_settings.moduleswitches) and
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
     begin
       largeoffs:=(tcpuprocinfo(current_procinfo).save_gp_ref.offset>simm16hi);
@@ -1699,7 +1699,7 @@ procedure TCGMIPS.g_profilecode(list:TAsmList);
   var
     href: treference;
   begin
-    if not (cs_create_pic in current_settings.moduleswitches) then
+    if not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
       begin
         reference_reset_symbol(href,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(pint),[]);
         a_loadaddr_ref_reg(list,href,NR_GP);

@@ -144,7 +144,7 @@ implementation
           regardless of what they point to (there is one exception related to
           arrays, but that is already handled during code generation in
           thlcgllvm.g_ptrtypecast_ref) }
-        if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+        if (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
           exit(true);
         def1str:=llvmencodetypename(def1);
         def2str:=llvmencodetypename(def2);
@@ -722,7 +722,7 @@ implementation
         i: longint;
         hal: tasmlisttype;
       begin
-        if cs_no_regalloc in current_settings.globalswitches then
+        if cs_no_regalloc in compiler.globals.current_settings.globalswitches then
           exit;
         storefilepos:=compiler.globals.current_filepos;
         compiler.globals.current_filepos:=current_module.mainfilepos;

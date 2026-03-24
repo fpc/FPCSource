@@ -74,7 +74,7 @@ unit ncpuinl;
         location:=left.location;
         location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,left.resultdef);
 
-        if cs_check_overflow in current_settings.localswitches then
+        if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
             current_asmdata.getjumplabel(hl);
 
@@ -90,7 +90,7 @@ unit ncpuinl;
     function tcpuinlinenode.first_abs_real : tnode;
       begin
         result:=nil;
-        if is_single(left.resultdef) and (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) then
+        if is_single(left.resultdef) and (FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           expectloc:=LOC_FPUREGISTER
         else
           result:=inherited first_abs_real;
@@ -137,7 +137,7 @@ unit ncpuinl;
         ai: taicpu;
       begin
          if is_single(resultdef)and
-           (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) then
+           (FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
            begin
              negproduct:=false;
              paraarray[1]:=tcallparanode(tcallparanode(tcallparanode(parameters).nextpara).nextpara).paravalue;
@@ -262,7 +262,7 @@ unit ncpuinl;
         checkpointer_used : boolean;
       begin
         { do not call Checkpointer for left node }
-        checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+        checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
         if checkpointer_used then
           node_change_local_switch(left,cs_checkpointer,false);
         secondpass(left);

@@ -35,7 +35,8 @@ interface
 
 uses
   globals,
-  cgbase
+  cgbase,
+  compilerbase
   ;
 
 
@@ -395,7 +396,8 @@ implementation
     uses
       globtype,
       rgbase,verbose,
-      cpuinfo;
+      cpuinfo,
+      compiler;
 
     const
     {$if defined(x86_64)}
@@ -777,7 +779,7 @@ implementation
         if r1=r2 then
           exit(true);
 {$if defined(i8086)}
-        case current_settings.x86memorymodel of
+        case compiler.globals.current_settings.x86memorymodel of
           mm_tiny:
             begin
               { CS=DS=SS }
@@ -978,14 +980,18 @@ implementation
 
 
   function UseAVX: boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      Result:={$ifdef i8086}false{$else i8086}(FPUX86_HAS_AVXUNIT in fpu_capabilities[current_settings.fputype]){$endif i8086};
+      Result:={$ifdef i8086}false{$else i8086}(FPUX86_HAS_AVXUNIT in fpu_capabilities[compiler.globals.current_settings.fputype]){$endif i8086};
     end;
 
 
   function UseAVX512: boolean;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
-      Result:={$ifdef i8086}false{$else i8086}UseAVX and (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]){$endif i8086};
+      Result:={$ifdef i8086}false{$else i8086}UseAVX and (FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]){$endif i8086};
     end;
 
 

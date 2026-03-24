@@ -728,8 +728,8 @@ type
               {* fpu_coldfire *} [OS_CF_FPU]
           );
         begin
-          result:=((CPUTypeToOpSupported[current_settings.cputype] * p^.support) <> []) or
-                  ((FPUTypeToOpSupported[current_settings.fputype] * p^.support) <> []);
+          result:=((CPUTypeToOpSupported[compiler.globals.current_settings.cputype] * p^.support) <> []) or
+                  ((FPUTypeToOpSupported[compiler.globals.current_settings.fputype] * p^.support) <> []);
         end;
 
       function OpsizeMatch: boolean;

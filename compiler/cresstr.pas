@@ -301,7 +301,7 @@ uses
             if Not r.isUnicode then
               begin
               initwidestring(W);
-              ascii2unicode(PAnsiChar(R.AValue),R.Len,current_settings.sourcecodepage,W);
+              ascii2unicode(PAnsiChar(R.AValue),R.Len,compiler.globals.current_settings.sourcecodepage,W);
               end
             else
               begin

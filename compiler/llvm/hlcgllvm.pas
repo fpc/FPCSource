@@ -414,7 +414,7 @@ implementation
     begin
       if assigned(sym) and
          (sym.visibility<>vis_hidden) and
-         (cs_debuginfo in current_settings.moduleswitches) then
+         (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
         begin
           if initial then
             pd:=search_system_proc('llvm_dbg_declare')
@@ -1312,7 +1312,7 @@ implementation
 
   procedure thlcgllvm.g_undefined_ok(list: TAsmList; size: tdef; reg: tregister);
     begin
-      if not(llvmflag_no_freeze in llvmversion_properties[current_settings.llvmversion]) then
+      if not(llvmflag_no_freeze in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
         begin
           list.concat(taillvm.op_reg_size_reg(la_freeze,reg,size,reg));
           exit;
@@ -1432,8 +1432,8 @@ implementation
       intrinsic: TIDString;
     begin
       op:=llvmconvop(fromsize,tosize,true);
-      if (cs_opt_fastmath in current_settings.optimizerswitches) or
-         not(llvmflag_constrained_fptrunc_fpext in llvmversion_properties[current_settings.llvmversion]) or
+      if (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) or
+         not(llvmflag_constrained_fptrunc_fpext in llvmversion_properties[compiler.globals.current_settings.llvmversion]) or
          not(op in [la_fptrunc,la_fpext]) then
         list.concat(taillvm.op_reg_size_reg_size(op,reg2,fromsize,reg1,tosize))
       else
@@ -1506,7 +1506,7 @@ implementation
       mangledname:=current_procinfo.procdef.mangledname;
       { predefine the real function name as local/global, so the aliases can
         refer to the symbol and get the binding correct }
-      if (cs_profile in current_settings.moduleswitches) or
+      if (cs_profile in compiler.globals.current_settings.moduleswitches) or
          (po_global in current_procinfo.procdef.procoptions) then
         asmsym:=current_asmdata.DefineAsmSymbol(mangledname,AB_GLOBAL,AT_FUNCTION,current_procinfo.procdef)
       else
@@ -1637,7 +1637,7 @@ implementation
     var
       hl: tasmlabel;
     begin
-      if not(cs_check_overflow in current_settings.localswitches) then
+      if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         exit;
       if ovloc.size<>OS_8 then
         internalerror(2015122504);
@@ -1654,7 +1654,7 @@ implementation
     begin
       { will insert a bitcast if necessary }
       if (fromdef<>todef) and
-         not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+         not(llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
         begin
           hreg:=getregisterfordef(list,todef);
           a_load_reg_reg(list,fromdef,todef,reg,hreg);
@@ -1672,7 +1672,7 @@ implementation
         to get a pointer to the first element of the array. That expression is
         not valid if arrayref does not point to an array. Clang does the same.
       }
-      if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+      if (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
          (((fromdef.typ=pointerdef) and (tpointerdef(fromdef).pointeddef.typ=arraydef)) <>
           ((todef.typ=pointerdef) and (tpointerdef(todef).pointeddef.typ=arraydef))
          ) then
@@ -2239,7 +2239,7 @@ implementation
 
   procedure thlcgllvm.varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym);
     begin
-      if cs_asm_source in current_settings.globalswitches then
+      if cs_asm_source in compiler.globals.current_settings.globalswitches then
         begin
           case vs.initialloc.loc of
             LOC_REFERENCE :

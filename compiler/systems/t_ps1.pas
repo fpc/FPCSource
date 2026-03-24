@@ -322,17 +322,17 @@ var
     binstr, cmdstr, mapstr : TCmdStr;
     success : boolean;
 begin
-    if not (cs_link_nolink in current_settings.globalswitches) then
+    if not (cs_link_nolink in compiler.globals.current_settings.globalswitches) then
       compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
-    if (cs_link_map in current_settings.globalswitches) then
+    if (cs_link_map in compiler.globals.current_settings.globalswitches) then
       mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
     else
       mapstr:='';
 
     WriteScriptFile;
 
-    if cs_link_nolink in current_settings.globalswitches then begin
+    if cs_link_nolink in compiler.globals.current_settings.globalswitches then begin
       result:= true;
       exit;
     end;
@@ -344,7 +344,7 @@ begin
     Replace(cmdstr, '$RES', '-T ' + (maybequoted(ScriptFixFileName(compiler.globals.outputexedir + Info.ResName))));
     Replace(cmdstr, '$MAP', mapstr);
 
-    if cs_link_smart in current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';
+    if cs_link_smart in compiler.globals.current_settings.globalswitches then cmdstr:= cmdstr + ' --gc-sections';
 
     success:= DoExec(FindUtil(compiler.globals.utilsprefix + BinStr), cmdstr + ' -o ' + current_module.exefilename + '.elf', true, false);
     if not success then begin

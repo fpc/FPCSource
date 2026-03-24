@@ -1992,7 +1992,7 @@ implementation
 
     procedure TObjData.beforealloc;
       begin
-        FCPUType:=current_settings.cputype;
+        FCPUType:=compiler.globals.current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
           begin
@@ -2004,7 +2004,7 @@ implementation
 
     procedure TObjData.beforewrite;
       begin
-        FCPUType:=current_settings.cputype;
+        FCPUType:=compiler.globals.current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
          begin
@@ -2085,8 +2085,8 @@ implementation
     function TObjOutput.newObjData(const n:string):TObjData;
       begin
         result:=CObjData.create(n,compiler);
-        if (cs_use_lineinfo in current_settings.globalswitches) or
-           (cs_debuginfo in current_settings.moduleswitches) then
+        if (cs_use_lineinfo in compiler.globals.current_settings.globalswitches) or
+           (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           result.CreateDebugSections;
       end;
 
@@ -3025,7 +3025,7 @@ implementation
                 VTENTRY and VTINHERIT symbols }
               if objsym.bind=AB_LOCAL then
                 begin
-                  if cs_link_opt_vtable in current_settings.globalswitches then
+                  if cs_link_opt_vtable in compiler.globals.current_settings.globalswitches then
                     begin
                       hs:=objsym.name;
                       if (hs[1]='V') then
@@ -3369,7 +3369,7 @@ implementation
           end;
 
         { Generate VTable tree }
-        if cs_link_opt_vtable in current_settings.globalswitches then
+        if cs_link_opt_vtable in compiler.globals.current_settings.globalswitches then
           BuildVTableTree(VTInheritList,VTEntryList);
         VTInheritList.Free;
         VTInheritList := nil;
@@ -3774,8 +3774,8 @@ implementation
                 (
                  (exesec.ObjSectionlist.count=0) or
                  (
-                  (cs_link_strip in current_settings.globalswitches) and
-                  not(cs_link_separate_dbg_file in current_settings.globalswitches) and
+                  (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+                  not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) and
                   (oso_debug in exesec.SecOptions)
                  )
                 );
@@ -3945,7 +3945,7 @@ implementation
                 DoReloc(TObjRelocation(objsec.ObjRelocations[i]));
 
               { Process Virtual Entry calls }
-              if cs_link_opt_vtable in current_settings.globalswitches then
+              if cs_link_opt_vtable in compiler.globals.current_settings.globalswitches then
                 begin
                   for i:=0 to objsec.VTRefList.count-1 do
                     begin
@@ -4186,8 +4186,8 @@ implementation
             sec:=TObjSection(Data.ObjSectionList[i]);
             { Skip debug sections }
             if (oso_debug in sec.SecOptions) and
-               (cs_link_strip in current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+               (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
               continue;
 
             if assigned(sec.Data) then

@@ -418,7 +418,7 @@ unit aoptcpu;
         (taicpu(next).oper[1]^.ref^.index=NR_NO) and
         (taicpu(next).oper[1]^.ref^.symbol=nil) and
         (taicpu(next).oper[1]^.ref^.direction=dir_none) and
-        not (current_settings.cputype in cpu_coldfire) then
+        not (compiler.globals.current_settings.cputype in cpu_coldfire) then
         begin
           DebugMsg('Optimizer: LEA, MOVE(M) to MOVE(M) predecremented',p);
           taicpu(next).oper[1]^.ref^.direction:=dir_dec;
@@ -446,7 +446,7 @@ unit aoptcpu;
         (taicpu(next).oper[0]^.ref^.symbol=nil) and
         (taicpu(next).oper[0]^.ref^.direction=dir_none) and
         ((taicpu(next).oper[0]^.ref^.offset=(PopCnt(Byte(taicpu(p).oper[1]^.dataregset))+PopCnt(Byte(taicpu(p).oper[1]^.addrregset)))*4)) and
-        not (current_settings.cputype in cpu_coldfire) then
+        not (compiler.globals.current_settings.cputype in cpu_coldfire) then
         begin
           DebugMsg('Optimizer: MOVE(M), LEA to MOVE(M) postincremented',p);
           taicpu(p).oper[0]^.ref^.direction:=dir_inc;
@@ -540,7 +540,7 @@ unit aoptcpu;
                   end;
               { CLR.L Dx on a 68000 is slower than MOVEQ #0,Dx }
               A_CLR:
-                if (current_settings.cputype in [cpu_mc68000]) and
+                if (compiler.globals.current_settings.cputype in [cpu_mc68000]) and
                    (taicpu(p).oper[0]^.typ = top_reg) and
                    (taicpu(p).opsize = S_L) and
                    isintregister(taicpu(p).oper[0]^.reg) then
@@ -554,7 +554,7 @@ unit aoptcpu;
                   end;
               A_JSR:
                 begin
-                  if (cs_opt_level4 in current_settings.optimizerswitches) and
+                  if (cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) and
                     GetNextInstruction(p,next) and
                     MatchInstruction(next,A_RTS,[S_NO]) and
                     { play safe: if any parameter is pushed on the stack, we cannot to this optimization
@@ -579,7 +579,7 @@ unit aoptcpu;
                    ((taicpu(p).oper[1]^.typ = top_ref) or
                     ((taicpu(p).oper[1]^.typ = top_reg) and
                      not (isaddressregister(taicpu(p).oper[1]^.reg) and
-                      not (CPUM68K_HAS_TSTAREG in cpu_capabilities[current_settings.cputype])))) then
+                      not (CPUM68K_HAS_TSTAREG in cpu_capabilities[compiler.globals.current_settings.cputype])))) then
                   begin
                     DebugMsg('Optimizer: CMP #0 to TST',p);
                     taicpu(p).opcode:=A_TST;

@@ -74,24 +74,24 @@ implementation
         power  : longint;
       begin
         {We can handle all cases of constant division}
-        if not(cs_check_overflow in current_settings.localswitches) and
+        if not(cs_check_overflow in compiler.globals.current_settings.localswitches) and
            (right.nodetype=ordconstn) and
            (nodetype=divn) and
            not(is_64bit(resultdef)) and
            {Only the ARM and thumb2-isa support umull and smull, which are required for arbitrary division by const optimization}
            (((GenerateArmCode or
-             GenerateThumb2Code) and (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype])) or
+             GenerateThumb2Code) and (CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype])) or
             (ispowerof2(tordconstnode(right).value,power) or
             (tordconstnode(right).value=1) or
             (tordconstnode(right).value=int64(-1))
             )
            ) then
           result:=nil
-        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
+        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[compiler.globals.current_settings.cputype])) and
           (nodetype=divn) and
           not(is_64bit(resultdef)) then
           result:=nil
-        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
+        else if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[compiler.globals.current_settings.cputype])) and
           (nodetype=modn) and
           not(is_64bit(resultdef)) then
           begin
@@ -148,11 +148,11 @@ implementation
            else if (tordconstnode(right).value = int64(-1)) then
              begin
                // note: only in the signed case possible..., may overflow
-               if cs_check_overflow in current_settings.localswitches then
+               if cs_check_overflow in compiler.globals.current_settings.localswitches then
                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
                current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MVN,
-                 resultreg,numerator),toppostfix(ord(cs_check_overflow in current_settings.localswitches)*ord(PF_S))));
+                 resultreg,numerator),toppostfix(ord(cs_check_overflow in compiler.globals.current_settings.localswitches)*ord(PF_S))));
              end
            else if ispowerof2(tordconstnode(right).value,power) then
              begin
@@ -181,7 +181,7 @@ implementation
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
              end
-           else if CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype] then
+           else if CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype] then
              {Everything else is handled the generic code}
              cg.g_div_const_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),
                tordconstnode(right).value.svalue,numerator,resultreg)
@@ -234,7 +234,7 @@ implementation
         secondpass(left);
         secondpass(right);
 
-        if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[current_settings.cputype])) and
+        if ((GenerateThumbCode or GenerateThumb2Code) and (CPUARM_HAS_THUMB_IDIV in cpu_capabilities[compiler.globals.current_settings.cputype])) and
            (nodetype=divn) and
            not(is_64bitint(resultdef)) then
           begin
@@ -357,7 +357,7 @@ implementation
         procname: string[31];
         fdef : tdef;
       begin
-        if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) or
+        if (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]) or
            (compiler.target.info.system = system_arm_wince) or
            is_single(resultdef) then
           exit(inherited pass_1);
@@ -369,8 +369,8 @@ implementation
 
         { if we get here and VFP support is on, there is no 64 bit VFP operation support available,
           so in this case the software version needs to be called }
-        if (left.resultdef.typ=floatdef) and ((current_settings.fputype=fpu_soft) or
-          (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype])) then
+        if (left.resultdef.typ=floatdef) and ((compiler.globals.current_settings.fputype=fpu_soft) or
+          (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype])) then
           begin
             case tfloatdef(resultdef).floattype of
               s64real:
@@ -401,7 +401,7 @@ implementation
         pf: TOpPostfix;
       begin
         secondpass(left);
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:

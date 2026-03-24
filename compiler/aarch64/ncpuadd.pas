@@ -388,7 +388,7 @@ interface
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));
             Exit;
           end
-        else if (cs_opt_level2 in current_settings.optimizerswitches) then
+        else if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           begin
             { Can we turn "x and (not y)" into an ANDN instruction instead? }
             if (nodetype in [andn, orn, xorn]) and

@@ -500,7 +500,7 @@ begin
 {$ifdef arm}
   platformopt:=' -z noexecstack';
 {$endif arm}
-  if cs_link_lld in current_settings.globalswitches then
+  if cs_link_lld in compiler.globals.current_settings.globalswitches then
     begin
       LdProgram:='ld.lld';
       target_opt:=' -b elf';
@@ -516,7 +516,7 @@ begin
        when targeting binutils 2.19 or later, we use the "INSERT" command to
        augment the default linkerscript, which also requires -T (normally that
        option means "completely replace the default linkerscript) }
-     if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) or
+     if not(cs_link_pre_binutils_2_19 in compiler.globals.current_settings.globalswitches) or
        (length(compiler.globals.sysrootpath)>0) then
        begin
          ExeCmd[1]:=ExeCmd[1]+' -T';
@@ -538,7 +538,7 @@ procedure TLinkerLinux.LoadPredefinedLibraryOrder;
 // put your linkorder/linkalias overrides here.
 // Note: assumes only called when reordering/aliasing is used.
 Begin
-   if not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
+   if not (cs_link_no_default_lib_order in  compiler.globals.current_settings.globalswitches) Then
         Begin
           compiler.globals.LinkLibraryOrder.add('gcc','',15);
           compiler.globals.LinkLibraryOrder.add('c','',100);
@@ -570,7 +570,7 @@ begin
 
   if current_module.islibrary then
     exit;
-  if cs_profile in current_settings.moduleswitches then
+  if cs_profile in compiler.globals.current_settings.moduleswitches then
     begin
       prtobj:=gprtnames[libctype];
       sysinitunit:=gsinames[libctype];
@@ -595,7 +595,7 @@ Var
 begin
   result:=False;
 { set special options for some targets }
-  if cs_profile in current_settings.moduleswitches then
+  if cs_profile in compiler.globals.current_settings.moduleswitches then
    begin
      if not(libctype in [glibc2,glibc21]) then
        AddSharedLibrary('gmon');
@@ -657,7 +657,7 @@ begin
            compiler.verbose.Message1(exec_w_init_file_not_found,'crti.o');
 
          { then the crtbegin* }
-         if (cs_create_pic in current_settings.moduleswitches)
+         if (cs_create_pic in compiler.globals.current_settings.moduleswitches)
 {$ifdef RISCV}
          { on RISC-V we need to use always the *S.o variants
            if shared libraries are involved }
@@ -671,7 +671,7 @@ begin
                compiler.verbose.Message1(exec_w_init_file_not_found,'crtbeginS.o');
            end
          else
-           if (cs_link_staticflag in current_settings.globalswitches) then
+           if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
              begin
                if compiler.globals.librarysearchpath.FindFile('crtbeginT.o',false,s) then
                  AddFileName(s)
@@ -753,12 +753,12 @@ begin
            end
          else
            linklibc:=true;
-         if (cs_link_staticflag in current_settings.globalswitches) or
+         if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) or
             (linklibc and not reorder) then
            begin
              Add('GROUP(');
              { when we have -static for the linker the we also need libgcc }
-             if (cs_link_staticflag in current_settings.globalswitches) then
+             if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
                begin
                  Add('-lgcc');
                  if compiler.globals.librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
@@ -774,7 +774,7 @@ begin
       { objects which must be at the end }
       if linklibc and (libctype<>uclibc) then
        begin
-         if (cs_create_pic in current_settings.moduleswitches)
+         if (cs_create_pic in compiler.globals.current_settings.moduleswitches)
 {$ifdef RISCV}
          { on RISC-V we need to use always the *S.o variants
            if shared libraries are involved }
@@ -820,7 +820,7 @@ begin
 
       add('SECTIONS');
       add('{');
-      if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) then
+      if not(cs_link_pre_binutils_2_19 in compiler.globals.current_settings.globalswitches) then
         { we can't use ".data", as that would hide the .data from the
           original linker script in combination with the INSERT at the end }
         add('  .fpcdata           :')
@@ -829,14 +829,14 @@ begin
       add('  {');
       add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       add('  }');
-      if not(cs_debuginfo in current_settings.moduleswitches) and
+      if not(cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
          not(tf_use_psabieh in compiler.target.info.flags) then
         add('  /DISCARD/ : {*(.debug_frame)}');
       add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
       add('}');
       { this "INSERT" means "merge into the original linker script, even if
         -T is used" }
-      if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) then
+      if not(cs_link_pre_binutils_2_19 in compiler.globals.current_settings.globalswitches) then
         add('INSERT AFTER .data;');
       { Write and Close response }
       writetodisk;
@@ -862,7 +862,7 @@ var
   StaticStr,
   StripStr   : string[40];
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
@@ -873,17 +873,17 @@ begin
   mapstr:='';
   ltostr:='';
   rpathstr:='';
-  if (cs_link_staticflag in current_settings.globalswitches) then
+  if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
    StaticStr:='-static';
-  if (cs_link_strip in current_settings.globalswitches) and
-     not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+     not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
-  if (cs_link_smart in current_settings.globalswitches) and
+  if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
-  If (cs_profile in current_settings.moduleswitches) or
+  If (cs_profile in compiler.globals.current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
      DynLinkStr:='--dynamic-linker='+Info.DynamicLinker;
@@ -894,8 +894,8 @@ begin
    End;
 
   { add custom LTO library if using custom clang }
-  if (cs_lto in current_settings.moduleswitches) and
-     not(cs_link_on_target in current_settings.globalswitches) and
+  if (cs_lto in compiler.globals.current_settings.moduleswitches) and
+     not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      (compiler.globals.utilsdirectory<>'') and
      FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
@@ -931,7 +931,7 @@ begin
   if tf_use_psabieh in compiler.target.info.flags then
     cmdstr:=cmdstr+ ' --eh-frame-hdr';
 
-  if cs_large in current_settings.globalswitches then
+  if cs_large in compiler.globals.current_settings.globalswitches then
     cmdstr:=cmdstr+' --no-relax';
 
   s:=FindUtil(compiler.globals.utilsprefix+BinStr+'.bfd',false);
@@ -944,7 +944,7 @@ begin
   success:=DoExec(binstr,CmdStr,true,false);
 
   { Create external .dbg file with debuginfo }
-  if success and (cs_link_separate_dbg_file in current_settings.globalswitches) then
+  if success and (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
     begin
       for i:=1 to 3 do
         begin
@@ -960,12 +960,12 @@ begin
     end;
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   { Post process,
     as it only writes sections sizes so far, do this only if V_Info is set }
-  if success and compiler.verbose.CheckVerbosity(V_Info) and not(cs_link_nolink in current_settings.globalswitches) then
+  if success and compiler.verbose.CheckVerbosity(V_Info) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     { do not change success here as we are only writing some info, so if this fails, it does not matter }
     { success:= }PostProcessExecutable(current_module.exefilename,false);
 
@@ -991,9 +991,9 @@ begin
   mapstr:='';
   ltostr:='';
   rpathstr:='';
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
-  if (cs_link_smart in current_settings.globalswitches) and
+  if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
   else
@@ -1007,12 +1007,12 @@ begin
   InitStr:='-init FPC_SHARED_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename);
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
 
   { add custom LTO library if using custom clang }
-  if (cs_lto in current_settings.moduleswitches) and
-     not(cs_link_on_target in current_settings.globalswitches) and
+  if (cs_lto in compiler.globals.current_settings.moduleswitches) and
+     not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      (compiler.globals.utilsdirectory<>'') and
      FileExists(compiler.globals.utilsdirectory+'/../lib/LLVMgold.so',true) then
     begin
@@ -1039,7 +1039,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
-  if success and (cs_link_strip in current_settings.globalswitches) then
+  if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      { only remove non global symbols and debugging info for a library }
      Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
@@ -1049,7 +1049,7 @@ begin
    end;
 
 { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
@@ -1084,7 +1084,7 @@ begin
   sysinitunit:=defsinames[current_module.islibrary];
   prtobj:=defprtnames[current_module.islibrary];
 
-  if cs_profile in current_settings.moduleswitches then
+  if cs_profile in compiler.globals.current_settings.moduleswitches then
     begin
       prtobj:=gprtnames[libctype];
       sysinitunit:=gsinames[libctype];
@@ -1120,7 +1120,7 @@ var
       { TODO: to be compatible with ld search algorithm, each found file
         must be tested for target compatibility, incompatible ones should be skipped. }
       { TODO: shall we search library without suffix if one with suffix is not found? }
-      if (not(cs_link_staticflag in current_settings.globalswitches)) and
+      if (not(cs_link_staticflag in compiler.globals.current_settings.globalswitches)) and
          FindLibraryFile(s1,'','',s2) then
         LinkScript.Concat('READSTATICLIBRARY '+maybequoted(s2))
       { TODO: static libraries never have numeric suffix in their names }
@@ -1131,7 +1131,7 @@ var
     end;
 
 begin
-  if cs_profile in current_settings.moduleswitches then
+  if cs_profile in compiler.globals.current_settings.moduleswitches then
     begin
       if not(libctype in [glibc2,glibc21]) then
         AddSharedLibrary('gmon');
@@ -1151,13 +1151,13 @@ begin
       if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
         LinkScript.Concat('READOBJECT '+maybequoted(s));
       { then the crtbegin* }
-      if cs_create_pic in current_settings.moduleswitches then
+      if cs_create_pic in compiler.globals.current_settings.moduleswitches then
         begin
           if compiler.globals.librarysearchpath.FindFile('crtbeginS.o',false,s) then
             LinkScript.Concat('READOBJECT '+maybequoted(s));
         end
       else
-        if (cs_link_staticflag in current_settings.globalswitches) and
+        if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) and
           compiler.globals.librarysearchpath.FindFile('crtbeginT.o',false,s) then
           LinkScript.Concat('READOBJECT '+maybequoted(s))
         else if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
@@ -1190,11 +1190,11 @@ begin
         AddLibraryStatement(S);
     end;
 
-  if (cs_link_staticflag in current_settings.globalswitches) or
+  if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) or
     (linklibc and not reorder) then
     begin
       LinkScript.Concat('GROUP');
-      if (cs_link_staticflag in current_settings.globalswitches) then
+      if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
         begin
           AddLibraryStatement('gcc');
           AddLibraryStatement('gcc_eh');
@@ -1207,7 +1207,7 @@ begin
   { objects which must be at the end }
   if linklibc and (libctype<>uclibc) then
     begin
-      if cs_create_pic in current_settings.moduleswitches then
+      if cs_create_pic in compiler.globals.current_settings.moduleswitches then
         found1:=compiler.globals.librarysearchpath.FindFile('crtendS.o',false,s1)
       else
         found1:=compiler.globals.librarysearchpath.FindFile('crtend.o',false,s1);

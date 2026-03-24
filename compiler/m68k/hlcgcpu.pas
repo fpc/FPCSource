@@ -108,7 +108,7 @@ implementation
     begin
       //list.concat(tai_comment.create(strpnew('a_bit_set_const_ref: called!')));
       sref:=get_bit_const_ref_sref(bitnumber,destsize,ref);
-      tcg68k(cg).fixref(list,sref.ref,current_settings.cputype in cpu_coldfire);
+      tcg68k(cg).fixref(list,sref.ref,compiler.globals.current_settings.cputype in cpu_coldfire);
 
       { memory accesses of bset/bclr are always byte, so no alignment problem }
       list.concat(taicpu.op_const_ref(bit_set_clr_instr[doset],S_NO,8-sref.startbit-1,sref.ref));

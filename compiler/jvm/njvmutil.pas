@@ -325,7 +325,7 @@ implementation
   function tjvmnodeutils.check_insert_trashing(pd: tprocdef): boolean;
     begin
       { initialise locals with 0 }
-      if ts_init_locals in current_settings.targetswitches then
+      if ts_init_locals in compiler.globals.current_settings.targetswitches then
         localvartrashing:=high(trashintvalues);
       result:=inherited;
     end;

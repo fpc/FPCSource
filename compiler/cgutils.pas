@@ -587,14 +587,14 @@ uses
     function needs_check_for_fpu_exceptions: boolean;
       begin
 {$if defined(AARCH64)}
-        result:=cs_check_fpu_exceptions in current_settings.localswitches;
+        result:=cs_check_fpu_exceptions in compiler.globals.current_settings.localswitches;
 {$elseif defined(ARM)}
-        result:=(cs_check_fpu_exceptions in current_settings.localswitches) and
-          not(FPUARM_HAS_EXCEPTION_TRAPPING in fpu_capabilities[current_settings.fputype]);
+        result:=(cs_check_fpu_exceptions in compiler.globals.current_settings.localswitches) and
+          not(FPUARM_HAS_EXCEPTION_TRAPPING in fpu_capabilities[compiler.globals.current_settings.fputype]);
 {$elseif defined(RISCV)}
-        result:=cs_check_fpu_exceptions in current_settings.localswitches;
+        result:=cs_check_fpu_exceptions in compiler.globals.current_settings.localswitches;
 {$elseif defined(XTENSA)}
-        result:=cs_check_fpu_exceptions in current_settings.localswitches;
+        result:=cs_check_fpu_exceptions in compiler.globals.current_settings.localswitches;
 {$else}
         result:=false;
 {$endif}

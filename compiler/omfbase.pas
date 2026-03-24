@@ -2975,7 +2975,7 @@ implementation
     begin
       result:=segclass[atype];
 {$ifdef i8086}
-      if (current_settings.x86memorymodel=mm_huge) and
+      if (compiler.globals.current_settings.x86memorymodel=mm_huge) and
         ((result='DATA') or (result='BSS')) then
         result:='FAR_DATA';
 {$endif i8086}
@@ -3016,16 +3016,16 @@ implementation
 {$ifdef i8086}
       case omf_segclass(atype) of
         'CODE':
-          result:=current_settings.x86memorymodel=mm_tiny;
+          result:=compiler.globals.current_settings.x86memorymodel=mm_tiny;
         'FAR_DATA':
           result:=false;
         'DATA',
         'BSS':
           result:=true;
         'STACK':
-          result:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
+          result:=compiler.globals.current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
         'HEAP':
-          result:=current_settings.x86memorymodel in x86_near_data_models;
+          result:=compiler.globals.current_settings.x86memorymodel in x86_near_data_models;
         else
           result:=false;
       end;
@@ -3043,9 +3043,9 @@ implementation
         begin
           case omf_segclass(atype) of
             'CODE':
-              if current_settings.x86memorymodel in x86_far_code_models then
+              if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
                 begin
-                  if cs_huge_code in current_settings.moduleswitches then
+                  if cs_huge_code in compiler.globals.current_settings.moduleswitches then
                     result:=''
                   else
                     result:='CGROUP_'+current_module.modulename^;

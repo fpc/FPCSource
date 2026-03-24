@@ -532,7 +532,7 @@ implementation
                 { initialise left for nested procs if necessary (this won't need
                   to pass true for the forfuncref parameter, cause code that would
                   need that wouldn't have been reworked before it reaches pass_1) }
-                if (m_nested_procvars in current_settings.modeswitches) then
+                if (m_nested_procvars in compiler.globals.current_settings.modeswitches) then
                   setprocdef(fprocdef,false);
                 { method pointer or nested proc ? }
                 if assigned(left) then
@@ -596,7 +596,7 @@ implementation
              (po_delphi_nested_cc in p.procoptions)
            ) then
           begin
-            if not(m_nested_procvars in current_settings.modeswitches) then
+            if not(m_nested_procvars in compiler.globals.current_settings.modeswitches) then
               compiler.verbose.CGMessage(type_e_cant_take_address_of_local_subroutine)
             else
               begin
@@ -697,8 +697,8 @@ implementation
 {$if (cs_opt_use_load_modify_store in supported_optimizerswitches)}
         { Perform simple optimizations when -O2 and the dedicated
           cs_opt_use_load_modify_store optimization pass is not enabled. }
-        if (cs_opt_level2 in current_settings.optimizerswitches) and
-           not (cs_opt_use_load_modify_store in current_settings.optimizerswitches) then
+        if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) and
+           not (cs_opt_use_load_modify_store in compiler.globals.current_settings.optimizerswitches) then
           result:=try_opt_assignmentnode(self);
 {$endif}
       end;
@@ -842,7 +842,7 @@ implementation
                 not is_constrealnode(right)
 {$ifdef cpufpemu}
                 { the emulator can't do this obviously }
-                and not(current_settings.fputype in [fpu_libgcc,fpu_soft])
+                and not(compiler.globals.current_settings.fputype in [fpu_libgcc,fpu_soft])
 {$endif cpufpemu}
 
 {$ifdef x86}
@@ -862,8 +862,8 @@ implementation
                      (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype))
 {$endif arm}
 {$ifdef xtensa}
-                and not((FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) xor
-                  (FPUXTENSA_DOUBLE in fpu_capabilities[current_settings.fputype]))
+                and not((FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) xor
+                  (FPUXTENSA_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]))
 {$endif}
         then
           begin

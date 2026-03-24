@@ -390,7 +390,7 @@ implementation
         list.concat(types);
         result:=types;
         { we still need a DISubProgramType in this case, but not the list of types }
-        if not(cs_debuginfo in current_settings.moduleswitches) then
+        if not(cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           exit;
         if is_void(def.returndef) then
           types.addvalue(tai_simpletypedconst.create(llvm_metadatatype,nil))
@@ -933,7 +933,7 @@ implementation
         flags: TLLVMDIFlags;
       begin
         if is_dynamic_array(def) { and
-           not(llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion]) } then
+           not(llvmflag_array_datalocation in llvmversion_properties[compiler.globals.current_settings.llvmversion]) } then
           begin
             dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
             dinode.addenum('tag','DW_TAG_pointer_type');
@@ -948,7 +948,7 @@ implementation
         if is_open_array(def) then
           begin
             (*
-            if llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion] then
+            if llvmflag_array_datalocation in llvmversion_properties[compiler.globals.current_settings.llvmversion] then
               begin
                 dinode:=def_meta_impl(def);
                 { should be generated as part of the parasym }
@@ -971,7 +971,7 @@ implementation
           end;
 
         if is_special_array(def)
-           and not((llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion]) and
+           and not((llvmflag_array_datalocation in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
                    is_dynamic_array(def)) then
           internalerror(2021121902);
 
@@ -1630,8 +1630,8 @@ implementation
           islocal:=
             not((po_global in def.procoptions) and
                 (def.parast.symtablelevel<=normal_function_level));
-          adddefinitionlocal(dinode,is_definition,islocal,not(llvmflag_NoDISPFlags in llvmversion_properties[current_settings.llvmversion]),dispflags);
-          if llvmflag_NoDISPFlags in llvmversion_properties[current_settings.llvmversion] then
+          adddefinitionlocal(dinode,is_definition,islocal,not(llvmflag_NoDISPFlags in llvmversion_properties[compiler.globals.current_settings.llvmversion]),dispflags);
+          if llvmflag_NoDISPFlags in llvmversion_properties[compiler.globals.current_settings.llvmversion] then
             begin
               if is_virtual then
                 begin
@@ -1656,7 +1656,7 @@ implementation
             begin
               { this one will always be a definition, so no need to check
                 whether result is empty }
-              if not(llvmflag_NoDISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
+              if not(llvmflag_NoDISPFlagMainSubprogram in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
                  (def.proctypeoption=potype_proginit) then
                 dispflags:=dispflags+'|DISPFlagMainSubprogram';
             end;
@@ -1668,7 +1668,7 @@ implementation
         var
           diflags: TSymStr;
         begin
-          if (llvmflag_NoDISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
+          if (llvmflag_NoDISPFlagMainSubprogram in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
              (def.proctypeoption=potype_proginit) then
             diflags:='DIFlagMainSubprogram'
           else if def.owner.symtabletype in [objectsymtable,recordsymtable] then
@@ -1753,7 +1753,7 @@ implementation
           end
         else
           try_add_file_metaref(dinode,def.fileinfo,true);
-        if not(cs_debuginfo in current_settings.moduleswitches) then
+        if not(cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           begin
             def.dbg_state:=dbg_state_written;
             exit;
@@ -2566,7 +2566,7 @@ implementation
 
     function TDebugInfoLLVM.symdebugname(sym: tsym): TSymStr;
     begin
-      if ds_dwarf_cpp in current_settings.debugswitches then
+      if ds_dwarf_cpp in compiler.globals.current_settings.debugswitches then
         begin
           if sym.visibility=vis_hidden then
             result:=copy(sym.RealName,length('$hidden')+1,length(sym.RealName))
@@ -2689,16 +2689,16 @@ implementation
         ensuremetainit;
 
         { debug info header }
-        if ds_dwarf_cpp in current_settings.debugswitches then
+        if ds_dwarf_cpp in compiler.globals.current_settings.debugswitches then
           fcunode.addenum('language','DW_LANG_C_plus_plus')
         else
           fcunode.addenum('language','DW_LANG_Pascal83');
         fcunode.addmetadatarefto('file',file_getmetanode(compiler.globals.current_filepos.moduleindex,compiler.globals.current_filepos.fileindex));
         fcunode.addstring('producer','Free Pascal Compiler '+full_version_string);
-        fcunode.addboolean('isOptimized',cs_opt_level2 in current_settings.optimizerswitches);
+        fcunode.addboolean('isOptimized',cs_opt_level2 in compiler.globals.current_settings.optimizerswitches);
         if compiler.target.info.system in systems_objc_supported then
           begin
-            if ([m_objectivec1,m_objectivec2]*current_settings.modeswitches)<>[] then
+            if ([m_objectivec1,m_objectivec2]*compiler.globals.current_settings.modeswitches)<>[] then
               if compiler.target.info.system in systems_objc_nfabi then
                 objcruntimeversion:=2
               else
@@ -2707,7 +2707,7 @@ implementation
               objcruntimeversion:=0;
             fcunode.addint64('runtimeVersion',objcruntimeversion);
           end;
-        if cs_debuginfo in current_settings.moduleswitches then
+        if cs_debuginfo in compiler.globals.current_settings.moduleswitches then
           fcunode.addenum('emissionKind','FullDebug')
         else
           fcunode.addenum('emissionKind','LineTablesOnly');
@@ -2834,7 +2834,7 @@ implementation
         else if (sym.typ=typesym) and
                 is_objc_class_or_protocol(ttypesym(sym).typedef) then
           result:=tobjectdef(ttypesym(sym).typedef).objextname^
-        else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
+        else if (ds_dwarf_method_class_prefix in compiler.globals.current_settings.debugswitches) and
                 (sym.typ=procsym) and
                 (tprocsym(sym).owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
@@ -2954,7 +2954,7 @@ implementation
                 if assigned(positionmeta) then
                   taillvm(hp).addinsmetadata(tai_llvmmetadatareferenceoperand.createreferenceto('dbg',positionmeta));
 
-                if (cs_debuginfo in current_settings.moduleswitches) and
+                if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
                    (taillvm(hp).llvmopcode = la_call) then
                   updatelocalvardbginfo(taillvm(hp),pd,functionscope);
               end;

@@ -78,7 +78,7 @@ unit cpupi;
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
         if compiler.target.info.stackalign<=4 then
-          result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmax,4))
+          result:=Align(tg.direction*tg.lasttemp,min(compiler.globals.current_settings.alignment.localalignmax,4))
         else
           { aligned during stack frame allocation, because also depends number
             of saved registers }
@@ -100,7 +100,7 @@ unit cpupi;
 
     procedure tcpuprocinfo.allocate_got_register(list: tasmlist);
       begin
-        if (pi_uses_threadvar in flags) and (tf_section_threadvars in compiler.target.info.flags) and (current_settings.tlsmodel in [tlsm_global_dynamic]) then
+        if (pi_uses_threadvar in flags) and (tf_section_threadvars in compiler.target.info.flags) and (compiler.globals.current_settings.tlsmodel in [tlsm_global_dynamic]) then
           begin
             { FIXME: It is better to use an imaginary register for GOT and
               if EBX is needed for some reason just allocate EBX and
@@ -108,7 +108,7 @@ unit cpupi;
             cg.getcpuregister(list,NR_EBX);
             got := NR_EBX;
           end
-        else if cs_create_pic in current_settings.moduleswitches then
+        else if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           got := cg.getaddressregister(list);
       end;
 

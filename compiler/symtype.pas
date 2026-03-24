@@ -636,9 +636,11 @@ implementation
       end;
 
     procedure Tsym.IncRefCount;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         inc(refs);
-        if cs_browser in current_settings.moduleswitches then
+        if cs_browser in compiler.globals.current_settings.moduleswitches then
           begin
             MaybeCreateRefList;
             AddRef;

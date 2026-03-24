@@ -109,11 +109,11 @@ implementation
            else if (tordconstnode(right).value = int64(-1)) then
              begin
                // note: only in the signed case possible..., may overflow
-               if cs_check_overflow in current_settings.localswitches then
+               if cs_check_overflow in compiler.globals.current_settings.localswitches then
                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
                current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_NEG,
-                 resultreg,numerator),toppostfix(ord(cs_check_overflow in current_settings.localswitches)*ord(PF_S))));
+                 resultreg,numerator),toppostfix(ord(cs_check_overflow in compiler.globals.current_settings.localswitches)*ord(PF_S))));
              end
            else if isabspowerof2(tordconstnode(right).value,power) then
              begin
@@ -163,7 +163,7 @@ implementation
          begin
            { in case of overflow checking, also check for low(int64) div (-1)
              (no hardware support for this either) }
-           if (cs_check_overflow in current_settings.localswitches) and
+           if (cs_check_overflow in compiler.globals.current_settings.localswitches) and
               is_signed(left.resultdef) and
               ((right.nodetype<>ordconstn) or
                (tordconstnode(right).value=-1)) then
@@ -206,7 +206,7 @@ implementation
         if (right.nodetype=ordconstn) then
           begin
             { If optimising for size, just use regular division operations }
-            if (cs_opt_size in current_settings.optimizerswitches) or
+            if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
               ((tordconstnode(right).value=1) or
               (tordconstnode(right).value=int64(-1)) or
               isabspowerof2(tordconstnode(right).value,power)) then
@@ -223,7 +223,7 @@ implementation
                       end
                     { "not cs_opt_size" saves from checking the value of the divisor again
                       (if cs_opt_size is not set, then the divisor is a power of 2) }
-                    else if not (cs_opt_size in current_settings.optimizerswitches) then
+                    else if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                       begin
                         divider:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                         cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,tordconstnode(right).value.svalue,divider);

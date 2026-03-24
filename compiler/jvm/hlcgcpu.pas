@@ -271,7 +271,7 @@ implementation
       inc(fevalstackheight,slots);
       if (fevalstackheight>fmaxevalstackheight) then
         fmaxevalstackheight:=fevalstackheight;
-      if cs_asm_regalloc in current_settings.globalswitches then
+      if cs_asm_regalloc in compiler.globals.current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
@@ -281,9 +281,9 @@ implementation
         exit;
       dec(fevalstackheight,slots);
       if (fevalstackheight<0) and
-         not(cs_no_regalloc in current_settings.globalswitches) then
+         not(cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
         internalerror(2010120501);
-      if cs_asm_regalloc in current_settings.globalswitches then
+      if cs_asm_regalloc in compiler.globals.current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
@@ -891,7 +891,7 @@ implementation
         overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
       begin
         if ((op in overflowops) or
-            (current_settings.cputype=cpu_dalvik)) and
+            (compiler.globals.current_settings.cputype=cpu_dalvik)) and
            (def_cgsize(size) in [OS_8,OS_S8,OS_16,OS_S16]) then
           resize_stack_int_val(list,s32inttype,size,false);
       end;
@@ -1755,7 +1755,7 @@ implementation
     var
       hl : tasmlabel;
     begin
-      if not(cs_check_overflow in current_settings.localswitches) then
+      if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         exit;
       current_asmdata.getjumplabel(hl);
       a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
@@ -2225,7 +2225,7 @@ implementation
         to "truncate" it back to smallint) }
       if (not(fromcgsize in [OS_S64,OS_64,OS_32,OS_S32]) or
           not(tocgsize in [OS_S64,OS_64,OS_32,OS_S32])) and
-         (((current_settings.cputype=cpu_dalvik) and
+         (((compiler.globals.current_settings.cputype=cpu_dalvik) and
            not(tocgsize in [OS_32,OS_S32]) and
            not is_signed(fromsize) and
            is_signed(tosize)) or
@@ -2379,7 +2379,7 @@ implementation
           else if (vs.vardef.typ=enumdef) and
                   ((vs.typ<>fieldvarsym) or
                    (tdef(vs.owner.defowner).typ<>objectdef) or
-                   (ts_jvm_enum_field_init in current_settings.targetswitches)) and
+                   (ts_jvm_enum_field_init in compiler.globals.current_settings.targetswitches)) and
                   get_enum_init_val_ref(vs.vardef,initref) then
             allocate_enum_with_base_ref(list,vs,initref,ref);
         end;

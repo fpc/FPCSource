@@ -107,7 +107,7 @@ function TLinkerAmstradCPC.WriteResponseFile_Sdld: Boolean;
       s:=ObjectFiles.GetFirst;
       if s<>'' then
        begin
-        if not(cs_link_on_target in current_settings.globalswitches) then
+        if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
          s:=FindObjectFile(s,'',false);
         LinkRes.AddFileName((maybequoted(s)));
        end;
@@ -219,7 +219,7 @@ procedure TLinkerAmstradCPC.SetDefaultInfo_Vlink;
 
 procedure TLinkerAmstradCPC.SetDefaultInfo;
   begin
-    if not (cs_link_vlink in current_settings.globalswitches) then
+    if not (cs_link_vlink in compiler.globals.current_settings.globalswitches) then
       SetDefaultInfo_Sdld
     else
       SetDefaultInfo_Vlink;
@@ -244,7 +244,7 @@ function TLinkerAmstradCPC.MakeExecutable_Sdld: boolean;
     DynLinkStr:='';
     FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
 
-    if (cs_link_map in current_settings.globalswitches) then
+    if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-mw';
 
   { Write used files and libraries }
@@ -265,11 +265,11 @@ function TLinkerAmstradCPC.MakeExecutable_Sdld: boolean;
     success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
-    if success and not(cs_link_nolink in current_settings.globalswitches) then
+    if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
      DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   { Post process }
-    if success and not(cs_link_nolink in current_settings.globalswitches) then
+    if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
 
     result:=success;   { otherwise a recursive call to link method }
@@ -292,7 +292,7 @@ function TLinkerAmstradCPC.MakeExecutable_Vlink: boolean;
     StartSymbolStr:='start';
     FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
 
-    if (cs_link_map in current_settings.globalswitches) then
+    if (cs_link_map in compiler.globals.current_settings.globalswitches) then
       MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename));
 
   { Write used files and libraries }
@@ -312,11 +312,11 @@ function TLinkerAmstradCPC.MakeExecutable_Vlink: boolean;
     success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
-    if success and not(cs_link_nolink in current_settings.globalswitches) then
+    if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
      DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   { Post process }
-    if success and not(cs_link_nolink in current_settings.globalswitches) then
+    if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
 
     result:=success;
@@ -324,7 +324,7 @@ function TLinkerAmstradCPC.MakeExecutable_Vlink: boolean;
 
 function TLinkerAmstradCPC.MakeExecutable: boolean;
   begin
-    if not (cs_link_vlink in current_settings.globalswitches) then
+    if not (cs_link_vlink in compiler.globals.current_settings.globalswitches) then
       result:=MakeExecutable_Sdld
     else
       result:=MakeExecutable_Vlink;
@@ -361,7 +361,7 @@ procedure TInternalLinkerAmstradCPC.DefaultLinkScript;
         s:=ObjectFiles.GetFirst;
         if s<>'' then
           begin
-            if not(cs_link_on_target in current_settings.globalswitches) then
+            if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
               s:=FindObjectFile(s,'',false);
             LinkScript.Concat('READOBJECT ' + maybequoted(s));
           end;
@@ -419,7 +419,7 @@ function TInternalLinkerAmstradCPC.MakeExecutable: boolean;
   begin
     result:=inherited;
     { Post process }
-    if result and not(cs_link_nolink in current_settings.globalswitches) then
+    if result and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
       result:=PostProcessExecutable(current_module.exefilename);
   end;
 

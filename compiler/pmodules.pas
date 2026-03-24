@@ -178,8 +178,8 @@ implementation
 
         { Start and end module debuginfo, at least required for stabs
           to insert n_sourcefile lines }
-        if (cs_debuginfo in current_settings.moduleswitches) or
-           (cs_use_lineinfo in current_settings.globalswitches) then
+        if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) or
+           (cs_use_lineinfo in compiler.globals.current_settings.globalswitches) then
           current_debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
@@ -210,7 +210,7 @@ implementation
             curr.linkunitstaticlibs.add(curr.staticlibfilename ,link_smart);
             curr.headerflags:=curr.headerflags or uf_smart_linked;
           end;
-        if cs_lto in current_settings.moduleswitches then
+        if cs_lto in compiler.globals.current_settings.moduleswitches then
           begin
             curr.linkunitofiles.add(ChangeFileExt(curr.objfilename,compiler.globals.LTOExt),link_lto);
             curr.headerflags:=curr.headerflags or uf_lto_linked;
@@ -276,7 +276,7 @@ implementation
         { add to symtable stack }
         if assigned(hp.globalsymtable) then
           compiler.symtablestack.push(hp.globalsymtable);
-        if (m_mac in current_settings.modeswitches) and
+        if (m_mac in compiler.globals.current_settings.modeswitches) and
             assigned(hp.globalmacrosymtable) then
           compiler.macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
@@ -402,7 +402,7 @@ implementation
         compiler.macrosymtablestack.push(compiler.initialmacrosymtable);
 
         { are we compiling the system unit? }
-        if (cs_compilesystem in current_settings.moduleswitches) then
+        if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
          begin
            systemunit:=tglobalsymtable(curr.localsymtable);
            { create system defines }
@@ -435,10 +435,10 @@ implementation
         generrordef.owner:=systemunit;
         // Implicitly enable unicode strings in unicode RTL in modes objfpc/delphi.
         { TODO: Check if we should also do this for mode macpas }
-        if not (cs_compilesystem in current_settings.moduleswitches) then
-          if ([m_objfpc,m_delphi] * current_settings.modeswitches)<>[] then
+        if not (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
+          if ([m_objfpc,m_delphi] * compiler.globals.current_settings.modeswitches)<>[] then
             if is_systemunit_unicode then
-              Include(current_settings.modeswitches,m_default_unicodestring);
+              Include(compiler.globals.current_settings.modeswitches,m_default_unicodestring);
 
         { default the extended RTTI options to that of TObject }
         if assigned(class_tobject) then
@@ -470,14 +470,14 @@ implementation
         if not(curr.is_unit) then
          begin
            { Heaptrc unit, load heaptrace before any other units especially objpas }
-           if (cs_use_heaptrc in current_settings.globalswitches) then
+           if (cs_use_heaptrc in compiler.globals.current_settings.globalswitches) then
              CheckAddUnit('heaptrc');
            { Valgrind requires c memory manager }
-           if (cs_gdb_valgrind in current_settings.globalswitches) or
-              (([cs_sanitize_address]*current_settings.moduleswitches)<>[]) then
+           if (cs_gdb_valgrind in compiler.globals.current_settings.globalswitches) or
+              (([cs_sanitize_address]*compiler.globals.current_settings.moduleswitches)<>[]) then
              CheckAddUnit('cmem');
            { Lineinfo unit }
-           if (cs_use_lineinfo in current_settings.globalswitches) then begin
+           if (cs_use_lineinfo in compiler.globals.current_settings.globalswitches) then begin
              case compiler.target.dbg.id of
                dbg_stabs:
                  CheckAddUnit('lineinfo');
@@ -490,7 +490,7 @@ implementation
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)
-           if (cs_fp_emulation in current_settings.moduleswitches) and not(compiler.target.info.system in system_wince) then
+           if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) and not(compiler.target.info.system in system_wince) then
              CheckAddUnit('softfpu');
            }
 {$endif cpufpemu}
@@ -503,20 +503,20 @@ implementation
              else
                CheckAddUnit('fpintres');
          end
-        else if (cs_checkpointer in current_settings.localswitches) then
+        else if (cs_checkpointer in compiler.globals.current_settings.localswitches) then
           CheckAddUnit('heaptrc');
         { Objpas unit? }
-        if m_objpas in current_settings.modeswitches then
+        if m_objpas in compiler.globals.current_settings.modeswitches then
           CheckAddUnit('objpas');
 
         { Macpas unit? }
-        if m_mac in current_settings.modeswitches then
+        if m_mac in compiler.globals.current_settings.modeswitches then
           CheckAddUnit('macpas');
 
-        if m_iso in current_settings.modeswitches then
+        if m_iso in compiler.globals.current_settings.modeswitches then
           CheckAddUnit('iso7185');
 
-        if m_extpas in current_settings.modeswitches then
+        if m_extpas in compiler.globals.current_settings.modeswitches then
           begin
             { basic procedures for Extended Pascal are for now provided by the iso unit }
             CheckAddUnit('iso7185');
@@ -524,7 +524,7 @@ implementation
           end;
 
         { blocks support? }
-        if m_blocks in current_settings.modeswitches then
+        if m_blocks in compiler.globals.current_settings.modeswitches then
           CheckAddUnit('blockrtl');
 
         { Determine char size. }
@@ -532,19 +532,19 @@ implementation
         // Ansi RTL ?
         if not is_systemunit_unicode then
           begin
-          if m_default_unicodestring in current_settings.modeswitches then
+          if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
             CheckAddUnit('uuchar'); // redefines char as widechar
           end
         else
           begin
           // Unicode RTL
-          if not (m_default_ansistring in current_settings.modeswitches) then
+          if not (m_default_ansistring in compiler.globals.current_settings.modeswitches) then
             if not (curr.modulename^<>'UACHAR') then
               CheckAddUnit('uachar'); // redefines char as ansichar
           end;
 
         { Objective-C support unit? }
-        if (m_objectivec1 in current_settings.modeswitches) then
+        if (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
           begin
             { interface to Objective-C run time }
             CheckAddUnit('objc');
@@ -555,10 +555,10 @@ implementation
               CheckAddUnit('objcbase');
           end;
         { Profile unit? Needed for go32v2 only }
-        if (cs_profile in current_settings.moduleswitches) and
+        if (cs_profile in compiler.globals.current_settings.moduleswitches) and
            (compiler.target.info.system in [system_i386_go32v2,system_i386_watcom]) then
           CheckAddUnit('profile');
-        if (cs_load_fpcylix_unit in current_settings.globalswitches) then
+        if (cs_load_fpcylix_unit in compiler.globals.current_settings.globalswitches) then
           begin
             CheckAddUnit('fpcylix');
             CheckAddUnit('dynlibs');
@@ -567,14 +567,14 @@ implementation
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
         { CPU targets with microcontroller support can add a controller specific unit }
         if ControllerSupport and (compiler.target.info.system in (systems_embedded+systems_freertos)) and
-          (current_settings.controllertype<>ct_none) and
-          (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') and
-          (embedded_controllers[current_settings.controllertype].controllerunitstr<>curr.modulename^) then
-          CheckAddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
+          (compiler.globals.current_settings.controllertype<>ct_none) and
+          (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr<>'') and
+          (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr<>curr.modulename^) then
+          CheckAddUnit(embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr);
 {$pop}
 {$ifdef XTENSA}
         if not(curr.is_unit) and (compiler.target.info.system=system_xtensa_freertos) then
-          if (current_settings.controllertype=ct_esp32) then
+          if (compiler.globals.current_settings.controllertype=ct_esp32) then
             begin
               if (compiler.globals.idf_version>=40100) and (compiler.globals.idf_version<40200) then
                 CheckAddUnit('espidf_40100')
@@ -589,7 +589,7 @@ implementation
               else
                 compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
             end
-          else if (current_settings.controllertype=ct_esp32s2) or (current_settings.controllertype=ct_esp32s3) then
+          else if (compiler.globals.current_settings.controllertype=ct_esp32s2) or (compiler.globals.current_settings.controllertype=ct_esp32s3) then
             begin
               if (compiler.globals.idf_version>=40400) and (compiler.globals.idf_version<50000) then
                 CheckAddUnit('espidf_40400')
@@ -600,7 +600,7 @@ implementation
               else
                 compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
             end
-          else if (current_settings.controllertype=ct_esp8266) then
+          else if (compiler.globals.current_settings.controllertype=ct_esp8266) then
             begin
               if (compiler.globals.idf_version>=30300) and (compiler.globals.idf_version<30400) then
                 CheckAddUnit('esp8266rtos_30300')
@@ -612,7 +612,7 @@ implementation
 {$endif XTENSA}
 {$ifdef RISCV32}
         if not(curr.is_unit) and (compiler.target.info.system=system_riscv32_freertos) then
-          if (current_settings.controllertype=ct_esp32c2) then
+          if (compiler.globals.current_settings.controllertype=ct_esp32c2) then
             begin
               if compiler.globals.idf_version>=50200 then
                 CheckAddUnit('esp32c2idf_50200')
@@ -623,7 +623,7 @@ implementation
               else
                 compiler.verbose.Comment(V_Warning, 'Unsupported esp-idf version');
             end;
-          if (current_settings.controllertype=ct_esp32c3) then
+          if (compiler.globals.current_settings.controllertype=ct_esp32c3) then
             begin
               if compiler.globals.idf_version>=50300 then
                 CheckAddUnit('esp32c3idf_50300')
@@ -636,7 +636,7 @@ implementation
               else
                 compiler.verbose.Message(unit_w_unsupported_esp_idf_version);
             end;
-          if (current_settings.controllertype=ct_esp32c6) then
+          if (compiler.globals.current_settings.controllertype=ct_esp32c6) then
             begin
               if compiler.globals.idf_version>=50200 then
                 CheckAddUnit('esp32c6idf_50200')
@@ -703,7 +703,7 @@ implementation
             end;
           { support "<unit> in '<file>'" construct, but not for tp7 }
           fn:='';
-          if not(m_tp7 in current_settings.modeswitches) and
+          if not(m_tp7 in compiler.globals.current_settings.modeswitches) and
              parser.pbase.try_to_consume(_OP_IN) then
             fn:=FixFileName(parser.pexpr.get_stringconst);
           { Give a warning if lineinfo is loaded }
@@ -785,7 +785,7 @@ implementation
         state:=tglobalstate.create(false,compiler);
 
         { reset verbosity (otherwise the used units would use curr's pmessage) }
-        current_settings.pmessage:=nil;
+        compiler.globals.current_settings.pmessage:=nil;
         compiler.verbose.RestoreLocalVerbosity(nil);
 
         { Load the units }
@@ -907,7 +907,7 @@ implementation
              compiler.symtablestack.pushafter(pu.u.globalsymtable,preservest)
            else
              compiler.symtablestack.push(pu.u.globalsymtable);
-           if (m_mac in current_settings.modeswitches) and
+           if (m_mac in compiler.globals.current_settings.modeswitches) and
               assigned(pu.u.globalmacrosymtable) then
              compiler.macrosymtablestack.push(pu.u.globalmacrosymtable);
 
@@ -1018,7 +1018,7 @@ implementation
 
     procedure TModulesParser.setupglobalswitches;
       begin
-        if (cs_create_pic in current_settings.moduleswitches) then
+        if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             def_system_macro('FPC_PIC');
             def_system_macro('PIC');
@@ -1084,7 +1084,7 @@ implementation
 {$endif i386 or sparcgen}
       begin
 {$if defined(i386) or defined(sparcgen)}
-         if (cs_create_pic in current_settings.moduleswitches) and
+         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
             (tf_pic_uses_got in compiler.target.info.flags) then
            begin
              { insert symbol for got access in assembler code}
@@ -1340,7 +1340,7 @@ type
           are put in the globalmacrosymtable that will only be used by other
           units. The current unit continues to use the localmacrosymtable }
 
-        if (m_mac in current_settings.modeswitches) then
+        if (m_mac in compiler.globals.current_settings.modeswitches) then
           begin
             curr.globalmacrosymtable:=tmacrosymtable.create(true,compiler);
             curr.localmacrosymtable.SymList.ForEachCall(@copy_macro,curr);
@@ -1374,7 +1374,7 @@ type
         curr.interface_compiled:=true;
 
         { Parse the implementation section }
-        if (m_mac in current_settings.modeswitches) and parser.pbase.try_to_consume(_END) then
+        if (m_mac in compiler.globals.current_settings.modeswitches) and parser.pbase.try_to_consume(_END) then
           curr.interface_only:=true
         else
           curr.interface_only:=false;
@@ -1430,7 +1430,7 @@ type
       begin
          result:=true;
 
-         if m_mac in current_settings.modeswitches then
+         if m_mac in compiler.globals.current_settings.modeswitches then
            curr.mode_switch_allowed:= false;
 
          parser.pbase.consume(_UNIT);
@@ -1464,7 +1464,7 @@ type
          new(s2);
          s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name),''));
          unitname8:=copy(curr.modulename^,1,8);
-         if (cs_check_unit_name in current_settings.globalswitches) and
+         if (cs_check_unit_name in compiler.globals.current_settings.globalswitches) and
             (
              not(
                  (curr.modulename^=s2^) or
@@ -1481,7 +1481,7 @@ type
             ) then
            compiler.verbose.Message2(unit_e_illegal_unit_name,curr.realmodulename^,s1^);
          if (curr.modulename^='SYSTEM') then
-           include(current_settings.moduleswitches,cs_compilesystem);
+           include(compiler.globals.current_settings.moduleswitches,cs_compilesystem);
          dispose(s2);
          dispose(s1);
 
@@ -1526,20 +1526,20 @@ type
 
          { maybe turn off m_objpas if we are compiling objpas }
          if (curr.modulename^='OBJPAS') then
-           exclude(current_settings.modeswitches,m_objpas);
+           exclude(compiler.globals.current_settings.modeswitches,m_objpas);
 
          { maybe turn off m_mac if we are compiling macpas }
          if (curr.modulename^='MACPAS') then
-           exclude(current_settings.modeswitches,m_mac);
+           exclude(compiler.globals.current_settings.modeswitches,m_mac);
 
          parser.pbase.parse_only:=true;
 
          { load default units, like language mode units }
-         if not(cs_compilesystem in current_settings.moduleswitches) then
+         if not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
            load_ok:=loaddefaultunits(curr) and load_ok;
 
          { insert qualifier for the system unit (allows system.writeln) }
-         if not(cs_compilesystem in current_settings.moduleswitches) and
+         if not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) and
             (current_scanner.token=_USES) then
            begin
              // We do this as late as possible.
@@ -1795,7 +1795,7 @@ type
          compiler.nodeutils.InsertResStrInits;
 
          { generate debuginfo }
-         if (cs_debuginfo in current_settings.moduleswitches) then
+         if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
          { generate imports }
@@ -1880,7 +1880,7 @@ type
         if result then
           tppumodule(module).writeppu;
 
-        if not(cs_compilesystem in current_settings.moduleswitches) then
+        if not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
           begin
             if store_interface_crc<>module.interface_crc then
               compiler.verbose.Message1(unit_u_interface_crc_changed,module.ppufilename);
@@ -1888,7 +1888,7 @@ type
               compiler.verbose.Message1(unit_u_indirect_crc_changed,module.ppufilename);
           end;
 {$ifdef EXTDEBUG}
-        if not(cs_compilesystem in current_settings.moduleswitches) then
+        if not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
           if (store_crc<>module.crc) then
             compiler.verbose.Message1(unit_u_implementation_crc_changed,module.ppufilename);
 {$endif EXTDEBUG}
@@ -2006,16 +2006,16 @@ type
          { Internal linker does not have this problem.            }
          if compiler.globals.RelocSection and
             (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
-            (cs_link_extern in current_settings.globalswitches) then
+            (cs_link_extern in compiler.globals.current_settings.globalswitches) then
            begin
-              include(current_settings.globalswitches,cs_link_strip);
+              include(compiler.globals.current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
-              if (cs_debuginfo in current_settings.moduleswitches) and
+              if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   compiler.verbose.Message(parser_w_parser_win32_debug_needs_WN);
-                  exclude(current_settings.moduleswitches,cs_debuginfo);
+                  exclude(compiler.globals.current_settings.moduleswitches,cs_debuginfo);
                 end;
            end;
          { get correct output names }
@@ -2043,7 +2043,7 @@ type
          pkg:=tpcppackage.create(module_name,compiler);
 
          if tf_library_needs_pic in compiler.target.info.flags then
-           include(current_settings.moduleswitches,cs_create_pic);
+           include(compiler.globals.current_settings.moduleswitches,cs_create_pic);
 
          { setup things using the switches, do this before the semicolon, because after the semicolon has been
            read, all following directives are parsed as well }
@@ -2297,7 +2297,7 @@ type
 {$endif arm}
 
          { generate debuginfo }
-         if (cs_debuginfo in current_settings.moduleswitches) then
+         if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
          compiler.exportlib.generatelib;
@@ -2313,7 +2313,7 @@ type
            compiler.importlib.generatelib;
 
          { Reference all DEBUGINFO sections from the main .fpc section }
-         if (cs_debuginfo in current_settings.moduleswitches) then
+         if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
            current_debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
 
          { insert own objectfile }
@@ -2375,7 +2375,7 @@ type
                  { create global resource file by collecting all resource files }
                  CollectResourceFiles;
                  { write .def file }
-                 if (cs_link_deffile in current_settings.globalswitches) then
+                 if (cs_link_deffile in compiler.globals.current_settings.globalswitches) then
                    deffile.writefile;
 
                  { generate the pcp file }
@@ -2431,7 +2431,7 @@ type
             { create global resource file by collecting all resource files }
             CollectResourceFiles;
             { write .def file }
-            if (cs_link_deffile in current_settings.globalswitches) then
+            if (cs_link_deffile in compiler.globals.current_settings.globalswitches) then
              deffile.writefile;
             { link SysInit (if any) first, to have behavior consistent with
               assembler startup files }
@@ -2574,14 +2574,14 @@ type
         compiler.objcgutl.MaybeGenerateObjectiveCImageInfo(nil,curr.localsymtable);
 
         { generate debuginfo }
-        if (cs_debuginfo in current_settings.moduleswitches) then
+        if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           current_debuginfo.inserttypeinfo;
 
         if islibrary or (compiler.target.info.system in systems_unit_program_exports) then
           compiler.exportlib.generatelib;
 
         { Reference all DEBUGINFO sections from the main .fpc section }
-        if (cs_debuginfo in current_settings.moduleswitches) then
+        if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) then
           current_debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
 
         { Resource strings }
@@ -2626,7 +2626,7 @@ type
           which is a dummy function PM }
         needsymbolinfo:=
           (do_extractsymbolinfo<>@def_extractsymbolinfo) or
-          ((current_settings.genwpoptimizerswitches*WPOptimizationsNeedingAllUnitInfo)<>[]);
+          ((compiler.globals.current_settings.genwpoptimizerswitches*WPOptimizationsNeedingAllUnitInfo)<>[]);
 
         { release all local symtables that are not needed anymore }
         if (not needsymbolinfo) then
@@ -2883,7 +2883,7 @@ type
 
         if tf_library_needs_pic in compiler.target.info.flags then
          begin
-           include(current_settings.moduleswitches,cs_create_pic);
+           include(compiler.globals.current_settings.moduleswitches,cs_create_pic);
            { also set create_pic for all unit compilation }
            include(init_settings.moduleswitches,cs_create_pic);
          end;
@@ -2922,7 +2922,7 @@ type
                parser.pbase.consume(_LKLAMMER);
                paramnum:=1;
                repeat
-                 if m_isolike_program_para in current_settings.modeswitches then
+                 if m_isolike_program_para in compiler.globals.current_settings.modeswitches then
                    begin
                      if (current_scanner.pattern<>'INPUT') and (current_scanner.pattern<>'OUTPUT') then
                        begin
@@ -2994,16 +2994,16 @@ type
          { Internal linker does not have this problem.            }
          if compiler.globals.RelocSection and
             (compiler.target.info.system in systems_all_windows+[system_i386_wdosx]) and
-            (cs_link_extern in current_settings.globalswitches) then
+            (cs_link_extern in compiler.globals.current_settings.globalswitches) then
            begin
-              include(current_settings.globalswitches,cs_link_strip);
+              include(compiler.globals.current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
-              if (cs_debuginfo in current_settings.moduleswitches) and
+              if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
                  (compiler.target.dbg.id=dbg_stabs) then
                 begin
                   compiler.verbose.Message1(parser_w_parser_reloc_no_debug,curr.mainsource);
                   compiler.verbose.Message(parser_w_parser_win32_debug_needs_WN);
-                  exclude(current_settings.moduleswitches,cs_debuginfo);
+                  exclude(compiler.globals.current_settings.moduleswitches,cs_debuginfo);
                 end;
            end;
          { get correct output names }

@@ -292,7 +292,7 @@ interface
     procedure twasmaddnode.second_addboolean;
       begin
         if (nodetype in [orn,andn]) and
-           (not(cs_full_boolean_eval in current_settings.localswitches) or
+           (not(cs_full_boolean_eval in compiler.globals.current_settings.localswitches) or
             (anf_short_bool in addnodeflags)) then
         begin
           secondpass(left);

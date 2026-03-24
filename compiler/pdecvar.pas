@@ -429,7 +429,7 @@ implementation
            begin
               { Published indexed properties are allowed in Delphi in interfaces compiled with $M+. }
               if (p.visibility=vis_published) and
-                not((m_delphi in current_settings.modeswitches) and is_interfacecom_or_dispinterface(astruct)) then
+                not((m_delphi in compiler.globals.current_settings.modeswitches) and is_interfacecom_or_dispinterface(astruct)) then
                 compiler.verbose.Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               p.parast:=tparasymtable.create(nil,0,compiler);
@@ -442,7 +442,7 @@ implementation
                   varspez:=vs_const
                 else if parser.pbase.try_to_consume(_CONSTREF) then
                   varspez:=vs_constref
-                else if (m_out in current_settings.modeswitches) and parser.pbase.try_to_consume(_OUT) then
+                else if (m_out in compiler.globals.current_settings.modeswitches) and parser.pbase.try_to_consume(_OUT) then
                   varspez:=vs_out
                 else
                   varspez:=vs_value;
@@ -1002,14 +1002,14 @@ implementation
       C_name:=vs.realname;
 
       { macpas specific handling due to some switches}
-      if (m_mac in current_settings.modeswitches) then
+      if (m_mac in compiler.globals.current_settings.modeswitches) then
         begin
-          if (cs_external_var in current_settings.localswitches) then
+          if (cs_external_var in compiler.globals.current_settings.localswitches) then
             begin {The effect of this is the same as if cvar; external; has been given as directives.}
               is_cdecl:=true;
               is_external_var:=true;
             end
-          else if (cs_externally_visible in current_settings.localswitches) then
+          else if (cs_externally_visible in compiler.globals.current_settings.localswitches) then
             begin {The effect of this is the same as if cvar has been given as directives and it's made public.}
               is_cdecl:=true;
               is_public_var:=true;
@@ -1438,7 +1438,7 @@ implementation
                if (current_scanner.token = _ID) then
                  begin
                    isgeneric:=(vd_check_generic in options) and
-                                not (m_delphi in current_settings.modeswitches) and
+                                not (m_delphi in compiler.globals.current_settings.modeswitches) and
                                 (current_scanner.idtoken=_GENERIC);
                    case compiler.symtablestack.top.symtabletype of
                      localsymtable :
@@ -1499,7 +1499,7 @@ implementation
              typepos:=compiler.globals.current_tokenpos;
 
 {$ifdef gpc_mode}
-             if (m_gpc in current_settings.modeswitches) and
+             if (m_gpc in compiler.globals.current_settings.modeswitches) and
                 (token=_ID) and
                 (current_scanner.orgpattern='__asmname__') then
                read_gpc_name(sc);
@@ -1549,7 +1549,7 @@ implementation
              { Handling of Delphi typed const = initialized vars }
              if allowdefaultvalue and
                 (current_scanner.token=_EQ) and
-                not(m_tp7 in current_settings.modeswitches) and
+                not(m_tp7 in compiler.globals.current_settings.modeswitches) and
                 (compiler.symtablestack.top.symtabletype<>parasymtable) then
                begin
                  { Add calling convention for procvar }
@@ -1561,7 +1561,7 @@ implementation
                    begin
                      if po_is_function_ref in tprocvardef(hdef).procoptions then
                        begin
-                         if not (m_function_references in current_settings.modeswitches) and
+                         if not (m_function_references in compiler.globals.current_settings.modeswitches) and
                              not (po_is_block in tprocvardef(hdef).procoptions) then
                            compiler.verbose.MessagePos(typepos,sym_e_error_in_type_def)
                          else
@@ -1600,7 +1600,7 @@ implementation
                  maybe_parse_proc_directives(hdef);
                  if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                    begin
-                     if not (m_function_references in current_settings.modeswitches) and
+                     if not (m_function_references in compiler.globals.current_settings.modeswitches) and
                          not (po_is_block in tprocvardef(hdef).procoptions) then
                        compiler.verbose.MessagePos(typepos,sym_e_error_in_type_def)
                      else
@@ -1624,7 +1624,7 @@ implementation
                  parser.pparautl.handle_calling_convention(hdef,flags);
                  { Handling of Delphi typed const = initialized vars }
                  if (current_scanner.token=_EQ) and
-                    not(m_tp7 in current_settings.modeswitches) and
+                    not(m_tp7 in compiler.globals.current_settings.modeswitches) and
                     (compiler.symtablestack.top.symtabletype<>parasymtable) then
                    begin
                      read_default_value(sc);
@@ -1636,13 +1636,13 @@ implementation
              if (
                  (
                   ((current_scanner.idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (current_scanner.idtoken = _WEAKEXTERNAL)) and
-                  (m_cvar_support in current_settings.modeswitches)
+                  (m_cvar_support in compiler.globals.current_settings.modeswitches)
                  ) or
                  (
-                  (m_mac in current_settings.modeswitches) and
+                  (m_mac in compiler.globals.current_settings.modeswitches) and
                   (
-                   (cs_external_var in current_settings.localswitches) or
-                   (cs_externally_visible in current_settings.localswitches)
+                   (cs_external_var in compiler.globals.current_settings.localswitches) or
+                   (cs_externally_visible in compiler.globals.current_settings.localswitches)
                   )
                  )
                 ) then
@@ -1783,9 +1783,9 @@ implementation
          attr_element_count:=0;
          while (current_scanner.token=_ID) and
             not(((vd_object in options) or
-                 ((vd_record in options) and (m_advanced_records in current_settings.modeswitches))) and
+                 ((vd_record in options) and (m_advanced_records in compiler.globals.current_settings.modeswitches))) and
                 ((current_scanner.idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT]) or
-                 ((m_final_fields in current_settings.modeswitches) and
+                 ((m_final_fields in compiler.globals.current_settings.modeswitches) and
                   (current_scanner.idtoken=_FINAL)))) do
            begin
              visibility:=compiler.symtablestack.top.currentvisibility;
@@ -1822,7 +1822,7 @@ implementation
                else
                  vs.free; // no nil needed
              until not parser.pbase.try_to_consume(_COMMA);
-             if m_delphi in current_settings.modeswitches then
+             if m_delphi in compiler.globals.current_settings.modeswitches then
                compiler.globals.block_type:=bt_var_type
              else
                compiler.globals.block_type:=old_block_type;
@@ -1945,7 +1945,7 @@ implementation
                begin
                  if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                    begin
-                     if not (m_function_references in current_settings.modeswitches) and
+                     if not (m_function_references in compiler.globals.current_settings.modeswitches) and
                          not (po_is_block in tprocvardef(hdef).procoptions) then
                        compiler.verbose.MessagePos(typepos,sym_e_error_in_type_def)
                      else
@@ -1988,7 +1988,7 @@ implementation
 
              if (visibility=vis_published) and
                 not(oo_can_have_published in tobjectdef(hdef).objectoptions) and
-                not(m_delphi in current_settings.modeswitches) then
+                not(m_delphi in compiler.globals.current_settings.modeswitches) then
                begin
                  compiler.verbose.MessagePos(tfieldvarsym(sc[0]).fileinfo,parser_e_only_publishable_classes_can_be_published);
                  visibility:=vis_public;
@@ -2033,7 +2033,7 @@ implementation
                reorderlist.concatlistcopy(sc)
            end;
 
-         if m_delphi in current_settings.modeswitches then
+         if m_delphi in compiler.globals.current_settings.modeswitches then
            compiler.globals.block_type:=bt_var_type
          else
            compiler.globals.block_type:=old_block_type;
@@ -2084,7 +2084,7 @@ implementation
                 compiler.verbose.Message(type_e_ordinal_expr_expected);
               parser.pbase.consume(_OF);
 
-              UnionSymtable:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
+              UnionSymtable:=trecordsymtable.create('',compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
               UnionDef:=crecorddef.create('',unionsymtable,compiler);
               uniondef.isunion:=true;
 
@@ -2104,7 +2104,7 @@ implementation
                     compiler.verbose.Message(parser_e_illegal_expression);
                   inserttypeconv(pt,casetype,compiler);
                   { iso pascal does not support ranges in variant record definitions }
-                  if (([m_iso,m_extpas]*current_settings.modeswitches)=[]) and parser.pbase.try_to_consume(_POINTPOINT) then
+                  if (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)=[]) and parser.pbase.try_to_consume(_POINTPOINT) then
                     pt:=compiler.crangenode(pt,parser.pexpr.comp_expr([ef_accept_equal]))
                   else
                     begin
@@ -2121,7 +2121,7 @@ implementation
                   else
                     break;
                 until false;
-                if m_delphi in current_settings.modeswitches then
+                if m_delphi in compiler.globals.current_settings.modeswitches then
                   compiler.globals.block_type:=bt_var_type
                 else
                   compiler.globals.block_type:=old_block_type;
@@ -2166,7 +2166,7 @@ implementation
                 { (within the global min/max limits)                     }
                 0, { default }
                 C_alignment:
-                  usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+                  usedalign:=used_align(unionsymtable.recordalignment,compiler.globals.current_settings.alignment.recordalignmin,compiler.globals.current_settings.alignment.maxCrecordalign);
                 { 1 byte alignment if we are bitpacked }
                 bit_alignment:
                   usedalign:=1;
@@ -2175,7 +2175,7 @@ implementation
                 { otherwise alignment at the packrecords alignment of the }
                 { current record                                          }
                 else
-                  usedalign:=used_align(recst.fieldalignment,current_settings.alignment.recordalignmin,current_settings.alignment.recordalignmax);
+                  usedalign:=used_align(recst.fieldalignment,compiler.globals.current_settings.alignment.recordalignmin,compiler.globals.current_settings.alignment.recordalignmax);
               end;
               offset:=align(recst.datasize,usedalign);
               recst.datasize:=offset+unionsymtable.datasize;

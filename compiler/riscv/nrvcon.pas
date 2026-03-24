@@ -58,9 +58,9 @@ implementation
       begin
         result:=is_number_float(value_real) and (value_real=0.0) and (get_real_sign(value_real)=1) and
           (
-            ((CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and is_single(resultdef))
+            ((CPURV_HAS_F in cpu_capabilities[compiler.globals.current_settings.cputype]) and is_single(resultdef))
 {$ifdef RISCV64}
-            or ((CPURV_HAS_D in cpu_capabilities[current_settings.cputype]) and is_double(resultdef))
+            or ((CPURV_HAS_D in cpu_capabilities[compiler.globals.current_settings.cputype]) and is_double(resultdef))
 {$endif RISCV64}
           );
       end;

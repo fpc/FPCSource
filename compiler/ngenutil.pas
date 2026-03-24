@@ -390,7 +390,7 @@ implementation
            (tabstractvarsym(p).varspez<>vs_const)
          ) and
          (is_managed_type(tabstractvarsym(p).vardef) or
-          ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
+          ((m_iso in compiler.globals.current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
          ) then
         begin
           hp:=compiler.cloadnode(tsym(p),tsym(p).owner);
@@ -599,7 +599,7 @@ implementation
         case tfiledef(tstaticvarsym(p).vardef).filetyp of
           ft_text:
             begin
-              if cs_transparent_file_names in current_settings.globalswitches then
+              if cs_transparent_file_names in compiler.globals.current_settings.globalswitches then
                 addstatement(stat^,compiler.ccallnode_intern('fpc_textinit_filename_iso',
                   compiler.ccallparanode(
                     compiler.cstringconstnode_str(tstaticvarsym(p).Name),
@@ -618,7 +618,7 @@ implementation
             end;
           ft_typed:
             begin
-              if cs_transparent_file_names in current_settings.globalswitches then
+              if cs_transparent_file_names in compiler.globals.current_settings.globalswitches then
                 addstatement(stat^,compiler.ccallnode_intern('fpc_typedfile_init_filename_iso',
                   compiler.ccallparanode(
                     compiler.cstringconstnode_str(tstaticvarsym(p).Name),
@@ -710,7 +710,7 @@ implementation
           result:=block;
         end;
 
-      if (m_isolike_program_para in current_settings.modeswitches) and
+      if (m_isolike_program_para in compiler.globals.current_settings.modeswitches) and
         (pd.proctypeoption=potype_proginit) then
         begin
           block:=internalstatements(compiler,stat);
@@ -840,7 +840,7 @@ implementation
         begin
           trashintval:=trashintvalues[localvartrashing];
           if (p.vardef.typ=procvardef) and
-             ([m_tp_procvar,m_mac_procvar]*current_settings.modeswitches<>[]) then
+             ([m_tp_procvar,m_mac_procvar]*compiler.globals.current_settings.modeswitches<>[]) then
             begin
               if tprocvardef(p.vardef).is_addressonly then
                 { in tp/delphi mode, you need @procvar to get at the contents of
@@ -961,7 +961,7 @@ implementation
             Moreover, such a local symbol will be removed if it's not
             referenced anywhere, so also create a reference }
           if (compiler.target.dbg.id=dbg_stabx) and
-             (cs_debuginfo in current_settings.moduleswitches) and
+             (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
              not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
             begin
               list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA,sym.vardef),0));
@@ -1689,7 +1689,7 @@ implementation
             builder, because it implies the generation of a symbol, while this
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',current_settings.alignment.varalignmax);
+          new_section(current_asmdata.asmlists[al_globals],sec_stack,'__fpc_stackarea_start',compiler.globals.current_settings.alignment.varalignmax);
           current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_start',compiler.globals.stacksize-1,carraydef.getreusable(u8inttype,compiler.globals.stacksize-1,compiler),AT_DATA));
           current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_stackarea_end',1,carraydef.getreusable(u8inttype,1,compiler),AT_DATA));
         end;
@@ -1732,13 +1732,13 @@ implementation
             builder, because it implies the generation of a symbol, while this
             is separate in the builder }
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
+          new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',compiler.globals.current_settings.alignment.varalignmax);
           current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',compiler.globals.heapsize,carraydef.getreusable(u8inttype,compiler.globals.heapsize,compiler),AT_DATA));
         end;
 
       { Valgrind usage }
       tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable],compiler);
-      tcb.emit_ord_const(byte(cs_gdb_valgrind in current_settings.globalswitches),u8inttype);
+      tcb.emit_ord_const(byte(cs_gdb_valgrind in compiler.globals.current_settings.globalswitches),u8inttype);
       sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,u8inttype);
       current_asmdata.asmlists[al_globals].concatlist(
         tcb.get_final_asmlist(sym,u8inttype,sec_data,'__fpc_valgrind',const_align(sizeof(pint)))
@@ -1752,7 +1752,7 @@ implementation
     var
       tcb: ttai_typedconstbuilder;
     begin
-      if (m_objectivec1 in current_settings.modeswitches) then
+      if (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
         begin
           { first 4 bytes contain version information about this section (currently version 0),
             next 4 bytes contain flags (currently only regarding whether the code in the object

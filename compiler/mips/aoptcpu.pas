@@ -249,7 +249,7 @@ unit aoptcpu;
       Next:=Current;
       repeat
         Result:=GetNextInstruction(Next,Next);
-      until {not(cs_opt_level3 in current_settings.optimizerswitches) or} not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
+      until {not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or} not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
         (is_calljmp(taicpu(Next).opcode));
     end;
 
@@ -768,7 +768,7 @@ unit aoptcpu;
       condreg: tregister;
     begin
       { Currently, everything below is mips4+ }
-      if (current_settings.cputype<cpu_mips4) then
+      if (compiler.globals.current_settings.cputype<cpu_mips4) then
         exit;
       p:=BlockStart;
       ClearUsedRegs;

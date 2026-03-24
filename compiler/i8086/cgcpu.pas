@@ -139,10 +139,10 @@ unit cgcpu;
     procedure tcg8086.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if cs_create_pic in current_settings.moduleswitches then
+        if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_AX,RS_DX,RS_CX,RS_SI,RS_DI],first_int_imreg,[RS_BP],compiler)
         else
-          if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_BP) then
+          if (cs_useebp in compiler.globals.current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_BP) then
             rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_AX,RS_DX,RS_CX,RS_BX,RS_SI,RS_DI,RS_BP],first_int_imreg,[],compiler)
           else
             rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_AX,RS_DX,RS_CX,RS_BX,RS_SI,RS_DI],first_int_imreg,[RS_BP],compiler);
@@ -164,7 +164,7 @@ unit cgcpu;
 
     procedure tcg8086.a_call_name(list: TAsmList; const s: string; weak: boolean);
       begin
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           a_call_name_far(list,s,weak)
         else
           a_call_name_near(list,s,weak);
@@ -186,7 +186,7 @@ unit cgcpu;
 
     procedure tcg8086.a_call_name_static(list: TAsmList; const s: string);
       begin
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           a_call_name_static_far(list,s)
         else
           a_call_name_static_near(list,s);
@@ -355,12 +355,12 @@ unit cgcpu;
                   else if a<>0 then
                     begin
                       use_loop:=a>2;
-                      use_386_fast_shift:=(current_settings.cputype>=cpu_386) and (a>1);
+                      use_386_fast_shift:=(compiler.globals.current_settings.cputype>=cpu_386) and (a>1);
                       use_186_fast_shift:=not use_386_fast_shift
-                        and (current_settings.cputype>=cpu_186) and (a>2)
-                        and not (cs_opt_size in current_settings.optimizerswitches);
-                      use_8086_fast_shift:=(current_settings.cputype<cpu_186) and (a>2)
-                        and not (cs_opt_size in current_settings.optimizerswitches);
+                        and (compiler.globals.current_settings.cputype>=cpu_186) and (a>2)
+                        and not (cs_opt_size in compiler.globals.current_settings.optimizerswitches);
+                      use_8086_fast_shift:=(compiler.globals.current_settings.cputype<cpu_186) and (a>2)
+                        and not (cs_opt_size in compiler.globals.current_settings.optimizerswitches);
 
                       if use_386_fast_shift then
                         begin
@@ -551,31 +551,31 @@ unit cgcpu;
                     1,17:
                       rox32method:=rm_unrolledleftloop;
                     2,18:
-                      if current_settings.cputype>=cpu_386 then
+                      if compiler.globals.current_settings.cputype>=cpu_386 then
                         rox32method:=rm_fast_386
-                      else if not (cs_opt_size in current_settings.optimizerswitches) then
+                      else if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                         rox32method:=rm_unrolledleftloop
                       else
                         rox32method:=rm_loopleft;
                     3..8,19..24:
-                      if current_settings.cputype>=cpu_386 then
+                      if compiler.globals.current_settings.cputype>=cpu_386 then
                         rox32method:=rm_fast_386
                       else
                         rox32method:=rm_loopleft;
                     15,31:
                       rox32method:=rm_unrolledrightloop;
                     14,30:
-                      if current_settings.cputype>=cpu_386 then
+                      if compiler.globals.current_settings.cputype>=cpu_386 then
                         rox32method:=rm_fast_386
-                      else if not (cs_opt_size in current_settings.optimizerswitches) then
+                      else if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                         rox32method:=rm_unrolledrightloop
                       else
                         { the left loop has a smaller size }
                         rox32method:=rm_loopleft;
                     9..13,25..29:
-                      if current_settings.cputype>=cpu_386 then
+                      if compiler.globals.current_settings.cputype>=cpu_386 then
                         rox32method:=rm_fast_386
-                      else if not (cs_opt_size in current_settings.optimizerswitches) then
+                      else if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                         rox32method:=rm_loopright
                       else
                         { the left loop has a smaller size }
@@ -622,7 +622,7 @@ unit cgcpu;
                       end;
                     rm_loopleft:
                       begin
-                        if (rol_amount>=16) and not (cs_opt_size in current_settings.optimizerswitches) then
+                        if (rol_amount>=16) and not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                           begin
                             list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
                             dec(rol_amount,16);
@@ -650,7 +650,7 @@ unit cgcpu;
                       end;
                     rm_loopright:
                       begin
-                        if (ror_amount>=16) and not (cs_opt_size in current_settings.optimizerswitches) then
+                        if (ror_amount>=16) and not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                           begin
                             list.Concat(taicpu.op_reg_reg(A_XCHG,S_W,reg,GetNextReg(reg)));
                             dec(ror_amount,16);
@@ -710,7 +710,7 @@ unit cgcpu;
             { size <= 16-bit }
 
             { 8086 doesn't support 'imul reg,const', so we handle it here }
-            if (current_settings.cputype<cpu_186) and (op in [OP_MUL,OP_IMUL]) then
+            if (compiler.globals.current_settings.cputype<cpu_186) and (op in [OP_MUL,OP_IMUL]) then
               begin
                 if op = OP_IMUL then
                   begin
@@ -729,7 +729,7 @@ unit cgcpu;
                       getcpuregister(list,NR_DX);
                     { prefer MUL over IMUL when overflow checking is off, }
                     { because it's faster on the 8086 & 8088              }
-                    if not (cs_check_overflow in current_settings.localswitches) then
+                    if not (cs_check_overflow in compiler.globals.current_settings.localswitches) then
                       list.concat(taicpu.op_reg(A_MUL,TCgSize2OpSize[size],reg))
                     else
                       list.concat(taicpu.op_reg(A_IMUL,TCgSize2OpSize[size],reg));
@@ -1256,7 +1256,7 @@ unit cgcpu;
       begin
         if not (size in [OS_16,OS_S16]) then
           internalerror(2013043001);
-        if current_settings.cputype < cpu_186 then
+        if compiler.globals.current_settings.cputype < cpu_186 then
           begin
             tmpreg:=getintregister(list,size);
             a_load_const_reg(list,size,a,tmpreg);
@@ -1537,7 +1537,7 @@ unit cgcpu;
                                 tmpref:=r;
                                 tmpref.refaddr:=addr_seg;
                                 tmpref.offset:=0;
-                                if current_settings.cputype < cpu_186 then
+                                if compiler.globals.current_settings.cputype < cpu_186 then
                                   begin
                                     tmpreg:=getaddressregister(list);
                                     a_load_ref_reg(list,OS_16,OS_16,tmpref,tmpreg);
@@ -1545,7 +1545,7 @@ unit cgcpu;
                                   end
                                 else
                                   list.concat(Taicpu.Op_ref(A_PUSH,S_W,tmpref));
-                                if current_settings.cputype < cpu_186 then
+                                if compiler.globals.current_settings.cputype < cpu_186 then
                                   begin
                                     tmpreg:=getaddressregister(list);
                                     a_loadaddr_ref_reg(list,r,tmpreg);
@@ -1561,7 +1561,7 @@ unit cgcpu;
                           begin
                             reference_reset_symbol(tmpref,r.symbol,0,r.alignment,r.volatility);
                             tmpref.refaddr:=addr_seg;
-                            if current_settings.cputype < cpu_186 then
+                            if compiler.globals.current_settings.cputype < cpu_186 then
                               begin
                                 tmpreg:=getaddressregister(list);
                                 a_load_ref_reg(list,OS_16,OS_16,tmpref,tmpreg);
@@ -1600,7 +1600,7 @@ unit cgcpu;
                           begin
                             if assigned(symbol) then
                               begin
-                                if current_settings.cputype < cpu_186 then
+                                if compiler.globals.current_settings.cputype < cpu_186 then
                                   begin
                                     tmpreg:=getaddressregister(list);
                                     a_loadaddr_ref_reg(list,tmpref,tmpreg);
@@ -1787,7 +1787,7 @@ unit cgcpu;
             case fromsize of
               OS_8:
                 begin
-                  if current_settings.cputype>=cpu_386 then
+                  if compiler.globals.current_settings.cputype>=cpu_386 then
                     list.concat(taicpu.op_ref_reg(A_MOVZX, S_BW, tmpref, reg))
                   else
                     begin
@@ -1800,7 +1800,7 @@ unit cgcpu;
                 end;
               OS_S8:
                 begin
-                  if current_settings.cputype>=cpu_386 then
+                  if compiler.globals.current_settings.cputype>=cpu_386 then
                     list.concat(taicpu.op_ref_reg(A_MOVSX, S_BW, tmpref, reg))
                   else
                     begin
@@ -1821,7 +1821,7 @@ unit cgcpu;
               OS_8:
                 begin
                   list.concat(taicpu.op_const_reg(A_MOV,S_W,0,GetNextReg(reg)));
-                  if current_settings.cputype>=cpu_386 then
+                  if compiler.globals.current_settings.cputype>=cpu_386 then
                     list.concat(taicpu.op_ref_reg(A_MOVZX, S_BW, tmpref, reg))
                   else
                     begin
@@ -1933,7 +1933,7 @@ unit cgcpu;
                 case fromsize of
                   OS_8:
                     begin
-                      if current_settings.cputype>=cpu_386 then
+                      if compiler.globals.current_settings.cputype>=cpu_386 then
                         add_mov(taicpu.op_reg_reg(A_MOVZX, S_BW, reg1, reg2))
                       else
                         begin
@@ -1947,7 +1947,7 @@ unit cgcpu;
                     end;
                   OS_S8:
                     begin
-                      if current_settings.cputype>=cpu_386 then
+                      if compiler.globals.current_settings.cputype>=cpu_386 then
                         add_mov(taicpu.op_reg_reg(A_MOVSX, S_BW, reg1, reg2))
                       else
                         begin
@@ -1971,7 +1971,7 @@ unit cgcpu;
                   OS_8:
                     begin
                       list.concat(taicpu.op_const_reg(A_MOV, S_W, 0, GetNextReg(reg2)));
-                      if current_settings.cputype>=cpu_386 then
+                      if compiler.globals.current_settings.cputype>=cpu_386 then
                         add_mov(taicpu.op_reg_reg(A_MOVZX, S_BW, reg1, reg2))
                       else
                         begin
@@ -2258,8 +2258,8 @@ unit cgcpu;
               equally fast and it also has the same size. In these cases,
               we still prefer it over ADC, because it's a better choice in
               case the register is spilled. }
-            if (cs_opt_size in current_settings.optimizerswitches) or
-               (current_settings.optimizecputype<=cpu_286) then
+            if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
+               (compiler.globals.current_settings.optimizecputype<=cpu_286) then
               list.concat(Taicpu.op_const_reg(A_RCL, tmpopsize, 1, reg))
             else
               { ADC is much faster on the 386. }
@@ -2376,7 +2376,7 @@ unit cgcpu;
 
     procedure tcg8086.g_stackpointer_alloc(list : TAsmList;localsize: longint);
       begin
-        if cs_check_stack in current_settings.localswitches then
+        if cs_check_stack in compiler.globals.current_settings.localswitches then
           begin
             getcpuregister(list,NR_AX);
             a_load_const_reg(list,OS_16, localsize,NR_AX);
@@ -2403,7 +2403,7 @@ unit cgcpu;
           if not(pi_has_open_array_parameter in current_procinfo.flags) then
             exit;
           { Restore SP position before SP change }
-          if current_settings.x86memorymodel=mm_huge then
+          if compiler.globals.current_settings.x86memorymodel=mm_huge then
             stacksize:=stacksize + 2;
           reference_reset_base(ref,NR_BP,-stacksize,ctempposinvalid,2,[]);
           list.concat(Taicpu.op_ref_reg(A_LEA,S_W,ref,NR_SP));
@@ -2439,7 +2439,7 @@ unit cgcpu;
                 list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DI));
                 list.concat(Taicpu.Op_reg(A_POP,S_W,NR_SI));
               end;
-            if ((current_settings.x86memorymodel=mm_huge) and
+            if ((compiler.globals.current_settings.x86memorymodel=mm_huge) and
                 not (po_interrupt in current_procinfo.procdef.procoptions)) or
                ((po_exports in current_procinfo.procdef.procoptions) and
                 (compiler.target.info.system=system_i8086_win16)) then
@@ -2455,7 +2455,7 @@ unit cgcpu;
             else
               begin
                 generate_leave(list);
-                if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
+                if ((ts_x86_far_procs_push_odd_bp in compiler.globals.current_settings.targetswitches) or
                     ((po_exports in current_procinfo.procdef.procoptions) and
                      (compiler.target.info.system=system_i8086_win16))) and
                     is_proc_far(current_procinfo.procdef) then
@@ -2596,9 +2596,9 @@ unit cgcpu;
             list.concat(Taicpu.op_const_reg(A_SHR,S_W,1,NR_CX))
           end;
 
-        if ts_cld in current_settings.targetswitches then
+        if ts_cld in compiler.globals.current_settings.targetswitches then
           list.concat(Taicpu.op_none(A_CLD,S_NO));
-        if (opsize=S_B) and not (cs_opt_size in current_settings.optimizerswitches) then
+        if (opsize=S_B) and not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
           begin
             { SHR CX,1 moves the lowest (odd/even) bit to the carry flag }
             a_reg_alloc(list,NR_DEFAULTFLAGS);
@@ -2630,7 +2630,7 @@ unit cgcpu;
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SP,destreg));
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           list.concat(Taicpu.Op_reg_reg(A_MOV,S_W,NR_SS,GetNextReg(destreg)));
       end;
 
@@ -2682,7 +2682,7 @@ unit cgcpu;
         paraloc : Pcgparalocation;
         return_address_size: Integer;
       begin
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           return_address_size:=4
         else
           return_address_size:=2;

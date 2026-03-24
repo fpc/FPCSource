@@ -85,7 +85,8 @@ Unit aopt;
       verbose,
       cpubase,
       cgbase,
-      aoptcpu;
+      aoptcpu,
+      compiler;
 
     Constructor TAsmOptimizer.create(_AsmL: TAsmList; _Compiler: TCompilerBase);
       Begin
@@ -273,7 +274,7 @@ Unit aopt;
         pass_1;
         While Assigned(BlockStart) Do
           Begin
-            if (cs_opt_peephole in current_settings.optimizerswitches) then
+            if (cs_opt_peephole in compiler.globals.current_settings.optimizerswitches) then
               begin
                 PrePeepHoleOpts;
                 PeepHoleOptPass1;

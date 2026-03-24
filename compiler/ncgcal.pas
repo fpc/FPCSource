@@ -321,12 +321,12 @@ implementation
         { If we can't skip loading of the parameter, load an undefined dummy value. }
         if not can_skip_para_push(parasym) then
           begin
-            if cs_asm_source in current_settings.globalswitches then
+            if cs_asm_source in compiler.globals.current_settings.globalswitches then
               current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused, loading undefined value')));
             hlcg.a_load_undefined_cgpara(current_asmdata.CurrAsmList,left.resultdef,tempcgpara);
           end
         else
-          if cs_asm_source in current_settings.globalswitches then
+          if cs_asm_source in compiler.globals.current_settings.globalswitches then
             current_asmdata.CurrAsmList.concat(tai_comment.Create(strpnew('Parameter '+parasym.realname+' is unused')));
       end;
 
@@ -1388,7 +1388,7 @@ implementation
            cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
 
          { perhaps i/o check ? }
-         if (cs_check_io in current_settings.localswitches) and
+         if (cs_check_io in compiler.globals.current_settings.localswitches) and
             (po_iocheck in procdefinition.procoptions) and
             not(po_iocheck in current_procinfo.procdef.procoptions) and
             { no IO check for methods and procedure variables }

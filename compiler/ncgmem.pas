@@ -294,9 +294,9 @@ implementation
               internalerror(200507031);
          end;
          location.reference.offset:=location.reference.offset+extraoffset;
-         if (cs_use_heaptrc in current_settings.globalswitches) and
-            (cs_checkpointer in current_settings.localswitches) and
-            not(cs_compilesystem in current_settings.moduleswitches) and
+         if (cs_use_heaptrc in compiler.globals.current_settings.globalswitches) and
+            (cs_checkpointer in compiler.globals.current_settings.localswitches) and
+            not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) and
             tpointerdef(left.resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) and
             not(drnf_no_checkpointer in derefnodeflags) and
             { can be NR_NO in case of LOC_CONSTANT }
@@ -314,7 +314,7 @@ implementation
             hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
             hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[@paraloc1],nil,false);
             hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-            include(current_settings.moduleswitches,cs_checkpointer_called);
+            include(compiler.globals.current_settings.moduleswitches,cs_checkpointer_called);
           end;
       end;
 
@@ -392,9 +392,9 @@ implementation
                       internalerror(2009092401);
                  end;
                  { implicit deferencing }
-                 if (cs_use_heaptrc in current_settings.globalswitches) and
-                    (cs_checkpointer in current_settings.localswitches) and
-                    not(cs_compilesystem in current_settings.moduleswitches) then
+                 if (cs_use_heaptrc in compiler.globals.current_settings.globalswitches) and
+                    (cs_checkpointer in compiler.globals.current_settings.localswitches) and
+                    not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
                   begin
                     if not compiler.symtablestack.searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
                        (sym.typ<>procsym) then
@@ -406,7 +406,7 @@ implementation
                     hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
                     hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[@paraloc1],nil,false);
                     hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-                    system.include(current_settings.moduleswitches,cs_checkpointer_called);
+                    system.include(compiler.globals.current_settings.moduleswitches,cs_checkpointer_called);
                   end;
                end
              else
@@ -815,7 +815,7 @@ implementation
           st_widestring,
           st_ansistring:
             begin
-              if cs_zerobasedstrings in current_settings.localswitches then
+              if cs_zerobasedstrings in compiler.globals.current_settings.localswitches then
                 helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_zerobased_rangecheck'
               else
                 helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
@@ -924,7 +924,7 @@ implementation
               location.reference.volatility:=[];
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] }
-              if not(cs_zerobasedstrings in current_settings.localswitches) then
+              if not(cs_zerobasedstrings in compiler.globals.current_settings.localswitches) then
                 update_reference_offset(location.reference,-1,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
@@ -1006,7 +1006,7 @@ implementation
          if right.nodetype=ordconstn then
            begin
               { offset can only differ from 0 if arraydef }
-              if cs_check_range in current_settings.localswitches then
+              if cs_check_range in compiler.globals.current_settings.localswitches then
                 begin
                   secondpass(right);
                   case left.resultdef.typ of
@@ -1081,11 +1081,11 @@ implementation
          else
          { not nodetype=ordconstn }
            begin
-              if (cs_opt_level1 in current_settings.optimizerswitches) and
+              if (cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) and
                  { if we do range checking, we don't }
                  { need that fancy code (it would be }
                  { buggy)                            }
-                 not(cs_check_range in current_settings.localswitches) and
+                 not(cs_check_range in compiler.globals.current_settings.localswitches) and
                  (left.resultdef.typ=arraydef) and
                  not is_packed_array(left.resultdef) then
                 begin
@@ -1133,7 +1133,7 @@ implementation
                 indexdef:=right.resultdef;
 
             { produce possible range check code: }
-              if cs_check_range in current_settings.localswitches then
+              if cs_check_range in compiler.globals.current_settings.localswitches then
                begin
                  if left.resultdef.typ=arraydef then
                    rangecheck_array

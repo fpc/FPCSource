@@ -265,7 +265,7 @@ implementation
                 begin
                   { give an error as the implementation may follow in an
                     other type block which is allowed by FPC modes }
-                  if not(m_fpc in current_settings.modeswitches) and
+                  if not(m_fpc in compiler.globals.current_settings.modeswitches) and
                      (oo_is_forward in tobjectdef(def).objectoptions) then
                     compiler.verbose.MessagePos1(def.typesym.fileinfo,type_e_type_is_not_completly_defined,def.typename);
                   { generate specializations for generic forwarddefs }
@@ -333,7 +333,7 @@ implementation
                      tcompiler(compiler).symtablestack:=oldsymtablestack;
                      if isspecialize or
                          (
-                           (m_delphi in current_settings.modeswitches) and
+                           (m_delphi in compiler.globals.current_settings.modeswitches) and
                            (current_scanner.token=_LSHARPBRACKET)
                          ) then
                        begin
@@ -408,7 +408,7 @@ implementation
          if checkcurrentrecdef and
             try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
            exit;
-         if not allowunitsym and not (m_delphi in current_settings.modeswitches) and (current_scanner.idtoken=_SPECIALIZE) then
+         if not allowunitsym and not (m_delphi in compiler.globals.current_settings.modeswitches) and (current_scanner.idtoken=_SPECIALIZE) then
            begin
              parser.pbase.consume(_ID);
              is_specialize:=true;
@@ -493,7 +493,7 @@ implementation
              assigned(current_structdef) and
              (df_generic in current_structdef.defoptions) and
              (ttypesym(srsym).typedef.typ=undefineddef) and
-             not (m_delphi in current_settings.modeswitches) then
+             not (m_delphi in compiler.globals.current_settings.modeswitches) then
            begin
              def:=get_generic_in_hierarchy_by_name(srsym,current_structdef);
              if assigned(def) then
@@ -557,7 +557,7 @@ implementation
 
                _ID:
                  begin
-                   if not (m_delphi in current_settings.modeswitches) and parser.pbase.try_to_consume(_SPECIALIZE) then
+                   if not (m_delphi in compiler.globals.current_settings.modeswitches) and parser.pbase.try_to_consume(_SPECIALIZE) then
                      begin
                        if ([stoAllowSpecialization,stoAllowTypeDef] * options = []) then
                          begin
@@ -593,7 +593,7 @@ implementation
             end;
         until not again;
         if ([stoAllowSpecialization,stoAllowTypeDef] * options <> []) and
-           (m_delphi in current_settings.modeswitches) then
+           (m_delphi in compiler.globals.current_settings.modeswitches) then
           dospecialize:=current_scanner.token in [_LSHARPBRACKET,_LT];
         if dospecialize and
             (def.typ=forwarddef) then
@@ -688,7 +688,7 @@ implementation
                     (current_genericdef.typ in [recorddef,objectdef]) and
                     (Pos(upper(srsym.realname),tabstractrecorddef(current_genericdef).objname^)=1) then
                   begin
-                    if m_delphi in current_settings.modeswitches then
+                    if m_delphi in compiler.globals.current_settings.modeswitches then
                       begin
                         def:=handle_dummysym(srsym);
                       end
@@ -902,7 +902,7 @@ implementation
                         if member_blocktype=bt_general then
                           begin
                             if (current_scanner.idtoken=_GENERIC) and
-                                not (m_delphi in current_settings.modeswitches) and
+                                not (m_delphi in compiler.globals.current_settings.modeswitches) and
                                 not fields_allowed then
                               begin
                                 if hadgeneric then
@@ -919,7 +919,7 @@ implementation
                                 vdoptions:=[vd_record];
                                 if classfields then
                                   include(vdoptions,vd_class);
-                                if not (m_delphi in current_settings.modeswitches) then
+                                if not (m_delphi in compiler.globals.current_settings.modeswitches) then
                                   include(vdoptions,vd_check_generic);
                                 if threadvarfields then
                                   include(vdoptions,vd_threadvar);
@@ -1052,7 +1052,7 @@ implementation
               end;
             _LECKKLAMMER:
               begin
-                if m_prefixed_attributes in current_settings.modeswitches then
+                if m_prefixed_attributes in compiler.globals.current_settings.modeswitches then
                   parser.pdecl.parse_rttiattributes(rtti_attrs_def)
                 else
                   parser.pbase.consume(_ID);
@@ -1119,7 +1119,7 @@ implementation
          if (n<>'') or
             not(compiler.target.info.system in systems_jvm) then
            begin
-             recst:=trecordsymtable.create(n,current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
+             recst:=trecordsymtable.create(n,compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
              { can't use recst.realname^ instead of n, because recst.realname is
                nil in case of an empty name }
              current_structdef:=crecorddef.create(n,recst,compiler);
@@ -1129,7 +1129,7 @@ implementation
              { for the JVM target records always need a name, because they are
                represented by a class }
              recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),
-               current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
+               compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
              current_structdef:=crecorddef.create(recst.name^,recst,compiler);
            end;
          result:=current_structdef;
@@ -1175,7 +1175,7 @@ implementation
            olddef:=nil;
          set_typesym;
 
-         if m_advanced_records in current_settings.modeswitches then
+         if m_advanced_records in compiler.globals.current_settings.modeswitches then
            begin
              parse_record_members(recsym);
            end
@@ -1316,7 +1316,7 @@ implementation
                  begin
                    def:=ttypenode(pt1).resultdef;
                    { Delphi mode specialization? }
-                   if (m_delphi in current_settings.modeswitches) then
+                   if (m_delphi in compiler.globals.current_settings.modeswitches) then
                      dospecialize:=current_scanner.token=_LSHARPBRACKET
                    else
                      begin
@@ -1333,7 +1333,7 @@ implementation
                        assigned(current_structdef) and
                        (
                          (
-                           not (m_delphi in current_settings.modeswitches) and
+                           not (m_delphi in compiler.globals.current_settings.modeswitches) and
                            (ttypesym(ttypenode(pt1).typesym).typedef.typ=undefineddef) and
                            (df_generic in current_structdef.defoptions) and
                            (ttypesym(ttypenode(pt1).typesym).typedef.owner=current_structdef.owner) and
@@ -1456,7 +1456,7 @@ implementation
                  begin
                    if (torddef(tt2).ordtype=uwidechar) then
                      begin
-                     if (m_default_unicodestring in current_settings.modeswitches) then
+                     if (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                        begin
                          compiler.verbose.Message(parser_w_widechar_set_reduced);
                          def:=csetdef.create(cansichartype,torddef(cansichartype).low.svalue,torddef(cansichartype).high.svalue,true,compiler);
@@ -1533,7 +1533,7 @@ implementation
                 begin
                   lowval:=tenumdef(def).min;
                   highval:=tenumdef(def).max;
-                  if (m_fpc in current_settings.modeswitches) and
+                  if (m_fpc in compiler.globals.current_settings.modeswitches) and
                      (tenumdef(def).has_jumps) then
                    compiler.verbose.Message(type_e_array_index_enums_with_assign_not_possible);
                   indexdef:=def;
@@ -1814,7 +1814,7 @@ implementation
                 parser.pbase.consume(_OBJECT);
                 include(pd.procoptions,po_methodpointer);
               end
-            else if (m_nested_procvars in current_settings.modeswitches) and
+            else if (m_nested_procvars in compiler.globals.current_settings.modeswitches) and
                     parser.pbase.try_to_consume(_IS) then
               begin
                 parser.pbase.consume(_NESTED);
@@ -1866,7 +1866,7 @@ implementation
              (
                (current_scanner.token<>_ID) or
                (
-                 (m_function_references in current_settings.modeswitches) and
+                 (m_function_references in compiler.globals.current_settings.modeswitches) and
                  (current_scanner.idtoken=_REFERENCE)
                )
              ) and
@@ -1923,19 +1923,19 @@ implementation
                   defpos:=compiler.globals.current_tokenpos;
                   parser.pbase.consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
-                  if not(m_tp7 in current_settings.modeswitches) and
+                  if not(m_tp7 in compiler.globals.current_settings.modeswitches) and
                      (
                       { in fpc mode also allow := to be compatible
                         with previous 1.0.x versions }
-                      ((m_fpc in current_settings.modeswitches) and
+                      ((m_fpc in compiler.globals.current_settings.modeswitches) and
                        parser.pbase.try_to_consume(_ASSIGNMENT)) or
                       parser.pbase.try_to_consume(_EQ)
                      ) then
                     begin
-                       oldlocalswitches:=current_settings.localswitches;
-                       include(current_settings.localswitches,cs_allow_enum_calc);
+                       oldlocalswitches:=compiler.globals.current_settings.localswitches;
+                       include(compiler.globals.current_settings.localswitches,cs_allow_enum_calc);
                        p:=parser.pexpr.comp_expr([ef_accept_equal]);
-                       current_settings.localswitches:=oldlocalswitches;
+                       compiler.globals.current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin
                           { we expect an integer or an enum of the
@@ -1969,12 +1969,12 @@ implementation
                       storepos:=compiler.globals.current_tokenpos;
                       compiler.globals.current_tokenpos:=defpos;
                       if (l.svalue<low(longint)) or (l.svalue>high(longint)) then
-                        if m_delphi in current_settings.modeswitches then
+                        if m_delphi in compiler.globals.current_settings.modeswitches then
                           compiler.verbose.Message(parser_w_enumeration_out_of_range)
                         else
                           compiler.verbose.Message(parser_e_enumeration_out_of_range);
                       tenumsymtable(aktenumdef.symtable).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
-                      if not (cs_scopedenums in current_settings.localswitches) or
+                      if not (cs_scopedenums in compiler.globals.current_settings.localswitches) or
                           { also provide the global symbol for anonymous enums }
                           not assigned(newsym) then
                         tstoredsymtable(aktenumdef.owner).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
@@ -1996,7 +1996,7 @@ implementation
             _RECORD:
               begin
                 parser.pbase.consume(current_scanner.token);
-                if (current_scanner.idtoken=_HELPER) and (m_advanced_records in current_settings.modeswitches) then
+                if (current_scanner.idtoken=_HELPER) and (m_advanced_records in compiler.globals.current_settings.modeswitches) then
                   begin
                     parser.pbase.consume(_HELPER);
                     def:=parser.pdecobj.object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
@@ -2008,7 +2008,7 @@ implementation
             _BITPACKED:
               begin
                 bitpacking :=
-                  (cs_bitpacking in current_settings.localswitches) or
+                  (cs_bitpacking in compiler.globals.current_settings.localswitches) or
                   (current_scanner.token = _BITPACKED);
                 parser.pbase.consume(current_scanner.token);
                 if current_scanner.token=_ARRAY then
@@ -2019,12 +2019,12 @@ implementation
                   single_type(def,[stoAllowTypeDef])
                 else
                   begin
-                    oldpackrecords:=current_settings.packrecords;
+                    oldpackrecords:=compiler.globals.current_settings.packrecords;
                     if (not bitpacking) or
                        (current_scanner.token in [_CLASS,_OBJECT]) then
-                      current_settings.packrecords:=1
+                      compiler.globals.current_settings.packrecords:=1
                     else
-                      current_settings.packrecords:=bit_alignment;
+                      compiler.globals.current_settings.packrecords:=bit_alignment;
                     case current_scanner.token of
                       _CLASS :
                         begin
@@ -2041,14 +2041,14 @@ implementation
                         def:=record_dec(name,newsym,genericdef,genericlist);
                       end;
                     end;
-                    current_settings.packrecords:=oldpackrecords;
+                    compiler.globals.current_settings.packrecords:=oldpackrecords;
                   end;
               end;
             _DISPINTERFACE :
               begin
                 { need extra check here since interface is a keyword
                   in all pascal modes }
-                if not(m_class in current_settings.modeswitches) then
+                if not(m_class in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
                 parser.pbase.consume(current_scanner.token);
                 def:=parser.pdecobj.object_dec(odt_dispinterface,name,newsym,genericdef,genericlist,nil,ht_none);
@@ -2059,7 +2059,7 @@ implementation
                 { Delphi only allows class of in type blocks }
                 if (current_scanner.token=_OF) and
                    (
-                    not(m_delphi in current_settings.modeswitches) or
+                    not(m_delphi in compiler.globals.current_settings.modeswitches) or
                     (compiler.globals.block_type=bt_type)
                    ) then
                   begin
@@ -2094,7 +2094,7 @@ implementation
               end;
             _OBJCCLASS :
               begin
-                if not(m_objectivec1 in current_settings.modeswitches) then
+                if not(m_objectivec1 in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
@@ -2104,10 +2104,10 @@ implementation
               begin
                 { need extra check here since interface is a keyword
                   in all pascal modes }
-                if not(m_class in current_settings.modeswitches) then
+                if not(m_class in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
                 parser.pbase.consume(current_scanner.token);
-                case current_settings.interfacetype of
+                case compiler.globals.current_settings.interfacetype of
                   it_interfacecom:
                     def:=parser.pdecobj.object_dec(odt_interfacecom,name,newsym,genericdef,genericlist,nil,ht_none);
                   it_interfacecorba:
@@ -2118,7 +2118,7 @@ implementation
               end;
             _OBJCPROTOCOL :
                begin
-                if not(m_objectivec1 in current_settings.modeswitches) then
+                if not(m_objectivec1 in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
@@ -2126,7 +2126,7 @@ implementation
                end;
             _OBJCCATEGORY :
                begin
-                if not(m_objectivec1 in current_settings.modeswitches) then
+                if not(m_objectivec1 in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_f_need_objc);
 
                 parser.pbase.consume(current_scanner.token);
@@ -2151,7 +2151,7 @@ implementation
                   _HELPER:
                     begin
                       if hadtypetoken and
-                         (m_type_helpers in current_settings.modeswitches) then
+                         (m_type_helpers in compiler.globals.current_settings.modeswitches) then
                         begin
                           { reset hadtypetoken, so that calling code knows that it should not be handled
                             as a "unique" type }
@@ -2164,7 +2164,7 @@ implementation
                     end;
                   _REFERENCE:
                     begin
-                      if current_settings.modeswitches*[m_blocks,m_function_references]<>[] then
+                      if compiler.globals.current_settings.modeswitches*[m_blocks,m_function_references]<>[] then
                         begin
                           parser.pbase.consume(_REFERENCE);
                           parser.pbase.consume(_TO);
@@ -2186,7 +2186,7 @@ implementation
                 end;
               end
             else
-              if (current_scanner.token=_KLAMMERAFFE) and (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
+              if (current_scanner.token=_KLAMMERAFFE) and (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)<>[]) then
                 begin
                   parser.pbase.consume(_KLAMMERAFFE);
                   single_type(tt2,SingleTypeOptionsInTypeBlock[compiler.globals.block_type=bt_type]);

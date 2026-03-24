@@ -183,7 +183,7 @@ implementation
         { convert the constant into a widestring representation without any
           code page conversion }
         initwidestring(valuews);
-        ascii2unicode(asconstpchar,len,current_settings.sourcecodepage,valuews,false);
+        ascii2unicode(asconstpchar,len,compiler.globals.current_settings.sourcecodepage,valuews,false);
         setlength(valueas,0);
         { and now add a node to convert the data into ansistring format at
           run time }

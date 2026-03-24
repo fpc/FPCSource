@@ -119,7 +119,7 @@ implementation
         var
           i,j : longint;
         begin
-          if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
+          if (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
             begin
               variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
               while (current_scanner.token=_COMMA) and assigned(variantdesc) do
@@ -180,7 +180,7 @@ implementation
           end
         else
           set_varstate(p,vs_readwritten,[vsf_must_be_valid]);
-        if (m_mac in current_settings.modeswitches) and
+        if (m_mac in compiler.globals.current_settings.modeswitches) and
            is_class(p.resultdef) then
           begin
             classh:=tobjectdef(p.resultdef);
@@ -244,7 +244,7 @@ implementation
             new_dispose_statement := p2;
           end
         { constructor,destructor specified }
-        else if (([m_mac,m_iso,m_extpas]*current_settings.modeswitches)=[]) and
+        else if (([m_mac,m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)=[]) and
                 parser.pbase.try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
@@ -335,7 +335,7 @@ implementation
                   parser.pexpr.do_member_read(classh,false,sym,p2,again,[callflag],nil)
                 else
                   begin
-                    if not(m_fpc in current_settings.modeswitches) then
+                    if not(m_fpc in compiler.globals.current_settings.modeswitches) then
                       parser.pexpr.do_member_read(classh,false,sym,p2,again,[callflag],nil)
                     else
                       begin
@@ -409,8 +409,8 @@ implementation
                   if (tpointerdef(p.resultdef).pointeddef.typ=orddef) and
                      (torddef(tpointerdef(p.resultdef).pointeddef).ordtype=uvoid) then
                     begin
-                      if (m_tp7 in current_settings.modeswitches) or
-                         (m_delphi in current_settings.modeswitches) then
+                      if (m_tp7 in compiler.globals.current_settings.modeswitches) or
+                         (m_delphi in compiler.globals.current_settings.modeswitches) then
                        compiler.verbose.Message(parser_w_no_new_dispose_on_void_pointers)
                       else
                        compiler.verbose.Message(parser_e_no_new_dispose_on_void_pointers);
@@ -435,7 +435,7 @@ implementation
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
-                       ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
+                       ((m_isolike_io in compiler.globals.current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
                        addstatement(newstatement,compiler.nodeutils.initialize_data_node(compiler.cderefnode(compiler.ctemprefnode(temp)),false));
 
                      { copy the temp to the destination }
@@ -630,9 +630,9 @@ implementation
         { default version (for error message) in case of missing or wrong
           parameters }
         if procname='' then
-          if m_default_unicodestring in current_settings.modeswitches then
+          if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
             procname:='fpc_setstring_unicodestr_pwidechar'
-          else if m_default_ansistring in current_settings.modeswitches then
+          else if m_default_ansistring in compiler.globals.current_settings.modeswitches then
             procname:='fpc_setstring_ansistr_pansichar'
           else
             procname:='fpc_setstring_shortstr';

@@ -130,8 +130,8 @@ implementation
                 if is_signed(left.resultdef) Then
                   begin
                     invertsign:=tordconstnode(right).value<0;
-                    if (current_settings.optimizecputype > cpu_386) and
-                       not(cs_opt_size in current_settings.optimizerswitches) then
+                    if (compiler.globals.current_settings.optimizecputype > cpu_386) and
+                       not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                       { use a sequence without jumps, saw this in
                         comp.compilers (JM) }
                       begin

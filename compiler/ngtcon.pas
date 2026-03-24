@@ -674,7 +674,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              begin
                 if is_constboolnode(node) then
                   begin
-                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
+                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
                     ftcb.emit_ord_const(tordconstnode(node).value.svalue,def)
                   end
                 else
@@ -685,7 +685,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constwidecharnode(node) then
                   inserttypeconv(node,cansichartype,compiler);
                 if is_constcharnode(node) or
-                  ((m_delphi in current_settings.modeswitches) and
+                  ((m_delphi in compiler.globals.current_settings.modeswitches) and
                    is_constwidecharnode(node) and
                    (tordconstnode(node).value <= 255)) then
                   ftcb.emit_ord_const(byte(tordconstnode(node).value.svalue),def)
@@ -708,7 +708,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              begin
                 if is_constintnode(node) then
                   begin
-                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
+                    adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
                     ftcb.emit_ord_const(tordconstnode(node).value.svalue,def);
                   end
                 else
@@ -887,7 +887,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 begin
                   len:=tstringconstnode(node).len;
                   { For tp7 the maximum length can be 255 }
-                  if (m_tp7 in current_settings.modeswitches) and
+                  if (m_tp7 in compiler.globals.current_settings.modeswitches) and
                      (len>255) then
                     len:=255;
                   datadef:=carraydef.getreusable(cansichartype,len+1,compiler);
@@ -1163,7 +1163,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   performed; needed for handling hacks like
                     const x = tenum(255); }
                 if not equal then
-                  adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
+                  adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
                 case node.resultdef.size of
                   1 : ftcb.emit_tai(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)),def);
                   2 : ftcb.emit_tai(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)),def);
@@ -1221,7 +1221,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if fsym.globalasmsym then
           begin
             if (compiler.target.dbg.id=dbg_stabx) and
-               (cs_debuginfo in current_settings.moduleswitches) and
+               (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
                not assigned(current_asmdata.GetAsmSymbol(fsym.name)) then
               addstabx:=true;
             asmsym:=current_asmdata.DefineAsmSymbol(fsym.mangledname,AB_GLOBAL,AT_DATA,tcsym.vardef)
@@ -1287,9 +1287,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 ftcb.emit_tai(Tai_const.Create_sym(nil),def);
               end
-            else if compiler.parser.pbase.try_to_consume(LKlammerToken[m_delphi in current_settings.modeswitches]) then
+            else if compiler.parser.pbase.try_to_consume(LKlammerToken[m_delphi in compiler.globals.current_settings.modeswitches]) then
               begin
-                if compiler.parser.pbase.try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
+                if compiler.parser.pbase.try_to_consume(RKlammerToken[m_delphi in compiler.globals.current_settings.modeswitches]) then
                   begin
                     ftcb.emit_tai(tai_const.create_sym(nil),def);
                   end
@@ -1311,7 +1311,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       begin
                         read_typed_const_data(def.elementdef);
                         inc(dyncount);
-                        if compiler.parser.pbase.try_to_consume(RKlammerToken[m_delphi in current_settings.modeswitches]) then
+                        if compiler.parser.pbase.try_to_consume(RKlammerToken[m_delphi in compiler.globals.current_settings.modeswitches]) then
                           break
                         else
                           compiler.parser.pbase.consume(_COMMA);
@@ -1412,7 +1412,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       internalerror(2010033005);
                   end;
                  { For tp7 the maximum length can be 255 }
-                 if (m_tp7 in current_settings.modeswitches) and
+                 if (m_tp7 in compiler.globals.current_settings.modeswitches) and
                     (len>255) then
                   len:=255;
                end
@@ -1434,7 +1434,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   ca:=@ch;
                   len:=1;
                 end
-             else if is_constwidecharnode(n) and (current_settings.sourcecodepage<>CP_UTF8) then
+             else if is_constwidecharnode(n) and (compiler.globals.current_settings.sourcecodepage<>CP_UTF8) then
                 begin
                   case char_size of
                     1:
@@ -1755,7 +1755,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     error := true;
                   end
                 { Delphi allows you to skip fields }
-                else if (m_delphi in current_settings.modeswitches) then
+                else if (m_delphi in compiler.globals.current_settings.modeswitches) then
                   begin
                     compiler.verbose.Message1(parser_w_skipped_fields_before,sorg);
                     srsym := recsym;
@@ -1823,7 +1823,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
                 if current_scanner.token=_SEMICOLON then
                   compiler.parser.pbase.consume(_SEMICOLON)
-                else if (current_scanner.token=_COMMA) and (m_mac in current_settings.modeswitches) then
+                else if (current_scanner.token=_COMMA) and (m_mac in compiler.globals.current_settings.modeswitches) then
                   compiler.parser.pbase.consume(_COMMA)
                 else
                   break;
@@ -1896,7 +1896,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
         { for objects we allow it only if it doesn't contain a vmt }
         if (oo_has_vmt in def.objectoptions) and
-           (m_fpc in current_settings.modeswitches) then
+           (m_fpc in compiler.globals.current_settings.modeswitches) then
           begin
             compiler.verbose.Message(parser_e_type_object_constants);
             exit;
@@ -1947,7 +1947,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
                   { check in VMT needs to be added for TP mode }
                   if not(vmtwritten) and
-                     not(m_fpc in current_settings.modeswitches) and
+                     not(m_fpc in compiler.globals.current_settings.modeswitches) and
                      (oo_has_vmt in def.objectoptions) and
                      (def.vmt_offset<fieldoffset) then
                     begin
@@ -1973,7 +1973,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         curoffset:=startoffset;
         { add VMT pointer if we stopped writing fields before the VMT was
           written }
-        if not(m_fpc in current_settings.modeswitches) and
+        if not(m_fpc in compiler.globals.current_settings.modeswitches) and
            (oo_has_vmt in def.objectoptions) and
            (def.vmt_offset>=objoffset) then
           begin
@@ -2162,7 +2162,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     error := true;
                   end
                 { Delphi allows you to skip fields }
-                else if (m_delphi in current_settings.modeswitches) then
+                else if (m_delphi in compiler.globals.current_settings.modeswitches) then
                   begin
                     compiler.verbose.Message1(parser_w_skipped_fields_before,sorg);
                     srsym := recsym;
@@ -2202,7 +2202,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 srsym:=get_next_varsym(def,SymList,symidx);
                 if current_scanner.token=_SEMICOLON then
                   compiler.parser.pbase.consume(_SEMICOLON)
-                else if (current_scanner.token=_COMMA) and (m_mac in current_settings.modeswitches) then
+                else if (current_scanner.token=_COMMA) and (m_mac in compiler.globals.current_settings.modeswitches) then
                   compiler.parser.pbase.consume(_COMMA)
                 else
                   break;
@@ -2264,7 +2264,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
         { for objects we allow it only if it doesn't contain a vmt }
         if (oo_has_vmt in def.objectoptions) and
-           (m_fpc in current_settings.modeswitches) then
+           (m_fpc in compiler.globals.current_settings.modeswitches) then
           begin
             compiler.verbose.Message(parser_e_type_object_constants);
             exit;

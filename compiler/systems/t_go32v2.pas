@@ -212,14 +212,14 @@ begin
   { Newer or cross GNU ld do not like \ in path names,
     so we use bstoslash }
   LinkRes.Add('--script='+maybequoted(bstoslash(compiler.globals.outputexedir+Info.ScriptName)));
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('-Map '+maybequoted(bstoslash(ChangeFileExt(current_module.exefilename,'.map'))));
   if create_smartlink_sections then
     LinkRes.Add('--gc-sections');
   if info.ExtraOptions<>'' then
     LinkRes.Add(Info.ExtraOptions);
 (* Potential issues with older ld version??? *)
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('-s');
   LinkRes.Add('-o '+maybequoted(bstoslash(current_module.exefilename)));
 
@@ -382,7 +382,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own ld script }
@@ -396,7 +396,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    begin
      DeleteFile(compiler.globals.outputexedir+Info.ResName);
      DeleteFile(compiler.globals.outputexedir+Info.ScriptName);
@@ -447,7 +447,7 @@ var
   zerobuf : pointer;
 begin
   { when -s is used quit, because there is no .exe }
-  if cs_link_nolink in current_settings.globalswitches then
+  if cs_link_nolink in compiler.globals.current_settings.globalswitches then
    exit;
   { open file }
   assign(f,n);

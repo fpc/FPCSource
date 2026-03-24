@@ -147,7 +147,7 @@ implementation
             reference_reset_base(href,voidpointertype,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
           end;
-        if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+        if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12))
         else
           list.concat(taicpu.op_reg(A_BX,NR_R12));

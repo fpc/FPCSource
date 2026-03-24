@@ -57,7 +57,7 @@ interface
     function tarmrealconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        if (FPUARM_HAS_VMOV_CONST in fpu_capabilities[current_settings.fputype]) and
+        if (FPUARM_HAS_VMOV_CONST in fpu_capabilities[compiler.globals.current_settings.fputype]) and
            IsVFPFloatImmediate(tfloatdef(resultdef).floattype,value_real) and
            ((tfloatdef(resultdef).floattype=s32real) or
             (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype])) then
@@ -80,7 +80,7 @@ interface
          pf : TOpPostfix;
 
       begin
-        if (FPUARM_HAS_VMOV_CONST in fpu_capabilities[current_settings.fputype]) and
+        if (FPUARM_HAS_VMOV_CONST in fpu_capabilities[compiler.globals.current_settings.fputype]) and
           IsVFPFloatImmediate(tfloatdef(resultdef).floattype,value_real) and
            ((tfloatdef(resultdef).floattype=s32real) or
             (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype])) then

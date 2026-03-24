@@ -561,8 +561,8 @@ unit agz80vasm;
       last_align:=1;
       lasthp:=nil;
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=(cs_asm_source in current_settings.globalswitches) or
-               ((cs_lineinfo in current_settings.moduleswitches)
+      do_line:=(cs_asm_source in compiler.globals.current_settings.globalswitches) or
+               ((cs_lineinfo in compiler.globals.current_settings.moduleswitches)
                  and (asmlisttype=al_procedures));
       hp:=tai(p.first);
       while assigned(hp) do
@@ -878,7 +878,7 @@ unit agz80vasm;
 
     function TZ80vasm.MakeCmdLine: TCmdStr;
       begin
-        result := {'-mmcu='+lower(cputypestr[current_settings.cputype])+' '+}inherited MakeCmdLine;
+        result := {'-mmcu='+lower(cputypestr[compiler.globals.current_settings.cputype])+' '+}inherited MakeCmdLine;
       end;
 
 

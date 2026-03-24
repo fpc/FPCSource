@@ -773,7 +773,7 @@ implementation
          location.loc:=LOC_INVALID;
          { save local info }
          fileinfo:=compiler.globals.current_filepos;
-         localswitches:=current_settings.localswitches;
+         localswitches:=compiler.globals.current_settings.localswitches;
          verbosity:=status.verbosity;
          resultdef:=nil;
          flags:=[];

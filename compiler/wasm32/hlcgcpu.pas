@@ -383,7 +383,7 @@ implementation
   procedure thlcgwasm.incstack(list: TAsmList; slots: longint);
     begin
       if (fevalstackheight<0) and
-         not(cs_no_regalloc in current_settings.globalswitches) then
+         not(cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
 {$ifdef DEBUG_WASMSTACK}
         list.concat(tai_comment.Create(strpnew('!!! stack underflow')));
 {$else DEBUG_WASMSTACK}
@@ -394,7 +394,7 @@ implementation
       inc(fevalstackheight,slots);
       if (fevalstackheight>fmaxevalstackheight) then
         fmaxevalstackheight:=fevalstackheight;
-      if cs_asm_regalloc in current_settings.globalswitches then
+      if cs_asm_regalloc in compiler.globals.current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
@@ -404,13 +404,13 @@ implementation
         exit;
       dec(fevalstackheight,slots);
       if (fevalstackheight<0) and
-         not(cs_no_regalloc in current_settings.globalswitches) then
+         not(cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
 {$ifdef DEBUG_WASMSTACK}
         list.concat(tai_comment.Create(strpnew('!!! stack underflow')));
 {$else DEBUG_WASMSTACK}
         internalerror(2010120501);
 {$endif DEBUG_WASMSTACK}
-      if cs_asm_regalloc in current_settings.globalswitches then
+      if cs_asm_regalloc in compiler.globals.current_settings.globalswitches then
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
@@ -2225,7 +2225,7 @@ implementation
       from_signed, to_signed: boolean;
     begin
       { range checking on and range checkable value? }
-      if not(cs_check_range in current_settings.localswitches) or
+      if not(cs_check_range in compiler.globals.current_settings.localswitches) or
          not(fromdef.typ in [orddef,enumdef]) or
          { C-style booleans can't really fail range checks, }
          { all values are always valid                      }
@@ -2435,7 +2435,7 @@ implementation
     var
       hl : tasmlabel;
     begin
-      if not(cs_check_overflow in current_settings.localswitches) then
+      if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         exit;
       current_asmdata.getjumplabel(hl);
       list.concat(taicpu.op_none(a_block));
@@ -2466,7 +2466,7 @@ implementation
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         begin
           list.concat(taicpu.op_none(a_end_block));
-          if ts_wasm_bf_exceptions in current_settings.targetswitches then
+          if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
             a_label(list,tcpuprocinfo(current_procinfo).CurrRaiseLabel);
           if fevalstackheight<>0 then
 {$ifdef DEBUG_WASMSTACK}
@@ -2566,7 +2566,7 @@ implementation
     var
       pd: tprocdef;
     begin
-      if ts_wasm_bf_exceptions in current_settings.targetswitches then
+      if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
         begin
           pd:=search_system_proc('fpc_raised_exception_flag');
           g_call_system_proc(list,pd,[],nil).resetiftemp;
@@ -2581,7 +2581,7 @@ implementation
     var
       reg: tregister;
     begin
-      if not(cs_check_low_addr_load in current_settings.localswitches) then
+      if not(cs_check_low_addr_load in compiler.globals.current_settings.localswitches) then
         exit;
       { A global symbol (if not weak) will always map to a proper address, and
         the same goes for stack addresses -> skip }

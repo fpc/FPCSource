@@ -880,7 +880,7 @@ interface
             (tpointerdef(p^.resultdef).definition.typ=objectdef) and not
             (tobjectdef(tpointerdef(p^.resultdef).definition).isclass) and
             ((tobjectdef(tpointerdef(p^.resultdef).definition).options and oo_hasvmt)<>0) and
-            (cs_check_range in current_settings.localswitches) then
+            (cs_check_range in compiler.globals.current_settings.localswitches) then
            checkobject;
 {$endif TESTOBJEXT2}
       end;

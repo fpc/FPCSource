@@ -72,7 +72,8 @@ type
       pass_1,procinfo,compinnr,
       symsym, symconst,
       nbas, ncnv, nld, nflw, ncal, ninl,
-      optbase, optutils;
+      optbase, optutils,
+      compiler;
 
     function check_written(var n: tnode; arg: pointer): foreachnoderesult;
       begin
@@ -435,7 +436,7 @@ type
           printnode(rootnode);
           writeln('*******************************************************************************');
 {$endif DEBUG_CONSTPROP}
-        until not(cs_opt_level3 in current_settings.optimizerswitches) or not(iteration_changed);
+        until not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or not(iteration_changed);
         result:=rootnode;
       end;
 

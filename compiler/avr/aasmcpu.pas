@@ -496,7 +496,7 @@ implementation
                                   current_asmdata.getjumplabel(l);
                                   l.increfs;
                                   list.insertafter(tai_label.create(l),curtai);
-                                  if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
+                                  if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
                                     list.insertafter(taicpu.op_sym(A_JMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai)
                                   else
                                     list.insertafter(taicpu.op_sym(A_RJMP,taicpu(curtai).oper[0]^.ref^.symbol),curtai);
@@ -530,14 +530,14 @@ implementation
                             end;
                         A_STS:
                           begin
-                            if current_settings.cputype in [cpu_avrtiny, cpu_avr1] then
+                            if compiler.globals.current_settings.cputype in [cpu_avrtiny, cpu_avr1] then
                               with taicpu(curtai).oper[0]^ do
                                 if (ref^.base=NR_NO) and (ref^.index=NR_NO) and (ref^.symbol=nil) and (ref^.offset<$40) then
                                   begin
                                     taicpu(curtai).opcode:=A_OUT;
                                     taicpu(curtai).loadconst(0,ref^.offset);
                                   end
-                                else if current_settings.cputype=cpu_avr1 then
+                                else if compiler.globals.current_settings.cputype=cpu_avr1 then
                                   begin
                                     remove_instruction;
                                     result:=false;
@@ -545,14 +545,14 @@ implementation
                           end;
                         A_LDS:
                           begin
-                            if current_settings.cputype in [cpu_avrtiny, cpu_avr1] then
+                            if compiler.globals.current_settings.cputype in [cpu_avrtiny, cpu_avr1] then
                               with taicpu(curtai).oper[1]^ do
                                 if (ref^.base=NR_NO) and (ref^.index=NR_NO) and (ref^.symbol=nil) and (ref^.offset<$40) then
                                   begin
                                     taicpu(curtai).opcode:=A_IN;
                                     taicpu(curtai).loadconst(1,ref^.offset)
                                   end
-                                else if current_settings.cputype=cpu_avr1 then
+                                else if compiler.globals.current_settings.cputype=cpu_avr1 then
                                   begin
                                     remove_instruction;
                                     result:=false;
@@ -571,7 +571,7 @@ implementation
                         A_PUSH:
                           begin
                             { certain cpu types do not support some instructions, so replace them }
-                            if current_settings.cputype=cpu_avr1 then
+                            if compiler.globals.current_settings.cputype=cpu_avr1 then
                               begin
                                 remove_instruction;
                                 result:=false;

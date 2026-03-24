@@ -126,15 +126,15 @@ unit cpugas;
          { ABI selection }
          Replace(result,'$ABI','-mabi='+gas_abitype(compiler.target.info.abi));
          { float selection }
-         Replace(result,'$FLOATABI',gas_float_option(current_settings.fputype));
+         Replace(result,'$FLOATABI',gas_float_option(compiler.globals.current_settings.fputype));
          { ARCH selection }
-         Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
+         Replace(result,'$ARCH','-march='+lower(cputypestr[compiler.globals.current_settings.cputype]));
 //          Replace(result,'$ARCH','-march=pic32mx -mtune=pic32mx');
       end;
 
     procedure TMIPSGNUAssembler.WriteExtraHeader;
       begin
-        if not (cs_asm_pre_binutils_2_25 in current_settings.globalswitches) then
+        if not (cs_asm_pre_binutils_2_25 in compiler.globals.current_settings.globalswitches) then
           writer.AsmWriteln(#9'.module nomips16');
       end;
 

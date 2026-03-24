@@ -796,7 +796,7 @@ implementation
                     ;
                 end;
               end
-            else if forinline or (cs_opt_level2 in current_settings.optimizerswitches) then
+            else if forinline or (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
               begin
                 n := TStatementNode(left);
                 while Assigned(n) do

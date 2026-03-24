@@ -192,7 +192,7 @@ implementation
           top_reg:
             // should have been translated into a memory location by the
             // register allocator)
-            if (cs_no_regalloc in current_settings.globalswitches) then
+            if (cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
               getopstr:=std_regname(o.reg)
             else
               internalerror(2010122803);
@@ -417,7 +417,7 @@ implementation
 
         InlineLevel:=0;
         { lineinfo is only needed for al_procedures (PFV) }
-        do_line:=(cs_asm_source in current_settings.globalswitches);
+        do_line:=(cs_asm_source in compiler.globals.current_settings.globalswitches);
         hp:=tai(p.first);
         while assigned(hp) do
          begin
@@ -436,7 +436,7 @@ implementation
                      if assigned(infile) then
                       begin
                         { open only if needed !! }
-                        if (cs_asm_source in current_settings.globalswitches) then
+                        if (cs_asm_source in compiler.globals.current_settings.globalswitches) then
                          infile.open;
                       end;
                      { avoid unnecessary reopens of the same file !! }
@@ -446,7 +446,7 @@ implementation
                    end;
 
                 { write source }
-                  if (cs_asm_source in current_settings.globalswitches) and
+                  if (cs_asm_source in compiler.globals.current_settings.globalswitches) and
                      assigned(infile) then
                    begin
                      if (infile<>lastinfile) then
@@ -484,7 +484,7 @@ implementation
 
              ait_regalloc :
                begin
-                 if (cs_asm_regalloc in current_settings.globalswitches) then
+                 if (cs_asm_regalloc in compiler.globals.current_settings.globalswitches) then
                    begin
                      writer.AsmWrite(#9+asminfo^.comment+'Register ');
                      repeat
@@ -503,7 +503,7 @@ implementation
 
              ait_tempalloc :
                begin
-                 if (cs_asm_tempalloc in current_settings.globalswitches) then
+                 if (cs_asm_tempalloc in compiler.globals.current_settings.globalswitches) then
                    begin
   {$ifdef EXTDEBUG}
                      if assigned(tai_tempalloc(hp).problem) then

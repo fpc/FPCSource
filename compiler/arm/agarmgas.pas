@@ -107,7 +107,7 @@ unit agarmgas;
     function TArmGNUAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=inherited MakeCmdLine;
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_soft:
             result:='-mfpu=softvfp '+result;
           fpu_fpa:
@@ -140,18 +140,18 @@ unit agarmgas;
         end;
 
         if GenerateThumb2Code then
-          result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
+          result:='-march='+cputype_to_gas_march[compiler.globals.current_settings.cputype]+' -mthumb -mthumb-interwork '+result
         else if GenerateThumbCode then
-          result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
+          result:='-march='+cputype_to_gas_march[compiler.globals.current_settings.cputype]+' -mthumb -mthumb-interwork '+result
         else
-          result:='-march='+cputype_to_gas_march[current_settings.cputype]+' '+result;
+          result:='-march='+cputype_to_gas_march[compiler.globals.current_settings.cputype]+' '+result;
 
         if compiler.target.info.abi = abi_eabihf then
           { options based on what gcc uses on debian armhf }
           result:='-mfloat-abi=hard -meabi=5 '+result
-        else if (compiler.target.info.abi = abi_eabi) and not(current_settings.fputype = fpu_soft) then
+        else if (compiler.target.info.abi = abi_eabi) and not(compiler.globals.current_settings.fputype = fpu_soft) then
           result:='-mfloat-abi=softfp -meabi=5 '+result
-        else if (compiler.target.info.abi = abi_eabi) and (current_settings.fputype = fpu_soft) then
+        else if (compiler.target.info.abi = abi_eabi) and (compiler.globals.current_settings.fputype = fpu_soft) then
           result:='-mfloat-abi=soft -meabi=5 '+result;
       end;
 
@@ -179,8 +179,8 @@ unit agarmgas;
         result:=inherited MakeCmdLine;
 	if (asminfo^.id in [as_clang_gas,as_clang_asdarwin]) then
           begin
-            if fputypestrllvm[current_settings.fputype] <> '' then
-              result:='-m'+fputypestrllvm[current_settings.fputype]+' '+result;
+            if fputypestrllvm[compiler.globals.current_settings.fputype] <> '' then
+              result:='-m'+fputypestrllvm[compiler.globals.current_settings.fputype]+' '+result;
             { Apple arm always uses softfp floating point ABI }
             result:='-mfloat-abi=softfp '+result;
           end;

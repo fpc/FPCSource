@@ -100,7 +100,7 @@ implementation
     function tcpumoddivnode.first_moddivint: tnode;
       begin
         if (not is_64bitint(resultdef)) and
-           (CPUXTENSA_HAS_DIV in cpu_capabilities[current_settings.cputype]) then
+           (CPUXTENSA_HAS_DIV in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           Result:=nil
         else
           result:=inherited;
@@ -198,7 +198,7 @@ implementation
         fdef : tdef;
       begin
         Result:=nil;
-        if (current_settings.fputype=fpu_soft) and
+        if (compiler.globals.current_settings.fputype=fpu_soft) and
            (left.resultdef.typ=floatdef) then
           begin
             result:=nil;
@@ -220,8 +220,8 @@ implementation
         ai : taicpu;
       begin
         secondpass(left);
-        if (current_settings.fputype=fpu_soft) or (tfloatdef(left.resultdef).floattype<>s32real) or
-          not(FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) then
+        if (compiler.globals.current_settings.fputype=fpu_soft) or (tfloatdef(left.resultdef).floattype<>s32real) or
+          not(FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);

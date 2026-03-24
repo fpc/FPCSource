@@ -208,11 +208,11 @@ implementation
           else
             begin
              // string[x] is allowed in system unit since it is a shortstring.
-             if cs_compilesystem in current_settings.moduleswitches then
+             if cs_compilesystem in compiler.globals.current_settings.moduleswitches then
                compiler.verbose.Message(parser_e_nostringaliasinsystem);
-              if cs_refcountedstrings in current_settings.localswitches then
+              if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
                 begin
-                  if m_default_unicodestring in current_settings.modeswitches then
+                  if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                     def:=cunicodestringtype
                   else
                     def:=cansistringtype
@@ -368,7 +368,7 @@ implementation
               statement_syssym:=nil;
               if parser.pbase.try_to_consume(_LKLAMMER) then
                 begin
-                  if not (m_mac in current_settings.modeswitches) then
+                  if not (m_mac in compiler.globals.current_settings.modeswitches) then
                     begin
                       if not(parser.pbase.try_to_consume(_RKLAMMER)) then
                         begin
@@ -448,7 +448,7 @@ implementation
 
           in_leave :
             begin
-              if m_mac in current_settings.modeswitches then
+              if m_mac in compiler.globals.current_settings.modeswitches then
                 statement_syssym:=compiler.cbreaknode
               else
                 begin
@@ -459,7 +459,7 @@ implementation
 
           in_cycle :
             begin
-              if m_mac in current_settings.modeswitches then
+              if m_mac in compiler.globals.current_settings.modeswitches then
                 statement_syssym:=compiler.ccontinuenode
               else
                 begin
@@ -559,7 +559,7 @@ implementation
           in_ismanagedtype_x:
             begin
               if (l in [in_typeinfo_x,in_gettypekind_x,in_ismanagedtype_x]) or
-                 (m_objectivec1 in current_settings.modeswitches) then
+                 (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
                 begin
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
@@ -851,7 +851,7 @@ implementation
 
           in_objc_selector_x:
             begin
-              if (m_objectivec1 in current_settings.modeswitches) then
+              if (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
                 begin
                   parser.pbase.consume(_LKLAMMER);
                   in_args:=true;
@@ -1152,8 +1152,8 @@ implementation
                getaddr:=true;
              end
             else
-             if ((m_tp_procvar in current_settings.modeswitches) or
-                 (m_mac_procvar in current_settings.modeswitches)) and
+             if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                 (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                 not(current_scanner.token in [_CARET,_POINT,_LKLAMMER]) then
               begin
                 if assigned(getfuncrefdef) then
@@ -1302,8 +1302,8 @@ implementation
       begin
         if not assigned(pv) then
          internalerror(200301121);
-        if (m_tp_procvar in current_settings.modeswitches) or
-           (m_mac_procvar in current_settings.modeswitches) then
+        if (m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+           (m_mac_procvar in compiler.globals.current_settings.modeswitches) then
          begin
            hp:=p2;
            hpp:=@p2;
@@ -1344,8 +1344,8 @@ implementation
           internalerror(2022032401);
         if not is_invokable(fr) then
           internalerror(2022032402);
-        if (m_tp_procvar in current_settings.modeswitches) or
-           (m_mac_procvar in current_settings.modeswitches) then
+        if (m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+           (m_mac_procvar in compiler.globals.current_settings.modeswitches) then
          begin
            hp:=p2;
            hpp:=@p2;
@@ -1836,7 +1836,7 @@ implementation
                begin
                  result:=compiler.ctypenode(hdef);
                  ttypenode(result).typesym:=sym;
-                 if not (m_delphi in current_settings.modeswitches) and
+                 if not (m_delphi in compiler.globals.current_settings.modeswitches) and
                      (compiler.globals.block_type in inline_specialization_block_types) and
                      (current_scanner.token=_ID) and
                      (current_scanner.idtoken=_SPECIALIZE) then
@@ -1879,7 +1879,7 @@ implementation
                     * static methods and variables }
                 result:=compiler.ctypenode(hdef);
                 ttypenode(result).typesym:=sym;
-                if not (m_delphi in current_settings.modeswitches) and
+                if not (m_delphi in compiler.globals.current_settings.modeswitches) and
                     (compiler.globals.block_type in inline_specialization_block_types) and
                     (current_scanner.token=_ID) and
                     (current_scanner.idtoken=_SPECIALIZE) then
@@ -2010,16 +2010,16 @@ implementation
            compiler.verbose.Message(parser_e_error_in_real);
            d:=1.0;
          end;
-        if current_settings.fputype=fpu_none then
+        if compiler.globals.current_settings.fputype=fpu_none then
           begin
             compiler.verbose.Message(parser_e_unsupported_real);
             result:=compiler.cerrornode;
             exit;
           end;
-        if (current_settings.minfpconstprec=s32real) and
+        if (compiler.globals.current_settings.minfpconstprec=s32real) and
            (d = single(d)) then
           result:=compiler.crealconstnode(d,s32floattype)
-        else if (current_settings.minfpconstprec=s64real) and
+        else if (compiler.globals.current_settings.minfpconstprec=s64real) and
                 (d = double(d)) then
           result:=compiler.crealconstnode(d,s64floattype)
         else
@@ -2317,8 +2317,8 @@ implementation
 
                { support in tp/mac procvar mode procvar^ if the procvar returns a
                  pointer type }
-               if ((m_tp_procvar in current_settings.modeswitches) or
-                   (m_mac_procvar in current_settings.modeswitches)) and
+               if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                   (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                   (p1.resultdef.typ=procvardef) and
                   (tprocvardef(p1.resultdef).returndef.typ=pointerdef) then
                  begin
@@ -2327,7 +2327,7 @@ implementation
                  end;
 
                { iso file buf access? }
-               if (m_isolike_io in current_settings.modeswitches) and
+               if (m_isolike_io in compiler.globals.current_settings.modeswitches) and
                  (p1.resultdef.typ=filedef) then
                  begin
                    case tfiledef(p1.resultdef).filetyp of
@@ -2363,8 +2363,8 @@ implementation
              begin
                { support in tp/mac procvar mode procvar[] if the procvar returns an
                  array type }
-               if ((m_tp_procvar in current_settings.modeswitches) or
-                   (m_mac_procvar in current_settings.modeswitches)) and
+               if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                   (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                   (p1.resultdef.typ=procvardef) and
                   (tprocvardef(p1.resultdef).returndef.typ=arraydef) then
                  begin
@@ -2403,7 +2403,7 @@ implementation
                          begin
                             { support delphi autoderef }
                             if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
-                               (m_autoderef in current_settings.modeswitches) then
+                               (m_autoderef in compiler.globals.current_settings.modeswitches) then
                               p1:=compiler.cderefnode(p1);
                             p2:=comp_expr([ef_accept_equal]);
                             { Support Pbytevar[0..9] which returns array [0..9].}
@@ -2509,7 +2509,7 @@ implementation
           _POINT :
              begin
                parser.pbase.consume(_POINT);
-               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (compiler.globals.block_type in inline_specialization_block_types);
+               allowspecialize:=not (m_delphi in compiler.globals.current_settings.modeswitches) and (compiler.globals.block_type in inline_specialization_block_types);
                if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
                  begin
                    //parser.pbase.consume(_ID);
@@ -2519,7 +2519,7 @@ implementation
                  isspecialize:=false;
                autoderef:=false;
                if (p1.resultdef.typ=pointerdef) and
-                  (m_autoderef in current_settings.modeswitches) and
+                  (m_autoderef in compiler.globals.current_settings.modeswitches) and
                   { don't auto-deref objc.id, because then the code
                     below for supporting id.anyobjcmethod isn't triggered }
                   (p1.resultdef<>objc_idtype) then
@@ -2625,8 +2625,8 @@ implementation
                    { the def of a string const is an array }
                    case tstringconstnode(p1).cst_type of
                      cst_conststring:
-                       if cs_refcountedstrings in current_settings.localswitches then
-                         if m_default_unicodestring in current_settings.modeswitches then
+                       if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
+                         if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                            strdef:=cunicodestringtype
                          else
                            strdef:=cansistringtype
@@ -3198,7 +3198,7 @@ implementation
                end
               else
                begin
-                 if (m_delphi in current_settings.modeswitches) and
+                 if (m_delphi in compiler.globals.current_settings.modeswitches) and
                      (sp_generic_dummy in srsym.symoptions) and
                      (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                    begin
@@ -3230,7 +3230,7 @@ implementation
                    begin
                      { We need to know if this unit uses Variants }
                      if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
-                        not(cs_compilesystem in current_settings.moduleswitches) then
+                        not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
                        include(current_module.moduleflags,mf_uses_variants);
                      result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
                    end;
@@ -3260,7 +3260,7 @@ implementation
           procsym :
             begin
               result:=nil;
-              if (m_delphi in current_settings.modeswitches) and
+              if (m_delphi in compiler.globals.current_settings.modeswitches) and
                   (sp_generic_dummy in srsym.symoptions) and
                   (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                 begin
@@ -3294,7 +3294,7 @@ implementation
                     callflags:=[cnf_unit_specified];
                   { TP7 ugliness: @proc^ is parsed as (@proc)^,
                     but @notproc^ is parsed as @(notproc^) }
-                  if m_tp_procvar in current_settings.modeswitches then
+                  if m_tp_procvar in compiler.globals.current_settings.modeswitches then
                     tmpgetaddr:=getaddr and not(current_scanner.token in [_POINT,_LECKKLAMMER])
                   else
                     tmpgetaddr:=getaddr and not(current_scanner.token in [_CARET,_POINT,_LECKKLAMMER]);
@@ -3464,7 +3464,7 @@ implementation
            { avoid warning }
            fillchar(dummypos,sizeof(dummypos),0);
 
-           allowspecialize:=not (m_delphi in current_settings.modeswitches) and
+           allowspecialize:=not (m_delphi in compiler.globals.current_settings.modeswitches) and
                             not (ef_had_specialize in flags) and
                             (compiler.globals.block_type in inline_specialization_block_types);
            if allowspecialize and (current_scanner.token=_ID) and (current_scanner.idtoken=_SPECIALIZE) then
@@ -3612,7 +3612,7 @@ implementation
                    (srsym.typ in [procsym,typesym]) and
                    (
                      (
-                       (m_delphi in current_settings.modeswitches) and
+                       (m_delphi in compiler.globals.current_settings.modeswitches) and
                        not (current_scanner.token in [_LT, _LSHARPBRACKET]) and
                        (
                          (
@@ -3626,7 +3626,7 @@ implementation
                      )
                      or
                      (
-                       not (m_delphi in current_settings.modeswitches) and
+                       not (m_delphi in compiler.globals.current_settings.modeswitches) and
                        not isspecialize and
                        (
                          not parser.pbase.parse_generic or
@@ -3680,7 +3680,7 @@ implementation
                      (sp_generic_dummy in srsym.symoptions) and
                      assigned(current_structdef) and
                      (df_generic in current_structdef.defoptions) and
-                     not (m_delphi in current_settings.modeswitches) and
+                     not (m_delphi in compiler.globals.current_settings.modeswitches) and
                      assigned(get_generic_in_hierarchy_by_name(srsym,current_structdef))
                    )) and
                    { it could be a rename of a generic para }
@@ -3718,7 +3718,7 @@ implementation
               (
                (current_scanner.token=_LKLAMMER) or
                (
-                (([m_tp7,m_delphi,m_mac,m_iso,m_extpas] * current_settings.modeswitches) <> []) and
+                (([m_tp7,m_delphi,m_mac,m_iso,m_extpas] * compiler.globals.current_settings.modeswitches) <> []) and
                 (afterassignment or in_args)
                )
               ) then
@@ -3866,7 +3866,7 @@ implementation
              { post fix operators are handled after specialization }
              dopostfix:=false
            else
-             if (m_delphi in current_settings.modeswitches) and
+             if (m_delphi in compiler.globals.current_settings.modeswitches) and
                  (compiler.globals.block_type in inline_specialization_block_types) and
                  (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                begin
@@ -3890,7 +3890,7 @@ implementation
                end;
            { TP7 ugliness: @proc^ is parsed as (@proc)^, but @notproc^ is parsed
              as @(notproc^) }
-           if (m_tp_procvar in current_settings.modeswitches) and (current_scanner.token=_CARET) and
+           if (m_tp_procvar in compiler.globals.current_settings.modeswitches) and (current_scanner.token=_CARET) and
               getaddr and (p1.nodetype=loadn) and (tloadnode(p1).symtableentry.typ=procsym) then
              dopostfix:=false;
            { maybe an additional parameter instead of misusing hadspezialize? }
@@ -3933,7 +3933,7 @@ implementation
                     { for record helpers in mode Delphi "inherited" is not
                       allowed }
                     if is_objectpascal_helper(current_structdef) and
-                        (m_delphi in current_settings.modeswitches) and
+                        (m_delphi in compiler.globals.current_settings.modeswitches) and
                         (tobjectdef(current_structdef).helpertype=ht_record) then
                       compiler.verbose.Message(parser_e_inherited_not_in_record);
                     if (current_structdef.typ=objectdef) then
@@ -3976,7 +3976,7 @@ implementation
                      end
                     else
                      begin
-                       if not (m_delphi in current_settings.modeswitches) and
+                       if not (m_delphi in compiler.globals.current_settings.modeswitches) and
                            (compiler.globals.block_type in inline_specialization_block_types) and
                            (current_scanner.token=_ID) and
                            (current_scanner.idtoken=_SPECIALIZE) then
@@ -4005,7 +4005,7 @@ implementation
                      end;
                     if assigned(srsym) then
                      begin
-                       mightbegeneric:=(m_delphi in current_settings.modeswitches) and
+                       mightbegeneric:=(m_delphi in compiler.globals.current_settings.modeswitches) and
                                          (current_scanner.token in [_LT,_LSHARPBRACKET]) and
                                          (sp_generic_dummy in srsym.symoptions);
                        { load the procdef from the inherited class and
@@ -4199,7 +4199,7 @@ implementation
 
              _STRING :
                begin
-                 if cs_compilesystem in current_settings.moduleswitches then
+                 if cs_compilesystem in compiler.globals.current_settings.moduleswitches then
                    compiler.verbose.Message(parser_e_nostringaliasinsystem);
                  string_dec(hdef,true);
                  { STRING can be also a type cast }
@@ -4311,7 +4311,7 @@ implementation
                      is parsed as @(notproc^) }
                     not
                     (
-                     (m_tp_procvar in current_settings.modeswitches) and
+                     (m_tp_procvar in compiler.globals.current_settings.modeswitches) and
                      (current_scanner.token=_CARET) and (p1.nodetype=loadn) and (tloadnode(p1).symtableentry.typ=procsym)
                     )
                    then
@@ -4322,7 +4322,7 @@ implementation
                  got_addrn:=false;
                  p1:=compiler.caddrnode(p1);
                  p1.fileinfo:=filepos;
-                 if cs_typed_addresses in current_settings.localswitches then
+                 if cs_typed_addresses in compiler.globals.current_settings.localswitches then
                    include(taddrnode(p1).addrnodeflags,anf_typedaddr);
                  { Store the procvar that we are expecting, the
                    addrn will use the information to find the correct
@@ -4368,7 +4368,7 @@ implementation
              _MINUS :
                begin
                  parser.pbase.consume(_MINUS);
-                 if (current_scanner.token = _INTCONST) and not(m_isolike_unary_minus in current_settings.modeswitches) then
+                 if (current_scanner.token = _INTCONST) and not(m_isolike_unary_minus in compiler.globals.current_settings.modeswitches) then
                     begin
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
@@ -4396,7 +4396,7 @@ implementation
                     end
                  else
                    begin
-                     if m_isolike_unary_minus in current_settings.modeswitches then
+                     if m_isolike_unary_minus in compiler.globals.current_settings.modeswitches then
                        p1:=sub_expr(opmultiply,[],nil)
                      else
                        p1:=sub_expr(oppower,[],nil);
@@ -4443,7 +4443,7 @@ implementation
              _FUNCTION:
                begin
                  if (compiler.globals.block_type=bt_body) and
-                     (m_anonymous_functions in current_settings.modeswitches) then
+                     (m_anonymous_functions in compiler.globals.current_settings.modeswitches) then
                    begin
                      filepos:=compiler.globals.current_filepos;
                      oldprocvardef:=getprocvardef;
@@ -4770,7 +4770,7 @@ implementation
              { Attention: when nested specializations are supported
                           p2 could be a loadn if a "<" follows }
              istypenode(p2) and
-              (m_delphi in current_settings.modeswitches) and
+              (m_delphi in compiler.globals.current_settings.modeswitches) and
               { TODO : add _LT, _LSHARPBRACKET for nested specializations }
               (current_scanner.token in [_GT,_RSHARPBRACKET,_COMMA]) then
             begin
@@ -4948,7 +4948,7 @@ implementation
                _OP_AS,
                _OP_IS :
                  begin
-                   if (m_delphi in current_settings.modeswitches) and
+                   if (m_delphi in compiler.globals.current_settings.modeswitches) and
                        (current_scanner.token in [_LT, _LSHARPBRACKET]) and
                        getgenericsym(p2,gensym) then
                      begin
@@ -5007,7 +5007,7 @@ implementation
                _OP_MOD :
                  begin
                    p1:=compiler.cmoddivnode(modn,p1,p2);
-                   if m_isolike_mod in current_settings.modeswitches then
+                   if m_isolike_mod in compiler.globals.current_settings.modeswitches then
                      include(tmoddivnode(p1).moddivnodeflags,mdnf_isomod);
                  end;
                _OP_SHL :
@@ -5030,7 +5030,7 @@ implementation
         until false;
         if (p1.nodetype=specializen) and
             (current_scanner.token=_LSHARPBRACKET) and
-            (m_delphi in current_settings.modeswitches) then
+            (m_delphi in compiler.globals.current_settings.modeswitches) then
           begin
             filepos:=compiler.globals.current_tokenpos;
             parser.pbase.consume(current_scanner.token);
@@ -5114,7 +5114,7 @@ implementation
              end;
            _PLUSASN :
              begin
-               if not(cs_support_c_operators in current_settings.moduleswitches) then
+               if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_PLUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
@@ -5122,7 +5122,7 @@ implementation
             end;
           _MINUSASN :
             begin
-               if not(cs_support_c_operators in current_settings.moduleswitches) then
+               if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_MINUSASN);
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
@@ -5130,7 +5130,7 @@ implementation
             end;
           _STARASN :
             begin
-               if not(cs_support_c_operators in current_settings.moduleswitches) then
+               if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_STARASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
@@ -5138,7 +5138,7 @@ implementation
             end;
           _SLASHASN :
             begin
-               if not(cs_support_c_operators in current_settings.moduleswitches) then
+               if not(cs_support_c_operators in compiler.globals.current_settings.moduleswitches) then
                  compiler.verbose.Message(parser_e_coperators_off);
                parser.pbase.consume(_SLASHASN  );
                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
@@ -5209,7 +5209,7 @@ implementation
            len:=getlengthwidestring(pw);
            pc:=getmem(Len+1);
            pc[len]:=#0;
-           unicode2ascii(pw,pc,current_settings.sourcecodepage);
+           unicode2ascii(pw,pc,compiler.globals.current_settings.sourcecodepage);
            get_stringconst:=strpas(pc);
            freemem(pc);
          end

@@ -1090,7 +1090,7 @@ implementation
         const aname: string; aorder: TAsmSectionOrder): string;
       begin
         if (atype=sec_fpc) or
-           ((atype=sec_threadvar) and not (ts_wasm_threads in current_settings.targetswitches)) then
+           ((atype=sec_threadvar) and not (ts_wasm_threads in compiler.globals.current_settings.targetswitches)) then
           atype:=sec_data;
         Result:=sectionname_gas(atype, aname, aorder);
       end;
@@ -1106,7 +1106,7 @@ implementation
           internalerror(200403072);
         { workaround crash, when generating debug info for threadvars, when multithreading is turned off.
           todo: ensure the debug info for threadvars is actually correct, once we've got WebAssembly debug info working in general }
-        if (Reloctype=RELOC_DTPOFF) and not (ts_wasm_threads in current_settings.targetswitches) then
+        if (Reloctype=RELOC_DTPOFF) and not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
           Reloctype:=RELOC_ABSOLUTE;
         objreloc:=nil;
         case Reloctype of
@@ -1857,7 +1857,7 @@ implementation
                 Inc(import_globals_count)
               else
                 Inc(globals_count);
-            if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
+            if (objsym.typ=AT_TLS) and (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
               Inc(import_globals_count);
             if IsExternalFunction(objsym) then
               Inc(import_functions_count);
@@ -1916,7 +1916,7 @@ implementation
                 else
                   WriteByte(FWasmSections[wsiImport],$01);  { var }
               end
-            else if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
+            else if (objsym.typ=AT_TLS) and (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
               begin
                 objsym.GlobalIndex:=NextGlobalIndex;
                 Inc(NextGlobalIndex);
@@ -2097,7 +2097,7 @@ implementation
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
-        if ts_wasm_threads in current_settings.targetswitches then
+        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           begin
             WriteUleb(FWasmCustomSections[wcstTargetFeatures],4);
             WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
@@ -2314,7 +2314,7 @@ implementation
                       SymbolFlags:=WASM_SYM_UNDEFINED
                     else
                       internalerror(2021092506);
-                    if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
+                    if (objsym.typ=AT_TLS) and (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
                       SymbolFlags:=(SymbolFlags and not WASM_SYM_BINDING_LOCAL) or WASM_SYM_TLS;
                     WriteUleb(FWasmSymbolTable,SymbolFlags);
                     WriteName(FWasmSymbolTable,objsym.Name);
@@ -2343,7 +2343,7 @@ implementation
                     WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],objsec.Name);
                     WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(objsec.SecAlign));
                     SegmentFlags:=0;
-                    if (ts_wasm_threads in current_settings.targetswitches) and
+                    if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and
                        (oso_threadvar in objsec.SecOptions) then
                       SegmentFlags:=SegmentFlags or WASM_SEG_FLAG_TLS;
                     WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],SegmentFlags);  { flags }
@@ -2904,11 +2904,11 @@ implementation
                       end;
                     if (RelocType in [R_WASM_GLOBAL_INDEX_LEB,R_WASM_GLOBAL_INDEX_I32]) and
                        not ((SymbolTable[RelocIndex].SymKind=SYMTAB_GLOBAL) or
-                            ((ts_wasm_threads in current_settings.targetswitches) and
+                            ((ts_wasm_threads in compiler.globals.current_settings.targetswitches) and
                              (SymbolTable[RelocIndex].SymKind=SYMTAB_DATA) and
                              ((SymbolTable[RelocIndex].SymFlags and WASM_SYM_TLS)<>0))) then
                       begin
-                        if ts_wasm_threads in current_settings.targetswitches then
+                        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
                           InputError('Relocation must point to a SYMTAB_GLOBAL symbol or a SYMTAB_DATA symbol with the WASM_SYM_TLS flag set')
                         else
                           InputError('Relocation must point to a SYMTAB_GLOBAL symbol');
@@ -4440,7 +4440,7 @@ implementation
                   InputError('Code section ' + tostr(i) + ' does not have a main symbol defined in the symbol table');
                   exit;
                 end;
-              if SegIsExported or not (cs_link_smart in current_settings.globalswitches) then
+              if SegIsExported or not (cs_link_smart in compiler.globals.current_settings.globalswitches) then
                 CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load,oso_keep],false)
               else
                 CurrSec:=ObjData.createsection(SegName,1,[oso_executable,oso_Data,oso_load],false);
@@ -4452,7 +4452,7 @@ implementation
           with DataSegments[i] do
             if Active then
               begin
-                if not (cs_link_smart in current_settings.globalswitches) then
+                if not (cs_link_smart in compiler.globals.current_settings.globalswitches) then
                   CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write,oso_keep],false)
                 else
                   CurrSec:=ObjData.createsection(SegName,1 shl SegAlignment,[oso_Data,oso_load,oso_write],false);
@@ -4956,7 +4956,7 @@ implementation
             dpos, pad: QWord;
           begin
             AddToDataNameMap(Length(FDataNameMap),exesec.Name);
-            if ts_wasm_threads in current_settings.targetswitches then
+            if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
               WriteByte(FWasmSections[wsiData],1)  { mode passive }
             else
               begin
@@ -5281,7 +5281,7 @@ implementation
         GenerateCode_InitTls;
         GenerateCode_InitSharedMemory;
 
-        if ts_wasm_threads in current_settings.targetswitches then
+        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           begin
             SetLength(FImportedMemories,1);
             with FImportedMemories[0] do
@@ -5324,7 +5324,7 @@ implementation
 
         WriteExportSection;
 
-        if ts_wasm_threads in current_settings.targetswitches then
+        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           WriteUleb(FWasmSections[wsiStart],FInitSharedMemoryFunctionSym.LinkingData.ExeFunctionIndex);
 
         WriteNameSection;
@@ -5335,12 +5335,12 @@ implementation
         WriteWasmSection(wsiImport);
         WriteWasmSection(wsiFunction);
         WriteWasmSection(wsiTable);
-        if not (ts_wasm_threads in current_settings.targetswitches) then
+        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
           WriteWasmSection(wsiMemory);
         WriteWasmSectionIfNotEmpty(wsiTag);
         WriteWasmSection(wsiGlobal);
         WriteWasmSection(wsiExport);
-        if ts_wasm_threads in current_settings.targetswitches then
+        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           WriteWasmSection(wsiStart);
         WriteWasmSection(wsiElement);
         WriteWasmSection(wsiDataCount);
@@ -5506,7 +5506,7 @@ implementation
                             WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
                           end;
                       end
-                    else if (ts_wasm_threads in current_settings.targetswitches) and
+                    else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and
                             (objsym.typ=AT_TLS) then
                       begin
                         { Nothing to do here. A second RELOC_GLOBAL_INDEX_LEB
@@ -5671,7 +5671,7 @@ implementation
           Data lives in a separate address space, so start addressing back from 0
           (the LLVM leaves the first 1024 bytes in the data segment empty, so we
           start at 1024). }
-        if ts_wasm_threads in current_settings.targetswitches then
+        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           firstdatasec:='.tbss'
         else
           firstdatasec:='.rodata';
@@ -5725,7 +5725,7 @@ implementation
             FStackPointerSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FStackPointerSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__tls_base') then
+        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__tls_base') then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
             FTlsBaseSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
@@ -5737,7 +5737,7 @@ implementation
             FTlsBaseSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FTlsBaseSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__tls_size') then
+        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__tls_size') then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
             FTlsSizeSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
@@ -5749,7 +5749,7 @@ implementation
             FTlsSizeSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FTlsSizeSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__tls_align') then
+        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__tls_align') then
           begin
             internalObjData.createsection('*'+aname,1,[oso_Data,oso_load]);
             FTlsAlignSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_WASM_GLOBAL));
@@ -5761,14 +5761,14 @@ implementation
             FTlsAlignSym.LinkingData.GlobalInitializer.typ:=wbt_i32;
             FTlsAlignSym.LinkingData.GlobalInitializer.init_i32:=0;
           end
-        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__wasm_init_tls') then
+        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__wasm_init_tls') then
           begin
             internalObjData.createsection('*'+aname,0,[]);
             FInitTlsFunctionSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION));
             TWasmObjSection(FInitTlsFunctionSym.ObjSection).MainFuncSymbol:=FInitTlsFunctionSym;
             FInitTlsFunctionSym.LinkingData.FuncType:=TWasmFuncType.Create([wbt_i32],[]);
           end
-        else if (ts_wasm_threads in current_settings.targetswitches) and (aname='__fpc_wasm_init_shared_memory') then
+        else if (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and (aname='__fpc_wasm_init_shared_memory') then
           begin
             internalObjData.createsection('*'+aname,0,[]);
             FInitSharedMemoryFunctionSym:=TWasmObjSymbol(internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION));
@@ -5979,7 +5979,7 @@ implementation
       var
         TBssSec: TExeSection;
       begin
-        if not (ts_wasm_threads in current_settings.targetswitches) then
+        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
           exit;
         TBssSec:=FindExeSection('.tbss');
         FTlsSizeSym.LinkingData.GlobalInitializer.init_i32:=Int32(TBssSec.Size);
@@ -5994,7 +5994,7 @@ implementation
         objsec: TWasmObjSection;
         objsym: TWasmObjSymbol;
       begin
-        if not (ts_wasm_threads in current_settings.targetswitches) then
+        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
           exit;
         exesec:=FindExeSection('.wasm_globals');
         if not assigned(exesec) then
@@ -6020,7 +6020,7 @@ implementation
         globalobjsym: TWasmObjSymbol;
         OffsetInTls: QWord;
       begin
-        if not (ts_wasm_threads in current_settings.targetswitches) then
+        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
           exit;
 
         globalexesec:=FindExeSection('.wasm_globals');
@@ -6074,7 +6074,7 @@ implementation
         DataSecIdx: Integer;
         ExeSec: TExeSection;
       begin
-        if not (ts_wasm_threads in current_settings.targetswitches) then
+        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
           exit;
         Sec:=FInitSharedMemoryFunctionSym.objsection;
         Sec.SecOptions:=Sec.SecOptions+[oso_Data];

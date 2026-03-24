@@ -347,7 +347,7 @@ implementation
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
         if parser.pbase.try_to_consume(_RKLAMMER) and
-          not(m_tp7 in current_settings.modeswitches) then
+          not(m_tp7 in compiler.globals.current_settings.modeswitches) then
           exit;
         { parsing a proc or procvar ? }
         currparast:=tparasymtable(pd.parast);
@@ -365,28 +365,28 @@ implementation
             if parser.pbase.try_to_consume(_CONST) then
               varspez:=vs_const
           else
-            if (m_out in current_settings.modeswitches) and
+            if (m_out in compiler.globals.current_settings.modeswitches) and
                parser.pbase.try_to_consume(_OUT) then
               varspez:=vs_out
           else
            if parser.pbase.try_to_consume(_CONSTREF) then
              varspez:=vs_constref
           else
-            if (m_mac in current_settings.modeswitches) and
+            if (m_mac in compiler.globals.current_settings.modeswitches) and
                parser.pbase.try_to_consume(_POINTPOINTPOINT) then
               begin
                 include(pd.procoptions,po_varargs);
                 break;
               end
           else
-            if (m_nested_procvars in current_settings.modeswitches) and
+            if (m_nested_procvars in compiler.globals.current_settings.modeswitches) and
                parser.pbase.try_to_consume(_PROCEDURE) then
               begin
                 parseprocvar:=pv_proc;
                 varspez:=vs_const;
               end
           else
-            if (m_nested_procvars in current_settings.modeswitches) and
+            if (m_nested_procvars in compiler.globals.current_settings.modeswitches) and
                parser.pbase.try_to_consume(_FUNCTION) then
               begin
                 parseprocvar:=pv_func;
@@ -443,7 +443,7 @@ implementation
              need_array:=false;
              { bitpacked open array are not yet supported }
              if (current_scanner.token=_PACKED) and
-                not(cs_bitpacking in current_settings.localswitches) then
+                not(cs_bitpacking in compiler.globals.current_settings.localswitches) then
                begin
                  parser.pbase.consume(_PACKED);
                  need_array:=true;
@@ -456,7 +456,7 @@ implementation
                 { define range and type of range }
                 hdef:=carraydef.create_openarray(compiler);
                 { array of const ? }
-                if (current_scanner.token=_CONST) and (m_objpas in current_settings.modeswitches) then
+                if (current_scanner.token=_CONST) and (m_objpas in compiler.globals.current_settings.modeswitches) then
                  begin
                    parser.pbase.consume(_CONST);
                    srsym:=search_system_type('TVARREC');
@@ -466,7 +466,7 @@ implementation
                 else
                  begin
                    { define field type }
-                   if m_delphi in current_settings.modeswitches then
+                   if m_delphi in compiler.globals.current_settings.modeswitches then
                      stoptions:=[stoAllowSpecialization]
                    else
                      stoptions:=[];
@@ -478,7 +478,7 @@ implementation
               end
              else
               begin
-                if (m_mac in current_settings.modeswitches) then
+                if (m_mac in compiler.globals.current_settings.modeswitches) then
                   is_univ:=parser.pbase.try_to_consume(_UNIV);
 
                 { this is not really working and generates internal errors
@@ -499,7 +499,7 @@ implementation
                         begin
                           { not 100% Delphi-compatible: type xstr=string[255] cannot
                             become an openstring there, while here it can }
-                          if (cs_openstring in current_settings.localswitches) and
+                          if (cs_openstring in compiler.globals.current_settings.localswitches) and
                              (tstringdef(hdef).len=255) then
                             hdef:=openshortstringtype
                         end;
@@ -536,7 +536,7 @@ implementation
                   locationstr:='';
 
                 { default parameter }
-                if (m_default_para in current_settings.modeswitches) then
+                if (m_default_para in compiler.globals.current_settings.modeswitches) then
                   handle_default_para_value;
               end;
            end
@@ -658,7 +658,7 @@ implementation
                     _ADDREF:parser.pbase.optoken:=_OP_ADDREF;
                     _COPY:parser.pbase.optoken:=_OP_COPY;
                     else
-                    if (m_delphi in current_settings.modeswitches) then
+                    if (m_delphi in compiler.globals.current_settings.modeswitches) then
                       case lastidtoken of
                         _IMPLICIT:parser.pbase.optoken:=_ASSIGNMENT;
                         _NEGATIVE:parser.pbase.optoken:=_MINUS;
@@ -738,11 +738,11 @@ implementation
                 spnongen:=sp;
                 orgspnongen:=orgsp;
                 if firstpart and
-                    not (m_delphi in current_settings.modeswitches) and
+                    not (m_delphi in compiler.globals.current_settings.modeswitches) and
                     (current_scanner.idtoken=_SPECIALIZE) then
                   hadspecialize:=true;
                 parser.pbase.consume(_ID);
-                if ((ppf_generic in flags) or (m_delphi in current_settings.modeswitches)) and
+                if ((ppf_generic in flags) or (m_delphi in compiler.globals.current_settings.modeswitches)) and
                     (current_scanner.token in [_LT,_LSHARPBRACKET]) then
                   begin
                     parser.pbase.consume(current_scanner.token);
@@ -1074,7 +1074,7 @@ implementation
                        else
                          begin
                            {  we use a different error message for tp7 so it looks more compatible }
-                           if (m_fpc in current_settings.modeswitches) then
+                           if (m_fpc in compiler.globals.current_settings.modeswitches) then
                              compiler.verbose.Message1(parser_e_overloaded_no_procedure,srsym.realname)
                            else
                              compiler.verbose.Message(parser_e_methode_id_expected);
@@ -1100,7 +1100,7 @@ implementation
                if (not parser.pbase.parse_only) and
                   ((potype in [potype_constructor,potype_destructor,
                                potype_class_constructor,potype_class_destructor]) or
-                   ((potype=potype_operator) and (m_delphi in current_settings.modeswitches))) then
+                   ((potype=potype_operator) and (m_delphi in compiler.globals.current_settings.modeswitches))) then
                  compiler.verbose.Message(parser_e_only_methods_allowed);
 
                repeat
@@ -1157,14 +1157,14 @@ implementation
                        begin
                          { when the other symbol is a unit symbol then hide the unit
                            symbol, this is not supported in tp7 }
-                         if not(m_tp7 in current_settings.modeswitches) and
+                         if not(m_tp7 in compiler.globals.current_settings.modeswitches) and
                             (srsym.typ=unitsym) then
                           begin
                             HideSym(srsym);
                             searchagain:=true;
                           end
                          else
-                         if (m_delphi in current_settings.modeswitches) and
+                         if (m_delphi in compiler.globals.current_settings.modeswitches) and
                             (srsym.typ=absolutevarsym) and
                             ([vo_is_funcret,vo_is_result]*tabstractvarsym(srsym).varoptions=[vo_is_funcret]) then
                            begin
@@ -1186,7 +1186,7 @@ implementation
                          else
                           begin
                             {  we use a different error message for tp7 so it looks more compatible }
-                            if (m_fpc in current_settings.modeswitches) then
+                            if (m_fpc in compiler.globals.current_settings.modeswitches) then
                               compiler.verbose.Message1(parser_e_overloaded_no_procedure,srsym.realname)
                             else
                               compiler.verbose.Message1(sym_e_duplicate_id,srsym.realname);
@@ -1502,7 +1502,7 @@ implementation
 // testing and/or RTL patching.
 {
             if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
-               not(cs_compilesystem in current_settings.moduleswitches) then
+               not(cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               include(current_module.moduleflags,mf_uses_variants);
 }
             if is_dispinterface(pd.struct) and not is_automatable(pd.returndef) then
@@ -1543,7 +1543,7 @@ implementation
                     operators we allow this in other modes as well }
                   if current_scanner.token<>_ID then
                     begin
-                       if not(m_result in current_settings.modeswitches) then
+                       if not(m_result in compiler.globals.current_settings.modeswitches) then
                          parser.pbase.consume(_ID);
                     end
                   else
@@ -1585,7 +1585,7 @@ implementation
                       parser.pbase.parse_only and
                       not(is_interface(pd.struct))
                      ) or
-                     (m_repeat_forward in current_settings.modeswitches) then
+                     (m_repeat_forward in compiler.globals.current_settings.modeswitches) then
                   begin
                     parser.pbase.consume(_COLON);
                     parser.pbase.consume_all_until(_SEMICOLON);
@@ -1642,7 +1642,7 @@ implementation
                 end;
               if current_scanner.token<>_ID then
                 begin
-                   if not(m_result in current_settings.modeswitches) then
+                   if not(m_result in compiler.globals.current_settings.modeswitches) then
                      parser.pbase.consume(_ID);
                 end
               else
@@ -2069,7 +2069,7 @@ begin
   if pd.typ<>procdef then
     internalerror(200910170);
   if is_objectpascal_helper(tprocdef(pd).struct) and
-      (m_objfpc in current_settings.modeswitches) then
+      (m_objfpc in compiler.globals.current_settings.modeswitches) then
     compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_FINAL].str);
   if (po_virtualmethod in pd.procoptions) or
      (is_javaclass(tprocdef(pd).struct) and
@@ -2127,7 +2127,7 @@ begin
   if pd.is_generic then
     compiler.verbose.Message(parser_e_genfuncs_cannot_be_virtual);
   if is_objectpascal_helper(tprocdef(pd).struct) and
-      (m_objfpc in current_settings.modeswitches) then
+      (m_objfpc in compiler.globals.current_settings.modeswitches) then
     compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_VIRTUAL].str);
 {$ifdef WITHDMT}
   if is_object(tprocdef(pd).struct) and
@@ -2192,7 +2192,7 @@ begin
     internalerror(2003042611);
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
-      if m_objfpc in current_settings.modeswitches then
+      if m_objfpc in compiler.globals.current_settings.modeswitches then
         compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_OVERRIDE].str)
     end
   else if not(is_class_or_interface_or_objc_or_java(tprocdef(pd).struct)) then
@@ -2222,7 +2222,7 @@ begin
     internalerror(2003042613);
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
-      if m_objfpc in current_settings.modeswitches then
+      if m_objfpc in compiler.globals.current_settings.modeswitches then
         compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_MESSAGE].str);
     end
   else
@@ -2285,7 +2285,7 @@ begin
     internalerror(200401211);
   if is_objectpascal_helper(tprocdef(pd).struct) then
     begin
-      if m_objfpc in current_settings.modeswitches then
+      if m_objfpc in compiler.globals.current_settings.modeswitches then
         compiler.verbose.Message1(parser_e_not_allowed_in_helper, arraytokeninfo[_REINTRODUCE].str);
     end
   else
@@ -2604,9 +2604,9 @@ procedure TSubroutineDeclarationParser.pd_hardfloat(pd:tabstractprocdef);
 begin
   if
 {$if defined(arm)}
-    (current_settings.fputype=fpu_soft) or
+    (compiler.globals.current_settings.fputype=fpu_soft) or
 {$endif defined(arm)}
-    (cs_fp_emulation in current_settings.moduleswitches) then
+    (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
     compiler.verbose.Message(parser_e_cannot_use_hardfloat_in_a_softfloat_environment);
 end;
 
@@ -3207,7 +3207,7 @@ const
         name:=tokeninfo^[current_scanner.idtoken].str;
 
       { Hint directive? Then exit immediately }
-        if (m_hintdirective in current_settings.modeswitches) then
+        if (m_hintdirective in compiler.globals.current_settings.modeswitches) then
          begin
            case current_scanner.idtoken of
              _LIBRARY,
@@ -3215,7 +3215,7 @@ const
              _UNIMPLEMENTED,
              _EXPERIMENTAL,
              _DEPRECATED :
-               if (m_delphi in current_settings.modeswitches) and (pd.typ=procdef) then
+               if (m_delphi in compiler.globals.current_settings.modeswitches) and (pd.typ=procdef) then
                  begin
                    parser.ptype.maybe_parse_hint_directives(tprocdef(pd));
                    { could the new token still be a directive? }
@@ -3232,7 +3232,7 @@ const
         { C directive is MacPas only, because it breaks too much existing code
           on other platforms (PFV) }
         if (current_scanner.idtoken=_C) and
-           not(m_mac in current_settings.modeswitches) then
+           not(m_mac in compiler.globals.current_settings.modeswitches) then
           exit;
 
       { retrieve data for directive if found }
@@ -3443,7 +3443,7 @@ const
                   {In MacPas a single "external" has the same effect as "external name 'xxx'" }
                   { but according to MacPas mode description
                     Cprefix should still be used PM }
-                  if (m_mac in current_settings.modeswitches) then
+                  if (m_mac in compiler.globals.current_settings.modeswitches) then
                     result:=compiler.target.info.Cprefix+tprocdef(pd).procsym.realname
                   else
                     result:=pd.procsym.realname;
@@ -3451,7 +3451,7 @@ const
                   { Turbo Pascal expects names of external routines
                     to be all uppercase }
                   if (compiler.target.info.system=system_i8086_msdos) and
-                    (m_tp7 in current_settings.modeswitches) and
+                    (m_tp7 in compiler.globals.current_settings.modeswitches) and
                     (pd.proccalloption=pocall_pascal) then
                     result:=UpCase(result);
 {$endif i8086}
@@ -3540,7 +3540,7 @@ const
         stoprecording,
         res : boolean;
       begin
-        if (m_mac in current_settings.modeswitches) and (cs_externally_visible in current_settings.localswitches) then
+        if (m_mac in compiler.globals.current_settings.modeswitches) and (cs_externally_visible in compiler.globals.current_settings.localswitches) then
           begin
             tprocdef(pd).aliasnames.insert(compiler.target.info.Cprefix+tprocdef(pd).procsym.realname);
             include(pd.procoptions,po_public);
@@ -3579,11 +3579,11 @@ const
 
         while (current_scanner.token=_ID) or
             (
-              not (m_prefixed_attributes in current_settings.modeswitches) and
+              not (m_prefixed_attributes in compiler.globals.current_settings.modeswitches) and
               (current_scanner.token=_LECKKLAMMER)
             ) do
          begin
-           if not (m_prefixed_attributes in current_settings.modeswitches) and
+           if not (m_prefixed_attributes in compiler.globals.current_settings.modeswitches) and
               parser.pbase.try_to_consume(_LECKKLAMMER) then
             begin
               repeat

@@ -388,7 +388,7 @@ interface
         { And,Or will only evaluate from left to right only the
           needed nodes unless full boolean evaluation is enabled }
         if (nodetype in [orn,andn]) and
-           (not(cs_full_boolean_eval in current_settings.localswitches) or
+           (not(cs_full_boolean_eval in compiler.globals.current_settings.localswitches) or
             (anf_short_bool in addnodeflags)) then
           begin
             case nodetype of
@@ -715,7 +715,7 @@ interface
          checkoverflow and
           (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef) and
-          (cs_check_overflow in current_settings.localswitches) and not(nf_internal in flags);
+          (cs_check_overflow in compiler.globals.current_settings.localswitches) and not(nf_internal in flags);
 
        if nodetype<>subn then
         begin
@@ -767,7 +767,7 @@ interface
     function tcgaddnode.needoverflowcheck: boolean;
       begin
         result:=
-          (cs_check_overflow in current_settings.localswitches) and
+          (cs_check_overflow in compiler.globals.current_settings.localswitches) and
           (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef) and
           not(nf_internal in flags);
@@ -812,7 +812,7 @@ interface
               if is_dynamic_array(left.resultdef) then
                 second_opordinal
               else
-                if (cs_support_vectors in current_settings.globalswitches) and
+                if (cs_support_vectors in compiler.globals.current_settings.globalswitches) and
                    is_vector(left.resultdef) then
                   second_opvector
 {$ifdef SUPPORT_MMX}

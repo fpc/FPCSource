@@ -111,8 +111,8 @@ unit agcpugas;
       var
         cf: tcpuflags;
       begin
-        Result:='-march='+cputype_to_gas_march[current_settings.cputype];
-        for cf in cpu_capabilities[current_settings.cputype] do
+        Result:='-march='+cputype_to_gas_march[compiler.globals.current_settings.cputype];
+        for cf in cpu_capabilities[compiler.globals.current_settings.cputype] do
           begin
             case cf of
               CPUAARCH64_HAS_DOTPROD:
@@ -133,7 +133,7 @@ unit agcpugas;
                 { currently, clang on aarch64-darwin does not support pauth and as
                   it is actually part of -march==armv8.4-a (and higher) we actually don't need it,
                   so ignore it at this point }
-                if not(current_settings.cputype>=cpu_armv84a) then
+                if not(compiler.globals.current_settings.cputype>=cpu_armv84a) then
                   Result:=Result+'+pauth';
               CPUAARCH64_HAS_TME:
                 Result:=Result+'+tme';
@@ -160,7 +160,7 @@ unit agcpugas;
     function TAArch64Assembler.MakeCmdLine: TCmdStr;
       begin
         result:=inherited MakeCmdLine;
-        if cputype_to_gas_march[current_settings.cputype] <> '' then
+        if cputype_to_gas_march[compiler.globals.current_settings.cputype] <> '' then
           Replace(result,'$MARCHOPT',GetmarchStr)
         else
           Replace(result,'$MARCHOPT','');
@@ -180,7 +180,7 @@ unit agcpugas;
     function TAArch64AppleAssembler.MakeCmdLine: TCmdStr;
       begin
         result:=inherited MakeCmdLine;
-        if cputype_to_gas_march[current_settings.cputype] <> '' then
+        if cputype_to_gas_march[compiler.globals.current_settings.cputype] <> '' then
           Replace(result,'$MARCHOPT',GetmarchStr)
         else
           Replace(result,'$MARCHOPT','');

@@ -93,7 +93,7 @@ implementation
             case compiler.target.info.system of
               system_i386_linux,system_i386_android:
                 begin
-                  case current_settings.tlsmodel of
+                  case compiler.globals.current_settings.tlsmodel of
                     tlsm_local_exec:
                       begin
                         location.reference.segment:=NR_GS;
@@ -127,7 +127,7 @@ implementation
             case compiler.target.info.system of
               system_x86_64_linux:
                 begin
-                  case current_settings.tlsmodel of
+                  case compiler.globals.current_settings.tlsmodel of
                     tlsm_local_exec:
                       begin
                         location.reference.segment:=NR_FS;

@@ -125,7 +125,7 @@ implementation
             getrange(left.resultdef,lv,hv);
             Range := aint(max_)-aint(min_);
 
-            if (cs_opt_size in current_settings.optimizerswitches) then
+            if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
               { Limit size of jump tables for small enumerations so they have
                 to be at least two-thirds full before being considered for the
                 "almost exhaustive" treatment }

@@ -587,14 +587,14 @@ implementation
               we can easily get the actual address of a procvar }
             not(nf_internal in flags) and
             (left.resultdef.typ=procvardef) and
-            ((m_tp_procvar in current_settings.modeswitches) or
-             (m_mac_procvar in current_settings.modeswitches))
+            ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+             (m_mac_procvar in compiler.globals.current_settings.modeswitches))
            ) then
           begin
             isprocvar:=(left.resultdef.typ=procvardef);
             need_conv_to_voidptr:=
-              (m_tp_procvar in current_settings.modeswitches) or
-              (m_mac_procvar in current_settings.modeswitches);
+              (m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+              (m_mac_procvar in compiler.globals.current_settings.modeswitches);
 
             if not isprocvar then
               begin
@@ -1195,7 +1195,7 @@ implementation
                      so do not skip the type conversion in case of range checking
 
                      After all, range checking is a safety mean }
-                     (cs_check_range in current_settings.localswitches)) then
+                     (cs_check_range in compiler.globals.current_settings.localswitches)) then
                    {Convert array indexes to low_bound..high_bound.}
                    inserttypeconv(right,cenumdef.create_subrange(tenumdef(right.resultdef),
                                                       asizeint(Tarraydef(left.resultdef).lowrange),
@@ -1257,7 +1257,7 @@ implementation
                    begin
                      inserttypeconv(right,htype,compiler);
                      { insert type conversion so cse can pick it up }
-                     if (htype.size<ptrsinttype.size) and is_integer(htype) and not(cs_check_range in current_settings.localswitches) then
+                     if (htype.size<ptrsinttype.size) and is_integer(htype) and not(cs_check_range in compiler.globals.current_settings.localswitches) then
                        inserttypeconv_internal(right,ptrsinttype,compiler);
                    end;
                end;
@@ -1325,7 +1325,7 @@ implementation
                  (except voidpointer) in delphi/tp7 it's only allowed for pchars. }
                if not is_voidpointer(left.resultdef) and
                   (
-                   (cs_pointermath in current_settings.localswitches) or
+                   (cs_pointermath in compiler.globals.current_settings.localswitches) or
                    tpointerdef(left.resultdef).has_pointer_math or
                    is_pchar(left.resultdef) or
                    is_pwidechar(left.resultdef)
@@ -1371,7 +1371,7 @@ implementation
                    if (right.nodetype=ordconstn) and
                       (Tordconstnode(right).value.svalue=0) and
                       not is_shortstring(left.resultdef) and
-                      not(cs_zerobasedstrings in current_settings.localswitches) then
+                      not(cs_zerobasedstrings in compiler.globals.current_settings.localswitches) then
                      compiler.verbose.CGMessage(cg_e_can_access_element_zero);
                    resultdef:=elementdef;
                  end;
@@ -1526,7 +1526,7 @@ implementation
         made a regvar in case this is a nested routine relative to the
         array parameter -> generate te check at the node tree level
         rather than in the code generator }
-      if (cs_check_range in current_settings.localswitches) and
+      if (cs_check_range in compiler.globals.current_settings.localswitches) and
          (is_open_array(left.resultdef) or
           is_array_of_const(left.resultdef)) and
          (right.nodetype<>rangen) then

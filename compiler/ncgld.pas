@@ -176,7 +176,7 @@ implementation
 
         { only do for -O2 or higher (breaks debugging since }
         { variables move to different memory locations)     }
-        if not(cs_opt_level2 in current_settings.optimizerswitches) or
+        if not(cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) or
            { must be a copy to a memory location ... }
            (n.location.loc <> LOC_REFERENCE) or
            { not inside a control flow statement and no goto's in sight }
@@ -329,8 +329,8 @@ implementation
              size_opt:={$if defined(RISCV)}
                          true
                        {$else defined(RISCV)}
-                         (cs_opt_size in current_settings.optimizerswitches)
-                         or ((cs_create_pic in current_settings.moduleswitches) and (tf_pic_uses_got in compiler.target.info.flags))
+                         (cs_opt_size in compiler.globals.current_settings.optimizerswitches)
+                         or ((cs_create_pic in compiler.globals.current_settings.moduleswitches) and (tf_pic_uses_got in compiler.target.info.flags))
                        {$endif defined(RISCV)};
              hreg_tv_rec:=NR_INVALID;
              if size_opt then
@@ -533,7 +533,7 @@ implementation
                     if not(resultdef.typ in [recorddef,objectdef]) or
                        (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
                       begin
-                        alignment:=min(min(min(resultdef.alignment,current_settings.alignment.localalignmax),current_settings.alignment.constalignmax),current_settings.alignment.varalignmax);
+                        alignment:=min(min(min(resultdef.alignment,compiler.globals.current_settings.alignment.localalignmax),compiler.globals.current_settings.alignment.constalignmax),compiler.globals.current_settings.alignment.varalignmax);
                         location_reset_ref(location,LOC_REFERENCE,newsize,alignment,[]);
                       end
                     else
@@ -922,7 +922,7 @@ implementation
                            ((left.location.size<>right.location.size)
                            { on newer (1993+ :)) x86 cpus, use the fpu to copy extended values }
 {$ifdef x86}
-                            or ({$ifndef x86_64}(current_settings.cputype>=cpu_Pentium) and{$endif x86_64}
+                            or ({$ifndef x86_64}(compiler.globals.current_settings.cputype>=cpu_Pentium) and{$endif x86_64}
                             (is_extended(right.resultdef) {$ifdef i386} or is_double(right.resultdef){$endif i386} ))
 {$endif x86}
                            )then

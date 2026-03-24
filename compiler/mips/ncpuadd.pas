@@ -456,7 +456,7 @@ end;
 function tmipsaddnode.use_generic_mul64bit: boolean;
 begin
   result:=needoverflowcheck or
-    (not (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]));
+    (not (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[compiler.globals.current_settings.cputype]));
 end;
 {$endif cpu32bit}
 

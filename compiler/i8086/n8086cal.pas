@@ -68,7 +68,7 @@ implementation
     procedure ti8086callnode.extra_interrupt_code;
       begin
         emit_none(A_PUSHF,S_W);
-        if current_settings.x86memorymodel in x86_near_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_near_code_models then
           emit_reg(A_PUSH,S_W,NR_CS);
       end;
 

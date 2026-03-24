@@ -131,7 +131,7 @@ var
 begin
   { Force ld.lld usage for x86_64 openbsd system,
     because GNU linker generates wrong executable's on x86_64 OpenBSD 7.5 }
-  if (cs_link_lld in current_settings.globalswitches) or (compiler.target.info.system = system_x86_64_openbsd) then
+  if (cs_link_lld in compiler.globals.current_settings.globalswitches) or (compiler.target.info.system = system_x86_64_openbsd) then
     LdProgram:='ld.lld'
   else if compiler.target.info.system in (systems_openbsd+systems_freebsd+[system_x86_64_dragonfly]) then
     LdProgram:='ld.bfd';
@@ -175,7 +175,7 @@ procedure TLinkerBSD.LoadPredefinedLibraryOrder;
 // Note: assumes only called when reordering/aliasing is used.
 Begin
   if (compiler.target.info.system =system_i386_freebsd) and
-     not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
+     not (cs_link_no_default_lib_order in  compiler.globals.current_settings.globalswitches) Then
     Begin
       compiler.globals.LinkLibraryOrder.add('gcc','',15);
       compiler.globals.LinkLibraryOrder.add('c','',50);		     // c and c_p mutual. excl?
@@ -183,7 +183,7 @@ Begin
       compiler.globals.LinkLibraryOrder.add('pthread','',75);	     // pthread and c_r should be mutually exclusive
       compiler.globals.LinkLibraryOrder.add('c_r','',76);
       compiler.globals.LinkLibraryOrder.add('kvm','',80);		     // must be before ncurses
-      if (cs_link_pthread in current_settings.globalswitches) Then     // convert libpthread to libc_r.
+      if (cs_link_pthread in compiler.globals.current_settings.globalswitches) Then     // convert libpthread to libc_r.
         compiler.globals.LinkLibraryAliases.add('pthread','c_r');
     end;
 End;
@@ -223,8 +223,8 @@ begin
             (
               ReorderEntries
                or
-              (cs_link_pthread in current_settings.globalswitches));
-  if cs_profile in current_settings.moduleswitches then
+              (cs_link_pthread in compiler.globals.current_settings.globalswitches));
+  if cs_profile in compiler.globals.current_settings.moduleswitches then
    begin
      prtobj:=gprtobj;
      SysInitUnit:=si_gprt;
@@ -319,7 +319,7 @@ begin
    begin
      if compiler.globals.librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
-     if ((cs_create_pic in current_settings.moduleswitches) and
+     if ((cs_create_pic in compiler.globals.current_settings.moduleswitches) and
          not (compiler.target.info.system in systems_openbsd)) or
         (current_module.islibrary and
          (compiler.target.info.system in systems_openbsd)) then
@@ -328,7 +328,7 @@ begin
            LinkRes.AddFileName(s);
        end
        else
-         if (cs_link_staticflag in current_settings.globalswitches) and
+         if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) and
            compiler.globals.librarysearchpath.FindFile('crtbeginT.o',false,s) then
              LinkRes.AddFileName(s)
          else if compiler.globals.librarysearchpath.FindFile('crtbegin.o',false,s) then
@@ -399,7 +399,7 @@ begin
              LinkRes.Add('-lc');
        end;
      { when we have -static for the linker the we also need libgcc }
-     if (cs_link_staticflag in current_settings.globalswitches) then
+     if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
       LinkRes.Add('-lgcc');
      if linkdynamic and (Info.DynamicLinker<>'') and
         not(compiler.target.info.system in systems_openbsd) then
@@ -411,7 +411,7 @@ begin
   { objects which must be at the end }
   if linklibc then
    begin
-     if ((cs_create_pic in current_settings.moduleswitches) and
+     if ((cs_create_pic in compiler.globals.current_settings.moduleswitches) and
          not (compiler.target.info.system in systems_openbsd)) or
         (current_module.islibrary and
          (compiler.target.info.system in systems_openbsd)) then
@@ -454,7 +454,7 @@ var
   success,
   useshell : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
@@ -465,14 +465,14 @@ begin
   linkscript:=nil;
   mapstr:='';
   ltostr:='';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
   if compiler.target.info.system=system_i386_freebsd then
     begin
-      if cs_link_lld in current_settings.globalswitches then
+      if cs_link_lld in compiler.globals.current_settings.globalswitches then
         targetstr:='-b elf'
       else
         targetstr:='-b elf32-i386-freebsd';
@@ -484,23 +484,23 @@ begin
       emulstr:='';
     end;
 
-  if (cs_link_staticflag in current_settings.globalswitches) then
+  if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
     begin
       if (compiler.target.info.system=system_m68k_netbsd) and
-         ((cs_link_on_target in current_settings.globalswitches) or
+         ((cs_link_on_target in compiler.globals.current_settings.globalswitches) or
           (compiler.target.info.system=source_info.system)) then
         StaticStr:='-Bstatic'
       else
         StaticStr:='-static';
     end;
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
 
-  if (cs_link_smart in current_settings.globalswitches) and
+  if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      (tf_smartlink_sections in compiler.target.info.flags) then
     GCSectionsStr:='--gc-sections';
 
-  if (cs_profile in current_settings.moduleswitches) or
+  if (cs_profile in compiler.globals.current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and
       ((not SharedLibFiles.Empty) or
        (compiler.target.info.system in systems_openbsd))) then
@@ -515,7 +515,7 @@ begin
 
 { Use -nopie on OpenBSD if PIC support is turned off }
   if (compiler.target.info.system in systems_openbsd) and
-     not(cs_create_pic in current_settings.moduleswitches) then
+     not(cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
 
 { -N seems to be needed on NetBSD/earm }
@@ -551,7 +551,7 @@ begin
   BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
   if (LdSupportsNoResponseFile) and
-     not(cs_link_nolink in current_settings.globalswitches) then
+     not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
       linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
@@ -559,7 +559,7 @@ begin
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
-        if cs_link_on_target in current_settings.globalswitches then
+        if cs_link_on_target in compiler.globals.current_settings.globalswitches then
           BinStr:='.'+compiler.target.info.dirsep+BinStr
         else
           BinStr:='.'+source_info.dirsep+BinStr;
@@ -570,7 +570,7 @@ begin
   success:=DoExec(BinStr,CmdStr,true,LdSupportsNoResponseFile or useshell);
 
 { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    begin
      DeleteFile(compiler.globals.outputexedir+Info.ResName);
      if ordersymfile<>'' then
@@ -607,7 +607,7 @@ begin
   mapstr:='';
   ltostr:='';
   linkscript:=nil;
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
@@ -616,13 +616,13 @@ begin
 { Write symbol order file }
   ordersymfile:=WriteSymbolOrderFile;
 
-  if (cs_link_smart in current_settings.globalswitches) and
+  if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      (tf_smartlink_sections in compiler.target.info.flags) then
      { disabled because not tested
       GCSectionsStr:='--gc-sections' }
     ;
 
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
 
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
@@ -665,7 +665,7 @@ begin
   BinStr:=FindUtil(compiler.globals.utilsprefix+BinStr);
 
   if (LdSupportsNoResponseFile) and
-     not(cs_link_nolink in current_settings.globalswitches) then
+     not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       { we have to use a script to use the IFS hack }
       linkscript:=GenerateScript(compiler.globals.outputexedir+'ppaslink');
@@ -673,7 +673,7 @@ begin
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
-        if cs_link_on_target in current_settings.globalswitches then
+        if cs_link_on_target in compiler.globals.current_settings.globalswitches then
           BinStr:='.'+compiler.target.info.dirsep+BinStr
         else
           BinStr:='.'+source_info.dirsep+BinStr;
@@ -683,7 +683,7 @@ begin
   success:=DoExec(BinStr,cmdstr,true,LdSupportsNoResponseFile);
 
 { Strip the library ? }
-  if success and (cs_link_strip in current_settings.globalswitches) then
+  if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
@@ -691,7 +691,7 @@ begin
    end;
 
 { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       DeleteFile(compiler.globals.outputexedir+Info.ResName);
       if ordersymfile<>'' then

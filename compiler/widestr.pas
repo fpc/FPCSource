@@ -179,11 +179,13 @@ unit widestr;
 
     function asciichar2unicode(c : char) : tcompilerwidechar;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
          m : punicodemap;
       begin
-         if (current_settings.sourcecodepage <> CP_UTF8) then
+         if (compiler.globals.current_settings.sourcecodepage <> CP_UTF8) then
            begin
-             m:=getmap(current_settings.sourcecodepage);
+             m:=getmap(compiler.globals.current_settings.sourcecodepage);
              asciichar2unicode:=getunicode(c,m);
            end
          else
@@ -191,6 +193,8 @@ unit widestr;
       end;
 
     function unicode2asciichar(c : tcompilerwidechar) : char;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       {begin
         if word(c)<128 then
           unicode2asciichar:=char(word(c))
@@ -198,7 +202,7 @@ unit widestr;
           unicode2asciichar:='?';
       end;}
       begin
-         Result := getascii(c,getmap(current_settings.sourcecodepage))[1];
+         Result := getascii(c,getmap(compiler.globals.current_settings.sourcecodepage))[1];
       end;
 
 
@@ -254,6 +258,8 @@ unit widestr;
 
     procedure unicode2ascii(r : tcompilerwidestring;p:pchar;cp : tstringencoding);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         m : punicodemap;
         source : tcompilerwidecharptr;
         dest   : pchar;
@@ -265,7 +271,7 @@ unit widestr;
           internalerrorproc(2015092701);
 
         if (cp = 0) or (cp=CP_NONE) then
-          m:=getmap(current_settings.sourcecodepage)
+          m:=getmap(compiler.globals.current_settings.sourcecodepage)
         else
           m:=getmap(cp);
         source:=tcompilerwidecharptr(r.data);

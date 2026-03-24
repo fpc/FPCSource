@@ -84,7 +84,7 @@ type
           the counter management takes more time in this case. }
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
-        if current_settings.optimizecputype in [cpu_Pentium4] then
+        if compiler.globals.current_settings.optimizecputype in [cpu_Pentium4] then
           begin
             { See the common branch below for an explanation. }
             nodeCount:=node_count_weighted(node,41);
@@ -147,7 +147,7 @@ type
         hascontrollflowstatements : boolean;
       begin
         result:=nil;
-        if (cs_opt_size in current_settings.optimizerswitches) then
+        if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
           exit;
         if compiler.verbose.ErrorCount<>0 then
           exit;
@@ -187,7 +187,7 @@ type
                 { can we get rid completly of the for ? }
                 getridoffor:=(unrolls=counts) and not(hascontrollflowstatements) and
                   { TP/Macpas allows assignments to the for-variables, so we cannot get rid of the for }
-                  ([m_tp7,m_mac]*current_settings.modeswitches=[]);
+                  ([m_tp7,m_mac]*compiler.globals.current_settings.modeswitches=[]);
 
                 if getridoffor then
                   begin

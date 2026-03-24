@@ -187,7 +187,7 @@ implementation
             parser.pbase.consume(_SEMICOLON);
             exit;
           end;
-        if (cs_constructor_name in current_settings.globalswitches) and
+        if (cs_constructor_name in compiler.globals.current_settings.globalswitches) and
            (pd.procsym.name<>'INIT') then
           compiler.verbose.Message(parser_e_constructorname_must_be_init);
         parser.pbase.consume(_SEMICOLON);
@@ -222,7 +222,7 @@ implementation
         { check for a class, record or helper }
         if not((is_class_or_interface_or_dispinterface(current_structdef) or is_record(current_structdef) or
                 is_objectpascal_helper(current_structdef) or is_java_class_or_interface(current_structdef)) or
-               (not(m_tp7 in current_settings.modeswitches) and (is_object(current_structdef)))) then
+               (not(m_tp7 in compiler.globals.current_settings.modeswitches) and (is_object(current_structdef)))) then
           compiler.verbose.Message(parser_e_syntax_error);
         parser.pbase.consume(_PROPERTY);
         p:=parser.pdecvar.read_property_dec(is_classproperty,current_structdef);
@@ -325,12 +325,12 @@ implementation
             parser.pbase.consume(_SEMICOLON);
             exit;
           end;
-        if (cs_constructor_name in current_settings.globalswitches) and
+        if (cs_constructor_name in compiler.globals.current_settings.globalswitches) and
            (pd.procsym.name<>'DONE') then
           compiler.verbose.Message(parser_e_destructorname_must_be_done);
         pd.calcparas;
         if not(pd.maxparacount=0) and
-           (m_fpc in current_settings.modeswitches) then
+           (m_fpc in compiler.globals.current_settings.modeswitches) then
           compiler.verbose.Message(parser_e_no_paras_for_destructor);
         parser.pbase.consume(_SEMICOLON);
         include(current_structdef.objectoptions,oo_has_destructor);
@@ -859,7 +859,7 @@ implementation
                       { primitive types are allowed for record helpers in mode
                         delphi }
                       (hdef.typ<>recorddef) and
-                      not (m_delphi in current_settings.modeswitches)
+                      not (m_delphi in compiler.globals.current_settings.modeswitches)
                     ) then
                   compiler.verbose.Message1(type_e_record_type_expected,hdef.typename)
                 else
@@ -995,7 +995,7 @@ implementation
                   { all Macintosh Object Pascal methods are virtual.  }
                   { this can't be a class method, because macpas mode }
                   { has no m_class                                    }
-                  if (m_mac in current_settings.modeswitches) then
+                  if (m_mac in compiler.globals.current_settings.modeswitches) then
                     include(result.procoptions,po_virtualmethod);
 
                   { for record and type helpers only static class methods are
@@ -1259,7 +1259,7 @@ implementation
                 parser.pbase.consume(_TYPE);
                 object_member_blocktype:=bt_type;
 
-                if (current_scanner.token=_LECKKLAMMER) and (m_prefixed_attributes in current_settings.modeswitches) then
+                if (current_scanner.token=_LECKKLAMMER) and (m_prefixed_attributes in compiler.globals.current_settings.modeswitches) then
                   begin
                     check_unbound_attributes;
                     parser.pdecl.types_dec(true,hadgeneric, rtti_attrs_def);
@@ -1363,7 +1363,7 @@ implementation
                         final_fields:=false;
                         object_member_blocktype:=bt_general;
                      end
-                    else if (m_final_fields in current_settings.modeswitches) and
+                    else if (m_final_fields in compiler.globals.current_settings.modeswitches) and
                             (current_scanner.token=_ID) and
                             (current_scanner.idtoken=_FINAL) then
                       begin
@@ -1384,7 +1384,7 @@ implementation
                         if object_member_blocktype=bt_general then
                           begin
                             if (current_scanner.idtoken=_GENERIC) and
-                                not (m_delphi in current_settings.modeswitches) and
+                                not (m_delphi in compiler.globals.current_settings.modeswitches) and
                                 (
                                   not fields_allowed or
                                   is_objectpascal_helper(current_structdef)
@@ -1416,7 +1416,7 @@ implementation
                                   compiler.verbose.Message(parser_e_field_not_allowed_here);
 
                                 vdoptions:=[vd_object];
-                                if not (m_delphi in current_settings.modeswitches) then
+                                if not (m_delphi in compiler.globals.current_settings.modeswitches) then
                                   include(vdoptions,vd_check_generic);
                                 if class_fields then
                                   include(vdoptions,vd_class);
@@ -1473,13 +1473,13 @@ implementation
                               begin
                                 { the value of final fields cannot be changed
                                   once they've been assigned a value }
-                                typedconstswritable:=cs_typed_const_writable in current_settings.localswitches;
-                                exclude(current_settings.localswitches,cs_typed_const_writable);
+                                typedconstswritable:=cs_typed_const_writable in compiler.globals.current_settings.localswitches;
+                                exclude(compiler.globals.current_settings.localswitches,cs_typed_const_writable);
                               end;
                             parser.pdecl.consts_dec(true,not is_javainterface(current_structdef),hadgeneric);
                             if final_fields and
                                typedconstswritable then
-                              include(current_settings.localswitches,cs_typed_const_writable);
+                              include(compiler.globals.current_settings.localswitches,cs_typed_const_writable);
                           end
                         else
                           internalerror(2010011103);
@@ -1511,7 +1511,7 @@ implementation
               end;
             _LECKKLAMMER:
               begin
-                if m_prefixed_attributes in current_settings.modeswitches then
+                if m_prefixed_attributes in compiler.globals.current_settings.modeswitches then
                   parser.pdecl.parse_rttiattributes(rtti_attrs_def)
                 else
                   parser.pbase.consume(_ID);
@@ -1589,7 +1589,7 @@ implementation
               parent classes have been parsed }
             include(current_structdef.objectoptions,oo_is_forward);
 
-            if (cs_compilesystem in current_settings.moduleswitches) then
+            if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               begin
                 case current_objectdef.objecttype of
                   odt_interfacecom :
@@ -1662,7 +1662,7 @@ implementation
 
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
-        if (cs_generate_rtti in current_settings.localswitches) and
+        if (cs_generate_rtti in compiler.globals.current_settings.localswitches) and
            (current_objectdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_class,odt_helper]) then
           include(current_structdef.objectoptions,oo_can_have_published);
 
@@ -1732,7 +1732,7 @@ implementation
             { parse list of parent classes }
             { for record helpers in mode Delphi this is not allowed }
             if not (is_objectpascal_helper(current_objectdef) and
-                (m_delphi in current_settings.modeswitches) and
+                (m_delphi in compiler.globals.current_settings.modeswitches) and
                 (helpertype=ht_record)) then
               parse_parent_classes;
 
@@ -1780,7 +1780,7 @@ implementation
               The cs_compilesystem is superfluous, but we add it for safety.
 
             }
-            if (current_objectdef=class_tobject) and (cs_compilesystem in current_settings.moduleswitches) then
+            if (current_objectdef=class_tobject) and (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               current_objectdef.insertvmt;
 
             { parse and insert object members }

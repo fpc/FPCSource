@@ -70,7 +70,7 @@ implementation
       initList:=TAsmList.create;
       finalList:=TAsmList.create;
 
-      if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
+      if CPUAVR_HAS_JMP_CALL in cpu_capabilities[compiler.globals.current_settings.cputype] then
         op:=A_CALL
       else
         op:=A_RCALL;
@@ -141,7 +141,7 @@ implementation
          end }
 
       notename:='AVR'#0;
-      strtable:=#0+lower(embedded_controllers[current_settings.controllertype].controllertypestr)+#0#0;
+      strtable:=#0+lower(embedded_controllers[compiler.globals.current_settings.controllertype].controllertypestr)+#0#0;
       tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip],compiler);
       defu32:=corddef.create(u32bit,0,$FFFFFFFF,false,compiler);
       tcb.maybe_begin_aggregate(defu32);
@@ -152,12 +152,12 @@ implementation
       tcb.maybe_begin_aggregate(defstr);
       tcb.emit_tai(Tai_string.Create(notename),defstr);
       tcb.maybe_begin_aggregate(defu32);
-      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].flashbase),defu32);
-      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].flashsize),defu32);
-      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].srambase),defu32);
-      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].sramsize),defu32);
-      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].eeprombase),defu32);
-      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].eepromsize),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[compiler.globals.current_settings.controllertype].flashbase),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[compiler.globals.current_settings.controllertype].flashsize),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[compiler.globals.current_settings.controllertype].srambase),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[compiler.globals.current_settings.controllertype].sramsize),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[compiler.globals.current_settings.controllertype].eeprombase),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[compiler.globals.current_settings.controllertype].eepromsize),defu32);
       tcb.emit_tai(tai_const.Create_32bit_unaligned(8),defu32);  // Size of string offset table
       tcb.emit_tai(tai_const.Create_32bit_unaligned(1),defu32);  // Offset of string in table
       tcb.maybe_begin_aggregate(defstr);

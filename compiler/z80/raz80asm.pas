@@ -2074,7 +2074,7 @@ Unit raz80asm;
                  end
                 else
                 { support result for delphi modes }
-                 if (m_objpas in current_settings.modeswitches) and (actasmpattern='RESULT') then
+                 if (m_objpas in compiler.globals.current_settings.modeswitches) and (actasmpattern='RESULT') then
                   begin
                     oper.SetUpResult;
                     Consume(AS_ID);

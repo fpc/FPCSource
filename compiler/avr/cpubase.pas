@@ -470,7 +470,7 @@ unit cpubase;
 
     function GetDefaultTmpReg: TRegister;
       begin
-        if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
+        if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
           Result:=NR_R16
         else
           Result:=NR_R0;
@@ -479,7 +479,7 @@ unit cpubase;
 
     function GetDefaultZeroReg: TRegister;
       begin
-        if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
+        if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
           Result:=NR_R17
         else
           Result:=NR_R1;

@@ -961,6 +961,8 @@ implementation
  ****************************************************************************}
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         { Updated according to
           Software Optimization Guide for AMD Family 15h Processors, Version 3.08, January 2014
@@ -1014,7 +1016,7 @@ implementation
            while (localsize>0) do
             begin
 {$ifndef i8086}
-              if (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
+              if (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                 begin
                   for j:=low(alignarray_cmovcpus) to high(alignarray_cmovcpus) do
                    if (localsize>=length(alignarray_cmovcpus[j])) then
@@ -1790,7 +1792,7 @@ implementation
           i8086, which simulates it with i8086 instructions:
             JNcc short +3
             JMP near target }
-        if (p^.opcode=A_Jcc) and (current_settings.cputype<cpu_386) and
+        if (p^.opcode=A_Jcc) and (compiler.globals.current_settings.cputype<cpu_386) and
           (IF_386 in p^.flags) then
           exit;
 {$endif i8086}
@@ -5006,6 +5008,8 @@ implementation
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         tmpref: treference;
       begin
         tmpref:=ref;
@@ -5023,7 +5027,7 @@ implementation
               result:=taicpu.op_ref_reg(A_MOV,reg2opsize(r),tmpref,r);
             end;
           R_MMREGISTER :
-            if current_settings.fputype in fpu_avx_instructionsets then
+            if compiler.globals.current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
                   result:=taicpu.op_ref_reg(A_VMOVSD,S_NO,tmpref,r);
@@ -5069,6 +5073,8 @@ implementation
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         size: topsize;
         tmpref: treference;
       begin
@@ -5095,7 +5101,7 @@ implementation
               result:=taicpu.op_reg_ref(A_MOV,size,r,tmpref);
             end;
           R_MMREGISTER :
-            if current_settings.fputype in fpu_avx_instructionsets then
+            if compiler.globals.current_settings.fputype in fpu_avx_instructionsets then
               case getsubreg(r) of
                 R_SUBMMD:
                   result:=taicpu.op_reg_ref(A_VMOVSD,S_NO,r,tmpref);

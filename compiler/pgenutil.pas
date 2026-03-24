@@ -432,7 +432,7 @@ uses
                       recorddef:
                         { delphi has own fantasy about record constraint
                           (almost non-nullable/non-nil-able value type) }
-                        if m_delphi in current_settings.modeswitches then
+                        if m_delphi in compiler.globals.current_settings.modeswitches then
                           case paradef.typ of
                             floatdef,enumdef,orddef:
                               continue;
@@ -824,9 +824,9 @@ uses
           if is_conststring_array(def) then
             begin
               { for constant strings we need to respect various modeswitches }
-              if (cs_refcountedstrings in current_settings.localswitches) then
+              if (cs_refcountedstrings in compiler.globals.current_settings.localswitches) then
                 begin
-                  if m_default_unicodestring in current_settings.modeswitches then
+                  if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                     newtype:=cunicodestringtype.typesym
                   else
                     newtype:=cansistringtype.typesym;
@@ -2401,7 +2401,7 @@ uses
               str(current_module.deflist.count,defname);
               defname:='$gendef'+defname;
 
-              allowconstructor:=m_delphi in current_settings.modeswitches;
+              allowconstructor:=m_delphi in compiler.globals.current_settings.modeswitches;
 
               basedef:=generrordef;
               repeat
@@ -2699,7 +2699,7 @@ uses
         { for generics in non-Delphi modes we insert a private type symbol
           that has the same base name as the currently parsed generic and
           that references this defs }
-        if not (m_delphi in current_settings.modeswitches) and
+        if not (m_delphi in compiler.globals.current_settings.modeswitches) and
             (
               (
                 parser.pbase.parse_generic and

@@ -78,7 +78,7 @@ unit aoptcpu;
                       OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp2).oper[0]^) and
 
                       (MatchOperand(taicpu(hp2).oper[1]^,NR_ES) or MatchOperand(taicpu(hp2).oper[1]^,NR_DS) or
-                       ((current_settings.cputype>=cpu_386) and
+                       ((compiler.globals.current_settings.cputype>=cpu_386) and
                         (MatchOperand(taicpu(hp2).oper[1]^,NR_SS) or
                          MatchOperand(taicpu(hp2).oper[1]^,NR_FS) or
                          MatchOperand(taicpu(hp2).oper[1]^,NR_GS)))) and

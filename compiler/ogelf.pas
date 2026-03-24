@@ -1074,7 +1074,7 @@ implementation
            { "no executable stack" marker }
            { TODO: used by OpenBSD/NetBSD as well? }
            if (compiler.target.info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
-              not(cs_executable_stack in current_settings.moduleswitches) then
+              not(cs_executable_stack in compiler.globals.current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
            { symbol for filename }
            symtabsect.fstrsec.writestr(ExtractFileName(current_module.mainsource));
@@ -1756,8 +1756,8 @@ implementation
             objsec:=TObjSection(objdata.ObjsectionList[i]);
             { skip debug sections }
             if (oso_debug in objsec.SecOptions) and
-               (cs_link_strip in current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+               (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
               continue;
 
             if FSecTbl[objsec.index].relocpos>0 then
@@ -2068,7 +2068,7 @@ implementation
     procedure TElfExeOutput.make_dynamic_if_undefweak(exesym:TExeSymbol);
       begin
         if (exesym.dynindex=0) and (exesym.state=symstate_undefweak) and
-          not (cs_link_staticflag in current_settings.globalswitches) then
+          not (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
           exesym.dynindex:=dynsymlist.add(exesym)+1;
       end;
 
@@ -2205,7 +2205,7 @@ implementation
         dynamiclink:=IsSharedLibrary or (dynsymlist.count>0) or
           (
             (UnresolvedExeSymbols.Count>0) and
-            not (cs_link_staticflag in current_settings.globalswitches)
+            not (cs_link_staticflag in compiler.globals.current_settings.globalswitches)
           );
         if dynamiclink then
           InitDynlink;
@@ -2383,7 +2383,7 @@ implementation
         { Drop unresolved symbols that aren't referenced, assign dynamic
           indices to remaining ones, but not if linking with -Xt.
           TODO: behavior of .so with -Xt ? }
-        if (cs_link_staticflag in current_settings.globalswitches) then
+        if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
           UnresolvedExeSymbols.Clear
         else
         for i:=0 to UnresolvedExeSymbols.Count-1 do
@@ -2478,8 +2478,8 @@ implementation
         AttachSection(shstrtabsect);
 
         { Create the static symtable (.symtab and .strtab) }
-        if (cs_link_separate_dbg_file in current_settings.globalswitches) or
-          not(cs_link_strip in current_settings.globalswitches) then
+        if (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) or
+          not(cs_link_strip in compiler.globals.current_settings.globalswitches) then
           begin
             symtab:=TElfSymtab.Create(internalObjData,esk_exe);
             symtab.SecOptions:=[oso_debug];
@@ -2732,7 +2732,7 @@ implementation
         if (ExeWriteMode=ewm_dbgonly) or
           (
             (ExeWriteMode=ewm_exefull) and
-             not(cs_link_strip in current_settings.globalswitches)
+             not(cs_link_strip in compiler.globals.current_settings.globalswitches)
           ) then
           WriteStaticSymtable;
 

@@ -904,6 +904,8 @@ implementation
     end;
 
   class function thlcgobj.def2regtyp(def: tdef): tregistertype;
+    var
+      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
         case def.typ of
           enumdef,
@@ -937,7 +939,7 @@ implementation
           floatdef:
             if use_vectorfpu(def) then
               result:=R_MMREGISTER
-            else if cs_fp_emulation in current_settings.moduleswitches then
+            else if cs_fp_emulation in _compiler.globals.current_settings.moduleswitches then
               result:=R_INTREGISTER
             else
               result:=R_FPUREGISTER;
@@ -3543,7 +3545,7 @@ implementation
             { division by 1 returns result }
             if a = 1 then
               op:=OP_NONE
-            else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
+            else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
               begin
                 a := powerval;
                 op:= OP_SHR;
@@ -3561,7 +3563,7 @@ implementation
              else
                if a=0 then
                  op:=OP_MOVE
-             else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
+             else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in compiler.globals.current_settings.localswitches)  then
                begin
                  a := powerval;
                  op:= OP_SHL;
@@ -3640,8 +3642,8 @@ implementation
       cgpara1 : TCGPara;
       pd      : tprocdef;
     begin
-      if (cs_check_object in current_settings.localswitches) or
-         (cs_check_range in current_settings.localswitches) then
+      if (cs_check_object in compiler.globals.current_settings.localswitches) or
+         (cs_check_range in compiler.globals.current_settings.localswitches) then
        begin
          pd:=search_system_proc('fpc_handleerror');
          current_asmdata.getjumplabel(oklabel);
@@ -3960,7 +3962,7 @@ implementation
     begin
       result:=(tf_supports_packages in compiler.target.info.flags) and
                 (compiler.target.info.system in systems_indirect_var_imports) and
-                (cs_imported_data in current_settings.localswitches) and
+                (cs_imported_data in compiler.globals.current_settings.localswitches) and
                 (findunitsymtable(t.owner).moduleid<>current_module.moduleid);
     end;
 
@@ -3982,7 +3984,7 @@ implementation
       from_signed, to_signed: boolean;
     begin
       { range checking on and range checkable value? }
-      if not(cs_check_range in current_settings.localswitches) or
+      if not(cs_check_range in compiler.globals.current_settings.localswitches) or
          not(fromdef.typ in [orddef,enumdef]) or
          { C-style booleans can't really fail range checks, }
          { all values are always valid                      }
@@ -5104,7 +5106,7 @@ implementation
 
   procedure thlcgobj.varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym);
     begin
-      if cs_asm_source in current_settings.globalswitches then
+      if cs_asm_source in compiler.globals.current_settings.globalswitches then
         begin
           case vs.initialloc.loc of
             LOC_REFERENCE :
@@ -5134,7 +5136,7 @@ implementation
         therefore if the context must be saved, do it before
         the actual call to the profile code
       }
-      if (cs_profile in current_settings.moduleswitches) and
+      if (cs_profile in compiler.globals.current_settings.moduleswitches) and
          not(po_assembler in current_procinfo.procdef.procoptions) then
         begin
           { non-win32 can call mcout even in main }

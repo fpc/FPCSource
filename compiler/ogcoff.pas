@@ -2691,8 +2691,8 @@ const pemagic : array[0..3] of byte = (
           begin
             { Skip debug sections }
             if (oso_debug in secoptions)  and
-               (cs_link_strip in current_settings.globalswitches) and
-               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+               (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
               exit;
 
             if coffrelocs>0 then
@@ -3244,9 +3244,9 @@ const pemagic : array[0..3] of byte = (
         hassymbols:=(ExeWriteMode=ewm_dbgonly) or
                     (
                      (ExeWriteMode=ewm_exefull) and
-                     not(cs_link_strip in current_settings.globalswitches)
+                     not(cs_link_strip in compiler.globals.current_settings.globalswitches)
                     );
-        writeDbgStrings:=hassymbols or ((ExeWriteMode=ewm_exeonly) and (cs_link_separate_dbg_file in current_settings.globalswitches));
+        writeDbgStrings:=hassymbols or ((ExeWriteMode=ewm_exeonly) and (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches));
         { Stub }
         if win32 then
           begin
@@ -3992,7 +3992,7 @@ const pemagic : array[0..3] of byte = (
 {$ifdef arm}
     function COFF_MAGIC: word;
       begin
-        if GenerateThumb2Code and (current_settings.cputype>=cpu_armv7) then
+        if GenerateThumb2Code and (compiler.globals.current_settings.cputype>=cpu_armv7) then
           COFF_MAGIC:=$1c4 // IMAGE_FILE_MACHINE_ARMNT
         else
           COFF_MAGIC:=$1c0; // IMAGE_FILE_MACHINE_ARM

@@ -66,7 +66,7 @@ interface
     function ti386addnode.use_generic_mul64bit: boolean;
     begin
       result:=needoverflowcheck or
-        (cs_opt_size in current_settings.optimizerswitches);
+        (cs_opt_size in compiler.globals.current_settings.optimizerswitches);
     end;
 
     { handles all unsigned multiplications, and 32->64 bit signed ones.
@@ -500,7 +500,7 @@ interface
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
         end;
 
-      if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+      if (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and
         (not(needoverflowcheck) or
         { 32->64 bit cannot overflow }
         is_64bit(resultdef)) then

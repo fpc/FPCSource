@@ -74,7 +74,7 @@ implementation
       repeat
         Result:=GetNextInstruction(Next,Next);
       until not (Result) or
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
             (Next.typ<>ait_instruction) or
             RegInInstruction(reg,Next) or
             is_calljmp(taicpu(Next).opcode);

@@ -131,7 +131,7 @@ implementation
     function tloongarch64moddivnode.first_moddiv64bitint: tnode;
       begin
         {We can handle all cases of constant division}
-        if not(cs_check_overflow in current_settings.localswitches) and
+        if not(cs_check_overflow in compiler.globals.current_settings.localswitches) and
            (right.nodetype=ordconstn) and
            (nodetype=divn) then
           result:=nil

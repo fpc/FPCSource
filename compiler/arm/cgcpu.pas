@@ -296,7 +296,7 @@ unit cgcpu;
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R9,RS_R12,RS_R4,RS_R5,RS_R6,RS_R8,
                RS_R10,RS_R11,RS_R14],first_int_imreg,[],compiler);
-        if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
+        if FPUARM_HAS_FPA in fpu_capabilities[compiler.globals.current_settings.fputype] then
           rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[],compiler);
 
@@ -382,11 +382,11 @@ unit cgcpu;
          end;
 
          if (fromsize=OS_S8) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
            oppostfix:=PF_B;
 
          if ((ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[fromsize])) or
-            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) and
+            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) and
              (oppostfix in [PF_SH,PF_H])) then
            begin
              if compiler.target.info.endian=endian_big then
@@ -489,7 +489,7 @@ unit cgcpu;
            handle_load_store(list,A_LDR,oppostfix,reg,ref);
 
          if (fromsize=OS_S8) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
            a_load_reg_reg(list,OS_S8,OS_32,reg,reg)
          else if (fromsize=OS_S8) and (tosize = OS_16) then
            a_load_reg_reg(list,OS_16,OS_32,reg,reg);
@@ -586,20 +586,20 @@ unit cgcpu;
           non-overlapping subregs per register, so we can only use
           half the single precision registers for now (as sub registers of the
           double precision ones). }
-        if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) and
-          (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+        if (FPUARM_HAS_32REGS in fpu_capabilities[compiler.globals.current_settings.fputype]) and
+          (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
               ],first_mm_imreg,[],compiler)
-        else if (FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype]) then
+        else if (FPUARM_HAS_32REGS in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFS,
               [RS_S0,RS_S1,RS_S2,RS_S3,RS_S4,RS_S5,RS_S6,RS_S7,
                RS_S16,RS_S17,RS_S18,RS_S19,RS_S20,RS_S21,RS_S22,RS_S23,RS_S24,RS_S25,RS_S26,RS_S27,RS_S28,RS_S29,RS_S30,RS_S31,
                RS_S8,RS_S9,RS_S10,RS_S11,RS_S12,RS_S13,RS_S14,RS_S15
               ],first_mm_imreg,[],compiler)
-        else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+        else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
@@ -648,7 +648,7 @@ unit cgcpu;
         reference_reset_symbol(r,sym,0,sizeof(pint),[]);
 
         if (tf_pic_uses_got in compiler.target.info.flags) and
-           (cs_create_pic in current_settings.moduleswitches) then
+           (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             r.refaddr:=addr_pic
           end
@@ -669,7 +669,7 @@ unit cgcpu;
     procedure tbasecgarm.a_call_reg(list : TAsmList;reg: tregister);
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if not(CPUARM_HAS_BLX in cpu_capabilities[current_settings.cputype]) then
+        if not(CPUARM_HAS_BLX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
             list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
@@ -1070,11 +1070,11 @@ unit cgcpu;
                 shifterop_reset(so);
                 if (width = 16) and
                    (lsb = 0) and
-                   (current_settings.cputype >= cpu_armv6) then
+                   (compiler.globals.current_settings.cputype >= cpu_armv6) then
                   list.concat(taicpu.op_reg_reg(A_UXTH,dst,src))
                 else if (width = 8) and
                    (lsb = 0) and
-                   (current_settings.cputype >= cpu_armv6) then
+                   (compiler.globals.current_settings.cputype >= cpu_armv6) then
                   list.concat(taicpu.op_reg_reg(A_UXTB,dst,src))
                 else if lsb = 0 then
                   begin
@@ -1155,7 +1155,7 @@ unit cgcpu;
           OP_MUL:
             begin
               if (cgsetflags or setflags) and
-                 (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
+                 (CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                 begin
                   overflowreg:=getintregister(list,size);
                   if op=OP_IMUL then
@@ -1223,7 +1223,7 @@ unit cgcpu;
     var
       asmop: tasmop;
     begin
-      if CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype] then
+      if CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype] then
         begin
           list.concat(tai_comment.create(strpnew('tcgarm.a_mul_reg_reg_pair called')));
           case size of
@@ -1425,7 +1425,7 @@ unit cgcpu;
          end;
 
          if ((ref.alignment in [1,2]) and (ref.alignment<tcgsize2size[tosize])) or
-            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) and
+            ((not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) and
              (oppostfix =PF_H)) then
            begin
              if compiler.target.info.endian=endian_big then
@@ -1504,7 +1504,7 @@ unit cgcpu;
          end;
 
          if (tosize in [OS_S16,OS_16]) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
            begin
              result:=handle_load_store(list,A_STR,PF_B,reg,ref);
 
@@ -1546,13 +1546,13 @@ unit cgcpu;
          end;
 
          if (tosize=OS_S8) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
            begin
              result:=handle_load_store(list,A_LDR,PF_B,reg,ref);
              a_load_reg_reg(list,OS_S8,OS_32,reg,reg);
            end
          else if (tosize in [OS_S16,OS_16]) and
-            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[current_settings.cputype])) then
+            (not (CPUARM_HAS_ALL_MEM in cpu_capabilities[compiler.globals.current_settings.cputype])) then
            begin
              result:=handle_load_store(list,A_LDR,PF_B,reg,ref);
 
@@ -1614,7 +1614,7 @@ unit cgcpu;
              conv_done:=true;
              if tcgsize2size[tosize]<=tcgsize2size[fromsize] then
                fromsize:=tosize;
-             if current_settings.cputype<cpu_armv6 then
+             if compiler.globals.current_settings.cputype<cpu_armv6 then
                case fromsize of
                  OS_8:
                    if GenerateThumbCode then
@@ -1781,7 +1781,7 @@ unit cgcpu;
         ai: taicpu;
         l: TAsmLabel;
       begin
-        if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) and
+        if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) and
           needs_check_for_fpu_exceptions and
           (force or current_procinfo.FPUExceptionCheckNeeded) then
           begin
@@ -1962,7 +1962,7 @@ unit cgcpu;
           begin
             firstfloatreg:=RS_NO;
             mmregs:=[];
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_none,
               fpu_soft,
               fpu_libgcc:
@@ -1982,14 +1982,14 @@ unit cgcpu;
                         inc(registerarea,12);
                       end;
                 end;
-              else if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_32REGS in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 begin;
                   { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
                     they have numbers>$1f which is not really correct as they should simply have the same numbers
                     as the even ones by with a different subtype as it is done on x86 with al/ah }
                   mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end
-              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 begin;
                   { the *[0..15] is a hack to prevent that the compiler tries to save odd single-type registers,
                     they have numbers>$1f which is not really correct as they should simply have the same numbers
@@ -2033,7 +2033,7 @@ unit cgcpu;
 
                      { if the stack is not 8 byte aligned, try to add an extra register,
                        so we can avoid the extra sub/add ...,#4 later (KB) }
-                     if ((registerarea mod current_settings.alignment.localalignmax) <> 0) then
+                     if ((registerarea mod compiler.globals.current_settings.alignment.localalignmax) <> 0) then
                        for r:=RS_R3 downto RS_R0 do
                          if not(r in regs) then
                            begin
@@ -2110,13 +2110,13 @@ unit cgcpu;
                   end;
               end;
 
-            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
+            stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
             if (LocalSize<>0) or
                ((stackmisalignment<>0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
                 if stack_parameters and (pi_estimatestacksize in current_procinfo.flags) then
                   begin
                     if localsize>tcpuprocinfo(current_procinfo).stackframesize then
@@ -2152,7 +2152,7 @@ unit cgcpu;
              begin
                reference_reset(ref,4,[]);
                if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                 (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) then
+                 (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                  begin
                    if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                      begin
@@ -2171,7 +2171,7 @@ unit cgcpu;
                    ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
                  end;
 
-               case current_settings.fputype of
+               case compiler.globals.current_settings.fputype of
                  fpu_fpa,
                  fpu_fpa10,
                  fpu_fpa11:
@@ -2179,14 +2179,14 @@ unit cgcpu;
                      list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                        lastfloatreg-firstfloatreg+1,ref));
                    end;
-                 else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+                 else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
                    begin
                      ref.index:=ref.base;
                      ref.base:=NR_NO;
                      if mmregs<>[] then
                        list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                    end
-                 else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                 else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                    begin
                      ref.index:=ref.base;
                      ref.base:=NR_NO;
@@ -2223,7 +2223,7 @@ unit cgcpu;
             lastfloatreg:=RS_NO;
             mmregs:=[];
             saveregs:=[];
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_none,
               fpu_soft,
               fpu_libgcc:
@@ -2246,7 +2246,7 @@ unit cgcpu;
                         }
                       end;
                 end;
-              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 begin
                   { restore vfp registers? }
                   { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
@@ -2263,7 +2263,7 @@ unit cgcpu;
               begin
                 reference_reset(ref,4,[]);
                 if (tg.direction*tcpuprocinfo(current_procinfo).floatregstart>=1023) or
-                   (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) then
+                   (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                   begin
                     if not is_shifter_const(tcpuprocinfo(current_procinfo).floatregstart,shift) then
                       begin
@@ -2281,7 +2281,7 @@ unit cgcpu;
                     ref.base:=current_procinfo.framepointer;
                     ref.offset:=tcpuprocinfo(current_procinfo).floatregstart;
                   end;
-                case current_settings.fputype of
+                case compiler.globals.current_settings.fputype of
                   fpu_fpa,
                   fpu_fpa10,
                   fpu_fpa11:
@@ -2289,14 +2289,14 @@ unit cgcpu;
                       list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
                         lastfloatreg-firstfloatreg+1,ref));
                     end;
-                  else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+                  else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
                     begin
                       ref.index:=ref.base;
                       ref.base:=NR_NO;
                       if mmregs<>[] then
                         list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                     end
-                  else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                  else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                     begin
                       ref.index:=ref.base;
                       ref.base:=NR_NO;
@@ -2359,7 +2359,7 @@ unit cgcpu;
                   regs:=regs+[paddingreg];
                   inc(registerarea,4);
                 end;
-            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
+            stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (compiler.target.info.system in systems_darwin) then
               begin
@@ -2372,7 +2372,7 @@ unit cgcpu;
                     if pi_estimatestacksize in current_procinfo.flags then
                       LocalSize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea
                     else
-                      localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                      localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
 
                     if is_shifter_const(LocalSize,shift) then
                       list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize))
@@ -2396,7 +2396,7 @@ unit cgcpu;
 
                 if regs=[] then
                   begin
-                    if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+                    if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                       list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
                     else
                       list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -2417,7 +2417,7 @@ unit cgcpu;
                 list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_EA));
               end;
           end
-        else if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+        else if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
         else
           list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -2431,7 +2431,7 @@ unit cgcpu;
         regs : tcpuregisterset;
         r: byte;
       begin
-        if (cs_create_pic in current_settings.moduleswitches) and
+        if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
            (pi_needs_got in current_procinfo.flags) and
            (tf_pic_uses_got in compiler.target.info.flags) then
           begin
@@ -2576,7 +2576,7 @@ unit cgcpu;
 
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_tpoff,ref.symbol));
               end
-            else if (cs_create_pic in current_settings.moduleswitches) then
+            else if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
               if (tf_pic_uses_got in compiler.target.info.flags) then
                 current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
               else
@@ -2612,7 +2612,7 @@ unit cgcpu;
             tmpref.base:=NR_PC;
             list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
 
-            if (cs_create_pic in current_settings.moduleswitches) and
+            if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
                (tf_pic_uses_got in compiler.target.info.flags) and
                assigned(ref.symbol) then
               begin
@@ -2864,7 +2864,7 @@ unit cgcpu;
         helpsize:=12+maxtmpreg*4;//52 with maxtmpreg=10
         dstref:=dest;
         srcref:=source;
-        if cs_opt_size in current_settings.optimizerswitches then
+        if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
           helpsize:=8;
         if aligned and (len=4) then
           begin
@@ -2988,7 +2988,7 @@ unit cgcpu;
 
                 countreg:=getintregister(list,OS_32);
 
-//            if cs_opt_size in current_settings.optimizerswitches  then
+//            if cs_opt_size in compiler.globals.current_settings.optimizerswitches  then
                 { roozbeh : it seems loading 1 byte is faster because of caching/fetching(?) }
                 {if aligned then
                 genloop(len,4)
@@ -3032,7 +3032,7 @@ unit cgcpu;
         ai:TAiCpu;
         hflags : tresflags;
       begin
-        if not(cs_check_overflow in current_settings.localswitches) then
+        if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
         current_asmdata.getjumplabel(hl);
         case ovloc.loc of
@@ -3325,7 +3325,7 @@ unit cgcpu;
           case op of
             OP_XOR:
               begin
-                if (FPUARM_HAS_NEON in fpu_capabilities[current_settings.fputype]) and (size in [OS_F64]) then
+                if (FPUARM_HAS_NEON in fpu_capabilities[compiler.globals.current_settings.fputype]) and (size in [OS_F64]) then
                   begin
                     if (reg_cgsize(src)<>size) or
                        assigned(shuffle) then
@@ -3746,7 +3746,7 @@ unit cgcpu;
               include(regs,RS_R14);
 
             { safely estimate stack size }
-            if localsize+current_settings.alignment.localalignmax+4>508 then
+            if localsize+compiler.globals.current_settings.alignment.localalignmax+4>508 then
               begin
                 include(rg[R_INTREGISTER].used_in_proc,RS_R4);
                 include(regs,RS_R4);
@@ -3774,7 +3774,7 @@ unit cgcpu;
                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,registerarea);
                end;
 
-            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
+            stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
 
             if stack_parameters or (LocalSize<>0) or
                ((stackmisalignment<>0) and
@@ -3795,7 +3795,7 @@ unit cgcpu;
                       localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea;
                   end
                 else
-                  localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                  localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
 
                 if localsize<508 then
                   begin
@@ -3852,13 +3852,13 @@ unit cgcpu;
               if r in regs then
                 inc(registerarea,4);
 
-            stackmisalignment:=registerarea mod current_settings.alignment.localalignmax;
+            stackmisalignment:=registerarea mod compiler.globals.current_settings.alignment.localalignmax;
 
             LocalSize:=current_procinfo.calc_stackframe_size;
             if stack_parameters then
               localsize:=tcpuprocinfo(current_procinfo).stackframesize-registerarea
             else
-              localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+              localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
 
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (compiler.target.info.system in systems_darwin) then
@@ -3887,7 +3887,7 @@ unit cgcpu;
 
                 if regs=[] then
                   begin
-                    if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+                    if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                       list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
                     else
                       list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -3896,7 +3896,7 @@ unit cgcpu;
                   list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,regs));
               end;
           end
-        else if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+        else if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
         else
           list.concat(taicpu.op_reg(A_BX,NR_R14))
@@ -4386,7 +4386,7 @@ unit cgcpu;
           rg[R_INTREGISTER]:=trgintcputhumb2.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
                RS_R10,RS_R12,RS_R14],first_int_imreg,[],compiler);
-        if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
+        if FPUARM_HAS_FPA in fpu_capabilities[compiler.globals.current_settings.fputype] then
           rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[],compiler);
 
@@ -4935,7 +4935,7 @@ unit cgcpu;
           begin
             firstfloatreg:=RS_NO;
             lastfloatreg:=RS_NO;
-            if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
+            if FPUARM_HAS_FPA in fpu_capabilities[compiler.globals.current_settings.fputype] then
               begin
                 { save floating point registers? }
                 for r:=RS_F0 to RS_F7 do
@@ -4984,13 +4984,13 @@ unit cgcpu;
                 a_reg_dealloc(list,NR_R12);
               end;
 
-            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
+            stackmisalignment:=stackmisalignment mod compiler.globals.current_settings.alignment.localalignmax;
             if (LocalSize<>0) or
                ((stackmisalignment<>0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
                 if not(is_shifter_const(localsize,shift)) then
                   begin
                     if current_procinfo.framepointer=NR_STACK_POINTER_REG then
@@ -5006,7 +5006,7 @@ unit cgcpu;
                   end;
               end;
 
-            if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
+            if FPUARM_HAS_FPA in fpu_capabilities[compiler.globals.current_settings.fputype] then
               begin
                 if firstfloatreg<>RS_NO then
                   begin
@@ -5047,7 +5047,7 @@ unit cgcpu;
         if not(nostackframe) then
           begin
             stackmisalignment:=0;
-            if FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype] then
+            if FPUARM_HAS_FPA in fpu_capabilities[compiler.globals.current_settings.fputype] then
               begin
                 { restore floating point register }
                 firstfloatreg:=RS_NO;
@@ -5097,7 +5097,7 @@ unit cgcpu;
               if (r in regs) then
                 inc(stackmisalignment,4);
 
-            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
+            stackmisalignment:=stackmisalignment mod compiler.globals.current_settings.alignment.localalignmax;
 
             LocalSize:=current_procinfo.calc_stackframe_size;
             if (LocalSize<>0) or
@@ -5105,7 +5105,7 @@ unit cgcpu;
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                localsize:=align(localsize+stackmisalignment,compiler.globals.current_settings.alignment.localalignmax)-stackmisalignment;
                 if not(is_shifter_const(LocalSize,shift)) then
                   begin
                     a_reg_alloc(list,NR_R12);

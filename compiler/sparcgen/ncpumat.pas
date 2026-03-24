@@ -74,7 +74,7 @@ implementation
       begin
         { sparc64 has no overflow checked 64 bit div }
         result:=(is_64bitint(left.resultdef) or is_64bitint(right.resultdef)) and
-          (cs_check_overflow in current_settings.localswitches);
+          (cs_check_overflow in compiler.globals.current_settings.localswitches);
       end;
 
 
@@ -111,7 +111,7 @@ implementation
              if (nodetype = divn) and
                 (right.nodetype = ordconstn) and
                 ispowerof2(tordconstnode(right).value.svalue,power) and
-                (not (cs_check_overflow in current_settings.localswitches)) then
+                (not (cs_check_overflow in compiler.globals.current_settings.localswitches)) then
                begin
                  if is_signed(left.resultdef) Then
                    begin
@@ -140,7 +140,7 @@ implementation
                    end;
 
                  op := divops[true, is_signed(right.resultdef),
-                              cs_check_overflow in current_settings.localswitches];
+                              cs_check_overflow in compiler.globals.current_settings.localswitches];
                  if op=A_NOP then
                    { current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('Wrong code generated here'))); }
                    begin
@@ -180,7 +180,7 @@ implementation
              if (nodetype = divn) and
                 (right.nodetype = ordconstn) and
                 ispowerof2(tordconstnode(right).value.svalue,power) and
-                (not (cs_check_overflow in current_settings.localswitches)) then
+                (not (cs_check_overflow in compiler.globals.current_settings.localswitches)) then
                begin
                  if is_signed(left.resultdef) Then
                    begin
@@ -227,7 +227,7 @@ implementation
                  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
 
                  op := divops[false, is_signed(right.resultdef),
-                              cs_check_overflow in current_settings.localswitches];
+                              cs_check_overflow in compiler.globals.current_settings.localswitches];
                  if (divider<>NR_NO) then
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg))
                  else
@@ -283,7 +283,7 @@ implementation
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value.svalue,power) and
-            (not (cs_check_overflow in current_settings.localswitches)) then
+            (not (cs_check_overflow in compiler.globals.current_settings.localswitches)) then
            begin
              if is_signed(left.resultdef) Then
                begin
@@ -330,7 +330,7 @@ implementation
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
 
              op := divops[is_signed(right.resultdef),
-                          cs_check_overflow in current_settings.localswitches];
+                          cs_check_overflow in compiler.globals.current_settings.localswitches];
              if (divider<>NR_NO) then
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg))
              else

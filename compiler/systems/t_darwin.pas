@@ -117,7 +117,7 @@ implementation
       var
         LdProgram : string;
       begin
-        if cs_link_lld in current_settings.globalswitches then
+        if cs_link_lld in compiler.globals.current_settings.globalswitches then
           LdProgram:='ld64.lld'
         else
           LdProgram:='ld';
@@ -140,7 +140,7 @@ implementation
              than 60KB of data (first 4KB of address space is always invalid)
            }
            ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
-           if not(cs_gdb_valgrind in current_settings.globalswitches) then
+           if not(cs_gdb_valgrind in compiler.globals.current_settings.globalswitches) then
              ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
   {$else ndef cpu64bitaddr}
            ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
@@ -174,7 +174,7 @@ implementation
       begin
         if not isdll then
           begin
-            if not(cs_profile in current_settings.moduleswitches) then
+            if not(cs_profile in compiler.globals.current_settings.moduleswitches) then
               begin
                 case compiler.target.info.system of
                   system_powerpc_darwin,
@@ -349,7 +349,7 @@ implementation
           system_arm_ios:
             { current versions of the linker require the sub-architecture type
               to be specified }
-            result:='-arch '+lower(cputypestr[current_settings.cputype]);
+            result:='-arch '+lower(cputypestr[compiler.globals.current_settings.cputype]);
           system_aarch64_ios,
           system_aarch64_iphonesim,
           system_aarch64_darwin:
@@ -510,7 +510,7 @@ implementation
       sanitizerLibraryDir: TCmdStr;
       success : boolean;
     begin
-      if not(cs_link_nolink in current_settings.globalswitches) then
+      if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
        compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
     { Create some replacements }
@@ -521,20 +521,20 @@ implementation
       targetstr:='';
       ltostr:='';
 
-      if (cs_link_map in current_settings.globalswitches) then
+      if (cs_link_map in compiler.globals.current_settings.globalswitches) then
         mapstr:='-map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
-      if (cs_link_staticflag in current_settings.globalswitches) then
+      if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
         StaticStr:='-static';
-      if (cs_link_strip in current_settings.globalswitches) then
+      if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
         StripStr:='-x';
 
-      if (cs_link_smart in current_settings.globalswitches) then
+      if (cs_link_smart in compiler.globals.current_settings.globalswitches) then
         GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
       { add custom LTO library if using custom clang }
-      if (cs_lto in current_settings.moduleswitches) and
-         not(cs_link_on_target in current_settings.globalswitches) and
+      if (cs_lto in compiler.globals.current_settings.moduleswitches) and
+         not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
          (compiler.globals.utilsdirectory<>'') and
          FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
@@ -587,7 +587,7 @@ implementation
       extdbgbinstr:='';
       extdbgcmdstr:='';
       if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
-         (cs_link_separate_dbg_file in current_settings.globalswitches) then
+         (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
           extdbgcmdstr:=maybequoted(current_module.exefilename);
@@ -599,7 +599,7 @@ implementation
         success:=DoExec(extdbgbinstr,extdbgcmdstr,false,false);
 
       { Remove ResponseFile }
-      if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+      if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
        begin
          DeleteFile(compiler.globals.outputexedir+Info.ResName);
          if ordersymfile<>'' then
@@ -608,7 +608,7 @@ implementation
        end;
 
      { Post process }
-     if success and not(cs_link_nolink in current_settings.globalswitches) then
+     if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
        success:=PostProcessExecutable(current_module.exefilename,false);
 
       MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -637,21 +637,21 @@ implementation
       GCSectionsStr:='';
       mapstr:='';
       ltostr:='';
-      if not(cs_link_nolink in current_settings.globalswitches) then
+      if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
        compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
       { Write symbol order file }
       ordersymfile:=WriteSymbolOrderFile;
 
-      if (cs_link_smart in current_settings.globalswitches) then
+      if (cs_link_smart in compiler.globals.current_settings.globalswitches) then
         GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
-      if (cs_link_map in current_settings.globalswitches) then
+      if (cs_link_map in compiler.globals.current_settings.globalswitches) then
         mapstr:='-map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
 
       { add custom LTO library if using custom clang }
-      if (cs_lto in current_settings.moduleswitches) and
-         not(cs_link_on_target in current_settings.globalswitches) and
+      if (cs_lto in compiler.globals.current_settings.moduleswitches) and
+         not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
          (compiler.globals.utilsdirectory<>'') and
          FileExists(compiler.globals.utilsdirectory+'/../lib/libLTO.dylib',false) then
         begin
@@ -706,7 +706,7 @@ implementation
       extdbgbinstr:='';
       extdbgcmdstr:='';
       if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
-         (cs_link_separate_dbg_file in current_settings.globalswitches) then
+         (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
         begin
           extdbgbinstr:=FindUtil(compiler.globals.utilsprefix+'dsymutil');
           extdbgcmdstr:=maybequoted(current_module.sharedlibfilename);
@@ -728,11 +728,11 @@ implementation
       success:=DoExec(BinStr,cmdstr,true,false);
       if (success and
           (extdbgbinstr<>'') and
-          (cs_link_nolink in current_settings.globalswitches)) then
+          (cs_link_nolink in compiler.globals.current_settings.globalswitches)) then
         success:=DoExec(extdbgbinstr,extdbgcmdstr,false,false);
 
     { Strip the library ? }
-      if success and (cs_link_strip in current_settings.globalswitches) then
+      if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
        begin
          SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
          Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
@@ -740,7 +740,7 @@ implementation
        end;
 
     { Remove temporary files }
-      if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+      if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
         begin
           DeleteFile(compiler.globals.outputexedir+Info.ResName);
           if ordersymfile<>'' then

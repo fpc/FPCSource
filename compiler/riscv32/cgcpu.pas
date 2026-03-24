@@ -80,7 +80,7 @@ unit cgcpu;
     procedure tcgrv32.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+        if CPURV_HAS_16REGISTERS in cpu_capabilities[compiler.globals.current_settings.cputype] then
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_X10,RS_X11,RS_X12,RS_X13,RS_X14,RS_X15,
              RS_X5,RS_X6,RS_X7,
@@ -126,19 +126,19 @@ unit cgcpu;
             list.concat(ai);
             rg[R_INTREGISTER].add_move_instruction(ai);
           end
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_S8) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_S8) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_B,reg2,reg1))
         else if (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
         else if (tosize=OS_8) and (fromsize<>OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_S16) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_S16) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_S16) and (tcgsize2unsigned[fromsize]=OS_32) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tosize=OS_S16) and (tcgsize2unsigned[fromsize]=OS_32) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_16) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_16) then
           list.Concat(taicpu.op_reg_reg(A_ZEXT_H,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_16) and (fromsize<>OS_16) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tosize=OS_16) and (fromsize<>OS_16) then
           list.Concat(taicpu.op_reg_reg(A_ZEXT_H,reg2,reg1))
         else if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
           ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and (fromsize <> tosize)) or

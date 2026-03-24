@@ -767,7 +767,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
         hassymbols:=(ExeWriteMode=ewm_dbgonly) or
                     (
                      (ExeWriteMode=ewm_exefull) and
-                     not(cs_link_strip in current_settings.globalswitches)
+                     not(cs_link_strip in compiler.globals.current_settings.globalswitches)
                     );
 
         { Initial header, will be updated later }

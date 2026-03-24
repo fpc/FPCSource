@@ -138,7 +138,7 @@ implementation
       { Lots of comparisons take a lot of time, so do not allow
         too much comparisons. 8 comparisons are, however, still
         smaller than emitting the set }
-      if cs_opt_size in current_settings.optimizerswitches then
+      if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
         maxcompares:=8
       else
         maxcompares:=5;
@@ -587,7 +587,7 @@ implementation
           end;
 
         { These optimisations aren't particularly debugger friendly }
-        if not (cs_opt_level2 in current_settings.optimizerswitches) then
+        if not (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           begin
             Result := False;
             current_asmdata.getjumplabel(_Label);
@@ -764,7 +764,7 @@ implementation
                   hregister:=scratch_reg;
                   opsize:=newdef;
                 end;
-              if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
+              if (labelcnt>1) or not(cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) then
                 begin
                   last:=0;
                   first:=true;
@@ -1094,7 +1094,7 @@ implementation
         var
           lesslabel,greaterlabel : tasmlabel;
         begin
-          current_asmdata.CurrAsmList.concat(cai_align.Create(current_settings.alignment.jumpalign));
+          current_asmdata.CurrAsmList.concat(cai_align.Create(compiler.globals.current_settings.alignment.jumpalign));
           cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
 
           { calculate labels for left and right }
@@ -1261,7 +1261,7 @@ implementation
          else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
            begin
-              if cs_opt_level1 in current_settings.optimizerswitches then
+              if cs_opt_level1 in compiler.globals.current_settings.optimizerswitches then
                 begin
                    { procedures are empirically passed on }
                    { consumption can also be calculated   }
@@ -1284,7 +1284,7 @@ implementation
                      dist:=min(asizeuint(-distv.svalue),high(dist));
 
                    { optimize for size ? }
-                   if cs_opt_size in current_settings.optimizerswitches  then
+                   if cs_opt_size in compiler.globals.current_settings.optimizerswitches  then
                      begin
                        if has_jumptable and
                           (min_label>=int64(low(aint))) and
@@ -1351,7 +1351,7 @@ implementation
                so there's no need to implement it }
              if not shortcut then
                begin
-                 current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
+                 current_asmdata.CurrAsmList.concat(cai_align.create(compiler.globals.current_settings.alignment.jumpalign));
                  cg.a_label(current_asmdata.CurrAsmList,blocklabel);
                  secondpass(statement);
                  { don't come back to case line }
@@ -1363,7 +1363,7 @@ implementation
          { ...and the else block }
          if not ShortcutElse then
            begin
-             current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
+             current_asmdata.CurrAsmList.concat(cai_align.create(compiler.globals.current_settings.alignment.jumpalign));
              hlcg.a_label(current_asmdata.CurrAsmList,elselabel);
            end;
 
@@ -1373,7 +1373,7 @@ implementation
              secondpass(elseblock);
            end;
 
-         current_asmdata.CurrAsmList.concat(cai_align.create(current_settings.alignment.jumpalign));
+         current_asmdata.CurrAsmList.concat(cai_align.create(compiler.globals.current_settings.alignment.jumpalign));
          hlcg.a_label(current_asmdata.CurrAsmList,endlabel);
 
          { Reset labels }

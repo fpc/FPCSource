@@ -1793,7 +1793,7 @@ end;
                             begin
                               Symbol^.Params:=TypeNames^.Add('...');
                             end;
-                          if cs_local_browser in current_settings.moduleswitches then
+                          if cs_local_browser in compiler.globals.current_settings.moduleswitches then
                            begin
                              if assigned(pd.localst) and
                                (pd.localst.symtabletype<>staticsymtable) then
@@ -1978,19 +1978,19 @@ var
 begin
   DisposeBrowserCol;
 
-  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in compiler.globals.current_settings.moduleswitches) then
     if not assigned(current_module.arraydefs) then
       { Need this to get variable size in memory (MemInfo.Size).
         Units always fall in this branch, because
         their "arraydefs" is destroyed as soon they are compiled. }
       current_module.arraydefs:=THashSet.Create(64,true,false);
 
-  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in compiler.globals.current_settings.moduleswitches) then
     NewBrowserCol;
 
   {-- first only create Modules list --}
   hp:=tmodule(loaded_units.first);
-  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in compiler.globals.current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        if hp.is_unit then
@@ -2026,7 +2026,7 @@ begin
    {-- collect symbol information --}
    FillChar(SymTll,SizeOf(TLinkList),0);
    hp:=tmodule(loaded_units.first);
-   if (cs_browser in current_settings.moduleswitches) then
+   if (cs_browser in compiler.globals.current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        if hp.is_unit then
@@ -2041,7 +2041,7 @@ begin
            { all modules have to be in list before first call to ProcessSymTable }
            ProcessSymTable(UnitS,UnitS^.Items,T,@SymTll);
            if hp.is_unit then
-           if cs_local_browser in current_settings.moduleswitches then
+           if cs_local_browser in compiler.globals.current_settings.moduleswitches then
              begin
                 t:=tsymtable(hp.localsymtable);
                 if assigned(t) then
@@ -2053,7 +2053,7 @@ begin
 
   {-- used modules and dependant modules --}
   hp:=tmodule(loaded_units.first);
-  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in compiler.globals.current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        if hp.is_unit then
@@ -2098,7 +2098,7 @@ begin
        hp:=tmodule(hp.next);
     end;
 
-  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in compiler.globals.current_settings.moduleswitches) then
     BuildObjectInfo;
   { can always be done
     needed to know when recompilation of sources is necessary }

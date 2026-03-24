@@ -70,7 +70,7 @@ implementation
       result:=inherited pass_1;
       if not assigned(result) and
          is_fpu(left.resultdef) and
-         not(cs_opt_fastmath in current_settings.optimizerswitches) then
+         not(cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) then
         begin
           case nodetype of
             addn:

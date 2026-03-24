@@ -136,18 +136,18 @@ implementation
                we can easily get the actual address of a procvar }
              not(nf_internal in flags) and
              (left.resultdef.typ=procvardef) and
-             ((m_tp_procvar in current_settings.modeswitches) or
-              (m_mac_procvar in current_settings.modeswitches))
+             ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+              (m_mac_procvar in compiler.globals.current_settings.modeswitches))
             ) then
            begin
              isprocvar:=(left.resultdef.typ=procvardef);
              need_conv_to_voidptr:=
-               (m_tp_procvar in current_settings.modeswitches) or
-               (m_mac_procvar in current_settings.modeswitches);
+               (m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+               (m_mac_procvar in compiler.globals.current_settings.modeswitches);
 
              if not isprocvar then
                begin
-                 if current_settings.x86memorymodel in x86_far_code_models then
+                 if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
                    begin
                      left:=compiler.ctypeconvnode_proc_to_procvar(left);
                      if need_conv_to_voidptr then
@@ -258,7 +258,7 @@ implementation
 
      procedure ti8086inlinenode.second_get_frame;
        begin
-         if current_settings.x86memorymodel in x86_far_data_models then
+         if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
            begin
              if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                internalerror(2014030201);
@@ -287,7 +287,7 @@ implementation
                else
                  internalerror(2014121001);
              end;
-             if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+             if cs_hugeptr_arithmetic_normalization in compiler.globals.current_settings.localswitches then
                procname:=procname+'_normalized';
 
              if is_void(tpointerdef(tcallparanode(left).left.resultdef).pointeddef) then
@@ -405,7 +405,7 @@ implementation
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register64.reghi),cg.GetNextReg(location.register64.reglo));
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register64.reghi),location.register64.reghi);
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register64.reghi),cg.GetNextReg(location.register64.reghi));
-            if cs_check_overflow in current_settings.localswitches then
+            if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
@@ -425,7 +425,7 @@ implementation
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
             emit_reg_reg(A_SUB,S_W,cg.GetNextReg(left.location.register),location.register);
             emit_reg_reg(A_SBB,S_W,cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
-            if cs_check_overflow in current_settings.localswitches then
+            if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);

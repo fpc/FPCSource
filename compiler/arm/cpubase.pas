@@ -777,19 +777,19 @@ unit cpubase;
 
     function GenerateARMCode : boolean;
       begin
-        Result:=current_settings.instructionset=is_arm;
+        Result:=compiler.globals.current_settings.instructionset=is_arm;
       end;
 
 
     function GenerateThumbCode : boolean;
       begin
-        Result:=(current_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+        Result:=(compiler.globals.current_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
 
     function GenerateThumb2Code : boolean;
       begin
-        Result:=(current_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+        Result:=(compiler.globals.current_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
 

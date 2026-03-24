@@ -64,7 +64,7 @@ implementation
             tcb.maybe_end_aggregate(def);
             sym:=current_asmdata.DefineAsmSymbol('__fpc_program_name',AB_GLOBAL,AT_DATA,def);
             current_asmdata.asmlists[al_globals].concatlist(
-              tcb.get_final_asmlist(sym,def,sec_rodata,'__fpc_program_name',const_align(current_settings.alignment.constalignmax))
+              tcb.get_final_asmlist(sym,def,sec_rodata,'__fpc_program_name',const_align(compiler.globals.current_settings.alignment.constalignmax))
             );
             tcb.free;
           end;

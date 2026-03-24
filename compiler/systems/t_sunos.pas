@@ -119,9 +119,9 @@ begin
    compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/lib;=/usr/lib;=/usr/X11R6/lib;=/opt/sfw/lib',true);
 {$endif not x86_64}
 {$ifdef  LinkTest}
-     if (cs_link_staticflag in current_settings.globalswitches) then  WriteLN('ForceLinkStaticFlag');
-     if (cs_link_static in current_settings.globalswitches) then  WriteLN('LinkStatic-Flag');
-     if (cs_link_shared in current_settings.globalswitches) then  WriteLN('LinkSynamicFlag');
+     if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then  WriteLN('ForceLinkStaticFlag');
+     if (cs_link_static in compiler.globals.current_settings.globalswitches) then  WriteLN('LinkStatic-Flag');
+     if (cs_link_shared in compiler.globals.current_settings.globalswitches) then  WriteLN('LinkSynamicFlag');
 {$EndIf}
 end;
 
@@ -191,7 +191,7 @@ begin
 {  prtobj:='prt0';
   cprtobj:='cprt0';
   gprtobj:='gprt0';}
-  if cs_profile in current_settings.moduleswitches then
+  if cs_profile in compiler.globals.current_settings.moduleswitches then
    begin
 {     prtobj:=gprtobj;}
      if not glibc2 then
@@ -313,7 +313,7 @@ begin
      if linklibc then
       LinkRes.Add('-lc');
      { when we have -static for the linker the we also need libgcc }
-     if (cs_link_staticflag in current_settings.globalswitches) then begin
+     if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then begin
       LinkRes.Add('-lgcc');
      end;
      if linkdynamic and (Info.DynamicLinker<>'') then { gld has a default, DynamicLinker is not set in solaris }
@@ -437,7 +437,7 @@ begin
      if linklibc then
       LinkRes.Add('-lc');
      { when we have -static for the linker the we also need libgcc }
-     if (cs_link_staticflag in current_settings.globalswitches) then begin
+     if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then begin
       LinkRes.Add('-lgcc');
      end;
      if linkdynamic and (Info.DynamicLinker<>'') then { gld has a default, DynamicLinker is not set in solaris }
@@ -473,7 +473,7 @@ var
   StripStr   : string[40];
 begin
   success:=false;
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
@@ -481,11 +481,11 @@ begin
   StripStr:='';
   RedirectStr:='';
   DynLinkStr:='';
-  if (cs_link_staticflag in current_settings.globalswitches) then
+  if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
     StaticStr:='-Bstatic';
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    begin
      if use_gnu_ld then
        StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
@@ -495,7 +495,7 @@ begin
          RedirectStr:=' > '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
        end;
    end;
-  If (cs_profile in current_settings.moduleswitches) or
+  If (cs_profile in compiler.globals.current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
   if compiler.globals.rlinkpath<>'' then
@@ -544,7 +544,7 @@ begin
 { Remove ResponseFile }
 {$IFNDEF LinkTest}
   if (success) and use_gnu_ld and
-     not(cs_link_nolink in current_settings.globalswitches) then
+     not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 {$ENDIF}
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -561,7 +561,7 @@ var
 begin
   success:=false;
   MakeSharedLibrary:=false;
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
@@ -570,7 +570,7 @@ begin
   RedirectStr:='';
   MapStr:='';
 { Create some replacements }
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    begin
      if use_gnu_ld then
        MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
@@ -580,7 +580,7 @@ begin
          RedirectStr:=' > '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
        end;
    end;
-  need_quotes:= (cs_link_nolink in current_settings.globalswitches) or
+  need_quotes:= (cs_link_nolink in compiler.globals.current_settings.globalswitches) or
                 (RedirectStr<>'');
 { initname and fininame may contain $, which can be wrongly interpreted
   in a link script, thus we surround them with single quotes
@@ -649,7 +649,7 @@ begin
   { We need shell if output is redirected }
   success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
 { Strip the library ? }
-  if success and (cs_link_strip in current_settings.globalswitches) then
+  if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
@@ -658,7 +658,7 @@ begin
 
 { Remove ResponseFile }
 {$IFNDEF LinkTest}
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 {$ENDIF}
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }

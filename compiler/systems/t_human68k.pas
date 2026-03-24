@@ -55,7 +55,7 @@ implementation
 
 constructor TLinkerHuman68k.Create(acompiler: TCompilerBase);
 begin
-  UseVLink:=(cs_link_vlink in current_settings.globalswitches);
+  UseVLink:=(cs_link_vlink in compiler.globals.current_settings.globalswitches);
 
   Inherited;
   { allow duplicated libs (PM) }
@@ -111,7 +111,7 @@ begin
   while assigned(HPath) do
     begin
       s:=HPath.Str;
-      if (cs_link_on_target in current_settings.globalswitches) then
+      if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
         s:=ScriptFixFileName(s);
       LinkRes.Add('-L'+s);
       HPath:=TCmdStrListItem(HPath.Next);
@@ -187,12 +187,12 @@ begin
   MapStr:='';
   FlagsStr:='';
 
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     if UseVLink then
       MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename))
     else
       MapStr:='-Map '+maybequoted(ScriptFixFileName(current_module.mapfilename));
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' then
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
@@ -202,7 +202,7 @@ begin
         GCSectionsStr:='-gc-all -sc';
     end
   else
-    if (cs_link_smart in current_settings.globalswitches) and
+    if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
        create_smartlink_sections then
       GCSectionsStr:='--gc-sections';
 
@@ -230,7 +230,7 @@ var
   bootfile : TScript;
   ExeName: String;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries }
@@ -239,7 +239,7 @@ begin
   success:=MakeHuman68kExe;
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

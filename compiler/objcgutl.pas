@@ -1964,7 +1964,7 @@ procedure TObjCCodeGenUtils.MaybeGenerateObjectiveCImageInfo(globalst, localst: 
   var
     objcrttiwriter: tobjcrttiwriter;
   begin
-    if (m_objectivec1 in current_settings.modeswitches) then
+    if (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
       begin
         { generate rtti for all obj-c classes, protocols and categories
           defined in this module. }

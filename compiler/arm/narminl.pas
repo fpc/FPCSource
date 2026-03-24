@@ -109,7 +109,7 @@ implementation
        begin
          case inlinenumber of
            in_arm_yield:
-             if CPUARM_HAS_MP_INSTRUCTIONS in cpu_capabilities[current_settings.cputype] then
+             if CPUARM_HAS_MP_INSTRUCTIONS in cpu_capabilities[compiler.globals.current_settings.cputype] then
                current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD))
              else
                { while yield is a no op operation if not supported by the cpu, assemblers do not
@@ -124,7 +124,7 @@ implementation
     procedure tarminlinenode.load_fpu_location(out singleprec: boolean);
       begin
         secondpass(left);
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
@@ -142,7 +142,7 @@ implementation
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
               location_copy(location,left.location);
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location_copy(location,left.location);
@@ -161,7 +161,7 @@ implementation
 
     function tarminlinenode.first_abs_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
+        if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
           begin
             firstpass(left);
             expectloc:=LOC_REGISTER;
@@ -169,14 +169,14 @@ implementation
           end
         else
           begin
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 expectloc:=LOC_MMREGISTER
-              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 begin
                   if tfloatdef(left.resultdef).floattype=s32real then
                     expectloc:=LOC_MMREGISTER
@@ -186,7 +186,7 @@ implementation
               else
                 internalerror(2009112401);
             end;
-            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
               needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
             first_abs_real:=nil;
@@ -196,18 +196,18 @@ implementation
 
     function tarminlinenode.first_sqr_real : tnode;
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) then
+        if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
           result:=inherited first_sqr_real
         else
           begin
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 expectloc:=LOC_MMREGISTER
-              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 begin
                   if tfloatdef(left.resultdef).floattype=s32real then
                     expectloc:=LOC_MMREGISTER
@@ -217,7 +217,7 @@ implementation
               else
                 internalerror(2009112402);
             end;
-            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
               needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
             first_sqr_real:=nil;
@@ -227,18 +227,18 @@ implementation
 
     function tarminlinenode.first_sqrt_real : tnode;
       begin
-        if cs_fp_emulation in current_settings.moduleswitches then
+        if cs_fp_emulation in compiler.globals.current_settings.moduleswitches then
           result:=inherited first_sqrt_real
         else
           begin
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 expectloc:=LOC_MMREGISTER
-              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 begin
                   if tfloatdef(left.resultdef).floattype=s32real then
                     expectloc:=LOC_MMREGISTER
@@ -248,7 +248,7 @@ implementation
               else
                 internalerror(2009112403);
             end;
-            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+            if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
               needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
             first_sqrt_real := nil;
@@ -262,7 +262,7 @@ implementation
            begin
              expectloc:=LOC_MMREGISTER;
              Result:=nil;
-             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+             if ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
                needs_check_for_fpu_exceptions then
                Include(current_procinfo.flags,pi_do_call);
            end
@@ -306,7 +306,7 @@ implementation
         pf: TOpPostfix;
       begin
         load_fpu_location(singleprec);
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
@@ -318,7 +318,7 @@ implementation
               else
                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,tcgint($7fffffff),location.registerhi);
             end
-          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               if singleprec then
                 pf:=PF_F32
@@ -327,7 +327,7 @@ implementation
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register),pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg(A_VABS,location.register,left.location.register), PF_F32));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
@@ -344,12 +344,12 @@ implementation
         pf: TOpPostfix;
       begin
         load_fpu_location(singleprec);
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
-          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               if singleprec then
                 pf:=PF_F32
@@ -358,7 +358,7 @@ implementation
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register),pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               current_asmdata.CurrAsmList.Concat(setoppostfix(taicpu.op_reg_reg_reg(A_VMUL,location.register,left.location.register,left.location.register), PF_F32));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
@@ -375,12 +375,12 @@ implementation
         pf: TOpPostfix;
       begin
         load_fpu_location(singleprec);
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
-          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               if singleprec then
                 pf:=PF_F32
@@ -389,7 +389,7 @@ implementation
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register),pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
@@ -434,10 +434,10 @@ implementation
         r : tregister;
         checkpointer_used : boolean;
       begin
-        if not(GenerateThumbCode) and (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) then
+        if not(GenerateThumbCode) and (CPUARM_HAS_EDSP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
              { do not call Checkpointer for left node }
-             checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+             checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
              if checkpointer_used then
                node_change_local_switch(left,cs_checkpointer,false);
              secondpass(left);
@@ -482,7 +482,7 @@ implementation
         if GenerateThumb2Code then
           current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT,C_MI));
 
-        if cs_check_overflow in current_settings.localswitches then
+        if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
             current_asmdata.CurrAsmList.concat(setoppostfix(setcondition(taicpu.op_reg_reg_const(A_RSB,location.register,location.register, 0), C_MI),PF_S));
             location_reset(ovloc,LOC_VOID,opsize);
@@ -517,7 +517,7 @@ implementation
         negproduct : boolean;
         oppostfix : TOpPostfix;
       begin
-         if FPUARM_HAS_FMA in fpu_capabilities[current_settings.fputype] then
+         if FPUARM_HAS_FMA in fpu_capabilities[compiler.globals.current_settings.fputype] then
            begin
              negop3:=false;
              negproduct:=false;

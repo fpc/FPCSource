@@ -94,7 +94,7 @@ procedure tllvmmoddivnode.pass_generate_code;
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_divbyzero',[],nil).resetiftemp;
         hlcg.a_label(current_asmdata.CurrAsmList,hl);
       end;
-    if (cs_check_overflow in current_settings.localswitches) and
+    if (cs_check_overflow in compiler.globals.current_settings.localswitches) and
        is_signed(left.resultdef) and
        ((right.nodetype<>ordconstn) or
         (tordconstnode(right).value=-1)) then

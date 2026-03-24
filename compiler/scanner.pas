@@ -379,6 +379,8 @@ implementation
 
     function is_keyword(const s:string):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         low,high,mid : longint;
       begin
         if not (length(s) in [tokenlenmin..tokenlenmax]) or
@@ -398,7 +400,7 @@ implementation
             low:=mid;
          end;
         is_keyword:=(current_scanner.pattern=tokeninfo^[ttoken(high)].str) and
-                    ((tokeninfo^[ttoken(high)].keyword*current_settings.modeswitches)<>[]);
+                    ((tokeninfo^[ttoken(high)].keyword*compiler.globals.current_settings.modeswitches)<>[]);
       end;
 
 
@@ -411,26 +413,26 @@ implementation
           change the state of $h+/$h-) }
         if switch in [m_none,m_default_ansistring,m_default_unicodestring] then
           begin
-            if ([m_default_ansistring,m_default_unicodestring]*current_settings.modeswitches)<>[] then
+            if ([m_default_ansistring,m_default_unicodestring]*compiler.globals.current_settings.modeswitches)<>[] then
               begin
                 { can't have both ansistring and unicodestring as default }
                 if switch=m_default_ansistring then
                   begin
-                    exclude(current_settings.modeswitches,m_default_unicodestring);
+                    exclude(compiler.globals.current_settings.modeswitches,m_default_unicodestring);
                     if changeinit then
                       exclude(init_settings.modeswitches,m_default_unicodestring);
                   end
                 else if switch=m_default_unicodestring then
                   begin
-                    exclude(current_settings.modeswitches,m_default_ansistring);
+                    exclude(compiler.globals.current_settings.modeswitches,m_default_ansistring);
                     if changeinit then
                       exclude(init_settings.modeswitches,m_default_ansistring);
                   end;
                 { enable $h+ }
-                include(current_settings.localswitches,cs_refcountedstrings);
+                include(compiler.globals.current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   include(init_settings.localswitches,cs_refcountedstrings);
-                if m_default_unicodestring in current_settings.modeswitches then
+                if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                   begin
                     def_system_macro('FPC_UNICODESTRINGS');
                     def_system_macro('UNICODE');
@@ -438,7 +440,7 @@ implementation
               end
             else
               begin
-                exclude(current_settings.localswitches,cs_refcountedstrings);
+                exclude(compiler.globals.current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
                   exclude(init_settings.localswitches,cs_refcountedstrings);
                 undef_system_macro('FPC_UNICODESTRINGS');
@@ -449,15 +451,15 @@ implementation
         { turn inline on by default ? }
         if switch in [m_none,m_default_inline] then
           begin
-            if (m_default_inline in current_settings.modeswitches) then
+            if (m_default_inline in compiler.globals.current_settings.modeswitches) then
              begin
-               include(current_settings.localswitches,cs_do_inline);
+               include(compiler.globals.current_settings.localswitches,cs_do_inline);
                if changeinit then
                  include(init_settings.localswitches,cs_do_inline);
              end
             else
              begin
-               exclude(current_settings.localswitches,cs_do_inline);
+               exclude(compiler.globals.current_settings.localswitches,cs_do_inline);
                if changeinit then
                  exclude(init_settings.localswitches,cs_do_inline);
              end;
@@ -467,34 +469,34 @@ implementation
         if switch in [m_none,m_systemcodepage] then
           begin
             { both m_systemcodepage and specifying a code page via -FcXXX or
-              "$codepage XXX" change current_settings.sourcecodepage. If
+              "$codepage XXX" change compiler.globals.current_settings.sourcecodepage. If
               we used -FcXXX and then have a sourcefile with "$mode objfpc",
               this routine will be called to disable m_systemcodepage (to ensure
               it's off in case it would have been set on the command line, or
               by a previous mode(switch).
 
               In that case, we have to ensure that we don't overwrite
-              current_settings.sourcecodepage, as that would cancel out the
+              compiler.globals.current_settings.sourcecodepage, as that would cancel out the
               -FcXXX. This is why we use two separate module switches
               (cs_explicit_codepage and cs_system_codepage) for the same setting
-              (current_settings.sourcecodepage)
+              (compiler.globals.current_settings.sourcecodepage)
             }
-            if m_systemcodepage in current_settings.modeswitches then
+            if m_systemcodepage in compiler.globals.current_settings.modeswitches then
               begin
                 { m_systemcodepage gets enabled -> disable any -FcXXX and
                   "codepage XXX" settings (exclude cs_explicit_codepage), and
                   overwrite the source codepage }
-                current_settings.sourcecodepage:=DefaultSystemCodePage;
-                if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
+                compiler.globals.current_settings.sourcecodepage:=DefaultSystemCodePage;
+                if (compiler.globals.current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(compiler.globals.current_settings.sourcecodepage) then
                   begin
-                    compiler.verbose.Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
-                    current_settings.sourcecodepage:=default_settings.sourcecodepage;
+                    compiler.verbose.Message2(scan_w_unavailable_system_codepage,IntToStr(compiler.globals.current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
+                    compiler.globals.current_settings.sourcecodepage:=default_settings.sourcecodepage;
                   end;
-                exclude(current_settings.moduleswitches,cs_explicit_codepage);
-                include(current_settings.moduleswitches,cs_system_codepage);
+                exclude(compiler.globals.current_settings.moduleswitches,cs_explicit_codepage);
+                include(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
                 if changeinit then
                   begin
-                    init_settings.sourcecodepage:=current_settings.sourcecodepage;
+                    init_settings.sourcecodepage:=compiler.globals.current_settings.sourcecodepage;
                     exclude(init_settings.moduleswitches,cs_explicit_codepage);
                     include(init_settings.moduleswitches,cs_system_codepage);
                   end;
@@ -518,9 +520,9 @@ implementation
                   settings, by design. The only thing we have to ensure is that
                   disabling m_systemcodepage if it wasn't on in the first place
                   doesn't overwrite the sourcecodepage }
-                exclude(current_settings.moduleswitches,cs_system_codepage);
-                if not(cs_explicit_codepage in current_settings.moduleswitches) then
-                  current_settings.sourcecodepage:=default_settings.sourcecodepage;
+                exclude(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
+                if not(cs_explicit_codepage in compiler.globals.current_settings.moduleswitches) then
+                  compiler.globals.current_settings.sourcecodepage:=default_settings.sourcecodepage;
                 if changeinit then
                   begin
                     exclude(init_settings.moduleswitches,cs_system_codepage);
@@ -534,7 +536,7 @@ implementation
         { enable cs_force_far_calls when m_nested_procvars is enabled }
         if switch=m_nested_procvars then
           begin
-            include(current_settings.localswitches,cs_force_far_calls);
+            include(compiler.globals.current_settings.localswitches,cs_force_far_calls);
             if changeinit then
               include(init_settings.localswitches,cs_force_far_calls);
           end;
@@ -548,57 +550,59 @@ implementation
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         b : boolean;
         oldmodeswitches : tmodeswitches;
       begin
-        oldmodeswitches:=current_settings.modeswitches;
+        oldmodeswitches:=compiler.globals.current_settings.modeswitches;
 
         b:=true;
         if s='DEFAULT' then
-          current_settings.modeswitches:=fpcmodeswitches
+          compiler.globals.current_settings.modeswitches:=fpcmodeswitches
         else
          if s='DELPHI' then
-          current_settings.modeswitches:=delphimodeswitches
+          compiler.globals.current_settings.modeswitches:=delphimodeswitches
         else
          if s='DELPHIUNICODE' then
-          current_settings.modeswitches:=delphiunicodemodeswitches
+          compiler.globals.current_settings.modeswitches:=delphiunicodemodeswitches
         else
          if s='TP' then
-          current_settings.modeswitches:=tpmodeswitches
+          compiler.globals.current_settings.modeswitches:=tpmodeswitches
         else
          if s='FPC' then begin
-          current_settings.modeswitches:=fpcmodeswitches;
+          compiler.globals.current_settings.modeswitches:=fpcmodeswitches;
           { TODO: enable this for 2.3/2.9 }
-          //  include(current_settings.localswitches, cs_typed_addresses);
+          //  include(compiler.globals.current_settings.localswitches, cs_typed_addresses);
         end else
          if s='OBJFPC' then begin
-          current_settings.modeswitches:=objfpcmodeswitches;
+          compiler.globals.current_settings.modeswitches:=objfpcmodeswitches;
           { TODO: enable this for 2.3/2.9 }
-          //  include(current_settings.localswitches, cs_typed_addresses);
+          //  include(compiler.globals.current_settings.localswitches, cs_typed_addresses);
         end
 {$ifdef gpc_mode}
         else if s='GPC' then
-          current_settings.modeswitches:=gpcmodeswitches
+          compiler.globals.current_settings.modeswitches:=gpcmodeswitches
 {$endif}
         else
          if s='MACPAS' then
-          current_settings.modeswitches:=macmodeswitches
+          compiler.globals.current_settings.modeswitches:=macmodeswitches
         else
          if s='ISO' then
-          current_settings.modeswitches:=isomodeswitches
+          compiler.globals.current_settings.modeswitches:=isomodeswitches
         else
          if s='EXTENDEDPASCAL' then
-          current_settings.modeswitches:=extpasmodeswitches
+          compiler.globals.current_settings.modeswitches:=extpasmodeswitches
         else
          b:=false;
 
 {$ifdef jvm}
           { enable final fields by default for the JVM targets }
-          include(current_settings.modeswitches,m_final_fields);
+          include(compiler.globals.current_settings.modeswitches,m_final_fields);
 {$endif jvm}
 
         if b and changeInit then
-          init_settings.modeswitches := current_settings.modeswitches;
+          init_settings.modeswitches := compiler.globals.current_settings.modeswitches;
 
         if b then
          begin
@@ -609,10 +613,10 @@ implementation
 
            { turn on bitpacking and case checking for mode macpas and iso pascal,
              as well as extended pascal }
-           if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
+           if ([m_mac,m_iso,m_extpas] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(current_settings.localswitches,cs_bitpacking);
-               include(current_settings.localswitches,cs_check_all_case_coverage);
+               include(compiler.globals.current_settings.localswitches,cs_bitpacking);
+               include(compiler.globals.current_settings.localswitches,cs_check_all_case_coverage);
                if changeinit then
                  begin
                    include(init_settings.localswitches,cs_bitpacking);
@@ -621,84 +625,84 @@ implementation
              end;
 
            { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
-           if ([m_delphi,m_tp7,m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
+           if ([m_delphi,m_tp7,m_mac,m_iso,m_extpas] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(current_settings.moduleswitches,cs_support_goto);
+               include(compiler.globals.current_settings.moduleswitches,cs_support_goto);
                if changeinit then
                  include(init_settings.moduleswitches,cs_support_goto);
              end;
 
            { support pointer math by default in fpc/objfpc modes }
-           if ([m_fpc,m_objfpc] * current_settings.modeswitches <> []) then
+           if ([m_fpc,m_objfpc] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(current_settings.localswitches,cs_pointermath);
+               include(compiler.globals.current_settings.localswitches,cs_pointermath);
                if changeinit then
                  include(init_settings.localswitches,cs_pointermath);
              end
            else
              begin
-               exclude(current_settings.localswitches,cs_pointermath);
+               exclude(compiler.globals.current_settings.localswitches,cs_pointermath);
                if changeinit then
                  exclude(init_settings.localswitches,cs_pointermath);
              end;
 
            { Default enum and set packing for delphi/tp7 }
-           if (m_tp7 in current_settings.modeswitches) or
-              (m_delphi in current_settings.modeswitches) then
+           if (m_tp7 in compiler.globals.current_settings.modeswitches) or
+              (m_delphi in compiler.globals.current_settings.modeswitches) then
              begin
-               current_settings.packenum:=1;
-               current_settings.setalloc:=1;
+               compiler.globals.current_settings.packenum:=1;
+               compiler.globals.current_settings.setalloc:=1;
              end
-           else if (m_mac in current_settings.modeswitches) then
+           else if (m_mac in compiler.globals.current_settings.modeswitches) then
              begin
                { compatible with Metrowerks Pascal }
-               current_settings.packenum:=2;
-               current_settings.setalloc:=default_settings.setalloc;
+               compiler.globals.current_settings.packenum:=2;
+               compiler.globals.current_settings.setalloc:=default_settings.setalloc;
              end
            else
              begin
-               current_settings.packenum:=default_settings.packenum;
-               current_settings.setalloc:=default_settings.setalloc;
+               compiler.globals.current_settings.packenum:=default_settings.packenum;
+               compiler.globals.current_settings.setalloc:=default_settings.setalloc;
              end;
 
            if changeinit then
              begin
-               init_settings.packenum:=current_settings.packenum;
-               init_settings.setalloc:=current_settings.setalloc;
+               init_settings.packenum:=compiler.globals.current_settings.packenum;
+               init_settings.setalloc:=compiler.globals.current_settings.setalloc;
              end;
 {$if defined(i386) or defined(i8086)}
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
-           if (m_delphi in current_settings.modeswitches) or
-              (m_tp7 in current_settings.modeswitches) then
+           if (m_delphi in compiler.globals.current_settings.modeswitches) or
+              (m_tp7 in compiler.globals.current_settings.modeswitches) then
              begin
 {$ifdef i8086}
-               current_settings.asmmode:=asmmode_i8086_intel;
+               compiler.globals.current_settings.asmmode:=asmmode_i8086_intel;
 {$else i8086}
-               current_settings.asmmode:=asmmode_i386_intel;
+               compiler.globals.current_settings.asmmode:=asmmode_i386_intel;
 {$endif i8086}
                if changeinit then
-                 init_settings.asmmode:=current_settings.asmmode;
+                 init_settings.asmmode:=compiler.globals.current_settings.asmmode;
              end;
 {$endif i386 or i8086}
 
            { Exception support explicitly turned on (mainly for macpas, to }
            { compensate for lack of interprocedural goto support)          }
-           if (cs_support_exceptions in current_settings.globalswitches) then
-             include(current_settings.modeswitches,m_except);
+           if (cs_support_exceptions in compiler.globals.current_settings.globalswitches) then
+             include(compiler.globals.current_settings.modeswitches,m_except);
 
            { Default strict string var checking in TP/Delphi modes }
-           if ([m_delphi,m_tp7] * current_settings.modeswitches <> []) then
+           if ([m_delphi,m_tp7] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(current_settings.localswitches,cs_strict_var_strings);
+               include(compiler.globals.current_settings.localswitches,cs_strict_var_strings);
                if changeinit then
                  include(init_settings.localswitches,cs_strict_var_strings);
              end;
 
            { in delphi mode, excess precision and open strings are by default on }
-           if ([m_delphi] * current_settings.modeswitches <> []) then
+           if ([m_delphi] * compiler.globals.current_settings.modeswitches <> []) then
              begin
-               include(current_settings.localswitches,cs_excessprecision);
-               include(current_settings.localswitches,cs_openstring);
+               include(compiler.globals.current_settings.localswitches,cs_excessprecision);
+               include(compiler.globals.current_settings.localswitches,cs_openstring);
                if changeinit then
                  begin
                    include(init_settings.localswitches,cs_excessprecision);
@@ -708,15 +712,15 @@ implementation
 
 {$ifdef i8086}
            { Do not force far calls in the TP mode by default, force it in other modes }
-           if (m_tp7 in current_settings.modeswitches) then
+           if (m_tp7 in compiler.globals.current_settings.modeswitches) then
              begin
-               exclude(current_settings.localswitches,cs_force_far_calls);
+               exclude(compiler.globals.current_settings.localswitches,cs_force_far_calls);
                if changeinit then
                  exclude(init_settings.localswitches,cs_force_far_calls);
              end
            else
              begin
-               include(current_settings.localswitches,cs_force_far_calls);
+               include(compiler.globals.current_settings.localswitches,cs_force_far_calls);
                if changeinit then
                  include(init_settings.localswitches,cs_force_far_calls);
              end;
@@ -741,21 +745,21 @@ implementation
               undef_system_macro('FPC_EXTENDEDPASCAL');
 
             { define new symbol in delphi,objfpc,tp,gpc,macpas mode }
-            if (m_delphi in current_settings.modeswitches) then
+            if (m_delphi in compiler.globals.current_settings.modeswitches) then
               def_system_macro('FPC_DELPHI')
-            else if (m_tp7 in current_settings.modeswitches) then
+            else if (m_tp7 in compiler.globals.current_settings.modeswitches) then
               def_system_macro('FPC_TP')
-            else if (m_objfpc in current_settings.modeswitches) then
+            else if (m_objfpc in compiler.globals.current_settings.modeswitches) then
               def_system_macro('FPC_OBJFPC')
 {$ifdef gpc_mode}
-            else if (m_gpc in current_settings.modeswitches) then
+            else if (m_gpc in compiler.globals.current_settings.modeswitches) then
               def_system_macro('FPC_GPC')
 {$endif}
-            else if (m_mac in current_settings.modeswitches) then
+            else if (m_mac in compiler.globals.current_settings.modeswitches) then
               def_system_macro('FPC_MACPAS')
-            else if (m_iso in current_settings.modeswitches) then
+            else if (m_iso in compiler.globals.current_settings.modeswitches) then
               def_system_macro('FPC_ISO')
-            else if (m_extpas in current_settings.modeswitches) then
+            else if (m_extpas in compiler.globals.current_settings.modeswitches) then
               def_system_macro('FPC_EXTENDEDPASCAL');
          end;
 
@@ -807,33 +811,33 @@ implementation
                 end;
 
               if changeInit then
-                current_settings.modeswitches:=init_settings.modeswitches;
+                compiler.globals.current_settings.modeswitches:=init_settings.modeswitches;
               Result:=true;
               if doinclude then
                 begin
-                  include(current_settings.modeswitches,i);
+                  include(compiler.globals.current_settings.modeswitches,i);
                   { Objective-C 2.0 support implies 1.0 support }
                   if (i=m_objectivec2) then
-                    include(current_settings.modeswitches,m_objectivec1);
+                    include(compiler.globals.current_settings.modeswitches,m_objectivec1);
                   if (i in [m_objectivec1,m_objectivec2]) then
-                    include(current_settings.modeswitches,m_class);
+                    include(compiler.globals.current_settings.modeswitches,m_class);
                 end
               else
                 begin
-                  exclude(current_settings.modeswitches,i);
+                  exclude(compiler.globals.current_settings.modeswitches,i);
                   { Objective-C 2.0 support implies 1.0 support }
                   if (i=m_objectivec2) then
-                    exclude(current_settings.modeswitches,m_objectivec1);
+                    exclude(compiler.globals.current_settings.modeswitches,m_objectivec1);
                   if (i in [m_objectivec1,m_objectivec2]) and
-                     ([m_delphi,m_objfpc]*current_settings.modeswitches=[]) then
-                    exclude(current_settings.modeswitches,m_class);
+                     ([m_delphi,m_objfpc]*compiler.globals.current_settings.modeswitches=[]) then
+                    exclude(compiler.globals.current_settings.modeswitches,m_class);
                 end;
 
               { set other switches depending on changed mode switch }
               HandleModeSwitches(i,changeinit);
 
               if changeInit then
-                init_settings.modeswitches:=current_settings.modeswitches;
+                init_settings.modeswitches:=compiler.globals.current_settings.modeswitches;
 
               break;
             end;
@@ -896,7 +900,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if (cs_legacyifend in current_settings.localswitches) and
+        if (cs_legacyifend in compiler.globals.current_settings.localswitches) and
           (current_scanner.preprocstack.typ<>pp_ifdef) and (current_scanner.preprocstack.typ<>pp_ifndef) and
             not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_ifdef,pp_ifndef])) then
           compiler.verbose.Message(scan_e_unexpected_endif);
@@ -907,7 +911,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if (cs_legacyifend in current_settings.localswitches) and
+        if (cs_legacyifend in compiler.globals.current_settings.localswitches) and
           (current_scanner.preprocstack.typ<>pp_elseif) and (current_scanner.preprocstack.typ<>pp_if) and
             not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_if,pp_elseif])) then
           compiler.verbose.Message(scan_e_unexpected_ifend);
@@ -1749,7 +1753,7 @@ type
                         if (current_scanner.preproc_pattern='CHAR') and
                            (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
                           begin
-                            if m_default_unicodestring in current_settings.modeswitches then
+                            if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                               searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
                             else
                               searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
@@ -1761,9 +1765,9 @@ type
                           { system.string? }
                           if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
                             begin
-                              if cs_refcountedstrings in current_settings.localswitches then
+                              if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
                                 begin
-                                  if m_default_unicodestring in current_settings.modeswitches then
+                                  if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                                     searchsym_in_module(tunitsym(srsym).module,'UNICODESTRING',srsym,srsymtable)
                                   else
                                     searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
@@ -1910,7 +1914,7 @@ type
                 result:=texprvalue.create_bool(false)
               else if foundmacro and (searchstr^='TRUE') then
                 result:=texprvalue.create_bool(true)
-              else if (m_mac in current_settings.modeswitches) and
+              else if (m_mac in compiler.globals.current_settings.modeswitches) and
                       (not assigned(mac) or not mac.defined) and
                       (macrocount = 1) then
                 begin
@@ -1999,7 +2003,7 @@ type
                         current_scanner.skipspace;
                         hasKlammer:= true;
                       end
-                    else if (m_mac in current_settings.modeswitches) then
+                    else if (m_mac in compiler.globals.current_settings.modeswitches) then
                       hasKlammer:= false
                     else
                       compiler.verbose.Message(scan_e_error_in_preproc_expr);
@@ -2028,7 +2032,7 @@ type
                         compiler.verbose.Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
+                if (m_mac in compiler.globals.current_settings.modeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -2050,7 +2054,7 @@ type
                       compiler.verbose.Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='OPTION') then
+                if (m_mac in compiler.globals.current_settings.modeswitches) and (current_scanner.preproc_pattern='OPTION') then
                   begin
                     preproc_consume(_ID);
                     current_scanner.skipspace;
@@ -2633,7 +2637,7 @@ type
           end;
         compiler.verbose.Message1(parser_c_macro_defined,mac.name);
         mac.is_used:=true;
-        if (cs_support_macro in current_settings.moduleswitches) then
+        if (cs_support_macro in compiler.globals.current_settings.moduleswitches) then
           begin
              current_scanner.skipspace;
 
@@ -3679,30 +3683,30 @@ type
           internalerror(200511176);
         t:=_GENERICSPECIALTOKEN;
         { ensure that all fields of settings are up to date }
-        current_settings.verbosity:=status.verbosity;
+        compiler.globals.current_settings.verbosity:=status.verbosity;
         { settings changed? }
         { last field pmessage is handled separately below in
           ST_LOADMESSAGES }
-        if CompareByte(current_settings,last_settings,
-             sizeof(current_settings)-sizeof(pointer))<>0 then
+        if CompareByte(compiler.globals.current_settings,last_settings,
+             sizeof(compiler.globals.current_settings)-sizeof(pointer))<>0 then
           begin
             { use a special token to record it }
             s:=ST_LOADSETTINGS;
             writetoken(t);
             recordtokenbuf.write(s,1);
-            copy_size:=sizeof(current_settings)-sizeof(pointer);
-            tokenwritesettings(current_settings,copy_size);
-            last_settings:=current_settings;
+            copy_size:=sizeof(compiler.globals.current_settings)-sizeof(pointer);
+            tokenwritesettings(compiler.globals.current_settings,copy_size);
+            last_settings:=compiler.globals.current_settings;
           end;
 
-        if current_settings.pmessage<>last_message then
+        if compiler.globals.current_settings.pmessage<>last_message then
           begin
             { use a special token to record it }
             s:=ST_LOADMESSAGES;
             writetoken(t);
             recordtokenbuf.write(s,1);
             msgnb:=0;
-            pmsg:=current_settings.pmessage;
+            pmsg:=compiler.globals.current_settings.pmessage;
             while assigned(pmsg) do
               begin
                 if msgnb=high(asizeint) then
@@ -3712,7 +3716,7 @@ type
                 pmsg:=pmsg^.next;
               end;
             tokenwritesizeint(msgnb);
-            pmsg:=current_settings.pmessage;
+            pmsg:=compiler.globals.current_settings.pmessage;
             while assigned(pmsg) do
               begin
                 { What about endianess here?}
@@ -3723,7 +3727,7 @@ type
                 tokenwritelongint(val);
                 pmsg:=pmsg^.next;
               end;
-            last_message:=current_settings.pmessage;
+            last_message:=compiler.globals.current_settings.pmessage;
           end;
 
         { file pos changes? }
@@ -3814,7 +3818,7 @@ type
 
         { save current scanner state }
         replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
-          cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,
+          cstringpattern,patternw,compiler.globals.current_settings,replaytokenbuf,change_endian_for_replay,
           compiler.globals.pendingstate,status.verbosity,replaystack);
 {$ifdef check_inputpointer_limits}
         if assigned(hidden_inputpointer) then
@@ -3827,7 +3831,7 @@ type
         replaytokenbuf:=buf;
 
         { ensure that existing message state records won't be freed }
-        current_settings.pmessage:=nil;
+        compiler.globals.current_settings.pmessage:=nil;
         compiler.globals.pendingstate:=default(tpendingstate);
 
         { Initialize value of change_endian_for_replay variable }
@@ -3879,13 +3883,13 @@ type
             replaytokenbuf:=replaystack.tokenbuf;
             change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
-            current_settings:=replaystack.settings;
+            compiler.globals.current_settings:=replaystack.settings;
             compiler.globals.pendingstate:=replaystack.pending;
             if assigned(compiler.globals.pendingstate.nextmessagerecord) then
               compiler.verbose.FreeLocalVerbosity(compiler.globals.pendingstate.nextmessagerecord);
             recordpendingverbosityfullswitch(replaystack.verbosity);
-            compiler.globals.pendingstate.nextmessagerecord:=current_settings.pmessage;
-            current_settings.pmessage:=nil;
+            compiler.globals.pendingstate.nextmessagerecord:=compiler.globals.current_settings.pmessage;
+            compiler.globals.current_settings.pmessage:=nil;
             popreplaystack;
 {$ifdef check_inputpointer_limits}
             if assigned(hidden_inputpointer) then
@@ -3962,18 +3966,18 @@ type
                     ST_LOADSETTINGS:
                       begin
                         copy_size:=tokenreadsizeint;
-                        //if copy_size <> sizeof(current_settings)-sizeof(pointer) then
+                        //if copy_size <> sizeof(compiler.globals.current_settings)-sizeof(pointer) then
                         //  internalerror(2011090501);
                         {
-                        replaytokenbuf.read(current_settings,copy_size);
+                        replaytokenbuf.read(compiler.globals.current_settings,copy_size);
                         }
-                        tokenreadsettings(current_settings,copy_size);
-                        recordpendingverbosityfullswitch(current_settings.verbosity);
+                        tokenreadsettings(compiler.globals.current_settings,copy_size);
+                        recordpendingverbosityfullswitch(compiler.globals.current_settings.verbosity);
                       end;
                     ST_LOADMESSAGES:
                       begin
                         { free current and pending messages }
-                        compiler.verbose.FreeLocalVerbosity(current_settings.pmessage);
+                        compiler.verbose.FreeLocalVerbosity(compiler.globals.current_settings.pmessage);
                         compiler.verbose.FreeLocalVerbosity(compiler.globals.pendingstate.nextmessagerecord);
                         { the message settings are stored from newest to oldest
                           change for the whole stack, so we only want to apply
@@ -4117,7 +4121,7 @@ type
                           inside another file that wasn't encoded as UTF-8
                           already (we don't support {$codepage xxx} switches in
                           the middle of a file either) *)
-                       if (current_settings.sourcecodepage<>CP_UTF8) and
+                       if (compiler.globals.current_settings.sourcecodepage<>CP_UTF8) and
                           not current_module.in_global then
                          compiler.verbose.Message(scanner_f_illegal_utf8_bom);
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
@@ -4126,13 +4130,13 @@ type
                        inc(inputpointer,3);
 {$endif CHECK_INPUTPOINTER_LIMITS}
                        compiler.verbose.Message(scan_c_switching_to_utf8);
-                       current_settings.sourcecodepage:=CP_UTF8;
-                       exclude(current_settings.moduleswitches,cs_system_codepage);
-                       include(current_settings.moduleswitches,cs_explicit_codepage);
+                       compiler.globals.current_settings.sourcecodepage:=CP_UTF8;
+                       exclude(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
+                       include(compiler.globals.current_settings.moduleswitches,cs_explicit_codepage);
                      end;
 
                    line_no:=1;
-                   if cs_asm_source in current_settings.globalswitches then
+                   if cs_asm_source in compiler.globals.current_settings.globalswitches then
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
                      inputfile.setline(line_no,inputstart+hidden_inputpointer-hidden_inputbuffer);
 {$else not CHECK_INPUTPOINTER_LIMITS}
@@ -4295,7 +4299,7 @@ type
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         if (m_nested_comment in current_settings.modeswitches) then
+         if (m_nested_comment in compiler.globals.current_settings.modeswitches) then
            inc(comment_level)
          else
            comment_level:=1;
@@ -4310,8 +4314,10 @@ type
 
 
     procedure tscannerfile.dec_comment_level;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         if (m_nested_comment in current_settings.modeswitches) then
+         if (m_nested_comment in compiler.globals.current_settings.modeswitches) then
            dec(comment_level)
          else
            comment_level:=0;
@@ -4362,7 +4368,7 @@ type
 {$endif CHECK_INPUTPOINTER_LIMITS}
            inc(line_no);
            { update linebuffer }
-           if cs_asm_source in current_settings.globalswitches then
+           if cs_asm_source in compiler.globals.current_settings.globalswitches then
              inputfile.setline(line_no,lastlinepos);
            { update for status and call the show status routine,
              but don't touch compiler.globals.current_filepos ! }
@@ -4569,7 +4575,7 @@ type
              compiler.verbose.Message(scan_c_skipping_until);
              repeat
                current_scanner.skipuntildirective;
-               if not (m_mac in current_settings.modeswitches) then
+               if not (m_mac in compiler.globals.current_settings.modeswitches) then
                  p:=tdirectiveitem(turbo_scannerdirectives.Find(current_scanner.readid))
                else
                  p:=tdirectiveitem(mac_scannerdirectives.Find(current_scanner.readid));
@@ -4600,7 +4606,7 @@ type
 {$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
-            if not (m_mac in current_settings.modeswitches) then
+            if not (m_mac in compiler.globals.current_settings.modeswitches) then
               t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
             else
               t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
@@ -4634,7 +4640,7 @@ type
                hs:=current_scanner.readid;
                if (hs='') then
                 begin
-                  if (c='$') and (m_fpc in current_settings.modeswitches) then
+                  if (c='$') and (m_fpc in compiler.globals.current_settings.modeswitches) then
                    begin
                      current_scanner.readchar;  { skip $ }
                      hs:=current_scanner.readid;
@@ -4649,7 +4655,7 @@ type
          { directives may follow switches after a , }
          if hs<>'' then
           begin
-            if not (m_mac in current_settings.modeswitches) then
+            if not (m_mac in compiler.globals.current_settings.modeswitches) then
               t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
             else
               t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
@@ -4777,6 +4783,8 @@ type
 
     procedure tscannerfile.readnumber;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         base,
         i  : longint;
         firstdigitread: Boolean;
@@ -4814,7 +4822,7 @@ type
               ((base=16) and (c in ['A'..'F','a'..'f'])) or
               ((base=8) and (c in ['0'..'7'])) or
               ((base=2) and (c in ['0'..'1'])) or
-              ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
+              ((m_underscoreisseparator in compiler.globals.current_settings.modeswitches) and firstdigitread and (c='_')) do
          begin
            if (i<255) and (c<>'_') then
             begin
@@ -4961,7 +4969,7 @@ type
           begin
             had_multiline_string:=in_multiline_string;
             in_multiline_string:=(c='`');
-            if in_multiline_string and (not (m_multiline_strings in current_settings.modeswitches)) then
+            if in_multiline_string and (not (m_multiline_strings in compiler.globals.current_settings.modeswitches)) then
               begin
                 result[0]:=chr(0);
                 Illegal_Char(c);
@@ -5016,6 +5024,8 @@ type
 
 
     function tscannerfile.readlongcomment(include_special_char: boolean):RawByteString;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         i : longint;
 
@@ -5091,7 +5101,7 @@ type
           readchar;
         until false;
         SetLength(readlongcomment, i);
-        SetCodePage(readlongcomment, current_settings.sourcecodepage, False);
+        SetCodePage(readlongcomment, compiler.globals.current_settings.sourcecodepage, False);
       end;
 
 
@@ -5133,7 +5143,7 @@ type
             until false;
           end;
         SetLength(readlongquotedstring, i);
-        SetCodePage(readlongquotedstring, current_settings.sourcecodepage, False);
+        SetCodePage(readlongquotedstring, compiler.globals.current_settings.sourcecodepage, False);
       end;
 
 
@@ -5249,6 +5259,8 @@ type
 
     procedure tscannerfile.skipuntildirective;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         found : longint;
         next_char_loaded : boolean;
       begin
@@ -5313,7 +5325,7 @@ type
                  begin
                    had_multiline_string:=in_multiline_string;
                    in_multiline_string:=(c='`');
-                   if in_multiline_string and (not (m_multiline_strings in current_settings.modeswitches)) then
+                   if in_multiline_string and (not (m_multiline_strings in compiler.globals.current_settings.modeswitches)) then
                      Illegal_Char(c);
                    repeat
                      readchar;
@@ -5400,6 +5412,8 @@ type
 ****************************************************************************}
 
     procedure tscannerfile.skipcomment(read_first_char:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_commentstyle:=comment_tp;
         if read_first_char then
@@ -5418,7 +5432,7 @@ type
               dec_comment_level;
             '*' :
               { in iso mode, comments opened by a curly bracket can be closed by asterisk, round bracket }
-              if m_iso in current_settings.modeswitches then
+              if m_iso in compiler.globals.current_settings.modeswitches then
                 begin
                   readchar;
                   if c=')' then
@@ -5461,6 +5475,8 @@ type
 
 
     procedure tscannerfile.skipoldtpcomment(read_first_char:boolean);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         found : longint;
       begin
@@ -5519,7 +5535,7 @@ type
                  end;
               '}' :
                 { in iso mode, comments opened by asterisk, round bracket can be closed by a curly bracket }
-                if m_iso in current_settings.modeswitches then
+                if m_iso in compiler.globals.current_settings.modeswitches then
                   begin
                     dec_comment_level;
                     if comment_level=0 then
@@ -5563,7 +5579,7 @@ type
       start:=1;
       initwidestring(tmp);
       { Strip initial cr/lf }
-      Case current_settings.lineendingtype of
+      Case compiler.globals.current_settings.lineendingtype of
         le_cr,le_lf : inc(start);
         le_crlf : inc(start,2);
         le_source :
@@ -5607,7 +5623,7 @@ type
       ch:=getcharwidestring(tmp,newlen);
       if (ch=10) or (ch=13) then
         begin
-        Case current_settings.lineendingtype of
+        Case compiler.globals.current_settings.lineendingtype of
           le_cr,le_lf : dec(newlen);
           le_crlf : dec(newlen,2);
           le_platform : dec(newlen,length(compiler.target.info.newline));
@@ -5643,7 +5659,7 @@ type
       col:=0;
       start:=1;
       { Strip initial cr/lf }
-      Case current_settings.lineendingtype of
+      Case compiler.globals.current_settings.lineendingtype of
         le_cr,le_lf : inc(start);
         le_crlf : inc(start,2);
         le_platform : inc(start,length(compiler.target.info.newline));
@@ -5686,7 +5702,7 @@ type
       // remove last CR/LF
       if tmp[newlen] in [#10,#13] then
         begin
-        Case current_settings.lineendingtype of
+        Case compiler.globals.current_settings.lineendingtype of
           le_cr,le_lf : dec(newlen);
           le_crlf : dec(newlen,2);
           le_platform : dec(newlen,length(compiler.target.info.newline));
@@ -5744,7 +5760,7 @@ type
       whitespace_only:=true;
       if in_multiline_string then
         begin
-          if not (m_multiline_strings in current_settings.modeswitches) then
+          if not (m_multiline_strings in compiler.globals.current_settings.modeswitches) then
             Illegal_Char(c)
           else
             begin
@@ -5833,9 +5849,9 @@ type
                        if not iswidestring then
                         begin
                           if len>0 then
-                            ascii2unicode(@cstringpattern[1],len,current_settings.sourcecodepage,patternw)
+                            ascii2unicode(@cstringpattern[1],len,compiler.globals.current_settings.sourcecodepage,patternw)
                           else
-                            ascii2unicode(nil,len,current_settings.sourcecodepage,patternw);
+                            ascii2unicode(nil,len,compiler.globals.current_settings.sourcecodepage,patternw);
                           iswidestring:=true;
                           len:=0;
                         end;
@@ -5886,13 +5902,13 @@ type
                       begin
                       inc(whitespace_count);
                       if (had_newline or first_multiline) and backtick and
-                         (current_settings.whitespacetrimauto or
-                         (current_settings.whitespacetrimcount>0)) then
+                         (compiler.globals.current_settings.whitespacetrimauto or
+                         (compiler.globals.current_settings.whitespacetrimcount>0)) then
                         begin
-                          if current_settings.whitespacetrimauto then
+                          if compiler.globals.current_settings.whitespacetrimauto then
                             trimcount:=multiline_start_column
                           else
-                            trimcount:=current_settings.whitespacetrimcount;
+                            trimcount:=compiler.globals.current_settings.whitespacetrimcount;
                           while (c in [#32,#9,#11]) and (trimcount>0) do
                             begin
                               readchar;
@@ -5915,7 +5931,7 @@ type
                                      tostr(multiline_start_column))
                           else if (not backtick)
                                    and ((quote_count>2) and ((quote_count mod 2)=1))
-                                   and (m_multiline_strings in current_settings.modeswitches) then
+                                   and (m_multiline_strings in compiler.globals.current_settings.modeswitches) then
                             begin
                             style:=qsMultiQuote;
                             init_quote_count:=quote_count;
@@ -5971,15 +5987,15 @@ type
                     end;
                 first_multiline:=false;
                 { interpret as utf-8 string? }
-                if (ord(c)>=$80) and (current_settings.sourcecodepage=CP_UTF8) then
+                if (ord(c)>=$80) and (compiler.globals.current_settings.sourcecodepage=CP_UTF8) then
                   begin
                     { convert existing string to an utf-8 string }
                     if not iswidestring then
                       begin
                         if len>0 then
-                          ascii2unicode(@cstringpattern[1],len,current_settings.sourcecodepage,patternw)
+                          ascii2unicode(@cstringpattern[1],len,compiler.globals.current_settings.sourcecodepage,patternw)
                         else
-                          ascii2unicode(nil,len,current_settings.sourcecodepage,patternw);
+                          ascii2unicode(nil,len,compiler.globals.current_settings.sourcecodepage,patternw);
                         iswidestring:=true;
                         len:=0;
                       end;
@@ -6046,9 +6062,9 @@ type
                   begin
                     if in_multiline_string and (c in [#10,#13]) and (not ((c=#10) and (last_c=#13))) then
                       begin
-                        if current_settings.sourcecodepage=CP_UTF8 then
+                        if compiler.globals.current_settings.sourcecodepage=CP_UTF8 then
                           begin
-                            case current_settings.lineendingtype of
+                            case compiler.globals.current_settings.lineendingtype of
                               le_cr :
                                 concatwidestringchar(patternw,ord(#13));
                               le_crlf :
@@ -6075,7 +6091,7 @@ type
                             end;
                           end
                         else
-                          case current_settings.lineendingtype of
+                          case compiler.globals.current_settings.lineendingtype of
                             le_cr :
                               concatwidestringchar(patternw,asciichar2unicode(#13));
                             le_crlf :
@@ -6105,7 +6121,7 @@ type
                       end
                     else if not (in_multiline_string and (c in [#10,#13])) then
                       begin
-                        if current_settings.sourcecodepage=CP_UTF8 then
+                        if compiler.globals.current_settings.sourcecodepage=CP_UTF8 then
                           concatwidestringchar(patternw,ord(c))
                         else
                           concatwidestringchar(patternw,asciichar2unicode(c));
@@ -6118,7 +6134,7 @@ type
                          if len>=length(cstringpattern) then
                            setlength(cstringpattern,length(cstringpattern)+256);
                          inc(len);
-                         case current_settings.lineendingtype of
+                         case compiler.globals.current_settings.lineendingtype of
                            le_cr :
                              cstringpattern[len]:=#13;
                            le_crlf :
@@ -6313,7 +6329,7 @@ type
               with tokeninfo^[ttoken(high)] do
                 if pattern=str then
                   begin
-                    if (keyword*current_settings.modeswitches)<>[] then
+                    if (keyword*compiler.globals.current_settings.modeswitches)<>[] then
                       if op=NOTOKEN then
                         token:=ttoken(high)
                       else
@@ -6325,7 +6341,7 @@ type
            if token=_ID then
             begin
             { this takes some time ... }
-              if (cs_support_macro in current_settings.moduleswitches) then
+              if (cs_support_macro in compiler.globals.current_settings.moduleswitches) then
                begin
                  mac:=tmacro(search_macro(pattern));
                  if assigned(mac) and (not mac.is_compiler_var) and mac.is_c_macro then
@@ -6375,7 +6391,7 @@ type
 
              '%' :
                begin
-                 if [m_fpc,m_delphi] * current_settings.modeswitches = [] then
+                 if [m_fpc,m_delphi] * compiler.globals.current_settings.modeswitches = [] then
                   Illegal_Char(c)
                  else
                   begin
@@ -6387,7 +6403,7 @@ type
 
              '&' :
                begin
-                 if [m_fpc,m_delphi] * current_settings.modeswitches <> [] then
+                 if [m_fpc,m_delphi] * compiler.globals.current_settings.modeswitches <> [] then
                   begin
                     readnumber;
                     if length(pattern)=1 then
@@ -6403,7 +6419,7 @@ type
                       token:=_INTCONST;
                     goto exit_label;
                   end
-                 else if m_mac in current_settings.modeswitches then
+                 else if m_mac in compiler.globals.current_settings.modeswitches then
                   begin
                     readchar;
                     token:=_AMPERSAND;
@@ -6445,7 +6461,7 @@ type
                              pattern:=pattern+'.';
                              firstdigitread:=false;
                              while (c in ['0'..'9']) or
-                              ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
+                              ((m_underscoreisseparator in compiler.globals.current_settings.modeswitches) and firstdigitread and (c='_')) do
                               begin
                                 if c<>'_' then
                                   pattern:=pattern+c;
@@ -6475,7 +6491,7 @@ type
                          Illegal_Char(c);
                        firstdigitread:=false;
                        while (c in ['0'..'9']) or
-                        ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
+                        ((m_underscoreisseparator in compiler.globals.current_settings.modeswitches) and firstdigitread and (c='_')) do
                         begin
                           if c<>'_' then
                           pattern:=pattern+c;
@@ -6619,7 +6635,7 @@ type
                end;
 
              '|' :
-               if m_mac in current_settings.modeswitches then
+               if m_mac in compiler.globals.current_settings.modeswitches then
                 begin
                   readchar;
                   token:=_PIPE;
@@ -6773,6 +6789,8 @@ exit_label:
 
     function tscannerfile.readpreproc:ttoken;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         low,high,mid: longint;
         optoken: ttoken;
       begin
@@ -6803,7 +6821,7 @@ exit_label:
                   with tokeninfo^[ttoken(high)] do
                     if pattern=str then
                       begin
-                        if (keyword*current_settings.modeswitches)<>[] then
+                        if (keyword*compiler.globals.current_settings.modeswitches)<>[] then
                           if op=NOTOKEN then
                             optoken:=ttoken(high)
                           else
@@ -6816,7 +6834,7 @@ exit_label:
                readpreproc:=optoken;
              end;
            '''','`' :
-             if not ((c='`') and (not (m_multiline_strings in current_settings.modeswitches))) then
+             if not ((c='`') and (not (m_multiline_strings in compiler.globals.current_settings.modeswitches))) then
                begin
                  cstringpattern:=readquotedstring;
                  current_scanner.preproc_pattern:=cstringpattern;

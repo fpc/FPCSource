@@ -225,7 +225,7 @@ implementation
         exceptmode: ansistring;
         procname: string[40];
       begin
-        if cs_opt_fastmath in current_settings.optimizerswitches then
+        if cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches then
           begin
             case inlinenumber of
               in_fma_single:
@@ -282,7 +282,7 @@ implementation
       begin
         if left.resultdef.typ<>floatdef then
           internalerror(2018121601);
-        if cs_opt_fastmath in current_settings.optimizerswitches then
+        if cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -326,7 +326,7 @@ implementation
       begin
         { fptosi is undefined if the value is out of range -> only generate
           in cast of fastmath }
-        if cs_opt_fastmath in current_settings.optimizerswitches then
+        if cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches then
           begin
             maybe_remove_round_trunc_typeconv;
             expectloc:=LOC_REGISTER;

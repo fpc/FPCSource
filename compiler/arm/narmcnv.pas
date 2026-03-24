@@ -60,12 +60,12 @@ implementation
       var
         fname: string[19];
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) or
+        if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) or
 {$ifdef cpufpemu}
-          (current_settings.fputype=fpu_soft) or
+          (compiler.globals.current_settings.fputype=fpu_soft) or
 {$endif cpufpemu}
-          (not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) and
-           not(FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype])) then
+          (not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
+           not(FPUARM_HAS_FPA in fpu_capabilities[compiler.globals.current_settings.fputype])) then
           result:=inherited first_int_to_real
         else
           begin
@@ -99,12 +99,12 @@ implementation
                 firstpass(left);
               end;
             result := nil;
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 expectloc:=LOC_MMREGISTER
               else
                 internalerror(2009112702);
@@ -115,7 +115,7 @@ implementation
 
     function tarmtypeconvnode.first_real_to_real: tnode;
       begin
-        if (current_settings.fputype=fpu_soft) and
+        if (compiler.globals.current_settings.fputype=fpu_soft) and
            not (compiler.target.info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
@@ -169,7 +169,7 @@ implementation
         hregister : tregister;
         signed : boolean;
       begin
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
@@ -229,7 +229,7 @@ implementation
                   end;
               end;
             end;
-          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
@@ -244,7 +244,7 @@ implementation
                 location.register,left.location.register),
                 signedprec2vfppf[signed,location.size]));
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;

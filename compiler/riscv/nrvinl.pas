@@ -85,7 +85,7 @@ implementation
          case inlinenumber of
            in_riscv_pause:
              begin
-               if not(CPURV_HAS_ZIHINTPAUSE in cpu_capabilities[current_settings.cputype]) then
+               if not(CPURV_HAS_ZIHINTPAUSE in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                  compiler.verbose.Message(cg_e_intrinsic_not_supported_by_instruction_set);
                resultdef:=voidtype;
              end;
@@ -123,7 +123,7 @@ implementation
 
      function trvinlinenode.first_sqrt_real : tnode;
        begin
-         if (current_settings.fputype >= fpu_fd) then
+         if (compiler.globals.current_settings.fputype >= fpu_fd) then
            begin
              expectloc:=LOC_FPUREGISTER;
              first_sqrt_real := nil;
@@ -137,7 +137,7 @@ implementation
 
      function trvinlinenode.first_abs_real : tnode;
        begin
-         if (current_settings.fputype >= fpu_fd) then
+         if (compiler.globals.current_settings.fputype >= fpu_fd) then
            begin
              expectloc:=LOC_FPUREGISTER;
              first_abs_real := nil;
@@ -149,7 +149,7 @@ implementation
 
      function trvinlinenode.first_sqr_real : tnode;
        begin
-         if (current_settings.fputype >= fpu_fd) then
+         if (compiler.globals.current_settings.fputype >= fpu_fd) then
            begin
              expectloc:=LOC_FPUREGISTER;
              first_sqr_real := nil;
@@ -167,7 +167,7 @@ implementation
 {$ifdef RISCV32}
            is_32bitint(resultdef) and
 {$endif RISCV32}
-           (current_settings.fputype >= fpu_fd) then
+           (compiler.globals.current_settings.fputype >= fpu_fd) then
            begin
              expectloc:=LOC_FPUREGISTER;
              first_round_real := nil;
@@ -185,7 +185,7 @@ implementation
 {$ifdef RISCV32}
            is_32bitint(resultdef) and
 {$endif RISCV32}
-           (current_settings.fputype >= fpu_fd) then
+           (compiler.globals.current_settings.fputype >= fpu_fd) then
            begin
              expectloc:=LOC_FPUREGISTER;
              first_trunc_real := nil;
@@ -377,7 +377,7 @@ implementation
          negop3,
          negproduct : boolean;
        begin
-         if current_settings.fputype in [fpu_fd] then
+         if compiler.globals.current_settings.fputype in [fpu_fd] then
            begin
              negop3:=false;
              negproduct:=false;

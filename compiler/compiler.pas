@@ -613,7 +613,7 @@ begin
 
        { apply global messages/verbosity }
        flushpendingswitchesstate;
-       verbose.FreeLocalVerbosity(current_settings.pmessage);
+       verbose.FreeLocalVerbosity(globals.current_settings.pmessage);
 
        { show some info }
        verbose.Message1(general_t_compilername,FixFileName(system.paramstr(0)));

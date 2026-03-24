@@ -1214,7 +1214,7 @@ Unit Rax86int;
             begin
               if oper.opr.ref.segment<>NR_NO then
                 begin
-                  if m_tp7 in current_settings.modeswitches then
+                  if m_tp7 in compiler.globals.current_settings.modeswitches then
                     compiler.verbose.Message(asmr_w_multiple_segment_overrides)
                   else
                     compiler.verbose.Message(asmr_e_multiple_segment_overrides);
@@ -1225,7 +1225,7 @@ Unit Rax86int;
             begin
               if oper.opr.localsegment<>NR_NO then
                 begin
-                  if m_tp7 in current_settings.modeswitches then
+                  if m_tp7 in compiler.globals.current_settings.modeswitches then
                     compiler.verbose.Message(asmr_w_multiple_segment_overrides)
                   else
                     compiler.verbose.Message(asmr_e_multiple_segment_overrides);
@@ -2425,7 +2425,7 @@ Unit Rax86int;
                       relative accesses)
                     }
                     if (actasmtoken=AS_OFFSET) and
-                       (cs_create_pic in current_settings.moduleswitches) then
+                       (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
                       begin
                         Consume(AS_OFFSET);
                         oper.opr.ref.refaddr:=addr_pic;
@@ -2472,7 +2472,7 @@ Unit Rax86int;
                 Consume(AS_PTR);
                 { in delphi mode, allow e.g. call dword ptr eax,
                   see also webtbs/tw18225.pp }
-                if not(m_delphi in current_settings.modeswitches) then
+                if not(m_delphi in compiler.globals.current_settings.modeswitches) then
                   oper.InitRef;
                 { if the operand subscripts a record, the typesize will be
                   rest -> save it here and restore it afterwards }
@@ -2512,7 +2512,7 @@ Unit Rax86int;
                  end
                 else
                 { support result for delphi modes }
-                 if (m_objpas in current_settings.modeswitches) and (actasmpattern='RESULT') then
+                 if (m_objpas in compiler.globals.current_settings.modeswitches) and (actasmpattern='RESULT') then
                   begin
                     oper.SetUpResult;
                     Consume(AS_ID);
@@ -3144,7 +3144,7 @@ Unit Rax86int;
                          compiler.verbose.Message(asmr_e_CODE_or_DATA_without_SEG);
                        if constsize<2 then
                          compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
-                       if current_settings.x86memorymodel=mm_huge then
+                       if compiler.globals.current_settings.x86memorymodel=mm_huge then
                          curlist.concat(Tai_const.Create_fardataseg)
                        else
                          curlist.concat(Tai_const.Create_dgroup);

@@ -2712,7 +2712,7 @@ implementation
     constructor TRTTIWriter.create(ACompiler: TCompilerBase);
       begin
         FCompiler:=ACompiler;
-        addcomments:=cs_asm_rtti_source in current_settings.globalswitches;
+        addcomments:=cs_asm_rtti_source in compiler.globals.current_settings.globalswitches;
         if tf_requires_proper_alignment in compiler.target.info.flags then
           begin
             reqalign:=min(sizeof(QWord),compiler.target.info.alignment.maxCrecordalign);

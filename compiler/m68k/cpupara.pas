@@ -230,8 +230,8 @@ unit cpupara;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
-        if not (cs_fp_emulation in current_settings.moduleswitches) and
-           not (current_settings.fputype=fpu_soft) and (result.def.typ=floatdef) then
+        if not (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) and
+           not (compiler.globals.current_settings.fputype=fpu_soft) and (result.def.typ=floatdef) then
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;
@@ -403,7 +403,7 @@ unit cpupara;
                 paraloc:=hp.paraloc[side].add_location;
                 paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
 
-                if (not (cs_fp_emulation in current_settings.moduleswitches)) and
+                if (not (cs_fp_emulation in compiler.globals.current_settings.moduleswitches)) and
                    (paradef.typ=floatdef) then
                   paraloc^.size:=int_float_cgsize(paralen)
                 else

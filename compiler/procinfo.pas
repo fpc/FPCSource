@@ -410,7 +410,7 @@ implementation
         result.entrypos:=entrynodeinfo.fileinfo;
         result.entryswitches:=entrynodeinfo.localswitches;
         result.exitpos:=compiler.globals.current_filepos; // filepos of last node?
-        result.exitswitches:=current_settings.localswitches; // localswitches of last node?
+        result.exitswitches:=compiler.globals.current_settings.localswitches; // localswitches of last node?
       end;
 
     procedure tprocinfo.allocate_push_parasize(size:longint);

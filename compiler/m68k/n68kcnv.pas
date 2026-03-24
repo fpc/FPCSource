@@ -55,9 +55,9 @@ implementation
     function tm68ktypeconvnode.typecheck_int_to_int : tnode;
       begin
         if (left.nodetype=inlinen) then
-          if (cs_opt_fastmath in current_settings.optimizerswitches) and
-             (((tinlinenode(left).inlinenumber = in_trunc_real) and (FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype])) or
-              ((tinlinenode(left).inlinenumber = in_round_real) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]))) and
+          if (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and
+             (((tinlinenode(left).inlinenumber = in_trunc_real) and (FPUM68K_HAS_FINTRZ in fpu_capabilities[compiler.globals.current_settings.fputype])) or
+              ((tinlinenode(left).inlinenumber = in_round_real) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]))) and
              (resultdef.typ=orddef) and (torddef(resultdef).ordtype in [u8bit,u16bit,s8bit,s16bit,s32bit]) then
             begin
               { this triggers the special codepath for trunc/round inline nodes on m68k (KB) }
@@ -80,8 +80,8 @@ implementation
         { In case we are in emulation mode, we must
           always call the helpers
         }
-        if (cs_fp_emulation in current_settings.moduleswitches)
-           or (current_settings.fputype=fpu_soft) then
+        if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches)
+           or (compiler.globals.current_settings.fputype=fpu_soft) then
           begin
             result := inherited first_int_to_real;
             exit;
@@ -159,7 +159,7 @@ implementation
             dec(tempref.offset,sizeof(aint));
             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,S_FD,tempref,location.register));
 
-            if current_settings.fputype in [fpu_coldfire] then
+            if compiler.globals.current_settings.fputype in [fpu_coldfire] then
               begin
                 current_asmdata.getglobaldatalabel(l);
                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,const_align(sizeof(pint)));
@@ -278,7 +278,7 @@ implementation
                   end
                 else
                   begin
-                    if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[current_settings.cputype])) and isaddressregister(left.location.register) then
+                    if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                       begin
                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg2);

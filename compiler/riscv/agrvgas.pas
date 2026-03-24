@@ -260,7 +260,7 @@ unit agrvgas;
         );
       begin
         result := inherited MakeCmdLine;
-        Replace(result,'$ARCH',arch_str[current_settings.fputype=fpu_fd,current_settings.cputype]);
+        Replace(result,'$ARCH',arch_str[compiler.globals.current_settings.fputype=fpu_fd,compiler.globals.current_settings.cputype]);
 {$ifdef RISCV32}
       case compiler.target.info.abi of
         abi_riscv_ilp32:

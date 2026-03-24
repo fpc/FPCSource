@@ -81,7 +81,7 @@ class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, to
   var
     _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
-    if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+    if (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
        is_address(fromdef) and
        is_address(todef) then
       begin
@@ -124,7 +124,7 @@ function tllvmtypeconvnode.first_int_to_real: tnode;
   var
     exceptmode: ansistring;
   begin
-    if (llvmflag_constrained_fptoi_itofp in llvmversion_properties[current_settings.llvmversion]) and
+    if (llvmflag_constrained_fptoi_itofp in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
        { these are converted to 80 bits first in any case }
        not(tfloatdef(resultdef).floattype in [s64currency,s64comp]) and
        { no actual int -> floating point conversion }
@@ -292,7 +292,7 @@ procedure tllvmtypeconvnode.second_nothing;
     { insert LLVM-level type conversions for same-sized entities that are
       nevertheless different types }
     if (left.resultdef<>resultdef) and
-       (not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) or
+       (not(llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) or
         not(is_address(left.resultdef) and
             is_address(resultdef))) then
       begin
@@ -312,7 +312,7 @@ procedure tllvmtypeconvnode.second_nothing;
            { in case of ISO-like I/O, the typed file def includes a
              get/put buffer of the size of the file's elements }
            not(
-               (m_isolike_io in current_settings.modeswitches) and
+               (m_isolike_io in compiler.globals.current_settings.modeswitches) and
                (left.resultdef.typ=filedef) and
                (tfiledef(left.resultdef).filetyp=ft_typed) and
                (resultdef.typ=filedef) and

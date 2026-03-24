@@ -383,9 +383,9 @@ Implementation
       var
         g : file;
       begin
-        if cs_asm_leave in current_settings.globalswitches then
+        if cs_asm_leave in compiler.globals.current_settings.globalswitches then
          exit;
-        if cs_asm_extern in current_settings.globalswitches then
+        if cs_asm_extern in compiler.globals.current_settings.globalswitches then
          AsmRes.AddDeleteCommand(owner.AsmFileName)
         else
          begin
@@ -617,7 +617,7 @@ Implementation
         index: longint;
       begin
         MaybeAddLinePostfix;
-        if (cs_assemble_on_target in current_settings.globalswitches) then
+        if (cs_assemble_on_target in compiler.globals.current_settings.globalswitches) then
           newline:=@compiler.target.info.newline
         else
           newline:=@source_info.newline;
@@ -653,7 +653,7 @@ Implementation
           compiler itself, especially on hardware with slow disk I/O.
           Consider this as a poor man's pipe on Amiga, because real pipe handling
           would be much more complex and error prone to implement. (KB) }
-        if (([cs_asm_extern,cs_asm_leave,cs_assemble_on_target] * current_settings.globalswitches) = []) then
+        if (([cs_asm_extern,cs_asm_leave,cs_assemble_on_target] * compiler.globals.current_settings.globalswitches) = []) then
          begin
           { try to have an unique name for the .s file }
           tempFileName:=HexStr(GetProcessID shr 4,7)+ExtractFileName(owner.AsmFileName);
@@ -804,8 +804,8 @@ Implementation
     Function TExternalAssembler.DoPipe:boolean;
       begin
 {$ifdef hasunix}
-        DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
-                (([cs_asm_extern,cs_asm_leave,cs_assemble_on_target] * current_settings.globalswitches) = []) and
+        DoPipe:=(cs_asm_pipe in compiler.globals.current_settings.globalswitches) and
+                (([cs_asm_extern,cs_asm_leave,cs_assemble_on_target] * compiler.globals.current_settings.globalswitches) = []) and
                 ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang_gas,as_clang_llvm,as_clang_llvm_darwin,as_solaris_as,as_clang_asdarwin]));
 {$else hasunix}
         DoPipe:=false;
@@ -889,7 +889,7 @@ Implementation
         asmbin:=asminfo^.asmbin;
         if (af_llvm in asminfo^.flags) then
           asmbin:=asmbin+compiler.globals.llvmutilssuffix;
-        if cs_assemble_on_target in current_settings.globalswitches then
+        if cs_assemble_on_target in compiler.globals.current_settings.globalswitches then
          begin
            { If assembling on target, don't add any path PM }
            FindAssembler:=compiler.globals.utilsprefix+ChangeFileExt(asmbin,compiler.target.info.exeext);
@@ -905,10 +905,10 @@ Implementation
              asfound:=FindFile(UtilExe,compiler.globals.utilsdirectory,false,LastASBin);
            if not AsFound then
              asfound:=FindExe(UtilExe,false,LastASBin);
-           if (not asfound) and not(cs_asm_extern in current_settings.globalswitches) then
+           if (not asfound) and not(cs_asm_extern in compiler.globals.current_settings.globalswitches) then
             begin
               compiler.verbose.Message1(exec_e_assembler_not_found,LastASBin);
-              current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
+              compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_asm_extern];
             end;
            if asfound then
             compiler.verbose.Message1(exec_t_using_assembler,LastASBin);
@@ -922,7 +922,7 @@ Implementation
         DosExitCode : Integer;
       begin
         result:=true;
-        if (cs_asm_extern in current_settings.globalswitches) then
+        if (cs_asm_extern in compiler.globals.current_settings.globalswitches) then
           begin
             if SmartAsm then
               AsmRes.AddAsmCommand(command,para,Name+'('+TosTr(SmartFilesCount)+')')
@@ -941,7 +941,7 @@ Implementation
         except on E:EOSError do
           begin
             compiler.verbose.Message1(exec_e_cant_call_assembler,tostr(E.ErrorCode));
-            current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
+            compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_asm_extern];
             result:=false;
           end;
         end;
@@ -953,7 +953,7 @@ Implementation
         result:=true;
         if DoPipe then
          exit;
-        if not(cs_asm_extern in current_settings.globalswitches) then
+        if not(cs_asm_extern in compiler.globals.current_settings.globalswitches) then
          begin
            if SmartAsm then
             begin
@@ -994,10 +994,10 @@ Implementation
           Replace(result,'$TRIPLET',targettriplet(compiler.target,triplet_llvm))
 {$ifdef arm}
         else if (compiler.target.info.system=system_arm_ios) then
-          Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]))
+          Replace(result,'$ARCH',lower(cputypestr[compiler.globals.current_settings.cputype]))
 {$endif arm}
         ;
-        if (cs_assemble_on_target in current_settings.globalswitches) then
+        if (cs_assemble_on_target in compiler.globals.current_settings.globalswitches) then
          begin
            Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
            Replace(result,'$OBJ',maybequoted(ScriptFixFileName(ObjFileName)));
@@ -1016,12 +1016,12 @@ Implementation
            Replace(result,'$OBJ',maybequoted(ObjFileName));
          end;
 
-         if (cs_create_pic in current_settings.moduleswitches) then
+         if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
            Replace(result,'$PIC','-KPIC')
          else
            Replace(result,'$PIC','');
 
-         if (cs_asm_source in current_settings.globalswitches) then
+         if (cs_asm_source in compiler.globals.current_settings.globalswitches) then
            Replace(result,'$NOWARN','')
          else
            Replace(result,'$NOWARN','-W');
@@ -1033,7 +1033,7 @@ Implementation
 
          { as we don't keep track of the amount of sections we created we simply
            enable Big Obj COFF files always for targets that need them }
-         if (cs_asm_pre_binutils_2_25 in current_settings.globalswitches) or
+         if (cs_asm_pre_binutils_2_25 in compiler.globals.current_settings.globalswitches) or
             not (compiler.target.info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) or
             (section_high_bound<min_big_obj_section_count) then
            Replace(result,'$BIGOBJ','')
@@ -1091,7 +1091,7 @@ Implementation
             if assigned(infile) then
               begin
                 { open only if needed !! }
-                if (cs_asm_source in current_settings.globalswitches) then
+                if (cs_asm_source in compiler.globals.current_settings.globalswitches) then
                   infile.open;
               end;
             { avoid unnecessary reopens of the same file !! }
@@ -1101,7 +1101,7 @@ Implementation
             lastfileinfo.line:=-1;
           end;
         { write source }
-        if (cs_asm_source in current_settings.globalswitches) and
+        if (cs_asm_source in compiler.globals.current_settings.globalswitches) and
           assigned(infile) then
           begin
             if (infile<>lastinfile) then
@@ -1357,7 +1357,7 @@ Implementation
 
           ait_regalloc :
             begin
-              if (cs_asm_regalloc in current_settings.globalswitches) then
+              if (cs_asm_regalloc in compiler.globals.current_settings.globalswitches) then
                 begin
                   writer.AsmWrite(#9+asminfo^.comment+'Register ');
                   repeat
@@ -1376,7 +1376,7 @@ Implementation
 
           ait_tempalloc :
             begin
-              if (cs_asm_tempalloc in current_settings.globalswitches) then
+              if (cs_asm_tempalloc in compiler.globals.current_settings.globalswitches) then
                 WriteTempalloc(tai_tempalloc(hp));
             end;
 
@@ -1439,7 +1439,7 @@ Implementation
         ObjData:=nil;
         SmartAsm:=smart;
 {$ifdef ARM}
-        Code16:=current_settings.instructionset=is_thumb;
+        Code16:=compiler.globals.current_settings.instructionset=is_thumb;
 {$endif ARM}
       end;
 
@@ -2801,7 +2801,7 @@ Implementation
         startsecname: String;
         startsecorder: TAsmSectionOrder;
       begin
-        if not(cs_asm_leave in current_settings.globalswitches) and
+        if not(cs_asm_leave in compiler.globals.current_settings.globalswitches) and
            not(af_needar in asminfo^.flags) then
           ObjWriter:=CInternalAr.CreateAr(current_module.staticlibfilename)
         else

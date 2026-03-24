@@ -2397,7 +2397,7 @@ unit cgcpu;
         cond : TAsmCond;
       begin
         list.Concat(tai_comment.Create(strpnew('WARNING! not implemented: g_overflowCheck')));
-        //if not(cs_check_overflow in current_settings.localswitches) then
+        //if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
         // exit;
         //current_asmdata.getjumplabel(hl);
         //if not ((def.typ=pointerdef) or

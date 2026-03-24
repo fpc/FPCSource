@@ -350,9 +350,9 @@ implementation
   constructor tcpuprocdef.create(level: byte;doregister:boolean;acompiler:tcompilerbase);
     begin
       inherited;
-      if (current_settings.x86memorymodel in x86_far_code_models) and
-         ((cs_huge_code in current_settings.moduleswitches) or
-          (cs_force_far_calls in current_settings.localswitches)) then
+      if (compiler.globals.current_settings.x86memorymodel in x86_far_code_models) and
+         ((cs_huge_code in compiler.globals.current_settings.moduleswitches) or
+          (cs_force_far_calls in compiler.globals.current_settings.localswitches)) then
         procoptions:=procoptions+[po_far];
     end;
 
@@ -394,7 +394,7 @@ implementation
 
   procedure tcpuprocdef.declared_near;
     begin
-      if not (cs_huge_code in current_settings.moduleswitches) then
+      if not (cs_huge_code in compiler.globals.current_settings.moduleswitches) then
         begin
           exclude(procoptions,po_far);
           include(procoptions,po_hasnearfarcallmodel);
@@ -424,7 +424,7 @@ implementation
   procedure tcpuprocdef.Setinterfacedef(AValue: boolean);
     begin
       inherited;
-      if (current_settings.x86memorymodel in x86_far_code_models) and AValue then
+      if (compiler.globals.current_settings.x86memorymodel in x86_far_code_models) and AValue then
         include(procoptions,po_far);
     end;
 
@@ -433,7 +433,7 @@ implementation
     begin
       result:=(po_exports in procoptions) or
               (po_far in procoptions) or
-              ((current_settings.x86memorymodel in x86_far_code_models) and default_far);
+              ((compiler.globals.current_settings.x86memorymodel in x86_far_code_models) and default_far);
     end;
 
 {****************************************************************************
@@ -443,7 +443,7 @@ implementation
   constructor tcpuprocvardef.create(level: byte;doregister:boolean;acompiler:tcompilerbase);
     begin
       inherited;
-      if current_settings.x86memorymodel in x86_far_code_models then
+      if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
     end;
 
@@ -463,7 +463,7 @@ implementation
         else
           begin
             { near }
-            if current_settings.x86memorymodel=mm_tiny then
+            if compiler.globals.current_settings.x86memorymodel=mm_tiny then
               result:=voidnearpointertype
             else
               result:=voidnearcspointertype;
@@ -520,7 +520,7 @@ implementation
       if is_addressonly then
         result:=po_far in procoptions
       else
-        result:=current_settings.x86memorymodel in x86_far_code_models;
+        result:=compiler.globals.current_settings.x86memorymodel in x86_far_code_models;
     end;
 
 {****************************************************************************
@@ -529,7 +529,7 @@ implementation
 
     class function tcpupointerdef.default_x86_data_pointer_type: tx86pointertyp;
       begin
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           result:=x86pt_far
         else
           result:=inherited;

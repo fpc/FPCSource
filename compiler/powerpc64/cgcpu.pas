@@ -318,7 +318,7 @@ begin
     inherited a_call_reg(list,reg)
   else
     begin
-      if (not (cs_opt_size in current_settings.optimizerswitches)) then
+      if (not (cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
         begin
           tempreg := getintregister(list, OS_INT);
           { load actual function entry (reg contains the reference to the function descriptor)
@@ -456,7 +456,7 @@ begin
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
    required to load the value is greater than 2, store (and later load) the value from there }
-//  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
+//  if (((cs_opt_peephole in compiler.globals.current_settings.optimizerswitches) or (cs_create_pic in compiler.globals.current_settings.moduleswitches)) and
 //    (getInstructionLength(a) > 2)) then
 //    loadConstantPIC(list, size, a, reg)
 //  else
@@ -628,7 +628,7 @@ var
       a_load_reg_reg(list, OS_INT, OS_INT, src, dst);
     end else if (a = -1) and (signed) then begin
       { note: only in the signed case possible..., may overflow }
-      list.concat(taicpu.op_reg_reg(negops[cs_check_overflow in current_settings.localswitches], dst, src));
+      list.concat(taicpu.op_reg_reg(negops[cs_check_overflow in compiler.globals.current_settings.localswitches], dst, src));
     end else if (ispowerof2(a, power, isNegPower)) then begin
       if (signed) then begin
         { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
@@ -706,7 +706,7 @@ begin
   useReg := false;
   case (op) of
     OP_DIV, OP_IDIV:
-      if (cs_opt_level1 in current_settings.optimizerswitches) then
+      if (cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) then
         do_constant_div(list, size, a, src, dst, op = OP_IDIV)
       else
         usereg := true;
@@ -1127,7 +1127,7 @@ var
     { there are two ways to do this: manually, by generating a few "std" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
-    if (cs_opt_size in current_settings.optimizerswitches) and
+    if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
        (compiler.target.info.system <> system_powerpc64_darwin) then begin
       mayNeedLRStore := false;
       if compiler.target.info.system=system_powerpc64_aix then
@@ -1215,7 +1215,7 @@ begin
   needslinkreg :=
     not(nostackframe) and
     (save_lr_in_prologue or
-     ((cs_opt_size in current_settings.optimizerswitches) and
+     ((cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
       ((fprcount > 0) or
        (gprcount > 0))));
 
@@ -1311,7 +1311,7 @@ var
     { there are two ways to do this: manually, by generating a few "ld" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
-    if (cs_opt_size in current_settings.optimizerswitches) then begin
+    if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then begin
       if compiler.target.info.system=system_powerpc64_aix then begin
         callopc:=A_BLA;
         jmpopc:=A_BA;
@@ -1378,8 +1378,8 @@ begin
     not(nostackframe) and
     (((not (po_assembler in current_procinfo.procdef.procoptions)) and
        ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
-     ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
-     ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []));
+     ((cs_opt_size in compiler.globals.current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
+     ([cs_lineinfo, cs_debuginfo] * compiler.globals.current_settings.moduleswitches <> []));
 
   { calculate stack frame }
   localsize := tcpuprocinfo(current_procinfo).calc_stackframe_size(

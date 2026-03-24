@@ -196,7 +196,7 @@ implementation
           intfdef.defoptions:=intfdef.defoptions+current_procinfo.procdef.defoptions*[df_generic,df_specialization];
         end;
 
-      if cs_generate_rtti in current_settings.localswitches then
+      if cs_generate_rtti in compiler.globals.current_settings.localswitches then
         include(intfdef.objectoptions,oo_can_have_published);
 
       oldsymtablestack:=compiler.symtablestack;
@@ -210,7 +210,7 @@ implementation
       include(invokedef.procoptions,po_virtualmethod);
 
       invokedef.procsym:=cprocsym.create(method_name_funcref_invoke_decl);
-      if cs_generate_rtti in current_settings.localswitches then
+      if cs_generate_rtti in compiler.globals.current_settings.localswitches then
         invokedef.visibility:=vis_published
       else
         invokedef.visibility:=vis_public;

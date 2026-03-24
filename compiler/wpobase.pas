@@ -776,6 +776,8 @@ implementation
 
   procedure twpoinfomanagerbase.extractwpoinfofromprogram;
     var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    var
       i: longint;
       info: twpocomponentbase;
     begin
@@ -785,7 +787,7 @@ implementation
 
       { let all wpo components gather the necessary info from the compiler state }
       for i:=0 to fwpocomponents.count-1 do
-        if (twpocomponentbaseclass(fwpocomponents[i]).generatesinfoforwposwitches*current_settings.genwpoptimizerswitches)<>[] then
+        if (twpocomponentbaseclass(fwpocomponents[i]).generatesinfoforwposwitches*compiler.globals.current_settings.genwpoptimizerswitches)<>[] then
           begin
             info:=twpocomponentbaseclass(fwpocomponents[i]).create;
             info.constructfromcompilerstate;

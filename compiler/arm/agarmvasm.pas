@@ -122,7 +122,7 @@ unit agarmvasm;
 
         Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
         Replace(result,'$OBJ',maybequoted(ScriptFixFileName(ObjFileName)));
-        Replace(result,'$ARCH','-'+cputype_to_vasm_march[current_settings.cputype]);
+        Replace(result,'$ARCH','-'+cputype_to_vasm_march[compiler.globals.current_settings.cputype]);
         Replace(result,'$OTYPE',objtype);
         Replace(result,'$EXTRAOPT',compiler.globals.asmextraopt);
       end;

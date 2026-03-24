@@ -45,7 +45,7 @@ function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): an
           result:='i386'
       end
     else if (target.info.system in systems_darwin) or
-       (current_settings.cputype<cpu_Pentium2) then
+       (compiler.globals.current_settings.cputype<cpu_Pentium2) then
       result:='i386'
     else
       result:='i686'

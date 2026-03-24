@@ -864,7 +864,7 @@ implementation
             and the parameter is not used by the routine
             and implementation of the routine is already processed.
         }
-        result:=(cs_opt_unused_para in current_settings.optimizerswitches) and
+        result:=(cs_opt_unused_para in compiler.globals.current_settings.optimizerswitches) and
           assigned(parasym.Owner) and
           (parasym.Owner.defowner.typ=procdef);
         if not result then

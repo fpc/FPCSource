@@ -209,7 +209,7 @@ implementation
 {$ifdef i8086}
         { FPATAN's range is limited to (0 <= value < 1) on the 8087 and 80287,
           so we need to use the RTL helper on these FPUs }
-        if current_settings.cputype < cpu_386 then
+        if compiler.globals.current_settings.cputype < cpu_386 then
           begin
             result := inherited;
             exit;
@@ -266,7 +266,7 @@ implementation
       begin
 {$ifdef i8086}
         { FCOS is 387+ }
-        if current_settings.cputype < cpu_386 then
+        if compiler.globals.current_settings.cputype < cpu_386 then
           begin
             result := inherited;
             exit;
@@ -285,7 +285,7 @@ implementation
       begin
 {$ifdef i8086}
         { FSIN is 387+ }
-        if current_settings.cputype < cpu_386 then
+        if compiler.globals.current_settings.cputype < cpu_386 then
           begin
             result := inherited;
             exit;
@@ -317,7 +317,7 @@ implementation
      function tx86inlinenode.first_trunc_real: tnode;
        begin
          maybe_remove_round_trunc_typeconv;
-         if (cs_opt_size in current_settings.optimizerswitches)
+         if (cs_opt_size in compiler.globals.current_settings.optimizerswitches)
 {$ifdef x86_64}
            and not(use_vectorfpu(left.resultdef))
 {$endif x86_64}
@@ -340,7 +340,7 @@ implementation
        begin
          Result:=nil;
 {$ifndef i8086}
-         if (CPUX86_HAS_POPCNT in cpu_capabilities[current_settings.cputype])
+         if (CPUX86_HAS_POPCNT in cpu_capabilities[compiler.globals.current_settings.cputype])
   {$ifdef i386}
             and not is_64bit(left.resultdef)
   {$endif i386}
@@ -355,7 +355,7 @@ implementation
      function tx86inlinenode.first_fma : tnode;
        begin
 {$ifndef i8086}
-         if ((fpu_capabilities[current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[]) and
+         if ((fpu_capabilities[compiler.globals.current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[]) and
            ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
              expectloc:=LOC_MMREGISTER;
@@ -369,7 +369,7 @@ implementation
 
      function tx86inlinenode.first_frac_real : tnode;
        begin
-         if (current_settings.fputype>=fpu_sse41) and
+         if (compiler.globals.current_settings.fputype>=fpu_sse41) and
            ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
              maybe_remove_round_trunc_typeconv;
@@ -383,7 +383,7 @@ implementation
 
      function tx86inlinenode.first_int_real : tnode;
        begin
-         if (current_settings.fputype>=fpu_sse41) and
+         if (compiler.globals.current_settings.fputype>=fpu_sse41) and
            ((is_double(resultdef)) or (is_single(resultdef))) then
            begin
              Result:=nil;
@@ -399,8 +399,8 @@ implementation
 {$ifndef i8086}
          if
 {$ifdef i386}
-           ((current_settings.fputype>=fpu_sse) and is_single(resultdef)) or
-           ((current_settings.fputype>=fpu_sse2) and is_double(resultdef))
+           ((compiler.globals.current_settings.fputype>=fpu_sse) and is_single(resultdef)) or
+           ((compiler.globals.current_settings.fputype>=fpu_sse2) and is_double(resultdef))
 {$else i386}
            ((is_double(resultdef)) or (is_single(resultdef)))
 {$endif i386}
@@ -413,7 +413,7 @@ implementation
 {$endif i8086}
          if
 {$ifndef x86_64}
-           (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+           (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
 {$endif x86_64}
            (
 {$ifdef x86_64}
@@ -434,7 +434,7 @@ implementation
        var
          temp : tnode;
        begin
-         if (current_settings.fputype>=fpu_sse41) and
+         if (compiler.globals.current_settings.fputype>=fpu_sse41) and
            (inlinenumber=in_int_real) and (left.nodetype=typeconvn) and
            not(nf_explicit in left.flags) and
            (ttypeconvnode(left).left.resultdef.typ=floatdef) and
@@ -648,7 +648,7 @@ implementation
 {$endif i8086}
        begin
 {$ifndef i8086}
-         if (cs_opt_level2 in current_settings.optimizerswitches) then
+         if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
            begin
              { Saves on a lot of typecasting and potential coding mistakes }
              valuenode := tcallparanode(left).left;
@@ -657,7 +657,7 @@ implementation
              opsize := def_cgsize(loadnode.resultdef);
 
              { BMI2 optimisations }
-             if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and (inlinenumber=in_and_assign_x_y) then
+             if (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) and (inlinenumber=in_and_assign_x_y) then
                begin
                  { If the second operand is "((1 shl y) - 1)", we can turn it
                    into a BZHI operator instead }
@@ -883,7 +883,7 @@ implementation
        begin
 {$ifdef x86_64}
          if use_vectorfpu(left.resultdef) and
-           not((left.location.loc=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3)) then
+           not((left.location.loc=LOC_FPUREGISTER) and (compiler.globals.current_settings.fputype>=fpu_sse3)) then
            begin
              secondpass(left);
              hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -911,7 +911,7 @@ implementation
          else
 {$endif x86_64}
           begin
-            if (current_settings.fputype>=fpu_sse3) then
+            if (compiler.globals.current_settings.fputype>=fpu_sse3) then
               begin
                 load_fpu_location(left);
                 location_reset_ref(location,LOC_REFERENCE,OS_S64,0,[]);
@@ -924,7 +924,7 @@ implementation
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
 {$ifdef i8086}
-                if current_settings.cputype<=cpu_286 then
+                if compiler.globals.current_settings.cputype<=cpu_286 then
                   begin
                     emit_ref(A_FSTCW,S_NO,newcw);
                     emit_ref(A_FSTCW,S_NO,oldcw);
@@ -1033,7 +1033,7 @@ implementation
        begin
 {$ifdef i8086}
        { FCOS is 387+ }
-       if current_settings.cputype < cpu_386 then
+       if compiler.globals.current_settings.cputype < cpu_386 then
          begin
            inherited;
            exit;
@@ -1047,7 +1047,7 @@ implementation
        begin
 {$ifdef i8086}
        { FSIN is 387+ }
-       if current_settings.cputype < cpu_386 then
+       if compiler.globals.current_settings.cputype < cpu_386 then
          begin
            inherited;
            exit;
@@ -1064,11 +1064,11 @@ implementation
          checkpointer_used : boolean;
        begin
 {$if defined(i386) or defined(i8086)}
-         if current_settings.cputype>=cpu_Pentium3 then
+         if compiler.globals.current_settings.cputype>=cpu_Pentium3 then
 {$endif i386 or i8086}
            begin
              { do not call Checkpointer for left node }
-             checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+             checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
              if checkpointer_used then
                node_change_local_switch(left,cs_checkpointer,false);
              secondpass(left);
@@ -1100,7 +1100,7 @@ implementation
 {$if defined(i8086) or defined(i386)}
         if is_64bitint(resultdef) then
           inherited
-        else if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
+        else if not(CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);
@@ -1111,7 +1111,7 @@ implementation
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,opsize,tcgsize2size[opsize]*8-1,left.location.register);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,opsize,left.location.register,location.register);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,left.location.register,location.register);
-            if cs_check_overflow in current_settings.localswitches then
+            if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
@@ -1133,7 +1133,7 @@ implementation
 
             cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
             emit_reg(A_NEG,tcgsize2opsize[opsize],hregister);
-            if cs_check_overflow in current_settings.localswitches then
+            if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl);
@@ -1165,10 +1165,10 @@ implementation
         begin
 {$ifdef i8086}
           { BTS and BTR are 386+ }
-          if current_settings.cputype < cpu_386 then
+          if compiler.globals.current_settings.cputype < cpu_386 then
 {$else i8086}
           { bts on memory locations is very slow, so even the default code is faster }
-          if not(cs_opt_size in current_settings.optimizerswitches) and (tcallparanode(tcallparanode(left).right).left.expectloc<>LOC_CONSTANT) and
+          if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and (tcallparanode(tcallparanode(left).right).left.expectloc<>LOC_CONSTANT) and
             (tcallparanode(left).left.expectloc=LOC_REFERENCE) then
 {$endif i8086}
             begin
@@ -1318,7 +1318,7 @@ implementation
 {$endif i8086}
       begin
 {$ifndef i8086}
-         if (fpu_capabilities[current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[] then
+         if (fpu_capabilities[compiler.globals.current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[] then
            begin
              negop3:=false;
              negproduct:=false;
@@ -1456,7 +1456,7 @@ implementation
                 s32real:
                   begin
 {$ifndef i8086}
-                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[current_settings.fputype]) then
+                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                       current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESS,S_NO,3,left.location.register,left.location.register,location.register))
                     else
 {$endif not i8086}
@@ -1469,7 +1469,7 @@ implementation
                 s64real:
                   begin
 {$ifndef i8086}
-                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[current_settings.fputype]) then
+                    if UseAVX512 and (FPUX86_HAS_AVX512DQ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
                       current_asmdata.CurrAsmList.concat(taicpu.op_const_reg_reg_reg(A_VREDUCESD,S_NO,3,left.location.register,left.location.register,location.register))
                     else
 {$endif not i8086}
@@ -1613,8 +1613,8 @@ implementation
 {$ifndef i8086}
          if
 {$ifdef i386}
-           ((current_settings.fputype>=fpu_sse) and is_single(resultdef)) or
-           ((current_settings.fputype>=fpu_sse2) and is_double(resultdef))
+           ((compiler.globals.current_settings.fputype>=fpu_sse) and is_single(resultdef)) or
+           ((compiler.globals.current_settings.fputype>=fpu_sse2) and is_double(resultdef))
 {$else i386}
            is_single(resultdef) or is_double(resultdef)
 {$endif i386}
@@ -1645,7 +1645,7 @@ implementation
 
              { due to min/max behaviour that it loads always the second operand (must be the else assignment) into destination if
                one of the operands is a NaN, we cannot swap operands to omit a mova operation in case fastmath is off }
-             if not(cs_opt_fastmath in current_settings.optimizerswitches) and gotmem and (memop=1) then
+             if not(cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and gotmem and (memop=1) then
                begin
                  hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[1].location,paraarray[1].resultdef,true);
                  gotmem:=false;
@@ -1707,7 +1707,7 @@ implementation
 {$endif i8086}
          if
 {$ifndef x86_64}
-           (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+           (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
 {$endif x86_64}
            (
 {$ifdef x86_64}
@@ -1754,7 +1754,7 @@ implementation
 
              { Try to use references as is, unless they would trigger internal
                error 200502052 }
-             if (cs_create_pic in current_settings.moduleswitches) and
+             if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
                (paraarray[1].location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                Assigned(paraarray[1].location.reference.symbol) then
                hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[1].location,
@@ -1762,7 +1762,7 @@ implementation
 
              { Try to use references as is, unless they would trigger internal
                error 200502052 }
-             if (cs_create_pic in current_settings.moduleswitches) and
+             if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
                (paraarray[2].location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                Assigned(paraarray[2].location.reference.symbol) then
                hlcg.location_force_reg(current_asmdata.CurrAsmList,paraarray[2].location,

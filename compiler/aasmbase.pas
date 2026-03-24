@@ -286,7 +286,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=(cs_Create_smart in current_settings.moduleswitches) and
+        result:=(cs_Create_smart in compiler.globals.current_settings.moduleswitches) and
                 (tf_smartlink_library in compiler.target.info.flags) and
                 not create_smartlink_sections;
       end;
@@ -301,7 +301,7 @@ implementation
                  (tf_smartlink_sections in compiler.target.info.flags)
                 ) or
                 (
-                 (cs_Create_smart in current_settings.moduleswitches) and
+                 (cs_Create_smart in compiler.globals.current_settings.moduleswitches) and
                  (tf_smartlink_library in compiler.target.info.flags)
                 );
       end;

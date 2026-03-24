@@ -393,7 +393,7 @@ unit aoptcpu;
                   { since that would change the flags (JM)                    }
                   if PostPeepholeOptMovzx(p) then
                     Result := True
-                  else if not(cs_opt_regvar in current_settings.optimizerswitches) then
+                  else if not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) then
                     begin
                       if (taicpu(p).oper[1]^.typ = top_reg) then
                         if (taicpu(p).oper[0]^.typ = top_reg)
@@ -402,8 +402,8 @@ unit aoptcpu;
                               S_BL:
                                 begin
                                   if IsGP32Reg(taicpu(p).oper[1]^.reg) and
-                                     not(cs_opt_size in current_settings.optimizerswitches) and
-                                     (current_settings.optimizecputype = cpu_Pentium) then
+                                     not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
+                                     (compiler.globals.current_settings.optimizecputype = cpu_Pentium) then
                                       {Change "movzbl %reg1, %reg2" to
                                        "xorl %reg2, %reg2; movb %reg1, %reg2" for Pentium and
                                        PentiumMMX}
@@ -423,9 +423,9 @@ unit aoptcpu;
                           else if (taicpu(p).oper[0]^.typ = top_ref) and
                               (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
                               (taicpu(p).oper[0]^.ref^.index <> taicpu(p).oper[1]^.reg) and
-                              not(cs_opt_size in current_settings.optimizerswitches) and
+                              not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                               IsGP32Reg(taicpu(p).oper[1]^.reg) and
-                              (current_settings.optimizecputype = cpu_Pentium) and
+                              (compiler.globals.current_settings.optimizecputype = cpu_Pentium) and
                               (taicpu(p).opsize = S_BL) then
                             {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
                               Pentium and PentiumMMX}

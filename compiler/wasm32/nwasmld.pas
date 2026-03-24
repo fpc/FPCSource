@@ -49,7 +49,7 @@ implementation
 
     procedure twasmloadnode.generate_threadvar_access(gvs: tstaticvarsym);
       begin
-        if ts_wasm_threads in current_settings.targetswitches then
+        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           begin
             if not(vo_is_weak_external in gvs.varoptions) then
               reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_TLS,use_indirect_symbol(gvs)),0,location.reference.alignment,[])

@@ -209,8 +209,8 @@ implementation
           with getting procvar.method.code, and second addrnode with
           the class for procedure of object}
         if not(nf_internal in flags) and
-           ((m_tp_procvar in current_settings.modeswitches) or
-            (m_mac_procvar in current_settings.modeswitches)) and
+           ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+            (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
            (((left.nodetype=addrn) and
              (taddrnode(left).left.resultdef.typ=procvardef)) or
             (left.resultdef.typ=procvardef)) then

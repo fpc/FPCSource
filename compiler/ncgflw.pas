@@ -130,7 +130,7 @@ implementation
 
     procedure tcgwhilerepeatnode.sync_regvars(checkusedregvars: boolean);
       begin
-         if (cs_opt_regvar in current_settings.optimizerswitches) and
+         if (cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) and
             not(pi_has_label in current_procinfo.flags) then
            begin
              if checkusedregvars then
@@ -182,10 +182,10 @@ implementation
          if lnf_testatbegin in loopflags then
            hlcg.a_jmp_always(current_asmdata.CurrAsmList,lcont);
 
-         if not(cs_opt_size in current_settings.optimizerswitches) then
+         if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
             { align loop target, as an unconditional jump is done before,
               use jump align which assume that the instructions inserted as alignment are never executed }
-            current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
+            current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
 
          hlcg.a_label(current_asmdata.CurrAsmList,lloop);
 
@@ -252,7 +252,7 @@ implementation
 (*
          { save regvars loaded in the beginning so that we can restore them }
          { when processing the else-block                                   }
-         if cs_opt_regvar in current_settings.optimizerswitches then
+         if cs_opt_regvar in compiler.globals.current_settings.optimizerswitches then
            begin
              org_list := current_asmdata.CurrAsmList;
              current_asmdata.CurrAsmList := TAsmList.create;
@@ -261,7 +261,7 @@ implementation
          hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
 
 (*
-         if cs_opt_regvar in current_settings.optimizerswitches then
+         if cs_opt_regvar in compiler.globals.current_settings.optimizerswitches then
            begin
              org_regvar_loaded_int := rg.regvar_loaded_int;
              org_regvar_loaded_other := rg.regvar_loaded_other;
@@ -276,7 +276,7 @@ implementation
          { save current asmlist (previous instructions + then-block) and }
          { loaded regvar state and create new clean ones                 }
 {
-         if cs_opt_regvar in current_settings.optimizerswitches then
+         if cs_opt_regvar in compiler.globals.current_settings.optimizerswitches then
            begin
              then_regvar_loaded_int := rg.regvar_loaded_int;
              then_regvar_loaded_other := rg.regvar_loaded_other;
@@ -294,7 +294,7 @@ implementation
                    current_asmdata.getjumplabel(hl);
                    { do go back to if line !! }
 (*
-                   if not(cs_opt_regvar in current_settings.optimizerswitches) then
+                   if not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) then
 *)
                      compiler.globals.current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^
 (*
@@ -303,15 +303,15 @@ implementation
 *)
                    ;
                    hlcg.a_jmp_always(current_asmdata.CurrAsmList,hl);
-                   if not(cs_opt_size in current_settings.optimizerswitches) then
-                     current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
+                   if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
+                     current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
                 end;
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
               secondpass(t1);
 (*
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
-              if cs_opt_regvar in current_settings.optimizerswitches then
+              if cs_opt_regvar in compiler.globals.current_settings.optimizerswitches then
                 begin
 {                  else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;}
@@ -325,7 +325,7 @@ implementation
          else
            begin
 (*
-              if cs_opt_regvar in current_settings.optimizerswitches then
+              if cs_opt_regvar in compiler.globals.current_settings.optimizerswitches then
                 begin
 {                  else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;}
@@ -333,19 +333,19 @@ implementation
                   current_asmdata.CurrAsmList := TAsmList.create;
                 end;
 *)
-              if not(cs_opt_size in current_settings.optimizerswitches) then
-                current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignskipmax));
+              if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
+                current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.coalescealign,compiler.globals.current_settings.alignment.coalescealignskipmax));
               hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
            end;
          if not(assigned(right)) then
            begin
-             if not(cs_opt_size in current_settings.optimizerswitches) then
-               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.coalescealign,current_settings.alignment.coalescealignskipmax));
+             if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
+               current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.coalescealign,compiler.globals.current_settings.alignment.coalescealignskipmax));
              hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
            end;
 
 (*
-         if cs_opt_regvar in current_settings.optimizerswitches then
+         if cs_opt_regvar in compiler.globals.current_settings.optimizerswitches then
            begin
              { add loads of regvars at the end of the then- and else-blocks  }
              { so that at the end of both blocks the same regvars are loaded }
@@ -414,8 +414,8 @@ implementation
            hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel)
          else
            hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
-         if not(cs_opt_size in current_settings.optimizerswitches) then
-           current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
+         if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
+           current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
        end;
 
 
@@ -434,8 +434,8 @@ implementation
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel)
              else
                hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel);
-             if not(cs_opt_size in current_settings.optimizerswitches) then
-               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
+             if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
+               current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
            end
          else
            compiler.verbose.CGMessage(cg_e_break_not_allowed);
@@ -457,8 +457,8 @@ implementation
                hlcg.g_local_unwind(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel)
              else
                hlcg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrContinueLabel);
-             if not(cs_opt_size in current_settings.optimizerswitches) then
-               current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
+             if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
+               current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
            end
          else
            compiler.verbose.CGMessage(cg_e_continue_not_allowed);
@@ -476,8 +476,8 @@ implementation
 
          include(flowcontrol,fc_gotolabel);
          hlcg.a_jmp_always_pascal_goto(current_asmdata.CurrAsmList,tcglabelnode(labelnode).getasmlabel);
-         if not(cs_opt_size in current_settings.optimizerswitches) then
-           current_asmdata.CurrAsmList.concat(cai_align.create_max(current_settings.alignment.jumpalign,current_settings.alignment.jumpalignskipmax));
+         if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
+           current_asmdata.CurrAsmList.concat(cai_align.create_max(compiler.globals.current_settings.alignment.jumpalign,compiler.globals.current_settings.alignment.jumpalignskipmax));
        end;
 
 

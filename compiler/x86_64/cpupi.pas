@@ -98,7 +98,7 @@ implementation
 
     function tcpuprocinfo.calc_stackframe_size:longint;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,16));
+        maxpushedparasize:=align(maxpushedparasize,max(compiler.globals.current_settings.alignment.localalignmin,16));
         { Note 1: when tg.direction>0, tg.lasttemp is already offset by maxpushedparasize
                   (because tg.setfirsttemp also sets lasttemp)
           Note 2: Align to 8 bytes here. The final 16-byte alignment is handled in

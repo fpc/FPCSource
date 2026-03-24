@@ -66,7 +66,7 @@ unit rgcpu;
         hreg     : tregister;
       begin
         cg:=compiler.cg;
-        if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+        if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             helplist:=tasmlist.create;
 
@@ -101,7 +101,7 @@ unit rgcpu;
         hreg     : tregister;
       begin
         cg:=compiler.cg;
-        if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+        if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             helplist:=tasmlist.create;
 
@@ -135,7 +135,7 @@ unit rgcpu;
       begin
         result:=false;
         opidx:=-1;
-        if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+        if (abs(spilltemp.offset)>32767) and not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           exit;
         case instr.ops of
           1:

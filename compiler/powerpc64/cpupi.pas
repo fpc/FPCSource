@@ -137,7 +137,7 @@ end;
 procedure tcpuprocinfo.allocate_got_register(list: TAsmList);
   begin
     if (compiler.target.info.system = system_powerpc64_darwin) and
-       (cs_create_pic in current_settings.moduleswitches) then
+       (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
       begin
         got := cg.getaddressregister(list);
       end;

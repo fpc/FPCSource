@@ -57,7 +57,7 @@ unit cpupara;
 
     function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        if CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype] then
+        if CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype] then
           result:=VOLATILE_INTREGISTERS-[RS_R0,RS_R1,RS_R18,RS_R19]
         else
           result:=VOLATILE_INTREGISTERS;
@@ -170,7 +170,7 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            if (def.size > 8) or ((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) and (def.size > 4)) then
+            if (def.size > 8) or ((CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) and (def.size > 4)) then
               result:=true
             else
               result:=inherited ret_in_param(def,pd);
@@ -206,7 +206,7 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (((nextintreg>RS_R9) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+           if (((nextintreg>RS_R9) and not(CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype])) or
                (nextintreg>RS_R21)) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
@@ -305,7 +305,7 @@ unit cpupara;
                    by adding paralen mod 2, make the size even
                  }
                  nextintreg:=curintreg-(paralen+(paralen mod 2))+1;
-                 if ((nextintreg>=RS_R8) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+                 if ((nextintreg>=RS_R8) and not(CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype])) or
                    (nextintreg>=RS_R20) then
                    curintreg:=nextintreg-1
                  else
@@ -341,7 +341,7 @@ unit cpupara;
                  case loc of
                     LOC_REGISTER:
                       begin
-                        if ((nextintreg>=RS_R8) and not(CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype])) or
+                        if ((nextintreg>=RS_R8) and not(CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype])) or
                           (nextintreg>=RS_R20) then
                           begin
                             paraloc^.loc:=LOC_REGISTER;
@@ -420,7 +420,7 @@ unit cpupara;
         { Return in FPU register? }
         if result.def.typ=floatdef then
           begin
-            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
               begin
                 case retcgsize of
                   OS_64,

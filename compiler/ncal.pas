@@ -487,7 +487,7 @@ implementation
 
             { force automatable float type }
             else if is_extended(para.left.resultdef)
-                and (current_settings.fputype<>fpu_none) then
+                and (compiler.globals.current_settings.fputype<>fpu_none) then
               inserttypeconv_internal(para.left,s64floattype,compiler)
 
             else if is_shortstring(para.left.resultdef) then
@@ -1146,7 +1146,7 @@ implementation
                automatic disambiguation; you can use the function name in both
                meanings, so we cannot statically pick either the function result
                or the function definition in pexpr) }
-             if (m_mac in current_settings.modeswitches) and
+             if (m_mac in compiler.globals.current_settings.modeswitches) and
                 (parasym.vardef.typ=procvardef) and
                 is_ambiguous_funcret_load(left,owningprocdef) then
                begin
@@ -1175,7 +1175,7 @@ implementation
 
              { Remove implicitly inserted typecast to pointer for
                @procvar in macpas }
-             if (m_mac_procvar in current_settings.modeswitches) and
+             if (m_mac_procvar in compiler.globals.current_settings.modeswitches) and
                 (parasym.vardef.typ=procvardef) and
                 (left.nodetype=typeconvn) and
                 is_voidpointer(left.resultdef) and
@@ -1312,7 +1312,7 @@ implementation
                    end;
 
                  { check var strings }
-                 if (cs_strict_var_strings in current_settings.localswitches) and
+                 if (cs_strict_var_strings in compiler.globals.current_settings.localswitches) and
                     is_shortstring(left.resultdef) and
                     is_shortstring(parasym.vardef) and
                     (parasym.varspez in [vs_out,vs_var,vs_constref]) and
@@ -1329,8 +1329,8 @@ implementation
                  if (parasym.univpara) then
                    begin
                      { load procvar if a procedure is passed }
-                     if ((m_tp_procvar in current_settings.modeswitches) or
-                         (m_mac_procvar in current_settings.modeswitches)) and
+                     if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                         (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                         (left.nodetype=calln) and
                         (is_void(left.resultdef)) then
                        begin
@@ -1349,8 +1349,8 @@ implementation
                  if (parasym.vardef.typ=formaldef) then
                    begin
                      { load procvar if a procedure is passed }
-                     if ((m_tp_procvar in current_settings.modeswitches) or
-                         (m_mac_procvar in current_settings.modeswitches)) and
+                     if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                         (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                         (left.nodetype=calln) and
                         (is_void(left.resultdef)) then
                        load_procvar_from_calln(left);
@@ -1635,7 +1635,7 @@ implementation
            still be uppercased, because it needs to be matched when we
            encounter the implementation) }
          if not assigned(srsym) and
-            (cs_compilesystem in current_settings.moduleswitches) then
+            (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
            srsym := tsym(systemunit.Find(upper(name)));
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
@@ -2845,7 +2845,7 @@ implementation
         if realresdef.is_intregable then
           result:=LOC_REGISTER
         else if (realresdef.typ=floatdef) and
-          not(cs_fp_emulation in current_settings.moduleswitches) then
+          not(cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
           if use_vectorfpu(realresdef) then
             result:=LOC_MMREGISTER
           else
@@ -2883,7 +2883,7 @@ implementation
             begin
               { rare optimization opportunity which takes some extra time,
                 so check only at level 3+ }
-              if not(cs_opt_level3 in current_settings.optimizerswitches) then
+              if not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                 exit;
               { If n is a constant, attempt to convert, for example:
                   "Str(5, Output);" to "Output := '5';" }
@@ -2948,7 +2948,7 @@ implementation
             begin
               { rare optimization opportunity which takes some extra time,
                 so check only at level 3+ }
-              if not(cs_opt_level3 in current_settings.optimizerswitches) then
+              if not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                 exit;
               { If the input is a constant, attempt to convert, for example:
                   "Val('5', Output, Code);" to "Output := 5; Code := 0;" }
@@ -3128,7 +3128,7 @@ implementation
         srsymtable    : tsymtable;
         msgsendname   : string;
       begin
-        if not(m_objectivec1 in current_settings.modeswitches) then
+        if not(m_objectivec1 in compiler.globals.current_settings.modeswitches) then
           compiler.verbose.Message(parser_f_modeswitch_objc_required);
         { typecheck pass must already have run on the call node,
           because pass1 calls this method
@@ -3555,7 +3555,7 @@ implementation
             { ensure that it is aligned using the default alignment }
             alignment:=tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).vardef.alignment;
             if (used_align(alignment,compiler.target.info.alignment.localalignmin,compiler.target.info.alignment.localalignmax)<>
-                used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax)) then
+                used_align(alignment,compiler.globals.current_settings.alignment.localalignmin,compiler.globals.current_settings.alignment.localalignmax)) then
               result:=false;
             exit;
           end;
@@ -3692,12 +3692,12 @@ implementation
                 else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
-                     para.left:=compiler.cordconstnode(Ord(cs_check_range in current_settings.localswitches),pasbool1type,false);
+                     para.left:=compiler.cordconstnode(Ord(cs_check_range in compiler.globals.current_settings.localswitches),pasbool1type,false);
                    end
                 else
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
-                     para.left:=compiler.cordconstnode(Ord(cs_check_overflow in current_settings.localswitches),pasbool1type,false);
+                     para.left:=compiler.cordconstnode(Ord(cs_check_overflow in compiler.globals.current_settings.localswitches),pasbool1type,false);
                    end
                 else
                   if vo_is_msgsel in para.parasym.varoptions then
@@ -4156,7 +4156,7 @@ implementation
 
                 { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
                 if (nf_isproperty in flags) or
-                  ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags)) or
+                  ((m_delphi in compiler.globals.current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags)) or
                   (cnf_ignore_visibility in callnodeflags)
                 then
                   ccflags:=ccflags+[cc_ignorevisibility];
@@ -4190,7 +4190,7 @@ implementation
                      this inherited by inserting a nothingn. Only
                      do this ugly hack in Delphi mode as it looks more
                      like a bug. It's also not documented }
-                   if (m_delphi in current_settings.modeswitches) and
+                   if (m_delphi in compiler.globals.current_settings.modeswitches) and
                       (cnf_anon_inherited in callnodeflags) and
                       (symtableprocentry.owner.symtabletype=ObjectSymtable) and
                       (po_overload in tprocdef(symtableprocentry.ProcdefList[0]).procoptions) and
@@ -4202,8 +4202,8 @@ implementation
                          there are no parameters specified }
                        if not(assigned(left)) and
                           ([cnf_inherited,cnf_no_convert_procvar]*callnodeflags=[]) and
-                          ((m_tp_procvar in current_settings.modeswitches) or
-                           (m_mac_procvar in current_settings.modeswitches)) and
+                          ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                           (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                           (not assigned(methodpointer) or
                            (methodpointer.nodetype <> typen)) then
                          begin
@@ -4461,7 +4461,7 @@ implementation
            if (cnf_inherited in callnodeflags) and
               (po_abstractmethod in procdefinition.procoptions) then
              begin
-               if (m_delphi in current_settings.modeswitches) and
+               if (m_delphi in compiler.globals.current_settings.modeswitches) and
                  (cnf_anon_inherited in callnodeflags) then
                  begin
                    compiler.verbose.CGMessage(cg_h_inherited_ignored);
@@ -4942,7 +4942,7 @@ implementation
            end;
 
          { can we get rid of the call? }
-         if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and
+         if (cs_opt_remove_empty_proc in compiler.globals.current_settings.optimizerswitches) and
             not(cnf_return_value_used in callnodeflags) and
            (procdefinition.typ=procdef) and
            tprocdef(procdefinition).isempty and
@@ -4962,7 +4962,7 @@ implementation
                     { array of consts are converted later on so we need to skip them here
                       else no error detection is done }
                      is_array_of_const(para.parasym.vardef) or
-                     not(cs_opt_dead_values in current_settings.optimizerswitches) or
+                     not(cs_opt_dead_values in compiler.globals.current_settings.optimizerswitches) or
                      might_have_sideeffects(para.left)) then
                      break;
                   para:=tcallparanode(para.right);
@@ -5076,7 +5076,7 @@ implementation
 
          { check for stacked parameters }
          if assigned(left) and
-            (current_settings.optimizerswitches*[cs_opt_stackframe,cs_opt_level1]<>[]) then
+            (compiler.globals.current_settings.optimizerswitches*[cs_opt_stackframe,cs_opt_level1]<>[]) then
            check_stack_parameters;
 
          if assigned(callinitblock) then
@@ -5491,7 +5491,7 @@ implementation
           begin
             if (para.parasym.typ = paravarsym) and
                ((para.parasym.refs>0) or
-                not(cs_opt_dead_values in current_settings.optimizerswitches) or
+                not(cs_opt_dead_values in compiler.globals.current_settings.optimizerswitches) or
                 might_have_sideeffects(para.left)) then
               begin
                 { must take copy of para.left, because if it contains a       }

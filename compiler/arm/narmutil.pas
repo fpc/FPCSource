@@ -98,7 +98,7 @@ interface
         { write eabi attributes to object file? }
         if (compiler.target.info.system in [system_arm_linux]) and (compiler.target.info.abi in [abi_eabihf,abi_eabi]) then
           begin
-            case current_settings.cputype of
+            case compiler.globals.current_settings.cputype of
               cpu_armv2,
               cpu_armv3:
                 begin
@@ -199,7 +199,7 @@ interface
               else
                 Internalerror(2019100602);
             end;
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_none,
               fpu_soft,
               fpu_libgcc,
@@ -228,14 +228,14 @@ interface
               { else not needed anymore PM 2020/04/13
                 Internalerror(2019100603); }
             end;
-            if FPUARM_HAS_FMA in fpu_capabilities[current_settings.fputype] then
+            if FPUARM_HAS_FMA in fpu_capabilities[compiler.globals.current_settings.fputype] then
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_Advanced_SIMD_arch,2))
-            else if FPUARM_HAS_NEON in fpu_capabilities[current_settings.fputype] then
+            else if FPUARM_HAS_NEON in fpu_capabilities[compiler.globals.current_settings.fputype] then
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_Advanced_SIMD_arch,1))
             else
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_Advanced_SIMD_arch,0));
             current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_ARM_ISA_use,1));
-            if CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype] then
+            if CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype] then
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,2))
             else
               current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_eabi_attribute,Tag_THUMB_ISA_use,1));

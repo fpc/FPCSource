@@ -191,7 +191,7 @@ procedure TLinkerAndroid.LoadPredefinedLibraryOrder;
 // put your linkorder/linkalias overrides here.
 // Note: assumes only called when reordering/aliasing is used.
 Begin
-   if not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
+   if not (cs_link_no_default_lib_order in  compiler.globals.current_settings.globalswitches) Then
         Begin
           compiler.globals.LinkLibraryOrder.add('gcc','',15);
           compiler.globals.LinkLibraryOrder.add('c','',100);
@@ -244,7 +244,7 @@ begin
       { several RTL symbols of FPC-compiled shared libraries   }
       { will be bound to those of a single shared library or   }
       { to the main program                                    }
-      if isdll or (cs_create_pic in current_settings.moduleswitches) then
+      if isdll or (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
         begin
           add('VERSION');
           add('{');
@@ -270,7 +270,7 @@ begin
       if isdll then
         s:='crtbegin_so.o'
       else
-        if cs_link_staticflag in current_settings.globalswitches then
+        if cs_link_staticflag in compiler.globals.current_settings.globalswitches then
           s:='crtbegin_static.o'
         else
           s:='crtbegin_dynamic.o';
@@ -318,12 +318,12 @@ begin
              Add(')');
            end;
 
-         if (cs_link_staticflag in current_settings.globalswitches) or
+         if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) or
             (not reorder) then
            begin
              Add('GROUP(');
              { when we have -static for the linker the we also need libgcc }
-             if (cs_link_staticflag in current_settings.globalswitches) then
+             if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
                begin
                  Add('-lgcc');
                  if compiler.globals.librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
@@ -393,20 +393,20 @@ begin
     outname:=current_module.sharedlibfilename
   else
     outname:=current_module.exefilename;
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking, outname);
 
   opts:='';
-  if not IsSharedLib and (cs_create_pic in current_settings.moduleswitches) then
+  if not IsSharedLib and (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     opts:=opts + ' --pic-executable';
-  if (cs_link_strip in current_settings.globalswitches) and
-     not (cs_link_separate_dbg_file in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+     not (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
     opts:=opts + ' -s';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     opts:=opts + ' -Map '+maybequoted(ChangeFileExt(outname,'.map'));
   if create_smartlink_sections then
     opts:=opts + ' --gc-sections';
-  if (cs_link_staticflag in current_settings.globalswitches) then
+  if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
     opts:=opts + ' -static'
   else
     if compiler.globals.cshared then
@@ -453,7 +453,7 @@ begin
   success:=DoExec(binstr,CmdStr,true,false);
 
   { Create external .dbg file with debuginfo }
-  if success and (cs_link_separate_dbg_file in current_settings.globalswitches) then
+  if success and (cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
     begin
       for i:=1 to 3 do
         begin
@@ -468,7 +468,7 @@ begin
     end;
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   Result:=success;   { otherwise a recursive call to link method }

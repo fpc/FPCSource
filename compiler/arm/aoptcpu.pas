@@ -338,7 +338,7 @@ Implementation
             exit;
       until not(Result) or
             (Next.typ<>ait_instruction) or
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
             is_calljmp(taicpu(Next).opcode) or
             (StopOnStore and (taicpu(Next).opcode in [A_STR, A_STM])) or
             RegModifiedByInstruction(NR_PC,Next);
@@ -367,7 +367,7 @@ Implementation
     begin
       { Cannot perform these jump optimisations if the ARM architecture has 16-bit thumb codes }
       Result := not (
-        (current_settings.instructionset = is_thumb) and not (CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype])
+        (compiler.globals.current_settings.instructionset = is_thumb) and not (CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype])
       );
     end;
 
@@ -728,12 +728,12 @@ Implementation
         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
         (not RegModifiedBetween(taicpu(p).oper[2]^.reg, p, hp1)) and
 
-        (((taicpu(hp1).opcode=A_ADD) and (current_settings.cputype>=cpu_armv4)) or
-         ((taicpu(hp1).opcode=A_SUB) and (current_settings.cputype in [cpu_armv6t2,cpu_armv7,cpu_armv7a,cpu_armv7r,cpu_armv7m,cpu_armv7em]))) and
+        (((taicpu(hp1).opcode=A_ADD) and (compiler.globals.current_settings.cputype>=cpu_armv4)) or
+         ((taicpu(hp1).opcode=A_SUB) and (compiler.globals.current_settings.cputype in [cpu_armv6t2,cpu_armv7,cpu_armv7a,cpu_armv7r,cpu_armv7m,cpu_armv7em]))) and
 
         // CPUs before ARMv6 don't recommend having the same Rd and Rm for MLA.
         // TODO: A workaround would be to swap Rm and Rs
-        (not ((taicpu(hp1).opcode=A_ADD) and (current_settings.cputype<=cpu_armv6) and MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^))) and
+        (not ((taicpu(hp1).opcode=A_ADD) and (compiler.globals.current_settings.cputype<=cpu_armv6) and MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^))) and
 
         (((taicpu(hp1).ops=3) and
           (taicpu(hp1).oper[2]^.typ=top_reg) and
@@ -916,7 +916,7 @@ Implementation
              ldrd reg1,reg1+1,ref
           }
           else if (GenerateARMCode or GenerateThumb2Code) and
-            (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
+            (CPUARM_HAS_EDSP in cpu_capabilities[compiler.globals.current_settings.cputype]) and
             { ldrd does not allow any postfixes ... }
             (taicpu(p).oppostfix=PF_None) and
             not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
@@ -1005,7 +1005,7 @@ Implementation
         into
         b         abc
       }
-      if not(ts_thumb_interworking in current_settings.targetswitches) and
+      if not(ts_thumb_interworking in compiler.globals.current_settings.targetswitches) and
         (taicpu(p).condition = C_None) and
         (taicpu(p).oppostfix = PF_FD) and
         (taicpu(p).oper[0]^.typ = top_ref) and
@@ -1107,7 +1107,7 @@ Implementation
             strd reg1,reg2,ref
           }
           else if (GenerateARMCode or GenerateThumb2Code) and
-             (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
+             (CPUARM_HAS_EDSP in cpu_capabilities[compiler.globals.current_settings.cputype]) and
              not(odd(getsupreg(taicpu(p).oper[0]^.reg))) and
              (abs(taicpu(p).oper[1]^.ref^.offset)<256) and
              AlignedToQWord(taicpu(p).oper[1]^.ref^) and
@@ -1987,7 +1987,7 @@ Implementation
         MatchInstruction(hp1,A_POP,[C_None],[PF_None]) and
         (taicpu(hp1).oper[0]^.regset^=[RS_R15]) then
         begin
-          if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+          if not(CPUARM_HAS_BX in cpu_capabilities[compiler.globals.current_settings.cputype]) then
             begin
               DebugMsg('Peephole Optimization: PushPop2Mov done', p);
               taicpu(p).ops:=2;
@@ -2207,7 +2207,7 @@ Implementation
         (
           { mlas is only allowed in arm mode }
           (taicpu(hp_last).opcode<>A_MLA) or
-          (current_settings.instructionset<>is_thumb)
+          (compiler.globals.current_settings.instructionset<>is_thumb)
         ) and
         (taicpu(hp_last).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
         assigned(FindRegDealloc(NR_DEFAULTFLAGS,tai(hp1.Next))) then

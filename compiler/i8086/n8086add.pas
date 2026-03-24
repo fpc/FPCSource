@@ -345,7 +345,7 @@ interface
                 internalerror(2014070301);
             end;
 
-            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+            if cs_hugeptr_arithmetic_normalization in compiler.globals.current_settings.localswitches then
               procname:=procname+'_normalized';
           end;
 
@@ -380,7 +380,7 @@ interface
       begin
         result:=nil;
 
-        if not (cs_hugeptr_comparison_normalization in current_settings.localswitches) then
+        if not (cs_hugeptr_comparison_normalization in compiler.globals.current_settings.localswitches) then
           begin
             expectloc:=LOC_JUMP;
             exit;

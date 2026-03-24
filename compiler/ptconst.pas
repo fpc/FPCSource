@@ -131,13 +131,13 @@ implementation
             (
              (current_scanner.token = _ID) and
              ((current_scanner.idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (current_scanner.idtoken = _WEAKEXTERNAL)) and
-             (m_cvar_support in current_settings.modeswitches)
+             (m_cvar_support in compiler.globals.current_settings.modeswitches)
             ) or
             (
-             (m_mac in current_settings.modeswitches) and
+             (m_mac in compiler.globals.current_settings.modeswitches) and
              (
-              (cs_external_var in current_settings.localswitches) or
-              (cs_externally_visible in current_settings.localswitches)
+              (cs_external_var in compiler.globals.current_settings.localswitches) or
+              (cs_externally_visible in compiler.globals.current_settings.localswitches)
              )
             )
            ) then

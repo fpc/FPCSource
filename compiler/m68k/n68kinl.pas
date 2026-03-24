@@ -133,7 +133,7 @@ implementation
 
     function t68kinlinenode.first_abs_real : tnode;
       begin
-        if FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype] then
+        if FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype] then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -144,7 +144,7 @@ implementation
 
     function t68kinlinenode.first_sqr_real : tnode;
       begin
-        if FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype] then
+        if FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype] then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -155,7 +155,7 @@ implementation
 
     function t68kinlinenode.first_sqrt_real : tnode;
       begin
-        if FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype] then
+        if FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype] then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -166,7 +166,7 @@ implementation
 
     function t68kinlinenode.first_sin_real : tnode;
       begin
-        if FPUM68K_HAS_TRIGONOMETRY in fpu_capabilities[current_settings.fputype] then
+        if FPUM68K_HAS_TRIGONOMETRY in fpu_capabilities[compiler.globals.current_settings.fputype] then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -177,7 +177,7 @@ implementation
 
     function t68kinlinenode.first_cos_real : tnode;
       begin
-        if FPUM68K_HAS_TRIGONOMETRY in fpu_capabilities[current_settings.fputype] then
+        if FPUM68K_HAS_TRIGONOMETRY in fpu_capabilities[compiler.globals.current_settings.fputype] then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -188,7 +188,7 @@ implementation
 
     function t68kinlinenode.first_int_real : tnode;
       begin
-        if FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype] then
+        if FPUM68K_HAS_FINTRZ in fpu_capabilities[compiler.globals.current_settings.fputype] then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -199,7 +199,7 @@ implementation
 
     function t68kinlinenode.first_frac_real : tnode;
       begin
-        if FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype] then
+        if FPUM68K_HAS_FINTRZ in fpu_capabilities[compiler.globals.current_settings.fputype] then
           begin
             expectloc:=LOC_FPUREGISTER;
             result:=nil;
@@ -211,7 +211,7 @@ implementation
 
     function t68kinlinenode.first_trunc_real : tnode;
       begin
-        if (FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype]) and
+        if (FPUM68K_HAS_FINTRZ in fpu_capabilities[compiler.globals.current_settings.fputype]) and
            (resultdef.typ=orddef) and (torddef(resultdef).ordtype in [u8bit,u16bit,s8bit,s16bit,s32bit]) then
           begin
             expectloc:=LOC_REGISTER;
@@ -223,7 +223,7 @@ implementation
 
     function t68kinlinenode.first_round_real : tnode;
       begin
-        if (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) and
+        if (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
            (resultdef.typ=orddef) and (torddef(resultdef).ordtype in [u8bit,u16bit,s8bit,s16bit,s32bit]) then
           begin
             expectloc:=LOC_REGISTER;
@@ -244,7 +244,7 @@ implementation
       begin
         secondpass(left);
 
-        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
+        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2015022202);
 
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!')));
@@ -290,7 +290,7 @@ implementation
       begin
         secondpass(left);
 
-        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
+        if not (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2015022204);
 
         location_reset(location,LOC_FPUREGISTER,left.location.size);
@@ -310,7 +310,7 @@ implementation
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
             end;
           else
@@ -325,7 +325,7 @@ implementation
       begin
         secondpass(left);
 
-        if not (FPUM68K_HAS_FINTRZ in fpu_capabilities[current_settings.fputype]) then
+        if not (FPUM68K_HAS_FINTRZ in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           internalerror(2017052102);
 
         location_reset(location,LOC_FPUREGISTER,left.location.size);
@@ -344,7 +344,7 @@ implementation
               hreg:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
               cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,href,location.register);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FINTRZ,fpuregopsize,location.register,hreg));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSUB,fpuregopsize,hreg,location.register));

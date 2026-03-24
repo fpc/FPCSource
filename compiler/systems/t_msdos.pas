@@ -132,7 +132,7 @@ implementation
 {$ifdef USE_LINKER_WLINK}
       result:=inherited or (tf_smartlink_library in target.info.flags);
 {$else}
-      result:=inherited and not (cs_link_extern in current_settings.globalswitches);
+      result:=inherited and not (cs_link_extern in compiler.globals.current_settings.globalswitches);
 {$endif USE_LINKER_WLINK}
     end;
 
@@ -195,7 +195,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
@@ -208,7 +208,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -273,7 +273,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
@@ -286,7 +286,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -315,7 +315,7 @@ begin
 
   LinkRes.Add('option quiet');
 
-  if cs_debuginfo in current_settings.moduleswitches then
+  if cs_debuginfo in compiler.globals.current_settings.moduleswitches then
   begin
     if compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
       LinkRes.Add('debug dwarf')
@@ -323,12 +323,12 @@ begin
       LinkRes.Add('debug codeview')
     else
       LinkRes.Add('debug watcom all');
-    if cs_link_separate_dbg_file in current_settings.globalswitches then
+    if cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches then
       LinkRes.Add('option symfile');
   end;
 
   { add objectfiles, start with prt0 always }
-  case current_settings.x86memorymodel of
+  case compiler.globals.current_settings.x86memorymodel of
     mm_tiny:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)));
     mm_small:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
     mm_medium:  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0m','',false)));
@@ -352,11 +352,11 @@ begin
     LinkRes.Add('format dos com')
   else
     LinkRes.Add('format dos');
-  if current_settings.x86memorymodel=mm_tiny then
+  if compiler.globals.current_settings.x86memorymodel=mm_tiny then
     LinkRes.Add('order clname CODE clname DATA clname BSS')
   else
     LinkRes.Add('order clname CODE clname FAR_DATA clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
 
@@ -389,7 +389,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
@@ -406,7 +406,7 @@ begin
     success:=PostProcessExecutable(current_module.exefilename);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -423,7 +423,7 @@ var
   heapmin_paragraphs, heapmax_paragraphs: Integer;
 begin
   { nothing to do in the near data memory models }
-  if current_settings.x86memorymodel in x86_near_data_models then
+  if compiler.globals.current_settings.x86memorymodel in x86_near_data_models then
     exit(true);
   { .COM files are not supported in the far data memory models }
   if compiler.globals.apptype=app_com then
@@ -495,7 +495,7 @@ var
   s: TCmdStr;
 begin
   { add objectfiles, start with prt0 always }
-  case current_settings.x86memorymodel of
+  case compiler.globals.current_settings.x86memorymodel of
     mm_tiny:    LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0t','',false)));
     mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
     mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
@@ -519,7 +519,7 @@ begin
   LinkScript.Concat('ENDGROUP');
 
   LinkScript.Concat('EXESECTION .MZ_flat_content');
-  if current_settings.x86memorymodel=mm_tiny then
+  if compiler.globals.current_settings.x86memorymodel=mm_tiny then
     begin
       LinkScript.Concat('  OBJSECTION _TEXT||CODE');
       LinkScript.Concat('  OBJSECTION *||CODE');
@@ -545,7 +545,7 @@ begin
     end;
   LinkScript.Concat('ENDEXESECTION');
 
-  if (cs_debuginfo in current_settings.moduleswitches) and
+  if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
      (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       LinkScript.Concat('EXESECTION .debug_info');

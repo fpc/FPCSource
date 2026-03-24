@@ -341,7 +341,7 @@ implementation
       begin
         compiler:=hloopvar.compiler;
         { Objective-C enumerators require Objective-C 2.0 }
-        if not(m_objectivec2 in current_settings.modeswitches) then
+        if not(m_objectivec2 in compiler.globals.current_settings.modeswitches) then
           begin
             result:=compiler.cerrornode;
             compiler.verbose.MessagePos(expr.fileinfo,parser_e_objc_enumerator_2_0);
@@ -1388,7 +1388,7 @@ implementation
       begin
         result:=nil;
         { convert while i>0 do ... dec(i); to if i>0 then repeat ... dec(i) until i=0; ? }
-        if (cs_opt_level2 in current_settings.optimizerswitches) and
+        if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) and
           { while loop? }
           (lnf_testatbegin in loopflags) and not(lnf_checknegate in loopflags) then
           begin
@@ -1406,7 +1406,7 @@ implementation
                     twhilerepeatnode(tifnode(result).right).left.nodetype:=equaln;
                   end;
               end
-            else if not(cs_opt_size in current_settings.optimizerswitches) and
+            else if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
               (node_complexity(left)<=3) then
               begin
                 result:=compiler.cifnode_internal(left.getcopy,compiler.cwhilerepeatnode(left,right,false,false),nil);
@@ -1527,7 +1527,7 @@ implementation
 {$ifdef prefetchnext}
          { do at the end so all complex typeconversions are already }
          { converted to calln's                                     }
-         if (cs_opt_level1 in current_settings.optimizerswitches) and
+         if (cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) and
             (lnf_testatbegin in loopflags) then
            begin
              { get first component of the while check }
@@ -1727,7 +1727,7 @@ implementation
           }
         elsestmnt:=nil;
         in_nr:=Default(tinlinenumber);
-        if (cs_opt_level2 in current_settings.optimizerswitches) and
+        if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) and
            (left.nodetype in [gtn,gten,ltn,lten]) and IsSingleStatement(right,thenstmnt) and
            ((t1=nil) or IsSingleStatement(t1,elsestmnt)) and
           (thenstmnt.nodetype=assignn) and ((t1=nil) or (elsestmnt.nodetype=assignn)) and
@@ -1735,9 +1735,9 @@ implementation
           ((t1=nil) or tassignmentnode(thenstmnt).left.isequal(tassignmentnode(elsestmnt).left)) and
 {$if defined(i386) or defined(x86_64)}
 {$ifdef i386}
-          (((current_settings.fputype>=fpu_sse) and is_single(tassignmentnode(thenstmnt).left.resultdef)) or
-           ((current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef)) or
-           ((CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).left.resultdef))
+          (((compiler.globals.current_settings.fputype>=fpu_sse) and is_single(tassignmentnode(thenstmnt).left.resultdef)) or
+           ((compiler.globals.current_settings.fputype>=fpu_sse2) and is_double(tassignmentnode(thenstmnt).left.resultdef)) or
+           ((CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).left.resultdef))
           ) and
 {$else i386}
           (is_single(tassignmentnode(thenstmnt).left.resultdef) or
@@ -1748,7 +1748,7 @@ implementation
 {$endif i386}
 {$endif defined(i386) or defined(x86_64)}
 {$if defined(xtensa)}
-          (CPUXTENSA_HAS_MINMAX in cpu_capabilities[current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
+          (CPUXTENSA_HAS_MINMAX in cpu_capabilities[compiler.globals.current_settings.cputype]) and is_32bitint(tassignmentnode(thenstmnt).right.resultdef) and
 {$endif defined(xtensa)}
 {$if defined(aarch64)}
           (is_single(tassignmentnode(thenstmnt).left.resultdef) or is_double(tassignmentnode(thenstmnt).left.resultdef) or
@@ -1758,10 +1758,10 @@ implementation
           { RiscV fmin/fmax/fminm/fmaxm uses the IEEE semantics (2008 or 201x) of min/max regarding NaN (using either
             always the NaN or non-NaN operand instead of the second one in case on is NaN), so
             we can use them only when fast math is on }
-          ((cs_opt_fastmath in current_settings.optimizerswitches) and
-           ((is_single(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_F in cpu_capabilities[current_settings.cputype])) or
-            (is_double(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_D in cpu_capabilities[current_settings.cputype])) or
-            (is_quad(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_Q in cpu_capabilities[current_settings.cputype])))) and
+          ((cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and
+           ((is_single(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_F in cpu_capabilities[compiler.globals.current_settings.cputype])) or
+            (is_double(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_D in cpu_capabilities[compiler.globals.current_settings.cputype])) or
+            (is_quad(tassignmentnode(thenstmnt).left.resultdef) and (CPURV_HAS_Q in cpu_capabilities[compiler.globals.current_settings.cputype])))) and
 {$endif defined(riscv)}
           (
           { the right size of the assignment in the then clause must either }
@@ -1976,7 +1976,7 @@ implementation
 
          { Make sure that the loop var and the
            from and to values are compatible types }
-         if not(m_iso in current_settings.modeswitches) then
+         if not(m_iso in compiler.globals.current_settings.modeswitches) then
            rangedef:=left.resultdef
          else
            rangedef:=get_iso_range_type(left.resultdef);
@@ -1993,7 +1993,7 @@ implementation
 
          { loop unrolling }
          if not(assigned(result)) and
-           (cs_opt_loopunroll in current_settings.optimizerswitches) and
+           (cs_opt_loopunroll in compiler.globals.current_settings.optimizerswitches) and
            assigned(t2) and
            { statements must be error free }
            not(tnf_error in t2.transientflags) then
@@ -2463,7 +2463,7 @@ implementation
               { generated by the optimizer? }
                not(assigned(labelsym.owner))) then
               labelnode:=tlabelnode(labelsym.code)
-            else if ((m_non_local_goto in current_settings.modeswitches) and
+            else if ((m_non_local_goto in compiler.globals.current_settings.modeswitches) and
               assigned(labelsym.owner)) or
               { nested exits don't need the non local goto switch }
               (labelsym.realname='$nestedexit') then
@@ -2482,7 +2482,7 @@ implementation
                     p2:=current_procinfo;
                     while true do
                       begin
-                        if ((cs_implicit_exceptions in current_settings.moduleswitches) and ((p2.flags*[pi_needs_implicit_finally,pi_has_implicit_finally])<>[])) or
+                        if ((cs_implicit_exceptions in compiler.globals.current_settings.moduleswitches) and ((p2.flags*[pi_needs_implicit_finally,pi_has_implicit_finally])<>[])) or
                         ((p2.flags*[pi_uses_exceptions])<>[]) then
                           compiler.verbose.Message(cg_e_goto_across_procedures_with_exceptions_not_allowed);
                         if labelsym.owner=p2.procdef.localst then
@@ -2627,7 +2627,7 @@ implementation
         if not (nf_internal in flags) then
           include(current_procinfo.flags,pi_has_label);
 
-        if (m_non_local_goto in current_settings.modeswitches) and
+        if (m_non_local_goto in compiler.globals.current_settings.modeswitches) and
             { the owner can be Nil for internal labels }
             assigned(labsym.owner) and
           (current_procinfo.procdef.parast.symtablelevel<>labsym.owner.symtablelevel) then

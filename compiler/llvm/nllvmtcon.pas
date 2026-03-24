@@ -753,7 +753,7 @@ implementation
       secondop: tllvmop;
     begin
       inherited;
-      if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+      if (llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) and
          is_address(fromdef) and
          is_address(todef) then
         exit;

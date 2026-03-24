@@ -465,13 +465,13 @@ implementation
 
     function twasmraisenode.pass_1 : tnode;
       begin
-        if ts_wasm_no_exceptions in current_settings.targetswitches then
+        if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
           result:=pass_1_no_exceptions
-        else if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
           result:=pass_1_native_exnref_exceptions
-        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
           result:=pass_1_native_legacy_exceptions
-        else if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
           result:=pass_1_bf_exceptions
         else
           result:=inherited;
@@ -1055,13 +1055,13 @@ implementation
 
     procedure twasmtryexceptnode.pass_generate_code;
       begin
-        if ts_wasm_no_exceptions in current_settings.targetswitches then
+        if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_no_exceptions
-        else if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_native_exnref_exceptions
-        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_native_legacy_exceptions
-        else if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_bf_exceptions
         else
           internalerror(2021091705);
@@ -1851,13 +1851,13 @@ implementation
 
     procedure twasmtryfinallynode.pass_generate_code;
       begin
-        if ts_wasm_no_exceptions in current_settings.targetswitches then
+        if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_no_exceptions
-        else if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_native_exnref_exceptions
-        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_native_legacy_exceptions
-        else if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_bf_exceptions
         else
           internalerror(2021091704);
@@ -2320,13 +2320,13 @@ implementation
 
     procedure twasmonnode.pass_generate_code;
       begin
-        if ts_wasm_no_exceptions in current_settings.targetswitches then
+        if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_no_exceptions
-        else if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_native_exnref_exceptions
-        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_native_legacy_exceptions
-        else if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
           pass_generate_code_bf_exceptions
         else
           internalerror(2021092802);

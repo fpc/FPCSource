@@ -418,7 +418,7 @@ unit cpupara;
         { Return in FPU register? }
         if result.def.typ=floatdef then
           begin
-            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
               begin
                 case retcgsize of
                   OS_32,

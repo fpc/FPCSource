@@ -651,7 +651,7 @@ unit rgobj;
 {$endif DEBUG_REGALLOC}
         inc(rtindex);
         { Don't do the real allocation when -sr is passed }
-        if (cs_no_regalloc in current_settings.globalswitches) then
+        if (cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
           exit;
         { Spill registers which interfere with all usable real registers.
           It is pointless to keep them for further processing. Also it may
@@ -911,7 +911,7 @@ unit rgobj;
       begin
         supreg:=getsupreg(r);
 {$ifdef extdebug}
-        if not (cs_no_regalloc in current_settings.globalswitches) and
+        if not (cs_no_regalloc in compiler.globals.current_settings.globalswitches) and
            (supreg>=maxreginfo) then
           internalerror(200411061);
 {$endif extdebug}
@@ -2342,7 +2342,7 @@ unit rgobj;
                 begin
                   if (getregtype(tai_varloc(p).newlocation)=regtype) then
                     begin
-                      if (cs_asm_source in current_settings.globalswitches) then
+                      if (cs_asm_source in compiler.globals.current_settings.globalswitches) then
                         begin
                           s:=get_reg_name_full(tai_varloc(p).newlocation,tai_varloc(p).newlocationhi=NR_NO);
                           if s<>'' then
@@ -2533,7 +2533,7 @@ unit rgobj;
                 interfere but are connected by a move instruction
 
                 doing so might save some mem->mem moves }
-              if (cs_opt_level3 in current_settings.optimizerswitches) and
+              if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
                  getnewspillloc and
                  assigned(reginfo[t].movelist) then
                 for j:=0 to reginfo[t].movelist^.header.count-1 do

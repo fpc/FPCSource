@@ -122,7 +122,7 @@ begin
   jmpreg := cg.getaddressregister(current_asmdata.CurrAsmList);
   cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, jmpreg);
 
-  if (cs_create_pic in current_settings.moduleswitches) then
+  if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
     begin
       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,NR_GP,jmpreg,jmpreg);
       labeltyp:=aitconst_gotoff_symbol;

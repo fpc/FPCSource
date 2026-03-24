@@ -138,7 +138,7 @@ begin
     end;
 
     { Dividing low(longint) by -1 will overflow }
-    if is_signed(right.resultdef) and (cs_check_overflow in current_settings.localswitches) then
+    if is_signed(right.resultdef) and (cs_check_overflow in compiler.globals.current_settings.localswitches) then
     begin
       current_asmdata.getjumplabel(hl2);
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIU,NR_R1,NR_R0,-1));

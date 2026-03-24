@@ -183,7 +183,7 @@ implementation
 
         reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
         hreg:=getintregister(list,OS_ADDR);
-        if not (cs_create_pic in current_settings.moduleswitches) then
+        if not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             { absolute loads allow any offset to be encoded into relocation }
             href.refaddr:=addr_high;
@@ -529,7 +529,7 @@ implementation
           end;
 
         reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
-        if (cs_create_pic in current_settings.moduleswitches) then
+        if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             include(current_procinfo.flags,pi_needs_got);
             href.offset:=0;
@@ -922,7 +922,7 @@ implementation
           list.concat(taicpu.op_reg_const_reg(A_SUBX,NR_G0,-1,reg))
         else
           begin
-            if current_settings.cputype in [cpu_SPARC_V9] then
+            if compiler.globals.current_settings.cputype in [cpu_SPARC_V9] then
               begin
                 ai:=Taicpu.op_reg_const_reg(A_MOVcc,f.FlagReg,0,reg);
                 ai.SetCondition(inverse_cond(flags_to_cond(f)));
@@ -958,7 +958,7 @@ implementation
         ai:TAiCpu;
         hflags : tresflags;
       begin
-        if not(cs_check_overflow in current_settings.localswitches) then
+        if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
         current_asmdata.getjumplabel(hl);
         case ovloc.loc of
@@ -1021,7 +1021,7 @@ implementation
         ref : treference;
         hl : tasmlabel;
       begin
-        if (cs_create_pic in current_settings.moduleswitches) and
+        if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
            ((pi_needs_got in current_procinfo.flags) or
            (current_procinfo.procdef.proctypeoption=potype_unitfinalize)) then
           begin

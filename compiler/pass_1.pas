@@ -70,7 +70,7 @@ implementation
         compiler.verbose.codegenerror:=false;
         repeat
           compiler.globals.current_filepos:=p.fileinfo;
-          current_settings.localswitches:=p.localswitches;
+          compiler.globals.current_settings.localswitches:=p.localswitches;
           status.verbosity:=p.verbosity;
           hp:=p.pass_typecheck;
           { should the node be replaced? }
@@ -110,10 +110,10 @@ implementation
           begin
             oldcodegenerror:=compiler.verbose.codegenerror;
             oldpos:=compiler.globals.current_filepos;
-            oldlocalswitches:=current_settings.localswitches;
+            oldlocalswitches:=compiler.globals.current_settings.localswitches;
             oldverbosity:=status.verbosity;
             typecheckpass_internal_loop(p, node_changed);
-            current_settings.localswitches:=oldlocalswitches;
+            compiler.globals.current_settings.localswitches:=oldlocalswitches;
             compiler.globals.current_filepos:=oldpos;
             status.verbosity:=oldverbosity;
             compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
@@ -171,7 +171,7 @@ implementation
            begin
              oldcodegenerror:=compiler.verbose.codegenerror;
              oldpos:=compiler.globals.current_filepos;
-             oldlocalswitches:=current_settings.localswitches;
+             oldlocalswitches:=compiler.globals.current_settings.localswitches;
              oldverbosity:=status.verbosity;
              compiler.verbose.codegenerror:=false;
              repeat
@@ -181,7 +181,7 @@ implementation
                  InternalError(2022112401);
 
                { checks make always a call }
-               if ([cs_check_range,cs_check_overflow,cs_check_stack] * current_settings.localswitches <> []) then
+               if ([cs_check_range,cs_check_overflow,cs_check_stack] * compiler.globals.current_settings.localswitches <> []) then
                  include(current_procinfo.flags,pi_do_call);
                { determine the resultdef if not done }
                if (p.resultdef=nil) then
@@ -193,7 +193,7 @@ implementation
                if not(tnf_error in p.transientflags) then
                  begin
                    compiler.globals.current_filepos:=p.fileinfo;
-                   current_settings.localswitches:=p.localswitches;
+                   compiler.globals.current_settings.localswitches:=p.localswitches;
                    status.verbosity:=p.verbosity;
                    { first pass }
                    hp:=p.pass_1;
@@ -222,7 +222,7 @@ implementation
                end;
 {$endif EXTDEBUG}
              compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
-             current_settings.localswitches:=oldlocalswitches;
+             compiler.globals.current_settings.localswitches:=oldlocalswitches;
              compiler.globals.current_filepos:=oldpos;
              status.verbosity:=oldverbosity;
            end

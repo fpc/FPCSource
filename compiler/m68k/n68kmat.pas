@@ -123,7 +123,7 @@ implementation
                   else
                     begin
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-                      if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[current_settings.cputype])) and isaddressregister(left.location.register) then
+                      if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[compiler.globals.current_settings.cputype])) and isaddressregister(left.location.register) then
                         begin
                           hreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                           cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg);
@@ -148,7 +148,7 @@ implementation
 
   function tm68kmoddivnode.first_moddivint: tnode;
     begin
-      if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
+      if CPUM68K_HAS_32BITDIV in cpu_capabilities[compiler.globals.current_settings.cputype] then
         result:=nil
       else
         result:=inherited first_moddivint;
@@ -159,7 +159,7 @@ implementation
    const
      divudivs: array[boolean] of tasmop = (A_DIVU,A_DIVS);
    begin
-     if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
+     if CPUM68K_HAS_32BITDIV in cpu_capabilities[compiler.globals.current_settings.cputype] then
        begin
          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,res);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(divudivs[signed],S_L,denum,res));
@@ -175,10 +175,10 @@ implementation
     var
       tmpreg : tregister;
     begin
-      if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
+      if CPUM68K_HAS_32BITDIV in cpu_capabilities[compiler.globals.current_settings.cputype] then
         begin
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(
-            remop[CPUM68K_HAS_REMSREMU in cpu_capabilities[current_settings.cputype],signed],S_L,denum,res,num));
+            remop[CPUM68K_HAS_REMSREMU in cpu_capabilities[compiler.globals.current_settings.cputype],signed],S_L,denum,res,num));
         end
       else
         InternalError(2014062802);
@@ -203,7 +203,7 @@ implementation
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,compiler.globals.current_settings.fputype = fpu_coldfire);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
             end;
           LOC_FPUREGISTER:
@@ -273,7 +273,7 @@ implementation
                 location.register64.reghi:=hreg64lo;
               end
             else
-              if (shiftval = 1) and (CPUM68K_HAS_ROLROR in cpu_capabilities[current_settings.cputype]) then
+              if (shiftval = 1) and (CPUM68K_HAS_ROLROR in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                 begin
                   if nodetype = shln then
                     begin

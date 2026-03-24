@@ -291,7 +291,7 @@ implementation
          if compiler.verbose.codegenerror then
            exit;
 
-         if (m_tp7 in current_settings.modeswitches) then
+         if (m_tp7 in compiler.globals.current_settings.modeswitches) then
            begin
              { insert a hint that a range check error might occur on non-byte
                elements with the in operator.
@@ -1045,7 +1045,7 @@ implementation
               result:=elseblock.getcopy
             else
               begin
-                if ([m_iso,m_extpas]*current_settings.modeswitches)<>[] then
+                if ([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)<>[] then
                   compiler.verbose.CGMessage1(cg_e_case_missing_value,tostr(tordconstnode(left).value))
                 else
                   compiler.verbose.CGMessage(cg_w_case_incomplete);
@@ -1318,7 +1318,7 @@ implementation
           begin
             { unless cs_check_all_case_coverage is set, only check for enums, booleans and
               subrange types different from the default ones }
-            if (cs_check_all_case_coverage in current_settings.localswitches) or
+            if (cs_check_all_case_coverage in compiler.globals.current_settings.localswitches) or
                (is_enum(left.resultdef) or
                 is_boolean(left.resultdef) or
                 not orddefspansfullrange(torddef(left.resultdef))) and
@@ -1327,7 +1327,7 @@ implementation
                 { labels for some values of the operand are missing, and no else block is present }
                 compiler.verbose.CGMessage(cg_w_case_incomplete);
                 { in Standard/Extended Pascal, this is a dynamic violation error if it actually happens }
-                if ([m_extpas,m_iso]*current_settings.modeswitches)<>[] then
+                if ([m_extpas,m_iso]*compiler.globals.current_settings.modeswitches)<>[] then
                   begin
                     elseblock:=compiler.ccallnode_intern('fpc_rangeerror',nil);
                     typecheckpass(elseblock);

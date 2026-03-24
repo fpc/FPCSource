@@ -324,7 +324,7 @@ implementation
 (*
     function tjvminlinenode.first_sqrt_real : tnode;
       begin
-        if (current_settings.cputype >= cpu_PPC970) then
+        if (compiler.globals.current_settings.cputype >= cpu_PPC970) then
           begin
             expectloc:=LOC_FPUREGISTER;
             first_sqrt_real := nil;
@@ -658,7 +658,7 @@ implementation
 (*
      function tjvminlinenode.first_round_real : tnode;
       begin
-       if (current_settings.cputype >= cpu_PPC970) then
+       if (compiler.globals.current_settings.cputype >= cpu_PPC970) then
           begin
             expectloc:=LOC_REFERENCE;
             first_round_real := nil;
@@ -678,7 +678,7 @@ implementation
 (*
     procedure tjvminlinenode.second_sqrt_real;
       begin
-        if (current_settings.cputype < cpu_PPC970) then
+        if (compiler.globals.current_settings.cputype < cpu_PPC970) then
           internalerror(2007020910);
         location.loc:=LOC_FPUREGISTER;
         load_fpu_location;

@@ -145,14 +145,14 @@ var
   initialmem,
   maxmem : longint;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Create some replacements }
   mapstr:='';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
-  if (cs_link_smart in current_settings.globalswitches) and
+  if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
   else
@@ -176,7 +176,7 @@ begin
   initialmem:=align(compiler.globals.heapsize,PageSize);
   maxmem:=align(compiler.globals.maxheapsize,PageSize);
 
-  if ts_wasm_threads in current_settings.targetswitches then
+  if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
     begin
       cmdstr := cmdstr + ' --import-memory --shared-memory --global-base=1024';
     end;
@@ -187,7 +187,7 @@ begin
   if maxmem>0 then
     cmdstr := cmdstr + ' --max-memory=' + tostr(maxmem);
 
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      { only remove non global symbols and debugging info for a library }
      cmdstr := cmdstr + ' --strip-all';
@@ -221,14 +221,14 @@ var
   tempFileName : ansistring;
 begin
   Result:=false;
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
   { Create some replacements }
   mapstr:='';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
-  if (cs_link_smart in current_settings.globalswitches) and
+  if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
   else
@@ -249,7 +249,7 @@ begin
 
   cmdstr := cmdstr + ' --no-entry';
 
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    begin
      { only remove non global symbols and debugging info for a library }
      cmdstr := cmdstr + ' --strip-all';
@@ -330,7 +330,7 @@ begin
 
   LinkScript.Concat('EXESECTION .wasm_globals');
   LinkScript.Concat('  SYMBOL __stack_pointer');
-  if ts_wasm_threads in current_settings.targetswitches then
+  if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
     begin
       LinkScript.Concat('  SYMBOL __tls_base');
       LinkScript.Concat('  SYMBOL __tls_size');
@@ -346,7 +346,7 @@ begin
   { tags (used by WebAssembly native exceptions) }
   ScriptAddGenericSections('.wasm_tags');
   { code }
-  if ts_wasm_threads in current_settings.targetswitches then
+  if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
     begin
       linkscript.Concat('EXESECTION .text');
       linkscript.Concat('  OBJSECTION .text*');
@@ -357,7 +357,7 @@ begin
     end
   else
     ScriptAddGenericSections('.text');
-  if ts_wasm_threads in current_settings.targetswitches then
+  if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
     ScriptAddGenericSections('.tbss');
   ScriptAddGenericSections(
     { data (initialized data first, uninitialized data later) }

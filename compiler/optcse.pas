@@ -365,7 +365,7 @@ type
                   (is_integer(n.resultdef) or is_real(n.resultdef) or is_vector(n.resultdef) or is_set(n.resultdef) or
                    is_boolean(n.resultdef)) and
                   { either if fastmath is on }
-                  ((cs_opt_fastmath in current_settings.optimizerswitches) or
+                  ((cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) or
                    { or for the logical operators, they cannot overflow }
                    (n.nodetype in [andn,orn]) or
                    { or for integers if range checking is off }
@@ -634,10 +634,12 @@ type
       pconstentries = ^tconstentries;
 
     function CSEOnReference(n : tnode) : Boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Result:=(n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym)
           and ((vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions) or
-            (cs_create_pic in current_settings.moduleswitches)
+            (cs_create_pic in compiler.globals.current_settings.moduleswitches)
 {$if defined(aarch64) or defined(sparc) or defined(sparc64) or defined(riscv)}
             or (not(tabstractvarsym(tloadnode(n).symtableentry).is_regvar(false)))
 {$endif defined(aarch64) or defined(sparc) or defined(sparc64) or defined(riscv)}

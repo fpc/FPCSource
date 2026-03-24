@@ -231,13 +231,13 @@ implementation
 {$ifdef cpu64bitalu}
            ((torddef(left.resultdef).ordtype in [s32bit,s64bit]) or
             ((torddef(left.resultdef).ordtype in [u32bit,u64bit]) and
-             (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]))
+             (FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]))
            );
 {$else cpu64bitalu}
            ((torddef(left.resultdef).ordtype=s32bit)
 {$ifdef i386}
             or ((torddef(left.resultdef).ordtype=u32bit) and
-             (FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]))
+             (FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]))
 {$endif i386}
            );
 {$endif cpu64bitalu}
@@ -271,7 +271,7 @@ implementation
          use_bt: boolean;  { true = use BT (386+), false = use TEST (286-) }
       begin
 {$ifdef i8086}
-        use_bt:=current_settings.cputype>=cpu_386;
+        use_bt:=compiler.globals.current_settings.cputype>=cpu_386;
 {$else i8086}
         use_bt:=true;
 {$endif i8086}

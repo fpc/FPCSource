@@ -528,7 +528,7 @@ implementation
               { implement these methods since they don't exist for all cpus (JM)  }
               { Similarly, range checking also has to be handled separately, }
               { see mantis #14841 (JM)                                       }
-              if ([cs_check_overflow,cs_check_range] * current_settings.localswitches <> []) then
+              if ([cs_check_overflow,cs_check_range] * compiler.globals.current_settings.localswitches <> []) then
                 internalerror(2006111010);
 //              cg.g_overflowcheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).resultdef);
 //              cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,
@@ -776,7 +776,7 @@ implementation
             tempreg64.reghi:=left.location.register64.reghi;
             tempreg64.reglo:=left.location.register64.reghi;
             cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_XOR,def_cgsize(resultdef),tempreg64,location.register64);
-            if cs_check_overflow in current_settings.localswitches then
+            if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 cg64.a_op64_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,def_cgsize(resultdef),tempreg64,location.register64,location.register64,true,ovloc);
                 hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
@@ -795,7 +795,7 @@ implementation
             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,left.resultdef,left.resultdef.size*8-1,left.location.register,tempreg1);
             hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.resultdef,left.location.register,tempreg1,tempreg2);
 
-            if cs_check_overflow in current_settings.localswitches then
+            if cs_check_overflow in compiler.globals.current_settings.localswitches then
               begin
                 hlcg.a_op_reg_reg_reg_checkoverflow(current_asmdata.CurrAsmlist,OP_SUB,resultdef,tempreg1,tempreg2,location.register,true,ovloc);
                 hlcg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);

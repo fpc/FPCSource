@@ -187,7 +187,7 @@ end;
 
 Procedure FWaitWarning(compiler: TCompilerBase);
 begin
-  if (compiler.target.info.system=system_i386_GO32V2) and (cs_fp_emulation in current_settings.moduleswitches) then
+  if (compiler.target.info.system=system_i386_GO32V2) and (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
    compiler.verbose.Message(asmr_w_fwait_emu_prob);
 end;
 
@@ -269,7 +269,7 @@ begin
         begin
           if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset>0) then
             begin
-              if current_settings.asmmode in asmmodes_x86_intel then
+              if compiler.globals.current_settings.asmmode in asmmodes_x86_intel then
                 begin
                   case getsubreg(opr.ref.base) of
                     R_SUBW:
@@ -302,7 +302,7 @@ begin
             end
           else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
             begin
-              if current_settings.asmmode in asmmodes_x86_intel then
+              if compiler.globals.current_settings.asmmode in asmmodes_x86_intel then
                 begin
                   case getsubreg(opr.ref.base) of
                     R_SUBW:
@@ -333,7 +333,7 @@ begin
           else if ((ins.opcode<>A_LEA) and (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0)) or
             ((ins.opcode=A_LEA) and (getsupreg(ins.operands[2].opr.reg)<>RS_ESP) and (getsupreg(opr.ref.base)=RS_ESP) and (getsubreg(opr.ref.base)<>R_SUBW) and (opr.ref.offset<0)) then
             begin
-              if current_settings.asmmode in asmmodes_x86_intel then
+              if compiler.globals.current_settings.asmmode in asmmodes_x86_intel then
                 begin
                   case getsubreg(opr.ref.base) of
                     R_SUBD:
@@ -358,7 +358,7 @@ begin
               compiler.verbose.Message1(asmr_w_direct_esp_neg_offset,ErrorRefStr);
             end;
         end;
-      if (cs_create_pic in current_settings.moduleswitches) and
+      if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
          assigned(opr.ref.symbol) and
          not assigned(opr.ref.relsymbol) then
         begin
@@ -409,7 +409,7 @@ procedure Tx86Operand.SetupData;
 begin
 {$ifdef i8086}
   InitRef;
-  if current_settings.x86memorymodel=mm_huge then
+  if compiler.globals.current_settings.x86memorymodel=mm_huge then
     opr.ref.refaddr:=addr_fardataseg
   else
     opr.ref.refaddr:=addr_dgroup;
@@ -1393,7 +1393,7 @@ begin
                           tx86operand(operands[i]).opsize:=opsize
                         else
                          begin
-                           if (m_delphi in current_settings.modeswitches) then
+                           if (m_delphi in compiler.globals.current_settings.modeswitches) then
                              compiler.verbose.Message(asmr_w_unable_to_determine_reference_size_using_dword)
                            else
                              compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
@@ -1409,7 +1409,7 @@ begin
                      else if not(NoMemorySizeRequired(opcode) or
                        (opcode=A_JMP) or (opcode=A_JCC) or (opcode=A_CALL) or (opcode=A_LCALL) or (opcode=A_LJMP)) then
                        begin
-                         if (m_delphi in current_settings.modeswitches) then
+                         if (m_delphi in compiler.globals.current_settings.modeswitches) then
                            compiler.verbose.Message(asmr_w_unable_to_determine_reference_size_using_dword)
                          else
                            compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
@@ -1663,7 +1663,7 @@ begin
                 if tx86operand(operands[1]).opsize=S_NO then
                   begin
                     tx86operand(operands[1]).opsize:=S_B;
-                    if (m_delphi in current_settings.modeswitches) then
+                    if (m_delphi in compiler.globals.current_settings.modeswitches) then
                       compiler.verbose.Message(asmr_w_unable_to_determine_reference_size_using_byte)
                     else
                       compiler.verbose.Message(asmr_e_unable_to_determine_reference_size);
@@ -1779,8 +1779,8 @@ begin
   if sizeerr then
    begin
      { if range checks are on then generate an error }
-     if (cs_compilesystem in current_settings.moduleswitches) or
-        not (cs_check_range in current_settings.localswitches) then
+     if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) or
+        not (cs_check_range in compiler.globals.current_settings.localswitches) then
        compiler.verbose.Message(asmr_w_size_suffix_and_dest_dont_match)
      else
        compiler.verbose.Message(asmr_e_size_suffix_and_dest_dont_match);
@@ -2101,7 +2101,7 @@ begin
        OPR_REFERENCE:
          begin
 
-           if current_settings.optimizerswitches <> [] then
+           if compiler.globals.current_settings.optimizerswitches <> [] then
             if (not(MemRefInfo(opcode).MemRefSize in MemRefSizeInfoVMems)) and (opcode<>A_XLAT) and not is_x86_string_op(opcode) then
              optimize_ref(operands[i].opr.ref,true);
 

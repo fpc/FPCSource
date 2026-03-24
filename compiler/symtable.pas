@@ -1000,7 +1000,7 @@ implementation
                      if ((tsym(sym).owner.symtabletype<>localsymtable) or
                         (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
                         not (po_noreturn in tprocdef(tsym(sym).owner.defowner).procoptions) and
-                        not(cs_opt_nodedfa in current_settings.optimizerswitches) then
+                        not(cs_opt_nodedfa in compiler.globals.current_settings.optimizerswitches) then
                        compiler.verbose.MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
                    end
                  else if (tsym(sym).owner.symtabletype=parasymtable) then
@@ -1314,7 +1314,7 @@ implementation
       begin
         case usefieldalignment of
           C_alignment:
-            varalignrecord:=used_align(varalign,recordalignmin,current_settings.alignment.maxCrecordalign);
+            varalignrecord:=used_align(varalign,recordalignmin,compiler.globals.current_settings.alignment.maxCrecordalign);
           mac68k_alignment:
             varalignrecord:=2;
           else
@@ -1431,7 +1431,7 @@ implementation
         changed: boolean;
       begin
         if maybereorder and
-           (cs_opt_reorder_fields in current_settings.optimizerswitches) and
+           (cs_opt_reorder_fields in compiler.globals.current_settings.optimizerswitches) and
            (list.count>1) then
           begin
             { assign dummy field offsets so we can know their order in the
@@ -1844,7 +1844,7 @@ implementation
                 compiler.verbose.Message1(sym_w_wrong_C_pack,vardef.typename);
               if varalign=0 then
                 varalign:=l;
-              if (globalfieldalignment<current_settings.alignment.maxCrecordalign) then
+              if (globalfieldalignment<compiler.globals.current_settings.alignment.maxCrecordalign) then
                 begin
                   if (varalign>16) and (globalfieldalignment<32) then
                     globalfieldalignment:=32
@@ -1860,7 +1860,7 @@ implementation
                   else if (varalign>1) and (globalfieldalignment<2) then
                     globalfieldalignment:=2;
                 end;
-              globalfieldalignment:=min(globalfieldalignment,current_settings.alignment.maxCrecordalign);
+              globalfieldalignment:=min(globalfieldalignment,compiler.globals.current_settings.alignment.maxCrecordalign);
             end;
           mac68k_alignment:
             begin
@@ -2048,14 +2048,14 @@ implementation
               if assigned(hsym) and
                  (
                   (
-                   not(m_delphi in current_settings.modeswitches) and
+                   not(m_delphi in compiler.globals.current_settings.modeswitches) and
                    is_visible_for_object(hsym,tobjectdef(defowner))
                   ) or
                   (
                    { In Delphi, you can repeat members of a parent class. You can't }
                    { do this for objects however, and you (obviously) can't         }
                    { declare two fields with the same name in a single class        }
-                   (m_delphi in current_settings.modeswitches) and
+                   (m_delphi in compiler.globals.current_settings.modeswitches) and
                    (
                     is_object(tdef(defowner)) or
                     (hsym.owner = self)
@@ -2503,10 +2503,10 @@ implementation
           begin
             { a local and the function can have the same
               name in TP and Delphi, but RESULT not }
-            if (m_duplicate_names in current_settings.modeswitches) and
+            if (m_duplicate_names in compiler.globals.current_settings.modeswitches) and
                (hsym.typ in [absolutevarsym,localvarsym]) and
                (vo_is_funcret in tabstractvarsym(hsym).varoptions) and
-               not((m_result in current_settings.modeswitches) and
+               not((m_result in compiler.globals.current_settings.modeswitches) and
                    (vo_is_result in tabstractvarsym(hsym).varoptions)) then
               HideSym(hsym)
             else
@@ -2523,10 +2523,10 @@ implementation
           begin
             { a local and the function can have the same
               name in TP and Delphi, but RESULT not }
-            if (m_duplicate_names in current_settings.modeswitches) and
+            if (m_duplicate_names in compiler.globals.current_settings.modeswitches) and
                (sym.typ in [absolutevarsym,localvarsym]) and
                (vo_is_funcret in tabstractvarsym(sym).varoptions) and
-               not((m_result in current_settings.modeswitches) and
+               not((m_result in compiler.globals.current_settings.modeswitches) and
                    (vo_is_result in tabstractvarsym(sym).varoptions)) then
               Hidesym(sym)
             else
@@ -2543,7 +2543,7 @@ implementation
            assigned(tprocdef(defowner).struct) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
-            not(m_duplicate_names in current_settings.modeswitches) or
+            not(m_duplicate_names in compiler.globals.current_settings.modeswitches) or
             is_object(tprocdef(defowner).struct)
            ) then
           result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
@@ -2568,13 +2568,13 @@ implementation
         result:=inherited checkduplicate(hashedid,sym);
         if result then
           exit;
-        if not(m_duplicate_names in current_settings.modeswitches) and
+        if not(m_duplicate_names in compiler.globals.current_settings.modeswitches) and
            assigned(defowner) and (defowner.typ=procdef) and
            assigned(tprocdef(defowner).struct) and
            assigned(tprocdef(defowner).owner) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner).struct) and
            (
-            not(m_delphi in current_settings.modeswitches) or
+            not(m_delphi in compiler.globals.current_settings.modeswitches) or
             is_object(tprocdef(defowner).struct)
            ) then
           result:=tprocdef(defowner).struct.symtable.checkduplicate(hashedid,sym);
@@ -2621,7 +2621,7 @@ implementation
               <unit>.<id>, so we can hide the symbol.
               Do the same if we add a namespace and there is a unit with the same name }
             if (hsym.typ=symconst.unitsym) and
-               ((m_delphi in current_settings.modeswitches) or (sym.typ=symconst.namespacesym)) then
+               ((m_delphi in compiler.globals.current_settings.modeswitches) or (sym.typ=symconst.namespacesym)) then
               begin
                 HideSym(hsym);
                 if sym.typ=symconst.namespacesym then
@@ -2629,13 +2629,13 @@ implementation
               end
             { iso mode program parameters: staticvarsyms might have the same name as a program parameters,
               in this case, copy the isoindex and make the original symbol invisible }
-            else if (m_isolike_program_para in current_settings.modeswitches) and (hsym.typ=programparasym) and (sym.typ=staticvarsym)
+            else if (m_isolike_program_para in compiler.globals.current_settings.modeswitches) and (hsym.typ=programparasym) and (sym.typ=staticvarsym)
               and (tprogramparasym(hsym).isoindex<>0) then
               begin
                 HideSym(hsym);
                 tstaticvarsym(sym).isoindex:=tprogramparasym(hsym).isoindex;
               end
-            else if (m_iso in current_settings.modeswitches) and (hsym.typ=unitsym) then
+            else if (m_iso in compiler.globals.current_settings.modeswitches) and (hsym.typ=unitsym) then
               HideSym(hsym)
             else
               DuplicateSym(hashedid,sym,hsym,false);
@@ -3114,6 +3114,8 @@ implementation
       end;
 
     function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=false;
         if not assigned(sym) or not (sym is tstoredsym) then
@@ -3126,7 +3128,7 @@ implementation
           symbol }
         if (sp_generic_dummy in tstoredsym(sym).symoptions) and
             (sym.typ=typesym) and (ttypesym(sym).typedef.typ=undefineddef) and
-            (m_delphi in current_settings.modeswitches) then
+            (m_delphi in compiler.globals.current_settings.modeswitches) then
           begin
             inc(dupnr);
             sym.Owner.SymList.Rename(upper(sym.realname),'dup_'+tostr(dupnr)+sym.realname);
@@ -4201,6 +4203,8 @@ implementation
 
     function searchsym_in_helper(classh,contextclassh:tobjectdef;const s: TIDString;out srsym:tsym;out srsymtable:TSymtable;flags:tsymbol_search_flags):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hashedid      : THashedIDString;
         parentclassh  : tobjectdef;
       begin
@@ -4269,7 +4273,7 @@ implementation
               exit;
           end;
         { now search all helpers using the extendeddef as the starting point }
-        if (m_multi_helpers in current_settings.modeswitches) and
+        if (m_multi_helpers in compiler.globals.current_settings.modeswitches) and
             (
               (current_structdef<>classh) or
               assigned(classh.extendeddef)
@@ -4517,7 +4521,7 @@ implementation
         check_systemunit_loaded;
         srsym:=tsym(systemunit.find(s));
         if not assigned(srsym) and
-           (cs_compilesystem in current_settings.moduleswitches) then
+           (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
           srsym:=tsym(systemunit.Find(upper(s)));
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
@@ -4691,13 +4695,15 @@ implementation
 
     function search_objectpascal_helper(pd : tdef;contextclassh : tabstractrecorddef;const s: string; out srsym: tsym; out srsymtable: tsymtable):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         classh : tobjectdef;
       begin
         result:=false;
 
         { if there is no class helper for the class then there is no need to
           search further }
-        if m_multi_helpers in current_settings.modeswitches then
+        if m_multi_helpers in compiler.globals.current_settings.modeswitches then
           result:=search_best_objectpascal_helper(s,pd,contextclassh,srsym,srsymtable)
         else
           begin

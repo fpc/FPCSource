@@ -174,7 +174,7 @@ implementation
         if is_dynamic_array(def) or
            (not is_char(def.elementdef) and
             (not is_integer(def.elementdef) or
-             not(ts_compact_int_array_init in current_settings.targetswitches))) then
+             not(ts_compact_int_array_init in compiler.globals.current_settings.targetswitches))) then
           begin
             inherited;
             exit;
@@ -202,7 +202,7 @@ implementation
                     internalerror(2010033010);
                   ca:=pbyte(tstringconstnode(n).asconstpchar);
                 { For tp7 the maximum length can be 255 }
-                if (m_tp7 in current_settings.modeswitches) and
+                if (m_tp7 in compiler.globals.current_settings.modeswitches) and
                    (len>255) then
                  len:=255;
               end
@@ -212,7 +212,7 @@ implementation
                  ca:=@ch;
                  len:=1;
                end
-            else if is_constwidecharnode(n) and (current_settings.sourcecodepage<>CP_UTF8) then
+            else if is_constwidecharnode(n) and (compiler.globals.current_settings.sourcecodepage<>CP_UTF8) then
                begin
                  inserttypeconv(n,cansichartype,compiler);
                  if not is_constcharnode(n) then

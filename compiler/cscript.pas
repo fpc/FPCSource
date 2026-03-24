@@ -128,8 +128,10 @@ uses
 ****************************************************************************}
 
     Function ScriptFixFileName(const s:TCmdStr):TCmdStr;
+     var
+       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
      begin
-       if cs_link_on_target in current_settings.globalswitches then
+       if cs_link_on_target in compiler.globals.current_settings.globalswitches then
          ScriptFixFileName:=TargetFixFileName(s)
        else
          ScriptFixFileName:=FixFileName(s);
@@ -152,7 +154,7 @@ constructor TScript.CreateExec(const s:TCmdStr; ACompiler: TCompilerBase);
 begin
   FCompiler:=ACompiler;
   fn:=FixFileName(s);
-  if cs_link_on_target in current_settings.globalswitches then
+  if cs_link_on_target in compiler.globals.current_settings.globalswitches then
     fn:=ChangeFileExt(fn,compiler.target.info.scriptext)
   else
     fn:=ChangeFileExt(fn,source_info.scriptext);
@@ -194,7 +196,7 @@ var
 
 begin
   Assign(t,fn);
-  if cs_link_on_target in current_settings.globalswitches then
+  if cs_link_on_target in compiler.globals.current_settings.globalswitches then
     le:= compiler.target.info.newline
   else
     le:= source_info.newline;
@@ -482,7 +484,7 @@ function GenerateScript(const st: TCmdStr): TAsmScript;
   var
     scripttyp : tscripttype;
   begin
-    if cs_link_on_target in current_settings.globalswitches then
+    if cs_link_on_target in compiler.globals.current_settings.globalswitches then
       scripttyp := compiler.target.info.script
     else
       scripttyp := source_info.script;
@@ -539,16 +541,16 @@ begin
      { GNU ld only supports double quotes in the response file. }
      if fRealResponseFile and
         (ls[1]='''') and
-        (((cs_link_on_target in current_settings.globalswitches) and
+        (((cs_link_on_target in compiler.globals.current_settings.globalswitches) and
           (compiler.target.info.script=script_unix)) or
-         (not(cs_link_on_target in current_settings.globalswitches) and
+         (not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
           (source_info.script=script_unix))) then
        inherited add(UnixRequoteWithDoubleQuotes(s))
      else if not(ls[1] in ['a'..'z','A'..'Z','/','\','.','"']) then
       begin
         if fForceUseForwardSlash then
           inherited Add('./'+ls)
-        else if (cs_link_on_target in current_settings.globalswitches) then
+        else if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
           inherited Add('.'+compiler.target.info.DirSep+ls)
         else
           inherited Add('.'+source_info.DirSep+ls);

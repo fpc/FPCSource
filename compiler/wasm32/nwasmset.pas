@@ -89,7 +89,7 @@ implementation
           end;
 
         { These optimisations aren't particularly debugger friendly }
-        if not (cs_opt_level2 in current_settings.optimizerswitches) then
+        if not (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           begin
             Result := False;
             current_asmdata.getjumplabel(_Label);
@@ -226,7 +226,7 @@ implementation
                 hregister:=scratch_reg;
                 opsize:=newdef;
               end;
-            if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
+            if (labelcnt>1) or not(cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) then
               begin
                 last:=0;
                 first:=true;
@@ -356,7 +356,7 @@ implementation
         else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
           begin
-            //if cs_opt_level1 in current_settings.optimizerswitches then
+            //if cs_opt_level1 in compiler.globals.current_settings.optimizerswitches then
             //  begin
             //    { procedures are empirically passed on }
             //    { consumption can also be calculated   }
@@ -379,7 +379,7 @@ implementation
             //      dist:=asizeuint(-distv.svalue);
             //
             //    { optimize for size ? }
-            //    if cs_opt_size in current_settings.optimizerswitches  then
+            //    if cs_opt_size in compiler.globals.current_settings.optimizerswitches  then
             //      begin
             //        if has_jumptable and
             //           (min_label>=int64(low(aint))) and

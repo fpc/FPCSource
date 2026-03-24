@@ -218,7 +218,7 @@ unit cgcpu;
            not (assigned(ref.symbol) and (ref.base <> NR_NO) and (ref.offset <> 0)) and
 
            { coldfire and 68000 cannot handle non-addressregs as bases }
-           not ((current_settings.cputype in cpu_coldfire+[cpu_mc68000]) and
+           not ((compiler.globals.current_settings.cputype in cpu_coldfire+[cpu_mc68000]) and
                 not isaddressregister(ref.base));
        end;
 
@@ -519,7 +519,7 @@ unit cgcpu;
            end;
 
          { deal with large offsets on non-020+ }
-         if not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+         if not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
            begin
              if ((ref.index<>NR_NO) and not isvalue8bit(ref.offset)) or
                 ((ref.base<>NR_NO) and not isvalue16bit(ref.offset)) then
@@ -677,7 +677,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_SUB,S_L,register,register))
             else}
               { ISA B/C Coldfire has MOV3Q which can move -1 or 1..7 to any reg }
-              if (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
+              if (compiler.globals.current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
                  ((longint(a) = -1) or ((longint(a) > 0) and (longint(a) < 8))) then
                 list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
               else
@@ -694,7 +694,7 @@ unit cgcpu;
         else
          begin
            { Prefer MOV3Q if applicable, it allows replacement spilling for register }
-           if (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
+           if (compiler.globals.current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
              ((longint(a)=-1) or ((longint(a)>0) and (longint(a)<8))) then
              list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
            else if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
@@ -702,7 +702,7 @@ unit cgcpu;
            else
              begin
                { ISA B/C Coldfire has sign extend/zero extend moves }
-               if (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
+               if (compiler.globals.current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
                   (size in [OS_16, OS_8, OS_S16, OS_S8]) and
                   ((longint(a) >= low(smallint)) and (longint(a) <= high(smallint))) then
                  begin
@@ -741,15 +741,15 @@ unit cgcpu;
         a:=longint(a);
         href:=ref;
         fixref(list,href,false);
-        if (a=0) and not (current_settings.cputype = cpu_mc68000) then
+        if (a=0) and not (compiler.globals.current_settings.cputype = cpu_mc68000) then
           list.concat(taicpu.op_ref(A_CLR,tcgsize2opsize[tosize],href))
         else if (tcgsize2opsize[tosize]=S_L) and
-           (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
+           (compiler.globals.current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
            ((a=-1) or ((a>0) and (a<8))) then
           list.concat(taicpu.op_const_ref(A_MOV3Q,S_L,a,href))
         { for coldfire we need to go through a temporary register if we have a
           offset, index or symbol given }
-        else if (current_settings.cputype in cpu_coldfire) and
+        else if (compiler.globals.current_settings.cputype in cpu_coldfire) and
             (
               (href.offset<>0) or
               { TODO : check whether we really need this second condition }
@@ -891,7 +891,7 @@ unit cgcpu;
         else
           begin
             fixref(list,aref,false);
-            fixref(list,bref,current_settings.cputype in cpu_coldfire);
+            fixref(list,bref,compiler.globals.current_settings.cputype in cpu_coldfire);
             list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
           end;
       end;
@@ -957,7 +957,7 @@ unit cgcpu;
          else
            hreg:=register;
 
-         if needsext and (CPUM68K_HAS_MVSMVZ in cpu_capabilities[current_settings.cputype]) and not (opsize in [S_L]) then
+         if needsext and (CPUM68K_HAS_MVSMVZ in cpu_capabilities[compiler.globals.current_settings.cputype]) and not (opsize in [S_L]) then
            begin
              if fromsize in [OS_S8,OS_S16] then
                list.concat(taicpu.op_ref_reg(A_MVS,opsize,href,hreg))
@@ -1103,7 +1103,7 @@ unit cgcpu;
       begin
         opsize := tcgsize2opsize[fromsize];
         href := ref;
-        fixref(list,href,current_settings.fputype = fpu_coldfire);
+        fixref(list,href,compiler.globals.current_settings.fputype = fpu_coldfire);
         list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
         if fromsize > tosize then
           a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
@@ -1116,7 +1116,7 @@ unit cgcpu;
       begin
         opsize := tcgsize2opsize[tosize];
         href := ref;
-        fixref(list,href,current_settings.fputype = fpu_coldfire);
+        fixref(list,href,compiler.globals.current_settings.fputype = fpu_coldfire);
         list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg,href));
       end;
 
@@ -1124,7 +1124,7 @@ unit cgcpu;
       var
         ref : treference;
       begin
-        if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
+        if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
             cgpara.check_simple_location;
             reference_reset_base(ref, NR_STACK_POINTER_REG, 0, ctempposinvalid, cgpara.alignment, []);
@@ -1140,7 +1140,7 @@ unit cgcpu;
         href, href2 : treference;
         freg : tregister;
       begin
-        if current_settings.fputype = fpu_soft then
+        if compiler.globals.current_settings.fputype = fpu_soft then
           case cgpara.location^.loc of
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
@@ -1157,7 +1157,7 @@ unit cgcpu;
               inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
           end
         else
-          if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[current_settings.fputype]) then
+          if use_push(cgpara) and (FPUM68K_HAS_HARDWARE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
             begin
               //list.concat(tai_comment.create(strpnew('a_loadfpu_ref_cgpara copy')));
               cgpara.check_simple_location;
@@ -1242,7 +1242,7 @@ unit cgcpu;
                 { NOTE: better have this as fast as possible on every CPU in all cases,
                         because the compiler uses OP_IMUL for array indexing... (KB) }
                 { ColdFire doesn't support MULS/MULU <imm>,dX }
-                if not (CPUM68K_HAS_MULIMM in cpu_capabilities[current_settings.cputype]) then
+                if not (CPUM68K_HAS_MULIMM in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                   begin
                     { move const to a register first }
                     scratch_reg := getintregister(list,OS_INT);
@@ -1258,7 +1258,7 @@ unit cgcpu;
                   end
                 else
                   begin
-                    if CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype] then
+                    if CPUM68K_HAS_32BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype] then
                       begin
                         { do the multiplication }
                         scratch_reg := force_to_dataregister(list, size, reg);
@@ -1352,7 +1352,7 @@ unit cgcpu;
 
         { on ColdFire all arithmetic operations are only possible on 32bit }
         if needs_unaligned(ref.alignment,size) or
-           (not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) and (opsize <> S_L)
+           (not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) and (opsize <> S_L)
            and not (op in [OP_NONE,OP_MOVE])) then
           begin
             inherited;
@@ -1395,7 +1395,7 @@ unit cgcpu;
                   list.concat(taicpu.op_const_ref(opcode, opsize, a, href));
                 end
               else
-                if not(current_settings.cputype in cpu_coldfire) then
+                if not(compiler.globals.current_settings.cputype in cpu_coldfire) then
                   begin
                     fixref(list,href,false);
                     list.concat(taicpu.op_const_ref(opcode, opsize, a, href));
@@ -1419,7 +1419,7 @@ unit cgcpu;
         opsize : topsize;
       begin
         opcode := topcg2tasmop[op];
-        if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
+        if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           opsize := S_L
         else
           opsize := TCGSize2OpSize[size];
@@ -1428,7 +1428,7 @@ unit cgcpu;
           OP_ADD,
           OP_SUB:
               begin
-                if current_settings.cputype in cpu_coldfire then
+                if compiler.globals.current_settings.cputype in cpu_coldfire then
                   begin
                     { operation only allowed only a longword }
                     sign_extend(list, size, src);
@@ -1445,14 +1445,14 @@ unit cgcpu;
                 { the compiler has code on the higher levels to try to prevent generating
                   ROR/ROL instructions on m68k CPUs that don't support it (ColdFire family) }
                 if (op in [OP_ROR,OP_ROL]) and
-                    not (CPUM68K_HAS_ROLROR in cpu_capabilities[current_settings.cputype]) then
+                    not (CPUM68K_HAS_ROLROR in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                   internalerror(2025091101);
 
                 { load to data registers }
                 hreg1 := force_to_dataregister(list, size, src);
                 hreg2 := force_to_dataregister(list, size, dst);
 
-                if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
+                if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                   { source for these ops are always modulo 64 on m68k,
                     so we don't need to extend the src register }
                   sign_extend(list, size, hreg2);
@@ -1470,7 +1470,7 @@ unit cgcpu;
                 hreg1 := force_to_dataregister(list, size, src);
                 hreg2 := force_to_dataregister(list, size, dst);
 
-                if current_settings.cputype in cpu_coldfire then
+                if compiler.globals.current_settings.cputype in cpu_coldfire then
                   begin
                     sign_extend(list, size, hreg1);
                     sign_extend(list, size, hreg2);
@@ -1488,7 +1488,7 @@ unit cgcpu;
           OP_MUL,
           OP_IMUL:
               begin
-                if not (CPUM68K_HAS_32BITMUL in cpu_capabilities[current_settings.cputype]) then
+                if not (CPUM68K_HAS_32BITMUL in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                   if op = OP_MUL then
                     call_rtl_mul_reg_reg(list,src,dst,'fpc_mul_dword')
                   else
@@ -1520,7 +1520,7 @@ unit cgcpu;
                 hreg2 := force_to_dataregister(list, size, dst);
 
                 { coldfire only supports long version }
-                if current_settings.cputype in cpu_ColdFire then
+                if compiler.globals.current_settings.cputype in cpu_ColdFire then
                   sign_extend(list, size, hreg2);
 
                 list.concat(taicpu.op_reg(opcode, opsize, hreg2));
@@ -1547,7 +1547,7 @@ unit cgcpu;
         { on ColdFire all arithmetic operations are only possible on 32bit
           and addressing modes are limited }
         if needs_unaligned(ref.alignment,size) or
-           (not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) and (opsize <> S_L)) then
+           (not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) and (opsize <> S_L)) then
           begin
             //list.concat(tai_comment.create(strpnew('a_op_reg_ref: inherited #1')));
             inherited;
@@ -1590,7 +1590,7 @@ unit cgcpu;
         { on ColdFire all arithmetic operations are only possible on 32bit
           and addressing modes are limited }
         if needs_unaligned(ref.alignment,size) or
-           (not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) and (opsize <> S_L)) then
+           (not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) and (opsize <> S_L)) then
           begin
             //list.concat(tai_comment.create(strpnew('a_op_ref_reg: inherited #1')));
             inherited;
@@ -1609,7 +1609,7 @@ unit cgcpu;
               href:=ref;
               { Coldfire doesn't support d(Ax,Dx) for long MULx... }
               fixref(list,href,(op in [OP_MUL,OP_IMUL]) and
-                               (current_settings.cputype in cpu_coldfire));
+                               (compiler.globals.current_settings.cputype in cpu_coldfire));
               list.concat(taicpu.op_ref_reg(opcode, opsize, href, reg));
             end;
           else begin
@@ -1631,11 +1631,11 @@ unit cgcpu;
         need_temp_reg := false;
 
         { plain 68000 doesn't support address registers for TST }
-        need_temp_reg := (current_settings.cputype = cpu_mc68000) and
+        need_temp_reg := (compiler.globals.current_settings.cputype = cpu_mc68000) and
           (a = 0) and isaddressregister(reg);
 
         { ColdFire doesn't support address registers for CMPI }
-        need_temp_reg := need_temp_reg or ((current_settings.cputype in cpu_coldfire)
+        need_temp_reg := need_temp_reg or ((compiler.globals.current_settings.cputype in cpu_coldfire)
           and (a <> 0) and isaddressregister(reg));
 
         if need_temp_reg then
@@ -1666,7 +1666,7 @@ unit cgcpu;
               it's actually *LEGAL*, see CFPRM, page 4-30, the bug also seems
               fixed in recent QEMU, but only when CPU cfv4e is forced, not by
               default. (KB) }
-            if current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cpu_cfv4e]} then
+            if compiler.globals.current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cpu_cfv4e]} then
               begin
                 sign_extend(list, size, reg);
                 size:=OS_INT;
@@ -1701,7 +1701,7 @@ unit cgcpu;
 
     procedure tcg68k.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
-         if (current_settings.cputype in cpu_coldfire-[cpu_isa_b,cpu_isa_c,cpu_cfv4e]) then
+         if (compiler.globals.current_settings.cputype in cpu_coldfire-[cpu_isa_b,cpu_isa_c,cpu_cfv4e]) then
            begin
              sign_extend(list,size,reg1);
              sign_extend(list,size,reg2);
@@ -1769,7 +1769,7 @@ unit cgcpu;
 
           { Scc stores a complete byte of 1s, but the compiler expects only one
             bit set, so ensure this is the case }
-          if not (current_settings.cputype in cpu_coldfire) then
+          if not (compiler.globals.current_settings.cputype in cpu_coldfire) then
             begin
               if size in [OS_S8,OS_8] then
                 list.concat(taicpu.op_reg(A_NEG,S_B,reg))
@@ -1829,7 +1829,7 @@ unit cgcpu;
 
          if not (needs_unaligned(source.alignment,OS_INT) or needs_unaligned(dest.alignment,OS_INT)) then
            begin
-             if not ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=16))) then
+             if not ((len<=8) or (not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and (len<=16))) then
                begin
                  //list.concat(tai_comment.create(strpnew('g_concatcopy tight copy loop 020+')));
                  helpsize := len - len mod 4;
@@ -1838,7 +1838,7 @@ unit cgcpu;
                  current_asmdata.getjumplabel(hl);
                  a_label(list,hl);
                  list.concat(taicpu.op_ref_ref(A_MOVE,S_L,srcrefp,dstrefp));
-                 if (current_settings.cputype in cpu_coldfire) or ((helpsize div 4)-1 > high(smallint)) then
+                 if (compiler.globals.current_settings.cputype in cpu_coldfire) or ((helpsize div 4)-1 > high(smallint)) then
                    begin
                      { Coldfire does not support DBRA, also it is word only }
                      list.concat(taicpu.op_const_reg(A_SUBQ,S_L,1,hregister));
@@ -1894,7 +1894,7 @@ unit cgcpu;
         ai : taicpu;
         cond : TAsmCond;
       begin
-        if not(cs_check_overflow in current_settings.localswitches) then
+        if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
           exit;
         current_asmdata.getjumplabel(hl);
         if not ((def.typ=pointerdef) or
@@ -1977,7 +1977,7 @@ unit cgcpu;
 
                 if (parasize > 0) and not (current_procinfo.procdef.proccalloption in clearstack_pocalls) then
                   begin
-                    if CPUM68K_HAS_RTD in cpu_capabilities[current_settings.cputype] then
+                    if CPUM68K_HAS_RTD in cpu_capabilities[compiler.globals.current_settings.cputype] then
                       list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
                     else
                       begin
@@ -2123,7 +2123,7 @@ unit cgcpu;
             { NOTE: virtual registers allocated here won't be translated --> no higher-level stuff. }
             href:=current_procinfo.save_regs_ref;
             if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
-               not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+               not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
               begin
                 href.offset:=0;
                 //list.concat(tai_comment.create(strpnew('g_save_registers: large offset')));
@@ -2147,7 +2147,7 @@ unit cgcpu;
               end;
 
             if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
-               not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+               not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
               begin
                 list.concat(taicpu.op_const_reg(A_ADDA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
               end;
@@ -2224,7 +2224,7 @@ unit cgcpu;
         { Restore registers from temp }
         href:=current_procinfo.save_regs_ref;
         if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
-           not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+           not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             href.offset:=0;
             //list.concat(tai_comment.create(strpnew('g_restore_registers: large offset')));
@@ -2248,7 +2248,7 @@ unit cgcpu;
           end;
 
         if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
-           not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+           not (CPUM68K_HAS_BASEDISP in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             list.concat(taicpu.op_const_reg(A_ADDA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
           end;
@@ -2269,7 +2269,7 @@ unit cgcpu;
                 end;
               OS_8: { 8 -> 16 bit zero extend }
                 begin
-                  if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
+                  if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                     list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg))
                   else
                     list.concat(taicpu.op_const_reg(A_AND,S_W,$FF,reg));
@@ -2283,7 +2283,7 @@ unit cgcpu;
                 begin { 8 -> 32 bit sign extend }
                   if (isaddressregister(reg)) then
                     internalerror(2014031202);
-                  if (current_settings.cputype = cpu_MC68000) then
+                  if (compiler.globals.current_settings.cputype = cpu_MC68000) then
                     begin
                       list.concat(taicpu.op_reg(A_EXT,S_W,reg));
                       list.concat(taicpu.op_reg(A_EXT,S_L,reg));

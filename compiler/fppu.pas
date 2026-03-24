@@ -354,7 +354,7 @@ var
           { check if floating point emulation is on?
             fpu emulation isn't unit levelwise because it affects calling convention }
           if ((ppufile.header.common.flags and uf_fpu_emulation)<>0) <>
-             (cs_fp_emulation in current_settings.moduleswitches) then
+             (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
             begin
               compiler.verbose.Message(unit_u_ppu_invalid_fpumode,@queuecomment);
               exit;
@@ -381,31 +381,31 @@ var
 {$ifdef i8086}
           { check i8086 memory model flags }
           if (mf_i8086_far_code in moduleflags) <>
-             (current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge]) then
+             (compiler.globals.current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge]) then
             begin
               compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_far_data in moduleflags) <>
-             (current_settings.x86memorymodel in [mm_compact,mm_large]) then
+             (compiler.globals.current_settings.x86memorymodel in [mm_compact,mm_large]) then
             begin
               compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_huge_data in moduleflags) <>
-             (current_settings.x86memorymodel=mm_huge) then
+             (compiler.globals.current_settings.x86memorymodel=mm_huge) then
             begin
               compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_cs_equals_ds in moduleflags) <>
-             (current_settings.x86memorymodel=mm_tiny) then
+             (compiler.globals.current_settings.x86memorymodel=mm_tiny) then
             begin
               compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
             end;
           if (mf_i8086_ss_equals_ds in moduleflags) <>
-             (current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium]) then
+             (compiler.globals.current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium]) then
             begin
               compiler.verbose.Message(unit_u_ppu_invalid_memory_model,@queuecomment);
               exit;
@@ -414,19 +414,19 @@ var
 {$ifdef wasm}
           { check WebAssembly exceptions mode flag }
           if ((mf_wasm_no_exceptions in moduleflags) <>
-              (ts_wasm_no_exceptions in current_settings.targetswitches)) or
+              (ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches)) or
              ((mf_wasm_bf_exceptions in moduleflags) <>
-              (ts_wasm_bf_exceptions in current_settings.targetswitches)) or
+              (ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches)) or
              ((mf_wasm_exnref_exceptions in moduleflags) <>
-              (ts_wasm_native_exnref_exceptions in current_settings.targetswitches)) or
+              (ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches)) or
              ((mf_wasm_native_exceptions in moduleflags) <>
-              (ts_wasm_native_legacy_exceptions in current_settings.targetswitches)) then
+              (ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches)) then
             begin
               compiler.verbose.Message(unit_u_ppu_invalid_wasm_exceptions_mode,@queuecomment);
               exit;
             end;
           if (mf_wasm_threads in moduleflags) <>
-             (ts_wasm_threads in current_settings.targetswitches) then
+             (ts_wasm_threads in compiler.globals.current_settings.targetswitches) then
             begin
               compiler.verbose.Message(unit_u_ppu_wasm_threads_mismatch,@queuecomment);
               exit;
@@ -550,7 +550,7 @@ var
               Found:=UnitExists(pasext,hs,prefix);
             end;
            if not Found and
-              ((m_mac in current_settings.modeswitches) or
+              ((m_mac in compiler.globals.current_settings.modeswitches) or
                (tf_p_ext_support in compiler.target.info.flags)) then
             begin
               { Check for .p, if mode is macpas}
@@ -698,7 +698,7 @@ var
                  include(fnd,auSrc);
              end;
             if (fnd=[]) and
-               ((m_mac in current_settings.modeswitches) or
+               ((m_mac in compiler.globals.current_settings.modeswitches) or
                 (tf_p_ext_support in compiler.target.info.flags)) then
              begin
                if compiler.verbose.CheckVerbosity(V_Tried) then
@@ -1144,32 +1144,32 @@ var
           include(moduleflags,mf_release);
         if assigned(localsymtable) then
           include(moduleflags,mf_local_symtable);
-        if cs_checkpointer_called in current_settings.moduleswitches then
+        if cs_checkpointer_called in compiler.globals.current_settings.moduleswitches then
           include(moduleflags,mf_checkpointer_called);
-        if cs_compilesystem in current_settings.moduleswitches then
+        if cs_compilesystem in compiler.globals.current_settings.moduleswitches then
           include(moduleflags,mf_system_unit);
 {$ifdef i8086}
-        if current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge] then
+        if compiler.globals.current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge] then
           include(moduleflags,mf_i8086_far_code);
-        if current_settings.x86memorymodel in [mm_compact,mm_large] then
+        if compiler.globals.current_settings.x86memorymodel in [mm_compact,mm_large] then
           include(moduleflags,mf_i8086_far_data);
-        if current_settings.x86memorymodel=mm_huge then
+        if compiler.globals.current_settings.x86memorymodel=mm_huge then
           include(moduleflags,mf_i8086_huge_data);
-        if current_settings.x86memorymodel=mm_tiny then
+        if compiler.globals.current_settings.x86memorymodel=mm_tiny then
           include(moduleflags,mf_i8086_cs_equals_ds);
-        if current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium] then
+        if compiler.globals.current_settings.x86memorymodel in [mm_tiny,mm_small,mm_medium] then
           include(moduleflags,mf_i8086_ss_equals_ds);
 {$endif i8086}
 {$ifdef wasm}
-        if ts_wasm_no_exceptions in current_settings.targetswitches then
+        if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
           include(moduleflags,mf_wasm_no_exceptions);
-        if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
+        if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
           include(moduleflags,mf_wasm_exnref_exceptions);
-        if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
+        if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
           include(moduleflags,mf_wasm_native_exceptions);
-        if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
           include(moduleflags,mf_wasm_bf_exceptions);
-        if ts_wasm_threads in current_settings.targetswitches then
+        if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
           include(moduleflags,mf_wasm_threads);
 {$endif wasm}
 {$ifdef llvm}
@@ -1577,7 +1577,7 @@ var
              ibmodulename :
                begin
                  newmodulename:=ppufile.getstring;
-                 if (cs_check_unit_name in current_settings.globalswitches) and
+                 if (cs_check_unit_name in compiler.globals.current_settings.globalswitches) and
                     (upper(newmodulename)<>modulename^) then
                    compiler.verbose.Message2(unit_f_unit_name_error,realmodulename^,newmodulename);
                  stringdispose(modulename);
@@ -1684,7 +1684,7 @@ var
 
          { create unit flags }
 {$ifdef cpufpemu}
-         if (cs_fp_emulation in current_settings.moduleswitches) then
+         if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
            headerflags:=headerflags or uf_fpu_emulation;
 {$endif cpufpemu}
          { create new ppufile }
@@ -1747,7 +1747,7 @@ var
              ppufile.writeentry(ibmainname);
            end;
 
-         if cs_compilesystem in current_settings.moduleswitches then
+         if cs_compilesystem in compiler.globals.current_settings.moduleswitches then
            begin
              ppufile.putset(tppuset4(compiler.globals.features));
              ppufile.writeentry(ibfeatures);
@@ -1791,7 +1791,7 @@ var
 
          { generate implementation deref data, the interface deref data is
            already generated when calculating the interface crc }
-         if (cs_compilesystem in current_settings.moduleswitches) then
+         if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
            begin
              tstoredsymtable(globalsymtable).buildderef;
              derefdataintflen:=derefdata.size;

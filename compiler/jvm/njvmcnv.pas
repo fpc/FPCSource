@@ -767,7 +767,7 @@ implementation
         { Exception: Android verifier... }
         if (nf_explicit in flags) and
            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
-           not(current_settings.cputype=cpu_dalvik) then
+           not(compiler.globals.current_settings.cputype=cpu_dalvik) then
           begin
              location_copy(location,left.location);
              newsize:=def_cgsize(resultdef);

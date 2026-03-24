@@ -44,6 +44,7 @@ interface
        taddnode = class(tbinopnode)
        private
           resultrealdefderef: tderef;
+          function getbestreal(t1,t2 : tdef) : tdef;
           function pass_typecheck_internal:tnode;
        public
           resultrealdef : tdef;
@@ -166,7 +167,7 @@ const
 
 {$maxfpuregisters 0}
 
-    function getbestreal(t1,t2 : tdef) : tdef;
+    function taddnode.getbestreal(t1,t2 : tdef) : tdef;
       const
         floatweight : array[tfloattype] of byte =
           (2,3,4,5,0,1,6);
@@ -180,7 +181,7 @@ const
                   best float type to calculate the result }
                 if (tfloatdef(t1).floattype in [s64comp,s64currency]) or
                   (tfloatdef(t2).floattype in [s64comp,s64currency]) or
-                  (cs_excessprecision in current_settings.localswitches) then
+                  (cs_excessprecision in compiler.globals.current_settings.localswitches) then
                   result:=pbestrealtype^
                 else
                   if floatweight[tfloatdef(t2).floattype]>floatweight[tfloatdef(t1).floattype] then
@@ -838,7 +839,7 @@ const
                      { pointer-pointer results in an integer }
                      if (rt=pointerconstn) then
                        begin
-                         if (cs_typed_addresses in current_settings.localswitches) and
+                         if (cs_typed_addresses in compiler.globals.current_settings.localswitches) and
                             (tpointerdef(rd).pointeddef.size>1) and
                             not(anf_has_pointerdiv in addnodeflags) then
                            internalerror(2008030101);
@@ -935,7 +936,7 @@ const
                     result := PruneKeepLeft();
                   andn,muln:
                     begin
-                      if (cs_opt_level4 in current_settings.optimizerswitches) or
+                      if (cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) or
                          not might_have_sideeffects(left) then
                         result:=compiler.cordconstnode(0,resultdef,true);
                     end
@@ -1144,7 +1145,7 @@ const
                           addn:
                             begin
                               { -0.0+(+0.0)=+0.0 so we cannot carry out this optimization if no fastmath is passed }
-                              if not(cs_opt_fastmath in current_settings.optimizerswitches) then
+                              if not(cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) then
                                 begin
                                   result:=PruneKeepRight();
                                   exit;
@@ -1213,7 +1214,7 @@ const
                       end;
                   end
                 { optimize a/a and a-a }
-                else if ((nodetype in [subn,slashn]) and ([cs_opt_fastmath,cs_opt_level2]*current_settings.optimizerswitches=[cs_opt_fastmath,cs_opt_level2])) and
+                else if ((nodetype in [subn,slashn]) and ([cs_opt_fastmath,cs_opt_level2]*compiler.globals.current_settings.optimizerswitches=[cs_opt_fastmath,cs_opt_level2])) and
                   left.isequal(right) and not(might_have_sideeffects(left,[mhs_exceptions])) then
                   begin
                     case nodetype of
@@ -1242,8 +1243,8 @@ const
                (tfloatdef(rd).floattype=s64comp)
               )
           ) and
-          (((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=ordconstn)) or
-           ((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and
+          (((cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and (rt=ordconstn)) or
+           ((cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and (rt=realconstn) and
             (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative])
            ) or
            ((rt=realconstn) and
@@ -1563,14 +1564,14 @@ const
           end;
 
         { slow simplifications and/or more sophisticated transformations which might make debugging harder }
-        if cs_opt_level2 in current_settings.optimizerswitches then
+        if cs_opt_level2 in compiler.globals.current_settings.optimizerswitches then
           begin
             if nodetype in [addn,muln,subn] then
               begin
                 { convert a+const1-const2 into a+const1+(-const2) so it is folded later on }
                 if (left.nodetype=addn) and
                   (nodetype=subn) and
-                  (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
+                  (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
                   (compare_defs(resultdef,ld,nothingn)=te_exact) then
                   begin
                     Result:=getcopy;
@@ -1582,7 +1583,7 @@ const
                 { convert a-const1+const2 into a+(-const1)+const2 so it is folded later on }
                 if (left.nodetype=subn) and
                   (nodetype=addn) and
-                  (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
+                  (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
                   (compare_defs(resultdef,ld,nothingn)=te_exact) then
                   begin
                     Result:=getcopy;
@@ -1602,7 +1603,7 @@ const
                 }
                 if (left.nodetype=nodetype) and
                   (((nodetype=addn) and ((rt=stringconstn) or is_constcharnode(right)) and ((taddnode(left).right.nodetype=stringconstn) or is_constcharnode(taddnode(left).right))) or
-                   ((nodetype in [addn,muln,subn]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn))
+                   ((nodetype in [addn,muln,subn]) and (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn))
                   ) and
                   (compare_defs(resultdef,ld,nothingn)=te_exact) then
                   begin
@@ -1637,7 +1638,7 @@ const
                 }
                 if (right.nodetype=nodetype) and
                   (((nodetype=addn) and ((lt=stringconstn) or is_constcharnode(left)) and ((taddnode(right).left.nodetype=stringconstn) or is_constcharnode(taddnode(right).left))) or
-                   ((nodetype in [addn,muln]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (lt=realconstn) and (taddnode(right).left.nodetype=realconstn))
+                   ((nodetype in [addn,muln]) and (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and (lt=realconstn) and (taddnode(right).left.nodetype=realconstn))
                   ) and
                   (compare_defs(resultdef,rd,nothingn)=te_exact) then
                   begin
@@ -1815,7 +1816,7 @@ const
 
             if is_integer(ld) and is_integer(rd) then
               begin
-                if (cs_opt_level3 in current_settings.optimizerswitches) and
+                if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
                    left.isequal(right) and not might_have_sideeffects(left) then
                   begin
                     case nodetype of
@@ -1905,11 +1906,11 @@ const
               memory accesses while sqr(<real>) has no drawback }
             if
 {$ifdef cpufpemu}
-               (current_settings.fputype<>fpu_soft) and
-               not(cs_fp_emulation in current_settings.moduleswitches) and
+               (compiler.globals.current_settings.fputype<>fpu_soft) and
+               not(cs_fp_emulation in compiler.globals.current_settings.moduleswitches) and
 {$endif cpufpemu}
 {$ifdef xtensa}
-               (FPUXTENSA_DOUBLE in fpu_capabilities[current_settings.fputype]) and
+               (FPUXTENSA_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
 {$endif xtensa}
                (nodetype=muln) and
                is_real(ld) and is_real(rd) and
@@ -1924,10 +1925,10 @@ const
             { optimize (i shl x) or (i shr (bitsizeof(i)-x)) into rol(x,i) (and different flavours with shl/shr swapped etc.) }
             if (nodetype in [addn,orn]) { add also works here }
 {$ifdef m68k}
-               and (CPUM68K_HAS_ROLROR in cpu_capabilities[current_settings.cputype])
+               and (CPUM68K_HAS_ROLROR in cpu_capabilities[compiler.globals.current_settings.cputype])
 {$endif m68k}
 {$ifdef riscv}
-               and ([CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[current_settings.cputype]<>[])
+               and ([CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[compiler.globals.current_settings.cputype]<>[])
 {$endif riscv}
 {$ifndef cpu64bitalu}
                and (ld.typ=orddef) and
@@ -2207,7 +2208,7 @@ const
                (but only if the "+" array operator isn't used), if not fall back to sets }
              if (
                    (nodetype<>addn) or
-                   not (m_array_operators in current_settings.modeswitches) or
+                   not (m_array_operators in compiler.globals.current_settings.modeswitches) or
                    (is_array_constructor(left.resultdef) and not is_dynamic_array(right.resultdef)) or
                    (not is_dynamic_array(left.resultdef) and is_array_constructor(right.resultdef))
                  ) and
@@ -2228,7 +2229,7 @@ const
 
          if is_dynamic_array(left.resultdef) and is_dynamic_array(right.resultdef) and
              (nodetype=addn) and
-             (m_array_operators in current_settings.modeswitches) and
+             (m_array_operators in compiler.globals.current_settings.modeswitches) and
              isbinaryoverloaded(hp,[ocf_check_non_overloadable,ocf_check_only]) then
            compiler.verbose.Message3(parser_w_operator_overloaded_hidden_3,left.resultdef.typename,arraytokeninfo[_PLUS].str,right.resultdef.typename);
 
@@ -2246,7 +2247,7 @@ const
 
          { Kylix allows enum+ordconstn in an enum type declaration, we need to do
            the conversion here before the constant folding }
-         if (m_delphi in current_settings.modeswitches) and
+         if (m_delphi in compiler.globals.current_settings.modeswitches) and
             (blocktype in [bt_type,bt_const_type,bt_var_type]) then
           begin
             if (left.resultdef.typ=enumdef) and
@@ -2272,7 +2273,7 @@ const
 {$ifdef x86}
         { use extended as default real type only when the x87 fpu is used }
   {$if defined(i386) or defined(i8086)}
-        if not(current_settings.fputype=fpu_x87) then
+        if not(compiler.globals.current_settings.fputype=fpu_x87) then
           resultrealdef:=s64floattype
         else
           resultrealdef:=pbestrealtype^;
@@ -2294,7 +2295,7 @@ const
               (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) and
               not(tfloatdef(left.resultdef).floattype in [s64comp,s64currency]) then
              begin
-               if cs_excessprecision in current_settings.localswitches then
+               if cs_excessprecision in compiler.globals.current_settings.localswitches then
                  begin
                    resultrealdef:=pbestrealtype^;
                    inserttypeconv(right,resultrealdef,compiler);
@@ -2354,7 +2355,7 @@ const
 
          { 4 character constant strings are compatible with orddef }
          { in macpas mode (become cardinals)                       }
-         if (m_mac in current_settings.modeswitches) and
+         if (m_mac in compiler.globals.current_settings.modeswitches) and
             { only allow for comparisons, additions etc are }
             { normally program errors                       }
             (nodetype in [ltn,lten,gtn,gten,unequaln,equaln]) and
@@ -2399,7 +2400,7 @@ const
                   left.resultdef := s64inttype;
                   right.resultdef := s64inttype;
                 end;
-            if current_settings.fputype=fpu_none then
+            if compiler.globals.current_settings.fputype=fpu_none then
               begin
                 compiler.verbose.Message(parser_e_unsupported_real);
                 result:=compiler.cerrornode;
@@ -2690,7 +2691,7 @@ const
                     is_signed(right.resultdef) or
                     ((nodetype=subn)
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-                     and not (m_tp7 in current_settings.modeswitches)
+                     and not (m_tp7 in compiler.globals.current_settings.modeswitches)
 {$endif}
                     ) then
                    begin
@@ -2729,9 +2730,9 @@ const
                    the result also unsigned. This is compatible with Delphi (PFV) }
                  if is_signed(ld) or
                     is_signed(rd) or
-                    (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) or
+                    (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)<>[]) or
 {$if defined(cpu16bitalu)}
-                    (m_tp7 in current_settings.modeswitches) or
+                    (m_tp7 in compiler.globals.current_settings.modeswitches) or
 {$endif}
                     (nodetype=subn) then
                    begin
@@ -2874,7 +2875,7 @@ const
                  end;
                ltn,lten,gtn,gten:
                  begin
-                    if (cs_extsyntax in current_settings.moduleswitches) or
+                    if (cs_extsyntax in compiler.globals.current_settings.moduleswitches) or
                        (nf_internal in flags) then
                      begin
                        if is_voidpointer(right.resultdef) then
@@ -2886,11 +2887,11 @@ const
                              if either $POINTERMATH is currently enabled or if
                              both pointer defs were declared with $POINTERMATH
                              enabled }
-                           (m_delphi in current_settings.modeswitches) and
+                           (m_delphi in compiler.globals.current_settings.modeswitches) and
                            (ld.typ=pointerdef) and
                            (rd.typ=pointerdef) and
                            (
-                             (cs_pointermath in current_settings.localswitches) or
+                             (cs_pointermath in compiler.globals.current_settings.localswitches) or
                              (
                                tpointerdef(ld).has_pointer_math and
                                tpointerdef(rd).has_pointer_math
@@ -2904,7 +2905,7 @@ const
                  end;
                subn:
                  begin
-                    if (cs_extsyntax in current_settings.moduleswitches) or
+                    if (cs_extsyntax in compiler.globals.current_settings.moduleswitches) or
                        (nf_internal in flags) then
                       begin
                         if is_voidpointer(right.resultdef) then
@@ -2956,8 +2957,8 @@ const
               begin
                 { Is there a unicodestring? }
                 if is_unicodestring(rd) or is_unicodestring(ld) or
-                   ((m_default_unicodestring in current_settings.modeswitches) and
-                    (cs_refcountedstrings in current_settings.localswitches) and
+                   ((m_default_unicodestring in compiler.globals.current_settings.modeswitches) and
+                    (cs_refcountedstrings in compiler.globals.current_settings.localswitches) and
                     (
                      is_pwidechar(rd) or is_widechararray(rd) or is_open_widechararray(rd) or (lt = stringconstn) or
                      is_pwidechar(ld) or is_widechararray(ld) or is_open_widechararray(ld) or (rt = stringconstn)
@@ -2972,7 +2973,7 @@ const
                     strtype:=st_widestring
                 else
                   if is_ansistring(rd) or is_ansistring(ld) or
-                     ((cs_refcountedstrings in current_settings.localswitches) and
+                     ((cs_refcountedstrings in compiler.globals.current_settings.localswitches) and
                      //todo: Move some of this to longstring's then they are implemented?
                       (
                        is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or (lt = stringconstn) or
@@ -3188,7 +3189,7 @@ const
 {$ifdef SUPPORT_MMX}
        { mmx support, this must be before the zero based array
          check }
-         else if (cs_mmx in current_settings.localswitches) and
+         else if (cs_mmx in compiler.globals.current_settings.localswitches) and
                  is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) and
                  equal_defs(compiler.symtablestack,ld,rd) then
@@ -3207,7 +3208,7 @@ const
 {$endif SUPPORT_MMX}
          { vector support, this must be before the zero based array
            check }
-         else if (cs_support_vectors in current_settings.globalswitches) and
+         else if (cs_support_vectors in compiler.globals.current_settings.globalswitches) and
                  fits_in_mm_register(ld) and
                  fits_in_mm_register(rd) and
                  equal_defs(compiler.symtablestack,ld,rd) then
@@ -3235,9 +3236,9 @@ const
               begin
                 if (rt=niln) then
                   compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
-                if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags))  or
+                if (not(cs_extsyntax in compiler.globals.current_settings.moduleswitches) and not(nf_internal in flags))  or
                    (not (is_pchar(rd) or is_chararray(rd) or is_open_chararray(rd) or is_widechar(rd) or is_widechararray(rd) or is_open_widechararray(rd)) and
-                    not(cs_pointermath in current_settings.localswitches) and
+                    not(cs_pointermath in compiler.globals.current_settings.localswitches) and
                     not((rd.typ=pointerdef) and tpointerdef(rd).has_pointer_math)) then
                   compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.typ=pointerdef) and
@@ -3268,9 +3269,9 @@ const
                begin
                  if (lt=niln) then
                    compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
-                 if (not(cs_extsyntax in current_settings.moduleswitches) and not(nf_internal in flags)) or
+                 if (not(cs_extsyntax in compiler.globals.current_settings.moduleswitches) and not(nf_internal in flags)) or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
-                    not(cs_pointermath in current_settings.localswitches) and
+                    not(cs_pointermath in compiler.globals.current_settings.localswitches) and
                     not((ld.typ=pointerdef) and tpointerdef(ld).has_pointer_math)) then
                    compiler.verbose.CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  if (ld.typ=pointerdef) then
@@ -4121,7 +4122,7 @@ const
         inlinennr : tinlinenumber;
       begin
         result:=nil;
-        if (cs_opt_fastmath in current_settings.optimizerswitches) and
+        if (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and
           use_fma and
           (nodetype in [addn,subn]) and
           (rd.typ=floatdef) and (ld.typ=floatdef) and
@@ -4252,7 +4253,7 @@ const
           swapleftright;
 
         { can we use a shift instead of a mul? }
-        if not (cs_check_overflow in current_settings.localswitches) and
+        if not (cs_check_overflow in compiler.globals.current_settings.localswitches) and
            (right.nodetype = ordconstn) and
            ispowerof2(tordconstnode(right).value,power) then
           begin
@@ -4308,7 +4309,7 @@ const
               procname := 'fpc_mul_int64'
             else
               procname := 'fpc_mul_qword';
-            if cs_check_overflow in current_settings.localswitches then
+            if cs_check_overflow in compiler.globals.current_settings.localswitches then
               procname := procname + '_checkoverflow';
 
             result := compiler.ccallnode_intern(procname,right);
@@ -4467,9 +4468,9 @@ const
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
         }
-        if not ((cs_fp_emulation in current_settings.moduleswitches)
+        if not ((cs_fp_emulation in compiler.globals.current_settings.moduleswitches)
 {$ifdef cpufpemu}
-                or (current_settings.fputype=fpu_soft)
+                or (compiler.globals.current_settings.fputype=fpu_soft)
 {$endif cpufpemu}
                 ) then
           exit;
@@ -4519,7 +4520,7 @@ const
          { Can we optimize multiple dyn. array additions into a single call?
            This need to be done on a complete tree to detect the multiple
            add nodes and is therefor done before the subtrees are processed }
-         if (m_array_operators in current_settings.modeswitches) and canbemultidynarrayadd(self) then
+         if (m_array_operators in compiler.globals.current_settings.modeswitches) and canbemultidynarrayadd(self) then
            begin
              result:=genmultidynarrayadd(self);
              exit;
@@ -4527,7 +4528,7 @@ const
 
          { typical set tests like (s*[const. set])<>/=[] can be converted into an or'ed chain of in tests
            for var sets if const. set contains only a few elements }
-         if (cs_opt_level1 in current_settings.optimizerswitches) and (nodetype in [unequaln,equaln]) and (left.resultdef.typ=setdef) and not(is_smallset(left.resultdef)) then
+         if (cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) and (nodetype in [unequaln,equaln]) and (left.resultdef.typ=setdef) and not(is_smallset(left.resultdef)) then
            begin
              trycreateinnodes:=false;
              mulnode:=nil;
@@ -4618,7 +4619,7 @@ const
          else if (ld.typ=orddef) and (rd.typ=orddef) then
            begin
              { optimize multiplication by a power of 2 }
-             if not(cs_check_overflow in current_settings.localswitches) and
+             if not(cs_check_overflow in compiler.globals.current_settings.localswitches) and
                 (nodetype = muln) and
                 (((left.nodetype = ordconstn) and
                   ispowerof2(tordconstnode(left).value,i)) or
@@ -4692,7 +4693,7 @@ const
             { llvm does not support 128 bit math on 32 bit targets, which is
               necessary for overflow checking 64 bit operations }
             else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) and
-                    (cs_check_overflow in current_settings.localswitches) and
+                    (cs_check_overflow in compiler.globals.current_settings.localswitches) and
                     (nodetype in [addn,subn,muln]) then
               begin
                 result := first_add64bitint;
@@ -4706,7 +4707,7 @@ const
 {$elseif defined(wasm)}
             { WebAssembly does not support overflow checking for 64-bit multiplication }
             else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) and
-                    (cs_check_overflow in current_settings.localswitches) and
+                    (cs_check_overflow in compiler.globals.current_settings.localswitches) and
                     (nodetype = muln) then
               begin
                 result := first_add64bitint;
@@ -4739,7 +4740,7 @@ const
                        else
                          internalerror(2011022301);
                      end;
-                     if cs_check_overflow in current_settings.localswitches then
+                     if cs_check_overflow in compiler.globals.current_settings.localswitches then
                        procname:=procname+'_checkoverflow';
                      result := compiler.ccallnode_intern(procname,
                        compiler.ccallparanode(right,
@@ -4911,7 +4912,7 @@ const
 {$ifdef SUPPORT_MMX}
        { mmx support, this must be before the zero based array
          check }
-         else if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(ld) and
+         else if (cs_mmx in compiler.globals.current_settings.localswitches) and is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) then
             begin
               expectloc:=LOC_MMXREGISTER;
@@ -4942,7 +4943,7 @@ const
            end
 
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in current_settings.localswitches) and
+         else if (cs_mmx in compiler.globals.current_settings.localswitches) and
                  is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) then
             begin

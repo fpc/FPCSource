@@ -2019,7 +2019,7 @@ uses
     constructor taicpu.Create(op: tasmop);
       begin
         inherited Create(op);
-        if not (ts_wasm_threads in current_settings.targetswitches) and is_atomic_op(op) then
+        if not (ts_wasm_threads in compiler.globals.current_settings.targetswitches) and is_atomic_op(op) then
           internalerror(2024070701);
         if op=a_try_table then
           try_table_catch_clauses:=TAsmList.Create;

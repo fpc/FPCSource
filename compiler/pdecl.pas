@@ -284,7 +284,7 @@ implementation
          repeat
            orgname:=current_scanner.orgpattern;
            filepos:=compiler.globals.current_tokenpos;
-           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
+           isgeneric:=not (m_delphi in compiler.globals.current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
            parser.pbase.consume(_ID);
            case current_scanner.token of
 
@@ -336,7 +336,7 @@ implementation
                    { create symbol }
                    storetokenpos:=compiler.globals.current_tokenpos;
                    compiler.globals.current_tokenpos:=filepos;
-                   if not (cs_typed_const_writable in current_settings.localswitches) then
+                   if not (cs_typed_const_writable in compiler.globals.current_settings.localswitches) then
                      begin
                        varspez:=vs_const;
                        asmtype:=al_rotypedconsts;
@@ -414,7 +414,7 @@ implementation
          until (current_scanner.token<>_ID) or
                (in_structure and
                 ((current_scanner.idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
-                 ((m_final_fields in current_settings.modeswitches) and
+                 ((m_final_fields in compiler.globals.current_settings.modeswitches) and
                   (current_scanner.idtoken=_FINAL))));
          compiler.globals.block_type:=old_block_type;
       end;
@@ -425,7 +425,7 @@ implementation
         labelsym : tlabelsym;
       begin
          parser.pbase.consume(_LABEL);
-         if not(cs_support_goto in current_settings.moduleswitches) then
+         if not(cs_support_goto in compiler.globals.current_settings.moduleswitches) then
            compiler.verbose.Message(sym_e_goto_and_label_not_supported);
          repeat
            if not(current_scanner.token in [_ID,_INTCONST]) then
@@ -437,14 +437,14 @@ implementation
                 else
                   begin
                     { strip leading 0's in iso mode }
-                    if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
+                    if (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)<>[]) then
                       while (length(current_scanner.pattern)>1) and (current_scanner.pattern[1]='0') do
                         delete(current_scanner.pattern,1,1);
                     labelsym:=clabelsym.create(current_scanner.pattern);
                   end;
 
                 compiler.symtablestack.top.insertsym(labelsym);
-                if m_non_local_goto in current_settings.modeswitches then
+                if m_non_local_goto in compiler.globals.current_settings.modeswitches then
                   begin
                     if compiler.symtablestack.top.symtabletype=localsymtable then
                       begin
@@ -647,7 +647,7 @@ implementation
              _CLASS :
                objecttype:=default_class_type;
              _INTERFACE :
-               case current_settings.interfacetype of
+               case compiler.globals.current_settings.interfacetype of
                  it_interfacecom:
                    objecttype:=odt_interfacecom;
                  it_interfacecorba:
@@ -789,13 +789,13 @@ implementation
            localgenerictokenbuf:=nil;
 
            { class attribute definitions? }
-           if m_prefixed_attributes in current_settings.modeswitches then
+           if m_prefixed_attributes in compiler.globals.current_settings.modeswitches then
              while current_scanner.token=_LECKKLAMMER do
                parse_rttiattributes(rtti_attrs_def);
 
            { fpc generic declaration? }
            if first then
-             had_generic:=not(m_delphi in current_settings.modeswitches) and parser.pbase.try_to_consume(_GENERIC);
+             had_generic:=not(m_delphi in compiler.globals.current_settings.modeswitches) and parser.pbase.try_to_consume(_GENERIC);
            isgeneric:=had_generic;
 
            typename:=current_scanner.pattern;
@@ -803,7 +803,7 @@ implementation
            parser.pbase.consume(_ID);
 
            { delphi generic declaration? }
-           if (m_delphi in current_settings.modeswitches) then
+           if (m_delphi in compiler.globals.current_settings.modeswitches) then
              isgeneric:=current_scanner.token=_LSHARPBRACKET;
 
            { Generic type declaration? }
@@ -833,7 +833,7 @@ implementation
 
            { MacPas object model is more like Delphi's than like TP's, but }
            { uses the object keyword instead of class                      }
-           if (m_mac in current_settings.modeswitches) and
+           if (m_mac in compiler.globals.current_settings.modeswitches) and
               (current_scanner.token = _OBJECT) then
              current_scanner.token := _CLASS;
 
@@ -903,7 +903,7 @@ implementation
                     end
                   else
                     { this is not allowed in non-Delphi modes }
-                    if not (m_delphi in current_settings.modeswitches) then
+                    if not (m_delphi in compiler.globals.current_settings.modeswitches) then
                       compiler.verbose.Message1(sym_e_duplicate_id,genorgtypename)
                     else
                       begin
@@ -1016,7 +1016,7 @@ implementation
                 without the generic suffix, so it can be found easily when
                 parsing method implementations }
               if isgeneric and assigned(sym) and
-                  not (m_delphi in current_settings.modeswitches) and
+                  not (m_delphi in compiler.globals.current_settings.modeswitches) and
                   (ttypesym(sym).typedef.typ=undefineddef) then
                 begin
                   { don't free the undefineddef as the defids rely on the count
@@ -1034,7 +1034,7 @@ implementation
                   ) then
                 hdef.register_def;
               { KAZ: handle TGUID declaration in system unit }
-              if (cs_compilesystem in current_settings.moduleswitches) and
+              if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) and
                  assigned(hdef) and
                  (hdef.typ=recorddef) then
                 begin
@@ -1128,7 +1128,7 @@ implementation
                        parser.pdecsub.parse_proctype_directives(tprocvardef(hdef));
                        if po_is_function_ref in tprocvardef(hdef).procoptions then
                          begin
-                           if not (m_function_references in current_settings.modeswitches) and
+                           if not (m_function_references in compiler.globals.current_settings.modeswitches) and
                                not (po_is_block in tprocvardef(hdef).procoptions) then
                              compiler.verbose.MessagePos(storetokenpos,sym_e_error_in_type_def)
                            else
@@ -1261,7 +1261,7 @@ implementation
                generictypelist := nil;
              end;
 
-           if not (m_delphi in current_settings.modeswitches) and
+           if not (m_delphi in compiler.globals.current_settings.modeswitches) and
                (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC) then
              begin
                had_generic:=true;
@@ -1283,7 +1283,7 @@ implementation
          until ((current_scanner.token<>_ID) and (current_scanner.token<>_LECKKLAMMER)) or
                (in_structure and
                 ((current_scanner.idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
-                 ((m_final_fields in current_settings.modeswitches) and
+                 ((m_final_fields in compiler.globals.current_settings.modeswitches) and
                   (current_scanner.idtoken=_FINAL))));
          { resolve type block forward declarations and restore a unit
            container for them }
@@ -1378,7 +1378,7 @@ implementation
          repeat
            orgname:=current_scanner.orgpattern;
            filepos:=compiler.globals.current_tokenpos;
-           isgeneric:=not (m_delphi in current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
+           isgeneric:=not (m_delphi in compiler.globals.current_settings.modeswitches) and (current_scanner.token=_ID) and (current_scanner.idtoken=_GENERIC);
            parser.pbase.consume(_ID);
            case current_scanner.token of
              _EQ:

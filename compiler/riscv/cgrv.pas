@@ -140,7 +140,7 @@ unit cgrv;
         else
           reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION),0,0,[]);
 
-        if cs_create_pic in current_settings.moduleswitches then
+        if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           begin
             href.refaddr:=addr_plt;
             list.concat(taicpu.op_ref(A_CALL,href));
@@ -299,7 +299,7 @@ unit cgrv;
               end
             else
 {$endif RISCV64}
-            if (op in [OP_IMUL,OP_MUL]) and ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[current_settings.cputype]=[]) then
+            if (op in [OP_IMUL,OP_MUL]) and ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[compiler.globals.current_settings.cputype]=[]) then
               begin
                 case size of
                   OS_8:
@@ -1116,7 +1116,7 @@ unit cgrv;
               we use the pseudo instruction LA below which is expanded by the assembler, doing
               so results in more readable assembler and easier optimization of the assembler code
             }
-            if cs_create_pic in current_settings.moduleswitches then
+            if cs_create_pic in compiler.globals.current_settings.moduleswitches then
               begin
                 reference_reset_symbol(href,ref.symbol,0,0,[]);
                 ref.symbol:=nil;
@@ -1237,7 +1237,7 @@ unit cgrv;
         ai: taicpu;
         l: TAsmLabel;
       begin
-        if (CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and
+        if (CPURV_HAS_F in cpu_capabilities[compiler.globals.current_settings.cputype]) and
           needs_check_for_fpu_exceptions then
           begin
             r:=getintregister(list,OS_INT);

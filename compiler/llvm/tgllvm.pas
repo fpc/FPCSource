@@ -217,7 +217,7 @@ implementation
 
     procedure ttgllvm.getlocal(list: TAsmList; size: asizeint; alignment, explicitalignment: shortint; def: tdef; sym : tsym; var ref: treference);
       begin
-        alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
+        alignment:=used_align(alignment,compiler.globals.current_settings.alignment.localalignmin,compiler.globals.current_settings.alignment.localalignmax);
         gethltempintern(list,def,alignment,size,tt_persistent,ref);
       end;
 

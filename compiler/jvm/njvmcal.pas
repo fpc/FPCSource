@@ -235,7 +235,7 @@ implementation
           arreledef:=cpointerdef.getreusable(orgparadef,compiler)
         else
           arreledef:=parasym.vardef;
-        arrdef:=carraydef.getreusable(arreledef,1+ord(cs_check_var_copyout in current_settings.localswitches),compiler);
+        arrdef:=carraydef.getreusable(arreledef,1+ord(cs_check_var_copyout in compiler.globals.current_settings.localswitches),compiler);
         { the -1 means "use the array's element count to determine the number
           of elements" in the JVM temp generator }
         arraytemp:=compiler.ctempcreatenode(arrdef,-1,tt_persistent,true);
@@ -246,7 +246,7 @@ implementation
           valid according to the JVM. That's basically everything except for
           local variables (fields, arrays etc are all initialized on creation) }
         verifyout:=
-          (cs_check_var_copyout in current_settings.localswitches) and
+          (cs_check_var_copyout in compiler.globals.current_settings.localswitches) and
           ((actualtargetnode(@left)^.nodetype<>loadn) or
            (tloadnode(actualtargetnode(@left)^).symtableentry.typ<>localvarsym));
 
@@ -281,7 +281,7 @@ implementation
               compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0,compiler)),
               left));
             { and the copy for checking }
-            if (cs_check_var_copyout in current_settings.localswitches) then
+            if (cs_check_var_copyout in compiler.globals.current_settings.localswitches) then
               addstatement(initstat,compiler.cassignmentnode(
                 compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1,compiler)),
                 compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0,compiler))));
@@ -327,7 +327,7 @@ implementation
                   value than the returned var-parameter in the mean time }
                 if ((parasym.varspez=vs_var) or
                     verifyout) and
-                   (cs_check_var_copyout in current_settings.localswitches) then
+                   (cs_check_var_copyout in compiler.globals.current_settings.localswitches) then
                   begin
                     unwrappedele0:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(0,compiler));
                     unwrappedele1:=compiler.cvecnode(compiler.ctemprefnode(arraytemp),genintconstnode(1,compiler));

@@ -119,7 +119,7 @@ implementation
        module.end_of_parsing;
 
        { Restore all locally modified warning messages }
-       compiler.verbose.RestoreLocalVerbosity(current_settings.pmessage);
+       compiler.verbose.RestoreLocalVerbosity(compiler.globals.current_settings.pmessage);
        compiler.globals.current_exceptblock:=0;
        compiler.globals.exceptblockcounter:=0;
 
@@ -165,7 +165,7 @@ implementation
 {           if olddata.old_current_module<>current_module then
         set_current_module(olddata.old_current_module);}
 
-      compiler.verbose.FreeLocalVerbosity(current_settings.pmessage);
+      compiler.verbose.FreeLocalVerbosity(compiler.globals.current_settings.pmessage);
 
     end;
 
@@ -186,9 +186,9 @@ implementation
          unloaded_units:=TLinkedList.Create;
 
          { global switches }
-         current_settings.globalswitches:=init_settings.globalswitches;
+         compiler.globals.current_settings.globalswitches:=init_settings.globalswitches;
 
-         current_settings.sourcecodepage:=init_settings.sourcecodepage;
+         compiler.globals.current_settings.sourcecodepage:=init_settings.sourcecodepage;
 
          { initialize scanner }
          InitScanner;
@@ -210,7 +210,7 @@ implementation
          tcompiler(compiler).RTTIWriter:=TRTTIWriter.Create(compiler);
 
          { open assembler response }
-         if cs_link_on_target in current_settings.globalswitches then
+         if cs_link_on_target in compiler.globals.current_settings.globalswitches then
            GenerateAsmRes(compiler.globals.outputexedir+ChangeFileExt(compiler.globals.inputfilename,'_ppas'))
          else
            GenerateAsmRes(compiler.globals.outputexedir+'ppas');
@@ -525,14 +525,14 @@ implementation
          tcompiler(compiler).symtablestack:=tdefawaresymtablestack.create(compiler);
          tcompiler(compiler).macrosymtablestack:=TSymtablestack.create(compiler);
          systemunit:=nil;
-         current_settings.defproccall:=init_settings.defproccall;
+         compiler.globals.current_settings.defproccall:=init_settings.defproccall;
          compiler.globals.current_exceptblock:=0;
          compiler.globals.exceptblockcounter:=0;
-         current_settings.maxfpuregisters:=-1;
-         current_settings.pmessage:=nil;
+         compiler.globals.current_settings.maxfpuregisters:=-1;
+         compiler.globals.current_settings.pmessage:=nil;
 
          { Load current state from the init values }
-         current_settings:=init_settings;
+         compiler.globals.current_settings:=init_settings;
 
          set_current_module(module);
          if not (module.state in [ms_compile]) then

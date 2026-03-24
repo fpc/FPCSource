@@ -450,7 +450,7 @@ implementation
              )
            ) or
            (tponly and
-            not(m_tp_procvar in current_settings.modeswitches)) then
+            not(m_tp_procvar in compiler.globals.current_settings.modeswitches)) then
           exit;
         { ignore vecn,subscriptn }
         hp:=p1;
@@ -619,7 +619,7 @@ implementation
           not(is_interface(obj_def)) and
           not(is_cppclass(obj_def)) and
           not(is_objc_class_or_protocol(obj_def)) and
-          (([cs_check_object,cs_check_range]*current_settings.localswitches)<>[]);
+          (([cs_check_object,cs_check_range]*compiler.globals.current_settings.localswitches)<>[]);
 
         block:=nil;
         stat:=nil;
@@ -692,7 +692,7 @@ implementation
             vmt_temp:=compiler.ctempcreatenode_value(result.resultdef,result.resultdef.size,tt_persistent,true,result);
             addstatement(stat,vmt_temp);
             paras:=compiler.ccallparanode(compiler.ctemprefnode(vmt_temp),nil);
-            if cs_check_object in current_settings.localswitches then
+            if cs_check_object in compiler.globals.current_settings.localswitches then
               begin
                 paras:=compiler.ccallparanode(
                   compiler.cloadvmtaddrnode(compiler.ctypenode(obj_def)),
@@ -723,6 +723,8 @@ implementation
     { at will, probably best mainly in terms of required memory      }
     { accesses                                                       }
     function node_complexity(p: tnode): cardinal;
+    var
+      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
     {$ifdef x86}
       function in_const_set_complexity(cs: tsetconstnode): cardinal;
@@ -732,7 +734,7 @@ implementation
           { maxranges value should match the logic in nx86set.pas:tx86innode.pass_generate_code.analizeset. }
           if is_smallset(cs.resultdef) then
             maxranges:=3
-          else if cs_opt_size in current_settings.optimizerswitches then
+          else if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
             maxranges:=8
           else
             maxranges:=5;

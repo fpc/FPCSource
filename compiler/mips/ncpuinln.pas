@@ -77,7 +77,7 @@ end;
 
 function tMIPSELinlinenode.first_abs_real: tnode;
 begin
-  if not (cs_fp_emulation in current_settings.moduleswitches) then
+  if not (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
     begin
       expectloc      := LOC_FPUREGISTER;
       first_abs_real := nil;
@@ -89,7 +89,7 @@ end;
 
 function tMIPSELinlinenode.first_sqr_real: tnode;
 begin
-  if not (cs_fp_emulation in current_settings.moduleswitches) then
+  if not (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
     begin
       expectloc      := LOC_FPUREGISTER;
       first_sqr_real := nil;
@@ -101,7 +101,7 @@ end;
 
 function tMIPSELinlinenode.first_sqrt_real: tnode;
 begin
-  if not (cs_fp_emulation in current_settings.moduleswitches) then
+  if not (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
     begin
       expectloc    := LOC_FPUREGISTER;
       first_sqrt_real := nil;

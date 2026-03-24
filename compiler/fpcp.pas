@@ -130,7 +130,7 @@ implementation
      { check if floating point emulation is on?
        fpu emulation isn't unit levelwise because it affects calling convention }
      if ((uf_fpu_emulation and pcpfile.header.common.flags)<>0) <>
-        (cs_fp_emulation in current_settings.moduleswitches) then
+        (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
        begin
          pcpfile.free;
          pcpfile:=nil;

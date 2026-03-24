@@ -47,7 +47,8 @@ interface
 {$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
 {$endif LLVM or GENERIC_CPU}
-      globtype,version,versioncmp,systems;
+      globtype,version,versioncmp,systems,
+      compilerbase;
 
     const
        delphimodeswitches =
@@ -301,8 +302,7 @@ Const
 
 
     var
-       init_settings,
-       current_settings   : tsettings;
+       init_settings   : tsettings;
 
        cgbackend: tcgbackend;
 
@@ -688,6 +688,9 @@ Const
         LinkLibraryAliases : TLinkStrMap;
         LinkLibraryOrder   : TLinkStrMap;
 
+
+        current_settings   : tsettings;
+
         pendingstate       : tpendingstate;
       { Memory sizes }
         heapsize,
@@ -793,13 +796,13 @@ Const
 
 implementation
 
+    uses
 {$if defined(macos)}
-    uses
-      macutils;
+      macutils,
 {$elseif defined(mswindows)}
-    uses
-      windirs;
+      windirs,
 {$endif}
+      compiler;
 
 {****************************************************************************
                                  TLinkStrMap
@@ -1448,12 +1451,16 @@ implementation
 
 
     function var_align(want_align: longint): shortint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
+        var_align := used_align(want_align,compiler.globals.current_settings.alignment.varalignmin,compiler.globals.current_settings.alignment.varalignmax);
       end;
 
 
     function var_align_size(siz: asizeuint): shortint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         siz := size_2_align(siz);
         var_align_size := var_align(siz);
@@ -1461,8 +1468,10 @@ implementation
 
 
     function const_align(want_align: longint): shortint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        const_align := used_align(want_align,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
+        const_align := used_align(want_align,compiler.globals.current_settings.alignment.constalignmin,compiler.globals.current_settings.alignment.constalignmax);
       end;
 
 
@@ -1476,8 +1485,8 @@ implementation
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
-        result := (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
-          not(cs_fp_emulation in current_settings.moduleswitches);
+        result := (compiler.globals.current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
+          not(cs_fp_emulation in compiler.globals.current_settings.moduleswitches);
 {$ifdef FPC_DOUBLE_HILO_SWAPPED}
         { inverse result if compiler was compiled with swapped hilo already }
         result := not result;
@@ -1487,8 +1496,10 @@ implementation
 
 
     function floating_point_range_check_error : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=cs_ieee_errors in current_settings.localswitches;
+        result:=cs_ieee_errors in compiler.globals.current_settings.localswitches;
       end;
 
 {****************************************************************************

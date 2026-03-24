@@ -83,7 +83,7 @@ unit cpupi;
           align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
         if compiler.target.info.stackalign<=2 then
-          result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmax,2))
+          result:=Align(tg.direction*tg.lasttemp,min(compiler.globals.current_settings.alignment.localalignmax,2))
         else
           { aligned during stack frame allocation, because also depends number
             of saved registers }
@@ -122,7 +122,7 @@ unit cpupi;
       begin
         { nickysn note: I don't know if the 187 requires FWAIT before
           every instruction like the 8087, so I'm including it just in case }
-        if current_settings.cputype<=cpu_186 then
+        if compiler.globals.current_settings.cputype<=cpu_186 then
           insert_8087_fwaits(aktproccode);
       end;
 

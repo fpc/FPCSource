@@ -264,7 +264,7 @@ Implementation
           Exit(True);
 
       until not gniResult or
-        not(cs_opt_level3 in current_settings.optimizerswitches) or
+        not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
         (Next.typ<>ait_instruction) or
         is_calljmp(taicpu(Next).opcode)
 {$ifdef ARM}
@@ -299,7 +299,7 @@ Implementation
         not (
           (taicpu(p).opcode in [A_MLA, A_MUL]) and
           (taicpu(p).oper[1]^.reg = taicpu(movp).oper[0]^.reg) and
-          (current_settings.cputype < cpu_armv6)
+          (compiler.globals.current_settings.cputype < cpu_armv6)
         ) and
 {$endif ARM}
         { Take care to only do this for instructions which REALLY load to the first register.
@@ -665,7 +665,7 @@ Implementation
                     end;
 
                   { On low optimisation sections, don't search more than one instruction ahead }
-                  if not(cs_opt_level3 in current_settings.optimizerswitches) or
+                  if not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                     { Stop at procedure calls and jumps }
                     is_calljmp(taicpu(next_hp).opcode) or
                     { If the read register has changed value, or the MOV
@@ -1414,7 +1414,7 @@ Implementation
                       NewOp:=A_MOV
                     else
 {$ifdef ARM}
-                      if (current_settings.cputype < cpu_armv6) then
+                      if (compiler.globals.current_settings.cputype < cpu_armv6) then
                         begin
                           { The zero- and sign-extension operations were only
                             introduced under ARMv6 }
@@ -1932,7 +1932,7 @@ Implementation
                     MatchOperand(taicpu(hp2).oper[3]^, taicpu(p).oper[2]^)
                   ) and
                   (
-                    not (cs_opt_level3 in current_settings.optimizerswitches) or
+                    not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                     (
                       { Make sure the target register isn't used in between }
                       not RegUsedBetween(taicpu(hp2).oper[0]^.reg, hp1, hp2) and
@@ -1981,7 +1981,7 @@ Implementation
                   MatchOperand(taicpu(hp2).oper[2]^, taicpu(p).oper[2]^)
                 ) and
                 (
-                  not (cs_opt_level3 in current_settings.optimizerswitches) or
+                  not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                   (
                     { Make sure the flags aren't modified in between }
                     not RegModifiedBetween(NR_DEFAULTFLAGS, hp1, hp2) and
@@ -2109,7 +2109,7 @@ Implementation
       Result := False;
 {$ifdef ARM}
       { We need a Cortex-A ARM processor that supports MOVW and MOVT }
-      if not (CPUARM_HAS_EXTENDED_CONSTANTS in cpu_capabilities[current_settings.cputype]) then
+      if not (CPUARM_HAS_EXTENDED_CONSTANTS in cpu_capabilities[compiler.globals.current_settings.cputype]) then
         Exit;
 {$endif ARM}
 

@@ -213,7 +213,7 @@ implementation
 
   function llvm_constrainedexceptmodestring: ansistring;
     begin
-      if not(cs_opt_fastmath in current_settings.optimizerswitches) then
+      if not(cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) then
         result:='fpexcept.maytrap'
       else
         result:='fpexcept.ignore'

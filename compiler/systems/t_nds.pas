@@ -118,7 +118,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
@@ -154,7 +154,7 @@ begin
     if s<>'' then
      begin
       { vlink doesn't use SEARCH_DIR for object files }
-      if not(cs_link_on_target in current_settings.globalswitches) then
+      if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
       LinkRes.AddFileName((maybequoted(s)));
      end;
@@ -164,7 +164,7 @@ begin
   if not StaticLibFiles.Empty then
    begin
     { vlink doesn't need, and doesn't support GROUP }
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      begin
       LinkRes.Add(')');
       LinkRes.Add('GROUP(');
@@ -176,7 +176,7 @@ begin
      end;
    end;
 
-  if (cs_link_on_target in current_settings.globalswitches) then
+  if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
    begin
     LinkRes.Add(')');
 
@@ -813,14 +813,14 @@ begin
      internalerror(2019050934);
   end;
 
-  if (cs_link_strip in current_settings.globalswitches) and
-     not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+     not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
   if create_smartlink_sections then
    GCSectionsStr:='--gc-sections';
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Write used files and libraries }
@@ -841,7 +841,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 { Post process }

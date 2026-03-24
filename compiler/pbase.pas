@@ -122,7 +122,7 @@ implementation
          compiler.verbose.Message1(sym_e_id_not_found,s);
          { show a fatal that you need -S2 or -Sd, but only
            if we just parsed the a token that has m_class }
-         if not(m_class in current_settings.modeswitches) and
+         if not(m_class in compiler.globals.current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
             (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
            compiler.verbose.Message(parser_f_need_objfpc_or_delphi_mode);
@@ -134,7 +134,7 @@ implementation
          compiler.verbose.MessagePos1(filepos,sym_e_id_not_found,s);
          { show a fatal that you need -S2 or -Sd, but only
            if we just parsed the a token that has m_class }
-         if not(m_class in current_settings.modeswitches) and
+         if not(m_class in compiler.globals.current_settings.modeswitches) and
             (Upper(s)=current_scanner.pattern) and
             (m_class in tokeninfo^[current_scanner.idtoken].keyword) then
            compiler.verbose.MessagePos(filepos,parser_f_need_objfpc_or_delphi_mode);
@@ -400,7 +400,7 @@ implementation
                       if (current_scanner.pattern='CHAR') and
                          (tmodule(tunitsym(srsym).module).globalsymtable=systemunit) then
                         begin
-                          if m_default_unicodestring in current_settings.modeswitches then
+                          if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                             searchsym_in_module(tunitsym(srsym).module,'WIDECHAR',srsym,srsymtable)
                           else
                             searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
@@ -423,14 +423,14 @@ implementation
                      end;
                   _STRING:
                     begin
-                      if cs_compilesystem in current_settings.moduleswitches then
+                      if cs_compilesystem in compiler.globals.current_settings.moduleswitches then
                         compiler.verbose.Message(parser_e_nostringaliasinsystem);
                       { system.string? }
                       if tmodule(tunitsym(srsym).module).globalsymtable=systemunit then
                         begin
-                          if cs_refcountedstrings in current_settings.localswitches then
+                          if cs_refcountedstrings in compiler.globals.current_settings.localswitches then
                             begin
-                              if m_default_unicodestring in current_settings.modeswitches then
+                              if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                                 searchsym_in_module(tunitsym(srsym).module,'UNICODESTRING',srsym,srsymtable)
                               else
                                 searchsym_in_module(tunitsym(srsym).module,'ANSISTRING',srsym,srsymtable)
@@ -467,7 +467,7 @@ implementation
         last_is_deprecated:boolean;
       begin
         try_consume_hintdirective:=false;
-        if not(m_hintdirective in current_settings.modeswitches) then
+        if not(m_hintdirective in compiler.globals.current_settings.modeswitches) then
           exit;
         repeat
           last_is_deprecated:=false;

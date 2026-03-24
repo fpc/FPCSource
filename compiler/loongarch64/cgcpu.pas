@@ -178,7 +178,7 @@ implementation
           reference_reset_symbol(href,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),0,0,[])
         else
           reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION),0,0,[]);
-        if cs_create_pic in current_settings.moduleswitches then
+        if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           { PIC need using global symbol through GOT.  }
           begin
             href.refaddr:=addr_plt;

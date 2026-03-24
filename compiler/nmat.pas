@@ -614,7 +614,7 @@ implementation
                   begin
                     invertsign:=tordconstnode(right).value<0;
                     if is_64bitint(left.resultdef) then
-                      if not (cs_opt_size in current_settings.optimizerswitches) then
+                      if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                         shiftval:=63
                       else
                         { the shift code is a lot bigger than the call to }
@@ -682,7 +682,7 @@ implementation
               end
             else if is_signed(resultdef) then    { signed modulus }
               begin
-                if (cs_opt_size in current_settings.optimizerswitches) then
+                if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                   exit;
 
                 shiftval:=left.resultdef.size*8-1;
@@ -868,7 +868,7 @@ implementation
               end;
             { '0 shl x' and '0 shr x' are 0 }
             if (lvalue=0) and
-               ((cs_opt_level4 in current_settings.optimizerswitches) or
+               ((cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) or
                 not might_have_sideeffects(right)) then
               result:=compiler.cordconstnode(0,resultdef,true);
           end;
@@ -908,7 +908,7 @@ implementation
            end;
 
 {$ifdef SUPPORT_MMX}
-         if (cs_mmx in current_settings.localswitches) and
+         if (cs_mmx in compiler.globals.current_settings.localswitches) and
            is_mmx_able_array(left.resultdef) and
            ((is_mmx_able_array(right.resultdef) and
              equal_defs(compiler.symtablestack,left.resultdef,right.resultdef)
@@ -1047,7 +1047,7 @@ implementation
 
               As this result in -(1.0-1.0)=0.0 instead of 0.0, this is only valid in fastmath mode
             }
-            if (cs_opt_fastmath in current_settings.optimizerswitches) and (left.nodetype=subn) then
+            if (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) and (left.nodetype=subn) then
               begin
                 result:=compiler.caddnode(subn,taddnode(left).right.getcopy,taddnode(left).left.getcopy);
                 exit;
@@ -1143,19 +1143,19 @@ implementation
          else if left.resultdef.typ=floatdef then
            begin
              if not(tfloatdef(left.resultdef).floattype in [s64comp,s64currency]) and
-               (cs_excessprecision in current_settings.localswitches) then
+               (cs_excessprecision in compiler.globals.current_settings.localswitches) then
                begin
                  inserttypeconv(left,pbestrealtype^,compiler);
                  resultdef:=left.resultdef
                end;
            end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in current_settings.localswitches) and
+         else if (cs_mmx in compiler.globals.current_settings.localswitches) and
            is_mmx_able_array(left.resultdef) then
              begin
                { if saturation is on, left.resultdef isn't
                  "mmx able" (FK)
-               if (cs_mmx_saturation in current_settings.localswitches^) and
+               if (cs_mmx_saturation in compiler.globals.current_settings.localswitches^) and
                  (torddef(tarraydef(resultdef).definition).typ in
                  [s32bit,u32bit]) then
                  compiler.verbose.CGMessage(type_e_mismatch);
@@ -1205,7 +1205,7 @@ implementation
         if compiler.verbose.codegenerror then
           exit;
 
-        if (cs_fp_emulation in current_settings.moduleswitches) and (left.resultdef.typ=floatdef) then
+        if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) and (left.resultdef.typ=floatdef) then
           begin
             if not(compiler.target.info.system in systems_wince) then
               begin
@@ -1235,7 +1235,7 @@ implementation
             if (left.resultdef.typ=floatdef) then
               expectloc:=LOC_FPUREGISTER
 {$ifdef SUPPORT_MMX}
-             else if (cs_mmx in current_settings.localswitches) and
+             else if (cs_mmx in compiler.globals.current_settings.localswitches) and
                is_mmx_able_array(left.resultdef) then
               expectloc:=LOC_MMXREGISTER
 {$endif SUPPORT_MMX}
@@ -1284,7 +1284,7 @@ implementation
            (left.resultdef.typ=floatdef) or
            is_currency(left.resultdef)
 {$ifdef SUPPORT_MMX}
-           or ((cs_mmx in current_settings.localswitches) and
+           or ((cs_mmx in compiler.globals.current_settings.localswitches) and
                 is_mmx_able_array(left.resultdef))
 {$endif SUPPORT_MMX}
         then
@@ -1433,7 +1433,7 @@ implementation
            end
          else
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in current_settings.localswitches) and
+           if (cs_mmx in compiler.globals.current_settings.localswitches) and
              is_mmx_able_array(left.resultdef) then
              begin
              end
@@ -1484,7 +1484,7 @@ implementation
            end
          else
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in current_settings.localswitches) and
+           if (cs_mmx in compiler.globals.current_settings.localswitches) and
              is_mmx_able_array(left.resultdef) then
              expectloc:=LOC_MMXREGISTER
          else

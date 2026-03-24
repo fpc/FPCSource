@@ -46,10 +46,10 @@ function tripletcpustr(target: TCompilerTarget; tripletstyle: ttripletstyle): an
           result:='arm';
         exit;
       end;
-    result:=lower(cputypestr[current_settings.cputype]);
+    result:=lower(cputypestr[compiler.globals.current_settings.cputype]);
     { llvm replaces the cpu name with thumb for when generating thumb code}
     if (tripletstyle=triplet_llvm) and
-       (current_settings.instructionset=is_thumb) then
+       (compiler.globals.current_settings.instructionset=is_thumb) then
       result:='thumb'+copy(result,4,255);
     if target.info.endian=endian_big then
       result:=result+'be';

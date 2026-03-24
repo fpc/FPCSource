@@ -121,7 +121,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
@@ -163,7 +163,7 @@ begin
     if s<>'' then
      begin
       { vlink doesn't use SEARCH_DIR for object files }
-      if not(cs_link_on_target in current_settings.globalswitches) then
+      if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
       if (compiler.globals.idf_version>=50200) then
         LinkRes.AddFileName(ExtractFileName(maybequoted(s)))
@@ -240,7 +240,7 @@ begin
     end;
 
 {$ifdef ARM}
-  with embedded_controllers[current_settings.controllertype] do
+  with embedded_controllers[compiler.globals.current_settings.controllertype] do
     with linkres do
       begin
         Add('ENTRY(_START)');
@@ -389,7 +389,7 @@ begin
       { linker script from ld 2.19 }
       Add('ENTRY(_START)');
       Add('OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")');
-      case current_settings.cputype of
+      case compiler.globals.current_settings.cputype of
        cpu_avr1:
          Add('OUTPUT_ARCH(avr:1)');
        cpu_avr2:
@@ -418,7 +418,7 @@ begin
          Internalerror(2015072701);
       end;
       Add('MEMORY');
-      with embedded_controllers[current_settings.controllertype] do
+      with embedded_controllers[compiler.globals.current_settings.controllertype] do
         begin
           Add('{');
           Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,6));
@@ -649,7 +649,7 @@ begin
 {$endif AVR}
 
 {$ifdef MIPSEL}
-  case current_settings.controllertype of
+  case compiler.globals.current_settings.controllertype of
       ct_none:
            begin
            end;
@@ -684,7 +684,7 @@ begin
       ct_pic32mx795f512h,
       ct_pic32mx795f512l:
         begin
-         with embedded_controllers[current_settings.controllertype] do
+         with embedded_controllers[compiler.globals.current_settings.controllertype] do
           with linkres do
             begin
               Add('OUTPUT_FORMAT("elf32-tradlittlemips")');
@@ -744,7 +744,7 @@ begin
       Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >kseg0_program_mem');
         end
@@ -762,7 +762,7 @@ begin
       Add('    . = .;');
       Add('    _gp = ALIGN(16) + 0x7ff0;');
       Add('    _edata = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >ram AT >kseg0_program_mem');
         end
@@ -948,7 +948,7 @@ begin
   if ioresult<>0 then
     exit;
 
-  if (current_settings.controllertype = ct_esp32) then
+  if (compiler.globals.current_settings.controllertype = ct_esp32) then
     begin
       writeln(t,'#pragma once');
       writeln(t,'#define CONFIG_APP_BUILD_USE_FLASH_SECTIONS 1');
@@ -1076,7 +1076,7 @@ begin
     exit;
 
   writeln(t,'{');
-  if (current_settings.controllertype = ct_esp32) then
+  if (compiler.globals.current_settings.controllertype = ct_esp32) then
     begin
       writeln(t,'    "COMPONENT_KCONFIGS": "Kconfig",');
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "Kconfig.projbuild",');
@@ -1136,9 +1136,9 @@ begin
   memory_filename:=IncludeTrailingPathDelimiter(compiler.globals.outputexedir)+memory_filename;
   cmdstr:='-C -P -x c -E -o '+memory_filename+' -I $OUTPUT ';
   binstr:='gcc';
-  if current_settings.controllertype = ct_none then
+  if compiler.globals.current_settings.controllertype = ct_none then
     compiler.verbose.Message(exec_f_controllertype_expected)
-  else if current_settings.controllertype = ct_esp32 then
+  else if compiler.globals.current_settings.controllertype = ct_esp32 then
     begin
       if compiler.globals.idf_version>=40400 then
         cmdstr:=cmdstr+'-I $IDF_PATH/components/esp_system/ld $IDF_PATH/components/esp_system/ld/esp32/memory.ld.in'
@@ -1166,7 +1166,7 @@ begin
           '--config $OUTPUT/sdkconfig --fragments';
 
   { Pick corresponding linker fragments list for SDK version }
-  if (current_settings.controllertype = ct_esp32) then
+  if (compiler.globals.current_settings.controllertype = ct_esp32) then
     if compiler.globals.idf_version>=40400 then
       idf_index:=esp32_v4_4
     else
@@ -1177,7 +1177,7 @@ begin
   for S in esp_fragment_list[idf_index] do
     cmdstr:=cmdstr+' $IDF_PATH/components/'+S+'.lf';
 
-  if (current_settings.controllertype = ct_esp32) then
+  if (compiler.globals.current_settings.controllertype = ct_esp32) then
     begin
      if compiler.globals.idf_version>=40400 then
        cmdstr:=cmdstr+' --input $IDF_PATH/components/esp_system/ld/esp32/sections.ld.in'
@@ -1276,7 +1276,7 @@ begin
   if ioresult<>0 then
     exit;
 
-  if (current_settings.controllertype = ct_esp32c3) then
+  if (compiler.globals.current_settings.controllertype = ct_esp32c3) then
     begin
       writeln(t,'#pragma once');
       writeln(t,'#define CONFIG_APP_BUILD_USE_FLASH_SECTIONS 1');
@@ -1387,7 +1387,7 @@ begin
     exit;
 
   writeln(t,'{');
-  if (current_settings.controllertype = ct_esp32c3) then
+  if (compiler.globals.current_settings.controllertype = ct_esp32c3) then
     begin
       writeln(t,'    "COMPONENT_KCONFIGS": "Kconfig",');
       writeln(t,'    "COMPONENT_KCONFIGS_PROJBUILD": "Kconfig.projbuild",');
@@ -1442,9 +1442,9 @@ begin
   memory_filename:=IncludeTrailingPathDelimiter(compiler.globals.outputexedir)+memory_filename;
   cmdstr:='-C -P -x c -E -o '+memory_filename+' -I $OUTPUT ';
   binstr:='gcc';
-  if current_settings.controllertype = ct_none then
+  if compiler.globals.current_settings.controllertype = ct_none then
     compiler.verbose.Message(exec_f_controllertype_expected)
-  else if current_settings.controllertype = ct_esp32c3 then
+  else if compiler.globals.current_settings.controllertype = ct_esp32c3 then
     begin
       if compiler.globals.idf_version>=40400 then
         cmdstr:=cmdstr+'-I $IDF_PATH/components/esp_system/ld $IDF_PATH/components/esp_system/ld/esp32c3/memory.ld.in'
@@ -1475,7 +1475,7 @@ begin
   for S in esp_fragment_list[idf_index] do
     cmdstr:=cmdstr+' $IDF_PATH/components/'+S+'.lf';
 
-  if (current_settings.controllertype = ct_esp32c3) then
+  if (compiler.globals.current_settings.controllertype = ct_esp32c3) then
     begin
      if compiler.globals.idf_version>=40400 then
        cmdstr:=cmdstr+' --input $IDF_PATH/components/esp_system/ld/esp32c3/sections.ld.in'
@@ -1533,7 +1533,7 @@ begin
   compiler.globals.idfpath:=ExcludeTrailingBackslash(compiler.globals.idfpath);
 
 {$ifdef XTENSA}
-  case current_settings.controllertype of
+  case compiler.globals.current_settings.controllertype of
     ct_esp32: cntrlr:='esp32';
     ct_esp32s2: cntrlr:='esp32s2';
     ct_esp32s3: cntrlr:='esp32s3';
@@ -1543,7 +1543,7 @@ begin
   end;
 {$endif XTENSA}
 {$ifdef RISCV32}
-  case current_settings.controllertype of
+  case compiler.globals.current_settings.controllertype of
     ct_esp32c2: cntrlr:='esp32c2';
     ct_esp32c3: cntrlr:='esp32c3';
     ct_esp32c6:
@@ -1575,7 +1575,7 @@ begin
     GenerateDefaultLinkerScripts(memory_script,sections_script);
 
 {$ifdef XTENSA}
-    if (current_settings.controllertype=ct_esp8266) then
+    if (compiler.globals.current_settings.controllertype=ct_esp8266) then
       begin
        Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
          '-L $IDF_PATH/components/'+cntrlr+'/ld -T '+cntrlr+'.peripherals.ld -T '+cntrlr+'.rom.ld '+ { SDK scripts }
@@ -1595,7 +1595,7 @@ begin
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+memory_script+' -T '+sections_script;
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.ld -T '+cntrlr+'.rom.api.ld';
 {$ifdef XTENSA}
-      if current_settings.controllertype = ct_esp32 then
+      if compiler.globals.current_settings.controllertype = ct_esp32 then
         if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.syscalls.ld -T '+cntrlr+'.rom.newlib-funcs.ld'
         else if compiler.globals.idf_version>=50000 then
@@ -1608,7 +1608,7 @@ begin
           begin
             //Currently not supported
           end;
-      if current_settings.controllertype = ct_esp32s2 then
+      if compiler.globals.current_settings.controllertype = ct_esp32s2 then
         if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib-funcs.ld -T '+cntrlr+'.rom.newlib-data.ld -T '+cntrlr+'.rom.spiflash.ld'
         else if compiler.globals.idf_version>=50000 then
@@ -1619,7 +1619,7 @@ begin
           begin
             //Currently not supported
           end;
-      if current_settings.controllertype = ct_esp32s3 then
+      if compiler.globals.current_settings.controllertype = ct_esp32s3 then
         if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld'
         else if compiler.globals.idf_version>=50000 then
@@ -1638,7 +1638,7 @@ begin
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+'rom.api.ld';
        end;
 
-      if current_settings.controllertype=ct_esp32c2 then
+      if compiler.globals.current_settings.controllertype=ct_esp32c2 then
         if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
         else if compiler.globals.idf_version>=50000 then
@@ -1646,7 +1646,7 @@ begin
         else
           compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
 
-      if current_settings.controllertype=ct_esp32c3 then
+      if compiler.globals.current_settings.controllertype=ct_esp32c3 then
         begin
          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.eco3.ld';
          if compiler.globals.idf_version<50000 then
@@ -1662,7 +1662,7 @@ begin
         else
           compiler.verbose.Comment(V_Error,'Unsupported esp-idf version specified');
 
-      if current_settings.controllertype=ct_esp32c6 then
+      if compiler.globals.current_settings.controllertype=ct_esp32c6 then
         if compiler.globals.idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.phy.ld -T '+cntrlr+'.rom.coexist.ld -T '+cntrlr+'.rom.net80211.ld -T '+cntrlr+'.rom.pp.ld -T '+cntrlr+'.rom.wdt.ld -T '+cntrlr+'.rom.systimer.ld -T '+cntrlr+'.rom.newlib-normal.ld -T '+cntrlr+'.rom.heap.ld'
         else
@@ -1676,10 +1676,10 @@ begin
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
 { Write used files and libraries }
@@ -1691,7 +1691,7 @@ begin
   {$ifdef xtensa}
   if compiler.target.info.abi=abi_xtensa_call0 then
    begin
-    if current_settings.controllertype=ct_esp8266 then
+    if compiler.globals.current_settings.controllertype=ct_esp8266 then
      Replace(cmdstr,'$PLATFORMABI','')
     else
      Replace(cmdstr,'$PLATFORMABI','--abi-call0');
@@ -1699,7 +1699,7 @@ begin
   else if compiler.target.info.abi=abi_xtensa_windowed then
    Replace(cmdstr,'$PLATFORMABI','--abi-windowed');
   {$endif}
-  if not(cs_link_on_target in current_settings.globalswitches) then
+  if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
@@ -1722,11 +1722,11 @@ begin
    success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
-  if success and not(cs_link_nolink in current_settings.globalswitches) then
+  if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 { Post process }
-  if success and not(cs_link_nolink in current_settings.globalswitches) then
+  if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
 {$if defined(XTENSA) or defined(RISCV32)}
@@ -1744,10 +1744,10 @@ begin
 {$endif UNIX}
 
 {$ifdef XTENSA}
-      if (current_settings.controllertype = ct_esp8266) then
+      if (compiler.globals.current_settings.controllertype = ct_esp8266) then
         begin
           success:=DoExec(binstr,cmdstr+'--chip esp8266 elf2image --flash_mode dout --flash_freq 40m '+
-            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+            '--flash_size '+tostr(embedded_controllers[compiler.globals.current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--version=3 '+
             '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
             FixedExeFileName,
@@ -1757,7 +1757,7 @@ begin
 {$endif XTENSA}
         begin
           success:=DoExec(binstr,cmdstr+'--chip '+cntrlr+' elf2image '+
-            '--flash_size '+tostr(embedded_controllers[current_settings.controllertype].flashsize div (1024*1024))+'MB '+
+            '--flash_size '+tostr(embedded_controllers[compiler.globals.current_settings.controllertype].flashsize div (1024*1024))+'MB '+
             '--elf-sha256-offset 0xb0 '+extraopts+
             '-o '+maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin')))+' '+
             FixedExeFileName,

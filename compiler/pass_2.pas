@@ -199,10 +199,10 @@ implementation
               InternalError(2022112402);
 
             oldcodegenerror:=compiler.verbose.codegenerror;
-            oldlocalswitches:=current_settings.localswitches;
+            oldlocalswitches:=compiler.globals.current_settings.localswitches;
             oldpos:=compiler.globals.current_filepos;
             compiler.globals.current_filepos:=p.fileinfo;
-            current_settings.localswitches:=p.localswitches;
+            compiler.globals.current_settings.localswitches:=p.localswitches;
             compiler.verbose.codegenerror:=false;
             oldexecutionweight:=cg.executionweight;
             if assigned(p.optinfo) then
@@ -214,12 +214,12 @@ implementation
               compiler.verbose.Comment(V_Warning,'ExpectLoc is not set before secondpass: '+nodetype2str[p.nodetype]);
             if (p.location.loc<>LOC_INVALID) then
               compiler.verbose.Comment(V_Warning,'Location.Loc is already set before secondpass: '+nodetype2str[p.nodetype]);
-            if (cs_asm_nodes in current_settings.globalswitches) then
+            if (cs_asm_nodes in compiler.globals.current_settings.globalswitches) then
               logsecond(p.nodetype,true);
 {$endif EXTDEBUG}
             p.pass_generate_code;
 {$ifdef EXTDEBUG}
-            if (cs_asm_nodes in current_settings.globalswitches) then
+            if (cs_asm_nodes in compiler.globals.current_settings.globalswitches) then
               logsecond(p.nodetype,false);
             if (not compiler.verbose.codegenerror) then
              begin
@@ -243,7 +243,7 @@ implementation
             if compiler.verbose.codegenerror then
               include(p.transientflags,tnf_error);
             compiler.verbose.codegenerror:=compiler.verbose.codegenerror or oldcodegenerror;
-            current_settings.localswitches:=oldlocalswitches;
+            compiler.globals.current_settings.localswitches:=oldlocalswitches;
             compiler.globals.current_filepos:=oldpos;
             cg.executionweight:=oldexecutionweight;
           end

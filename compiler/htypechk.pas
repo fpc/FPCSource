@@ -270,6 +270,8 @@ implementation
 
 
     function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
         function internal_check(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype;var allowed:boolean):boolean;
         const
@@ -341,7 +343,7 @@ implementation
                              (treetyp in order_theoretic_operators)
                            ) or
                            (
-                             (m_mac in current_settings.modeswitches) and
+                             (m_mac in compiler.globals.current_settings.modeswitches) and
                              is_stringlike(rd) and
                              (ld.typ=orddef) and
                              (treetyp in string_comparison_operators)) or
@@ -481,9 +483,9 @@ implementation
             arraydef :
               begin
                 { not vector/mmx }
-                if ((cs_mmx in current_settings.localswitches) and
+                if ((cs_mmx in compiler.globals.current_settings.localswitches) and
                    is_mmx_able_array(ld)) or
-                   ((cs_support_vectors in current_settings.globalswitches) and
+                   ((cs_support_vectors in compiler.globals.current_settings.globalswitches) and
                    is_vector(ld)) then
                  begin
                    allowed:=false;
@@ -528,7 +530,7 @@ implementation
                     end;
 
                  { <dyn. array> + <dyn. array> is handled by the compiler }
-                 if (m_array_operators in current_settings.modeswitches) and
+                 if (m_array_operators in compiler.globals.current_settings.modeswitches) and
                      (treetyp=addn) and
                      (is_dynamic_array(ld) or is_array_constructor(ld)) and
                      (is_dynamic_array(rd) or is_array_constructor(rd)) then
@@ -596,7 +598,7 @@ implementation
                 exit;
 
 {$ifdef SUPPORT_MMX}
-              if (cs_mmx in current_settings.localswitches) and
+              if (cs_mmx in compiler.globals.current_settings.localswitches) and
                  is_mmx_able_array(ld) then
                 exit;
 {$endif SUPPORT_MMX}
@@ -609,7 +611,7 @@ implementation
               if ld.typ = orddef then exit;
 
 {$ifdef SUPPORT_MMX}
-              if (cs_mmx in current_settings.localswitches) and
+              if (cs_mmx in compiler.globals.current_settings.localswitches) and
                  is_mmx_able_array(ld) then
                 exit;
 {$endif SUPPORT_MMX}
@@ -1131,11 +1133,13 @@ implementation
 ****************************************************************************}
 
     function is_proc2procvar_load(p:tnode;out realprocdef:tprocdef):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=false;
         { remove voidpointer typecast for tp procvars }
-        if ((m_tp_procvar in current_settings.modeswitches) or
-            (m_mac_procvar in current_settings.modeswitches)) and
+        if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+            (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
            (p.nodetype=typeconvn) and
            is_voidpointer(p.resultdef) then
           p:=tunarynode(p).left;
@@ -1170,7 +1174,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-         if not(m_nested_procvars in current_settings.modeswitches) and
+         if not(m_nested_procvars in compiler.globals.current_settings.modeswitches) and
             (from_def.parast.symtablelevel>normal_function_level) and
             not (po_anonymous in from_def.procoptions) and
             (to_def.typ=procvardef) and
@@ -1305,7 +1309,7 @@ implementation
                            begin
                              if vsf_use_hints in varstateflags then
                                include(tloadnode(p).loadnodeflags,loadnf_only_uninitialized_hint);
-                             if not(cs_opt_nodedfa in current_settings.optimizerswitches) then
+                             if not(cs_opt_nodedfa in compiler.globals.current_settings.optimizerswitches) then
                                begin
                                  if (vo_is_funcret in hsym.varoptions) then
                                    begin
@@ -1598,7 +1602,7 @@ implementation
                       begin
                         { in TP it is allowed to typecast to smaller types. But the variable can't
                           be in a register }
-                        if (m_tp7 in current_settings.modeswitches) or
+                        if (m_tp7 in compiler.globals.current_settings.modeswitches) or
                            (todef.size<fromdef.size) then
                           make_not_regable(hp,[ra_addr_regable])
                         else
@@ -1759,7 +1763,7 @@ implementation
                begin
                  { Temp strings are stored in memory, for compatibility with
                    delphi only }
-                 if (m_delphi in current_settings.modeswitches) and
+                 if (m_delphi in compiler.globals.current_settings.modeswitches) and
                     ((valid_addr in opts) or
                      (valid_const in opts)) and
                     (hp.resultdef.typ=stringdef) then
@@ -1824,7 +1828,7 @@ implementation
                    begin
                      { Temp strings are stored in memory, for compatibility with
                        delphi only }
-                     if (m_delphi in current_settings.modeswitches) and
+                     if (m_delphi in compiler.globals.current_settings.modeswitches) and
                         (valid_addr in opts) and
                         (hp.resultdef.typ=stringdef) then
                        result:=true
@@ -2031,7 +2035,7 @@ implementation
             begin
               { allows conversion from word to integer and
                 byte to shortint, but only for TP7 compatibility }
-              if (m_tp7 in current_settings.modeswitches) and
+              if (m_tp7 in compiler.globals.current_settings.modeswitches) and
                  (def_from.typ=orddef) and
                  (def_from.size=def_to.size) then
                 eq:=te_convert_l1;
@@ -2092,6 +2096,8 @@ implementation
 
     procedure para_allowed(var eq:tequaltype;p:tcallparanode;def_to:tdef);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         acn: tarrayconstructornode;
         realprocdef: tprocdef;
         tmpeq: tequaltype;
@@ -2121,16 +2127,16 @@ implementation
             begin
               tmpeq:=te_incompatible;
               { in tp/macpas mode proc -> procvar is allowed }
-              if ((m_tp_procvar in current_settings.modeswitches) or
-                  (m_mac_procvar in current_settings.modeswitches)) and
+              if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                  (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                  (p.left.nodetype=calln) then
                 tmpeq:=proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),false);
               if (tmpeq=te_incompatible) and
-                 (m_nested_procvars in current_settings.modeswitches) and
+                 (m_nested_procvars in compiler.globals.current_settings.modeswitches) and
                  is_proc2procvar_load(p.left,realprocdef) then
                 tmpeq:=proc_to_procvar_equal(realprocdef,tprocvardef(def_to),false);
               if (tmpeq=te_incompatible) and
-                 (m_mac in current_settings.modeswitches) and
+                 (m_mac in compiler.globals.current_settings.modeswitches) and
                  is_ambiguous_funcret_load(p.left,realprocdef) then
                 tmpeq:=proc_to_procvar_equal(realprocdef,tprocvardef(def_to),false);
               if tmpeq<>te_incompatible then
@@ -2140,8 +2146,8 @@ implementation
             begin
               tmpeq:=te_incompatible;
               { in tp/macpas mode proc -> funcref is allowed }
-              if ((m_tp_procvar in current_settings.modeswitches) or
-                  (m_mac_procvar in current_settings.modeswitches)) and
+              if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                  (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                  (p.left.nodetype=calln) and
                  is_invokable(def_to) then
                 tmpeq:=proc_to_funcref_conv(tprocdef(tcallnode(p.left).procdefinition),tobjectdef(def_to));
@@ -2152,8 +2158,8 @@ implementation
             begin
               { an arrayconstructor of proccalls may have to be converted to
                 an array of procvars }
-              if ((m_tp_procvar in current_settings.modeswitches) or
-                  (m_mac_procvar in current_settings.modeswitches)) and
+              if ((m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                  (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                  (tarraydef(def_to).elementdef.typ=procvardef) and
                  is_array_constructor(p.resultdef) and
                  not is_variant_array(p.resultdef) then
@@ -2183,9 +2189,11 @@ implementation
 
 
     function allowenumop(nt:tnodetype):boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=(nt in [equaln,unequaln,ltn,lten,gtn,gten]) or
-                ((cs_allow_enum_calc in current_settings.localswitches) and
+                ((cs_allow_enum_calc in compiler.globals.current_settings.localswitches) and
                  (nt in [addn,subn]));
       end;
 
@@ -2379,7 +2387,7 @@ implementation
                )
                and (cc_searchhelpers in flags) then
              begin
-               if m_multi_helpers in current_settings.modeswitches then
+               if m_multi_helpers in compiler.globals.current_settings.modeswitches then
                  begin
                    helperlist:=get_objectpascal_helpers(structdef);
                    if assigned(helperlist) and (helperlist.count>0) then
@@ -3303,6 +3311,8 @@ implementation
 
 
     function is_better_candidate(currpd,bestpd:pcandidate):integer;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         {
           Return values:
@@ -3360,7 +3370,7 @@ implementation
           exit;
         { if a specialization is better than a non-specialization then
           the non-generic always wins }
-        if m_implicit_function_specialization in current_settings.modeswitches then
+        if m_implicit_function_specialization in compiler.globals.current_settings.modeswitches then
           begin
             is_better_candidate:=ord(bestpd^.data.is_specialization)-ord(currpd^.data.is_specialization); { 1 if bestpd^.data.is_specialization and not currpd^.data.is_specialization, -1 if the reverse, 0 if same is_specialization. }
             if is_better_candidate<>0 then
@@ -3629,6 +3639,8 @@ implementation
 {$else}
 
     function compare_by_old_sortout_check(pd,bestpd:pcandidate):integer;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var cpoptions : tcompare_paras_options;
       begin
         { don't add duplicates, only compare visible parameters for the user }
@@ -3646,7 +3658,7 @@ implementation
         { for implicit specializations non-generics should take precedence so
           when comparing a specialization to a non-specialization mark as undecided
           and it will be re-evaluated in is_better_candidate }
-        if (m_implicit_function_specialization in current_settings.modeswitches)
+        if (m_implicit_function_specialization in compiler.globals.current_settings.modeswitches)
           and (pd^.data.is_specialization <> bestpd^.data.is_specialization) then
           compare_by_old_sortout_check:=0;
      end;
@@ -3907,7 +3919,7 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if not(cs_check_ordinal_size in current_settings.localswitches) then
+        if not(cs_check_ordinal_size in compiler.globals.current_settings.localswitches) then
           exit;
         { check if the assignment may cause a range check error }
         { if its not explicit, and only if the values are       }
@@ -3932,7 +3944,7 @@ implementation
                (source.resultdef.typ<>floatdef) and
                not is_in_limit(source.resultdef,destdef)) then
              begin
-               if (cs_check_range in current_settings.localswitches) then
+               if (cs_check_range in compiler.globals.current_settings.localswitches) then
                  compiler.verbose.MessagePos(location,type_w_smaller_possible_range_check)
                else
                  compiler.verbose.MessagePos(location,type_h_smaller_possible_range_check);

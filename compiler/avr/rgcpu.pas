@@ -102,7 +102,7 @@ unit rgcpu;
         ofs      : asizeint;
       begin
         cg:=compiler.cg;
-        if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
+        if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             helplist:=TAsmList.create;
             ofs:=spilltemp.offset;
@@ -110,7 +110,7 @@ unit rgcpu;
             helplist.concat(tai_regalloc.alloc(NR_R26,nil));
             helplist.concat(tai_regalloc.alloc(NR_R27,nil));
             helplist.concat(tai_marker.Create(mark_may_store_flags_with_r26));
-            if (CPUAVR_HAS_ADIW in cpu_capabilities[current_settings.cputype]) and (ofs>0) and (ofs<=126) then
+            if (CPUAVR_HAS_ADIW in cpu_capabilities[compiler.globals.current_settings.cputype]) and (ofs>0) and (ofs<=126) then
               begin
                 { this might be converted into movw }
                 helplist.concat(taicpu.op_reg_reg(A_MOV,NR_R26,spilltemp.base));
@@ -151,7 +151,7 @@ unit rgcpu;
         helplist : TAsmList;
         ofs : asizeint;
       begin
-        if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
+        if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             helplist:=TAsmList.create;
             ofs:=spilltemp.offset;
@@ -159,7 +159,7 @@ unit rgcpu;
             helplist.concat(tai_regalloc.alloc(NR_R26,nil));
             helplist.concat(tai_regalloc.alloc(NR_R27,nil));
             helplist.concat(tai_marker.Create(mark_may_store_flags_with_r26));
-            if (CPUAVR_HAS_ADIW in cpu_capabilities[current_settings.cputype]) and (ofs>0) and (ofs<=126) then
+            if (CPUAVR_HAS_ADIW in cpu_capabilities[compiler.globals.current_settings.cputype]) and (ofs>0) and (ofs<=126) then
               begin
                 { this might be converted into movw }
                 helplist.concat(taicpu.op_reg_reg(A_MOV,NR_R26,spilltemp.base));
@@ -236,7 +236,7 @@ unit rgcpu;
     function trgcpu.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
       begin
         result:=false;
-        if not(spilltemp.offset in [0..63]) or (CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
+        if not(spilltemp.offset in [0..63]) or (CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           exit;
 
         { Replace 'mov  dst,orgreg' with 'ldd  dst,spilltemp'

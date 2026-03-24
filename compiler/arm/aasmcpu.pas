@@ -2296,12 +2296,12 @@ implementation
             { fpu_fp_armv8   } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_VFPv5
           );
       begin
-        fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];
+        fArmVMask:=Masks[compiler.globals.current_settings.cputype] or FPUMasks[compiler.globals.current_settings.fputype];
 
         if cf_thumb in flags then
           begin
             fArmMask:=IF_THUMB;
-            if CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype] then
+            if CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.current_settings.cputype] then
              fArmMask:=fArmMask or IF_THUMB32;
           end
         else

@@ -2084,7 +2084,7 @@ implementation
           append_entry(DW_TAG_subprogram,true,
             [DW_AT_name,DW_FORM_string,def.mangledname+#0]);
 
-        if (ds_dwarf_cpp in current_settings.debugswitches) and (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
+        if (ds_dwarf_cpp in compiler.globals.current_settings.debugswitches) and (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
             { If C++ emulation is enabled, add DW_AT_linkage_name attribute for methods.
               LLDB uses it to display fully qualified method names.
@@ -2438,7 +2438,7 @@ implementation
                   begin
                     if (vo_is_thread_var in sym.varoptions) and
                        (not (compiler.target.info.system in systems_wasm) or
-                            (ts_wasm_threads in current_settings.targetswitches)) then
+                            (ts_wasm_threads in compiler.globals.current_settings.targetswitches)) then
                       begin
 {$ifdef wasm}
                         templist.concat(tai_const.create_8bit(ord(DW_OP_WASM_location)));
@@ -3348,7 +3348,7 @@ implementation
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
 
-        if (ds_dwarf_cpp in current_settings.debugswitches) then
+        if (ds_dwarf_cpp in compiler.globals.current_settings.debugswitches) then
           lang:=DW_LANG_C_plus_plus
         else
           lang:=DW_LANG_Pascal83;
@@ -3361,7 +3361,7 @@ implementation
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
 {$ifdef i8086}
-        case current_settings.x86memorymodel of
+        case compiler.globals.current_settings.x86memorymodel of
           mm_tiny,
           mm_small:
             append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_small]);
@@ -3384,7 +3384,7 @@ implementation
             current_asmdata.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_linesection0',AB_LOCAL,AT_METADATA,voidpointertype),
             current_asmdata.DefineAsmSymbol(compiler.target._asm.labelprefix+'debug_line0',AB_LOCAL,AT_METADATA,voidpointertype));
 
-        if (m_objectivec1 in current_settings.modeswitches) then
+        if (m_objectivec1 in compiler.globals.current_settings.modeswitches) then
           append_attribute(DW_AT_APPLE_major_runtime_vers,DW_FORM_data1,[1]);
 
         if compiler.target.info.system in systems_wasm then
@@ -3526,7 +3526,7 @@ implementation
         else if (sym.typ=typesym) and
                 is_objc_class_or_protocol(ttypesym(sym).typedef) then
           result:=tobjectdef(ttypesym(sym).typedef).objextname^
-        else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
+        else if (ds_dwarf_method_class_prefix in compiler.globals.current_settings.debugswitches) and
                 (sym.typ=procsym) and
                 (tprocsym(sym).owner.symtabletype in [objectsymtable,recordsymtable]) then
           begin
@@ -3585,7 +3585,7 @@ implementation
         haslineinfo: Boolean = false;
       begin
 {$ifdef OMFOBJSUPPORT}
-        if ds_dwarf_omf_linnum in current_settings.debugswitches then
+        if ds_dwarf_omf_linnum in compiler.globals.current_settings.debugswitches then
           dbgcodeview.InsertLineInfo_OMF_LINNUM_MsLink(list);
 {$endif OMFOBJSUPPORT}
         { this function will always terminate the lineinfo block }
@@ -3962,7 +3962,7 @@ implementation
         lab: tasmlabel;
       begin
         if force_tag_set or
-           (ds_dwarf_sets in current_settings.debugswitches) then
+           (ds_dwarf_sets in compiler.globals.current_settings.debugswitches) then
           begin
             { current (20070704 -- patch was committed on 20060513) gdb cvs supports set types }
 
@@ -4222,7 +4222,7 @@ implementation
         end;
 
       begin
-        if (ds_dwarf_cpp in current_settings.debugswitches) then
+        if (ds_dwarf_cpp in compiler.globals.current_settings.debugswitches) then
           begin
             // At least LLDB 6.0.0 does not like this implementation of string types.
             // Call the inherited DWARF 2 implementation, which works fine.
@@ -4275,7 +4275,7 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_formal(list:TAsmList;def: tformaldef);
       begin
-        if (ds_dwarf_cpp in current_settings.debugswitches) then
+        if (ds_dwarf_cpp in compiler.globals.current_settings.debugswitches) then
           begin
             // Do not use DW_TAG_unspecified_type for C++ simulation.
             // At least LLDB 3.9.0 crashes in such case.

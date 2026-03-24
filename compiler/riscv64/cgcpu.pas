@@ -99,15 +99,15 @@ implementation
           list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
         else if (tosize=OS_S32) and (tcgsize2unsigned[fromsize]=OS_64) then
           list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
-        else if (CPURV_HAS_ZBA in cpu_capabilities[current_settings.cputype]) and (tosize=OS_32) and (tcgsize2unsigned[fromsize]=OS_64) then
+        else if (CPURV_HAS_ZBA in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tosize=OS_32) and (tcgsize2unsigned[fromsize]=OS_64) then
           list.Concat(taicpu.op_reg_reg(A_ZEXT_W,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S8) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S8) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_B,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_S8) and (tcgsize2unsigned[fromsize]=OS_64) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tosize=OS_S8) and (tcgsize2unsigned[fromsize]=OS_64) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_B,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S16) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S16) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_S16) and (tcgsize2unsigned[fromsize]=OS_64) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tosize=OS_S16) and (tcgsize2unsigned[fromsize]=OS_64) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
         else if (tosize=OS_S32) and (fromsize=OS_32) then
           list.Concat(taicpu.op_reg_reg_const(A_ADDIW,reg2,reg1,0))
@@ -115,9 +115,9 @@ implementation
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
         else if (tosize=OS_8) and (fromsize<>OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_16) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_16) then
           list.Concat(taicpu.op_reg_reg(A_ZEXT_H,reg2,reg1))
-        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_16) and (fromsize<>OS_16) then
+        else if (CPURV_HAS_ZBB in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tosize=OS_16) and (fromsize<>OS_16) then
           list.Concat(taicpu.op_reg_reg(A_ZEXT_H,reg2,reg1))
         else if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
           ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and (fromsize <> tosize)) or

@@ -39,7 +39,7 @@ function llvm_constrained_si64tofp_support: boolean;
     { LLVM has a custom implementation for these platforms }
     result:=true;
 {$else}
-    result:=llvmflag_generic_constrained_si64tofp in llvmversion_properties[current_settings.llvmversion];
+    result:=llvmflag_generic_constrained_si64tofp in llvmversion_properties[compiler.globals.current_settings.llvmversion];
 {$endif}
   end;
 

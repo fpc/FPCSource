@@ -163,7 +163,7 @@ interface
 
     function tarmaddnode.use_fma : boolean;
       begin
-       Result:=FPUARM_HAS_FMA in fpu_capabilities[current_settings.fputype];
+       Result:=FPUARM_HAS_FMA in fpu_capabilities[compiler.globals.current_settings.fputype];
       end;
 
 
@@ -177,7 +177,7 @@ interface
         if (nf_swapped in flags) then
           swapleftright;
 
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
@@ -210,7 +210,7 @@ interface
           fpu_soft:
             { this case should be handled already by pass1 }
             internalerror(2003082503);
-          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
@@ -242,7 +242,7 @@ interface
                  location.register,left.location.register,right.location.register),pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               { force mmreg as location, left right doesn't matter
                 as both will be in a fpureg }
@@ -286,7 +286,7 @@ interface
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(false);
 
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:
@@ -306,7 +306,7 @@ interface
                    left.location.register,right.location.register),
                    cgsize2fpuoppostfix[def_cgsize(resultdef)]));
             end;
-          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
@@ -328,7 +328,7 @@ interface
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VMRS,NR_APSR_nzcv,NR_FPSCR));
               location.resflags:=GetFpuResFlags;
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
@@ -576,7 +576,7 @@ interface
               ) then
               expectloc:=LOC_FLAGS;
             if (left.resultdef.typ=floatdef) and
-              ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[current_settings.fputype]<>[]) and
+              ([FPUARM_HAS_VFP_EXTENSION,FPUARM_HAS_VFP_DOUBLE]*fpu_capabilities[compiler.globals.current_settings.fputype]<>[]) and
               needs_check_for_fpu_exceptions then
               Include(current_procinfo.flags,pi_do_call);
           end;
@@ -587,8 +587,8 @@ interface
       begin
         result := nil;
 
-        if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) and
-           not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+        if (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) and
+           not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -646,7 +646,7 @@ interface
         if (nodetype=muln) and
            is_64bit(resultdef) and
            not(GenerateThumbCode) and
-           (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
+           (CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           begin
             pass_left_right;
             force_reg_left_right(true, false);
@@ -663,13 +663,13 @@ interface
 
     function tarmaddnode.use_generic_mul32to64: boolean;
       begin
-        result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]);
+        result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]);
       end;
 
     function tarmaddnode.use_generic_mul64bit: boolean;
       begin
         result:=GenerateThumbCode or
-          not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) or
+          not(CPUARM_HAS_UMULL in cpu_capabilities[compiler.globals.current_settings.cputype]) or
           needoverflowcheck;
       end;
 

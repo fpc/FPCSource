@@ -590,7 +590,7 @@ unit aoptx86;
       repeat
         Result:=GetNextInstruction(Next,Next);
       until not (Result) or
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
             (Next.typ<>ait_instruction) or
             RegInInstruction(reg,Next) or
             is_calljmp(taicpu(Next).opcode);
@@ -611,7 +611,7 @@ unit aoptx86;
           { Must return zero upon hitting the end of the linked list without a match }
           Result := 0;
       until not (GetNextResult) or
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
             (Next.typ<>ait_instruction) or
             RegInInstruction(reg,Next) or
             is_calljmp(taicpu(Next).opcode);
@@ -804,7 +804,7 @@ unit aoptx86;
             Break;
           end;
       until not Result or
-            not (cs_opt_level3 in current_settings.optimizerswitches) or
+            not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
             not (Next.typ in [ait_label, ait_instruction]) or
             RegInInstruction(reg,Next);
     end;
@@ -812,7 +812,7 @@ unit aoptx86;
 
   function TX86AsmOptimizer.GetNextInstructionUsingRegTrackingUse(Current: tai; out Next: tai; reg: TRegister): Boolean;
     begin
-      if not(cs_opt_level3 in current_settings.optimizerswitches) then
+      if not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
         begin
           Result:=GetNextInstruction(Current,Next);
           exit;
@@ -1530,13 +1530,13 @@ unit aoptx86;
 {$else x86_64}
         Result :=
 {$ifdef i8086}
-          (current_settings.cputype >= cpu_386) and
+          (compiler.globals.current_settings.cputype >= cpu_386) and
 {$endif i8086}
           (
             { Always accept if optimising for size }
-            (cs_opt_size in current_settings.optimizerswitches) or
+            (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
             { From the Pentium II onwards, MOVZX only takes 1 cycle. [Kit] }
-            (current_settings.optimizecputype >= cpu_Pentium2)
+            (compiler.globals.current_settings.optimizecputype >= cpu_Pentium2)
           );
 {$endif x86_64}
       end;
@@ -1559,7 +1559,7 @@ unit aoptx86;
           current_procinfo.saved_regs_int;
 (*
         { Don't use the frame register unless explicitly allowed (fixes i40111) }
-        if ([cs_useebp, cs_userbp] * current_settings.optimizerswitches) = [] then
+        if ([cs_useebp, cs_userbp] * compiler.globals.current_settings.optimizerswitches) = [] then
           Exclude(RegSet, RS_FRAME_POINTER_REG);
 *)
         for CurrentSuperReg in RegSet do
@@ -1767,7 +1767,7 @@ unit aoptx86;
           OpsEqual(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^) then
           begin
             if (taicpu(p).oper[0]^.val > taicpu(hp1).oper[0]^.val) and
-              not(cs_opt_size in current_settings.optimizerswitches)
+              not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)
 {$ifdef x86_64}
               and (
                 (taicpu(p).opsize <> S_Q) or
@@ -1794,7 +1794,7 @@ unit aoptx86;
                 end;
               end
             else if (taicpu(p).oper[0]^.val<taicpu(hp1).oper[0]^.val) and
-              not(cs_opt_size in current_settings.optimizerswitches)
+              not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)
 {$ifdef x86_64}
               and (
                 (taicpu(p).opsize <> S_Q) or
@@ -1883,7 +1883,7 @@ unit aoptx86;
               end
           else if ((taicpu(p).ops <= 2) or
               (taicpu(p).oper[2]^.typ = Top_Reg)) and
-           not(cs_opt_size in current_settings.optimizerswitches) and
+           not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
            (not(GetNextInstruction(p, hp1)) or
              not((tai(hp1).typ = ait_instruction) and
                  ((taicpu(hp1).opcode=A_Jcc) and
@@ -2488,7 +2488,7 @@ unit aoptx86;
               (hp1.typ = ait_instruction) and
               (
                 { Under -O2 and below, the instructions are always adjacent }
-                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                 (taicpu(hp1).ops <= 1) or
                 not RegInOp(taicpu(p).oper[0]^.reg, taicpu(hp1).oper[1]^) or
                 { If reg1 = reg3, reg1 must not be modified in between }
@@ -2640,7 +2640,7 @@ unit aoptx86;
                     if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
                       begin
                         taicpu(hp1).loadoper(2,taicpu(p).oper[0]^);
-                        if (cs_opt_level3 in current_settings.optimizerswitches) then
+                        if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                           RemoveCurrentP(p)
                         else
                           RemoveCurrentP(p, hp1); // hp1 is guaranteed to be the immediate next instruction in this case.
@@ -3007,7 +3007,7 @@ unit aoptx86;
 
         { do not mess with the stack point as adjusting it by lea is recommend, except if we optimize for size }
          if (p.oper[1]^.reg=NR_STACK_POINTER_REG) and
-           not(cs_opt_size in current_settings.optimizerswitches) then
+           not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
            exit;
 
          with p.oper[0]^.ref^ do
@@ -3280,7 +3280,7 @@ unit aoptx86;
 
       function GetNextHp1(const in_p: tai): Boolean;
         begin
-          if NotFirstIteration and (cs_opt_level3 in current_settings.optimizerswitches) then
+          if NotFirstIteration and (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
             GetNextInstruction_p := GetNextInstructionUsingReg(in_p, hp1, p_TargetReg)
           else
             GetNextInstruction_p := GetNextInstruction(in_p, hp1);
@@ -3585,7 +3585,7 @@ unit aoptx86;
                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
                         MatchOperand(taicpu(p).oper[1]^, taicpu(hp1).oper[1]^) and
                         (
-                          not (cs_opt_level3 in current_settings.optimizerswitches) or
+                          not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                           (taicpu(hp1).oper[0]^.typ = top_const) or
                           not RegModifiedBetween(taicpu(hp1).oper[0]^.reg, p, hp1)
                         ) then
@@ -3779,7 +3779,7 @@ unit aoptx86;
                                 penalties might occur due to a partial register write, so instead,
                                 change it to a MOVZX instruction when optimising for speed.
                               }
-                              if not (cs_opt_size in current_settings.optimizerswitches) and
+                              if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                                 IsMOVZXAcceptable and
                                 (taicpu(hp1).opsize < taicpu(p).opsize)
 {$ifdef x86_64}
@@ -3855,7 +3855,7 @@ unit aoptx86;
 
                           { We may be able to do more and replace references
                             to %reg2q with %reg1q etc. }
-                          if (cs_opt_level3 in current_settings.optimizerswitches) and
+                          if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
                             { p_TargetReg is not used between, otherwise the earlier
                               GetNextInstructionUsingReg would have stopped sooner }
                             DoZeroUpper32Opt(p,hp1) then
@@ -3875,7 +3875,7 @@ unit aoptx86;
                         point if the second instruction was originally a MOV
                         and just got changed to AND)
                       }
-                      if (cs_opt_level3 in current_settings.optimizerswitches) and
+                      if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
                         (taicpu(p).opsize = S_L) and MatchInstruction(hp1,A_AND,[S_L]) and
                         not RegModifiedBetween(p_SourceReg, p, hp1) and
                         { p_TargetReg is not used between, otherwise the earlier
@@ -4571,7 +4571,7 @@ unit aoptx86;
                           covered by DeepMOVOpt, so only check for that }
                         (
                           { For MOV operations, a size saving is only made if the register/const is byte-sized }
-                          not (cs_opt_size in current_settings.optimizerswitches) or
+                          not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
                           (taicpu(hp1).opsize = S_B)
                         ) and
                         (
@@ -4606,7 +4606,7 @@ unit aoptx86;
             { Saves on a large number of dereferences }
             p_SourceReg := taicpu(p).oper[0]^.reg;
 
-            if NotFirstIteration and (cs_opt_level3 in current_settings.optimizerswitches) then
+            if NotFirstIteration and (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
               GetNextInstruction_p := GetNextInstructionUsingReg(p, hp1, p_SourceReg)
             else
               GetNextInstruction_p := GetNextInstruction(p, hp1);
@@ -5113,7 +5113,7 @@ unit aoptx86;
                                 end;
                             end;
                           top_const:
-                            if not (cs_opt_size in current_settings.optimizerswitches) or (taicpu(hp2).opsize = S_B) then
+                            if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or (taicpu(hp2).opsize = S_B) then
                               begin
                                 { change
                                     mov const, %treg
@@ -5943,7 +5943,7 @@ unit aoptx86;
 
                 if (
                     { Instructions are always adjacent under -O2 and under }
-                    not(cs_opt_level3 in current_settings.optimizerswitches) or
+                    not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                     (
                       (
                         (taicpu(hp1).oper[1]^.ref^.base=NR_NO) or
@@ -6076,8 +6076,8 @@ unit aoptx86;
          begin
            Result:=False;
            { Don't optimise this for size as ANDN is bigger than NOT and AND combined }
-           if not (cs_opt_size in current_settings.optimizerswitches) and
-             (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.optimizecputype]) then
+           if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
+             (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
              begin
                { Convert:           To:
                    not %reg1          andn %reg2,%reg1,%reg2
@@ -6097,7 +6097,7 @@ unit aoptx86;
                  (taicpu(hp1).oper[1]^.reg<>taicpu(p).oper[0]^.reg) and
                  (
                    { p and hp1 are adjacent on -O2 and below }
-                   not(cs_opt_level3 in current_settings.optimizerswitches) or
+                   not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                    not RegModifiedBetween(taicpu(hp1).oper[1]^.reg,p,hp1)
                  ) then
                  begin
@@ -6467,7 +6467,7 @@ unit aoptx86;
                         { In this situation, the TEST/JNE pairs must be adjacent (fixes #40366) }
 
                         { Always adjacent under -O2 and under }
-                        not(cs_opt_level3 in current_settings.optimizerswitches) or
+                        not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                         (
                           GetNextInstruction(hp1, hp1_last) and
                           (hp1_last = p_dist)
@@ -6560,7 +6560,7 @@ unit aoptx86;
                   end;
 
                 if { If -O2 and under, it may stop on any old instruction }
-                  (cs_opt_level3 in current_settings.optimizerswitches) and
+                  (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
                   (taicpu(p).oper[1]^.typ = top_reg) and
                   not RegModifiedByInstruction(taicpu(p).oper[1]^.reg, p_dist) then
                   begin
@@ -6690,7 +6690,7 @@ unit aoptx86;
 {$endif x86_64}
                   begin
                     DebugMsg(SPeepholeOptimization + 'AddLea2Lea done',p);
-                    if not (cs_opt_level3 in current_settings.optimizerswitches) then
+                    if not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                       { hp1 is the immediate next instruction for sure - good for a quick speed boost }
                       RemoveCurrentP(p, hp1)
                     else
@@ -6834,7 +6834,7 @@ unit aoptx86;
               { continue to use lea to adjust the stack pointer,
                 it is the recommended way, but only if not optimizing for size }
                 (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
-                (cs_opt_size in current_settings.optimizerswitches)
+                (cs_opt_size in compiler.globals.current_settings.optimizerswitches)
               ) and
               { If the flags register is in use, don't change the instruction
                 to an ADD otherwise this will scramble the flags. [Kit] }
@@ -7005,7 +7005,7 @@ unit aoptx86;
                         { Don't optimise if size is a concern and the intermediate register remains in use }
                         IntermediateRegDiscarded or
                         (
-                          not (cs_opt_size in current_settings.optimizerswitches) and
+                          not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                           { If the intermediate register is not discarded, it must not
                             appear in the first LEA's reference.  (Fixes #41166) }
                           not RegInRef(taicpu(p).oper[1]^.reg, taicpu(p).oper[0]^.ref^)
@@ -7115,7 +7115,7 @@ unit aoptx86;
                         { Don't optimise if size is a concern and the intermediate register remains in use }
                         IntermediateRegDiscarded or
                         (
-                          not (cs_opt_size in current_settings.optimizerswitches) and
+                          not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                           { If the intermediate register is not discarded, it must not
                             appear in the first LEA's reference.  (Fixes #41166) }
                           not RegInRef(taicpu(p).oper[1]^.reg, taicpu(p).oper[0]^.ref^)
@@ -7551,7 +7551,7 @@ unit aoptx86;
           GetNextInstruction(hp3, hp4) and
           FindLabel(JumpLoc, hp4) and
           (
-            not (cs_opt_size in current_settings.optimizerswitches) or
+            not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
             { If the initial jump is the label's only reference, then it will
               become a dead label if the other conditions are met and hence
               remove at least 2 instructions, including a jump }
@@ -7666,7 +7666,7 @@ unit aoptx86;
                 ThisReg:=newreg(R_INTREGISTER,getsupreg(SecondReg), R_SUBL);
                 hp4:=taicpu.op_reg(A_SETcc, S_B, ThisReg);
 
-                if (cs_opt_size in current_settings.optimizerswitches) then
+                if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                   begin
                     { Favour using MOVZX when optimising for size }
                     case taicpu(hp2).opsize of
@@ -7798,7 +7798,7 @@ unit aoptx86;
                   begin
                     DebugMsg(SPeepholeOptimization + 'SubLea2Lea done',p);
 
-                    if not (cs_opt_level3 in current_settings.optimizerswitches) then
+                    if not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                       { hp1 is the immediate next instruction for sure - good for a quick speed boost }
                       RemoveCurrentP(p, hp1)
                     else
@@ -8019,9 +8019,9 @@ unit aoptx86;
             if TmpBool2
 {$ifndef x86_64}
                or
-               ((current_settings.optimizecputype < cpu_Pentium2) and
+               ((compiler.globals.current_settings.optimizecputype < cpu_Pentium2) and
                (taicpu(p).oper[0]^.val <= 3) and
-               not(cs_opt_size in current_settings.optimizerswitches))
+               not(cs_opt_size in compiler.globals.current_settings.optimizerswitches))
 {$endif x86_64}
               then
               begin
@@ -8041,7 +8041,7 @@ unit aoptx86;
               end;
           end
 {$ifndef x86_64}
-        else if (current_settings.optimizecputype < cpu_Pentium2) then
+        else if (compiler.globals.current_settings.optimizecputype < cpu_Pentium2) then
           begin
             { changes "shl $1, %reg" to "add %reg, %reg", which is the same on a 386,
               but faster on a 486, and Tairable in both U and V pipes on the Pentium
@@ -8513,7 +8513,7 @@ unit aoptx86;
           if (
               { Under -O2 and below, GetNextInstructionUsingReg only returns
                 the next instruction, whether or not it contains the register }
-              (cs_opt_level3 in current_settings.optimizerswitches) or
+              (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
               RegReadByInstruction(taicpu(p).oper[1]^.reg, hp1)
             ) and not RegModifiedByInstruction(taicpu(p).oper[1]^.reg, hp1) then
             begin
@@ -8676,7 +8676,7 @@ unit aoptx86;
            RefsEqual(taicpu(p).oper[0]^.ref^, taicpu(hp1).oper[0]^.ref^) then
           begin
             { replacing fstp f;fld f by fst f is only valid for extended because of rounding or if fastmath is on }
-            if ((taicpu(p).opsize=S_FX) or (cs_opt_fastmath in current_settings.optimizerswitches)) and
+            if ((taicpu(p).opsize=S_FX) or (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches)) and
                GetNextInstruction(hp1, hp2) and
                (((hp2.typ = ait_instruction) and
                IsExitCode(hp2) and
@@ -8710,7 +8710,7 @@ unit aoptx86;
             else
               { we can do this only in fast math mode as fstp is rounding ...
                 ... still disabled as it breaks the compiler and/or rtl }
-              if { (cs_opt_fastmath in current_settings.optimizerswitches) or }
+              if { (cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches) or }
                 { ... or if another fstp equal to the first one follows }
                 GetNextInstruction(hp1,hp2) and
                 (hp2.typ = ait_instruction) and
@@ -9155,7 +9155,7 @@ unit aoptx86;
                This adds an instruction (so don't perform under -Os), but it removes
                a conditional branch.
              }
-             if not (cs_opt_size in current_settings.optimizerswitches) and
+             if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                MatchInstruction(hp2, A_CMP, A_TEST, [taicpu(p).opsize]) and
                MatchOperand(taicpu(p).oper[1]^, taicpu(hp2).oper[1]^) and
                { The first operand of CMP instructions can only be a register or
@@ -9775,7 +9775,7 @@ unit aoptx86;
                taicpu(p).loadreg(0, ThisReg);
                AllocRegBetween(ThisReg, p, hp2, UsedRegs);
 
-               if (cs_opt_size in current_settings.optimizerswitches) and IsMOVZXAcceptable then
+               if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and IsMOVZXAcceptable then
                  begin
                    case taicpu(hp1).opsize of
                      S_W:
@@ -10787,7 +10787,7 @@ unit aoptx86;
             (
               { See if we can find a more distant instruction that overwrites
                 the destination register }
-              (cs_opt_level3 in current_settings.optimizerswitches) and
+              (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
               GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[1]^.reg) and
               RegLoadedWithNewValue(taicpu(p).oper[1]^.reg, hp2)
             ) then
@@ -10856,11 +10856,11 @@ unit aoptx86;
      function IsXCHGAcceptable: Boolean; inline;
        begin
          { Always accept if optimising for size }
-         Result := (cs_opt_size in current_settings.optimizerswitches) or
+         Result := (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
            { From the Pentium M onwards, XCHG only has a latency of 2 rather
              than 3, so it becomes a saving compared to three MOVs with two of
              them able to execute simultaneously. [Kit] }
-           (CPUX86_HINT_FAST_XCHG in cpu_optimization_hints[current_settings.optimizecputype]);
+           (CPUX86_HINT_FAST_XCHG in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype]);
        end;
 
       var
@@ -10937,7 +10937,7 @@ unit aoptx86;
         Result:=false;
 
         { This optimisation adds an instruction, so only do it for speed }
-        if not (cs_opt_size in current_settings.optimizerswitches) and
+        if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
           MatchOpType(taicpu(p), top_const, top_reg) and
           (taicpu(p).oper[0]^.val = 0) then
           begin
@@ -11049,7 +11049,7 @@ unit aoptx86;
                             increases the reference count) }
                           NewInstr.loadsymbol(0, DestLabel, 0);
 
-                          if (cs_opt_level3 in current_settings.optimizerswitches) then
+                          if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                             begin
                               { Get instruction before original label (may not be p under -O3) }
                               if not GetLastInstruction(hp1, hp2) then
@@ -11064,8 +11064,8 @@ unit aoptx86;
                           { Add new alignment field }
       (*                    AsmL.InsertAfter(
                             cai_align.create_max(
-                              current_settings.alignment.jumpalign,
-                              current_settings.alignment.jumpalignskipmax
+                              compiler.globals.current_settings.alignment.jumpalign,
+                              compiler.globals.current_settings.alignment.jumpalignskipmax
                             ),
                             NewInstr
                           ); *)
@@ -11111,7 +11111,7 @@ unit aoptx86;
               with the cmp instruction, while another MOV likely means it's
               not all being executed in a single cycle due to parallelisation.
             }
-            if (cs_opt_level3 in current_settings.optimizerswitches) and
+            if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
               MatchOpType(taicpu(p), top_reg, top_reg) and
               RegInInstruction(taicpu(p).oper[0]^.reg, taicpu(hp1)) and
               GetNextInstruction(hp1, hp2) and
@@ -11315,7 +11315,7 @@ unit aoptx86;
                         Result := True;
                         Exit;
                       end
-                    else if (cs_opt_size in current_settings.optimizerswitches) and
+                    else if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                       (taicpu(p).oper[0]^.reg = NR_EDX) and
                       (taicpu(p).oper[1]^.reg = NR_EAX) then
                       begin
@@ -11343,7 +11343,7 @@ unit aoptx86;
                   end
                 { Don't bother if CMOV is supported, because a more optimal
                   sequence would have been generated for the Abs() intrinsic }
-                else if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+                else if not(CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
                   { the use of %eax also covers the opsize being S_L }
                   MatchOperand(taicpu(hp1).oper[1]^, NR_EAX) and
                   (taicpu(p).oper[0]^.reg = NR_EAX) and
@@ -11450,7 +11450,7 @@ unit aoptx86;
                     Result := True;
                     Exit;
                   end
-                else if (cs_opt_size in current_settings.optimizerswitches) and
+                else if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                   (taicpu(p).oper[0]^.reg = NR_RDX) and
                   (taicpu(p).oper[1]^.reg = NR_RAX) then
                   begin
@@ -11714,7 +11714,7 @@ unit aoptx86;
               not NotFirstIteration and
               { If -O2 and under, do the optimisation anyway because Pass 2
                 won't run more than once }
-              (cs_opt_level3 in current_settings.optimizerswitches) then
+              (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
               begin
                 { Flag that we need to run Pass 2 again }
                 Include(OptsToCheck, aoc_ForceNewIteration);
@@ -11729,7 +11729,7 @@ unit aoptx86;
                 hp2 := p;
                 repeat
                   if (
-                      not(cs_opt_level3 in current_settings.optimizerswitches) or
+                      not(cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                       { Look further ahead for this one }
                       GetNextInstructionUsingReg(hp2, hp1, taicpu(p).oper[1]^.reg)
                     ) and
@@ -11759,7 +11759,7 @@ unit aoptx86;
                       { Initial instruction wasn't actually changed }
                       Include(OptsToCheck, aoc_ForceNewIteration);
 
-                      if (cs_opt_level3 in current_settings.optimizerswitches) then
+                      if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                         begin
                           { GetNextInstructionUsingReg will return a different
                             instruction, so check this optimisation again }
@@ -12103,7 +12103,7 @@ unit aoptx86;
                       (
                         { Under -O1 and -O2, GetNextInstructionUsingReg may return an
                           instruction that doesn't actually contain ThisReg }
-                        (cs_opt_level3 in current_settings.optimizerswitches) or
+                        (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                         RegInInstruction(ThisReg, hp2)
                       ) and
                       RegLoadedWithNewValue(ThisReg, hp2)
@@ -12240,7 +12240,7 @@ unit aoptx86;
           (
             { Under -O1 and -O2, GetNextInstructionUsingReg may return an
               instruction that doesn't actually contain ECX }
-            (cs_opt_level3 in current_settings.optimizerswitches) or
+            (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
             RegInInstruction(NR_ECX, hp1) or
             (
               { It's common for the shift/rotate's read/write register to be
@@ -12314,7 +12314,7 @@ unit aoptx86;
           end;
 
         { This is anything but quick! }
-        if not(cs_opt_level2 in current_settings.optimizerswitches) then
+        if not(cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           Exit;
 
         SetLength(InstrList, 0);
@@ -12401,7 +12401,7 @@ unit aoptx86;
           (
             { Under -O1 and -O2, GetNextInstructionUsingReg may return an
               instruction that doesn't actually contain ThisReg }
-            (cs_opt_level3 in current_settings.optimizerswitches) or
+            (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
             { This allows this Movx optimisation to work through the SETcc instructions
               inserted by the 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR'
               optimisation on -O1 and -O2 (on -O3, GetNextInstructionUsingReg will
@@ -12539,7 +12539,7 @@ unit aoptx86;
                     inserted by the 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR'
                     optimisation on -O1 and -O2 (on -O3, GetNextInstructionUsingReg will
                     skip over these SETcc instructions). }
-                  if (cs_opt_level3 in current_settings.optimizerswitches) or
+                  if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                     { Of course, break out if the current register is used }
                     RegInOp(ThisReg, taicpu(hp1).oper[0]^) then
                     Break
@@ -13087,7 +13087,7 @@ unit aoptx86;
                 TransferUsedRegs(TmpUsedRegs);
                 UpdateUsedRegs(TmpUsedRegs, tai(p.next));
 
-                if (cs_opt_level3 in current_settings.optimizerswitches) then
+                if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                   begin
                     next := p;
                     SetLength(InstrList, 0);
@@ -13307,7 +13307,7 @@ unit aoptx86;
                     else
                       begin
                         DebugMsg(SPeepholeOptimization + 'SETcc/TEST/Jcc -> Jcc',p);
-                        if (cs_opt_level3 in current_settings.optimizerswitches) then
+                        if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                           Include(OptsToCheck, aoc_DoPass2JccOpts);
                       end;
                   end
@@ -13322,7 +13322,7 @@ unit aoptx86;
             else if
               { Make sure the instructions are adjacent }
               (
-                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                 GetNextInstruction(p, hp1)
               ) and
               MatchInstruction(hp1, A_MOV, [S_B]) and
@@ -13628,7 +13628,7 @@ unit aoptx86;
         Result := False;
 
         { Search ahead for CMOV instructions }
-        if (cs_opt_level2 in current_settings.optimizerswitches) then
+        if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           begin
             hp1 := p;
             hp2 := p;
@@ -13698,7 +13698,7 @@ unit aoptx86;
           test %reg1,%reg1
           (%reg1 deallocated)
         }
-        if (cs_opt_level3 in current_settings.optimizerswitches) and
+        if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
           (taicpu(p).oper[1]^.typ = top_reg) and
           (
             MatchOperand(taicpu(p).oper[0]^, taicpu(p).oper[1]^.reg) or
@@ -13755,7 +13755,7 @@ unit aoptx86;
           end;
 
         { Search ahead3 for CMOV instructions }
-        if (cs_opt_level2 in current_settings.optimizerswitches) then
+        if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) then
           begin
             hp1 := p;
             hp2 := p;
@@ -13844,8 +13844,8 @@ unit aoptx86;
                       result:=true;
                     end;
                   end
-                else if (cs_opt_level3 in current_settings.optimizerswitches) and
-                  not (cs_opt_size in current_settings.optimizerswitches) and
+                else if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
+                  not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                   CheckJumpMovTransferOpt(p, hp1, 0, Count) then
                   begin
                     Result := True;
@@ -13987,6 +13987,8 @@ unit aoptx86;
 
     function TCMOVTracking.AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         hp1: tai;
         RefModified: Boolean;
       begin
@@ -14031,7 +14033,7 @@ unit aoptx86;
                           }
                           RefModified := True;
                       end
-                    else if not (cs_opt_size in current_settings.optimizerswitches) and
+                    else if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                       { CMOV with constants grows the code size }
                       TryCMOVConst(hp1, SearchStart, BlockStop, Result) then
                       begin
@@ -14800,7 +14802,7 @@ unit aoptx86;
                    While this increases code size slightly, it makes the code much faster if the
                    jump is unpredictable
                  }
-                 else if not(cs_opt_size in current_settings.optimizerswitches) then
+                 else if not(cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                    begin
                      { search for an available register which is volatile }
                      increg := GetIntRegisterBetween(R_SUBL, UsedRegs, p, hp1);
@@ -14971,7 +14973,7 @@ unit aoptx86;
                   Result:=true;
                   exit;
                 end
-              else if (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) and
+              else if (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) and
                 MatchInstruction(hp1,A_MOV,[S_W,S_L{$ifdef x86_64},S_Q{$endif x86_64}]) then
                 begin
                   { check for
@@ -15808,7 +15810,7 @@ unit aoptx86;
                           not IsMOVZXAcceptable
                           { and $0xff,%ax has a smaller encoding but risks a partial write penalty }
                           or (
-                            (cs_opt_size in current_settings.optimizerswitches) and
+                            (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                             (taicpu(p).oper[1]^.reg = NR_AX)
                           )
                         ) then
@@ -16444,7 +16446,7 @@ unit aoptx86;
           begin
             hp2:=p;
             while GetLastInstruction(hp2, hp2) and
-              (cs_opt_level3 in current_settings.optimizerswitches) and
+              (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
               (hp2.typ=ait_instruction) and
               not RegModifiedByInstruction(ActiveReg,hp2) do { loop };
 
@@ -16486,7 +16488,7 @@ unit aoptx86;
             hp2: tai;
           begin
             TransferUsedRegs(TmpUsedRegs);
-            if (cs_opt_level3 in current_settings.optimizerswitches) then
+            if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
               UpdateUsedRegsBetween(TmpUsedRegs, p, hp1)
             else
               { p and hp1 will be adjacent }
@@ -16507,7 +16509,7 @@ unit aoptx86;
               (hp1.typ <> ait_instruction) or
               not
               (
-                (cs_opt_level3 in current_settings.optimizerswitches) or
+                (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                 { GetNextInstructionUsingRegCount just returns the next valid instruction under -O2 and under }
                 RegInInstruction(taicpu(p).oper[1]^.reg, hp1)
               ) then
@@ -16535,12 +16537,12 @@ unit aoptx86;
             }
 
             { The extra register tracking is quite strenuous }
-            if (cs_opt_level2 in current_settings.optimizerswitches) and
+            if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) and
               MatchInstruction(hp1, A_MOV, []) then
               begin
                 { Update the register tracking to the MOV instruction }
                 CopyUsedRegs(TempTracking);
-                if (cs_opt_level3 in current_settings.optimizerswitches) then
+                if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                   UpdateUsedRegsBetween(UsedRegs, p, hp1)
                 else
                   { p and hp1 will be adjacent }
@@ -16600,7 +16602,7 @@ unit aoptx86;
 
                 if (
                   { Instructions are guaranteed to be adjacent on -O2 and under }
-                  (cs_opt_level3 in current_settings.optimizerswitches) and
+                  (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
                   RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)
                 ) then
                   begin
@@ -16625,7 +16627,7 @@ unit aoptx86;
 
                     DebugMsg(SPeepholeOptimization + 'AddMov2Mov done', p);
 
-                    if (cs_opt_level3 in current_settings.optimizerswitches) then
+                    if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                       { hp1 may not be the immediate next instruction under -O3 }
                       RemoveCurrentp(p)
                     else
@@ -16651,7 +16653,7 @@ unit aoptx86;
               MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) and
               (
                 { Instructions are guaranteed to be adjacent on -O2 and under }
-                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                 (
                   { If the flags are used, don't make the optimisation,
                     otherwise they will be scrambled.  Fixes #41148 }
@@ -16664,7 +16666,7 @@ unit aoptx86;
               ) then
               begin
                 TransferUsedRegs(TmpUsedRegs);
-                if (cs_opt_level3 in current_settings.optimizerswitches) then
+                if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                   UpdateUsedRegsBetween(TmpUsedRegs, p, hp1)
                 else
                   { p and hp1 will be adjacent }
@@ -16679,7 +16681,7 @@ unit aoptx86;
                       DoAddMov2Lea
                     ) or
                     { Don't do AddMov2LeaAdd under -Os, but do allow AddMov2Lea }
-                    not (cs_opt_size in current_settings.optimizerswitches)
+                    not (cs_opt_size in compiler.globals.current_settings.optimizerswitches)
                   ) then
                   begin
                     { Change the MOV instruction to a LEA instruction, and update the
@@ -16702,7 +16704,7 @@ unit aoptx86;
                         { Since %reg1 or the flags aren't used afterwards, we can delete p completely }
                         DebugMsg(SPeepholeOptimization + 'AddMov2Lea', hp1);
 
-                        if (cs_opt_level3 in current_settings.optimizerswitches) then
+                        if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                           { hp1 may not be the immediate next instruction under -O3 }
                           RemoveCurrentp(p)
                         else
@@ -16777,10 +16779,10 @@ unit aoptx86;
               { lea x(%reg1,%reg2),%reg3 and lea x(symbol,%reg2),%reg3 have a
                 lot of latency, so break off the offset if %reg3 is used soon
                 afterwards }
-              else if not (cs_opt_size in current_settings.optimizerswitches) and
+              else if not (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                 { If 3-component addresses don't have additional latency, don't
                   perform this optimisation }
-                not (CPUX86_HINT_FAST_3COMP_ADDR in cpu_optimization_hints[current_settings.optimizecputype]) and
+                not (CPUX86_HINT_FAST_3COMP_ADDR in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype]) and
                 GetNextInstruction(p, hp1) and
                 (hp1.typ = ait_instruction) and
                 (
@@ -16858,7 +16860,7 @@ unit aoptx86;
               (hp1.typ <> ait_instruction) or
               not
               (
-                (cs_opt_level3 in current_settings.optimizerswitches) or
+                (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                 { GetNextInstructionUsingRegCount just returns the next valid instruction under -O2 and under }
                 RegInInstruction(taicpu(p).oper[1]^.reg, hp1)
               ) then
@@ -16886,12 +16888,12 @@ unit aoptx86;
             }
 
             { The extra register tracking is quite strenuous }
-            if (cs_opt_level2 in current_settings.optimizerswitches) and
+            if (cs_opt_level2 in compiler.globals.current_settings.optimizerswitches) and
               MatchInstruction(hp1, A_MOV, []) then
               begin
                 { Update the register tracking to the MOV instruction }
                 CopyUsedRegs(TempTracking);
-                if (cs_opt_level3 in current_settings.optimizerswitches) then
+                if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                   UpdateUsedRegsBetween(UsedRegs, p, hp1)
                 else
                   { p and hp1 will be adjacent }
@@ -16932,7 +16934,7 @@ unit aoptx86;
               MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) and
               (
                 { Instructions are guaranteed to be adjacent on -O2 and under }
-                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) or
                 (
                   { If the flags are used, don't make the optimisation,
                     otherwise they will be scrambled.  Fixes #41148 }
@@ -16945,7 +16947,7 @@ unit aoptx86;
               ) then
               begin
                 TransferUsedRegs(TmpUsedRegs);
-                if (cs_opt_level3 in current_settings.optimizerswitches) then
+                if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                   UpdateUsedRegsBetween(TmpUsedRegs, p, hp1)
                 else
                   { p and hp1 will be adjacent }
@@ -16960,7 +16962,7 @@ unit aoptx86;
                       DoSubMov2Lea
                     ) or
                     { Don't do SubMov2LeaSub under -Os, but do allow SubMov2Lea }
-                    not (cs_opt_size in current_settings.optimizerswitches)
+                    not (cs_opt_size in compiler.globals.current_settings.optimizerswitches)
                   ) then
                   begin
                     { Change the MOV instruction to a LEA instruction, and update the
@@ -16982,7 +16984,7 @@ unit aoptx86;
                         { Since %reg1 or the flags aren't used afterwards, we can delete p completely }
                         DebugMsg(SPeepholeOptimization + 'SubMov2Lea', hp1);
 
-                        if (cs_opt_level3 in current_settings.optimizerswitches) then
+                        if (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) then
                           { hp1 may not be the immediate next instruction under -O3 }
                           RemoveCurrentp(p)
                         else
@@ -17080,7 +17082,7 @@ unit aoptx86;
 
           but do it only on level 4 because it destroys stack back traces
         }
-        if (cs_opt_level4 in current_settings.optimizerswitches) and
+        if (cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) and
           (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
           (taicpu(p).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
           (taicpu(p).oper[0]^.ref^.index=NR_NO) and
@@ -17196,7 +17198,7 @@ unit aoptx86;
           It depends on the fact, that the sequence push rax/pop rcx is used for stack alignment as rcx is volatile
           for all supported calling conventions
         }
-        if (cs_opt_level4 in current_settings.optimizerswitches) and
+        if (cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) and
           MatchOpType(taicpu(p),top_reg) and
           (taicpu(p).oper[0]^.reg=NR_RAX) and
           GetNextInstruction(p, hp1) and
@@ -17299,7 +17301,7 @@ unit aoptx86;
               end;
             -1:
               { Don't make this optimisation if the CPU flags are required, since OR scrambles them }
-              if (cs_opt_size in current_settings.optimizerswitches) and
+              if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) and
                 (taicpu(p).opsize <> S_B) and
                 (
                   not RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs) or
@@ -17329,10 +17331,12 @@ unit aoptx86;
 
     { Returns true if the given logic instruction can be converted into a BTx instruction (BT not included) }
     class function TX86AsmOptimizer.IsBTXAcceptable(p : tai) : boolean;
+      var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         Result := False;
 
-        if not (CPUX86_HAS_BTX in cpu_capabilities[current_settings.optimizecputype]) then
+        if not (CPUX86_HAS_BTX in cpu_capabilities[_compiler.globals.current_settings.optimizecputype]) then
           Exit;
 
         { For sizes less than S_L, the byte size is equal or larger with BTx,
@@ -17351,15 +17355,15 @@ unit aoptx86;
           Exit;
 
         { If we're optimising for size, this is acceptable }
-        if (cs_opt_size in current_settings.optimizerswitches) then
+        if (cs_opt_size in _compiler.globals.current_settings.optimizerswitches) then
           Exit(True);
 
         if (taicpu(p).oper[1]^.typ = top_reg) and
-          (CPUX86_HINT_FAST_BTX_REG_IMM in cpu_optimization_hints[current_settings.optimizecputype]) then
+          (CPUX86_HINT_FAST_BTX_REG_IMM in cpu_optimization_hints[_compiler.globals.current_settings.optimizecputype]) then
           Exit(True);
 
         if (taicpu(p).oper[1]^.typ <> top_reg) and
-          (CPUX86_HINT_FAST_BTX_MEM_IMM in cpu_optimization_hints[current_settings.optimizecputype]) then
+          (CPUX86_HINT_FAST_BTX_MEM_IMM in cpu_optimization_hints[_compiler.globals.current_settings.optimizecputype]) then
           Exit(True);
       end;
 
@@ -17691,7 +17695,7 @@ unit aoptx86;
             UpdateUsedRegs(TmpUsedRegs, tai(p.next));
             hp2 := p;
 
-            while not (cs_opt_level3 in current_settings.optimizerswitches) and
+            while not (cs_opt_level3 in compiler.globals.current_settings.optimizerswitches) and
               GetNextInstruction(hp2, hp2) and (hp2 <> hp1) do
               UpdateUsedRegs(TmpUsedRegs, tai(hp2.next));
 
@@ -17835,17 +17839,17 @@ unit aoptx86;
             jnc / setnc / cmovnc (or jc / setc / cmovnc)
         }
         if (taicpu(p).opcode = A_TEST) and
-          (CPUX86_HAS_BTX in cpu_capabilities[current_settings.optimizecputype]) and
+          (CPUX86_HAS_BTX in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) and
           (taicpu(p).oper[0]^.typ = top_const) and
           (
-            (cs_opt_size in current_settings.optimizerswitches) or
+            (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
             (
               (taicpu(p).oper[1]^.typ = top_reg) and
-              (CPUX86_HINT_FAST_BT_REG_IMM in cpu_optimization_hints[current_settings.optimizecputype])
+              (CPUX86_HINT_FAST_BT_REG_IMM in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype])
             ) or
             (
               (taicpu(p).oper[1]^.typ <> top_reg) and
-              (CPUX86_HINT_FAST_BT_MEM_IMM in cpu_optimization_hints[current_settings.optimizecputype])
+              (CPUX86_HINT_FAST_BT_MEM_IMM in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype])
             )
           ) and
           (PopCnt(QWord(taicpu(p).oper[0]^.val)) = 1) and
@@ -18059,8 +18063,8 @@ unit aoptx86;
 {$ifndef x86_64}
         { don't do this on modern CPUs, this really hurts them due to
           broken call/ret pairing }
-        if (current_settings.optimizecputype < cpu_Pentium2) and
-           not(cs_create_pic in current_settings.moduleswitches) and
+        if (compiler.globals.current_settings.optimizecputype < cpu_Pentium2) and
+           not(cs_create_pic in compiler.globals.current_settings.moduleswitches) and
            GetNextInstruction(p, hp1) and
            MatchInstruction(hp1,A_JMP,[S_NO]) and
            MatchOpType(taicpu(hp1),top_ref) and
@@ -18086,7 +18090,7 @@ unit aoptx86;
 
           else if the subroutine is marked as no return, remove the ret
         }
-        if ((cs_opt_level4 in current_settings.optimizerswitches) or
+        if ((cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) or
           (po_noreturn in current_procinfo.procdef.procoptions)) and
           GetNextInstruction(p, hp1) and
           (MatchInstruction(hp1,A_RET,[S_NO]) or
@@ -18098,7 +18102,7 @@ unit aoptx86;
           ) and
           (taicpu(hp1).ops=0) then
           begin
-            if (cs_opt_level4 in current_settings.optimizerswitches) and
+            if (cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) and
               { we might destroy stack alignment here if we do not do a call }
               (compiler.target.info.stackalign<=sizeof(SizeUInt)) then
               begin
@@ -18345,7 +18349,7 @@ unit aoptx86;
               begin
                 taicpu(p).changeopsize(S_XMM);
                 setsubreg(taicpu(p).oper[2]^.reg, R_SUBMMX);
-                if (cs_opt_size in current_settings.optimizerswitches) then
+                if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
                   begin
                     { Change input registers to %xmm0 to reduce size.  Note that
                       there's a risk of a false dependency doing this, so only

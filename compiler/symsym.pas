@@ -938,9 +938,11 @@ implementation
 
     constructor tprocsym.create(const n : TSymStr);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         i: longint;
       begin
-         if not(ts_lowercase_proc_start in current_settings.targetswitches) or
+         if not(ts_lowercase_proc_start in compiler.globals.current_settings.targetswitches) or
             (n='') then
            inherited create(procsym,n)
          else
@@ -1079,7 +1081,7 @@ implementation
                 { For mode macpas. Make implicit externals (procedures declared in the interface
                   section which do not have a counterpart in the implementation)
                   to be an imported procedure }
-                if (m_mac in current_settings.modeswitches) and
+                if (m_mac in compiler.globals.current_settings.modeswitches) and
                    (pd.interfacedef) then
                   begin
                     pd.setmangledname(compiler.target.info.CPrefix+tprocdef(pd).procsym.realname);
@@ -1589,8 +1591,10 @@ implementation
 
 
     function tprocsym.could_be_implicitly_specialized:boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        result:=(m_implicit_function_specialization in current_settings.modeswitches) and
+        result:=(m_implicit_function_specialization in compiler.globals.current_settings.modeswitches) and
                 (sp_generic_dummy in symoptions) and
                 assigned(genprocsymovlds);
       end;
@@ -1792,7 +1796,7 @@ implementation
               cpo:=[cpo_allowdefaults,cpo_ignorehidden];
               { allow var-parameters for setters in case of VARPROPSETTER+ }
               if (getset=palt_write) and
-                 (cs_varpropsetter in current_settings.localswitches) then
+                 (cs_varpropsetter in compiler.globals.current_settings.localswitches) then
                 include(cpo,cpo_ignorevarspez);
               propaccesslist[getset].procdef:=tprocsym(sym).find_procdef_bypara(accessordef.paras,accessordef.returndef,cpo);
               if not assigned(propaccesslist[getset].procdef) or
@@ -1969,6 +1973,8 @@ implementation
 
     function tabstractvarsym.is_regvar(refpara: boolean):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         tempdef : tdef;
       begin
         { Register variables are not allowed in the following cases:
@@ -1977,7 +1983,7 @@ implementation
                registers is not valid anymore)
            - it has a local copy
            - the value needs to be in memory (i.e. reference counted) }
-        result:=(cs_opt_regvar in current_settings.optimizerswitches) and
+        result:=(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) and
                 not(pi_has_assembler_block in current_procinfo.flags) and
                 not(pi_uses_exceptions in current_procinfo.flags) and
                 not(pi_has_interproclabel in current_procinfo.flags) and
@@ -2020,6 +2026,8 @@ implementation
 
 
     procedure tabstractvarsym.setregable;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if vo_volatile in varoptions then
           exit;
@@ -2028,7 +2036,7 @@ implementation
            (owner.symtabletype in [localsymtable, parasymtable]) or
            (
             (owner.symtabletype=staticsymtable) and
-            not(cs_create_pic in current_settings.moduleswitches)
+            not(cs_create_pic in compiler.globals.current_settings.moduleswitches)
            ) then
           begin
             if (tstoreddef(vardef).is_intregable and
@@ -2228,7 +2236,7 @@ implementation
               so we cannot know if it will be auto inlined, so make all symbols of it
               global if asked }
             (not(po_noinline in current_procinfo.procdef.procoptions) and
-             (cs_opt_autoinline in current_settings.optimizerswitches)))
+             (cs_opt_autoinline in compiler.globals.current_settings.optimizerswitches)))
           ) or
           (vo_is_public in varoptions);
       end;

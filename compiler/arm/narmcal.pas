@@ -84,8 +84,8 @@ implementation
       if (realresdef.typ=floatdef) and
          (compiler.target.info.abi<>abi_eabihf) and
          (procdefinition.proccalloption<>pocall_hardfloat) and
-         ((cs_fp_emulation in current_settings.moduleswitches) or
-          (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype])) then
+         ((cs_fp_emulation in compiler.globals.current_settings.moduleswitches) or
+          (FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype])) then
         begin
           { keep the fpu values in integer registers for now, the code
             generator will move them to memory or an mmregister when necessary
@@ -104,7 +104,7 @@ implementation
         end
       else if (resultdef.typ=floatdef) and
          (location.loc=LOC_REGISTER) and
-         (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+         (compiler.globals.current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
         begin
           location_reset_ref(location,LOC_REFERENCE,location.size,resultdef.alignment,[]);
           tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);

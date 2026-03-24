@@ -396,7 +396,7 @@ begin
     end;
 
 
-  if not (cs_link_strip in current_settings.globalswitches) then
+  if not (cs_link_strip in compiler.globals.current_settings.globalswitches) then
   begin
     NLMConvLinkFile.Add ('DEBUG');
     compiler.verbose.Comment(V_Debug,'DEBUG');
@@ -539,13 +539,13 @@ var
   success  : boolean;
   StripStr : string[2];
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   StripStr:='';
 
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
 
 { Write used files and libraries and create Headerfile for
@@ -564,7 +564,7 @@ begin
   success:=DoExec(BinStr,CmdStr,true,false);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 { Call nlmconv }
@@ -577,7 +577,7 @@ begin
     Replace(cmdstr,'$RES',maybequoted(compiler.globals.outputexedir+'n'+Info.ResName));
     compiler.verbose.Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(BinStr,CmdStr,true,false);
-    if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+    if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       DeleteFile(compiler.globals.outputexedir+'n'+Info.ResName);
       DeleteFile(compiler.globals.outputexedir+tmpLinkFileName);

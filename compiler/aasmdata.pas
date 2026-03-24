@@ -620,7 +620,7 @@ implementation
           avoid change from AB_LOCAL to AB_GLOBAL, which generates
           erroneous code (at least for targets using GOT) }
         if global or
-           (cs_profile in current_settings.moduleswitches) then
+           (cs_profile in compiler.globals.current_settings.moduleswitches) then
           result:=DefineAsmSymbol(s,AB_GLOBAL,AT_FUNCTION,pd)
         else if tf_supports_hidden_symbols in compiler.target.info.flags then
           result:=DefineAsmSymbol(s,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
@@ -703,7 +703,7 @@ implementation
       begin
         if (compiler.target.info.system in (systems_linux + systems_bsd + systems_android)) and
            { the next condition was
-             (cs_create_smart in current_settings.moduleswitches) and
+             (cs_create_smart in compiler.globals.current_settings.moduleswitches) and
              but if we create_smartlink_sections, this is useless }
            (create_smartlink_library) and
            (alt = alt_dbgline) then

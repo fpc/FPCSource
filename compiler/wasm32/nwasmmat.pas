@@ -105,7 +105,7 @@ implementation
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
          thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
-         if (cs_check_overflow in current_settings.localswitches) and
+         if (cs_check_overflow in compiler.globals.current_settings.localswitches) and
             is_signed(resultdef) then
            begin
              { the JVM raises an exception for integer div-iby-zero -> only
@@ -183,7 +183,7 @@ implementation
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
 
-        if (cs_check_overflow in current_settings.localswitches) then
+        if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));

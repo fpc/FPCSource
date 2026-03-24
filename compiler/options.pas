@@ -1516,7 +1516,7 @@ begin
   if IdfVersionSet then
     exit;
   { nothing specified -> defaults }
-  case current_settings.controllertype of
+  case compiler.globals.current_settings.controllertype of
 {$ifdef XTENSA}
     ct_esp8266:
       begin
@@ -5165,7 +5165,7 @@ begin
         compiler.globals.inputfilename:=ChangeFileExt(compiler.globals.inputfilename,sourceext)
       else if FileExists(compiler.globals.inputfilepath+ChangeFileExt(compiler.globals.inputfilename,pasext)) then
         compiler.globals.inputfilename:=ChangeFileExt(compiler.globals.inputfilename,pasext)
-      else if ((m_mac in current_settings.modeswitches) or
+      else if ((m_mac in compiler.globals.current_settings.modeswitches) or
               (tf_p_ext_support in compiler.target.info.flags))
              and FileExists(compiler.globals.inputfilepath+ChangeFileExt(compiler.globals.inputfilename,pext)) then
         compiler.globals.inputfilename:=ChangeFileExt(compiler.globals.inputfilename,pext);
@@ -5906,7 +5906,7 @@ begin
 
 { hardware FMA support }
 {$if defined(i386) or defined(x86_64)}
-  if (fpu_capabilities[current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[] then
+  if (fpu_capabilities[compiler.globals.current_settings.fputype]*[FPUX86_HAS_FMA,FPUX86_HAS_FMA4])<>[] then
     begin
       def_system_macro('FPC_HAS_FAST_FMA_SINGLE');
       def_system_macro('FPC_HAS_FAST_FMA_DOUBLE');

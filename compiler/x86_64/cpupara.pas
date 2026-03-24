@@ -1384,7 +1384,7 @@ unit cpupara;
           result:=[RS_XMM0..RS_XMM15];
 
         { Don't list registers that aren't available }
-        if FPUX86_HAS_32MMREGS in fpu_capabilities[current_settings.fputype] then
+        if FPUX86_HAS_32MMREGS in fpu_capabilities[compiler.globals.current_settings.fputype] then
           result:=result+[RS_XMM16..RS_XMM31];
       end;
 

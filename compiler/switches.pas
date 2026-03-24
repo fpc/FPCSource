@@ -168,7 +168,7 @@ begin
    end;
 
 { Select switch table }
-  if m_mac in current_settings.modeswitches  then
+  if m_mac in compiler.globals.current_settings.modeswitches  then
     switchTablePtr:= @macSwitchTable
   else
     switchTablePtr:= @turboSwitchTable;
@@ -187,9 +187,9 @@ begin
        optimizersw :
          begin
            if state='+' then
-             current_settings.optimizerswitches:=level2optimizerswitches
+             compiler.globals.current_settings.optimizerswitches:=level2optimizerswitches
            else
-             current_settings.optimizerswitches:=[];
+             compiler.globals.current_settings.optimizerswitches:=[];
          end;
        ignoredsw :
          compiler.verbose.Message1(scan_n_ignored_switch,'$'+switch);
@@ -212,14 +212,14 @@ begin
 {$endif cpufpemu}
                 begin
                   if state='+' then
-                    include(current_settings.moduleswitches,tmoduleswitch(setsw))
+                    include(compiler.globals.current_settings.moduleswitches,tmoduleswitch(setsw))
                   else
                     begin
                       { Turning off debuginfo when lineinfo is requested
                         is not possible }
-                      if not((cs_use_lineinfo in current_settings.globalswitches) and
+                      if not((cs_use_lineinfo in compiler.globals.current_settings.globalswitches) and
                              (tmoduleswitch(setsw)=cs_debuginfo)) then
-                        exclude(current_settings.moduleswitches,tmoduleswitch(setsw));
+                        exclude(compiler.globals.current_settings.moduleswitches,tmoduleswitch(setsw));
                     end;
                 end;
             end
@@ -231,9 +231,9 @@ begin
            if current_module.in_global and (current_module=main_module) then
             begin
               if state='+' then
-               include(current_settings.globalswitches,tglobalswitch(setsw))
+               include(compiler.globals.current_settings.globalswitches,tglobalswitch(setsw))
               else
-               exclude(current_settings.globalswitches,tglobalswitch(setsw));
+               exclude(compiler.globals.current_settings.globalswitches,tglobalswitch(setsw));
             end
            else
             compiler.verbose.Message(scan_w_switch_is_global);
@@ -241,9 +241,9 @@ begin
        packenumsw:
          begin
            if state='-' then
-             current_settings.packenum:=1
+             compiler.globals.current_settings.packenum:=1
            else
-             current_settings.packenum:=4;
+             compiler.globals.current_settings.packenum:=4;
          end;
        pentiumfdivsw:
          begin
@@ -253,7 +253,7 @@ begin
              compiler.verbose.Message1(scan_w_unsupported_switch,'$'+switch);
          end;
        targetsw:
-         UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,current_settings.targetswitches,current_module.in_global);
+         UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,compiler.globals.current_settings.targetswitches,current_module.in_global);
      end;
    end;
 end;
@@ -278,7 +278,7 @@ begin
    end;
 
 { Select switch table }
-  if m_mac in current_settings.modeswitches then
+  if m_mac in compiler.globals.current_settings.modeswitches then
     switchTablePtr:= @macSwitchTable
   else
     switchTablePtr:= @turboSwitchTable;
@@ -287,10 +287,10 @@ begin
    with switchTablePtr^[switch] do
    begin
      case typesw of
-      localsw : found:=(tlocalswitch(setsw) in current_settings.localswitches);
-     modulesw : found:=(tmoduleswitch(setsw) in current_settings.moduleswitches);
-     globalsw : found:=(tglobalswitch(setsw) in current_settings.globalswitches);
-     packenumsw : found := (current_settings.packenum = 4);
+      localsw : found:=(tlocalswitch(setsw) in compiler.globals.current_settings.localswitches);
+     modulesw : found:=(tmoduleswitch(setsw) in compiler.globals.current_settings.moduleswitches);
+     globalsw : found:=(tglobalswitch(setsw) in compiler.globals.current_settings.globalswitches);
+     packenumsw : found := (compiler.globals.current_settings.packenum = 4);
      else
       found:=false;
      end;
@@ -331,7 +331,7 @@ procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
     compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
     if not (psf_local_switches_changed in compiler.globals.pendingstate.flags) then
-       compiler.globals.pendingstate.nextlocalswitches:=current_settings.localswitches;
+       compiler.globals.pendingstate.nextlocalswitches:=compiler.globals.current_settings.localswitches;
     if state='-' then
       exclude(compiler.globals.pendingstate.nextlocalswitches,sw)
     else if state='+' then
@@ -439,7 +439,7 @@ procedure flushpendingswitchesstate;
     { process pending localswitches (range checking, etc) }
     if psf_local_switches_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.localswitches:=compiler.globals.pendingstate.nextlocalswitches;
+        compiler.globals.current_settings.localswitches:=compiler.globals.pendingstate.nextlocalswitches;
         exclude(compiler.globals.pendingstate.flags,psf_local_switches_changed);
       end;
     { process pending verbosity changes (warnings on, etc) }
@@ -450,32 +450,32 @@ procedure flushpendingswitchesstate;
       end;
     if psf_alignment_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.alignment:=compiler.globals.pendingstate.nextalignment;
+        compiler.globals.current_settings.alignment:=compiler.globals.pendingstate.nextalignment;
         exclude(compiler.globals.pendingstate.flags,psf_alignment_changed);
       end;
     if psf_packenum_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.packenum:=compiler.globals.pendingstate.nextpackenum;
+        compiler.globals.current_settings.packenum:=compiler.globals.pendingstate.nextpackenum;
         exclude(compiler.globals.pendingstate.flags,psf_packenum_changed);
       end;
     if psf_packrecords_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.packrecords:=compiler.globals.pendingstate.nextpackrecords;
+        compiler.globals.current_settings.packrecords:=compiler.globals.pendingstate.nextpackrecords;
         exclude(compiler.globals.pendingstate.flags,psf_packrecords_changed);
       end;
     if psf_setalloc_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.setalloc:=compiler.globals.pendingstate.nextsetalloc;
+        compiler.globals.current_settings.setalloc:=compiler.globals.pendingstate.nextsetalloc;
         exclude(compiler.globals.pendingstate.flags,psf_setalloc_changed);
       end;
     if psf_asmmode_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.asmmode:=compiler.globals.pendingstate.nextasmmode;
+        compiler.globals.current_settings.asmmode:=compiler.globals.pendingstate.nextasmmode;
         exclude(compiler.globals.pendingstate.flags,psf_asmmode_changed);
       end;
     if psf_optimizerswitches_changed in compiler.globals.pendingstate.flags then
       begin
-        current_settings.optimizerswitches:=compiler.globals.pendingstate.nextoptimizerswitches;
+        compiler.globals.current_settings.optimizerswitches:=compiler.globals.pendingstate.nextoptimizerswitches;
         exclude(compiler.globals.pendingstate.flags,psf_optimizerswitches_changed);
       end;
     { process pending verbosity changes (warnings on, etc) }
@@ -486,7 +486,7 @@ procedure flushpendingswitchesstate;
       end;
     msgset:=thashset.create(10,false,false);
     { we need to start from a clean slate }
-    if not assigned(current_settings.pmessage) then
+    if not assigned(compiler.globals.current_settings.pmessage) then
       compiler.verbose.RestoreLocalVerbosity(nil);
     fstate:=compiler.globals.pendingstate.nextmessagerecord;
     pstate:=compiler.globals.pendingstate.nextmessagerecord;
@@ -508,8 +508,8 @@ procedure flushpendingswitchesstate;
           compiler.verbose.SetMessageVerbosity(pstate^.value,pstate^.state);
         if not assigned(pstate^.next) then
           begin
-            pstate^.next:=current_settings.pmessage;
-            current_settings.pmessage:=fstate;
+            pstate^.next:=compiler.globals.current_settings.pmessage;
+            compiler.globals.current_settings.pmessage:=fstate;
             pstate:=nil;
           end
         else
@@ -526,7 +526,7 @@ procedure flushpendingswitchesstate;
         else if not(tmpproccal in supported_calling_conventions) then
           compiler.verbose.Message1(parser_e_illegal_calling_convention,compiler.globals.pendingstate.nextcallingstr)
         else
-          current_settings.defproccall:=tmpproccal;
+          compiler.globals.current_settings.defproccall:=tmpproccal;
         compiler.globals.pendingstate.nextcallingstr:='';
       end;
   end;

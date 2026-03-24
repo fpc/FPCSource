@@ -155,9 +155,9 @@ unit cpupi;
           result:=stackframesize
         else
           begin
-            maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
+            maxpushedparasize:=align(maxpushedparasize,max(compiler.globals.current_settings.alignment.localalignmin,4));
             floatsavesize:=0;
-            case current_settings.fputype of
+            case compiler.globals.current_settings.fputype of
               fpu_none,
               fpu_soft,
               fpu_libgcc:
@@ -180,7 +180,7 @@ unit cpupi;
                   if firstfloatreg<>RS_NO then
                     floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
                 end;
-              else if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
+              else if FPUARM_HAS_32REGS in fpu_capabilities[compiler.globals.current_settings.fputype] then
                 begin
                   floatsavesize:=0;
                   regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
@@ -197,8 +197,8 @@ unit cpupi;
                       inc(floatsavesize,8);
                 end;
             end;
-            floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
-            result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
+            floatsavesize:=align(floatsavesize,max(compiler.globals.current_settings.alignment.localalignmin,4));
+            result:=Align(tg.direction*tg.lasttemp,max(compiler.globals.current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
             { Note: in cgcpu "-floatregstart" is subtracted -> reason based on
                 "adding floatregstart" to avoid double negation
 

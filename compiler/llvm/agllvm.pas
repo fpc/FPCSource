@@ -362,7 +362,7 @@ implementation
            if lcp_sret in para^.flags then
              owner.writer.AsmWrite(llvmparatypeattr(' sret',para^.def,true));
            if asmblock and
-              (([llvmflag_opaque_ptr_transition,llvmflag_opaque_ptr]*llvmversion_properties[current_settings.llvmversion])<>[]) and
+              (([llvmflag_opaque_ptr_transition,llvmflag_opaque_ptr]*llvmversion_properties[compiler.globals.current_settings.llvmversion])<>[]) and
               (para^.def.typ=pointerdef) then
              owner.writer.AsmWrite(llvmparatypeattr(' elementtype',para^.def,true));
            { For byval, this means "alignment on the stack" and of the passed source data.
@@ -837,8 +837,8 @@ implementation
       InlineLevel:=0;
       asmblock:=false;
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=(cs_asm_source in current_settings.globalswitches) or
-               ((cs_lineinfo in current_settings.moduleswitches)
+      do_line:=(cs_asm_source in compiler.globals.current_settings.globalswitches) or
+               ((cs_lineinfo in compiler.globals.current_settings.moduleswitches)
                  and (asmlisttype=al_procedures));
       hp:=tai(p.first);
       while assigned(hp) do
@@ -1049,13 +1049,13 @@ implementation
             writer.AsmWrite(' noreturn');
           if pio_thunk in pd.implprocoptions then
             writer.AsmWrite(' "thunk"');
-          if llvmflag_null_pointer_valid_new in llvmversion_properties[current_settings.llvmversion] then
+          if llvmflag_null_pointer_valid_new in llvmversion_properties[compiler.globals.current_settings.llvmversion] then
             writer.AsmWrite(' null_pointer_is_valid')
           else
             writer.AsmWrite(' "null-pointer-is-valid"="true"');
           if not(pio_fastmath in pd.implprocoptions) then
             writer.AsmWrite(' strictfp');
-          if cs_sanitize_address in current_settings.moduleswitches then
+          if cs_sanitize_address in compiler.globals.current_settings.moduleswitches then
             writer.AsmWrite(' sanitize_address');
         end;
 
@@ -1386,7 +1386,7 @@ implementation
                       WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
                       if assigned(tprocdef(taillvmdecl(hp).def).personality) then
                         begin
-                          if not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                          if not(llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
                             begin
                               writer.AsmWrite(' personality i8* bitcast (');
                               writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def).personality, '', lpd_procvar));
@@ -1474,8 +1474,8 @@ implementation
                     like arrays by Pascal code -> the red zones completely mess
                     up this indexing }
                   if (ldf_vectorized in (taillvmdecl(hp).flags)) and
-                     (cs_sanitize_address in current_settings.moduleswitches) and
-                     (llvmflag_sanitizer_attributes in llvmversion_properties[current_settings.llvmversion]) then
+                     (cs_sanitize_address in compiler.globals.current_settings.moduleswitches) and
+                     (llvmflag_sanitizer_attributes in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
                     begin
                       writer.AsmWrite(', no_sanitize_address')
                     end;
@@ -1494,7 +1494,7 @@ implementation
                 sstr:=llvmencodetypename(taillvmalias(hp).def);
               writer.AsmWrite(sstr);
               writer.AsmWrite(', ');
-              if not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+              if not(llvmflag_opaque_ptr in llvmversion_properties[compiler.globals.current_settings.llvmversion]) then
                 begin
                   writer.AsmWrite(sstr);
                   writer.AsmWrite('* ');
@@ -1696,7 +1696,7 @@ implementation
         optstr: TCmdStr;
       begin
         wpostr:='';
-        if cs_lto in current_settings.moduleswitches then
+        if cs_lto in compiler.globals.current_settings.moduleswitches then
           begin
             case fnextpass of
               0:
@@ -1711,46 +1711,46 @@ implementation
             end;
           end;
         result:=inherited;
-        if cs_opt_level3 in current_settings.optimizerswitches then
+        if cs_opt_level3 in compiler.globals.current_settings.optimizerswitches then
           optstr:='-O3'
-        else if cs_opt_level2 in current_settings.optimizerswitches then
+        else if cs_opt_level2 in compiler.globals.current_settings.optimizerswitches then
           optstr:='-O2'
-        else if cs_opt_level1 in current_settings.optimizerswitches then
+        else if cs_opt_level1 in compiler.globals.current_settings.optimizerswitches then
           optstr:='-O1'
         else
           optstr:='-O0';
         optstr:=optstr+wpostr;
         { stack frame elimination }
-        if not(cs_opt_stackframe in current_settings.optimizerswitches) then
+        if not(cs_opt_stackframe in compiler.globals.current_settings.optimizerswitches) then
           optstr:=optstr+' -fno-omit-frame-pointer'
         else
           optstr:=optstr+' -fomit-frame-pointer';
         { fast math }
-        if cs_opt_fastmath in current_settings.optimizerswitches then
+        if cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches then
           optstr:=optstr+' -ffast-math';
         { smart linking }
-        if cs_create_smart in current_settings.moduleswitches then
+        if cs_create_smart in compiler.globals.current_settings.moduleswitches then
           optstr:=optstr+' -fdata-sections -ffunction-sections';
         { pic }
-        if cs_create_pic in current_settings.moduleswitches then
+        if cs_create_pic in compiler.globals.current_settings.moduleswitches then
           optstr:=optstr+' -fpic'
         else if not(compiler.target.info.system in systems_darwin) then
           optstr:=optstr+' -static'
         else
           optstr:=optstr+' -mdynamic-no-pic';
 
-        if fputypestrllvm[current_settings.fputype]<>'' then
-          optstr:=optstr+' -m'+fputypestrllvm[current_settings.fputype];
+        if fputypestrllvm[compiler.globals.current_settings.fputype]<>'' then
+          optstr:=optstr+' -m'+fputypestrllvm[compiler.globals.current_settings.fputype];
 
         { restrict march to aarch64 for now to fix x86_64 compilation failure }
-        if (cputypestr[current_settings.cputype]<>'')
+        if (cputypestr[compiler.globals.current_settings.cputype]<>'')
            and (compiler.target.info.system in [system_aarch64_darwin, system_aarch64_linux]) then
-          optstr:=optstr+' -march='+cputypestr[current_settings.cputype];
+          optstr:=optstr+' -march='+cputypestr[compiler.globals.current_settings.cputype];
 
-        if ([cs_sanitize_address]*current_settings.moduleswitches)<>[] then
+        if ([cs_sanitize_address]*compiler.globals.current_settings.moduleswitches)<>[] then
           begin
             optstr:=optstr+' -fsanitize=';
-            if cs_sanitize_address in current_settings.moduleswitches then
+            if cs_sanitize_address in compiler.globals.current_settings.moduleswitches then
               begin
                 optstr:=optstr+'address';
               end;
@@ -1771,7 +1771,7 @@ implementation
     function TLLVMClangAssember.RerunAssembler: boolean;
       begin
         result:=
-          (cs_lto in current_settings.moduleswitches) and
+          (cs_lto in compiler.globals.current_settings.moduleswitches) and
           (fnextpass<=1);
       end;
 
@@ -1779,7 +1779,7 @@ implementation
     function TLLVMClangAssember.DoPipe: boolean;
       begin
         result:=
-          not(cs_lto in current_settings.moduleswitches) and
+          not(cs_lto in compiler.globals.current_settings.moduleswitches) and
           inherited;
       end;
 

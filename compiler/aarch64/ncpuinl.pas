@@ -232,7 +232,7 @@ implementation
         location:=left.location;
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
-        if cs_check_overflow in current_settings.localswitches then
+        if cs_check_overflow in compiler.globals.current_settings.localswitches then
           begin
             current_asmdata.getjumplabel(hl);
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
@@ -395,7 +395,7 @@ implementation
         checkpointer_used : boolean;
       begin
         { do not call Checkpointer for left node }
-        checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+        checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
         if checkpointer_used then
           node_change_local_switch(left,cs_checkpointer,false);
         secondpass(left);

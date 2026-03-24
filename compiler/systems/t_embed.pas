@@ -153,7 +153,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
@@ -191,7 +191,7 @@ begin
     if s<>'' then
      begin
       { vlink doesn't use SEARCH_DIR for object files }
-      if not(cs_link_on_target in current_settings.globalswitches) then
+      if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
       LinkRes.AddFileName((maybequoted(s)));
      end;
@@ -201,7 +201,7 @@ begin
   if not StaticLibFiles.Empty then
    begin
     { vlink doesn't need, and doesn't support GROUP }
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      begin
       LinkRes.Add(')');
       LinkRes.Add('GROUP(');
@@ -213,7 +213,7 @@ begin
      end;
    end;
 
-  if (cs_link_on_target in current_settings.globalswitches) then
+  if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
    begin
     LinkRes.Add(')');
 
@@ -270,13 +270,13 @@ begin
    end;
 
 {$ifdef AARCH64}
-  case current_settings.controllertype of
+  case compiler.globals.current_settings.controllertype of
     ct_none:
       begin
       end;
     ct_raspi3:
       begin
-        with embedded_controllers[current_settings.controllertype] do
+        with embedded_controllers[compiler.globals.current_settings.controllertype] do
         begin
           with linkres do
           begin
@@ -365,13 +365,13 @@ begin
         end;
     end
     else
-      if not (cs_link_nolink in current_settings.globalswitches) then
+      if not (cs_link_nolink in compiler.globals.current_settings.globalswitches) then
           internalerror(200902011);
   end;
 {$endif}
 
 {$ifdef ARM}
-  case current_settings.controllertype of
+  case compiler.globals.current_settings.controllertype of
       ct_none:
            begin
            end;
@@ -778,13 +778,13 @@ begin
 
       ct_thumb2bare:
         begin
-         with embedded_controllers[current_settings.controllertype] do
+         with embedded_controllers[compiler.globals.current_settings.controllertype] do
           with linkres do
             begin
-              if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
-              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
-              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
-              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
+              if (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK20D5')
+              or (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK20D7')
+              or (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK22F51212')
+              or (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK64F12') then
                 Add('ENTRY(_LOWLEVELSTART)')
               else
                 Add('ENTRY(_START)');
@@ -812,7 +812,7 @@ begin
             end;
         end
     else
-      if not (cs_link_nolink in current_settings.globalswitches) then
+      if not (cs_link_nolink in compiler.globals.current_settings.globalswitches) then
       	 internalerror(200902011);
   end;
 
@@ -820,7 +820,7 @@ begin
     begin
       Add('SECTIONS');
       Add('{');
-      if (embedded_controllers[current_settings.controllertype].controllerunitstr='RP2040') then
+      if (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='RP2040') then
       begin
         Add('    .boot2 :');
         Add('    {');
@@ -828,7 +828,7 @@ begin
         Add('    KEEP(*(.boot2))');
         Add('    ASSERT(!( . == _boot2_start ), "RP2040: Error, a device specific 2nd stage bootloader is required for booting");');
         Add('    ASSERT(( . == _boot2_start + 256 ), "RP2040: Error, 2nd stage bootloader in section .boot2 is required to be 256 bytes");');
-        if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
           Add('    } >flash')
         else
           Add('    } >ram');
@@ -837,10 +837,10 @@ begin
       Add('    {');
       Add('    _text_start = .;');
       Add('    KEEP(*(.init .init.*))');
-      if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
-         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
-         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
-         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
+      if (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK20D5')
+         or (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK20D7')
+         or (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK22F51212')
+         or (embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr='MK64F12') then
         begin
           Add('    . = 0x400;');
           Add('    KEEP(*(.flash_config *.flash_config.*))');
@@ -851,7 +851,7 @@ begin
       Add('    *(.comment)');
       Add('    . = ALIGN(4);');
       Add('    _etext = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >flash');
           Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
@@ -870,7 +870,7 @@ begin
       Add('    *(.time_critical*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >ram AT >flash');
         end
@@ -971,7 +971,7 @@ begin
       { linker script from ld 2.19 }
       Add('ENTRY(_START)');
       Add('OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")');
-      case current_settings.cputype of
+      case compiler.globals.current_settings.cputype of
        cpu_avr1:
          Add('OUTPUT_ARCH(avr:1)');
        cpu_avr2:
@@ -1000,7 +1000,7 @@ begin
          Internalerror(2015072701);
       end;
       Add('MEMORY');
-      with embedded_controllers[current_settings.controllertype] do
+      with embedded_controllers[compiler.globals.current_settings.controllertype] do
         begin
           Add('{');
           Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,6));
@@ -1072,20 +1072,20 @@ begin
       Add('  .rel.plt       : { *(.rel.plt)		}');
       Add('  .rela.plt      : { *(.rela.plt)		}');
       if [cs_link_discard_start,cs_link_discard_zeroreg_sp,cs_link_discard_copydata,
-          cs_link_discard_jmp_main]*current_settings.globalswitches<>[] then
+          cs_link_discard_jmp_main]*compiler.globals.current_settings.globalswitches<>[] then
         begin
           Add('  /DISCARD/ :');
           Add('  { /* Discard RTL startup code */');
-          if cs_link_discard_start in current_settings.globalswitches then
+          if cs_link_discard_start in compiler.globals.current_settings.globalswitches then
             begin
               Add('    *(.init)  /* vector table */');
               Add('    *(.text.*_default_irq_handler)');
             end;
-          if cs_link_discard_zeroreg_sp in current_settings.globalswitches then
+          if cs_link_discard_zeroreg_sp in compiler.globals.current_settings.globalswitches then
             Add('    *(.init2) /* _FPC_init_zeroreg_SP */');
-          if cs_link_discard_copydata in current_settings.globalswitches then
+          if cs_link_discard_copydata in compiler.globals.current_settings.globalswitches then
             Add('    *(.init4) /* _FPC_copy_data */');
-          if cs_link_discard_jmp_main in current_settings.globalswitches then
+          if cs_link_discard_jmp_main in compiler.globals.current_settings.globalswitches then
             Add('    *(.init9) /* _FPC_jmp_main */');
           Add('  }');
         end;
@@ -1165,7 +1165,7 @@ begin
       Add('    KEEP (*(.fini0))');
       Add('     _etext = . ;');
       Add('  }  > text');
-      if not(cs_link_discard_copydata in current_settings.globalswitches) then
+      if not(cs_link_discard_copydata in compiler.globals.current_settings.globalswitches) then
         begin
           Add('  .data	  : AT (ADDR (.text) + SIZEOF (.text))');
           Add('  {');
@@ -1275,7 +1275,7 @@ begin
 {$endif AVR}
 
 {$ifdef MIPSEL}
-  case current_settings.controllertype of
+  case compiler.globals.current_settings.controllertype of
       ct_none:
            begin
            end;
@@ -1310,7 +1310,7 @@ begin
       ct_pic32mx795f512h,
       ct_pic32mx795f512l:
         begin
-         with embedded_controllers[current_settings.controllertype] do
+         with embedded_controllers[compiler.globals.current_settings.controllertype] do
           with linkres do
             begin
               Add('OUTPUT_FORMAT("elf32-tradlittlemips")');
@@ -1370,7 +1370,7 @@ begin
       Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >kseg0_program_mem');
         end
@@ -1388,7 +1388,7 @@ begin
       Add('    . = .;');
       Add('    _gp = ALIGN(16) + 0x7ff0;');
       Add('    _edata = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >ram AT >kseg0_program_mem');
         end
@@ -1467,7 +1467,7 @@ begin
       Add('OUTPUT_ARCH("riscv")');
       Add('ENTRY(_START)');
       Add('MEMORY');
-      with embedded_controllers[current_settings.controllertype] do
+      with embedded_controllers[compiler.globals.current_settings.controllertype] do
         begin
           Add('{');
           Add('  flash      (rx)   : ORIGIN = 0x'+IntToHex(flashbase,6)+', LENGTH = 0x'+IntToHex(flashsize,6));
@@ -1487,7 +1487,7 @@ begin
       Add('    *(.comment)');
       Add('    . = ALIGN(4);');
       Add('    _etext = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('  } >flash');
           //Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
@@ -1504,7 +1504,7 @@ begin
       Add('    *(.data .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
-      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+      if embedded_controllers[compiler.globals.current_settings.controllertype].flashsize<>0 then
         begin
           Add('  } >ram AT >flash');
         end
@@ -1798,11 +1798,11 @@ begin
   FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
-  //if not(cs_link_extern in current_settings.globalswitches) then
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  //if not(cs_link_extern in compiler.globals.current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
 { Write used files and libraries }
@@ -1814,7 +1814,7 @@ begin
   {$ifdef xtensa}
   if compiler.target.info.abi=abi_xtensa_call0 then
    begin
-     if current_settings.controllertype=ct_esp8266 then
+     if compiler.globals.current_settings.controllertype=ct_esp8266 then
       Replace(cmdstr,'$PLATFORMABI','')
      else
       Replace(cmdstr,'$PLATFORMABI','--abi-call0');
@@ -1822,7 +1822,7 @@ begin
   else if compiler.target.info.abi=abi_xtensa_windowed then
    Replace(cmdstr,'$PLATFORMABI','--abi-windowed');
   {$endif}
-  if not(cs_link_on_target in current_settings.globalswitches) then
+  if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
    begin
     Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
@@ -1845,11 +1845,11 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ResponseFile }
-  if success and not(cs_link_nolink in current_settings.globalswitches) then
+  if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 { Post process }
-  if success and not(cs_link_nolink in current_settings.globalswitches) then
+  if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     success:=PostProcessExecutable(FixedExeFileName,false);
 
   if success and (compiler.target.info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
@@ -1861,12 +1861,12 @@ begin
         success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+
           FixedExeFileName+' '+
           maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
-        if success and (compiler.target.info.system in systems_support_uf2) and (cs_generate_uf2 in current_settings.globalswitches) then
+        if success and (compiler.target.info.system in systems_support_uf2) and (cs_generate_uf2 in compiler.globals.current_settings.globalswitches) then
           success := GenerateUF2(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),
                                  maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.uf2'))),
-                                 embedded_controllers[current_settings.controllertype].flashbase);
+                                 embedded_controllers[compiler.globals.current_settings.controllertype].flashbase);
 {$ifdef ARM}
-      if success and (current_settings.controllertype = ct_raspi2) then
+      if success and (compiler.globals.current_settings.controllertype = ct_raspi2) then
         success:=DoExec(FindUtil(compiler.globals.utilsprefix+'objcopy'),'-O binary '+ FixedExeFileName + ' kernel7.img',true,false);
 {$endif ARM}
     end;
@@ -1945,7 +1945,7 @@ begin
   familyId := 0;
   for i := 0 to length(Families)-1 do
   begin
-    if pos(Families[i].k,embedded_controllers[current_settings.controllertype].controllerunitstr) = 1 then
+    if pos(Families[i].k,embedded_controllers[compiler.globals.current_settings.controllertype].controllerunitstr) = 1 then
       familyId := Families[i].v;
   end;
 
@@ -2010,7 +2010,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
     while assigned(HPath) do
      begin
       s:=HPath.Str;
-      if (cs_link_on_target in current_settings.globalswitches) then
+      if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
        s:=ScriptFixFileName(s);
       LinkRes.Add('-L'+s);
       HPath:=TCmdStrListItem(HPath.Next);
@@ -2048,7 +2048,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
       if s<>'' then
        begin
         { vlink doesn't use SEARCH_DIR for object files }
-        if not(cs_link_on_target in current_settings.globalswitches) then
+        if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
          s:=FindObjectFile(s,'',false);
         LinkRes.AddFileName((maybequoted(s)));
        end;
@@ -2058,7 +2058,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
     if not StaticLibFiles.Empty then
      begin
       { vlink doesn't need, and doesn't support GROUP }
-{      if (cs_link_on_target in current_settings.globalswitches) then
+{      if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
        begin
         LinkRes.Add(')');
         LinkRes.Add('GROUP(');
@@ -2070,7 +2070,7 @@ function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
        end;
      end;
 
-(*    if (cs_link_on_target in current_settings.globalswitches) then
+(*    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      begin
       LinkRes.Add(')');
 
@@ -2168,11 +2168,11 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
 
 (*    GCSectionsStr:='--gc-sections';
-    //if not(cs_link_extern in current_settings.globalswitches) then
-    if not(cs_link_nolink in current_settings.globalswitches) then
+    //if not(cs_link_extern in compiler.globals.current_settings.globalswitches) then
+    if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
      compiler.verbose.Message1(exec_i_linking,current_module.exefilename);*)
 
-    if (cs_link_map in current_settings.globalswitches) then
+    if (cs_link_map in compiler.globals.current_settings.globalswitches) then
      mapstr:='-mw';
 
   { Write used files and libraries }
@@ -2181,7 +2181,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
   { Call linker }
     SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
     Replace(cmdstr,'$OPT',Info.ExtraOptions);
-    if not(cs_link_on_target in current_settings.globalswitches) then
+    if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      begin
       Replace(cmdstr,'$EXE',FixedExeFileName);
       Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(compiler.globals.outputexedir+Info.ResName))));
@@ -2204,11 +2204,11 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
     success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
-    if success and not(cs_link_nolink in current_settings.globalswitches) then
+    if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
      DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
 (*  { Post process }
-    if success and not(cs_link_nolink in current_settings.globalswitches) then
+    if success and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
       success:=PostProcessExecutable(FixedExeFileName,false);
 
     if success and (compiler.target.info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
@@ -2254,13 +2254,13 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     tempFileName : ansistring;
   begin
     Result:=false;
-    if not(cs_link_nolink in current_settings.globalswitches) then
+    if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
       compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
     mapstr:='';
-    if (cs_link_map in current_settings.globalswitches) then
+    if (cs_link_map in compiler.globals.current_settings.globalswitches) then
       mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
-    if (cs_link_smart in current_settings.globalswitches) and
+    if (cs_link_smart in compiler.globals.current_settings.globalswitches) and
        create_smartlink_sections then
      GCSectionsStr:='--gc-sections'
     else
@@ -2281,7 +2281,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
 
     cmdstr := cmdstr + ' --no-entry --allow-undefined';
 
-    if (cs_link_strip in current_settings.globalswitches) then
+    if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
      begin
        { only remove non global symbols and debugging info for a library }
        cmdstr := cmdstr + ' --strip-all';

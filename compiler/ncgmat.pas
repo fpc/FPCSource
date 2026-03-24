@@ -210,7 +210,7 @@ implementation
         cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NEG,OS_S64,
           left.location,joinreg64(location.register64.reglo,location.register64.reghi));
         { there's only overflow in case left was low(int64) -> -left = left }
-        if (cs_check_overflow in current_settings.localswitches) then
+        if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
           begin
             tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,
@@ -300,12 +300,12 @@ implementation
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-        if (cs_check_overflow in current_settings.localswitches) then
+        if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
           hlcg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
 
         hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,resultdef,left.location.register,location.register);
 
-        if (cs_check_overflow in current_settings.localswitches) then
+        if (cs_check_overflow in compiler.globals.current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,location.register,hl);
@@ -324,13 +324,13 @@ implementation
          else
 {$endif not cpu64bitalu and not cpuhighleveltarget}
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
+           if (cs_mmx in compiler.globals.current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
              second_mmx
          else
 {$endif SUPPORT_MMX}
            if (left.resultdef.typ=floatdef) then
              begin
-               if (cs_fp_emulation in current_settings.moduleswitches) then
+               if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
                  second_float_emulated
                else
                  second_float;
@@ -613,7 +613,7 @@ implementation
          secondpass(left);
          secondpass(right);
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
+           if (cs_mmx in compiler.globals.current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
              second_mmx
          else
 {$endif SUPPORT_MMX}
@@ -678,7 +678,7 @@ implementation
         if is_boolean(resultdef) then
           second_boolean
 {$ifdef SUPPORT_MMX}
-        else if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
+        else if (cs_mmx in compiler.globals.current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
           second_mmx
 {$endif SUPPORT_MMX}
 {$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}

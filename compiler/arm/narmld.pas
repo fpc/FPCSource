@@ -70,7 +70,7 @@ implementation
               begin
                 if not(pi_uses_threadvar in current_procinfo.flags) then
                   internalerror(2012012101);
-                case current_settings.tlsmodel of
+                case compiler.globals.current_settings.tlsmodel of
                   tlsm_global_dynamic:
                     begin
 {$ifdef use_tls_dialect_gnu}

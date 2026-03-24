@@ -205,12 +205,12 @@ implementation
 
         case left.location.size of
           OS_F32:
-            if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+            if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
             else
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
           OS_F64:
-            if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+            if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
             else
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
@@ -235,7 +235,7 @@ implementation
           OS_F32:
             begin
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_nearest));
-              if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+              if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
                 current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
               else
                 current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
@@ -243,7 +243,7 @@ implementation
           OS_F64:
             begin
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_nearest));
-              if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+              if ts_wasm_saturating_float_to_int in compiler.globals.current_settings.targetswitches then
                 current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
               else
                 current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
@@ -441,7 +441,7 @@ implementation
     procedure twasminlinenode.second_throw_fpcexception;
       begin
         location_reset(location,LOC_VOID,OS_NO);
-        if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
+        if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
           current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)))
         else
           current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));

@@ -75,7 +75,7 @@ implementation
          // that need to be reviewed.
          //
          // v9 is required as the default since the RTL started using membar at 2.2.2.
-         case current_settings.cputype of
+         case compiler.globals.current_settings.cputype of
 {$ifdef SPARC}
            cpu_SPARC_V7: Replace(result,'$ARCH','-Av7');
            cpu_SPARC_V8: Replace(result,'$ARCH','-Av8');

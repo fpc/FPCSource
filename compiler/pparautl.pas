@@ -170,7 +170,7 @@ implementation
             { if no support for nested procvars is activated, use the old
               calling convention to pass the parent frame pointer for backwards
               compatibility }
-            if not(m_nested_procvars in current_settings.modeswitches) then
+            if not(m_nested_procvars in compiler.globals.current_settings.modeswitches) then
               paranr:=paranr_parentfp
             { nested procvars require Delphi-style parentfp passing, see
               po_delphi_nested_cc declaration for more info }
@@ -404,7 +404,7 @@ implementation
              end;
 
            { insert result also if support is on }
-           if (m_result in current_settings.modeswitches) then
+           if (m_result in compiler.globals.current_settings.modeswitches) then
             begin
               sl:=tpropaccesslist.create;
               sl.addsym(sl_load,pd.funcretsym);
@@ -612,7 +612,7 @@ implementation
                   pd.proccalloption:=pocall_cdecl;
               end
             else if not(po_hascallingconvention in pd.procoptions) then
-              pd.proccalloption:=current_settings.defproccall
+              pd.proccalloption:=compiler.globals.current_settings.defproccall
             else
               begin
                 if pd.proccalloption=pocall_none then
@@ -640,11 +640,11 @@ implementation
 
             { Inlining is enabled and supported? }
             if (po_inline in pd.procoptions) and
-               not(cs_do_inline in current_settings.localswitches) then
+               not(cs_do_inline in compiler.globals.current_settings.localswitches) then
               begin
                 { Give an error if inline is not supported by the compiler mode,
                   otherwise only give a hint that this procedure will not be inlined }
-                if not(m_default_inline in current_settings.modeswitches) then
+                if not(m_default_inline in compiler.globals.current_settings.modeswitches) then
                   compiler.verbose.Message(parser_e_proc_inline_not_supported)
                 else
                   compiler.verbose.Message(parser_h_inlining_disabled);
@@ -909,7 +909,7 @@ implementation
              But for an overload declared function this is not allowed }
            if { check if empty implementation arguments match is allowed }
               (
-               not(m_repeat_forward in current_settings.modeswitches) and
+               not(m_repeat_forward in compiler.globals.current_settings.modeswitches) and
                not(currpd.forwarddef) and
                is_bareprocdef(currpd) and
                not(po_overload in fwpd.procoptions)
@@ -938,7 +938,7 @@ implementation
                  begin
                    forwardfound:=true;
 
-                   if not(m_repeat_forward in current_settings.modeswitches) and
+                   if not(m_repeat_forward in compiler.globals.current_settings.modeswitches) and
                       (fwpd.proccalloption<>currpd.proccalloption) then
                      paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_openequalisexact,cpo_ignoreuniv]
                    else
@@ -951,7 +951,7 @@ implementation
                         convention in the interface or implementation if
                         there was no convention specified in the other
                         part }
-                      if (m_delphi in current_settings.modeswitches) then
+                      if (m_delphi in compiler.globals.current_settings.modeswitches) then
                         begin
                           if not(po_hascallingconvention in currpd.procoptions) then
                             currpd.proccalloption:=fwpd.proccalloption
@@ -999,7 +999,7 @@ implementation
                      if the implementation has default parameters, the interface
                      also has them and that if they both have them, that they
                      have the same value }
-                   if ((m_repeat_forward in current_settings.modeswitches) or
+                   if ((m_repeat_forward in compiler.globals.current_settings.modeswitches) or
                        not is_bareprocdef(currpd)) and
                        (
                          (
@@ -1041,7 +1041,7 @@ implementation
 
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
-                   if (m_fpc in current_settings.modeswitches) then
+                   if (m_fpc in compiler.globals.current_settings.modeswitches) then
                      po_comp:=[po_classmethod,po_varargs,po_methodpointer,po_interrupt]
                    else
                      po_comp:=[po_classmethod,po_methodpointer];
@@ -1077,7 +1077,7 @@ implementation
                          compiler.verbose.MessagePos2(currpd.fileinfo,parser_e_proc_dir_conflict,tokeninfo^[_VIRTUAL].str,get_first_proc_str(po_comp));
                      end;
                     { Check parameters }
-                   if (m_repeat_forward in current_settings.modeswitches) or
+                   if (m_repeat_forward in compiler.globals.current_settings.modeswitches) or
                       (currpd.minparacount>0) then
                     begin
                       { If mangled names are equal then they have the same amount of arguments }
@@ -1202,7 +1202,7 @@ implementation
              end;
 
            { check for allowing overload directive }
-           if not(m_fpc in current_settings.modeswitches) then
+           if not(m_fpc in compiler.globals.current_settings.modeswitches) then
             begin
               { overload directive turns on overloading }
               if ((po_overload in currpd.procoptions) or
@@ -1224,7 +1224,7 @@ implementation
                begin
                  if not(fwpd.forwarddef) then
                   begin
-                    if (m_tp7 in current_settings.modeswitches) then
+                    if (m_tp7 in compiler.globals.current_settings.modeswitches) then
                       compiler.verbose.MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off)
                     else
                       compiler.verbose.MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
@@ -1300,7 +1300,7 @@ implementation
           accessed from within nested routines (start with extra dollar to prevent
           the JVM from thinking this is a nested class in the unit) }
         nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
-          current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,compiler);
+          compiler.globals.current_settings.alignment.localalignmax,compiler.globals.current_settings.alignment.localalignmin,compiler);
         nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst,compiler);
   {$ifdef jvm}
         maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner,compiler.target);

@@ -373,10 +373,10 @@ implementation
             end;
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
-              if not(cs_opt_regvar in current_settings.optimizerswitches) or
+              if not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
                  (getsupreg(t.reference.base) in cg.rgint.usableregs) then
                 exclude(regs,getsupreg(t.reference.base));
-              if not(cs_opt_regvar in current_settings.optimizerswitches) or
+              if not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
                  (getsupreg(t.reference.index) in cg.rgint.usableregs) then
                 exclude(regs,getsupreg(t.reference.index));
             end;
@@ -450,7 +450,7 @@ implementation
         cg:=compiler.cg;
         l.size:=def_cgsize(def);
         if (def.typ=floatdef) and
-           not(cs_fp_emulation in current_settings.moduleswitches) then
+           not(cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
           begin
             if use_vectorfpu(def) then
               begin
@@ -847,7 +847,7 @@ implementation
           current_asmdata.asmcfi.outmost_frame(list);
 
         { All temps are know, write offsets used for information }
-        if (cs_asm_source in current_settings.globalswitches) and
+        if (cs_asm_source in compiler.globals.current_settings.globalswitches) and
            (current_procinfo.tempstart<>tg.lasttemp) then
           begin
             if tg.direction>0 then
@@ -1008,7 +1008,7 @@ implementation
                   { Unused parameters need to be kept in the original location
                     to prevent allocation of registers/resources for them. }
                   else if not tparavarsym(vs).is_used and
-                    (cs_opt_unused_para in current_settings.optimizerswitches) then
+                    (cs_opt_unused_para in compiler.globals.current_settings.optimizerswitches) then
                     begin
                       tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc);
                     end
@@ -1075,7 +1075,7 @@ implementation
                       else
                         pd.funcretloc[calleeside].get_location(vs.initialloc);
                     end
-                  else if (m_delphi in current_settings.modeswitches) and
+                  else if (m_delphi in compiler.globals.current_settings.modeswitches) and
                      (po_assembler in pd.procoptions) and
                      (vo_is_funcret in vs.varoptions) and
                      (vs.refs=0) then
@@ -1186,6 +1186,8 @@ implementation
 
     function do_get_used_regvars(var n: tnode; arg: pointer): foreachnoderesult;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         rv: pusedregvars absolute arg;
       begin
         case (n.nodetype) of
@@ -1212,7 +1214,7 @@ implementation
           vecn:
             begin
               { range checks sometimes need the high parameter }
-              if (cs_check_range in current_settings.localswitches) and
+              if (cs_check_range in compiler.globals.current_settings.localswitches) and
                  (is_open_array(tvecnode(n).left.resultdef) or
                   is_array_of_const(tvecnode(n).left.resultdef)) and
                  not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
@@ -1407,12 +1409,14 @@ implementation
 
 
     function getprocalign : shortint;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         { gprof uses 16 byte granularity }
-        if (cs_profile in current_settings.moduleswitches) then
+        if (cs_profile in compiler.globals.current_settings.moduleswitches) then
           result:=16
         else
-         result:=current_settings.alignment.procalign;
+         result:=compiler.globals.current_settings.alignment.procalign;
       end;
 
 

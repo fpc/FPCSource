@@ -77,7 +77,7 @@ function tmipseltypeconvnode.first_int_to_real: tnode;
 var
   fname: string[19];
 begin
-  if cs_fp_emulation in current_settings.moduleswitches then
+  if cs_fp_emulation in compiler.globals.current_settings.moduleswitches then
     begin
       result:=inherited;
       exit;
@@ -110,7 +110,7 @@ begin
       else
         begin
           inserttypeconv(left,u32inttype,compiler);
-          if (cs_create_pic in current_settings.moduleswitches) then
+          if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
             include(current_procinfo.flags,pi_needs_got);
         end;
       firstpass(left);

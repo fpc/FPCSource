@@ -568,7 +568,7 @@ implementation
                       begin
                         if compiler.globals.block_type<>bt_const then
                           inserttypeconv(p2,cansichartype,compiler);
-                        if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
+                        if (p2.nodetype<>ordconstn) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                           incompatibletypes(cwidechartype,cansichartype);
                       end;
 
@@ -579,7 +579,7 @@ implementation
                          begin
                            if compiler.globals.block_type<>bt_const then
                              inserttypeconv(p3,cansichartype,compiler);
-                           if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in current_settings.modeswitches) then
+                           if (p3.nodetype<>ordconstn) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                              begin
                                compiler.globals.current_filepos:=p3.fileinfo;
                                incompatibletypes(cwidechartype,cansichartype);
@@ -708,6 +708,8 @@ implementation
 
     function arrayconstructor_can_be_set(p:tnode):boolean;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         p1,p2 : tnode;
         hdef : tdef;
       begin
@@ -747,7 +749,7 @@ implementation
                         begin
                           if p1.nodetype<>ordconstn then
                             exit
-                          else if (tordconstnode(p1).value.uvalue>high(byte)) and not (m_default_unicodestring in current_settings.modeswitches) then
+                          else if (tordconstnode(p1).value.uvalue>high(byte)) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                             exit;
                         end;
 
@@ -757,7 +759,7 @@ implementation
                             begin
                               if p2.nodetype<>ordconstn then
                                 exit
-                              else if (tordconstnode(p2).value.uvalue>high(byte)) and not (m_default_unicodestring in current_settings.modeswitches) then
+                              else if (tordconstnode(p2).value.uvalue>high(byte)) and not (m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                                 exit;
                             end;
 
@@ -817,7 +819,7 @@ implementation
               begin
                 if is_integer(p.resultdef) and
                    not(is_64bitint(p.resultdef)) then
-                  if not(m_delphi in current_settings.modeswitches) then
+                  if not(m_delphi in compiler.globals.current_settings.modeswitches) then
                     p:=compiler.ctypeconvnode(p,s32inttype)
                   else
                     { delphi doesn't generate a range error when passing a
@@ -830,7 +832,7 @@ implementation
                 else if is_void(p.resultdef) then
                   compiler.verbose.CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
-                    and (current_settings.fputype<>fpu_none) then
+                    and (compiler.globals.current_settings.fputype<>fpu_none) then
                   p:=compiler.ctypeconvnode(p,s64floattype);
               end;
             floatdef :
@@ -895,8 +897,8 @@ implementation
       begin
         compiler:=fromnode.compiler;
         result:=false;
-        if (m_nested_procvars in current_settings.modeswitches) and
-           not(m_tp_procvar in current_settings.modeswitches) and
+        if (m_nested_procvars in compiler.globals.current_settings.modeswitches) and
+           not(m_tp_procvar in compiler.globals.current_settings.modeswitches) and
            (todef.typ=procvardef) and
            is_nested_pd(tprocvardef(todef)) and
            (fromnode.nodetype=typeconvn) and
@@ -925,7 +927,7 @@ implementation
         hp: tnode;
       begin
         result:=false;
-        if not(m_tp_procvar in current_settings.modeswitches) and
+        if not(m_tp_procvar in compiler.globals.current_settings.modeswitches) and
            (todef.typ=procvardef) and
            is_methodpointer(tprocvardef(todef)) and
            (fromnode.nodetype=typeconvn) and
@@ -1219,7 +1221,7 @@ implementation
         if (left.nodetype = stringconstn) and
            (tstringconstnode(left).cst_type=cst_conststring) then
            begin
-             if (m_iso in current_settings.modeswitches) and (arrsize<>tstringconstnode(left).len) and
+             if (m_iso in compiler.globals.current_settings.modeswitches) and (arrsize<>tstringconstnode(left).len) and
                 is_char(tarraydef(resultdef).elementdef) then
                compiler.verbose.Message2(type_w_array_size_does_not_match_size_of_constant_string,tostr(tstringconstnode(left).len),tostr(arrsize));
              { if the array of char is large enough we can use the string
@@ -1299,7 +1301,7 @@ implementation
                 begin
                   if (torddef(left.resultdef).ordtype=uwidechar) then
                     begin
-                      if not((current_settings.sourcecodepage=CP_UTF8) or
+                      if not((compiler.globals.current_settings.sourcecodepage=CP_UTF8) or
                              ((tstringdef(resultdef).stringtype=st_ansistring) and
                               (tstringdef(resultdef).encoding=CP_UTF8))) then
                         begin
@@ -1484,12 +1486,12 @@ implementation
          if (left.nodetype=ordconstn) and
             ((torddef(resultdef).ordtype<>uchar) or
              (torddef(left.resultdef).ordtype<>uwidechar) or
-             (current_settings.sourcecodepage<>CP_UTF8))
+             (compiler.globals.current_settings.sourcecodepage<>CP_UTF8))
          then
            begin
              if (torddef(resultdef).ordtype=uchar) and
                 (torddef(left.resultdef).ordtype=uwidechar) and
-                (current_settings.sourcecodepage<>CP_UTF8) then
+                (compiler.globals.current_settings.sourcecodepage<>CP_UTF8) then
               begin
                 if tordconstnode(left).value.uvalue>127 then
                   compiler.verbose.Message(type_w_unicode_data_loss);
@@ -1727,7 +1729,7 @@ implementation
          result:=nil;
          if left.nodetype<>stringconstn then
            internalerror(200510012);
-         if (m_mac in current_settings.modeswitches) and
+         if (m_mac in compiler.globals.current_settings.modeswitches) and
             is_integer(resultdef) and
             (tstringconstnode(left).cst_type=cst_conststring) and
             (tstringconstnode(left).len=4) then
@@ -1781,7 +1783,7 @@ implementation
         { constant sets can be converted by changing the type only }
         if (left.nodetype=setconstn) then
          begin
-           if (cs_check_range in current_settings.localswitches) and (tsetconstnode(left).elements>0) and ((tsetconstnode(left).low<tsetdef(resultdef).setlow) or (tsetconstnode(left).high>tsetdef(resultdef).setmax)) then
+           if (cs_check_range in compiler.globals.current_settings.localswitches) and (tsetconstnode(left).elements>0) and ((tsetconstnode(left).low<tsetdef(resultdef).setlow) or (tsetconstnode(left).high>tsetdef(resultdef).setmax)) then
              compiler.verbose.Message(parser_e_range_check_error);
 
            left.resultdef:=resultdef;
@@ -2695,7 +2697,7 @@ implementation
              a methodpointer. }
            if (left.nodetype=loadn) and
               not assigned(tloadnode(left).left) and
-              (not(m_nested_procvars in current_settings.modeswitches) or
+              (not(m_nested_procvars in compiler.globals.current_settings.modeswitches) or
                not is_nested_pd(tabstractprocdef(tloadnode(left).resultdef))) then
              copytype:=pc_address_only
            else
@@ -2714,7 +2716,7 @@ implementation
       begin
         result:=nil;
 
-        if not(m_tp_procvar in current_settings.modeswitches) and
+        if not(m_tp_procvar in compiler.globals.current_settings.modeswitches) and
            is_invokable(resultdef) and
            (left.nodetype=typeconvn) and
            (ttypeconvnode(left).convtype=tc_proc_2_procvar) and
@@ -3014,8 +3016,8 @@ implementation
                        is_invokable(resultdef)
                      ) and
                      (
-                      (m_tp_procvar in current_settings.modeswitches) or
-                      (m_mac_procvar in current_settings.modeswitches)
+                      (m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                      (m_mac_procvar in compiler.globals.current_settings.modeswitches)
                      ) then
                    begin
                      if assigned(tcallnode(left).right) then
@@ -3141,7 +3143,7 @@ implementation
                          { Add runtime check? }
                          if not is_objc_class_or_protocol(resultdef) and
                             not is_objc_class_or_protocol(left.resultdef) and
-                            (cs_check_object in current_settings.localswitches) and
+                            (cs_check_object in compiler.globals.current_settings.localswitches) and
                             not(nf_internal in flags) then
                            begin
                              { we can translate the typeconvnode to 'as' when
@@ -4045,7 +4047,7 @@ implementation
     function ttypeconvnode.first_real_to_real : tnode;
       begin
 {$ifdef cpufpemu}
-        if cs_fp_emulation in current_settings.moduleswitches then
+        if cs_fp_emulation in compiler.globals.current_settings.moduleswitches then
           begin
             if compiler.target.info.system in systems_wince then
               begin
@@ -4670,7 +4672,7 @@ implementation
                  (
                   not is_bitpacked_access(left) and
                   (resultdef.size=left.resultdef.size) or
-                  ((m_tp7 in current_settings.modeswitches) and
+                  ((m_tp7 in compiler.globals.current_settings.modeswitches) and
                    (resultdef.size<left.resultdef.size))
                  )
                 ) or

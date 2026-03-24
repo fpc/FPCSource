@@ -222,7 +222,7 @@ implementation
           cgsize:=OS_64;
 
         if {$ifndef cpu64bitalu}(cgsize<>OS_64) and{$endif}
-           (((cs_full_boolean_eval in current_settings.localswitches) and
+           (((cs_full_boolean_eval in compiler.globals.current_settings.localswitches) and
              not(anf_short_bool in addnodeflags)) or
             (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn])) then
           begin

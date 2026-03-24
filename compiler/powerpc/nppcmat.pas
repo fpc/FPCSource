@@ -101,7 +101,7 @@ implementation
                 cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, numerator, resultreg);
              end else if (tordconstnode(right).value = int64(-1)) then begin
                 // note: only in the signed case possible..., may overflow
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in current_settings.localswitches], resultreg, numerator));
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in compiler.globals.current_settings.localswitches], resultreg, numerator));
              end else if (ispowerof2(tordconstnode(right).value, power)) then begin
                 if (is_signed(right.resultdef)) then begin
                     { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
@@ -196,7 +196,7 @@ implementation
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
              op := divops[is_signed(right.resultdef),
-                          cs_check_overflow in current_settings.localswitches];
+                          cs_check_overflow in compiler.globals.current_settings.localswitches];
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,resultreg,numerator,
                divider));
 
@@ -432,7 +432,7 @@ implementation
                end;
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                location.register64.reglo,left.location.register64.reglo,0));
-             if not(cs_check_overflow in current_settings.localswitches) then
+             if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SUBFZE,
                  location.register64.reghi,left.location.register64.reghi))
              else
@@ -483,7 +483,7 @@ implementation
               { choose appropriate operand }
               if left.resultdef.typ <> floatdef then
                 begin
-                  if not(cs_check_overflow in current_settings.localswitches) then
+                  if not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
                     op := A_NEG
                   else
                     op := A_NEGO_;

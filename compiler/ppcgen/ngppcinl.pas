@@ -103,7 +103,7 @@ implementation
          case inlinenumber of
            in_ppc_yield:
 {$ifdef powerpc64}
-             if current_settings.cputype >= cpu_power7 then
+             if compiler.globals.current_settings.cputype >= cpu_power7 then
                current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD))
              else
 {$endif powerpc64}
@@ -115,7 +115,7 @@ implementation
 
     function tgppcinlinenode.first_sqrt_real : tnode;
       begin
-        if (current_settings.cputype >= cpu_PPC970) then
+        if (compiler.globals.current_settings.cputype >= cpu_PPC970) then
           begin
             expectloc:=LOC_FPUREGISTER;
             first_sqrt_real := nil;
@@ -141,7 +141,7 @@ implementation
 
      function tgppcinlinenode.first_trunc_real : tnode;
       begin
-       if (current_settings.cputype >= cpu_PPC970) then
+       if (compiler.globals.current_settings.cputype >= cpu_PPC970) then
           begin
             expectloc:=LOC_REFERENCE;
             first_trunc_real := nil;
@@ -153,7 +153,7 @@ implementation
 
      function tgppcinlinenode.first_round_real : tnode;
       begin
-       if (current_settings.cputype >= cpu_PPC970) then
+       if (compiler.globals.current_settings.cputype >= cpu_PPC970) then
           begin
             expectloc:=LOC_REFERENCE;
             first_round_real := nil;
@@ -176,7 +176,7 @@ implementation
 
     procedure tgppcinlinenode.second_sqrt_real;
       begin
-        if (current_settings.cputype < cpu_PPC970) then
+        if (compiler.globals.current_settings.cputype < cpu_PPC970) then
           internalerror(2007020910);
         location.loc:=LOC_FPUREGISTER;
         load_fpu_location;
@@ -221,7 +221,7 @@ implementation
        var
          tmpreg: tregister;
        begin
-         if (current_settings.cputype < cpu_PPC970) then
+         if (compiler.globals.current_settings.cputype < cpu_PPC970) then
            internalerror(2007020901);
          secondpass(left);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -254,7 +254,7 @@ implementation
          checkpointer_used : boolean;
        begin
          { do not call Checkpointer for left node }
-         checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+         checkpointer_used:=(cs_checkpointer in compiler.globals.current_settings.localswitches);
          if checkpointer_used then
            node_change_local_switch(left,cs_checkpointer,false);
          secondpass(left);

@@ -84,7 +84,7 @@ function tjvmassignmentnode.maybechangetemp(list: TAsmList; var n: tnode; const 
   begin
     { don't do this when compiling for Dalvik, because it can invalidate the
       debug information (which Dalvik uses as extra type information) }
-    if current_settings.cputype<>cpu_dalvik then
+    if compiler.globals.current_settings.cputype<>cpu_dalvik then
       result:=inherited
     else
       result:=false;

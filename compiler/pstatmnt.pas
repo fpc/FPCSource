@@ -184,7 +184,7 @@ implementation
          { case of string must be rejected in delphi-, }
          { tp7/bp7-, mac-compatibility modes.          }
          caseofstring :=
-           ([m_delphi, m_mac, m_tp7] * current_settings.modeswitches = []) and
+           ([m_delphi, m_mac, m_tp7] * compiler.globals.current_settings.modeswitches = []) and
            is_string(casedef);
 
          if (not assigned(casedef)) or
@@ -267,8 +267,8 @@ implementation
                        compiler.verbose.CGMessage(parser_e_case_lower_less_than_upper_bound);
                      if not casedeferror then
                        begin
-                         adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
-                         adaptrange(casedef,hl2,false,false,cs_check_range in current_settings.localswitches);
+                         adaptrange(casedef,hl1,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
+                         adaptrange(casedef,hl2,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
                        end;
                    end
                  else
@@ -296,7 +296,7 @@ implementation
                    begin
                      hl1:=get_ordinal_value(p);
                      if not casedeferror then
-                       adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
+                       adaptrange(casedef,hl1,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
                      casenode.addlabel(blockid,hl1,hl1);
                    end;
                end;
@@ -445,7 +445,7 @@ implementation
                     { record/object fields and array elements are allowed }
                     { in tp7 mode only                                    }
                     (
-                     (m_tp7 in current_settings.modeswitches) and
+                     (m_tp7 in compiler.globals.current_settings.modeswitches) and
                      (
                       ((hp.nodetype=subscriptn) and
                        ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
@@ -494,7 +494,7 @@ implementation
                           ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
                          begin
                            { Assigning for-loop variable is only allowed in tp7 and macpas }
-                           if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
+                           if ([m_tp7,m_mac] * compiler.globals.current_settings.modeswitches = []) then
                              begin
                                if not assigned(loopvarsym) then
                                  loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
@@ -504,7 +504,7 @@ implementation
                        else
                          begin
                            { Typed const is allowed in tp7 }
-                           if not(m_tp7 in current_settings.modeswitches) or
+                           if not(m_tp7 in compiler.globals.current_settings.modeswitches) or
                               not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
                              compiler.verbose.MessagePos(hp.fileinfo,type_e_illegal_count_var);
                          end;
@@ -561,7 +561,7 @@ implementation
 
                I am not sure though, if this is the right rule, at least in delphi the loop counter is undefined
                on loop exit, we assume the same in all FPC modes }
-             if ([m_objfpc,m_fpc,m_delphi]*current_settings.modeswitches)<>[] then
+             if ([m_objfpc,m_fpc,m_delphi]*compiler.globals.current_settings.modeswitches)<>[] then
                Include(tfornode(Result).loopflags,lnf_dont_mind_loopvar_on_exit);
           end;
 
@@ -697,7 +697,7 @@ implementation
                  must remain constant)
                }
                not(is_class(hp.resultdef) and
-                   (m_mac in current_settings.modeswitches)) then
+                   (m_mac in compiler.globals.current_settings.modeswitches)) then
               begin
                 { simple load, we can reference direct }
                 refnode:=p;
@@ -1124,9 +1124,9 @@ implementation
          { apply all switch changes as the assembler readers doesn't do so }
          flushpendingswitchesstate;
 
-         if assigned(asmmodeinfos[current_settings.asmmode]) then
+         if assigned(asmmodeinfos[compiler.globals.current_settings.asmmode]) then
            begin
-             asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create(compiler);
+             asmreader:=asmmodeinfos[compiler.globals.current_settings.asmmode]^.casmreader.create(compiler);
              entrypos:=compiler.globals.current_filepos;
              hl:=asmreader.assemble as TAsmList;
              if (not hl.empty) then
@@ -1147,7 +1147,7 @@ implementation
          include(current_procinfo.flags,pi_has_assembler_block);
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
          { We assume the function result is always used in the TP mode }
-         if (m_tp7 in current_settings.modeswitches) and
+         if (m_tp7 in compiler.globals.current_settings.modeswitches) and
             not (po_assembler in current_procinfo.procdef.procoptions) and
             assigned(current_procinfo.procdef.funcretsym) then
            current_procinfo.procdef.funcretsym.IncRefCount;
@@ -1403,7 +1403,7 @@ implementation
          case current_scanner.token of
            _GOTO :
              begin
-                if not(cs_support_goto in current_settings.moduleswitches) then
+                if not(cs_support_goto in compiler.globals.current_settings.moduleswitches) then
                   compiler.verbose.Message(sym_e_goto_and_label_not_supported);
                 parser.pbase.consume(_GOTO);
                 if (current_scanner.token<>_INTCONST) and (current_scanner.token<>_ID) then
@@ -1421,7 +1421,7 @@ implementation
                           internalerror(201008021);
 
                         { strip leading 0's in iso mode }
-                        if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
+                        if (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)<>[]) then
                           while (length(current_scanner.pattern)>1) and (current_scanner.pattern[1]='0') do
                             delete(current_scanner.pattern,1,1);
 
@@ -1446,7 +1446,7 @@ implementation
                          if srsym.owner<>current_procinfo.procdef.localst then
                            begin
                              { allowed? }
-                             if not(m_non_local_goto in current_settings.modeswitches) then
+                             if not(m_non_local_goto in compiler.globals.current_settings.modeswitches) then
                                compiler.verbose.Message(parser_e_goto_outside_proc);
                              include(current_procinfo.flags,pi_has_global_goto);
                              if is_nested_pd(current_procinfo.procdef) then
@@ -1534,7 +1534,7 @@ implementation
                 parser.pbase.try_to_consume(_COLON) then
               begin
                 { in iso mode, 0003: is equal to 3: }
-                if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
+                if (([m_iso,m_extpas]*compiler.globals.current_settings.modeswitches)<>[]) then
                   compiler.symtablestack.searchsym(tostr(tordconstnode(p).value),srsym,srsymtable)
                 else
                   compiler.symtablestack.searchsym(s,srsym,srsymtable);
@@ -1609,7 +1609,7 @@ implementation
                  exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
 
                  { in $x- state, the function result must not be ignored }
-                 if not(cs_extsyntax in current_settings.moduleswitches) and
+                 if not(cs_extsyntax in compiler.globals.current_settings.moduleswitches) and
                     not(is_void(p.resultdef)) and
                     { can be nil in case there was an error in the expression }
                     assigned(tcallnode(p).procdefinition) and
@@ -1707,7 +1707,7 @@ implementation
            end;
 
          { delphi uses register calling for assembler methods }
-         if (m_delphi in current_settings.modeswitches) and
+         if (m_delphi in compiler.globals.current_settings.modeswitches) and
             (po_assembler in current_procinfo.procdef.procoptions) and
             not(po_hascallingconvention in current_procinfo.procdef.procoptions) then
            current_procinfo.procdef.proccalloption:=pocall_register;

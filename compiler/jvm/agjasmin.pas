@@ -260,11 +260,11 @@ implementation
         g : file;
       begin
         inherited;
-        if cs_asm_leave in current_settings.globalswitches then
+        if cs_asm_leave in compiler.globals.current_settings.globalswitches then
          exit;
         while not TJasminAssembler(owner).asmfiles.empty do
           begin
-            if cs_asm_extern in current_settings.globalswitches then
+            if cs_asm_extern in compiler.globals.current_settings.globalswitches then
              AsmRes.AddDeleteCommand(TJasminAssembler(owner).asmfiles.GetFirst)
             else
              begin
@@ -305,7 +305,7 @@ implementation
 
         InlineLevel:=0;
         { lineinfo is only needed for al_procedures (PFV) }
-        do_line:=(cs_asm_source in current_settings.globalswitches);
+        do_line:=(cs_asm_source in compiler.globals.current_settings.globalswitches);
         hp:=tai(p.first);
         while assigned(hp) do
          begin
@@ -324,7 +324,7 @@ implementation
                      if assigned(infile) then
                       begin
                         { open only if needed !! }
-                        if (cs_asm_source in current_settings.globalswitches) then
+                        if (cs_asm_source in compiler.globals.current_settings.globalswitches) then
                          infile.open;
                       end;
                      { avoid unnecessary reopens of the same file !! }
@@ -334,7 +334,7 @@ implementation
                    end;
 
                 { write source }
-                  if (cs_asm_source in current_settings.globalswitches) and
+                  if (cs_asm_source in compiler.globals.current_settings.globalswitches) and
                      assigned(infile) then
                    begin
                      if (infile<>lastinfile) then
@@ -647,22 +647,22 @@ implementation
              jasminjarfound:=FindFile(jasminjarname,compiler.globals.utilsdirectory,false,jasminjar);
            if not jasminjarfound then
              jasminjarfound:=FindFileInExeLocations(jasminjarname,false,jasminjar);
-           if (not jasminjarfound) and not(cs_asm_extern in current_settings.globalswitches) then
+           if (not jasminjarfound) and not(cs_asm_extern in compiler.globals.current_settings.globalswitches) then
              begin
                compiler.verbose.Message1(exec_e_assembler_not_found,jasminjarname);
-               current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
+               compiler.globals.current_settings.globalswitches:=compiler.globals.current_settings.globalswitches+[cs_asm_extern];
              end;
            if jasminjarfound then
              compiler.verbose.Message1(exec_t_using_assembler,jasminjar);
          end;
        result:=asminfo^.asmcmd;
        filenames:=ScriptFixFileName(AsmFileName);
-       if cs_asm_extern in current_settings.globalswitches then
+       if cs_asm_extern in compiler.globals.current_settings.globalswitches then
          filenames:=maybequoted(filenames);
        asmfile:=tcmdstrlistitem(asmfiles.First);
        while assigned(asmfile) do
          begin
-           if cs_asm_extern in current_settings.globalswitches then
+           if cs_asm_extern in compiler.globals.current_settings.globalswitches then
              filenames:=filenames+' '+maybequoted(ScriptFixFileName(asmfile.str))
            else
             filenames:=filenames+' '+ScriptFixFileName(asmfile.str);
@@ -670,13 +670,13 @@ implementation
         end;
        Replace(result,'$ASM',filenames);
        if (path<>'') then
-         if cs_asm_extern in current_settings.globalswitches then
+         if cs_asm_extern in compiler.globals.current_settings.globalswitches then
            Replace(result,'$OBJDIR',maybequoted(ScriptFixFileName(path)))
          else
            Replace(result,'$OBJDIR',ScriptFixFileName(path))
        else
          Replace(result,'$OBJDIR','.');
-       if cs_asm_extern in current_settings.globalswitches then
+       if cs_asm_extern in compiler.globals.current_settings.globalswitches then
          Replace(result,'$JASMINJAR',maybequoted(ScriptFixFileName(jasminjar)))
        else
          Replace(result,'$JASMINJAR',ScriptFixFileName(jasminjar));
@@ -1132,7 +1132,7 @@ implementation
           top_reg:
             // should have been translated into a memory location by the
             // register allocator)
-            if (cs_no_regalloc in current_settings.globalswitches) then
+            if (cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
               getopstr:=std_regname(o.reg)
             else
               internalerror(2010122803);

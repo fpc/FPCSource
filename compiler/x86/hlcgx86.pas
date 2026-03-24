@@ -84,7 +84,7 @@ implementation
       reference_reset_symbol(ref,sym,0,sizeof(pint),[]);
 
       { create pic'ed? }
-      if (cs_create_pic in current_settings.moduleswitches) and
+      if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
          { darwin/x86_64's assembler doesn't want @PLT after call symbols }
          not(compiler.target.info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
         ref.refaddr:=addr_pic
@@ -109,7 +109,7 @@ implementation
     begin
 {$ifdef I8086}
       { BTR/BTS is only supported by 80386 CPU or later }
-      if not(CPUX86_HAS_BTX in cpu_capabilities[current_settings.optimizecputype]) then
+      if not(CPUX86_HAS_BTX in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
 	inherited
       else
 {$endif I8086}

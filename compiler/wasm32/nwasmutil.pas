@@ -147,14 +147,14 @@ implementation
 
       list.Concat(tai_globaltype.create(STACK_POINTER_SYM,wbt_i32,false));
 
-      if ts_wasm_threads in current_settings.targetswitches then
+      if ts_wasm_threads in compiler.globals.current_settings.targetswitches then
         begin
           list.Concat(tai_globaltype.create(TLS_SIZE_SYM,wbt_i32,true));
           list.Concat(tai_globaltype.create(TLS_ALIGN_SYM,wbt_i32,true));
           list.Concat(tai_globaltype.create(TLS_BASE_SYM,wbt_i32,false));
         end;
 
-      if [ts_wasm_native_legacy_exceptions,ts_wasm_native_exnref_exceptions]*current_settings.targetswitches<>[] then
+      if [ts_wasm_native_legacy_exceptions,ts_wasm_native_exnref_exceptions]*compiler.globals.current_settings.targetswitches<>[] then
         begin
           list.Concat(tai_tagtype.create(FPC_EXCEPTION_TAG_SYM, []));
           list.Concat(tai_symbol.Create_Weak(current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));

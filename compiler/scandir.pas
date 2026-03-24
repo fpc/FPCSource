@@ -96,15 +96,17 @@ unit scandir;
 
     procedure do_moduleswitch(sw:tmoduleswitch);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         state : char;
       begin
         state:=current_scanner.readstate;
         if (sw<>cs_modulenone) and (state in ['-','+']) then
          begin
            if state='-' then
-            exclude(current_settings.moduleswitches,sw)
+            exclude(compiler.globals.current_settings.moduleswitches,sw)
            else
-            include(current_settings.moduleswitches,sw);
+            include(compiler.globals.current_settings.moduleswitches,sw);
          end;
       end;
 
@@ -237,20 +239,20 @@ unit scandir;
            { Support also the ON and OFF as switch }
            hs:=current_scanner.readid;
            if (hs='ON') then
-            current_settings.packrecords:=4
+            compiler.globals.current_settings.packrecords:=4
            else if (hs='OFF') then
-             current_settings.packrecords:=1
-           else if m_mac in current_settings.modeswitches then
+             compiler.globals.current_settings.packrecords:=1
+           else if m_mac in compiler.globals.current_settings.modeswitches then
              begin
                { Support switches used in Apples Universal Interfaces}
                if (hs='MAC68K') then
-                 current_settings.packrecords:=mac68k_alignment
+                 compiler.globals.current_settings.packrecords:=mac68k_alignment
                { "power" alignment is the default C packrecords setting on
                  Mac OS X }
                else if (hs='POWER') or (hs='POWERPC') then
-                 current_settings.packrecords:=C_alignment
+                 compiler.globals.current_settings.packrecords:=C_alignment
                else if (hs='RESET') then
-                 current_settings.packrecords:=default_settings.packrecords
+                 compiler.globals.current_settings.packrecords:=default_settings.packrecords
                else
                  compiler.verbose.Message1(scan_e_illegal_pack_records,hs);
              end
@@ -261,7 +263,7 @@ unit scandir;
          begin
            b:=current_scanner.readval;
            case b of
-             1,2,4,8,16,32 : current_settings.packrecords:=b;
+             1,2,4,8,16,32 : compiler.globals.current_settings.packrecords:=b;
            else
             compiler.verbose.Message1(scan_e_illegal_pack_records,tostr(b));
            end;
@@ -269,23 +271,31 @@ unit scandir;
       end;
 
     procedure dir_a1;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        current_settings.packrecords:=1;
+        compiler.globals.current_settings.packrecords:=1;
       end;
 
     procedure dir_a2;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        current_settings.packrecords:=2;
+        compiler.globals.current_settings.packrecords:=2;
       end;
 
     procedure dir_a4;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        current_settings.packrecords:=4;
+        compiler.globals.current_settings.packrecords:=4;
       end;
 
     procedure dir_a8;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        current_settings.packrecords:=8;
+        compiler.globals.current_settings.packrecords:=8;
       end;
 
     procedure dir_asmcpu;
@@ -301,9 +311,9 @@ unit scandir;
         If compiler.globals.Inside_asm_statement then
           compiler.verbose.Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='ANY' then
-          current_settings.asmcputype:=cpu_none
+          compiler.globals.current_settings.asmcputype:=cpu_none
         else if s='CURRENT' then
-          current_settings.asmcputype:=current_settings.cputype
+          compiler.globals.current_settings.asmcputype:=compiler.globals.current_settings.cputype
         else
           begin
             found:=false;
@@ -311,7 +321,7 @@ unit scandir;
               if s=cputypestr[cpu] then
                 begin
                   found:=true;
-                  current_settings.asmcputype:=cpu;
+                  compiler.globals.current_settings.asmcputype:=cpu;
                   break;
                 end;
             if not found then
@@ -377,7 +387,7 @@ unit scandir;
                                        system_i8086_embedded, system_m68k_atari] +
                                        systems_nativent) then
           begin
-            if m_delphi in current_settings.modeswitches then
+            if m_delphi in compiler.globals.current_settings.modeswitches then
               compiler.verbose.Message(scan_n_app_type_not_support)
             else
               compiler.verbose.Message(scan_w_app_type_not_support);
@@ -569,7 +579,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
-           or (current_settings.x86memorymodel in x86_near_code_models)
+           or (compiler.globals.current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
             then
           begin
@@ -599,10 +609,10 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_scanner.skipspace;
-        undef_system_macro('FPU'+fputypestr[current_settings.fputype]);
-        if not(SetFPUType(upper(current_scanner.readcomment),current_settings.fputype)) then
+        undef_system_macro('FPU'+fputypestr[compiler.globals.current_settings.fputype]);
+        if not(SetFPUType(upper(current_scanner.readcomment),compiler.globals.current_settings.fputype)) then
           compiler.verbose.comment(V_Error,'Illegal FPU type');
-        def_system_macro('FPU'+fputypestr[current_settings.fputype]);
+        def_system_macro('FPU'+fputypestr[compiler.globals.current_settings.fputype]);
      end;
 
     procedure dir_frameworkpath;
@@ -698,13 +708,13 @@ unit scandir;
         hs:=current_scanner.readid;
 {$ifndef jvm}
         if (hs='CORBA') then
-          current_settings.interfacetype:=it_interfacecorba
+          compiler.globals.current_settings.interfacetype:=it_interfacecorba
         else if (hs='COM') then
-          current_settings.interfacetype:=it_interfacecom
+          compiler.globals.current_settings.interfacetype:=it_interfacecom
         else
 {$endif jvm}
              if (hs='DEFAULT') then
-          current_settings.interfacetype:=init_settings.interfacetype
+          compiler.globals.current_settings.interfacetype:=init_settings.interfacetype
         else
           compiler.verbose.Message(scan_e_invalid_interface_type);
       end;
@@ -898,7 +908,7 @@ unit scandir;
            begin
               hs:=current_scanner.readid;
               if (hs='NORMAL') or (hs='DEFAULT') then
-                current_settings.maxfpuregisters:=-1
+                compiler.globals.current_settings.maxfpuregisters:=-1
               else
                 compiler.verbose.Message(scan_e_invalid_maxfpureg_value);
            end
@@ -907,7 +917,7 @@ unit scandir;
               l:=current_scanner.readval;
               case l of
                  0..8:
-                   current_settings.maxfpuregisters:=l;
+                   compiler.globals.current_settings.maxfpuregisters:=l;
                  else
                    compiler.verbose.Message(scan_e_invalid_maxfpureg_value);
               end;
@@ -939,7 +949,7 @@ unit scandir;
             heapsize_limit:=65520;
             maxheapsize_limit:=65520;
           end
-        else if current_settings.x86memorymodel in x86_far_data_models then
+        else if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           begin
             heapsize_limit:=655360;
             maxheapsize_limit:=655360;
@@ -1068,7 +1078,7 @@ unit scandir;
           current_scanner.skipspace;
           current_scanner.readstring;
           if not current_module.mode_switch_allowed and
-              not ((m_mac in current_settings.modeswitches) and (current_scanner.pattern='MACPAS')) then
+              not ((m_mac in compiler.globals.current_settings.modeswitches) and (current_scanner.pattern='MACPAS')) then
             compiler.verbose.Message1(scan_e_mode_switch_not_allowed,current_scanner.pattern)
           else if not SetCompileMode(current_scanner.pattern,false) then
             compiler.verbose.Message1(scan_w_illegal_switch,current_scanner.pattern)
@@ -1082,20 +1092,20 @@ unit scandir;
       var
         s : string;
       begin
-        if not (m_multiline_strings in current_settings.modeswitches) then
+        if not (m_multiline_strings in compiler.globals.current_settings.modeswitches) then
           compiler.verbose.Message1(scan_e_illegal_directive,'MULTILINESTRINGLINEENDING');
         current_scanner.skipspace;
         s:=current_scanner.readid;
         if (s='CR') then
-          current_settings.lineendingtype:=le_cr
+          compiler.globals.current_settings.lineendingtype:=le_cr
         else if (s='CRLF') then
-          current_settings.lineendingtype:=le_crlf
+          compiler.globals.current_settings.lineendingtype:=le_crlf
         else if (s='LF') then
-          current_settings.lineendingtype:=le_lf
+          compiler.globals.current_settings.lineendingtype:=le_lf
         else if (s='PLATFORM') then
-          current_settings.lineendingtype:=le_platform
+          compiler.globals.current_settings.lineendingtype:=le_platform
         else if (s='SOURCE') then
-          current_settings.lineendingtype:=le_source
+          compiler.globals.current_settings.lineendingtype:=le_source
         else
           compiler.verbose.Message(scan_e_unknown_lineending_type);
       end;
@@ -1106,18 +1116,18 @@ unit scandir;
       var
         s : string;
       begin
-        if not (m_delphi in current_settings.modeswitches) then
+        if not (m_delphi in compiler.globals.current_settings.modeswitches) then
           compiler.verbose.Message1(scan_e_illegal_directive,'TEXTBLOCK');
         current_scanner.skipspace;
         s:=current_scanner.readid;
         if (s='CR') then
-          current_settings.lineendingtype:=le_cr
+          compiler.globals.current_settings.lineendingtype:=le_cr
         else if (s='CRLF') then
-          current_settings.lineendingtype:=le_crlf
+          compiler.globals.current_settings.lineendingtype:=le_crlf
         else if (s='LF') then
-          current_settings.lineendingtype:=le_lf
+          compiler.globals.current_settings.lineendingtype:=le_lf
         else if (s='NATIVE') then
-          current_settings.lineendingtype:=le_platform
+          compiler.globals.current_settings.lineendingtype:=le_platform
         else
           compiler.verbose.Message(scan_e_unknown_lineending_type);
       end;
@@ -1129,7 +1139,7 @@ unit scandir;
         count : longint;
         s : string;
       begin
-        if not (m_multiline_strings in current_settings.modeswitches) then
+        if not (m_multiline_strings in compiler.globals.current_settings.modeswitches) then
           compiler.verbose.Message1(scan_e_illegal_directive,'MULTILINESTRINGTRIMLEFT');
         current_scanner.skipspace;
         if (current_scanner.c in ['0'..'9']) then
@@ -1139,8 +1149,8 @@ unit scandir;
               compiler.verbose.Message(scan_e_trimcount_out_of_range)
             else
               begin
-                current_settings.whitespacetrimcount:=count;
-                current_settings.whitespacetrimauto:=false;
+                compiler.globals.current_settings.whitespacetrimcount:=count;
+                compiler.globals.current_settings.whitespacetrimauto:=false;
               end;
           end
         else
@@ -1148,18 +1158,18 @@ unit scandir;
             s:=current_scanner.readid;
             if s='ALL' then
               begin
-                current_settings.whitespacetrimcount:=high(word);
-                current_settings.whitespacetrimauto:=false;
+                compiler.globals.current_settings.whitespacetrimcount:=high(word);
+                compiler.globals.current_settings.whitespacetrimauto:=false;
               end
             else if s='AUTO' then
               begin
-                current_settings.whitespacetrimcount:=0;
-                current_settings.whitespacetrimauto:=true;
+                compiler.globals.current_settings.whitespacetrimcount:=0;
+                compiler.globals.current_settings.whitespacetrimauto:=true;
               end
             else
               begin
-                current_settings.whitespacetrimcount:=0;
-                current_settings.whitespacetrimauto:=false;
+                compiler.globals.current_settings.whitespacetrimcount:=0;
+                compiler.globals.current_settings.whitespacetrimauto:=false;
               end;
           end;
       end;
@@ -1307,10 +1317,10 @@ unit scandir;
           recordpendingoptimizerswitches(init_settings.optimizerswitches)
         else
           begin
-            if not UpdateOptimizerStr(hs,current_settings.optimizerswitches) then
+            if not UpdateOptimizerStr(hs,compiler.globals.current_settings.optimizerswitches) then
               compiler.verbose.Message1(scan_e_illegal_optimization_specifier,hs)
             else
-              recordpendingoptimizerswitches(current_settings.optimizerswitches)
+              recordpendingoptimizerswitches(compiler.globals.current_settings.optimizerswitches)
           end;
       end;
 
@@ -1352,7 +1362,7 @@ unit scandir;
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         current_scanner.skipspace;
-        if not SetMinFPConstPrec(current_scanner.readid,current_settings.minfpconstprec) then
+        if not SetMinFPConstPrec(current_scanner.readid,compiler.globals.current_settings.minfpconstprec) then
           compiler.verbose.Message1(scan_e_illegal_minfpconstprec, current_scanner.pattern);
       end;
 
@@ -1451,7 +1461,7 @@ unit scandir;
           recordpendingoptimizerswitches(switchesstatestack[switchesstatestackpos].optimizerswitches);
           compiler.globals.pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
           { flushpendingswitchesstate will reset the message state }
-          current_settings.pmessage:=nil;
+          compiler.globals.current_settings.pmessage:=nil;
           { Do not activate these changes yet, as otherwise
             you get a problem if you put a $pop just right after
             a addition for instance for which you explicitly turned the overflow check
@@ -1466,10 +1476,12 @@ unit scandir;
       end;
 
     procedure dir_profile;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         do_moduleswitch(cs_profile);
         { defined/undefine FPC_PROFILE }
-        if cs_profile in current_settings.moduleswitches then
+        if cs_profile in compiler.globals.current_settings.moduleswitches then
           def_system_macro('FPC_PROFILE')
         else
           undef_system_macro('FPC_PROFILE');
@@ -1488,7 +1500,7 @@ unit scandir;
       if psf_alignment_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].alignment:=compiler.globals.pendingstate.nextalignment
       else
-        switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
+        switchesstatestack[switchesstatestackpos].alignment:=compiler.globals.current_settings.alignment;
 
       if psf_verbosity_full_switched in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].verbosity:=compiler.globals.pendingstate.nextverbosityfullswitch
@@ -1498,32 +1510,32 @@ unit scandir;
       if psf_local_switches_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].localsw:=compiler.globals.pendingstate.nextlocalswitches
       else
-        switchesstatestack[switchesstatestackpos].localsw:=current_settings.localswitches;
+        switchesstatestack[switchesstatestackpos].localsw:=compiler.globals.current_settings.localswitches;
 
       if psf_packenum_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].packenum:=compiler.globals.pendingstate.nextpackenum
       else
-        switchesstatestack[switchesstatestackpos].packenum:=current_settings.packenum;
+        switchesstatestack[switchesstatestackpos].packenum:=compiler.globals.current_settings.packenum;
 
       if psf_packrecords_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].packrecords:=compiler.globals.pendingstate.nextpackrecords
       else
-        switchesstatestack[switchesstatestackpos].packrecords:=current_settings.packrecords;
+        switchesstatestack[switchesstatestackpos].packrecords:=compiler.globals.current_settings.packrecords;
 
       if psf_setalloc_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].setalloc:=compiler.globals.pendingstate.nextsetalloc
       else
-        switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
+        switchesstatestack[switchesstatestackpos].setalloc:=compiler.globals.current_settings.setalloc;
 
       if psf_asmmode_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].asmmode:=compiler.globals.pendingstate.nextasmmode
       else
-        switchesstatestack[switchesstatestackpos].asmmode:=current_settings.asmmode;
+        switchesstatestack[switchesstatestackpos].asmmode:=compiler.globals.current_settings.asmmode;
 
       if psf_optimizerswitches_changed in compiler.globals.pendingstate.flags then
         switchesstatestack[switchesstatestackpos].optimizerswitches:=compiler.globals.pendingstate.nextoptimizerswitches
       else
-        switchesstatestack[switchesstatestackpos].optimizerswitches:=current_settings.optimizerswitches;
+        switchesstatestack[switchesstatestackpos].optimizerswitches:=compiler.globals.current_settings.optimizerswitches;
 
       switchesstatestack[switchesstatestackpos].pmessage:=compiler.globals.pendingstate.nextmessagerecord;
       Inc(switchesstatestackpos);
@@ -1792,24 +1804,24 @@ unit scandir;
         if (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
             not(compiler.target.info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) and
             { smart linking does not yet work with DWARF debug info on most targets }
-            (cs_create_smart in current_settings.moduleswitches) and
+            (cs_create_smart in compiler.globals.current_settings.moduleswitches) and
             not (af_outputbinary in compiler.target._asm.flags) then
         begin
           compiler.verbose.Message(option_dwarf_smart_linking);
-          Exclude(current_settings.moduleswitches,cs_create_smart);
+          Exclude(compiler.globals.current_settings.moduleswitches,cs_create_smart);
         end;
         { Also create a smartlinked version, on an assembler that
           does not support smartlink sections like nasm?
           This is not compatible with using internal linker. }
-       if ((cs_link_smart in current_settings.globalswitches) or
-           (cs_create_smart in current_settings.moduleswitches)) and
+       if ((cs_link_smart in compiler.globals.current_settings.globalswitches) or
+           (cs_create_smart in compiler.globals.current_settings.moduleswitches)) and
           (af_needar in compiler.target._asm.flags) and
           not (af_smartlink_sections in compiler.target._asm.flags) and
-          not (cs_link_extern in current_settings.globalswitches) then
+          not (cs_link_extern in compiler.globals.current_settings.globalswitches) then
          begin
            tcompiler(compiler).DoneLinker;
            compiler.verbose.Message(option_smart_link_requires_external_linker);
-           include(current_settings.globalswitches,cs_link_extern);
+           include(compiler.globals.current_settings.globalswitches,cs_link_extern);
            tcompiler(compiler).InitLinker;
          end
       end;
@@ -1854,6 +1866,8 @@ unit scandir;
 
     procedure dir_targetswitch;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         name, value: string;
       begin
         { note: *not* recorded in the tokenstream, so not replayed for generics }
@@ -1864,15 +1878,15 @@ unit scandir;
             current_scanner.readchar;
             current_scanner.readid;
             value:=current_scanner.orgpattern;
-            UpdateTargetSwitchStr(name+'='+value,current_settings.targetswitches,current_module.in_global);
+            UpdateTargetSwitchStr(name+'='+value,compiler.globals.current_settings.targetswitches,current_module.in_global);
           end
         else if current_scanner.c='-' then
           begin
             current_scanner.readchar;
-            UpdateTargetSwitchStr(name+'-',current_settings.targetswitches,current_module.in_global);
+            UpdateTargetSwitchStr(name+'-',compiler.globals.current_settings.targetswitches,current_module.in_global);
           end
         else
-          UpdateTargetSwitchStr(name,current_settings.targetswitches,current_module.in_global);
+          UpdateTargetSwitchStr(name,compiler.globals.current_settings.targetswitches,current_module.in_global);
       end;
 
     procedure dir_typedaddress;
@@ -2157,18 +2171,24 @@ unit scandir;
       end;
 
     procedure dir_z1;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        current_settings.packenum:=1;
+        compiler.globals.current_settings.packenum:=1;
       end;
 
     procedure dir_z2;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        current_settings.packenum:=2;
+        compiler.globals.current_settings.packenum:=2;
       end;
 
     procedure dir_z4;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        current_settings.packenum:=4;
+        compiler.globals.current_settings.packenum:=4;
       end;
 
     procedure dir_externalsym;
@@ -2189,7 +2209,7 @@ unit scandir;
       begin
         if not (compiler.target.info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
-           or (current_settings.x86memorymodel in x86_near_code_models)
+           or (compiler.globals.current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
             then
           begin
@@ -2265,7 +2285,7 @@ unit scandir;
       begin
         current_scanner.skipspace;
         s:=current_scanner.readcomment;
-        if not(UpdateAlignmentStr(s,current_settings.alignment)) then
+        if not(UpdateAlignmentStr(s,compiler.globals.current_settings.alignment)) then
           compiler.verbose.Message(scanner_e_illegal_alignment_directive);
       end;
 
@@ -2282,15 +2302,15 @@ unit scandir;
             current_scanner.skipspace;
             s:=current_scanner.readcomment;
             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
-              current_settings.sourcecodepage:=CP_UTF8
+              compiler.globals.current_settings.sourcecodepage:=CP_UTF8
             else if not cpavailable(s) then
               compiler.verbose.Message1(option_code_page_not_available,s)
             else
-              current_settings.sourcecodepage:=codepagebyname(s);
+              compiler.globals.current_settings.sourcecodepage:=codepagebyname(s);
             { we're not using the system code page now }
-            exclude(current_settings.modeswitches,m_systemcodepage);
-            exclude(current_settings.moduleswitches,cs_system_codepage);
-            include(current_settings.moduleswitches,cs_explicit_codepage);
+            exclude(compiler.globals.current_settings.modeswitches,m_systemcodepage);
+            exclude(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
+            include(compiler.globals.current_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
 

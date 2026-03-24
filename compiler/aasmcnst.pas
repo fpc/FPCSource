@@ -1339,7 +1339,7 @@ implementation
            finternal_data_section_info[foundsec].sectype:=sectype;
          end;
        if not assigned(finternal_data_asmlist) and
-          (cs_create_smart in current_settings.moduleswitches) then
+          (cs_create_smart in compiler.globals.current_settings.moduleswitches) then
          begin
            l:=get_internal_data_section_start_label;
            { the internal data list should only be assigned by this routine,

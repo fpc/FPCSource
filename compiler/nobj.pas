@@ -107,7 +107,7 @@ implementation
           end;
 
         { check that all methods have overload directive }
-        if not(m_fpc in current_settings.modeswitches) then
+        if not(m_fpc in compiler.globals.current_settings.modeswitches) then
           begin
             for i:=0 to _class.vmtentries.count-1 do
               begin

@@ -1488,9 +1488,11 @@ implementation
 
 
     function getansistringcodepage:tstringencoding; inline;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if ([cs_explicit_codepage,cs_system_codepage]*current_settings.moduleswitches)<>[] then
-          result:=current_settings.sourcecodepage
+        if ([cs_explicit_codepage,cs_system_codepage]*compiler.globals.current_settings.moduleswitches)<>[] then
+          result:=compiler.globals.current_settings.sourcecodepage
         else
           result:=0;
       end;
@@ -1504,7 +1506,7 @@ implementation
       begin
         { if a codepage is explicitly defined in this mudule we need to return
           a replacement for ansistring def }
-        if ([cs_explicit_codepage,cs_system_codepage]*current_settings.moduleswitches)<>[] then
+        if ([cs_explicit_codepage,cs_system_codepage]*compiler.globals.current_settings.moduleswitches)<>[] then
           begin
             if not assigned(current_module) then
               internalerror(2011101301);
@@ -1523,7 +1525,7 @@ implementation
                 oldstack:=compiler.symtablestack;
                 tcompiler(compiler).symtablestack:=tsymtablestack.create(compiler);
                 compiler.symtablestack.push(symtable);
-                current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true,compiler);
+                current_module.ansistrdef:=cstringdef.createansi(compiler.globals.current_settings.sourcecodepage,true,compiler);
                 compiler.symtablestack.pop(symtable);
                 compiler.symtablestack.free;
                 tcompiler(compiler).symtablestack:=oldstack;
@@ -2572,7 +2574,7 @@ implementation
               (tarraydef(self).size<=8) and (tarraydef(self).size in [1,2,4,8]) and
               tstoreddef(tarraydef(self).elementdef).is_intregable
 {$ifdef SUPPORT_MMX}
-              and not((cs_mmx in current_settings.localswitches) and
+              and not((cs_mmx in compiler.globals.current_settings.localswitches) and
                  is_mmx_able_array(self))
 {$endif SUPPORT_MMX}
 {$endif cpuhighleveltarget}
@@ -2605,18 +2607,18 @@ implementation
 {$ifdef x86}
        result:=use_vectorfpu(self);
 {$else x86}
-       result:=(typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches)
+       result:=(typ=floatdef) and not(cs_fp_emulation in compiler.globals.current_settings.moduleswitches)
 {$ifdef xtensa}
-         and (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) and (tfloatdef(self).floattype=s32real)
+         and (FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) and (tfloatdef(self).floattype=s32real)
 {$endif xtensa}
 {$ifdef riscv}
-         and (((CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and (tfloatdef(self).floattype=s32real)) or
-           ((CPURV_HAS_D in cpu_capabilities[current_settings.cputype]) and (tfloatdef(self).floattype=s64real)) or
-           ((CPURV_HAS_Q in cpu_capabilities[current_settings.cputype]) and (tfloatdef(self).floattype=s128real)))
+         and (((CPURV_HAS_F in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tfloatdef(self).floattype=s32real)) or
+           ((CPURV_HAS_D in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tfloatdef(self).floattype=s64real)) or
+           ((CPURV_HAS_Q in cpu_capabilities[compiler.globals.current_settings.cputype]) and (tfloatdef(self).floattype=s128real)))
 {$endif riscv}
 {$ifdef arm}
-         and (((FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) and (tfloatdef(self).floattype=s32real)) or
-              (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]))
+         and (((FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype]) and (tfloatdef(self).floattype=s32real)) or
+              (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]))
 {$endif arm}
          ;
 {$endif x86}
@@ -3011,7 +3013,7 @@ implementation
               { char to string accesses byte 0 and 1 with one word access }
             if (tf_requires_proper_alignment in compiler.target.info.flags) or
               { macpas needs an alignment of 2 (MetroWerks compatible) }
-               (m_mac in current_settings.modeswitches) then
+               (m_mac in compiler.globals.current_settings.modeswitches) then
               alignment:=size_2_align(2)
             else
               alignment:=size_2_align(1);
@@ -3054,7 +3056,7 @@ implementation
          inherited create(enumdef,true,acompiler);
          minval:=0;
          maxval:=0;
-         calcsavesize(current_settings.packenum);
+         calcsavesize(compiler.globals.current_settings.packenum);
          has_jumps:=false;
          basedef:=nil;
          basedefderef.reset;
@@ -3068,7 +3070,7 @@ implementation
          minval:=_min;
          maxval:=_max;
          basedef:=_basedef;
-         calcsavesize(current_settings.packenum);
+         calcsavesize(compiler.globals.current_settings.packenum);
          has_jumps:=false;
          symtable:=basedef.symtable.getcopy;
          include(defoptions, df_copied_def);
@@ -3170,14 +3172,14 @@ implementation
     procedure tenumdef.setmax(_max:asizeint);
       begin
         maxval:=_max;
-        calcsavesize(current_settings.packenum);
+        calcsavesize(compiler.globals.current_settings.packenum);
       end;
 
 
     procedure tenumdef.setmin(_min:asizeint);
       begin
         minval:=_min;
-        calcsavesize(current_settings.packenum);
+        calcsavesize(compiler.globals.current_settings.packenum);
       end;
 
 
@@ -3281,7 +3283,7 @@ implementation
          if not has_jumps then
            is_publishable:=pp_publish
          else
-         if m_delphi in current_settings.modeswitches then
+         if m_delphi in compiler.globals.current_settings.modeswitches then
            is_publishable:=pp_ignore
          else
            is_publishable:=pp_error;
@@ -3891,7 +3893,7 @@ implementation
            begin
              savesize:=search_system_type('FILEREC').typedef.size;
              { allocate put/get buffer in iso mode }
-             if m_isolike_io in current_settings.modeswitches then
+             if m_isolike_io in compiler.globals.current_settings.modeswitches then
                inc(savesize,typedfiledef.size);
            end;
          ft_untyped:
@@ -4091,7 +4093,7 @@ implementation
     constructor tpointerdef.create(def:tdef;acompiler:TCompilerBase);
       begin
         inherited create(pointerdef,def,acompiler);
-        has_pointer_math:=cs_pointermath in current_settings.localswitches;
+        has_pointer_math:=cs_pointermath in compiler.globals.current_settings.localswitches;
         if (df_specialization in tstoreddef(def).defoptions)
 {$ifndef genericdef_for_nested}
            { currently, nested procdefs of generic routines get df_specialization,
@@ -4298,7 +4300,7 @@ implementation
          elementdefderef.reset;
          setmax:=high;
          setlow:=low;
-         actual_setalloc:=current_settings.setalloc;
+         actual_setalloc:=compiler.globals.current_settings.setalloc;
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
          if actual_setalloc=0 then
            actual_setalloc:=1;
@@ -6231,7 +6233,7 @@ implementation
          { nested procvars require that nested functions use the Delphi-style
            nested procedure calling convention }
          if (parast.symtablelevel>normal_function_level) and
-            (m_nested_procvars in current_settings.modeswitches) then
+            (m_nested_procvars in compiler.globals.current_settings.modeswitches) then
            include(procoptions,po_delphi_nested_cc);
       end;
 
@@ -6707,7 +6709,7 @@ implementation
          inlininginfo:=nil;
          deprecatedmsg:=nil;
          genericdecltokenbuf:=nil;
-         if cs_opt_fastmath in current_settings.optimizerswitches then
+         if cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches then
            include(implprocoptions, pio_fastmath);
       end;
 
@@ -6811,7 +6813,7 @@ implementation
          if has_inlininginfo then
            inlininginfo^.code:=ppuloadnodetree(ppufile);
          { default values for no persistent data }
-         if (cs_link_deffile in current_settings.globalswitches) and
+         if (cs_link_deffile in compiler.globals.current_settings.globalswitches) and
             (tf_need_export in compiler.target.info.flags) and
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
@@ -7144,7 +7146,7 @@ implementation
       begin
         result:=assigned(owner) and
                 not is_methodpointer and
-                (not(m_nested_procvars in current_settings.modeswitches) or
+                (not(m_nested_procvars in compiler.globals.current_settings.modeswitches) or
                  not is_nested_pd(self)) and
                  (
                    not (po_anonymous in procoptions) or
@@ -7652,14 +7654,14 @@ implementation
         {   case no reference to the old name can exist yet (JM)         }
 {$ifdef symansistr}
         if _mangledname<>'' then
-          if ((m_mac in current_settings.modeswitches) and
+          if ((m_mac in compiler.globals.current_settings.modeswitches) and
               (interfacedef)) then
             _mangledname:=''
           else
             internalerror(200411171);
 {$else symansistr}
         if assigned(_mangledname) then
-          if ((m_mac in current_settings.modeswitches) and
+          if ((m_mac in compiler.globals.current_settings.modeswitches) and
               (interfacedef)) then
             stringdispose(_mangledname)
           else
@@ -7684,7 +7686,7 @@ implementation
     function tprocdef.needsglobalasmsym: boolean;
       begin
         result:=
-          (cs_profile in current_settings.moduleswitches) or
+          (cs_profile in compiler.globals.current_settings.moduleswitches) or
           { smart linking using a library requires to promote
             all non-nested procedures to AB_GLOBAL
             otherwise you get undefined symbol error at linking
@@ -7944,8 +7946,8 @@ implementation
         cloneddefderef.reset;
         if objecttype=odt_helper then
           owner.includeoption(sto_has_helper);
-        symtable:=tObjectSymtable.create(self,n,current_settings.packrecords,
-          current_settings.alignment.recordalignmin,compiler);
+        symtable:=tObjectSymtable.create(self,n,compiler.globals.current_settings.packrecords,
+          compiler.globals.current_settings.alignment.recordalignmin,compiler);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
         set_parent(c);
@@ -9667,11 +9669,13 @@ implementation
 
 
     function use_vectorfpu(def : tdef) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef x86}
 {$define use_vectorfpuimplemented}
-        use_vectorfpu:=(is_single(def) and (current_settings.fputype in sse_singlescalar)) or
-          (is_double(def) and (current_settings.fputype in sse_doublescalar)) or
+        use_vectorfpu:=(is_single(def) and (compiler.globals.current_settings.fputype in sse_singlescalar)) or
+          (is_double(def) and (compiler.globals.current_settings.fputype in sse_doublescalar)) or
           { Check vector types }
           (
             is_normal_array(def) and
@@ -9681,13 +9685,13 @@ implementation
                 is_single(tarraydef(def).elementdef) and
                 (
                   { SSE or AVX XMM register }
-                  ((tarraydef(def).elecount = 4) and (current_settings.fputype in sse_singlescalar)) or
+                  ((tarraydef(def).elecount = 4) and (compiler.globals.current_settings.fputype in sse_singlescalar)) or
                   { AVX YMM register }
-                  ((tarraydef(def).elecount = 8) and (current_settings.fputype in fpu_avx_instructionsets))
+                  ((tarraydef(def).elecount = 8) and (compiler.globals.current_settings.fputype in fpu_avx_instructionsets))
 {$ifndef i8086}
                   or
                   { AVX512 ZMM register }
-                  ((tarraydef(def).elecount = 16) and (current_settings.fputype in [fpu_avx512f]))
+                  ((tarraydef(def).elecount = 16) and (compiler.globals.current_settings.fputype in [fpu_avx512f]))
 {$endif not i8086}
                 )
               ) or
@@ -9695,12 +9699,12 @@ implementation
                 is_double(tarraydef(def).elementdef) and
                 (
                   { SSE or AVX XMM register }
-                  ((tarraydef(def).elecount = 2) and (current_settings.fputype in sse_doublescalar)) or
+                  ((tarraydef(def).elecount = 2) and (compiler.globals.current_settings.fputype in sse_doublescalar)) or
                   { AVX YMM register }
-                  ((tarraydef(def).elecount = 4) and (current_settings.fputype in fpu_avx_instructionsets))
+                  ((tarraydef(def).elecount = 4) and (compiler.globals.current_settings.fputype in fpu_avx_instructionsets))
 {$ifndef i8086}
                   { AVX512 ZMM register }
-                  or ((tarraydef(def).elecount = 8) and (current_settings.fputype in [fpu_avx512f]))
+                  or ((tarraydef(def).elecount = 8) and (compiler.globals.current_settings.fputype in [fpu_avx512f]))
 {$endif not i8086}
                 )
               )
@@ -9709,7 +9713,7 @@ implementation
 {$endif x86}
 {$ifdef arm}
 {$define use_vectorfpuimplemented}
-        use_vectorfpu:=FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype];
+        use_vectorfpu:=FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.current_settings.fputype];
 {$endif arm}
 {$ifdef aarch64}
 {$define use_vectorfpuimplemented}

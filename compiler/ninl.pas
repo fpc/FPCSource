@@ -596,7 +596,7 @@ implementation
                   begin
                     { Delphi does not recursively check whether
                       an object contains unsupported types }
-                    if not (m_delphi in current_settings.modeswitches) and
+                    if not (m_delphi in compiler.globals.current_settings.modeswitches) and
                         not is_valid_for_default(def) then
                       compiler.verbose.Message(type_e_type_not_allowed_for_default);
                     result:=getdefaultvarsym(def);
@@ -609,7 +609,7 @@ implementation
             begin
               { Delphi does not recursively check whether a record
                 contains unsupported types }
-              if (def.typ=recorddef) and not (m_delphi in current_settings.modeswitches) and
+              if (def.typ=recorddef) and not (m_delphi in compiler.globals.current_settings.modeswitches) and
                   not is_valid_for_default(def) then
                 compiler.verbose.Message(type_e_type_not_allowed_for_default);
               result:=getdefaultvarsym(def);
@@ -673,7 +673,7 @@ implementation
               compiler.ccallparanode(left,nil));
           end;
         { create the correct call }
-        if m_isolike_io in current_settings.modeswitches then
+        if m_isolike_io in compiler.globals.current_settings.modeswitches then
           begin
             case inlinenumber of
               in_reset_typedfile:
@@ -844,7 +844,7 @@ implementation
               stringdef :
                 begin
                   name:=procprefixes[do_read]+tstringdef(para.left.resultdef).stringtypname;
-                  if (m_isolike_io in current_settings.modeswitches) and (tstringdef(para.left.resultdef).stringtype<>st_shortstring) then
+                  if (m_isolike_io in compiler.globals.current_settings.modeswitches) and (tstringdef(para.left.resultdef).stringtype<>st_shortstring) then
                     begin
                       compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type_in_iso_mode);
                       error_para := true;
@@ -871,12 +871,12 @@ implementation
                       readfunctype:=pbestrealtype^;
                     end;
                   { iso pascal needs a different handler }
-                  if (m_isolike_io in current_settings.modeswitches) and do_read then
+                  if (m_isolike_io in compiler.globals.current_settings.modeswitches) and do_read then
                     name:=name+'_iso';
                 end;
               enumdef:
                 begin
-                  if m_isolike_io in current_settings.modeswitches then
+                  if m_isolike_io in compiler.globals.current_settings.modeswitches then
                     begin
                       error_para := true;
                       compiler.verbose.CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
@@ -922,14 +922,14 @@ implementation
                       begin
                         get_read_write_int_func(para.left.resultdef,func_suffix,readfunctype);
                         name := procprefixes[do_read]+func_suffix;
-                        if (m_isolike_io in current_settings.modeswitches) and do_read then
+                        if (m_isolike_io in compiler.globals.current_settings.modeswitches) and do_read then
                           name:=name+'_iso';
                       end;
                     uchar :
                       begin
                         name := procprefixes[do_read]+'char';
                         { iso pascal needs a different handler }
-                        if (m_isolike_io in current_settings.modeswitches) and do_read then
+                        if (m_isolike_io in compiler.globals.current_settings.modeswitches) and do_read then
                           name:=name+'_iso';
                         readfunctype:=cansichartype;
                       end;
@@ -942,7 +942,7 @@ implementation
                       begin
                         name := procprefixes[do_read]+'currency';
                         { iso pascal needs a different handler }
-                        if (m_isolike_io in current_settings.modeswitches) and do_read then
+                        if (m_isolike_io in compiler.globals.current_settings.modeswitches) and do_read then
                           name:=name+'_iso';
                         readfunctype:=s64currencytype;
                         is_real:=true;
@@ -996,7 +996,7 @@ implementation
             end;
 
           { iso pascal needs a different handler }
-          if (m_isolike_io in current_settings.modeswitches) and not(do_read) then
+          if (m_isolike_io in compiler.globals.current_settings.modeswitches) and not(do_read) then
             name:=name+'_iso';
 
           { check for length/fractional colon para's }
@@ -1047,7 +1047,7 @@ implementation
                     begin
                       if not assigned(lenpara) then
                         begin
-                          if m_isolike_io in current_settings.modeswitches then
+                          if m_isolike_io in compiler.globals.current_settings.modeswitches then
                             lenpara := compiler.ccallparanode(
                               compiler.cordconstnode(-1,s32inttype,false),nil)
                           else
@@ -1234,7 +1234,7 @@ implementation
             in_readln_x:
               begin
                 name:='fpc_readln_end';
-                if m_isolike_io in current_settings.modeswitches then
+                if m_isolike_io in compiler.globals.current_settings.modeswitches then
                   name:=name+'_iso';
               end;
             in_writeln_x:
@@ -1342,7 +1342,7 @@ implementation
           { since the parameters are in the correct order, we have to insert }
           { the statements always at the end of the current block            }
           addstatement(Tstatementnode(newstatement),
-            compiler.ccallnode_intern(procprefixes[m_isolike_io in current_settings.modeswitches,do_read],para
+            compiler.ccallnode_intern(procprefixes[m_isolike_io in compiler.globals.current_settings.modeswitches,do_read],para
           ));
 
           { if we used a temp, free it }
@@ -2010,7 +2010,7 @@ implementation
             func:='fpc_ansistr_copy';
           end
         else if (is_chararray(paradef) and (paradef.size>255)) or
-           ((cs_refcountedstrings in current_settings.localswitches) and is_pchar(paradef)) then
+           ((cs_refcountedstrings in compiler.globals.current_settings.localswitches) and is_pchar(paradef)) then
           begin
             // set resultdef to ansistring type since result will be in ansistring codepage
             resultdef:=getansistringdef;
@@ -2266,7 +2266,7 @@ implementation
                   ((resultdef.size=2) and (smallint(vl2.svalue)=-1)) or
                   ((resultdef.size=4) and (longint(vl2.svalue)=-1)) or
                   ((resultdef.size=8) and (int64(vl2.svalue)=-1))) and
-                 ((cs_opt_level4 in current_settings.optimizerswitches) or
+                 ((cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) or
                   not might_have_sideeffects(tcallparanode(left).left)) then
                 begin
                   if vl2=0 then
@@ -2392,7 +2392,7 @@ implementation
                   ((resultdef.size=2) and (vl2=$ffff)) or
                   ((resultdef.size=4) and (vl2=$ffffffff)) or
                   ((resultdef.size=8) and (vl2.uvalue=qword($ffffffffffffffff)))) and
-                 ((cs_opt_level4 in current_settings.optimizerswitches) or
+                 ((cs_opt_level4 in compiler.globals.current_settings.optimizerswitches) or
                   not might_have_sideeffects(tcallparanode(left).left)) then
                 result:=compiler.cordconstnode(vl2,resultdef,true);
             end;
@@ -2615,7 +2615,7 @@ implementation
                       end;
                     pointerdef :
                       begin
-                        if m_mac in current_settings.modeswitches then
+                        if m_mac in compiler.globals.current_settings.modeswitches then
                           begin
                             result:=compiler.ctypeconvnode_internal(left,ptruinttype);
                             left:=nil;
@@ -2630,7 +2630,7 @@ implementation
                        result:=compiler.cordconstnode(
                          tordconstnode(left).value,sinttype,true);
                      end
-                   else if (m_mac in current_settings.modeswitches) and
+                   else if (m_mac in compiler.globals.current_settings.modeswitches) and
                            (left.ndoetype=pointerconstn) then
                        result:=compiler.cordconstnode(
                          tpointerconstnode(left).value,ptruinttype,true);
@@ -2716,7 +2716,7 @@ implementation
                            - no overflow/range checking
                            - equal types
                         }
-                        if ([cs_check_overflow,cs_check_range]*current_settings.localswitches)=[] then
+                        if ([cs_check_overflow,cs_check_range]*compiler.globals.current_settings.localswitches)=[] then
                           begin
                             if inlinenumber=in_succ_x then
                               vl:=1
@@ -2774,7 +2774,7 @@ implementation
                         if inlinenumber=in_low_x then
                           begin
                             if is_dynamicstring(left.resultdef) and
-                              not(cs_zerobasedstrings in current_settings.localswitches) then
+                              not(cs_zerobasedstrings in compiler.globals.current_settings.localswitches) then
                               result:=compiler.cordconstnode(1,u8inttype,false)
                             else
                               result:=compiler.cordconstnode(0,u8inttype,false);
@@ -2897,7 +2897,7 @@ implementation
                 end;
               in_assert_x_y :
                 begin
-                  if not(cs_do_assertion in current_settings.localswitches) then
+                  if not(cs_do_assertion in compiler.globals.current_settings.localswitches) then
                     { we need a valid node, so insert a nothingn }
                     result:=compiler.cnothingnode;
                 end;
@@ -3233,7 +3233,7 @@ implementation
             which typechecks the arguments, possibly inserting conversion to valreal.
             To handle smaller types without excess precision, we need to remove
             these extra typecasts. }
-          if not(cs_excessprecision in current_settings.localswitches) and
+          if not(cs_excessprecision in compiler.globals.current_settings.localswitches) and
              (p.nodetype=typeconvn) and
              (ttypeconvnode(p).left.resultdef.typ=floatdef) and
              (p.flags*[nf_explicit,nf_internal]=[]) and
@@ -3342,9 +3342,9 @@ implementation
                  (index.left.nodetype = ordconstn) and
                  not is_special_array(unpackedarraydef) then
                 begin
-                  adaptrange(unpackedarraydef,tordconstnode(index.left).value,false,false,cs_check_range in current_settings.localswitches);
+                  adaptrange(unpackedarraydef,tordconstnode(index.left).value,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
                   tempindex := tordconstnode(index.left).value + packedarraydef.highrange-packedarraydef.lowrange;
-                  adaptrange(unpackedarraydef,tempindex,false,false,cs_check_range in current_settings.localswitches);
+                  adaptrange(unpackedarraydef,tempindex,false,false,cs_check_range in compiler.globals.current_settings.localswitches);
                 end;
             end;
 
@@ -3401,8 +3401,8 @@ implementation
                 begin
                   { give warning for incompatibility with tp and delphi }
                   if (inlinenumber in [in_lo_long,in_hi_long,in_lo_qword,in_hi_qword]) and
-                     ((m_tp7 in current_settings.modeswitches) or
-                      (m_delphi in current_settings.modeswitches)) then
+                     ((m_tp7 in compiler.globals.current_settings.modeswitches) or
+                      (m_delphi in compiler.globals.current_settings.modeswitches)) then
                     compiler.verbose.CGMessage(type_w_maybe_wrong_hi_lo);
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   if not is_integer(left.resultdef) then
@@ -3495,7 +3495,7 @@ implementation
                        ;
                      pointerdef :
                        begin
-                         if not(m_mac in current_settings.modeswitches) then
+                         if not(m_mac in compiler.globals.current_settings.modeswitches) then
                            compiler.verbose.CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                        end
                      else
@@ -3679,7 +3679,7 @@ implementation
                      begin
                        if (resultdef.typ=enumdef) and
                           (tenumdef(resultdef).has_jumps) and
-                          not(m_delphi in current_settings.modeswitches) and
+                          not(m_delphi in compiler.globals.current_settings.modeswitches) and
                           not(nf_internal in flags) then
                          compiler.verbose.CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end
@@ -3727,7 +3727,7 @@ implementation
                                      { when range/overflow checking is on, we
                                        convert this to a regular add, and for proper
                                        checking we need the original type }
-                                     if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
+                                     if ([cs_check_range,cs_check_overflow]*compiler.globals.current_settings.localswitches=[]) then
                                        if (tcallparanode(left).left.resultdef.typ=pointerdef) then
                                          begin
                                            { don't convert values added to pointers into the pointer types themselves,
@@ -3843,7 +3843,7 @@ implementation
                           { value of left gets changed -> must be unique }
                           set_unique(left);
                           { these nodes shouldn't be created, when range checking is on }
-                          if [cs_check_range,cs_check_overflow]*current_settings.localswitches<>[] then
+                          if [cs_check_range,cs_check_overflow]*compiler.globals.current_settings.localswitches<>[] then
                             internalerror(2017040703);
                         end
                       { generic type parameter? }
@@ -3988,7 +3988,7 @@ implementation
                            else if is_dynamicstring(left.resultdef) then
                               begin
                                 result:=compiler.cinlinenode(in_length_x,false,left);
-                                if cs_zerobasedstrings in current_settings.localswitches then
+                                if cs_zerobasedstrings in compiler.globals.current_settings.localswitches then
                                   result:=compiler.caddnode(subn,result,compiler.cordconstnode(1,sinttype,false));
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
@@ -4121,7 +4121,7 @@ implementation
                   else
                     compiler.verbose.CGMessage(type_e_mismatch);
 
-                  if (cs_do_assertion in current_settings.localswitches) then
+                  if (cs_do_assertion in compiler.globals.current_settings.localswitches) then
                     include(current_procinfo.flags,pi_do_call);
                 end;
               in_prefetch_var:
@@ -4490,7 +4490,7 @@ implementation
                 because it's too complex to handle correctly otherwise }
 {$ifndef jvm}
               { enums are class instances in the JVM -> always need conversion }
-              if (([cs_check_overflow,cs_check_range]*current_settings.localswitches)<>[]) and not(nf_internal in flags) then
+              if (([cs_check_overflow,cs_check_range]*compiler.globals.current_settings.localswitches)<>[]) and not(nf_internal in flags) then
 {$endif}
                 begin
                   { create constant 1, ensure the data type is large enough }
@@ -4879,9 +4879,9 @@ implementation
           temp_pnode := @tcallparanode(left).left
         else
           temp_pnode := @left;
-        if ((cs_fp_emulation in current_settings.moduleswitches)
+        if ((cs_fp_emulation in compiler.globals.current_settings.moduleswitches)
 {$ifdef cpufpemu}
-            or (current_settings.fputype=fpu_soft)
+            or (compiler.globals.current_settings.fputype=fpu_soft)
 {$endif cpufpemu}
             ) and not (compiler.target.info.system in systems_wince) then
           begin

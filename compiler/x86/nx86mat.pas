@@ -89,7 +89,7 @@ interface
            end
 {$ifdef SUPPORT_MMX}
          else
-           if (cs_mmx in current_settings.localswitches) and
+           if (cs_mmx in compiler.globals.current_settings.localswitches) and
               is_mmx_able_array(left.resultdef) then
              begin
                expectloc:=LOC_MMXREGISTER;
@@ -130,7 +130,7 @@ interface
           else
             internalerror(200203225);
         end;
-        if cs_mmx_saturation in current_settings.localswitches then
+        if cs_mmx_saturation in compiler.globals.current_settings.localswitches then
           case mmx_type(resultdef) of
              mmxs8bit:
                op:=A_PSUBSB;
@@ -173,7 +173,7 @@ interface
 
         if expectloc=LOC_MMREGISTER then
           begin
-            if cs_opt_fastmath in current_settings.optimizerswitches then
+            if cs_opt_fastmath in compiler.globals.current_settings.optimizerswitches then
               begin
                 if not(left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER,LOC_CREFERENCE,LOC_REFERENCE]) then
                   hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -572,7 +572,7 @@ interface
             DoMod: Boolean;
           begin
 {$ifndef i8086}
-            IF (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
+            IF (CPUX86_HAS_BMI2 in cpu_capabilities[compiler.globals.current_settings.cputype]) then
               begin
                 { If BMI2 is available, use more efficient instructions }
                 DoBMI2ReciprocalDivision;
@@ -873,7 +873,7 @@ interface
                 if d>=aword(1) shl (left.resultdef.size*8-1) then
                   begin
 
-                    if not (CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
+                    if not (CPUX86_HAS_CMOV in cpu_capabilities[compiler.globals.current_settings.cputype]) then
                       goto DefaultDiv;
 
                     location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);

@@ -479,17 +479,17 @@ var
   OutName: TPathStr;
   StackSizeKB: cardinal;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
   BaseFilename := ChangeFileExt(current_module.exefilename,'');
   OutName := BaseFilename + '.out';
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    StripStr := '-s '
   else
    StripStr := '';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    MapStr := '-m' + BaseFileName + ' '
   else
    MapStr := '';
@@ -556,7 +556,7 @@ begin
    end;
 
 { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

@@ -82,7 +82,7 @@ function tobjcselectornode.pass_typecheck: tnode;
     s: shortstring;
   begin
     s:='';
-    if not(m_objectivec1 in current_settings.modeswitches) then
+    if not(m_objectivec1 in compiler.globals.current_settings.modeswitches) then
       compiler.verbose.Message(parser_f_modeswitch_objc_required);
     result:=nil;
     typecheckpass(left);
@@ -142,7 +142,7 @@ constructor tobjcprotocolnode.create(forprotocol: tnode;acompiler:TCompilerBase)
 
 function tobjcprotocolnode.pass_typecheck: tnode;
   begin
-    if not(m_objectivec1 in current_settings.modeswitches) then
+    if not(m_objectivec1 in compiler.globals.current_settings.modeswitches) then
       compiler.verbose.Message(parser_f_modeswitch_objc_required);
     result:=nil;
     typecheckpass(left);

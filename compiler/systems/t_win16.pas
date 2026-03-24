@@ -254,11 +254,11 @@ begin
     LinkRes.Add('debug dwarf')
   else if compiler.target.dbg.id=dbg_codeview then
     LinkRes.Add('debug codeview');
-  if cs_link_separate_dbg_file in current_settings.globalswitches then
+  if cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches then
     LinkRes.Add('option symfile');
 
   { add objectfiles, start with prt0 always }
-  case current_settings.x86memorymodel of
+  case compiler.globals.current_settings.x86memorymodel of
     mm_tiny:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)));
     mm_small:   LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0s','',false)));
     mm_medium:  LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0m','',false)));
@@ -283,7 +283,7 @@ begin
   else
     LinkRes.Add('format windows');
   LinkRes.Add('option heapsize='+tostr(compiler.globals.heapsize));
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
     LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   if isdll then
     LinkRes.Add('name ' + maybequoted(current_module.sharedlibfilename))
@@ -321,7 +321,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries and our own tlink script }
@@ -334,7 +334,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -346,7 +346,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
   { Write used files and libraries and our own tlink script }
@@ -359,7 +359,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),cmdstr,true,false);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
@@ -395,7 +395,7 @@ begin
   if IsSharedLibrary then
     LinkScript.Concat('ISSHAREDLIBRARY');
   { add objectfiles, start with prt0 always }
-  case current_settings.x86memorymodel of
+  case compiler.globals.current_settings.x86memorymodel of
     mm_small:   LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0s','',false)));
     mm_medium:  LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0m','',false)));
     mm_compact: LinkScript.Concat('READOBJECT ' + maybequoted(FindObjectFile('prt0c','',false)));
@@ -436,7 +436,7 @@ begin
   LinkScript.Concat('  OBJSECTION *||HEAP');
   LinkScript.Concat('ENDEXESECTION');
 
-  if (cs_debuginfo in current_settings.moduleswitches) and
+  if (cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
      (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       LinkScript.Concat('EXESECTION .debug_info');

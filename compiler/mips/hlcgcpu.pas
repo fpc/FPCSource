@@ -76,7 +76,7 @@ implementation
 
         if (po_external in pd.procoptions) then
           begin
-            if not (cs_create_pic in current_settings.moduleswitches) then
+            if not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
               begin
                 reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint),[]);
                 list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
@@ -103,7 +103,7 @@ implementation
     begin
       cgsubsetsize:=def_cgsize(subsetsize);
       cgtosize:=def_cgsize(tosize);
-      if (current_settings.cputype<>cpu_mips32r2) and (current_settings.cputype<>cpu_pic32mx) then
+      if (compiler.globals.current_settings.cputype<>cpu_mips32r2) and (compiler.globals.current_settings.cputype<>cpu_pic32mx) then
         inherited a_load_subsetreg_reg(list,subsetsize,tosize,sreg,destreg)
       else if (sreg.bitlen>32) then
         InternalError(2013070201)
@@ -131,7 +131,7 @@ implementation
 
   procedure thlcgmips.a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
     begin
-      if (current_settings.cputype<>cpu_mips32r2)  and (current_settings.cputype<>cpu_pic32mx) then
+      if (compiler.globals.current_settings.cputype<>cpu_mips32r2)  and (compiler.globals.current_settings.cputype<>cpu_pic32mx) then
         inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
       else if (sreg.bitlen>32) then
         InternalError(2013070202)
@@ -164,7 +164,7 @@ implementation
     begin
       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname,AT_DATA),0,sizeof(aint),[]);
       { Always do indirect jump using $t9, it won't harm in non-PIC mode }
-      if (cs_create_pic in current_settings.moduleswitches) then
+      if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
         begin
           list.concat(taicpu.op_none(A_P_SET_NOREORDER));
           list.concat(taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
@@ -219,7 +219,7 @@ implementation
     IsVirtual:=(po_virtualmethod in procdef.procoptions) and
         not is_objectpascal_helper(procdef.struct);
 
-    if (cs_create_pic in current_settings.moduleswitches) and
+    if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
       (not IsVirtual) then
       begin
         list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
@@ -267,7 +267,7 @@ implementation
       list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
       list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
     end
-    else if not (cs_create_pic in current_settings.moduleswitches) then
+    else if not (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
       list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)))
     else
       begin

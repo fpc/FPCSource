@@ -68,9 +68,11 @@ end;
 
 
 destructor tdeffile.destroy;
+var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   if WrittenOnDisk and
-     ([cs_link_nolink,cs_link_deffile]*current_settings.globalswitches=[]) then
+     ([cs_link_nolink,cs_link_deffile]*compiler.globals.current_settings.globalswitches=[]) then
     DeleteFile(FName);
   importlist.Free;
   importlist := nil;

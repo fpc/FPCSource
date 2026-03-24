@@ -528,8 +528,8 @@ implementation
       if not assigned(p) then
        exit;
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=((cs_asm_source in current_settings.globalswitches) or
-                (cs_lineinfo in current_settings.moduleswitches))
+      do_line:=((cs_asm_source in compiler.globals.current_settings.globalswitches) or
+                (cs_lineinfo in compiler.globals.current_settings.moduleswitches))
                  and (p=current_asmdata.asmlists[al_procedures]);
       InlineLevel:=0;
       DoNotSplitLine:=false;
@@ -1061,7 +1061,7 @@ implementation
       if (asminfo^.id in [as_i386_masm,as_i386_wasm]) then
         begin
           masmobjfn:=ChangeFileExt(objfilename,'.obj');
-          if not(cs_asm_extern in current_settings.globalswitches) then
+          if not(cs_asm_extern in compiler.globals.current_settings.globalswitches) then
             begin
               if Not FileExists(objfilename) and
                  FileExists(masmobjfn) then

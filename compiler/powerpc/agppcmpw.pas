@@ -738,8 +738,8 @@ interface
        exit;
       InlineLevel:=0;
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=((cs_asm_source in current_settings.globalswitches) or
-                (cs_lineinfo in current_settings.moduleswitches))
+      do_line:=((cs_asm_source in compiler.globals.current_settings.globalswitches) or
+                (cs_lineinfo in compiler.globals.current_settings.moduleswitches))
                  and (asmlisttype=al_procedures);
       DoNotSplitLine:=false;
       hp:=tai(p.first);

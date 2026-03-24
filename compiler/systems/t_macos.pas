@@ -207,7 +207,7 @@ var
 begin
   //TODO Only external link in MPW is possible, otherwise yell.
 
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
 { Create some replacements }
@@ -215,11 +215,11 @@ begin
   StaticStr:='';
   DynLinkStr:='';
 (*
-  if (cs_link_staticflag in current_settings.globalswitches) then
+  if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
    StaticStr:='-static';
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
-  If (cs_profile in current_settings.moduleswitches) or
+  If (cs_profile in compiler.globals.current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 *)
@@ -236,7 +236,7 @@ begin
         WriteResponseFile(false);
 
         success:= true;
-        if cs_link_on_target in current_settings.globalswitches then
+        if cs_link_on_target in compiler.globals.current_settings.globalswitches then
                 success:=DoExec('SetFile', ' -c ''MPS '' -t ''TEXT'' ' +
                                                                  ScriptFixFileName(compiler.globals.outputexedir+Info.ResName),true,false);
 
@@ -245,7 +245,7 @@ begin
                 success:=DoExec('Execute',CmdStr,true,false);
 
 { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -308,7 +308,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
@@ -398,7 +398,7 @@ begin
   GCSectionsStr:='';
   DynLinkStr:='';
 
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' then
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
@@ -425,7 +425,7 @@ function TLinkerMacOS.MakeExecutable:boolean;
 var
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries }
@@ -434,7 +434,7 @@ begin
   success:=MakeMacOSExe;
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

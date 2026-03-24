@@ -66,7 +66,8 @@ implementation
       cgbase,cga,
       ncnv,
       cpubase,cpuinfo,
-      cgutils,cgobj,nodehelper,cgx86;
+      cgutils,cgobj,nodehelper,cgx86,
+      compiler;
 
 
     function tx8664typeconvnode.first_nothing : tnode;
@@ -92,7 +93,7 @@ implementation
         result:=nil;
         if use_vectorfpu(resultdef) and
            (torddef(left.resultdef).ordtype=u32bit) and
-           not(FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) then
+           not(FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
             inserttypeconv(left,s64inttype, compiler);
             firstpass(left);
@@ -110,7 +111,7 @@ implementation
          l1,l2 : tasmlabel;
          op : tasmop;
       begin
-        if use_vectorfpu(resultdef) and not(FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) then
+        if use_vectorfpu(resultdef) and not(FPUX86_HAS_AVX512F in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
             if is_double(resultdef) then
               op:=A_CVTSI2SD

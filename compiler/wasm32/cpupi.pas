@@ -171,7 +171,7 @@ implementation
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
-                    (cs_imported_data in current_settings.localswitches) and
+                    (cs_imported_data in compiler.globals.current_settings.localswitches) and
                     otherunit;
 
         { send the vmt parameter }
@@ -255,7 +255,7 @@ implementation
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
-                    (cs_imported_data in current_settings.localswitches) and
+                    (cs_imported_data in compiler.globals.current_settings.localswitches) and
                     otherunit;
 
         { send the vmt parameter }
@@ -338,7 +338,7 @@ implementation
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and
-                    (cs_imported_data in current_settings.localswitches) and
+                    (cs_imported_data in compiler.globals.current_settings.localswitches) and
                     otherunit;
 
         { send the vmt parameter }
@@ -495,7 +495,7 @@ implementation
       begin
         inherited;
         FGotoTargets:=TFPHashObjectList.Create(false);
-        if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
           current_asmdata.getjumplabel(CurrRaiseLabel);
       end;
 
@@ -513,13 +513,13 @@ implementation
 
     procedure tcpuprocinfo.setup_eh;
       begin
-        if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
+        if ts_wasm_native_exnref_exceptions in compiler.globals.current_settings.targetswitches then
           tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_nativeexnrefexceptions)
-        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in compiler.globals.current_settings.targetswitches then
           tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_nativelegacyexceptions)
-        else if ts_wasm_no_exceptions in current_settings.targetswitches then
+        else if ts_wasm_no_exceptions in compiler.globals.current_settings.targetswitches then
           tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_noexceptions)
-        else if ts_wasm_bf_exceptions in current_settings.targetswitches then
+        else if ts_wasm_bf_exceptions in compiler.globals.current_settings.targetswitches then
           tcompiler(compiler).CreateExceptionStateHandler(twasmexceptionstatehandler_bfexceptions)
         else
           internalerror(2021091701);

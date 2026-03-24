@@ -69,8 +69,8 @@ implementation
     constructor tcpuprocinfo.create(aparent: tprocinfo;acompiler:TCompilerBase);
       begin
         inherited;
-        if (cs_generate_stackframes in current_settings.localswitches) or
-           not (cs_opt_stackframe in current_settings.optimizerswitches) then
+        if (cs_generate_stackframes in compiler.globals.current_settings.localswitches) or
+           not (cs_opt_stackframe in compiler.globals.current_settings.optimizerswitches) then
           include(flags,pi_needs_stackframe);
 
         floatregssave:=12; { f20-f31 }
@@ -78,7 +78,7 @@ implementation
         computed_local_size:=-1;
         { pi_needs_got is not yet set correctly
           so include it always if creating PIC code }
-        if (cs_create_pic in current_settings.moduleswitches) then
+        if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             include(flags, pi_needs_got);
             got:=NR_GP;
@@ -99,7 +99,7 @@ implementation
           secondpass is run. }
 
         { will call _mcount if profiling }
-        if (cs_profile in current_settings.moduleswitches) and
+        if (cs_profile in compiler.globals.current_settings.moduleswitches) and
            not (po_nostackframe in procdef.procoptions) then
           include(flags,pi_do_call);
 
@@ -117,15 +117,15 @@ implementation
         if not (po_nostackframe in procdef.procoptions) then
           tg.setfirsttemp(Align(maxpushedparasize+
             floatregssave*sizeof(aint)+intregssave*sizeof(aint)
-            ,max(current_settings.alignment.localalignmin,8)))
+            ,max(compiler.globals.current_settings.alignment.localalignmin,8)))
         else
-          tg.setfirsttemp(align(maxpushedparasize,max(current_settings.alignment.localalignmin,8)));
+          tg.setfirsttemp(align(maxpushedparasize,max(compiler.globals.current_settings.alignment.localalignmin,8)));
       end;
 
 
     procedure tcpuprocinfo.allocate_got_register(list:tasmlist);
       begin
-        if (cs_create_pic in current_settings.moduleswitches) then
+        if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             if (pi_do_call in flags) then
               include(flags,pi_needs_got);
@@ -143,7 +143,7 @@ implementation
         inc(result,floatregssave*4);
         intregstart:=result;
         //inc(result,intregssave*4);
-        result:=Align(tg.lasttemp,max(current_settings.alignment.localalignmin,8));
+        result:=Align(tg.lasttemp,max(compiler.globals.current_settings.alignment.localalignmin,8));
         if computed_local_size=-1 then
           begin
             computed_local_size:=result;

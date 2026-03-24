@@ -72,9 +72,9 @@ implementation
           8 byte alignment
         }
         if (po_nostackframe in procdef.procoptions) then
-          result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,current_settings.alignment.localalignmax)
+          result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,compiler.globals.current_settings.alignment.localalignmax)
         else
-          result:=Align(tg.direction*tg.lasttemp+maxpushedparasize+compiler.target.info.first_parm_offset,current_settings.alignment.localalignmax);
+          result:=Align(tg.direction*tg.lasttemp+maxpushedparasize+compiler.target.info.first_parm_offset,compiler.globals.current_settings.alignment.localalignmax);
       end;
 
 

@@ -296,7 +296,7 @@ interface
              exit;
            end;
          { Switch to the CPU instruction set, specified by the $ASMCPU directive }
-         current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[current_settings.asmcputype]));
+         current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[compiler.globals.current_settings.asmcputype]));
 
          { Allocate registers used in the assembler block }
          { asmnf_has_registerlist means that registers are specified and already allocated }
@@ -435,7 +435,7 @@ interface
            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
 
          { Switch back to the CPU instruction set of the target CPU }
-         current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[current_settings.cputype]));
+         current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[compiler.globals.current_settings.cputype]));
        end;
 
 
@@ -657,7 +657,7 @@ interface
           LOC_CREGISTER,
           LOC_REGISTER:
             begin
-              if (not(cs_opt_regvar in current_settings.optimizerswitches) or
+              if (not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
                  (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
@@ -722,7 +722,7 @@ interface
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
             begin
-              if (not(cs_opt_regvar in current_settings.optimizerswitches) or
+              if (not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
                  (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
@@ -737,7 +737,7 @@ interface
           LOC_CMMREGISTER,
           LOC_MMREGISTER:
             begin
-              if (not(cs_opt_regvar in current_settings.optimizerswitches) or
+              if (not(cs_opt_regvar in compiler.globals.current_settings.optimizerswitches) or
                  (pi_has_label in current_procinfo.flags)) and not(ti_no_final_regsync in tempflags) then
                 begin
                   { make sure the register allocator doesn't reuse the }

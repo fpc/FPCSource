@@ -102,7 +102,7 @@ Constructor TLinkerAIX.Create(acompiler: TCompilerBase);
 begin
   Inherited;
   if not compiler.globals.Dontlinkstdlibpath then
-    if not(cs_profile in current_settings.moduleswitches) then
+    if not(cs_profile in compiler.globals.current_settings.moduleswitches) then
       compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib;=/usr/X11R6/lib;=/opt/freeware/lib',true)
     else
       compiler.globals.LibrarySearchPath.AddLibraryPath(compiler.globals.sysrootpath,'=/usr/lib/profiled;=/usr/X11R6/lib;=/opt/freeware/lib',true)
@@ -121,7 +121,7 @@ begin
        in case something is wrong) }
      ExeCmd[1]:='$LDBIN -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $STRIP -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
      DllCmd[1]:='$LDBIN -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $INITFINI $STRIP -G -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
-     if cs_debuginfo in current_settings.moduleswitches then
+     if cs_debuginfo in compiler.globals.current_settings.moduleswitches then
        begin
          { debugging helpers }
          ExeCmd[1]:=ExeCmd[1]+' -lg -bexport:/usr/lib/libg.exp';
@@ -129,12 +129,12 @@ begin
        end;
    end;
 {$if defined(powerpc)}
-   if not(cs_profile in current_settings.moduleswitches) then
+   if not(cs_profile in compiler.globals.current_settings.moduleswitches) then
      prtobj:=compiler.globals.sysrootpath+'/lib/crt0.o'
    else
      prtobj:=compiler.globals.sysrootpath+'/lib/gcrt0.o';
 {$elseif defined(powerpc64)}
-  if not(cs_profile in current_settings.moduleswitches) then
+  if not(cs_profile in compiler.globals.current_settings.moduleswitches) then
     prtobj:=compiler.globals.sysrootpath+'/lib/crt0_64.o'
   else
     prtobj:=compiler.globals.sysrootpath+'/lib/gcrt0_64.o';
@@ -142,8 +142,8 @@ begin
 {$error unsupported AIX architecture}
 {$endif}
   assumebinutils:=
-    not(cs_link_native in current_settings.globalswitches) or
-    (not(cs_link_on_target in current_settings.globalswitches) and
+    not(cs_link_native in compiler.globals.current_settings.globalswitches) or
+    (not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      not(source_info.system in systems_aix)) ;
   use_gld:=assumebinutils and (source_info.system in systems_aix)
 end;
@@ -222,7 +222,7 @@ begin
           Add('-l'+s);
         end;
        { when we have -static for the linker the we also need libgcc }
-       if (cs_link_staticflag in current_settings.globalswitches) then
+       if (cs_link_staticflag in compiler.globals.current_settings.globalswitches) then
          begin
            Add('-lgcc');
            if compiler.globals.librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
@@ -248,16 +248,16 @@ var
   success : boolean;
   StripStr   : string[40];
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   linkscript:=nil;
 { Create some replacements }
   StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) and
-     not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) and
+     not(cs_link_separate_dbg_file in compiler.globals.current_settings.globalswitches) then
    StripStr:='-s';
-  if (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in compiler.globals.current_settings.globalswitches) then
    StripStr:='-bmap:'+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -276,7 +276,7 @@ begin
     use them when cross-compiling to avoid overflowing the Windows maximum
     command line length
   }
-  if not(cs_link_on_target in current_settings.globalswitches) and
+  if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      not(source_info.system in systems_aix) then
     Replace(cmdstr,'$CATRES',compiler.globals.outputexedir+Info.ResName)
   else
@@ -291,7 +291,7 @@ begin
   if compiler.globals.sysrootpath<>'' then
     cmdstr:=cmdstr+' --sysroot='+compiler.globals.sysrootpath;
 
-  if not(cs_link_nolink in current_settings.globalswitches) and
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) and
      not(tf_no_backquote_support in source_info.flags) then
     begin
       { we have to use a script to use the IFS hack }
@@ -302,7 +302,7 @@ begin
       linkscript.WriteToDisk;
       BinStr:=linkscript.fn;
       if not path_absolute(BinStr) then
-        if cs_link_on_target in current_settings.globalswitches then
+        if cs_link_on_target in compiler.globals.current_settings.globalswitches then
           BinStr:='.'+compiler.target.info.dirsep+BinStr
         else
           BinStr:='.'+source_info.dirsep+BinStr;
@@ -312,7 +312,7 @@ begin
   success:=DoExec(BinStr,cmdstr,true,true);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       DeleteFile(compiler.globals.outputexedir+Info.ResName);
       if assigned(linkscript) then
@@ -342,7 +342,7 @@ var
   success : boolean;
 begin
   MakeSharedLibrary:=false;
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
    compiler.verbose.Message1(exec_i_linking,current_module.sharedlibfilename);
 
 { Write used files and libraries }
@@ -351,7 +351,7 @@ begin
  { Create some replacements }
   InitFiniStr:='-binitfini:'+compiler.exportlib.initname+':'+compiler.exportlib.fininame;
   Replace(InitFiniStr,'$','.');
-  if cs_link_strip in current_settings.globalswitches then
+  if cs_link_strip in compiler.globals.current_settings.globalswitches then
     StripStr:='-s'
   else
     StripStr:='';
@@ -368,7 +368,7 @@ begin
     shr.o and the 64 bit version shr_64.o }
   Replace(cmdstr,'$EXE',maybequoted(libobj));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  if not(cs_link_on_target in current_settings.globalswitches) and
+  if not(cs_link_on_target in compiler.globals.current_settings.globalswitches) and
      not(source_info.system in systems_aix) then
     Replace(cmdstr,'$CATRES',compiler.globals.outputexedir+Info.ResName)
   else
@@ -400,7 +400,7 @@ begin
   linkscript.WriteToDisk;
   BinStr:=linkscript.fn;
   if not path_absolute(BinStr) then
-    if cs_link_on_target in current_settings.globalswitches then
+    if cs_link_on_target in compiler.globals.current_settings.globalswitches then
       BinStr:='.'+compiler.target.info.dirsep+BinStr
     else
       BinStr:='.'+source_info.dirsep+BinStr;
@@ -409,7 +409,7 @@ begin
   success:=DoExec(BinStr,cmdstr,true,true);
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     begin
       DeleteFile(libobj);
       DeleteFile(compiler.globals.outputexedir+Info.ResName);

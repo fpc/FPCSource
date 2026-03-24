@@ -346,7 +346,7 @@ implementation
           conststring :
             begin
               len:=p.value.len;
-              if not(cs_refcountedstrings in current_settings.localswitches) and (len>255) then
+              if not(cs_refcountedstrings in compiler.globals.current_settings.localswitches) and (len>255) then
                 begin
                   compiler.verbose.Message(parser_e_string_const_too_long);
                   len:=255;
@@ -427,7 +427,7 @@ implementation
     {   i386           }
     constructor trealconstnode.create(v : bestreal;def:tdef;acompiler:TCompilerBase);
       begin
-         if current_settings.fputype=fpu_none then
+         if compiler.globals.current_settings.fputype=fpu_none then
             internalerror(2008022401);
          inherited create(realconstn,acompiler);
          typedef:=def;
@@ -1080,7 +1080,7 @@ implementation
            not(cst_type in [cst_widestring,cst_unicodestring]) then
           begin
             initwidestring(valuews);
-            ascii2unicode(asconstpchar,len,current_settings.sourcecodepage,valuews);
+            ascii2unicode(asconstpchar,len,compiler.globals.current_settings.sourcecodepage,valuews);
           end
         else
           { convert unicode 2 ascii }
@@ -1089,7 +1089,7 @@ implementation
             begin
               cp1:=tstringdef(def).encoding;
               if (cp1=globals.CP_NONE) or (cp1=0) then
-                cp1:=current_settings.sourcecodepage;
+                cp1:=compiler.globals.current_settings.sourcecodepage;
               if (cp1=CP_UTF8) then
                 begin
                   l2:=len;
@@ -1115,15 +1115,15 @@ implementation
             begin
               cp1:=tstringdef(def).encoding;
               if cp1=0 then
-                cp1:=current_settings.sourcecodepage;
+                cp1:=compiler.globals.current_settings.sourcecodepage;
               if (cst_type = cst_ansistring) then
                 begin
                   cp2:=tstringdef(resultdef).encoding;
                   if cp2=0 then
-                    cp2:=current_settings.sourcecodepage;
+                    cp2:=compiler.globals.current_settings.sourcecodepage;
                 end
               else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
-                cp2:=current_settings.sourcecodepage
+                cp2:=compiler.globals.current_settings.sourcecodepage
               else
                 internalerror(2013112916);
               { don't change string if codepages are equal or string length is 0 }

@@ -124,7 +124,7 @@ implementation
     function trv32moddivnode.first_moddivint: tnode;
       begin
         if (not is_64bitint(resultdef)) and
-           (CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype]) then
+           (CPURV_HAS_MUL in cpu_capabilities[compiler.globals.current_settings.cputype]) then
           Result:=nil
         else
           result:=inherited;

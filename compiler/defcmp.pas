@@ -591,7 +591,7 @@ implementation
                    end;
                  objectdef:
                    begin
-                     if (m_delphi in current_settings.modeswitches) and
+                     if (m_delphi in compiler.globals.current_settings.modeswitches) and
                         is_implicit_pointer_object_type(def_from) and
                         (cdo_explicit in cdoptions) then
                       begin
@@ -623,7 +623,7 @@ implementation
                    end;
                  arraydef :
                    begin
-                     if (m_mac in current_settings.modeswitches) and
+                     if (m_mac in compiler.globals.current_settings.modeswitches) and
                         is_integer(def_to) and
                         (fromtreetype=stringconstn) then
                        begin
@@ -790,8 +790,8 @@ implementation
                           begin
                             doconv:=tc_string_2_string;
                             { prefered string type depends on the $H switch }
-                            if (m_default_unicodestring in current_settings.modeswitches) and
-                               (cs_refcountedstrings in current_settings.localswitches) then
+                            if (m_default_unicodestring in compiler.globals.current_settings.modeswitches) and
+                               (cs_refcountedstrings in compiler.globals.current_settings.localswitches) then
                               case tstringdef(def_to).stringtype of
                                 st_unicodestring: eq:=te_equal;
                                 st_widestring: eq:=te_convert_l1;
@@ -802,11 +802,11 @@ implementation
                               else
                                 eq:=te_convert_l6;
                               end
-                            else if not(cs_refcountedstrings in current_settings.localswitches) and
+                            else if not(cs_refcountedstrings in compiler.globals.current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_shortstring) then
                               eq:=te_equal
-                            else if not(m_default_unicodestring in current_settings.modeswitches) and
-                               (cs_refcountedstrings in current_settings.localswitches) and
+                            else if not(m_default_unicodestring in compiler.globals.current_settings.modeswitches) and
+                               (cs_refcountedstrings in compiler.globals.current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_ansistring) then
                               eq:=te_equal
                             else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
@@ -868,7 +868,7 @@ implementation
                    begin
                    { pchar can be assigned to short/ansistrings,
                      but not in tp7 compatible mode }
-                     if not(m_tp7 in current_settings.modeswitches) then
+                     if not(m_tp7 in compiler.globals.current_settings.modeswitches) then
                        begin
                           if is_pchar(def_from) then
                            begin
@@ -934,7 +934,7 @@ implementation
                    begin { ordinal to real }
                      { only for implicit and internal typecasts in tp }
                      if (([cdo_explicit,cdo_internal] * cdoptions <> [cdo_explicit]) or
-                         (not(m_tp7 in current_settings.modeswitches))) and
+                         (not(m_tp7 in compiler.globals.current_settings.modeswitches))) and
                         (is_integer(def_from) or
                          (is_currency(def_from) and
                           (s64currencytype.typ = floatdef))) then
@@ -1049,7 +1049,7 @@ implementation
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
                            end
-                         else if m_delphi in current_settings.modeswitches then
+                         else if m_delphi in compiler.globals.current_settings.modeswitches then
                            begin
                              doconv:=tc_int_2_int;
                              eq:=te_convert_l1;
@@ -1071,7 +1071,7 @@ implementation
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
                            end
-                         else if m_delphi in current_settings.modeswitches then
+                         else if m_delphi in compiler.globals.current_settings.modeswitches then
                            begin
                              doconv:=tc_int_2_int;
                              eq:=te_convert_l1;
@@ -1171,7 +1171,7 @@ implementation
                                if is_dynamic_array(def_from) then
                                  eq:=te_equal
                                { regular array -> dynamic array }
-                               else if (m_array2dynarray in current_settings.modeswitches) and
+                               else if (m_array2dynarray in compiler.globals.current_settings.modeswitches) and
                                  not(is_special_array(def_from)) and
                                  is_zero_based_array(def_from) then
                                  begin
@@ -1297,8 +1297,8 @@ implementation
                               end
                             else
                             { array -> array }
-                             if ((not(m_tp7 in current_settings.modeswitches) and
-                                  not(m_delphi in current_settings.modeswitches)) or
+                             if ((not(m_tp7 in compiler.globals.current_settings.modeswitches) and
+                                  not(m_delphi in compiler.globals.current_settings.modeswitches)) or
                                 { allow assigning vector results to regular
                                   arrays. TODO: change once we expose vector types }
                                  tarraydef(def_from).is_hwvector) and
@@ -1445,7 +1445,7 @@ implementation
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
-                        if is_pwidechar(def_to)=(m_default_unicodestring in current_settings.modeswitches) then
+                        if is_pwidechar(def_to)=(m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                           eq:=te_convert_l2
                         else
                           eq:=te_convert_l3
@@ -1479,13 +1479,13 @@ implementation
                            (is_pchar(def_to) or is_pwidechar(def_to)) then
                          begin
                            doconv:=tc_cchar_2_pchar;
-                           if is_pwidechar(def_to)=(m_default_unicodestring in current_settings.modeswitches) then
+                           if is_pwidechar(def_to)=(m_default_unicodestring in compiler.globals.current_settings.modeswitches) then
                              eq:=te_convert_l1
                            else
                              eq:=te_convert_l2
                          end
                         else
-                         if (m_delphi in current_settings.modeswitches) and is_integer(def_from) then
+                         if (m_delphi in compiler.globals.current_settings.modeswitches) and is_integer(def_from) then
                           begin
                             doconv:=tc_cord_2_pointer;
                             eq:=te_convert_l5;
@@ -1502,7 +1502,7 @@ implementation
                          (
                           (cdo_explicit in cdoptions) and
                           (
-                           (m_delphi in current_settings.modeswitches) or
+                           (m_delphi in compiler.globals.current_settings.modeswitches) or
                            { Don't allow pchar(char) in fpc modes }
                            is_integer(def_from)
                           )
@@ -1523,7 +1523,7 @@ implementation
                        typecasts must not be treated as integer-like conversions
                      }
                      if (((cdo_explicit in cdoptions) and
-                          ((m_delphi in current_settings.modeswitches) or
+                          ((m_delphi in compiler.globals.current_settings.modeswitches) or
                            (compiler.target.info.system in systems_jvm)
                           )
                          ) or
@@ -1539,7 +1539,7 @@ implementation
                              doconv:=tc_equal;
                              eq:=te_convert_l1;
                            end
-                         else if m_delphi in current_settings.modeswitches then
+                         else if m_delphi in compiler.globals.current_settings.modeswitches then
                            begin
                              doconv:=tc_int_2_int;
                              eq:=te_convert_l1;
@@ -1558,7 +1558,7 @@ implementation
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
-                        if ((m_default_unicodestring in current_settings.modeswitches) xor
+                        if ((m_default_unicodestring in compiler.globals.current_settings.modeswitches) xor
                            is_pchar(def_to)) then
                           eq:=te_convert_l2
                         else
@@ -1580,7 +1580,7 @@ implementation
                         end
                      else
                        { dynamic array to pointer, delphi only }
-                       if (m_delphi in current_settings.modeswitches) and
+                       if (m_delphi in compiler.globals.current_settings.modeswitches) and
                           is_dynamic_array(def_from) and
                           is_voidpointer(def_to) then
                         begin
@@ -1688,7 +1688,7 @@ implementation
                      { procedure variable can be assigned to an void pointer,
                        this is not allowed for complex procvars }
                      if (is_void(tpointerdef(def_to).pointeddef) or
-                         (m_mac_procvar in current_settings.modeswitches)) and
+                         (m_mac_procvar in compiler.globals.current_settings.modeswitches)) and
                         tprocvardef(def_from).compatible_with_pointerdef_size(tpointerdef(def_to)) then
                       begin
                         doconv:=tc_equal;
@@ -1699,7 +1699,7 @@ implementation
                    begin
                      { procedure variable can be assigned to an void pointer,
                        this not allowed for methodpointers }
-                     if (m_mac_procvar in current_settings.modeswitches) and
+                     if (m_mac_procvar in compiler.globals.current_settings.modeswitches) and
                         tprocdef(def_from).compatible_with_pointerdef_size(tpointerdef(def_to)) then
                       begin
                         doconv:=tc_proc_2_procvar;
@@ -1788,8 +1788,8 @@ implementation
                  procdef :
                    begin
                      { proc -> procvar }
-                     if (m_tp_procvar in current_settings.modeswitches) or
-                        (m_mac_procvar in current_settings.modeswitches) or
+                     if (m_tp_procvar in compiler.globals.current_settings.modeswitches) or
+                        (m_mac_procvar in compiler.globals.current_settings.modeswitches) or
                         (po_anonymous in tprocdef(def_from).procoptions) then
                       begin
                         subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
@@ -1828,7 +1828,7 @@ implementation
                      else
                       { for example delphi allows the assignment from pointers  }
                       { to procedure variables                                  }
-                      if (m_pointer_2_procedure in current_settings.modeswitches) and
+                      if (m_pointer_2_procedure in compiler.globals.current_settings.modeswitches) and
                          is_void(tpointerdef(def_from).pointeddef) and
                          tprocvardef(def_to).is_addressonly and
                          tprocvardef(def_to).compatible_with_pointerdef_size(tpointerdef(def_from)) then
@@ -1866,8 +1866,8 @@ implementation
                  begin
                    if is_wide_or_unicode_string(def_from) or
                       ((fromtreetype=stringconstn) and
-                       (cs_refcountedstrings in current_settings.localswitches) and
-                       (m_default_unicodestring in current_settings.modeswitches)) then
+                       (cs_refcountedstrings in compiler.globals.current_settings.localswitches) and
+                       (m_default_unicodestring in compiler.globals.current_settings.modeswitches)) then
                      begin
                        doconv:=tc_equal;
                        eq:=te_equal
@@ -1911,7 +1911,7 @@ implementation
                 if is_implicit_pointer_object_type(def_to) then
                  begin
                    { void pointer also for delphi mode }
-                   if (m_delphi in current_settings.modeswitches) and
+                   if (m_delphi in compiler.globals.current_settings.modeswitches) and
                       is_voidpointer(def_from) then
                     begin
                       doconv:=tc_equal;
@@ -2005,7 +2005,7 @@ implementation
                           (def_from.typ=orddef) and
                           not is_void(def_from)
                         ))) and
-                      (m_delphi in current_settings.modeswitches) and
+                      (m_delphi in compiler.globals.current_settings.modeswitches) and
                       (cdo_explicit in cdoptions) then
                      begin
                        doconv:=tc_int_2_int;
@@ -2044,7 +2044,7 @@ implementation
                     end;
                  end
                else
-                 if (m_delphi in current_settings.modeswitches) and
+                 if (m_delphi in compiler.globals.current_settings.modeswitches) and
                     is_voidpointer(def_from) then
                   begin
                     doconv:=tc_equal;
@@ -2634,7 +2634,7 @@ implementation
                not (po_is_function_ref in def2.procoptions)
              ) then
            include(po_comp,po_staticmethod);
-         if (m_delphi in current_settings.modeswitches) then
+         if (m_delphi in compiler.globals.current_settings.modeswitches) then
            exclude(po_comp,po_varargs);
          { for blocks, the calling convention doesn't matter because we have to
            generate a wrapper anyway }

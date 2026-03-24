@@ -265,7 +265,7 @@ end;
           (opcode=A_SEQ) or (opcode=A_SGE) or (opcode=A_SGEU) or (opcode=A_SGT) or
           (opcode=A_SGTU) or (opcode=A_SLE) or (opcode=A_SLEU) or (opcode=A_SNE)
           { JAL is a macro in pic code mode }
-          or ((opcode=A_JAL) and (cs_create_pic in current_settings.moduleswitches))
+          or ((opcode=A_JAL) and (cs_create_pic in compiler.globals.current_settings.moduleswitches))
           or (opcode=A_LA) or ((opcode=A_BC) and
             not (condition in [C_EQ,C_NE,C_GTZ,C_GEZ,C_LTZ,C_LEZ,C_COP1TRUE,C_COP1FALSE]))
           or (opcode=A_REM) or (opcode=A_REMU)
@@ -615,7 +615,7 @@ procedure fixup_jmps(list: TAsmList);
                             list.insertafter(insai,pdelayslot);
                             // add a new unconditional jump between this jump and the label
                             list.insertbefore(tai_comment.create(strpnew('fixup_jmps, A_BXX changed into A_BNOTXX label;A_J;label:')),p);
-                            if (cs_create_pic in current_settings.moduleswitches) then
+                            if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
                               begin
                                 create_pic_load(taicpu(p),insai);
                                 newjmp:=taicpu.op_reg(A_JR,NR_PIC_FUNC);
@@ -646,7 +646,7 @@ procedure fixup_jmps(list: TAsmList);
                           end
                         else  // opcode=A_BA
                           begin
-                            if (cs_create_pic in current_settings.moduleswitches) then
+                            if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
                               begin
                                 list.insertbefore(tai_comment.create(strpnew('fixup_jmps, A_BA changed into PIC sequence')),p);
                                 create_pic_load(taicpu(p),p);

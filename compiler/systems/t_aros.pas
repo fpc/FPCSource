@@ -122,7 +122,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
@@ -165,7 +165,7 @@ begin
      end;
    end;
 
-  if (cs_link_on_target in current_settings.globalswitches) then
+  if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
    begin
     LinkRes.Add(')');
 
@@ -241,7 +241,7 @@ begin
   success:=DoExec(FindUtil(compiler.globals.utilsprefix+BinStr),CmdStr,true,false);
 
   { Call Strip }
-  if success and (cs_link_strip in current_settings.globalswitches) then
+  if success and (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     begin
       SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
       Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
@@ -257,7 +257,7 @@ var
   success : boolean;
 begin
   success:=false;
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries }
@@ -266,7 +266,7 @@ begin
   success:=MakeAROSExe;
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

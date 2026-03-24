@@ -265,7 +265,7 @@ interface
 
 {$ifdef SPARC32}
         { Delay slot (can only contain integer operation) }
-        if current_settings.cputype in [cpu_SPARC_V7,cpu_SPARC_V8] then
+        if compiler.globals.current_settings.cputype in [cpu_SPARC_V7,cpu_SPARC_V8] then
           current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
 {$endif SPARC32}
       end;

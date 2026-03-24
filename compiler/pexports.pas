@@ -237,7 +237,7 @@ implementation
                     if (DefString<>'') and
                         (
                           compiler.globals.UseDeffileForExports or
-                          (cs_link_deffile in current_settings.globalswitches)
+                          (cs_link_deffile in compiler.globals.current_settings.globalswitches)
                         ) then
                      DefFile.AddExport(DefString);
                   end;

@@ -54,8 +54,8 @@ implementation
 
     function tcputypeconvnode.first_real_to_real: tnode;
       begin
-        if (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) and
-          not(FPUXTENSA_DOUBLE in fpu_capabilities[current_settings.fputype]) then
+        if (FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) and
+          not(FPUXTENSA_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype]) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -192,10 +192,10 @@ implementation
       var
         fname: string[19];
       begin
-        if (cs_fp_emulation in current_settings.moduleswitches) or
-          (current_settings.fputype=fpu_soft) or
-          not(FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) or
-          ((is_double(resultdef)) and not(FPUXTENSA_DOUBLE in fpu_capabilities[current_settings.fputype])) or
+        if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) or
+          (compiler.globals.current_settings.fputype=fpu_soft) or
+          not(FPUXTENSA_SINGLE in fpu_capabilities[compiler.globals.current_settings.fputype]) or
+          ((is_double(resultdef)) and not(FPUXTENSA_DOUBLE in fpu_capabilities[compiler.globals.current_settings.fputype])) or
           is_64bitint(left.resultdef) or
           is_currency(left.resultdef) or
           (is_32bit(left.resultdef) and not(is_signed(left.resultdef))) then

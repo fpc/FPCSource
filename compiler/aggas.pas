@@ -363,7 +363,7 @@ implementation
         sep     : string[3];
         secname : string;
       begin
-        if (cs_create_pic in current_settings.moduleswitches) and
+        if (cs_create_pic in compiler.globals.current_settings.moduleswitches) and
            not(compiler.target.info.system in systems_darwin) then
           secname:=secnames_pic[atype]
         else
@@ -396,7 +396,7 @@ implementation
           secname:='.rodata';
 
         { Use .rodata and .data.rel.ro for Android with PIC }
-        if (compiler.target.info.system in systems_android) and (cs_create_pic in current_settings.moduleswitches) then
+        if (compiler.target.info.system in systems_android) and (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             case atype of
               sec_rodata:
@@ -646,7 +646,7 @@ implementation
                   { they don't work and gcc doesn't use them either...     }
                   system_powerpc_darwin,
                   system_powerpc64_darwin:
-                    if (cs_create_pic in current_settings.moduleswitches) then
+                    if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
                       writer.AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
                     else
                       writer.AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
@@ -654,7 +654,7 @@ implementation
                   system_i386_iphonesim:
                     writer.AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
                   system_arm_ios:
-                    if (cs_create_pic in current_settings.moduleswitches) then
+                    if (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
                       writer.AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
                     else
                       writer.AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
@@ -794,7 +794,7 @@ implementation
                       { the Coldfire manual suggests the TBF instruction for
                         alignments, but somehow QEMU does not interpret that
                         correctly... }
-                      {if current_settings.cputype in cpu_coldfire then
+                      {if compiler.globals.current_settings.cputype in cpu_coldfire then
                         instr:='0x51fc'
                       else}
                         instr:='0x4e71';
@@ -908,8 +908,8 @@ implementation
       last_align := 2;
       InlineLevel:=0;
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=(cs_asm_source in current_settings.globalswitches) or
-               ((cs_lineinfo in current_settings.moduleswitches)
+      do_line:=(cs_asm_source in compiler.globals.current_settings.globalswitches) or
+               ((cs_lineinfo in compiler.globals.current_settings.moduleswitches)
                  and (asmlisttype=al_procedures));
       lasthp:=nil;
       hp:=tai(p.first);
@@ -1389,7 +1389,7 @@ implementation
              begin
                if (compiler.target.info.system=system_powerpc64_linux) and
                   (tai_symbol(hp).sym.typ=AT_FUNCTION) and
-                  (cs_profile in current_settings.moduleswitches) then
+                  (cs_profile in compiler.globals.current_settings.moduleswitches) then
                  writer.AsmWriteLn('.globl _mcount');
 
                if tai_symbol(hp).is_global then
@@ -2062,7 +2062,7 @@ implementation
       { "no executable stack" marker }
       { TODO: used by OpenBSD/NetBSD as well? }
       if (compiler.target.info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
-         not(cs_executable_stack in current_settings.moduleswitches) then
+         not(cs_executable_stack in compiler.globals.current_settings.moduleswitches) then
         begin
           writer.AsmWriteLn('.section .note.GNU-stack,"",%progbits');
         end;

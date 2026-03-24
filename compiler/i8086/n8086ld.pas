@@ -80,7 +80,7 @@ implementation
           4) hlcg.reference_reset_base is updated to set the segment on near_ss
              pointers }
         if (left.nodetype=loadparentfpn) and
-           (current_settings.x86memorymodel in x86_far_data_models) then
+           (compiler.globals.current_settings.x86memorymodel in x86_far_data_models) then
           location.reference.segment:=NR_SS;
       end;
 
@@ -106,9 +106,9 @@ implementation
         hregister: TRegister;
         href: treference;
       begin
-        if current_settings.x86memorymodel=mm_huge then
+        if compiler.globals.current_settings.x86memorymodel=mm_huge then
           begin
-            if (cs_compilesystem in current_settings.moduleswitches) then
+            if (cs_compilesystem in compiler.globals.current_settings.moduleswitches) then
               begin
                 inherited generate_threadvar_access(gvs);
                 exit;
@@ -207,7 +207,7 @@ implementation
               { Normal (or external) variable }
               else
                 begin
-                  if ((current_settings.x86memorymodel<>mm_huge) and not (vo_is_far in gvs.varoptions)) or
+                  if ((compiler.globals.current_settings.x86memorymodel<>mm_huge) and not (vo_is_far in gvs.varoptions)) or
                      (not (vo_is_external in gvs.varoptions) and gvs.Owner.iscurrentunit) then
                     begin
                       inherited pass_generate_code;
@@ -249,7 +249,7 @@ implementation
           procsym:
             begin
               inherited pass_generate_code;
-              if current_settings.x86memorymodel in x86_near_code_models then
+              if compiler.globals.current_settings.x86memorymodel in x86_near_code_models then
                 begin
                   if (location.loc=LOC_REFERENCE) or (location.loc=LOC_CREFERENCE) then
                     location.reference.segment:=NR_CS;

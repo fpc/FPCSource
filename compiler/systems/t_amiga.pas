@@ -63,7 +63,7 @@ implementation
 
 constructor TLinkerAmiga.Create(acompiler: TCompilerBase);
 begin
-  UseVLink:=(cs_link_vlink in current_settings.globalswitches);
+  UseVLink:=(cs_link_vlink in compiler.globals.current_settings.globalswitches);
 
   Inherited;
   { allow duplicated libs (PM) }
@@ -138,7 +138,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in current_settings.globalswitches) then
+    if (cs_link_on_target in compiler.globals.current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TCmdStrListItem(HPath.Next);
@@ -359,9 +359,9 @@ begin
   DynLinkStr:='';
   MapStr:='';
 
-  if UseVlink and (cs_link_map in current_settings.globalswitches) then
+  if UseVlink and (cs_link_map in compiler.globals.current_settings.globalswitches) then
     MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' Then
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
@@ -400,9 +400,9 @@ begin
   DynLinkStr:='';
   MapStr:='';
 
-  if UseVlink and (cs_link_map in current_settings.globalswitches) then
+  if UseVlink and (cs_link_map in compiler.globals.current_settings.globalswitches) then
     MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
-  if (cs_link_strip in current_settings.globalswitches) then
+  if (cs_link_strip in compiler.globals.current_settings.globalswitches) then
     StripStr:='-s';
   if compiler.globals.rlinkpath<>'' Then
     DynLinkStr:='--rpath-link '+compiler.globals.rlinkpath;
@@ -431,7 +431,7 @@ function TLinkerAmiga.MakeExecutable:boolean;
 var
   success : boolean;
 begin
-  if not(cs_link_nolink in current_settings.globalswitches) then
+  if not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     compiler.verbose.Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries }
@@ -446,7 +446,7 @@ begin
   end;
 
   { Remove ResponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and not(cs_link_nolink in compiler.globals.current_settings.globalswitches) then
     DeleteFile(compiler.globals.outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

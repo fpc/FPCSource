@@ -190,9 +190,9 @@ implementation
     procedure TSystemUnitParser.set_default_ptr_types;
       begin
 {$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           voidcodepointertype:=voidfarpointertype
-        else if current_settings.x86memorymodel=mm_tiny then
+        else if compiler.globals.current_settings.x86memorymodel=mm_tiny then
           voidcodepointertype:=voidnearpointertype
         else
           voidcodepointertype:=voidnearcspointertype;
@@ -479,7 +479,7 @@ implementation
         { Normal types }
         (* we use the same types as without emulator, the only
           difference is that direct calls to the emulator are generated
-        if (cs_fp_emulation in current_settings.moduleswitches) then
+        if (cs_fp_emulation in compiler.globals.current_settings.moduleswitches) then
           begin
             addtype('Single',s32floattype);
             { extended size is the best real type for the target }
@@ -673,7 +673,7 @@ implementation
         if not(compiler.target.info.system in systems_managed_vm) then
           begin
             { Add a type for virtual method tables }
-            hrecst:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,compiler);
+            hrecst:=trecordsymtable.create('',compiler.globals.current_settings.packrecords,compiler.globals.current_settings.alignment.recordalignmin,compiler);
             vmttype:=crecorddef.create('',hrecst,compiler);
             pvmttype:=cpointerdef.create(vmttype,compiler);
             { can't use addtype for pvmt because the rtti of the pointed
@@ -698,13 +698,13 @@ implementation
             addtype('$vtblarray',vmtarraytype);
           end;
         { Add a type for methodpointers }
-        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,compiler);
+        hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
         methodpointertype:=crecorddef.create('',hrecst,compiler);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
-        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,compiler);
+        hrecst:=trecordsymtable.create('',1,compiler.globals.current_settings.alignment.recordalignmin,compiler);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
         nestedprocpointertype:=crecorddef.create('',hrecst,compiler);

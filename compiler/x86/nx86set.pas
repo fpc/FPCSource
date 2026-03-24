@@ -125,7 +125,7 @@ implementation
             getrange(left.resultdef,lv,hv);
             Range := aint(max_)-aint(min_);
 
-            if (cs_opt_size in current_settings.optimizerswitches) then
+            if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
               { Limit size of jump tables for small enumerations so they have
                 to be at least two-thirds full before being considered for the
                 "almost exhaustive" treatment }
@@ -169,7 +169,7 @@ implementation
 {$endif i8086}
 
         if (not (compiler.target.info.system in [system_i386_darwin,system_i386_iphonesim])) and
-           (cs_create_pic in current_settings.moduleswitches) then
+           (cs_create_pic in compiler.globals.current_settings.moduleswitches) then
           begin
             labeltyp:=aitconst_gotoff_symbol;
             jumpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
@@ -321,7 +321,7 @@ implementation
              genlinearcmplist(hp)
            else
              begin
-                if (labelcnt>1) or not(cs_opt_level1 in current_settings.optimizerswitches) then
+                if (labelcnt>1) or not(cs_opt_level1 in compiler.globals.current_settings.optimizerswitches) then
                   begin
                     last:=0;
                     lastrange:=false;
@@ -353,7 +353,7 @@ implementation
              cond_gt:=F_G
            else
              cond_gt:=F_A;
-          current_asmdata.CurrAsmList.concat(cai_align.Create(current_settings.alignment.jumpalign));
+          current_asmdata.CurrAsmList.concat(cai_align.Create(compiler.globals.current_settings.alignment.jumpalign));
           cg.a_label(current_asmdata.CurrAsmList,p^.labellabel);
 
           { calculate labels for left and right }
@@ -464,7 +464,7 @@ implementation
              { Lots of comparisons take a lot of time, so do not allow
                too much comparisons. 8 comparisons are, however, still
                smaller than emitting the set }
-             if cs_opt_size in current_settings.optimizerswitches then
+             if cs_opt_size in compiler.globals.current_settings.optimizerswitches then
                maxcompares:=8
              else
                maxcompares:=5;
@@ -731,7 +731,7 @@ implementation
                   if (tcgsize2size[right.location.size] < opdef.size) or
                     (right.location.loc = LOC_CONSTANT) or
                     { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
-                    ((right.resultdef.size<=u32inttype.size) and not(cs_opt_size in current_settings.optimizerswitches)) then
+                    ((right.resultdef.size<=u32inttype.size) and not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
 
                   hreg:=left.location.register;
@@ -976,7 +976,7 @@ implementation
 
                   if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) or
                     { bt ...,[mem] is slow, see #40039, so try to use a register if we are not optimizing for size }
-                    ((right.resultdef.size<=opdef.size) and not(cs_opt_size in current_settings.optimizerswitches)) then
+                    ((right.resultdef.size<=opdef.size) and not(cs_opt_size in compiler.globals.current_settings.optimizerswitches)) then
                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
 
                   pleftreg:=left.location.register;

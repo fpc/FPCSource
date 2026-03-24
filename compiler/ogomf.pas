@@ -1055,9 +1055,9 @@ implementation
     class function TOmfObjData.CodeSectionName(const aname: string): string;
       begin
 {$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           begin
-            if cs_huge_code in current_settings.moduleswitches then
+            if cs_huge_code in compiler.globals.current_settings.moduleswitches then
               result:=TrimStrCRC32(aname,30) + '_TEXT'
             else
               result:=current_module.modulename^ + '_TEXT';
@@ -1603,7 +1603,7 @@ implementation
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
         Header:=TOmfRecord_THEADR.Create;
-        if cs_debuginfo in current_settings.moduleswitches then
+        if cs_debuginfo in compiler.globals.current_settings.moduleswitches then
           Header.ModuleName:=TOmfObjData(Data).MainSource
         else
           Header.ModuleName:=Data.Name;
@@ -1623,7 +1623,7 @@ implementation
         Translator_COMENT := nil;
 
         if (compiler.target.dbg.id=dbg_codeview) or
-           ((ds_dwarf_omf_linnum in current_settings.debugswitches) and
+           ((ds_dwarf_omf_linnum in compiler.globals.current_settings.debugswitches) and
             (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) then
           begin
             DebugFormat_COMENT:=TOmfRecord_COMENT.Create;
@@ -3051,7 +3051,7 @@ implementation
             UniSeg.CalcMemPos;
             if UniSeg.Size>$10000 then
               begin
-                if current_settings.x86memorymodel=mm_tiny then
+                if compiler.globals.current_settings.x86memorymodel=mm_tiny then
                   compiler.verbose.Message1(link_e_program_segment_too_large,IntToStr(UniSeg.Size-$10000))
                 else if UniSeg.SegClass='CODE' then
                   compiler.verbose.Message2(link_e_code_segment_too_large,UniSeg.SegName,IntToStr(UniSeg.Size-$10000))
@@ -3103,7 +3103,7 @@ implementation
             UniGrp.CalcMemPos;
             if UniGrp.Size>$10000 then
               begin
-                if current_settings.x86memorymodel=mm_tiny then
+                if compiler.globals.current_settings.x86memorymodel=mm_tiny then
                   compiler.verbose.Message1(link_e_program_segment_too_large,IntToStr(UniGrp.Size-$10000))
                 else if UniGrp.Name='DGROUP' then
                   compiler.verbose.Message2(link_e_data_segment_too_large,UniGrp.Name,IntToStr(UniGrp.Size-$10000))
@@ -3236,7 +3236,7 @@ implementation
         heapmin_paragraphs: Integer;
         heapmax_paragraphs: Integer;
       begin
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           begin
             { calculate the additional number of paragraphs needed }
             heapmin_paragraphs:=(compiler.globals.heapsize + 15) div 16;
@@ -3818,11 +3818,11 @@ cleanup:
             if not Result then
               exit;
           end;
-        if ((cs_debuginfo in current_settings.moduleswitches) and
+        if ((cs_debuginfo in compiler.globals.current_settings.moduleswitches) and
             (compiler.target.dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4])) and
            ((ExeWriteMode=ewm_dbgonly) or
             ((ExeWriteMode=ewm_exefull) and
-              not(cs_link_strip in current_settings.globalswitches))) then
+              not(cs_link_strip in compiler.globals.current_settings.globalswitches))) then
           Result:=writeDebugElf;
       end;
 

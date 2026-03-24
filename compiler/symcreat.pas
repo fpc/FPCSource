@@ -157,7 +157,7 @@ implementation
         internalerror(2011032201);
       sstate.old_scanner:=current_scanner;
       sstate.old_filepos:=compiler.globals.current_filepos;
-      sstate.old_modeswitches:=current_settings.modeswitches;
+      sstate.old_modeswitches:=compiler.globals.current_settings.modeswitches;
       sstate.valid:=true;
       { creating a new scanner resets the block type, while we want to continue
         in the current one }
@@ -167,7 +167,7 @@ implementation
       compiler.globals.block_type:=old_block_type;
       { required for e.g. FpcDeepCopy record method (uses "out" parameter; field
         names are escaped via &, so should not cause conflicts }
-      current_settings.modeswitches:=objfpcmodeswitches;
+      compiler.globals.current_settings.modeswitches:=objfpcmodeswitches;
     end;
 
 
@@ -180,7 +180,7 @@ implementation
           sstate.new_scanner.free; // no nil needed
           set_current_scanner(sstate.old_scanner);
           compiler.globals.current_filepos:=sstate.old_filepos;
-          current_settings.modeswitches:=sstate.old_modeswitches;
+          compiler.globals.current_settings.modeswitches:=sstate.old_modeswitches;
         end;
     end;
 
@@ -1836,13 +1836,13 @@ implementation
       errors }
     if compiler.verbose.ErrorCount<>0 then
       exit;
-    isDelphiMode:=(m_delphi in current_settings.modeswitches);
+    isDelphiMode:=(m_delphi in compiler.globals.current_settings.modeswitches);
     replace_scanner('hiddenclass_impl',sstate);
     sstate.new_scanner.allowgenericid:=true;
     if isDelphiMode then
       begin
-      oldsettings:=current_settings.modeswitches;
-      current_settings.modeswitches:=current_settings.modeswitches+[m_delphi]-[m_objfpc];
+      oldsettings:=compiler.globals.current_settings.modeswitches;
+      compiler.globals.current_settings.modeswitches:=compiler.globals.current_settings.modeswitches+[m_delphi]-[m_objfpc];
       end;
     for i:=0 to st.deflist.count-1 do
       begin
@@ -1867,7 +1867,7 @@ implementation
       def:=tdef(st.deflist[i]);
       if (def.typ=objectdef) and (objdef.objecttype=odt_class) then
         add_synthetic_interface_classes_for_st(objdef.symtable,gen_intf,gen_impl)
-      else if (def.typ=recorddef) and (m_advanced_records in current_settings.modeswitches) then
+      else if (def.typ=recorddef) and (m_advanced_records in compiler.globals.current_settings.modeswitches) then
         add_synthetic_interface_classes_for_st(recdef.symtable,gen_intf,gen_impl);
       end;
   end;

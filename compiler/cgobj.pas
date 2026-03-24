@@ -1847,7 +1847,7 @@ implementation
               { division by 1 returns result }
               if a = 1 then
                 op:=OP_NONE
-              else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
+              else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in compiler.globals.current_settings.localswitches) then
                 begin
                   a := powerval;
                   op:= OP_SHR;
@@ -1865,7 +1865,7 @@ implementation
                else
                  if a=0 then
                    op:=OP_MOVE
-               else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
+               else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in compiler.globals.current_settings.localswitches)  then
                  begin
                    a := powerval;
                    op:= OP_SHL;
@@ -2080,7 +2080,7 @@ implementation
           { for avrtiny, the code generator generates a ref which is Z relative and while using it,
             Z is changed, so the following code breaks }
           {$ifdef avr}
-            and not((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) or (tcgsize2size[size]=1))
+            and not((CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) or (tcgsize2size[size]=1))
           {$endif avr} then
           begin
             tmpreg:=getaddressregister(list);
@@ -2118,7 +2118,7 @@ implementation
           { for avrtiny, the code generator generates a ref which is Z relative and while using it,
             Z is changed, so the following code breaks }
           {$ifdef avr}
-            and not((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) or (tcgsize2size[size]=1))
+            and not((CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) or (tcgsize2size[size]=1))
           {$endif avr} then
           begin
             tmpreg:=getaddressregister(list);
@@ -2359,7 +2359,7 @@ implementation
           { for avrtiny, the code generator generates a ref which is Z relative and while using it,
             Z is changed, so the following code breaks }
           {$ifdef avr}
-            and not((CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) or (tcgsize2size[size]=1))
+            and not((CPUAVR_16_REGS in cpu_capabilities[compiler.globals.current_settings.cputype]) or (tcgsize2size[size]=1))
           {$endif avr} then
           begin
             tmpreg:=getaddressregister(list);

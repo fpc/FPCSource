@@ -76,12 +76,12 @@ implementation
         if (po_nostackframe in procdef.procoptions) then
           begin
             tg.setfirsttemp(align(maxpushedparasize,
-              max(current_settings.alignment.localalignmin,8)));
+              max(compiler.globals.current_settings.alignment.localalignmin,8)));
           end
         else
           begin
             tg.setfirsttemp(align(maxpushedparasize,
-              max(current_settings.alignment.localalignmin,8)));
+              max(compiler.globals.current_settings.alignment.localalignmin,8)));
           end;
       end;
 
@@ -94,9 +94,9 @@ implementation
          regs: tcpuregisterset;
       begin
         maxpushedparasize:=align(maxpushedparasize,
-                             max(current_settings.alignment.localalignmin,8));
+                             max(compiler.globals.current_settings.alignment.localalignmin,8));
         floatsavesize:=0;
-        case current_settings.fputype of
+        case compiler.globals.current_settings.fputype of
           fpu_fd:
             begin
               floatsavesize:=0;
@@ -109,7 +109,7 @@ implementation
             ;
         end;
         result:=align(tg.direction*tg.lasttemp,
-                  max(current_settings.alignment.localalignmin,8))
+                  max(compiler.globals.current_settings.alignment.localalignmin,8))
                   +maxpushedparasize+aint(floatsavesize);
         if tg.direction=1 then
           floatregstart:=result-aint(floatsavesize)

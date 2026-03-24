@@ -51,11 +51,11 @@ implementation
   procedure ti8086nodeutils.InsertMemorySizes;
     begin
       inherited;
-      if current_settings.x86memorymodel<>mm_tiny then
+      if compiler.globals.current_settings.x86memorymodel<>mm_tiny then
         InsertStackSegment;
       if compiler.target.info.system<>system_i8086_win16 then
         InsertHeapSegment;
-      if current_settings.x86memorymodel in x86_near_data_models then
+      if compiler.globals.current_settings.x86memorymodel in x86_near_data_models then
         InsertStackPlusHeapSize;
     end;
 

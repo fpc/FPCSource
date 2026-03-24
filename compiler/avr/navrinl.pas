@@ -73,7 +73,7 @@ unit navrinl;
         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,size,OC_GTE,0,left.location.register,hl);
         cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,size,left.location.register,location.register);
 
-        if cs_check_overflow in current_settings.localswitches then
+        if cs_check_overflow in compiler.globals.current_settings.localswitches then
           cg.g_overflowcheck(current_asmdata.CurrAsmList,dummyloc,resultdef);
 
         cg.a_label(current_asmdata.CurrAsmList,hl);

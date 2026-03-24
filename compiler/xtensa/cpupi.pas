@@ -177,12 +177,12 @@ unit cpupi;
               extra:=maxcall*4+4*4
             else
               extra:=4*4;
-            if Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+extra>stackframesize then
+            if Align(tg.direction*tg.lasttemp,max(compiler.globals.current_settings.alignment.localalignmin,4))+extra>stackframesize then
               InternalError(2020082801);
             result:=stackframesize
           end
         else
-          result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize;
+          result:=Align(tg.direction*tg.lasttemp,max(compiler.globals.current_settings.alignment.localalignmin,4))+maxpushedparasize;
       end;
 
 

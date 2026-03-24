@@ -316,7 +316,7 @@ implementation
         begin
           { far calls to the same module (in $HUGECODE off mode) can be optimized
             to push cs + call near, because they are in the same segment }
-          if not (cs_huge_code in current_settings.moduleswitches) and
+          if not (cs_huge_code in compiler.globals.current_settings.moduleswitches) and
              pd.owner.iscurrentunit and not (po_external in pd.procoptions) then
             begin
               list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CS));
@@ -541,13 +541,13 @@ implementation
               selfoffsetfromsp:=2*sizeof(aint)
             else
               selfoffsetfromsp:=sizeof(aint);
-            if current_settings.x86memorymodel in x86_far_code_models then
+            if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
               inc(selfoffsetfromsp,2);
             list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
             reference_reset_base(href,voidnearpointertype,NR_DI,selfoffsetfromsp+offs+2,ctempposinvalid,2,[]);
             if not segment_regs_equal(NR_SS,NR_DS) then
               href.segment:=NR_SS;
-            if current_settings.x86memorymodel in x86_near_data_models then
+            if compiler.globals.current_settings.x86memorymodel in x86_near_data_models then
               cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX)
             else
               list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
@@ -563,7 +563,7 @@ implementation
         href : treference;
       begin
         { mov  0(%bx),%bx ; load vmt}
-        if current_settings.x86memorymodel in x86_near_data_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_near_data_models then
           begin
             reference_reset_base(href,voidnearpointertype,NR_BX,0,ctempposinvalid,2,[]);
             cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
@@ -584,11 +584,11 @@ implementation
       begin
         if (procdef.extnumber=$ffff) then
           Internalerror(2000061306);
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_data_models then
           srcseg:=NR_ES
         else
           srcseg:=NR_NO;
-        if current_settings.x86memorymodel in x86_far_code_models then
+        if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
           begin
             { mov vmtseg(%bx),%si ; method seg }
             reference_reset_base(href,voidnearpointertype,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)+2,ctempposinvalid,2,[]);
@@ -635,13 +635,13 @@ implementation
         begin
           { case 1 & case 2 }
           list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX)); { allocate space for address}
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
           list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
           list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SI));
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             getselftobx(10)
           else
             getselftobx(6);
@@ -649,7 +649,7 @@ implementation
           loadmethodoffstobx;
           { set target address
             "mov %bx,4(%sp)" }
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             reference_reset_base(href,voidnearpointertype,NR_DI,6,ctempposinvalid,2,[])
           else
             reference_reset_base(href,voidnearpointertype,NR_DI,4,ctempposinvalid,2,[]);
@@ -657,7 +657,7 @@ implementation
             href.segment:=NR_SS;
           list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
           list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_BX,href));
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             begin
               inc(href.offset,2);
               list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_SI,href));
@@ -669,13 +669,13 @@ implementation
 
           { restore register
             pop  %di,bx }
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             list.concat(taicpu.op_reg(A_POP,S_W,NR_SI));
           list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
           list.concat(taicpu.op_reg(A_POP,S_W,NR_BX));
 
           { ret  ; jump to the address }
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             list.concat(taicpu.op_none(A_RETF,S_W))
           else
             list.concat(taicpu.op_none(A_RET,S_W));
@@ -685,7 +685,7 @@ implementation
         begin
           lab:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION);
 
-          if current_settings.x86memorymodel in x86_far_code_models then
+          if compiler.globals.current_settings.x86memorymodel in x86_far_code_models then
             list.concat(taicpu.op_sym(A_JMP,S_FAR,lab))
           else
             list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
