@@ -43,7 +43,7 @@ interface
 {$ENDIF}
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
-      cpuinfo,compilerbase,
+      cpuinfo,
 {$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
 {$endif LLVM or GENERIC_CPU}
@@ -793,14 +793,13 @@ Const
 
 implementation
 
-    uses
-      compiler
 {$if defined(macos)}
-      ,macutils
+    uses
+      macutils;
 {$elseif defined(mswindows)}
-      ,windirs
+    uses
+      windirs;
 {$endif}
-      ;
 
 {****************************************************************************
                                  TLinkStrMap
