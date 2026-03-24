@@ -40,6 +40,11 @@ unit agppcgas;
 
   type
     TPPCInstrWriter=class(TCPUInstrWriter)
+      private
+       function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
+       function getopstr_jmp(asminfo: pasminfo; const o:toper) : string;
+       function getopstr(asminfo: pasminfo; const o:toper) : string;
+      public
        procedure WriteInstruction(hp : tai);override;
     end;
 
@@ -97,9 +102,7 @@ unit agppcgas;
 {$endif cpu64bitaddr}
 
 
-    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TPPCInstrWriter.getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
       s : string;
     begin
@@ -199,7 +202,7 @@ unit agppcgas;
     end;
 
 
-    function getopstr_jmp(asminfo: pasminfo; const o:toper) : string;
+    function TPPCInstrWriter.getopstr_jmp(asminfo: pasminfo; const o:toper) : string;
     var
       hs : string;
     begin
@@ -231,7 +234,7 @@ unit agppcgas;
     end;
 
 
-    function getopstr(asminfo: pasminfo; const o:toper) : string;
+    function TPPCInstrWriter.getopstr(asminfo: pasminfo; const o:toper) : string;
     var
       hs : string;
     begin

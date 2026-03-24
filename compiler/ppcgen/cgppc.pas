@@ -829,7 +829,7 @@ unit cgppc;
               else
                 sym:=current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
               sym.increfs;
-              newsymname:=ApplyAsmSymbolRestrictions(symname);
+              newsymname:=ApplyAsmSymbolRestrictions(symname,compiler.target);
               current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
             end;
         end
@@ -865,7 +865,7 @@ unit cgppc;
 	      tocsym.increfs;
               tocsym.ftocsecnr:=tocnr;
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
-              newsymname:=ApplyAsmSymbolRestrictions(symname);
+              newsymname:=ApplyAsmSymbolRestrictions(symname,compiler.target);
               sym:=current_asmdata.RefAsmSymbol(newsymname,AT_DATA);
 	      sym.increfs;
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
