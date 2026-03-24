@@ -76,6 +76,8 @@ type
 
     function number_unrolls(node : tnode) : cardinal;
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         nodeCount : cardinal;
       begin
         { calculate how often a loop shall be unrolled.

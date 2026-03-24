@@ -27,7 +27,8 @@ interface
 
     uses
       globtype,
-      node,nset,pass_1,nx86set;
+      node,nset,pass_1,nx86set,
+      compilerbase;
 
     type
       ti386casenode = class(tx86casenode)
@@ -38,7 +39,8 @@ interface
 implementation
 
     uses
-      globals,cpuinfo;
+      globals,cpuinfo,
+      compiler;
 
 {*****************************************************************************
                             TI386CASENODE

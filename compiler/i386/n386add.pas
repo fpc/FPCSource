@@ -26,7 +26,7 @@ unit n386add;
 interface
 
     uses
-       node,nadd,cpubase,nx86add;
+       node,nadd,cpubase,nx86add,compilerbase;
 
     type
        ti386addnode = class(tx86addnode)
@@ -52,7 +52,8 @@ interface
       ncon,nset,cgutils,tgobj,
       cpuinfo,
       cga,ncgutil,cgobj,cg64f32,cgx86,
-      nodehelper;
+      nodehelper,
+      compiler;
 
 {*****************************************************************************
                                 use_generic_mul32to64

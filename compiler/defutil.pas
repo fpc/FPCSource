@@ -1655,6 +1655,8 @@ implementation
 
 
     function is_mmx_able_array(p : tdef) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef SUPPORT_MMX}
          if (cs_mmx_saturation in compiler.globals.current_settings.localswitches) then

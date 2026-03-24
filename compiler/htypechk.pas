@@ -583,6 +583,8 @@ implementation
 
 
     function isunaryoperatoroverloadable(treetyp:tnodetype;inlinenumber:tinlinenumber;ld:tdef) : boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=false;
         case treetyp of

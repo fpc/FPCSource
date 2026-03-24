@@ -1523,6 +1523,8 @@ unit aoptx86;
 {$endif DEBUG_AOPTCPU}
 
     class function TX86AsmOptimizer.IsMOVZXAcceptable: Boolean; inline;
+      var
+        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
 {$ifdef x86_64}
         { Always fine on x86-64 }
@@ -1534,9 +1536,9 @@ unit aoptx86;
 {$endif i8086}
           (
             { Always accept if optimising for size }
-            (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
+            (cs_opt_size in _compiler.globals.current_settings.optimizerswitches) or
             { From the Pentium II onwards, MOVZX only takes 1 cycle. [Kit] }
-            (compiler.globals.current_settings.optimizecputype >= cpu_Pentium2)
+            (_compiler.globals.current_settings.optimizecputype >= cpu_Pentium2)
           );
 {$endif x86_64}
       end;
