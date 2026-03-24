@@ -703,6 +703,8 @@ type
       end;
 
     function taicpu.Matches(p: PInsEntry; objdata:TObjData): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 
       function TargetMatch: boolean;
         const

@@ -29,7 +29,8 @@ unit cpubase;
 
   uses
     globtype,globals,
-    strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
+    strings,cutils,cclasses,aasmbase,cpuinfo,cgbase,
+    compilerbase;
 
 {*****************************************************************************
                                 Assembler Opcodes
@@ -351,7 +352,8 @@ implementation
 
     uses
       verbose,
-      rgbase;
+      rgbase,
+      compiler;
 
 
     const
@@ -448,6 +450,8 @@ implementation
       end;
 
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         case regtype of
           R_INTREGISTER:
@@ -490,6 +494,8 @@ implementation
 
 
     function reg_cgsize(const reg: tregister): tcgsize;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       { 68881 & compatibles -> 80 bit }
       { CF FPU -> 64 bit }
       const
@@ -551,6 +557,8 @@ implementation
       end;
 
     function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         fpu_regopsize: array[boolean] of TOpSize = ( S_FX, S_FD );
       begin
@@ -558,6 +566,8 @@ implementation
       end;
 
     function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       const
         fpu_regsize: array[boolean] of aint = ( 12, 8 ); { S_FX is 12 bytes on '881 }
       begin
@@ -565,6 +575,8 @@ implementation
       end;
 
     function needs_unaligned(const refalignment: aint; const size: tcgsize): boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result:=not(CPUM68K_HAS_UNALIGNED in cpu_capabilities[compiler.globals.current_settings.cputype]) and
                 (refalignment = 1) and

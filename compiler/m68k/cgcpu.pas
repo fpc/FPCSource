@@ -210,6 +210,8 @@ unit cgcpu;
       );
 
      function isvalidreference(const ref: treference): boolean;
+       var
+         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
        begin
          isvalidreference:=isvalidrefoffset(ref) and
 

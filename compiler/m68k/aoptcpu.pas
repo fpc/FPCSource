@@ -56,7 +56,7 @@ unit aoptcpu;
 
     uses
       cutils, aasmcpu, cgutils, globtype, globals, verbose, cpuinfo, itcpugas, procinfo, cpupi,
-      aoptutils;
+      aoptutils, compiler;
 
 { Range check must be disabled explicitly as conversions between signed and unsigned
   32-bit values are done without explicit typecasts }
