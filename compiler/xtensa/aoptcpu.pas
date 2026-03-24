@@ -34,7 +34,8 @@ Interface
     uses
       globtype, globals,
       cutils,
-      cgbase, cpubase, aasmtai, aasmcpu, aopt, aoptcpub;
+      cgbase, cpubase, aasmtai, aasmcpu, aopt, aoptcpub,
+      compilerbase;
 
     Type
       TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -57,7 +58,8 @@ Implementation
     aasmbase,
     aoptutils,
     cgutils,
-    verbose;
+    verbose,
+    compiler;
 
 {$ifdef DEBUG_AOPTCPU}
   procedure TCpuAsmOptimizer.DebugMsg(const s: string;p : tai);
