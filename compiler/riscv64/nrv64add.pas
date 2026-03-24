@@ -26,7 +26,7 @@ unit nrv64add;
   interface
 
     uses
-      node, ncgadd, aasmbase, nrvadd, cpubase;
+      node, ncgadd, aasmbase, nrvadd, cpubase, compilerbase;
 
     type
       trv64addnode = class(trvaddnode)
@@ -51,7 +51,8 @@ unit nrv64add;
       CPUInfo,cpupara,
       ncon,nset,nadd,
       symconst,
-      hlcgobj, ncgutil,cgobj;
+      hlcgobj, ncgutil,cgobj,
+      compiler;
 
     function trv64addnode.pass_1: tnode;
       begin
