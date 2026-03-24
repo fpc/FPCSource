@@ -551,7 +551,7 @@ Const
         procedure get_exepath;
         procedure callinitprocs;
         procedure calldoneprocs;
-        procedure InitGlobals;
+        procedure InitGlobals(ATarget: TCompilerTarget);
         procedure DoneGlobals;
       public
         { specified inputfile }
@@ -743,7 +743,7 @@ Const
         RCCompiler  : String;
         RCForceFPCRes : Boolean;
 
-        constructor Create;
+        constructor Create(ATarget: TCompilerTarget);
         destructor Destroy; override;
 
         function HandleFeature(const s : string) : boolean;
@@ -1604,9 +1604,7 @@ implementation
        current_namespacelist:=Nil;
      end;
 
-   procedure TCompilerGlobals.InitGlobals;
-     var
-       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+   procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget);
      begin
         get_exepath;
 
@@ -1648,7 +1646,7 @@ implementation
         current_namespacelist:=Nil;
         { Def file }
         usewindowapi:=false;
-        description:='Compiled by FPC '+version_string+' - '+compiler.target.cpu_string;
+        description:='Compiled by FPC '+version_string+' - '+ATarget.cpu_string;
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
         SetPEOptFlagsSetExplicity:=false;
@@ -1711,9 +1709,9 @@ implementation
         callinitprocs;
      end;
 
-   constructor TCompilerGlobals.Create;
+   constructor TCompilerGlobals.Create(ATarget: TCompilerTarget);
      begin
-       InitGlobals;
+       InitGlobals(ATarget);
      end;
 
    destructor TCompilerGlobals.Destroy;

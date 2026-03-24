@@ -541,7 +541,7 @@ begin
   { fileutils depends on source_info so it must be after systems }
   InitFileUtils;
   { globals depends on source_info so it must be after systems }
-  FGlobals:=TCompilerGlobals.Create;
+  FGlobals:=TCompilerGlobals.Create(FTarget);
   FSysSymList:=tsyssymlist.Create;
   { verbose depends on exe_path and must be after globals }
   FVerbose:=TVerbose.Create;
