@@ -353,7 +353,7 @@ implementation
         intrg.insert_regalloc_info_all(list);
         fprg.insert_regalloc_info_all(list);
         { Don't do the actual allocation when -sr is passed }
-        if (cs_no_regalloc in compiler.globals.current_settings.globalswitches) then
+        if (cs_no_regalloc in _compiler.globals.current_settings.globalswitches) then
           exit;
         { remove some simple useless store/load sequences }
         remove_dummy_load_stores(list,headertai);
