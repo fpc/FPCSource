@@ -32,7 +32,7 @@ unit aoptcpu;
   Interface
 
     uses
-      cgbase, cpubase, aoptobj, aoptcpub, aopt, aasmtai, aasmcpu;
+      cgbase, cpubase, aoptobj, aoptcpub, aopt, aasmtai, aasmcpu, compilerbase;
 
     Type
       TAsmOpSet = set of TAsmOp;
@@ -60,7 +60,7 @@ unit aoptcpu;
   Implementation
 
      uses
-       cutils,globtype,globals,aasmbase,cpuinfo,verbose;
+       cutils,globtype,globals,aasmbase,cpuinfo,verbose,compiler;
 
 
   function MatchInstruction(const instr: tai; const op: TAsmOp): boolean;

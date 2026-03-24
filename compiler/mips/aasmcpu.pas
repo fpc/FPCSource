@@ -29,7 +29,8 @@ uses
   cclasses,
   globtype, globals, verbose,
   aasmbase, aasmdata, aasmsym, aasmtai,
-  cgbase, cgutils, cpubase, cpuinfo;
+  cgbase, cgutils, cpubase, cpuinfo,
+  compilerbase;
 
 const
   { "mov reg,reg" source operand number }
@@ -91,7 +92,8 @@ type
 implementation
 
   uses
-    cutils;
+    cutils,
+    compiler;
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -259,6 +261,8 @@ end;
 
 
     function taicpu.is_macro: boolean;
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         result :=
         { 'seq', 'sge', 'sgeu', 'sgt', 'sgtu', 'sle', 'sleu', 'sne', }
@@ -498,6 +502,8 @@ procedure DoneAsm;
 
 
 procedure fixup_jmps(list: TAsmList);
+  var
+    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   var
     p,pdelayslot: tai;
     newjmp,newnoop: taicpu;
