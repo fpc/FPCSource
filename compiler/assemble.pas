@@ -821,6 +821,7 @@ Implementation
 
     Constructor TExternalAssembler.Create(info: pasminfo; smart: boolean; ACompiler: TCompilerBase);
       begin
+        FCompiler:=ACompiler;
         CreateWithWriter(info,CreateNewAsmWriter,true,smart,acompiler);
       end;
 
