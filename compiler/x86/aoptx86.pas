@@ -101,7 +101,7 @@ unit aoptx86;
         function SkipSimpleInstructions(var hp1: tai): Boolean;
 
       protected
-        class function IsMOVZXAcceptable: Boolean; static; inline;
+        function IsMOVZXAcceptable: Boolean; inline;
 
         function CheckMovMov2MovMov2(const p, hp1: tai): Boolean;
 
@@ -1522,9 +1522,7 @@ unit aoptx86;
       end;
 {$endif DEBUG_AOPTCPU}
 
-    class function TX86AsmOptimizer.IsMOVZXAcceptable: Boolean; inline;
-      var
-        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TX86AsmOptimizer.IsMOVZXAcceptable: Boolean; inline;
       begin
 {$ifdef x86_64}
         { Always fine on x86-64 }
@@ -1532,13 +1530,13 @@ unit aoptx86;
 {$else x86_64}
         Result :=
 {$ifdef i8086}
-          (_compiler.globals.current_settings.cputype >= cpu_386) and
+          (compiler.globals.current_settings.cputype >= cpu_386) and
 {$endif i8086}
           (
             { Always accept if optimising for size }
-            (cs_opt_size in _compiler.globals.current_settings.optimizerswitches) or
+            (cs_opt_size in compiler.globals.current_settings.optimizerswitches) or
             { From the Pentium II onwards, MOVZX only takes 1 cycle. [Kit] }
-            (_compiler.globals.current_settings.optimizecputype >= cpu_Pentium2)
+            (compiler.globals.current_settings.optimizecputype >= cpu_Pentium2)
           );
 {$endif x86_64}
       end;
