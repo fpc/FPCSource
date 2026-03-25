@@ -639,7 +639,7 @@ type
   Public
     function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
     function Equals(Obj: TObject): boolean; override;
-    Property AtKeyWord : TCSSString Read FAtKeyWord Write FAtKeyWord;
+    Property AtKeyWord : TCSSString Read FAtKeyWord Write FAtKeyWord; // e.g. "@media"
   end;
   TCSSAtRuleElementClass = class of TCSSAtRuleElement;
 

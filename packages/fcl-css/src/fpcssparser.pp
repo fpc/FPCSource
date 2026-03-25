@@ -475,6 +475,7 @@ Var
   Term : TCSSTokens;
   aToken: TCSSToken;
   aList : TCSSListElement;
+  El: TCSSElement;
 begin
   Result:=nil;
   Inc(FRuleLevel);
@@ -514,7 +515,17 @@ begin
     if (CurrentToken=ctkLBRACE) then
       begin
       Consume(ctkLBRACE);
-      aRule.AddChild(ParseRuleList(ctkRBRACE));
+      Term:=[ctkEOF,ctkRBRACE];
+      While not (CurrentToken in Term) do
+        begin
+        El:=ParseExpression;
+        if El is TCSSRuleElement then
+          aRule.AddNestedRule(TCSSRuleElement(El))
+        else
+          aRule.AddChild(ParseExpression);
+        if CurrentToken=ctkSEMICOLON then
+          Consume(ctkSEMICOLON);
+        end;
       if CurrentToken=ctkRBRACE then
         Consume(ctkRBRACE)
       else
@@ -655,6 +666,7 @@ begin
           begin
           // (mediaproperty: value)
           Bin:=TCSSBinaryElement(CreateElement(CSSBinaryElementClass));
+          Bin.Operation:=boColon;
           Bin.Left:=El;
           El:=nil;
           Consume(ctkCOLON);
@@ -712,6 +724,7 @@ begin
               DoWarnExpectedButGot(')');
             exit;
             end;
+          AndOrList.AddChild(ParseIdentifier);
           end
         else if aToken in Term then
           begin
@@ -748,16 +761,16 @@ begin
           end
         else
           break;
+        AndOrList.AddChild(ParseIdentifier);
         end
       else
         break;
-      GetNextToken;
     until false;
 
     // read binaryoperator operand til bracket close
     repeat
       aToken:=CurrentToken;
-      {$IFDEF VerboseCSSResolver}
+      {$IFDEF VerboseCSSParser}
       writeln('TCSSParser.ParseMediaCondition NEXT ',CurrentToken);
       {$ENDIF}
       if aToken in Term then

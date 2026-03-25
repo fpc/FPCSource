@@ -829,18 +829,48 @@ begin
 end;
 
 procedure TTestCSSParser.TestMediaBoolean;
+var
+  R: TCSSAtRuleElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media print { *, *:before {} }');
+  R:=TCSSAtRuleElement(ParseRule('@media print { *, *:before {} }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aSel:=TCSSIdentifierElement(CheckClass('media selector',TCSSIdentifierElement,R.Selectors[0]));
+  AssertEquals('media selector name','print',aSel.Value);
 end;
 
 procedure TTestCSSParser.TestMediaNotBoolean;
+var
+  R: TCSSAtRuleElement;
+  aList: TCSSListElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media not (print) { }');
+  R:=TCSSAtRuleElement(ParseRule('@media not (print) { }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aList:=TCSSListElement(CheckClass('media selector',TCSSListElement,R.Selectors[0]));
+  AssertEquals('selector list count',2,aList.ChildCount);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[0]',TCSSIdentifierElement,aList[0]));
+  AssertEquals('selector list[0] value','not',aSel.Value);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[1]',TCSSIdentifierElement,aList[1]));
+  AssertEquals('selector list[1] value','print',aSel.Value);
+  AssertEquals('declaration count',0,R.ChildCount);
+  AssertEquals('nested rule count',0,R.NestedRuleCount);
 end;
 
 procedure TTestCSSParser.TestMediaCommaBoolean;
+var
+  R: TCSSAtRuleElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media print, screen { }');
+  R:=TCSSAtRuleElement(ParseRule('@media print, screen { }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',2,R.SelectorCount);
+  aSel:=TCSSIdentifierElement(CheckClass('selector 0',TCSSIdentifierElement,R.Selectors[0]));
+  AssertEquals('selector 0 value','print',aSel.Value);
+  aSel:=TCSSIdentifierElement(CheckClass('selector 1',TCSSIdentifierElement,R.Selectors[1]));
+  AssertEquals('selector 1 value','screen',aSel.Value);
 end;
 
 procedure TTestCSSParser.TestMediaCommaNotBoolean;
@@ -849,8 +879,20 @@ begin
 end;
 
 procedure TTestCSSParser.TestMediaPlain;
+var
+  R: TCSSAtRuleElement;
+  aBin: TCSSBinaryElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media (any-hover: hover) {  }');
+  R:=TCSSAtRuleElement(ParseRule('@media (any-hover: hover) {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('selector 0',TCSSBinaryElement,R.Selectors[0]));
+  AssertEquals('selector operation',boColon,aBin.Operation);
+  aSel:=TCSSIdentifierElement(CheckClass('selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('selector left value','any-hover',aSel.Value);
+  aSel:=TCSSIdentifierElement(CheckClass('selector right',TCSSIdentifierElement,aBin.Right));
+  AssertEquals('selector right value','hover',aSel.Value);
 end;
 
 procedure TTestCSSParser.TestMediaNotPlain;
@@ -869,8 +911,19 @@ begin
 end;
 
 procedure TTestCSSParser.TestMediaRangeNameValue;
+var
+  R: TCSSAtRuleElement;
+  aBin: TCSSBinaryElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media (width > 100px) {  }');
+  R:=TCSSAtRuleElement(ParseRule('@media (width > 100px) {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('selector 0',TCSSBinaryElement,R.Selectors[0]));
+  AssertEquals('selector operation',boGT,aBin.Operation);
+  aSel:=TCSSIdentifierElement(CheckClass('selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('selector left value','width',aSel.Value);
+  CheckLiteral('selector right',aBin.Right,100,cu_px);
 end;
 
 procedure TTestCSSParser.TestMediaRangeValueName;
@@ -884,18 +937,60 @@ begin
 end;
 
 procedure TTestCSSParser.TestMediaRangeValueGtNameGtValue;
+var
+  R: TCSSAtRuleElement;
+  aBinOuter, aBinInner: TCSSBinaryElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media (1000px > height >= 200px) {  }');
+  R:=TCSSAtRuleElement(ParseRule('@media (1000px > height >= 200px) {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aBinOuter:=TCSSBinaryElement(CheckClass('selector 0',TCSSBinaryElement,R.Selectors[0]));
+  AssertEquals('selector outer operation',boGE,aBinOuter.Operation);
+  aBinInner:=TCSSBinaryElement(CheckClass('selector outer left',TCSSBinaryElement,aBinOuter.Left));
+  AssertEquals('selector inner operation',boGT,aBinInner.Operation);
+  CheckLiteral('selector inner left',aBinInner.Left,1000,cu_px);
+  aSel:=TCSSIdentifierElement(CheckClass('selector inner right',TCSSIdentifierElement,aBinInner.Right));
+  AssertEquals('selector inner right value','height',aSel.Value);
+  CheckLiteral('selector outer right',aBinOuter.Right,200,cu_px);
 end;
 
 procedure TTestCSSParser.TestMediaPlainAndPlain;
+var
+  R: TCSSAtRuleElement;
+  aList: TCSSListElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media print and screen {  }');
+  R:=TCSSAtRuleElement(ParseRule('@media print and screen {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aList:=TCSSListElement(CheckClass('media selector',TCSSListElement,R.Selectors[0]));
+  AssertEquals('selector list count',3,aList.ChildCount);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[0]',TCSSIdentifierElement,aList[0]));
+  AssertEquals('selector list[0] value','print',aSel.Value);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[1]',TCSSIdentifierElement,aList[1]));
+  AssertEquals('selector list[1] value','and',aSel.Value);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[2]',TCSSIdentifierElement,aList[2]));
+  AssertEquals('selector list[2] value','screen',aSel.Value);
 end;
 
 procedure TTestCSSParser.TestMediaPlainAndPlainBrackets;
+var
+  R: TCSSAtRuleElement;
+  aList: TCSSListElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media (print and screen) {  }');
+  R:=TCSSAtRuleElement(ParseRule('@media (print and screen) {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aList:=TCSSListElement(CheckClass('media selector',TCSSListElement,R.Selectors[0]));
+  AssertEquals('selector list count',3,aList.ChildCount);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[0]',TCSSIdentifierElement,aList[0]));
+  AssertEquals('selector list[0] value','print',aSel.Value);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[1]',TCSSIdentifierElement,aList[1]));
+  AssertEquals('selector list[1] value','and',aSel.Value);
+  aSel:=TCSSIdentifierElement(CheckClass('selector list[2]',TCSSIdentifierElement,aList[2]));
+  AssertEquals('selector list[2] value','screen',aSel.Value);
 end;
 
 procedure TTestCSSParser.TestMediaPlainOrPlain;

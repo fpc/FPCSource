@@ -637,10 +637,13 @@ type
     function ResolvePseudoElement(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoElementFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
+    function ResolveMediaIdentifier(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
+    procedure CheckMediaSelector(El: TCSSElement); virtual;
     function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; override;
     function ParseDeclaration(aIsAt: Boolean): TCSSDeclarationElement; override;
     function ParsePseudoElement: TCSSElement; override;
     function ParseSelector: TCSSElement; override;
+    function ParseAtMediaRule: TCSSAtRuleElement; override;
     procedure CheckSelector(El: TCSSElement); virtual;
     procedure CheckSelectorArray(anArray: TCSSArrayElement); virtual;
     procedure CheckSelectorArrayBinary(aBinary: TCSSBinaryElement); virtual;
@@ -2433,6 +2436,46 @@ begin
     Log(etWarning,20240822172830,'unknown pseudo function "'+aName+'"',El);
   end else
     El.NameNumericalID:=Result;
+end;
+
+function TCSSResolverParser.ResolveMediaIdentifier(El: TCSSResolvedIdentifierElement
+  ): TCSSNumericalID;
+var
+  aName: TCSSString;
+begin
+  if El.NumericalID<>CSSIDNone then
+    raise ECSSParser.Create('20260323130501');
+  aName:=El.Name;
+  El.Kind:=nikKeyword;
+  Result:=Resolver.CSSRegistry.IndexOfKeyword(aName);
+  if Result<=CSSIDNone then
+  begin
+    El.NumericalID:=-1;
+    Log(etWarning,20260323130502,'unknown media keyword "'+aName+'"',El);
+  end else
+    El.NumericalID:=Result;
+end;
+
+procedure TCSSResolverParser.CheckMediaSelector(El: TCSSElement);
+var
+  i: Integer;
+begin
+  if El=nil then exit;
+  if El.ClassType=TCSSResolvedIdentifierElement then
+    ResolveMediaIdentifier(TCSSResolvedIdentifierElement(El))
+  else if El.ClassType=TCSSListElement then
+    for i:=0 to TCSSListElement(El).ChildCount-1 do
+      CheckMediaSelector(TCSSListElement(El).Children[i]);
+end;
+
+function TCSSResolverParser.ParseAtMediaRule: TCSSAtRuleElement;
+var
+  i: Integer;
+begin
+  Result:=inherited ParseAtMediaRule;
+  if Result=nil then exit;
+  for i:=0 to Result.SelectorCount-1 do
+    CheckMediaSelector(Result.Selectors[i]);
 end;
 
 function TCSSResolverParser.ParseCall(aName: TCSSString; IsSelector: boolean
