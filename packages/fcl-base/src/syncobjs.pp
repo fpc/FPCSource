@@ -167,6 +167,7 @@ destructor TCriticalSection.Destroy;
 
 begin
   DoneCriticalSection(CriticalSection);
+  Inherited;
 end;
 
 { THandleObject }
