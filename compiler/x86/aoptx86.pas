@@ -341,9 +341,11 @@ unit aoptx86;
 
         fState: TCMovTrackingState;
 
+        function GetCompiler: TCompilerBase; inline;
         function TryCMOVConst(p, start, stop: tai; var Count: LongInt): Boolean;
         function InitialiseBlock(BlockStart, OneBeforeBlock: tai; out BlockStop: tai; out EndJump: tai): Boolean;
         function AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
+        property Compiler: TCompilerBase read GetCompiler;
       public
         RegisterTracking: TAllUsedRegs;
         constructor Init(Optimizer: TX86AsmOptimizer; var p_initialjump, p_initialmov: tai; var AFirstLabel: TAsmLabel);
@@ -13987,8 +13989,6 @@ unit aoptx86;
 
     function TCMOVTracking.AnalyseMOVBlock(BlockStart, BlockStop, SearchStart: tai): LongInt;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hp1: tai;
         RefModified: Boolean;
       begin
@@ -14327,6 +14327,11 @@ unit aoptx86;
 
         if fState = tsBranching then
           EvaluateBranchingType;
+      end;
+
+    function TCMOVTracking.GetCompiler: TCompilerBase; inline;
+      begin
+        result:=fOptimizer.compiler;
       end;
 
     { Tries to convert a mov const,%reg instruction into a CMOV by reserving a
