@@ -144,7 +144,7 @@ unit aoptx86;
         class procedure UpdateIntRegsNoDealloc(var AUsedRegs: TAllUsedRegs; p: Tai); static;
 
         { Returns true if the given logic instruction can be converted into a BTx instruction (BT not included) }
-        class function IsBTXAcceptable(p : tai) : boolean; static;
+        function IsBTXAcceptable(p : tai) : boolean;
 
         { Returns the index of an input operand that can take a register or a
           reference, or -1 if there isn't one }
@@ -17330,13 +17330,11 @@ unit aoptx86;
 
 
     { Returns true if the given logic instruction can be converted into a BTx instruction (BT not included) }
-    class function TX86AsmOptimizer.IsBTXAcceptable(p : tai) : boolean;
-      var
-        _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TX86AsmOptimizer.IsBTXAcceptable(p : tai) : boolean;
       begin
         Result := False;
 
-        if not (CPUX86_HAS_BTX in cpu_capabilities[_compiler.globals.current_settings.optimizecputype]) then
+        if not (CPUX86_HAS_BTX in cpu_capabilities[compiler.globals.current_settings.optimizecputype]) then
           Exit;
 
         { For sizes less than S_L, the byte size is equal or larger with BTx,
@@ -17355,15 +17353,15 @@ unit aoptx86;
           Exit;
 
         { If we're optimising for size, this is acceptable }
-        if (cs_opt_size in _compiler.globals.current_settings.optimizerswitches) then
+        if (cs_opt_size in compiler.globals.current_settings.optimizerswitches) then
           Exit(True);
 
         if (taicpu(p).oper[1]^.typ = top_reg) and
-          (CPUX86_HINT_FAST_BTX_REG_IMM in cpu_optimization_hints[_compiler.globals.current_settings.optimizecputype]) then
+          (CPUX86_HINT_FAST_BTX_REG_IMM in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype]) then
           Exit(True);
 
         if (taicpu(p).oper[1]^.typ <> top_reg) and
-          (CPUX86_HINT_FAST_BTX_MEM_IMM in cpu_optimization_hints[_compiler.globals.current_settings.optimizecputype]) then
+          (CPUX86_HINT_FAST_BTX_MEM_IMM in cpu_optimization_hints[compiler.globals.current_settings.optimizecputype]) then
           Exit(True);
       end;
 
