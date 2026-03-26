@@ -425,7 +425,7 @@ implementation
                 internalerror(2014033103);
               end;
             end
-          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype] then
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[compiler.globals.init_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
@@ -441,7 +441,7 @@ implementation
                 location.register,left.location.register), pf));
               cg.maybe_check_for_fpu_exception(current_asmdata.CurrAsmList);
             end
-          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype] then
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.init_settings.fputype] then
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;

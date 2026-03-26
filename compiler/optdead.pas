@@ -144,14 +144,14 @@ unit optdead;
       { we don't have access to the symbol info if the linking
         hasn't happened
       }
-      if (([cs_link_on_target,cs_link_nolink] * init_settings.globalswitches) <> []) then
+      if (([cs_link_on_target,cs_link_nolink] * compiler.globals.init_settings.globalswitches) <> []) then
         begin
           compiler.verbose.CGMessage(wpo_cannot_extract_live_symbol_info_no_link);
           exit;
         end;
 
       { without dead code stripping/smart linking, this doesn't make sense }
-      if not(cs_link_smart in init_settings.globalswitches) then
+      if not(cs_link_smart in compiler.globals.init_settings.globalswitches) then
         begin
           compiler.verbose.CGMessage(wpo_symbol_live_info_needs_smart_linking);
           exit;
@@ -213,7 +213,7 @@ const
       inherited checkoptions;
 
       { we need symbol information }
-      if (cs_link_strip in init_settings.globalswitches) then
+      if (cs_link_strip in compiler.globals.init_settings.globalswitches) then
         begin
           compiler.verbose.CGMessage(wpo_cannot_extract_live_symbol_info_strip);
           exit;

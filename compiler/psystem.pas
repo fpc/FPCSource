@@ -260,7 +260,7 @@ implementation
 
         procedure create_fpu_types;
         begin
-          if init_settings.fputype<>fpu_none then
+          if compiler.globals.init_settings.fputype<>fpu_none then
             begin
               s32floattype:=cfloatdef.create(s32real,true,compiler);
               s64floattype:=cfloatdef.create(s64real,true,compiler);
@@ -491,7 +491,7 @@ implementation
         else
         *)
 {$endif cpufpemu}
-        if init_settings.fputype<>fpu_none then
+        if compiler.globals.init_settings.fputype<>fpu_none then
           begin
             addtype('Single',s32floattype);
             addtype('Double',s64floattype);
@@ -662,7 +662,7 @@ implementation
             addtype('$variant',cvarianttype);
             addtype('$olevariant',colevarianttype);
           end;
-        if init_settings.fputype<>fpu_none then
+        if compiler.globals.init_settings.fputype<>fpu_none then
           begin
             addtype('$s32real',s32floattype);
             addtype('$s64real',s64floattype);
@@ -769,7 +769,7 @@ implementation
         loadtype('unicodestring',cunicodestringtype);
         loadtype('openshortstring',openshortstringtype);
         loadtype('openchararray',openchararraytype);
-        if init_settings.fputype <> fpu_none then
+        if compiler.globals.init_settings.fputype <> fpu_none then
           begin
             loadtype('s32real',s32floattype);
             loadtype('s64real',s64floattype);

@@ -420,18 +420,18 @@ implementation
                   begin
                     exclude(compiler.globals.current_settings.modeswitches,m_default_unicodestring);
                     if changeinit then
-                      exclude(init_settings.modeswitches,m_default_unicodestring);
+                      exclude(compiler.globals.init_settings.modeswitches,m_default_unicodestring);
                   end
                 else if switch=m_default_unicodestring then
                   begin
                     exclude(compiler.globals.current_settings.modeswitches,m_default_ansistring);
                     if changeinit then
-                      exclude(init_settings.modeswitches,m_default_ansistring);
+                      exclude(compiler.globals.init_settings.modeswitches,m_default_ansistring);
                   end;
                 { enable $h+ }
                 include(compiler.globals.current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
-                  include(init_settings.localswitches,cs_refcountedstrings);
+                  include(compiler.globals.init_settings.localswitches,cs_refcountedstrings);
                 if m_default_unicodestring in compiler.globals.current_settings.modeswitches then
                   begin
                     def_system_macro('FPC_UNICODESTRINGS');
@@ -442,7 +442,7 @@ implementation
               begin
                 exclude(compiler.globals.current_settings.localswitches,cs_refcountedstrings);
                 if changeinit then
-                  exclude(init_settings.localswitches,cs_refcountedstrings);
+                  exclude(compiler.globals.init_settings.localswitches,cs_refcountedstrings);
                 undef_system_macro('FPC_UNICODESTRINGS');
                 undef_system_macro('UNICODE');
               end;
@@ -455,13 +455,13 @@ implementation
              begin
                include(compiler.globals.current_settings.localswitches,cs_do_inline);
                if changeinit then
-                 include(init_settings.localswitches,cs_do_inline);
+                 include(compiler.globals.init_settings.localswitches,cs_do_inline);
              end
             else
              begin
                exclude(compiler.globals.current_settings.localswitches,cs_do_inline);
                if changeinit then
-                 exclude(init_settings.localswitches,cs_do_inline);
+                 exclude(compiler.globals.init_settings.localswitches,cs_do_inline);
              end;
           end;
 
@@ -496,9 +496,9 @@ implementation
                 include(compiler.globals.current_settings.moduleswitches,cs_system_codepage);
                 if changeinit then
                   begin
-                    init_settings.sourcecodepage:=compiler.globals.current_settings.sourcecodepage;
-                    exclude(init_settings.moduleswitches,cs_explicit_codepage);
-                    include(init_settings.moduleswitches,cs_system_codepage);
+                    compiler.globals.init_settings.sourcecodepage:=compiler.globals.current_settings.sourcecodepage;
+                    exclude(compiler.globals.init_settings.moduleswitches,cs_explicit_codepage);
+                    include(compiler.globals.init_settings.moduleswitches,cs_system_codepage);
                   end;
               end
             else
@@ -525,9 +525,9 @@ implementation
                   compiler.globals.current_settings.sourcecodepage:=default_settings.sourcecodepage;
                 if changeinit then
                   begin
-                    exclude(init_settings.moduleswitches,cs_system_codepage);
-                    if not(cs_explicit_codepage in init_settings.moduleswitches) then
-                      init_settings.sourcecodepage:=default_settings.sourcecodepage;
+                    exclude(compiler.globals.init_settings.moduleswitches,cs_system_codepage);
+                    if not(cs_explicit_codepage in compiler.globals.init_settings.moduleswitches) then
+                      compiler.globals.init_settings.sourcecodepage:=default_settings.sourcecodepage;
                   end;
               end;
           end;
@@ -538,7 +538,7 @@ implementation
           begin
             include(compiler.globals.current_settings.localswitches,cs_force_far_calls);
             if changeinit then
-              include(init_settings.localswitches,cs_force_far_calls);
+              include(compiler.globals.init_settings.localswitches,cs_force_far_calls);
           end;
 {$endif i8086}
       end;
@@ -602,7 +602,7 @@ implementation
 {$endif jvm}
 
         if b and changeInit then
-          init_settings.modeswitches := compiler.globals.current_settings.modeswitches;
+          compiler.globals.init_settings.modeswitches := compiler.globals.current_settings.modeswitches;
 
         if b then
          begin
@@ -619,8 +619,8 @@ implementation
                include(compiler.globals.current_settings.localswitches,cs_check_all_case_coverage);
                if changeinit then
                  begin
-                   include(init_settings.localswitches,cs_bitpacking);
-                   include(init_settings.localswitches,cs_check_all_case_coverage);
+                   include(compiler.globals.init_settings.localswitches,cs_bitpacking);
+                   include(compiler.globals.init_settings.localswitches,cs_check_all_case_coverage);
                  end;
              end;
 
@@ -629,7 +629,7 @@ implementation
              begin
                include(compiler.globals.current_settings.moduleswitches,cs_support_goto);
                if changeinit then
-                 include(init_settings.moduleswitches,cs_support_goto);
+                 include(compiler.globals.init_settings.moduleswitches,cs_support_goto);
              end;
 
            { support pointer math by default in fpc/objfpc modes }
@@ -637,13 +637,13 @@ implementation
              begin
                include(compiler.globals.current_settings.localswitches,cs_pointermath);
                if changeinit then
-                 include(init_settings.localswitches,cs_pointermath);
+                 include(compiler.globals.init_settings.localswitches,cs_pointermath);
              end
            else
              begin
                exclude(compiler.globals.current_settings.localswitches,cs_pointermath);
                if changeinit then
-                 exclude(init_settings.localswitches,cs_pointermath);
+                 exclude(compiler.globals.init_settings.localswitches,cs_pointermath);
              end;
 
            { Default enum and set packing for delphi/tp7 }
@@ -667,8 +667,8 @@ implementation
 
            if changeinit then
              begin
-               init_settings.packenum:=compiler.globals.current_settings.packenum;
-               init_settings.setalloc:=compiler.globals.current_settings.setalloc;
+               compiler.globals.init_settings.packenum:=compiler.globals.current_settings.packenum;
+               compiler.globals.init_settings.setalloc:=compiler.globals.current_settings.setalloc;
              end;
 {$if defined(i386) or defined(i8086)}
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
@@ -681,7 +681,7 @@ implementation
                compiler.globals.current_settings.asmmode:=asmmode_i386_intel;
 {$endif i8086}
                if changeinit then
-                 init_settings.asmmode:=compiler.globals.current_settings.asmmode;
+                 compiler.globals.init_settings.asmmode:=compiler.globals.current_settings.asmmode;
              end;
 {$endif i386 or i8086}
 
@@ -695,7 +695,7 @@ implementation
              begin
                include(compiler.globals.current_settings.localswitches,cs_strict_var_strings);
                if changeinit then
-                 include(init_settings.localswitches,cs_strict_var_strings);
+                 include(compiler.globals.init_settings.localswitches,cs_strict_var_strings);
              end;
 
            { in delphi mode, excess precision and open strings are by default on }
@@ -705,8 +705,8 @@ implementation
                include(compiler.globals.current_settings.localswitches,cs_openstring);
                if changeinit then
                  begin
-                   include(init_settings.localswitches,cs_excessprecision);
-                   include(init_settings.localswitches,cs_openstring);
+                   include(compiler.globals.init_settings.localswitches,cs_excessprecision);
+                   include(compiler.globals.init_settings.localswitches,cs_openstring);
                  end;
              end;
 
@@ -716,13 +716,13 @@ implementation
              begin
                exclude(compiler.globals.current_settings.localswitches,cs_force_far_calls);
                if changeinit then
-                 exclude(init_settings.localswitches,cs_force_far_calls);
+                 exclude(compiler.globals.init_settings.localswitches,cs_force_far_calls);
              end
            else
              begin
                include(compiler.globals.current_settings.localswitches,cs_force_far_calls);
                if changeinit then
-                 include(init_settings.localswitches,cs_force_far_calls);
+                 include(compiler.globals.init_settings.localswitches,cs_force_far_calls);
              end;
 {$endif i8086}
 
@@ -811,7 +811,7 @@ implementation
                 end;
 
               if changeInit then
-                compiler.globals.current_settings.modeswitches:=init_settings.modeswitches;
+                compiler.globals.current_settings.modeswitches:=compiler.globals.init_settings.modeswitches;
               Result:=true;
               if doinclude then
                 begin
@@ -837,7 +837,7 @@ implementation
               HandleModeSwitches(i,changeinit);
 
               if changeInit then
-                init_settings.modeswitches:=compiler.globals.current_settings.modeswitches;
+                compiler.globals.init_settings.modeswitches:=compiler.globals.current_settings.modeswitches;
 
               break;
             end;

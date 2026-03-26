@@ -159,7 +159,7 @@ implementation
 
         fixup_jmps(aktproccode);
 
-        if init_settings.cputype = cpu_mips1 then resolveReadAfterWrite(aktproccode);
+        if compiler.globals.init_settings.cputype = cpu_mips1 then resolveReadAfterWrite(aktproccode);
 
       end;
 

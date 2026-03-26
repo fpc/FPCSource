@@ -341,7 +341,7 @@ unit scandir;
         If compiler.globals.Inside_asm_statement then
           compiler.verbose.Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='DEFAULT' then
-          recordpendingasmmode(init_settings.asmmode)
+          recordpendingasmmode(compiler.globals.init_settings.asmmode)
         else
          if not SetAsmReadMode(s,asmmode) then
            compiler.verbose.Message1(scan_e_illegal_asmmode_specifier,s)
@@ -714,7 +714,7 @@ unit scandir;
         else
 {$endif jvm}
              if (hs='DEFAULT') then
-          compiler.globals.current_settings.interfacetype:=init_settings.interfacetype
+          compiler.globals.current_settings.interfacetype:=compiler.globals.init_settings.interfacetype
         else
           compiler.verbose.Message(scan_e_invalid_interface_type);
       end;
@@ -1314,7 +1314,7 @@ unit scandir;
         else if (hs='OFF') then
           recordpendingoptimizerswitches([])
         else if (hs='DEFAULT') then
-          recordpendingoptimizerswitches(init_settings.optimizerswitches)
+          recordpendingoptimizerswitches(compiler.globals.init_settings.optimizerswitches)
         else
           begin
             if not UpdateOptimizerStr(hs,compiler.globals.current_settings.optimizerswitches) then

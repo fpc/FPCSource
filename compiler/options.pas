@@ -35,6 +35,7 @@ Type
   private
     FCompiler: TCompilerBase;
     FOptions: TOptions;
+    procedure set_default_link_type;
     procedure set_endianess_macros;
     procedure StopOptions(err:longint);
     property Compiler: TCompilerBase read FCompiler;
@@ -223,15 +224,15 @@ const
                                  Defines
 ****************************************************************************}
 
-procedure set_default_link_type;
+procedure TOption.set_default_link_type;
 begin
   undef_system_macro('FPC_LINK_SMART');
   def_system_macro('FPC_LINK_STATIC');
   undef_system_macro('FPC_LINK_DYNAMIC');
-  init_settings.globalswitches:=init_settings.globalswitches+[cs_link_static];
-  init_settings.globalswitches:=init_settings.globalswitches-[cs_link_shared,cs_link_smart];
+  compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_static];
+  compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_shared,cs_link_smart];
 {$ifdef AIX}
-  init_settings.globalswitches:=init_settings.globalswitches+[cs_link_native];
+  compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_native];
 {$endif}
 end;
 
@@ -1173,9 +1174,9 @@ begin
   def_system_macro('FPC_LINK_STATIC');
   undef_system_macro('FPC_LINK_SMART');
   undef_system_macro('FPC_LINK_DYNAMIC');
-  include(init_settings.globalswitches,cs_link_static);
-  exclude(init_settings.globalswitches,cs_link_smart);
-  exclude(init_settings.globalswitches,cs_link_shared);
+  include(compiler.globals.init_settings.globalswitches,cs_link_static);
+  exclude(compiler.globals.init_settings.globalswitches,cs_link_smart);
+  exclude(compiler.globals.init_settings.globalswitches,cs_link_shared);
   LinkTypeSetExplicitly:=true;
 end;
 
@@ -1475,7 +1476,7 @@ procedure TOption.LLVMEnableSanitizers(sanitizers: TCmdStr);
     repeat
        case sanitizer of
          'address':
-           include(init_settings.moduleswitches,cs_sanitize_address);
+           include(compiler.globals.init_settings.moduleswitches,cs_sanitize_address);
          else
            IllegalPara(sanitizer);
        end;
@@ -1495,10 +1496,10 @@ begin
    begin
      c:=upcase(s[i]);
      case c of
-      'C' : include(init_settings.globalswitches,cs_link_discard_copydata);
-      'J' : include(init_settings.globalswitches,cs_link_discard_jmp_main);
-      'S' : include(init_settings.globalswitches,cs_link_discard_start);
-      'Z' : include(init_settings.globalswitches,cs_link_discard_zeroreg_sp);
+      'C' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_copydata);
+      'J' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_jmp_main);
+      'S' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_start);
+      'Z' : include(compiler.globals.init_settings.globalswitches,cs_link_discard_zeroreg_sp);
      else
       exit(false);
      end;
@@ -2178,9 +2179,9 @@ begin
   { Code generation flags }
   if (tf_pic_default in compiler.target.info.flags) then
     if def then
-      include(init_settings.moduleswitches,cs_create_pic)
+      include(compiler.globals.init_settings.moduleswitches,cs_create_pic)
     else
-      exclude(init_settings.moduleswitches,cs_create_pic);
+      exclude(compiler.globals.init_settings.moduleswitches,cs_create_pic);
 
   { Resources support }
   if (tf_has_winlike_resources in compiler.target.info.flags) then
@@ -2243,23 +2244,23 @@ begin
    { enable vlink as default linker on Amiga but not for cross compilers (for now) }
    if (compiler.target.info.system in [system_m68k_amiga,system_powerpc_amiga]) and
       not LinkerSetExplicitly then
-     include(init_settings.globalswitches,cs_link_vlink);
+     include(compiler.globals.init_settings.globalswitches,cs_link_vlink);
 {$endif}
 {$ifdef m68k}
    { always enable vlink as default linker for the Sinclair QL, Atari, and Human 68k }
    if (compiler.target.info.system in [system_m68k_sinclairql,system_m68k_atari,system_m68k_human68k]) and
       not LinkerSetExplicitly then
-     include(init_settings.globalswitches,cs_link_vlink);
+     include(compiler.globals.init_settings.globalswitches,cs_link_vlink);
 {$endif m68k}
 end;
 
 procedure TOption.CheckOptionsCompatibility;
 begin
 {$ifdef wasm}
-  if (Ord(ts_wasm_no_exceptions in init_settings.targetswitches)+
-      Ord(ts_wasm_native_exnref_exceptions in init_settings.targetswitches)+
-      Ord(ts_wasm_native_legacy_exceptions in init_settings.targetswitches)+
-      Ord(ts_wasm_bf_exceptions in init_settings.targetswitches))>1 then
+  if (Ord(ts_wasm_no_exceptions in compiler.globals.init_settings.targetswitches)+
+      Ord(ts_wasm_native_exnref_exceptions in compiler.globals.init_settings.targetswitches)+
+      Ord(ts_wasm_native_legacy_exceptions in compiler.globals.init_settings.targetswitches)+
+      Ord(ts_wasm_bf_exceptions in compiler.globals.init_settings.targetswitches))>1 then
     begin
       compiler.verbose.Message(option_too_many_exception_modes);
       StopOptions(1);
@@ -2267,30 +2268,30 @@ begin
 {$endif}
 
 {$ifdef i8086}
-  if (compiler.globals.apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
+  if (compiler.globals.apptype=app_com) and (compiler.globals.init_settings.x86memorymodel<>mm_tiny) then
     begin
       compiler.verbose.Message(option_com_files_require_tiny_model);
       StopOptions(1);
     end;
   if (compiler.target.info.system = system_i8086_win16) and
-     not (init_settings.x86memorymodel in [mm_large,mm_huge]) then
+     not (compiler.globals.init_settings.x86memorymodel in [mm_large,mm_huge]) then
     begin
       if MemoryModelSetExplicitly then
-        compiler.verbose.Message1(option_e_win16_unsupported_memory_model,x86memorymodelstr[init_settings.x86memorymodel])
+        compiler.verbose.Message1(option_e_win16_unsupported_memory_model,x86memorymodelstr[compiler.globals.init_settings.x86memorymodel])
       else
         compiler.verbose.Message(option_n_win16_set_default_large_memory_model);
-      undef_system_macro('FPC_MM_'+x86memorymodelstr[init_settings.x86memorymodel]);
-      init_settings.x86memorymodel:=mm_large;
+      undef_system_macro('FPC_MM_'+x86memorymodelstr[compiler.globals.init_settings.x86memorymodel]);
+      compiler.globals.init_settings.x86memorymodel:=mm_large;
     end;
 {$endif i8086}
 
 {$ifndef i8086_link_intern_debuginfo}
-  if (cs_debuginfo in init_settings.moduleswitches) and
+  if (cs_debuginfo in compiler.globals.init_settings.moduleswitches) and
      (compiler.target.info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) and
-     not (cs_link_extern in init_settings.globalswitches) then
+     not (cs_link_extern in compiler.globals.init_settings.globalswitches) then
     begin
       compiler.verbose.Message(option_debug_info_requires_external_linker);
-      include(init_settings.globalswitches,cs_link_extern);
+      include(compiler.globals.init_settings.globalswitches,cs_link_extern);
     end;
 {$endif i8086_link_intern_debuginfo}
 
@@ -2299,15 +2300,15 @@ begin
     begin
       { smartlink creation does not yet work with DWARF
         debug info on most targets, but it works in internal assembler }
-      if (cs_create_smart in init_settings.moduleswitches) and
+      if (cs_create_smart in compiler.globals.init_settings.moduleswitches) and
          not (af_outputbinary in compiler.target._asm.flags) then
         begin
           compiler.verbose.Message(option_dwarf_smartlink_creation);
-          exclude(init_settings.moduleswitches,cs_create_smart);
+          exclude(compiler.globals.init_settings.moduleswitches,cs_create_smart);
         end;
 
       { smart linking does not yet work with DWARF debug info on most targets }
-      if (cs_link_smart in init_settings.globalswitches) then
+      if (cs_link_smart in compiler.globals.init_settings.globalswitches) then
         begin
           compiler.verbose.Message(option_dwarf_smart_linking);
           ForceStaticLinking;
@@ -2316,25 +2317,25 @@ begin
 
   { external debug info is only supported for DWARF on darwin }
   if (compiler.target.info.system in systems_darwin) and
-     (cs_link_separate_dbg_file in init_settings.globalswitches) and
+     (cs_link_separate_dbg_file in compiler.globals.init_settings.globalswitches) and
      not(paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       compiler.verbose.Message(option_debug_external_unsupported);
-      exclude(init_settings.globalswitches,cs_link_separate_dbg_file);
+      exclude(compiler.globals.init_settings.globalswitches,cs_link_separate_dbg_file);
     end;
   { Also create a smartlinked version, on an assembler that
     does not support smartlink sections like nasm?
     This is not compatible with using internal linker. }
-  if ((cs_link_smart in init_settings.globalswitches) or
-      (cs_create_smart in init_settings.moduleswitches)) and
+  if ((cs_link_smart in compiler.globals.init_settings.globalswitches) or
+      (cs_create_smart in compiler.globals.init_settings.moduleswitches)) and
      (af_needar in compiler.target._asm.flags) and
      not (af_smartlink_sections in compiler.target._asm.flags) and
-     not (cs_link_extern in init_settings.globalswitches) and
+     not (cs_link_extern in compiler.globals.init_settings.globalswitches) and
      (compiler.target.info.link<>ld_none) and
-      not (cs_link_nolink in init_settings.globalswitches) then
+      not (cs_link_nolink in compiler.globals.init_settings.globalswitches) then
     begin
       compiler.verbose.Message(option_smart_link_requires_external_linker);
-      include(init_settings.globalswitches,cs_link_extern);
+      include(compiler.globals.init_settings.globalswitches,cs_link_extern);
     end;
 end;
 
@@ -2400,7 +2401,7 @@ var
   j : integer;
 
 begin
-  include(init_settings.globalswitches,cs_asm_leave);
+  include(compiler.globals.init_settings.globalswitches,cs_asm_leave);
   j:=1;
   while j<=length(more) do
    begin
@@ -2410,22 +2411,22 @@ begin
             or (compiler.target.info.cpu in [cpu_mipseb, cpu_mipsel]) then
            begin
              if UnsetBool(More, j, opt, false) then
-               exclude(init_settings.globalswitches,cs_asm_pre_binutils_2_25)
+               exclude(compiler.globals.init_settings.globalswitches,cs_asm_pre_binutils_2_25)
              else
-               include(init_settings.globalswitches,cs_asm_pre_binutils_2_25);
+               include(compiler.globals.init_settings.globalswitches,cs_asm_pre_binutils_2_25);
            end
          else
            IllegalPara(opt);
        'l' :
-         include(init_settings.globalswitches,cs_asm_source);
+         include(compiler.globals.init_settings.globalswitches,cs_asm_source);
        'r' :
-         include(init_settings.globalswitches,cs_asm_regalloc);
+         include(compiler.globals.init_settings.globalswitches,cs_asm_regalloc);
        'R' :
-         include(init_settings.globalswitches,cs_asm_rtti_source);
+         include(compiler.globals.init_settings.globalswitches,cs_asm_rtti_source);
        't' :
-         include(init_settings.globalswitches,cs_asm_tempalloc);
+         include(compiler.globals.init_settings.globalswitches,cs_asm_tempalloc);
        'n' :
-         include(init_settings.globalswitches,cs_asm_nodes);
+         include(compiler.globals.init_settings.globalswitches,cs_asm_nodes);
        { -ao option must be the last, everything behind it is passed directly to
          external assembler, it is ignored if internal assembler is used. }
        'o' :
@@ -2435,14 +2436,14 @@ begin
          end;
        'p' :
          begin
-           exclude(init_settings.globalswitches,cs_asm_leave);
+           exclude(compiler.globals.init_settings.globalswitches,cs_asm_leave);
            if UnsetBool(More, 0, opt, false) then
-             exclude(init_settings.globalswitches,cs_asm_pipe)
+             exclude(compiler.globals.init_settings.globalswitches,cs_asm_pipe)
            else
-             include(init_settings.globalswitches,cs_asm_pipe);
+             include(compiler.globals.init_settings.globalswitches,cs_asm_pipe);
          end;
        '-' :
-         init_settings.globalswitches:=init_settings.globalswitches -
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches -
              [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc,
               cs_asm_nodes, cs_asm_pipe];
        else
@@ -2471,18 +2472,18 @@ begin
   // compiler.verbose.Message1(option_obsolete_switch,'-b');
   if UnsetBool(More,0,opt,false) then
     begin
-      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_browser];
-      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser];
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_browser];
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_local_browser];
     end
   else
     begin
-      init_settings.moduleswitches:=init_settings.moduleswitches+[cs_browser];
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_browser];
     end;
   if More<>'' then
     if (More='l') or (More='l+') then
-      init_settings.moduleswitches:=init_settings.moduleswitches+[cs_local_browser]
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_local_browser]
     else if More='l-' then
-      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser]
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_local_browser]
     else
       IllegalPara(opt);
 end;
@@ -2518,9 +2519,9 @@ begin
      case more[j] of
        '3' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.localswitches,cs_ieee_errors)
+           exclude(compiler.globals.init_settings.localswitches,cs_ieee_errors)
          Else
-           include(init_settings.localswitches,cs_ieee_errors);
+           include(compiler.globals.init_settings.localswitches,cs_ieee_errors);
        'a' :
          begin
            s:=upper(copy(more,j+1));
@@ -2543,7 +2544,7 @@ begin
 
        'c' :
           begin
-            if not SetAktProcCall(upper(copy(more,j+1)),init_settings.defproccall) then
+            if not SetAktProcCall(upper(copy(more,j+1)),compiler.globals.init_settings.defproccall) then
              IllegalPara(opt);
             break;
           end;
@@ -2559,27 +2560,27 @@ begin
        'e' :
           begin
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.moduleswitches,cs_fp_emulation)
+              exclude(compiler.globals.init_settings.moduleswitches,cs_fp_emulation)
             Else
-              include(init_settings.moduleswitches,cs_fp_emulation);
+              include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
           end;
 {$endif cpufpemu}
        'E' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.localswitches,cs_check_fpu_exceptions)
+           exclude(compiler.globals.init_settings.localswitches,cs_check_fpu_exceptions)
          Else
-           include(init_settings.localswitches,cs_check_fpu_exceptions);
+           include(compiler.globals.init_settings.localswitches,cs_check_fpu_exceptions);
        'f' :
          begin
            s:=upper(copy(more,j+1));
-           if not(SetFpuType(s,init_settings.fputype)) then
+           if not(SetFpuType(s,compiler.globals.init_settings.fputype)) then
              IllegalPara(opt);
            FPUSetExplicitly:=True;
            break;
          end;
        'F' :
           begin
-            if not SetMinFPConstPrec(copy(more,j+1),init_settings.minfpconstprec) then
+            if not SetMinFPConstPrec(copy(more,j+1),compiler.globals.init_settings.minfpconstprec) then
               IllegalPara(opt);
             break;
           end;
@@ -2592,9 +2593,9 @@ begin
                 compiler.verbose.Message(scan_w_pic_ignored);
               end
             else if UnsetBool(More, j, opt, false) then
-              exclude(init_settings.moduleswitches,cs_create_pic)
+              exclude(compiler.globals.init_settings.moduleswitches,cs_create_pic)
             else
-              include(init_settings.moduleswitches,cs_create_pic);
+              include(compiler.globals.init_settings.moduleswitches,cs_create_pic);
          end;
        'h' :
          begin
@@ -2625,18 +2626,18 @@ begin
          end;
        'i' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.localswitches,cs_check_io)
+           exclude(compiler.globals.init_settings.localswitches,cs_check_io)
          else
-           include(init_settings.localswitches,cs_check_io);
+           include(compiler.globals.init_settings.localswitches,cs_check_io);
 {$ifdef arm}
        'I' :
          begin
            if (upper(copy(more,j+1))='THUMB') and
              { does selected CPU really understand thumb? }
-             (init_settings.cputype in cpu_has_thumb) then
-             init_settings.instructionset:=is_thumb
+             (compiler.globals.init_settings.cputype in cpu_has_thumb) then
+             compiler.globals.init_settings.instructionset:=is_thumb
            else if upper(copy(more,j+1))='ARM' then
-             init_settings.instructionset:=is_arm
+             compiler.globals.init_settings.instructionset:=is_arm
            else
              IllegalPara(opt);
            break;
@@ -2658,20 +2659,20 @@ begin
                           begin
                             if not disable then
                               begin
-                                include(init_settings.moduleswitches,cs_lto);
+                                include(compiler.globals.init_settings.moduleswitches,cs_lto);
                                 compiler.globals.LTOExt:='.bc';
                               end
                             else
-                              exclude(init_settings.moduleswitches,cs_lto);
+                              exclude(compiler.globals.init_settings.moduleswitches,cs_lto);
                           end;
                         'ltonosystem':
                           begin
                             if not disable then
                               begin
-                                include(init_settings.globalswitches,cs_lto_nosystem);
+                                include(compiler.globals.init_settings.globalswitches,cs_lto_nosystem);
                               end
                             else
-                              exclude(init_settings.globalswitches,cs_lto_nosystem);
+                              exclude(compiler.globals.init_settings.globalswitches,cs_lto_nosystem);
                           end;
                        else if More.StartsWith('sanitize=') then
                          begin
@@ -2687,8 +2688,8 @@ begin
                    end;
                  'v':
                    begin
-                     init_settings.llvmversion:=llvmversion2enum(copy(More,l+1));
-                     if init_settings.llvmversion=llvmver_invalid then
+                     compiler.globals.init_settings.llvmversion:=llvmversion2enum(copy(More,l+1));
+                     if compiler.globals.init_settings.llvmversion=llvmver_invalid then
                        begin
                          IllegalPara(opt);
                        end;
@@ -2705,24 +2706,24 @@ begin
 {$endif llvm}
        'n' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.globalswitches,cs_link_nolink)
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_nolink)
          Else
-           include(init_settings.globalswitches,cs_link_nolink);
+           include(compiler.globals.init_settings.globalswitches,cs_link_nolink);
        'N' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.localswitches,cs_check_low_addr_load)
+           exclude(compiler.globals.init_settings.localswitches,cs_check_low_addr_load)
          Else
-           include(init_settings.localswitches,cs_check_low_addr_load);
+           include(compiler.globals.init_settings.localswitches,cs_check_low_addr_load);
        'o' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.localswitches,cs_check_overflow)
+           exclude(compiler.globals.init_settings.localswitches,cs_check_overflow)
          Else
-           include(init_settings.localswitches,cs_check_overflow);
+           include(compiler.globals.init_settings.localswitches,cs_check_overflow);
        'O' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.localswitches,cs_check_ordinal_size)
+           exclude(compiler.globals.init_settings.localswitches,cs_check_ordinal_size)
          Else
-           include(init_settings.localswitches,cs_check_ordinal_size);
+           include(compiler.globals.init_settings.localswitches,cs_check_ordinal_size);
        'p' :
          begin
            s:=upper(copy(more,j+1));
@@ -2764,7 +2765,7 @@ begin
            else
              extrasettings:='';
 {$endif cpucapabilities}
-           if not(Setcputype(s,init_settings)) then
+           if not(Setcputype(s,compiler.globals.init_settings)) then
              IllegalPara(opt);
 {$ifdef cpucapabilities}
            while extrasettings<>'' do
@@ -2795,9 +2796,9 @@ begin
                    if s=cpuflagsstr then
                      begin
                        if includecapability then
-                         Include(cpu_capabilities[init_settings.cputype],cf)
+                         Include(cpu_capabilities[compiler.globals.init_settings.cputype],cf)
                        else
-                         Exclude(cpu_capabilities[init_settings.cputype],cf);
+                         Exclude(cpu_capabilities[compiler.globals.init_settings.cputype],cf);
                        s:='';
                        break;
                      end;
@@ -2818,9 +2819,9 @@ begin
                  delete(more,1,pos('=',more));
                  case more of
                    '0','DEFAULT','NORMAL':
-                     init_settings.setalloc:=0;
+                     compiler.globals.init_settings.setalloc:=0;
                    '1','2','4','8':
-                     init_settings.setalloc:=StrToInt(more);
+                     compiler.globals.init_settings.setalloc:=StrToInt(more);
                    else
                      IllegalPara(opt);
                  end
@@ -2830,9 +2831,9 @@ begin
                  delete(more,1,pos('=',more));
                  case more of
                    '0','DEFAULT','NORMAL':
-                     init_settings.packenum:=4;
+                     compiler.globals.init_settings.packenum:=4;
                    '1','2','4':
-                     init_settings.packenum:=StrToInt(more);
+                     compiler.globals.init_settings.packenum:=StrToInt(more);
                    else
                      IllegalPara(opt);
                  end;
@@ -2842,9 +2843,9 @@ begin
                  delete(more,1,pos('=',more));
                  case more of
                    '0','DEFAULT','NORMAL':
-                     init_settings.packrecords:=default_settings.packrecords;
+                     compiler.globals.init_settings.packrecords:=default_settings.packrecords;
                    '1','2','4','8','16','32':
-                     init_settings.packrecords:=StrToInt(more);
+                     compiler.globals.init_settings.packrecords:=StrToInt(more);
                    else
                      IllegalPara(opt);
                  end;
@@ -2855,19 +2856,19 @@ begin
          end;
        'r' :
          If UnsetBool(More, j, opt, false) then
-           exclude(init_settings.localswitches,cs_check_range)
+           exclude(compiler.globals.init_settings.localswitches,cs_check_range)
          Else
-           include(init_settings.localswitches,cs_check_range);
+           include(compiler.globals.init_settings.localswitches,cs_check_range);
        'R' :
          If UnsetBool(More, j, opt, false) then
            begin
-             exclude(init_settings.localswitches,cs_check_range);
-             exclude(init_settings.localswitches,cs_check_object);
+             exclude(compiler.globals.init_settings.localswitches,cs_check_range);
+             exclude(compiler.globals.init_settings.localswitches,cs_check_object);
            end
          Else
            begin
-             include(init_settings.localswitches,cs_check_range);
-             include(init_settings.localswitches,cs_check_object);
+             include(compiler.globals.init_settings.localswitches,cs_check_range);
+             include(compiler.globals.init_settings.localswitches,cs_check_object);
            end;
        's' :
          begin
@@ -2884,40 +2885,40 @@ begin
          end;
        't' :
           If UnsetBool(More, j, opt, false) then
-            exclude(init_settings.localswitches,cs_check_stack)
+            exclude(compiler.globals.init_settings.localswitches,cs_check_stack)
           Else
-            include(init_settings.localswitches,cs_check_stack);
+            include(compiler.globals.init_settings.localswitches,cs_check_stack);
        'D' :
           If UnsetBool(More, j, opt, false) then
-            exclude(init_settings.moduleswitches,cs_create_dynamic)
+            exclude(compiler.globals.init_settings.moduleswitches,cs_create_dynamic)
           Else
-            include(init_settings.moduleswitches,cs_create_dynamic);
+            include(compiler.globals.init_settings.moduleswitches,cs_create_dynamic);
        'X' :
           If UnsetBool(More, j, opt, false) then
-            exclude(init_settings.moduleswitches,cs_create_smart)
+            exclude(compiler.globals.init_settings.moduleswitches,cs_create_smart)
           Else
-            include(init_settings.moduleswitches,cs_create_smart);
+            include(compiler.globals.init_settings.moduleswitches,cs_create_smart);
        'T' :
          begin
-           if not UpdateTargetSwitchStr(copy(more,j+1),init_settings.targetswitches,true) then
+           if not UpdateTargetSwitchStr(copy(more,j+1),compiler.globals.init_settings.targetswitches,true) then
              IllegalPara(opt);
            break;
          end;
        'v' :
           If compiler.target.info.system in systems_jvm then
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_check_var_copyout)
+              exclude(compiler.globals.init_settings.localswitches,cs_check_var_copyout)
             Else
-              include(init_settings.localswitches,cs_check_var_copyout)
+              include(compiler.globals.init_settings.localswitches,cs_check_var_copyout)
           else
             IllegalPara(opt);
        'V':
          begin
            s:=upper(copy(more,j+1));
            if s='GLOBAL-DYNAMIC' then
-             init_settings.tlsmodel:=tlsm_global_dynamic
+             compiler.globals.init_settings.tlsmodel:=tlsm_global_dynamic
            else if s='LOCAL-EXEC' then
-             init_settings.tlsmodel:=tlsm_local_exec
+             compiler.globals.init_settings.tlsmodel:=tlsm_local_exec
            else
              IllegalPara(opt);
            break;
@@ -2953,7 +2954,7 @@ begin
       end;
     if l>0 then
       begin
-        if cs_support_macro in init_settings.moduleswitches then
+        if cs_support_macro in compiler.globals.init_settings.moduleswitches then
           set_system_macro(hs,Copy(more,l+2))
         else
           set_system_compvar(hs,Copy(more,l+2));
@@ -2971,13 +2972,13 @@ var
 begin
   j:=1;
   if length(more)=0 then
-    include(init_settings.globalswitches,cs_link_deffile);
+    include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
   while j<=length(more) do
     begin
       case more[j] of
        'd' :
          begin
-           include(init_settings.globalswitches,cs_link_deffile);
+           include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
            compiler.globals.description:=Copy(more,j+1);
            break;
          end;
@@ -2993,7 +2994,7 @@ begin
          end;
        'v' :
          begin
-           include(init_settings.globalswitches,cs_link_deffile);
+           include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
            compiler.globals.dllversion:=Copy(more,j+1);
            l:=pos('.',compiler.globals.dllversion);
            compiler.globals.dllminor:=0;
@@ -3025,12 +3026,12 @@ begin
          end;
        'w' :
          begin
-           include(init_settings.globalswitches,cs_link_deffile);
+           include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
            compiler.globals.usewindowapi:=true;
           end;
        '-' :
          begin
-           exclude(init_settings.globalswitches,cs_link_deffile);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_deffile);
            compiler.globals.usewindowapi:=false;
          end;
        else
@@ -3052,9 +3053,9 @@ procedure TOption.Interpret_E_U(opt, more: TCmdStr);
 
 begin
   if UnsetBool(More, 0, opt, true) then
-    exclude(init_settings.globalswitches,cs_link_nolink)
+    exclude(compiler.globals.init_settings.globalswitches,cs_link_nolink)
   else
-    include(init_settings.globalswitches,cs_link_nolink);
+    include(compiler.globals.init_settings.globalswitches,cs_link_nolink);
 end;
 
 
@@ -3066,7 +3067,7 @@ begin
       if tf_no_pic_supported in compiler.target.info.flags then
         compiler.verbose.Message(scan_w_pic_ignored)
       else
-        include(init_settings.moduleswitches,cs_create_pic)
+        include(compiler.globals.init_settings.moduleswitches,cs_create_pic)
     end
   else
     IllegalPara(opt);
@@ -3097,20 +3098,20 @@ begin
           flag that we're using the system code page again }
         SetCompileModeSwitch('SYSTEMCODEPAGE-',true);
         if (upper(more)='UTF8') or (upper(more)='UTF-8') then
-          init_settings.sourcecodepage:=CP_UTF8
+          compiler.globals.init_settings.sourcecodepage:=CP_UTF8
         else if not(cpavailable(more)) then
           compiler.verbose.Message1(option_code_page_not_available,more)
         else
-          init_settings.sourcecodepage:=codepagebyname(more);
-        include(init_settings.moduleswitches,cs_explicit_codepage);
+          compiler.globals.init_settings.sourcecodepage:=codepagebyname(more);
+        include(compiler.globals.init_settings.moduleswitches,cs_explicit_codepage);
       end;
     'C' :
       compiler.globals.RCCompiler:=More;
     'd' :
       if UnsetBool(more, 0, opt, true) then
-        init_settings.disabledircache:=false
+        compiler.globals.init_settings.disabledircache:=false
       else
-        init_settings.disabledircache:=true;
+        compiler.globals.init_settings.disabledircache:=true;
     'D' :
       compiler.globals.utilsdirectory:=FixPath(More,true);
     'e' :
@@ -3247,16 +3248,16 @@ var
 begin
   if UnsetBool(More, 0, opt, false) then
    begin
-     exclude(init_settings.moduleswitches,cs_debuginfo);
-     exclude(init_settings.globalswitches,cs_use_heaptrc);
-     exclude(init_settings.globalswitches,cs_use_lineinfo);
-     exclude(init_settings.localswitches,cs_checkpointer);
+     exclude(compiler.globals.init_settings.moduleswitches,cs_debuginfo);
+     exclude(compiler.globals.init_settings.globalswitches,cs_use_heaptrc);
+     exclude(compiler.globals.init_settings.globalswitches,cs_use_lineinfo);
+     exclude(compiler.globals.init_settings.localswitches,cs_checkpointer);
      paratargetdbg:=dbg_none;
      localvartrashing := -1;
    end
   else
    begin
-     include(init_settings.moduleswitches,cs_debuginfo);
+     include(compiler.globals.init_settings.moduleswitches,cs_debuginfo);
      if paratargetdbg=dbg_none then
        paratargetdbg:=compiler.target.info.dbg;
    end;
@@ -3269,13 +3270,13 @@ begin
         'c' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_checkpointer)
+              exclude(compiler.globals.init_settings.localswitches,cs_checkpointer)
             else if (compiler.target.info.system in systems_support_checkpointer) then
               begin
                 if compiler.globals.do_release then
                   compiler.verbose.Message(option_gc_incompatible_with_release_flag)
                 else
-                  include(init_settings.localswitches,cs_checkpointer);
+                  include(compiler.globals.init_settings.localswitches,cs_checkpointer);
               end
             else
               UnsupportedPara('-gc');
@@ -3283,24 +3284,24 @@ begin
         'h' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_use_heaptrc)
+              exclude(compiler.globals.init_settings.globalswitches,cs_use_heaptrc)
             else
               begin
-                if cs_gdb_valgrind in init_settings.globalswitches then
+                if cs_gdb_valgrind in compiler.globals.init_settings.globalswitches then
                   compiler.verbose.Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
-                include(init_settings.globalswitches,cs_use_heaptrc);
+                include(compiler.globals.init_settings.globalswitches,cs_use_heaptrc);
               end;
           end;
         'l' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_use_lineinfo)
+              exclude(compiler.globals.init_settings.globalswitches,cs_use_lineinfo)
             else
               begin
                 if compiler.target.info.system in (systems_wasm+systems_embedded) then
                   IgnoredPara('-gl')
                 else
-                  include(init_settings.globalswitches,cs_use_lineinfo);
+                  include(compiler.globals.init_settings.globalswitches,cs_use_lineinfo);
               end;
           end;
         'm' :
@@ -3309,16 +3310,16 @@ begin
           end;
         'o' :
           begin
-            if not UpdateDebugStr(copy(more,j+1),init_settings.debugswitches) then
+            if not UpdateDebugStr(copy(more,j+1),compiler.globals.init_settings.debugswitches) then
               IllegalPara(opt);
             break;
           end;
         'p' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_stabs_preservecase)
+              exclude(compiler.globals.init_settings.globalswitches,cs_stabs_preservecase)
             else
-              include(init_settings.globalswitches,cs_stabs_preservecase);
+              include(compiler.globals.init_settings.globalswitches,cs_stabs_preservecase);
           end;
         's' :
           begin
@@ -3334,12 +3335,12 @@ begin
         'v' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_gdb_valgrind)
+              exclude(compiler.globals.init_settings.globalswitches,cs_gdb_valgrind)
             else
               begin
-                if cs_use_heaptrc in init_settings.globalswitches then
+                if cs_use_heaptrc in compiler.globals.init_settings.globalswitches then
                   compiler.verbose.Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
-                include(init_settings.globalswitches,cs_gdb_valgrind);
+                include(compiler.globals.init_settings.globalswitches,cs_gdb_valgrind);
               end;
           end;
         'w' :
@@ -3488,13 +3489,13 @@ begin
    begin
      case more[j] of
        '1' :
-         init_settings.optimizerswitches:=init_settings.optimizerswitches+level1optimizerswitches;
+         compiler.globals.init_settings.optimizerswitches:=compiler.globals.init_settings.optimizerswitches+level1optimizerswitches;
        '2' :
-         init_settings.optimizerswitches:=init_settings.optimizerswitches+level2optimizerswitches;
+         compiler.globals.init_settings.optimizerswitches:=compiler.globals.init_settings.optimizerswitches+level2optimizerswitches;
        '3' :
-         init_settings.optimizerswitches:=init_settings.optimizerswitches+level3optimizerswitches;
+         compiler.globals.init_settings.optimizerswitches:=compiler.globals.init_settings.optimizerswitches+level3optimizerswitches;
        '4' :
-         init_settings.optimizerswitches:=init_settings.optimizerswitches+level4optimizerswitches;
+         compiler.globals.init_settings.optimizerswitches:=compiler.globals.init_settings.optimizerswitches+level4optimizerswitches;
        'a' :
          begin
            if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then
@@ -3502,10 +3503,10 @@ begin
            break;
          end;
        's' :
-         include(init_settings.optimizerswitches,cs_opt_size);
+         include(compiler.globals.init_settings.optimizerswitches,cs_opt_size);
        'p' :
          begin
-           if not Setoptimizecputype(copy(more,j+1),init_settings.optimizecputype) then
+           if not Setoptimizecputype(copy(more,j+1),compiler.globals.init_settings.optimizecputype) then
              begin
                OptCPUSetExplicitly:=true;
                { Give warning for old i386 switches }
@@ -3519,13 +3520,13 @@ begin
          end;
        'o' :
          begin
-           if not UpdateOptimizerStr(copy(more,j+1),init_settings.optimizerswitches) then
+           if not UpdateOptimizerStr(copy(more,j+1),compiler.globals.init_settings.optimizerswitches) then
             IllegalPara(opt);
            break;
          end;
        '-' :
          begin
-           init_settings.optimizerswitches:=[];
+           compiler.globals.init_settings.optimizerswitches:=[];
            FillChar(ParaAlignment,sizeof(ParaAlignment),0);
          end;
        { Obsolete switches }
@@ -3539,13 +3540,13 @@ begin
          compiler.verbose.Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
        'w' :
          begin
-           if not UpdateWpoStr(copy(more,j+1),init_settings.dowpoptimizerswitches) then
+           if not UpdateWpoStr(copy(more,j+1),compiler.globals.init_settings.dowpoptimizerswitches) then
              IllegalPara(opt);
            break;
          end;
        'W' :
          begin
-           if not UpdateWpoStr(copy(more,j+1),init_settings.genwpoptimizerswitches) then
+           if not UpdateWpoStr(copy(more,j+1),compiler.globals.init_settings.genwpoptimizerswitches) then
              IllegalPara(opt);
            break;
          end;
@@ -3562,7 +3563,7 @@ procedure TOption.Interpret_P_l(opt, more: TCmdStr);
 begin
   if UnsetBool(More, 0, opt, false) then
     begin
-      init_settings.moduleswitches:=init_settings.moduleswitches-[cs_profile];
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_profile];
       undef_system_macro('FPC_PROFILE');
     end
   else
@@ -3572,12 +3573,12 @@ begin
     case more[1] of
      'g' : if UnsetBool(more, 1, opt, false) then
             begin
-              exclude(init_settings.moduleswitches,cs_profile);
+              exclude(compiler.globals.init_settings.moduleswitches,cs_profile);
               undef_system_macro('FPC_PROFILE');
             end
            else if (compiler.target.info.system in supported_targets_pg) then
             begin
-              include(init_settings.moduleswitches,cs_profile);
+              include(compiler.globals.init_settings.moduleswitches,cs_profile);
               def_system_macro('FPC_PROFILE');
             end
            else
@@ -3602,7 +3603,7 @@ end;
 procedure TOption.Interpret_R_U(opt, more: TCmdStr);
 
 begin
-  if not SetAsmReadMode(More,init_settings.asmmode) then
+  if not SetAsmReadMode(More,compiler.globals.init_settings.asmmode) then
     IllegalPara(opt);
 end;
 
@@ -3612,21 +3613,21 @@ procedure TOption.Interpret_S_l(opt, more: TCmdStr);
 begin
   if UnsetBool(More, 0, opt, false) then
     begin
-      init_settings.globalswitches:=init_settings.globalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
+      compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
       if more<>'' then
         IllegalPara(opt);
     end
   else
     begin
-      init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
+      compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
       if more='h' then
-        init_settings.globalswitches:=init_settings.globalswitches-[cs_link_on_target,cs_assemble_on_target]
+        compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_on_target,cs_assemble_on_target]
       else if more='t' then
-        init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target,cs_assemble_on_target]
+        compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_on_target,cs_assemble_on_target]
       else if more='T' then
-        init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target]-[cs_asm_extern]
+        compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_on_target]-[cs_asm_extern]
       else if more='r' then
-        init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_leave,cs_no_regalloc]
+        compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_leave,cs_no_regalloc]
       else if more<>'' then
         IllegalPara(opt);
     end;
@@ -3647,9 +3648,9 @@ begin
       UnsupportedPara('-SI');
 {$endif}
       if upper(more)='ICOM' then
-        init_settings.interfacetype:=it_interfacecom
+        compiler.globals.init_settings.interfacetype:=it_interfacecom
       else if upper(more)='ICORBA' then
-        init_settings.interfacetype:=it_interfacecorba
+        compiler.globals.init_settings.interfacetype:=it_interfacecorba
       else
         IllegalPara(opt);
     end
@@ -3663,19 +3664,19 @@ begin
             SetCompileMode('OBJFPC',true);
           'a' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_do_assertion)
+              exclude(compiler.globals.init_settings.localswitches,cs_do_assertion)
             else
-              include(init_settings.localswitches,cs_do_assertion);
+              include(compiler.globals.init_settings.localswitches,cs_do_assertion);
           'c' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.moduleswitches,cs_support_c_operators)
+              exclude(compiler.globals.init_settings.moduleswitches,cs_support_c_operators)
             else
-              include(init_settings.moduleswitches,cs_support_c_operators);
+              include(compiler.globals.init_settings.moduleswitches,cs_support_c_operators);
           'C':
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_check_all_case_coverage)
+              exclude(compiler.globals.init_settings.localswitches,cs_check_all_case_coverage)
             else
-              include(init_settings.localswitches,cs_check_all_case_coverage);
+              include(compiler.globals.init_settings.localswitches,cs_check_all_case_coverage);
           'd' : //an alternative to -Mdelphi
             SetCompileMode('DELPHI',true);
           'e' :
@@ -3685,7 +3686,7 @@ begin
             end;
           'f' :
             begin
-              if not(cs_compilesystem in init_settings.moduleswitches) then
+              if not(cs_compilesystem in compiler.globals.init_settings.moduleswitches) then
                 compiler.verbose.Message(option_features_only_for_system_unit);
               inc(j);
               if more[j]='-' then
@@ -3705,57 +3706,57 @@ begin
             end;
           'g' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.moduleswitches,cs_support_goto)
+              exclude(compiler.globals.init_settings.moduleswitches,cs_support_goto)
             else
-              include(init_settings.moduleswitches,cs_support_goto);
+              include(compiler.globals.init_settings.moduleswitches,cs_support_goto);
           'h' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_refcountedstrings)
+              exclude(compiler.globals.init_settings.localswitches,cs_refcountedstrings)
             else
-              include(init_settings.localswitches,cs_refcountedstrings);
+              include(compiler.globals.init_settings.localswitches,cs_refcountedstrings);
           'i' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_do_inline)
+              exclude(compiler.globals.init_settings.localswitches,cs_do_inline)
             else
-              include(init_settings.localswitches,cs_do_inline);
+              include(compiler.globals.init_settings.localswitches,cs_do_inline);
           'j' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_typed_const_writable)
+              exclude(compiler.globals.init_settings.localswitches,cs_typed_const_writable)
             else
-              include(init_settings.localswitches,cs_typed_const_writable);
+              include(compiler.globals.init_settings.localswitches,cs_typed_const_writable);
           'k' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_load_fpcylix_unit)
+              exclude(compiler.globals.init_settings.globalswitches,cs_load_fpcylix_unit)
             else
-              include(init_settings.globalswitches,cs_load_fpcylix_unit);
+              include(compiler.globals.init_settings.globalswitches,cs_load_fpcylix_unit);
           'm' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.moduleswitches,cs_support_macro)
+              exclude(compiler.globals.init_settings.moduleswitches,cs_support_macro)
             else
-              include(init_settings.moduleswitches,cs_support_macro);
+              include(compiler.globals.init_settings.moduleswitches,cs_support_macro);
           'o' : //an alternative to -Mtp
             SetCompileMode('TP',true);
           'r' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_transparent_file_names)
+              exclude(compiler.globals.init_settings.globalswitches,cs_transparent_file_names)
             else
-              include(init_settings.globalswitches,cs_transparent_file_names);
+              include(compiler.globals.init_settings.globalswitches,cs_transparent_file_names);
           {$ifdef gpc_mode}
           'p' : //an alternative to -Mgpc
             SetCompileMode('GPC',true);
           {$endif}
           's' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_constructor_name)
+              exclude(compiler.globals.init_settings.globalswitches,cs_constructor_name)
             else
-              include(init_settings.globalswitches,cs_constructor_name);
+              include(compiler.globals.init_settings.globalswitches,cs_constructor_name);
           't' :
             compiler.verbose.Message1(option_obsolete_switch,'-St');
           'v' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.globalswitches,cs_support_vectors)
+              exclude(compiler.globals.init_settings.globalswitches,cs_support_vectors)
             else
-              include(init_settings.globalswitches,cs_support_vectors);
+              include(compiler.globals.init_settings.globalswitches,cs_support_vectors);
           'x' :
             If UnsetBool(More, j, opt, false) then
               SetCompileModeSwitch('EXCEPTIONS-',true)
@@ -3763,18 +3764,18 @@ begin
               SetCompileModeSwitch('EXCEPTIONS',true);
           'y' :
             If UnsetBool(More, j, opt, false) then
-              exclude(init_settings.localswitches,cs_typed_addresses)
+              exclude(compiler.globals.init_settings.localswitches,cs_typed_addresses)
             else
-              include(init_settings.localswitches,cs_typed_addresses);
+              include(compiler.globals.init_settings.localswitches,cs_typed_addresses);
           '-' :
             begin
-              init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
                                                                             cs_support_vectors,cs_load_fpcylix_unit];
 
-              init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_refcountedstrings,
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches - [cs_do_assertion,cs_do_inline, cs_refcountedstrings,
                                                                           cs_typed_addresses];
 
-              init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
                                                                             cs_support_macro];
             end;
           else
@@ -3859,7 +3860,7 @@ begin
           end;
 {$endif UNITALIASES}
        'n' :
-         exclude(init_settings.globalswitches,cs_check_unit_name);
+         exclude(compiler.globals.init_settings.globalswitches,cs_check_unit_name);
        'p' :
           begin
             compiler.verbose.Message2(option_obsolete_switch_use_new,'-Up','-Fu');
@@ -3868,18 +3869,18 @@ begin
        'r' :
          begin
            compiler.globals.do_release:=true;
-           if (cs_checkpointer in init_settings.localswitches) then
+           if (cs_checkpointer in compiler.globals.init_settings.localswitches) then
              begin
                compiler.verbose.Message(option_gc_incompatible_with_release_flag);
-               exclude(init_settings.localswitches,cs_checkpointer);
+               exclude(compiler.globals.init_settings.localswitches,cs_checkpointer);
              end;
          end;
        's' :
-         include(init_settings.moduleswitches,cs_compilesystem);
+         include(compiler.globals.init_settings.moduleswitches,cs_compilesystem);
        '-' :
          begin
-           exclude(init_settings.moduleswitches,cs_compilesystem);
-           exclude(init_settings.globalswitches,cs_check_unit_name);
+           exclude(compiler.globals.init_settings.moduleswitches,cs_compilesystem);
+           exclude(compiler.globals.init_settings.globalswitches,cs_check_unit_name);
          end;
        else
          IllegalPara(opt);
@@ -4038,9 +4039,9 @@ begin
        'h':
          begin
            if UnsetBool(More, j, opt, false) then
-             exclude(init_settings.moduleswitches,cs_huge_code)
+             exclude(compiler.globals.init_settings.moduleswitches,cs_huge_code)
             else
-             include(init_settings.moduleswitches,cs_huge_code);
+             include(compiler.globals.init_settings.moduleswitches,cs_huge_code);
          end;
 {$endif defined(i8086)}
        'I':
@@ -4070,12 +4071,12 @@ begin
            if (compiler.target.info.system in [system_i8086_msdos,system_i8086_win16,system_i8086_embedded]) then
              begin
                case Upper(Copy(More,j+1)) of
-                 'TINY':    init_settings.x86memorymodel:=mm_tiny;
-                 'SMALL':   init_settings.x86memorymodel:=mm_small;
-                 'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
-                 'COMPACT': init_settings.x86memorymodel:=mm_compact;
-                 'LARGE':   init_settings.x86memorymodel:=mm_large;
-                 'HUGE':    init_settings.x86memorymodel:=mm_huge;
+                 'TINY':    compiler.globals.init_settings.x86memorymodel:=mm_tiny;
+                 'SMALL':   compiler.globals.init_settings.x86memorymodel:=mm_small;
+                 'MEDIUM':  compiler.globals.init_settings.x86memorymodel:=mm_medium;
+                 'COMPACT': compiler.globals.init_settings.x86memorymodel:=mm_compact;
+                 'LARGE':   compiler.globals.init_settings.x86memorymodel:=mm_large;
+                 'HUGE':    compiler.globals.init_settings.x86memorymodel:=mm_huge;
                  else
                    IllegalPara(opt);
                end;
@@ -4114,14 +4115,14 @@ begin
              ControllerSupport then
              begin
                s:=upper(copy(more,j+1));
-               if not(SetControllerType(s,init_settings.controllertype)) then
+               if not(SetControllerType(s,compiler.globals.init_settings.controllertype)) then
                  IllegalPara(opt)
                else
                  begin
-                   if init_settings.cputype<>embedded_controllers[init_settings.controllertype].cputype then
+                   if compiler.globals.init_settings.cputype<>embedded_controllers[compiler.globals.init_settings.controllertype].cputype then
                    begin
                      compiler.verbose.Message(scan_n_changecputype);
-                     init_settings.cputype:=embedded_controllers[init_settings.controllertype].cputype;
+                     compiler.globals.init_settings.cputype:=embedded_controllers[compiler.globals.init_settings.controllertype].cputype;
                    end;
                  end;
                break;
@@ -4229,9 +4230,9 @@ begin
            if (compiler.target.info.system in systems_linux) then
              begin
                if UnsetBool(More, j, opt, false) then
-                 exclude(init_settings.moduleswitches,cs_executable_stack)
+                 exclude(compiler.globals.init_settings.moduleswitches,cs_executable_stack)
                else
-                 include(init_settings.moduleswitches,cs_executable_stack)
+                 include(compiler.globals.init_settings.moduleswitches,cs_executable_stack)
              end
            else
              IllegalPara(opt);
@@ -4266,9 +4267,9 @@ begin
            if compiler.target.info.system in systems_linux then
              begin
                if UnsetBool(More, j, opt, false) then
-                 exclude(init_settings.globalswitches,cs_link_pre_binutils_2_19)
+                 exclude(compiler.globals.init_settings.globalswitches,cs_link_pre_binutils_2_19)
                else
-                 include(init_settings.globalswitches,cs_link_pre_binutils_2_19);
+                 include(compiler.globals.init_settings.globalswitches,cs_link_pre_binutils_2_19);
              end
            else
              IllegalPara(opt);
@@ -4276,9 +4277,9 @@ begin
        'a' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(init_settings.globalswitches,cs_large)
+             exclude(compiler.globals.init_settings.globalswitches,cs_large)
            else
-             include(init_settings.globalswitches,cs_large);
+             include(compiler.globals.init_settings.globalswitches,cs_large);
          end;
        'c' : compiler.globals.Cshared:=TRUE;
        'd' : compiler.globals.Dontlinkstdlibpath:=TRUE;
@@ -4286,37 +4287,37 @@ begin
          begin
            If UnsetBool(More, j, opt, false) then
              begin
-               exclude(init_settings.globalswitches,cs_link_extern);
+               exclude(compiler.globals.init_settings.globalswitches,cs_link_extern);
                LinkInternSetExplicitly:=true;
              end
            else
-             include(init_settings.globalswitches,cs_link_extern);
+             include(compiler.globals.init_settings.globalswitches,cs_link_extern);
          end;
        'f' :
-         include(init_settings.globalswitches,cs_link_pthread);
+         include(compiler.globals.init_settings.globalswitches,cs_link_pthread);
        'g' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(init_settings.globalswitches,cs_link_separate_dbg_file)
+             exclude(compiler.globals.init_settings.globalswitches,cs_link_separate_dbg_file)
            else
-             include(init_settings.globalswitches,cs_link_separate_dbg_file);
+             include(compiler.globals.init_settings.globalswitches,cs_link_separate_dbg_file);
          end;
        'i' :
          begin
            If UnsetBool(More, j, opt, false) then
-             include(init_settings.globalswitches,cs_link_extern)
+             include(compiler.globals.init_settings.globalswitches,cs_link_extern)
            else
              begin
-               exclude(init_settings.globalswitches,cs_link_extern);
+               exclude(compiler.globals.init_settings.globalswitches,cs_link_extern);
                LinkInternSetExplicitly:=true;
              end;
          end;
        'n' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(init_settings.globalswitches,cs_link_native)
+             exclude(compiler.globals.init_settings.globalswitches,cs_link_native)
            else
-             include(init_settings.globalswitches,cs_link_native);
+             include(compiler.globals.init_settings.globalswitches,cs_link_native);
          end;
 {$if defined(llvm) or defined(wasm32)}
        'l' :
@@ -4340,9 +4341,9 @@ begin
        'm' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(init_settings.globalswitches,cs_link_map)
+             exclude(compiler.globals.init_settings.globalswitches,cs_link_map)
            else
-             include(init_settings.globalswitches,cs_link_map);
+             include(compiler.globals.init_settings.globalswitches,cs_link_map);
          end;
        'p' : ; { Ignore used by fpc.pp }
        'r' :
@@ -4365,20 +4366,20 @@ begin
        's' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(init_settings.globalswitches,cs_link_strip)
+             exclude(compiler.globals.init_settings.globalswitches,cs_link_strip)
            else
-             include(init_settings.globalswitches,cs_link_strip);
+             include(compiler.globals.init_settings.globalswitches,cs_link_strip);
          end;
        't' :
-         include(init_settings.globalswitches,cs_link_staticflag);
+         include(compiler.globals.init_settings.globalswitches,cs_link_staticflag);
        'u' :
          begin
            if compiler.target.info.system in systems_support_uf2 then
              begin
                if UnsetBool(More, j, opt, false) then
-                 exclude(init_settings.globalswitches,cs_generate_uf2)
+                 exclude(compiler.globals.init_settings.globalswitches,cs_generate_uf2)
                else
-                 include(init_settings.globalswitches,cs_generate_uf2);
+                 include(compiler.globals.init_settings.globalswitches,cs_generate_uf2);
              end
            else
              IgnoredPara('-Xu');
@@ -4386,18 +4387,18 @@ begin
        'v' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(init_settings.globalswitches,cs_link_opt_vtable)
+             exclude(compiler.globals.init_settings.globalswitches,cs_link_opt_vtable)
            else
-             include(init_settings.globalswitches,cs_link_opt_vtable);
+             include(compiler.globals.init_settings.globalswitches,cs_link_opt_vtable);
          end;
        'D' :
          begin
            def_system_macro('FPC_LINK_DYNAMIC');
            undef_system_macro('FPC_LINK_SMART');
            undef_system_macro('FPC_LINK_STATIC');
-           exclude(init_settings.globalswitches,cs_link_static);
-           exclude(init_settings.globalswitches,cs_link_smart);
-           include(init_settings.globalswitches,cs_link_shared);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_static);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_smart);
+           include(compiler.globals.init_settings.globalswitches,cs_link_shared);
            LinkTypeSetExplicitly:=true;
          end;
        'M' :
@@ -4428,15 +4429,15 @@ begin
                            if not compiler.globals.LinkLibraryOrder.AddWeight(s) Then
                               IllegalPara(opt);
                           end;
-                    'D' : include(init_settings.globalswitches,cs_link_no_default_lib_order);
+                    'D' : include(compiler.globals.init_settings.globalswitches,cs_link_no_default_lib_order);
                     'L' :
                       begin
                         if UnsetBool(More, j, opt, false) then
-                          exclude(init_settings.globalswitches,cs_link_lld)
+                          exclude(compiler.globals.init_settings.globalswitches,cs_link_lld)
                         else
                           begin
-                            include(init_settings.globalswitches,cs_link_lld);
-                            include(init_settings.globalswitches,cs_link_extern);
+                            include(compiler.globals.init_settings.globalswitches,cs_link_lld);
+                            include(compiler.globals.init_settings.globalswitches,cs_link_extern);
                           end;
                        LinkerSetExplicitly:=true;
                      end
@@ -4453,11 +4454,11 @@ begin
        'V' :
          begin
            if UnsetBool(More, j, opt, false) then
-             exclude(init_settings.globalswitches,cs_link_vlink)
+             exclude(compiler.globals.init_settings.globalswitches,cs_link_vlink)
            else
              begin
-               include(init_settings.globalswitches,cs_link_vlink);
-               include(init_settings.globalswitches,cs_link_extern);
+               include(compiler.globals.init_settings.globalswitches,cs_link_vlink);
+               include(compiler.globals.init_settings.globalswitches,cs_link_extern);
              end;
            LinkerSetExplicitly:=true;
          end;
@@ -4466,16 +4467,16 @@ begin
            def_system_macro('FPC_LINK_SMART');
            undef_system_macro('FPC_LINK_STATIC');
            undef_system_macro('FPC_LINK_DYNAMIC');
-           exclude(init_settings.globalswitches,cs_link_static);
-           include(init_settings.globalswitches,cs_link_smart);
-           exclude(init_settings.globalswitches,cs_link_shared);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_static);
+           include(compiler.globals.init_settings.globalswitches,cs_link_smart);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_shared);
            LinkTypeSetExplicitly:=true;
          end;
        '-' :
          begin
-           exclude(init_settings.globalswitches,cs_link_staticflag);
-           exclude(init_settings.globalswitches,cs_link_strip);
-           exclude(init_settings.globalswitches,cs_link_map);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_staticflag);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_strip);
+           exclude(compiler.globals.init_settings.globalswitches,cs_link_map);
            set_default_link_type;
          end;
        else
@@ -4588,11 +4589,11 @@ procedure TOptions.read_arguments(cmd:TCmdStr);
 {$endif}
       for cputype:=low(tcputype) to high(tcputype) do
         undef_system_macro('CPU'+Cputypestr[cputype]);
-      def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
+      def_system_macro('CPU'+Cputypestr[compiler.globals.init_settings.cputype]);
 
       for fputype:=low(tfputype) to high(tfputype) do
         undef_system_macro('FPU'+fputypestr[fputype]);
-      def_system_macro('FPU'+fputypestr[init_settings.fputype]);
+      def_system_macro('FPU'+fputypestr[compiler.globals.init_settings.fputype]);
 
 {$PUSH}
 {$WARN 6018 OFF} { Unreachable code due to compile time evaluation }
@@ -4604,7 +4605,7 @@ procedure TOptions.read_arguments(cmd:TCmdStr);
               if s<>'' then
                 undef_system_macro('FPC_MCU_'+s);
             end;
-          s:=embedded_controllers[init_settings.controllertype].controllertypestr;
+          s:=embedded_controllers[compiler.globals.init_settings.controllertype].controllertypestr;
           if s<>'' then
             def_system_macro('FPC_MCU_'+s);
         end;
@@ -4809,7 +4810,7 @@ procedure TOptions.read_arguments(cmd:TCmdStr);
         undef_system_macro('FPC_MM_COMPACT');
         undef_system_macro('FPC_MM_LARGE');
         undef_system_macro('FPC_MM_TINY');
-        case init_settings.x86memorymodel of
+        case compiler.globals.init_settings.x86memorymodel of
           mm_tiny:    def_system_macro('FPC_MM_TINY');
           mm_small:   def_system_macro('FPC_MM_SMALL');
           mm_medium:  def_system_macro('FPC_MM_MEDIUM');
@@ -4910,10 +4911,10 @@ procedure TOptions.read_arguments(cmd:TCmdStr);
       { these cpus have an inline rol/ror implementation }
       {$ifdef cpurox}
       {$if defined(m68k)}
-        if CPUM68K_HAS_ROLROR in cpu_capabilities[init_settings.cputype] then
+        if CPUM68K_HAS_ROLROR in cpu_capabilities[compiler.globals.init_settings.cputype] then
           def_system_macro('FPC_HAS_INTERNAL_ROX');
       {$elseif defined(riscv)}
-        if [CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[init_settings.cputype]<>[] then
+        if [CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[compiler.globals.init_settings.cputype]<>[] then
           def_system_macro('FPC_HAS_INTERNAL_ROX');
       {$else}
         def_system_macro('FPC_HAS_INTERNAL_ROX');
@@ -5020,7 +5021,7 @@ begin
   if (Option.parasubtarget<>'') then
     begin
     def_system_macro('FPC_SUBTARGET_'+Option.parasubtarget);
-    if cs_support_macro in init_settings.moduleswitches then
+    if cs_support_macro in compiler.globals.init_settings.moduleswitches then
       set_system_macro('FPC_SUBTARGET',Option.parasubtarget)
     else
       set_system_compvar('FPC_SUBTARGET',Option.parasubtarget);
@@ -5033,13 +5034,13 @@ begin
   option.set_endianess_macros;
 
   if tf_cld in compiler.target.info.flags then
-    if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
+    if not UpdateTargetSwitchStr('CLD', compiler.globals.init_settings.targetswitches, true) then
       InternalError(2013092801);
   if tf_x86_far_procs_push_odd_bp in compiler.target.info.flags then
-    if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', init_settings.targetswitches, true) then
+    if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', compiler.globals.init_settings.targetswitches, true) then
       InternalError(2013092802);
   if tf_wasm_threads in compiler.target.info.flags then
-    if not UpdateTargetSwitchStr('WASMTHREADS', init_settings.targetswitches, true) then
+    if not UpdateTargetSwitchStr('WASMTHREADS', compiler.globals.init_settings.targetswitches, true) then
       InternalError(2025022701);
 
   { Use standard Android NDK prefixes when cross-compiling }
@@ -5074,7 +5075,7 @@ begin
       case compiler.target.info.system of
 {$ifdef AVR}
         system_avr_embedded:
-          if init_settings.controllertype in [ct_avrsim,ct_avrsim6] then
+          if compiler.globals.init_settings.controllertype in [ct_avrsim,ct_avrsim6] then
             compiler.globals.heapsize:=8192
           else
             compiler.globals.heapsize:=128;
@@ -5268,7 +5269,7 @@ begin
     Do not add it when linking on the target because then we can maybe already find
     .o files that are not for the target }
   if (compiler.globals.ExePath<>cfileutl.GetCurrentDir) and
-     not(cs_link_on_target in init_settings.globalswitches) then
+     not(cs_link_on_target in compiler.globals.init_settings.globalswitches) then
    compiler.globals.UnitSearchPath.AddPath(compiler.globals.ExePath,false);
   { Add unit dir to the object and library path }
   compiler.globals.objectsearchpath.AddList(compiler.globals.unitsearchpath,false);
@@ -5309,7 +5310,7 @@ begin
           compiler.verbose.Message1(option_confict_asm_debug,
             asminfos[option.paratargetasm]^.idtxt);
           option.paratargetdbg:=dbg_none;
-          exclude(init_settings.moduleswitches,cs_debuginfo);
+          exclude(compiler.globals.init_settings.moduleswitches,cs_debuginfo);
         end;
       { Some assemblers, like clang, do not support
         stabs debugging format, switch to dwordé in that case }
@@ -5330,9 +5331,9 @@ begin
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (af_outputbinary in compiler.target._asm.flags) and
-     ((cs_asm_leave in init_settings.globalswitches) or
+     ((cs_asm_leave in compiler.globals.init_settings.globalswitches) or
       { if -s is passed, we shouldn't call the internal assembler }
-      (cs_asm_extern in init_settings.globalswitches)) or
+      (cs_asm_extern in compiler.globals.init_settings.globalswitches)) or
       ((option.paratargetasm=as_none) and (compiler.target.info.endian<>source_info.endian)) then
    begin
      if ((option.paratargetasm=as_none) and (compiler.target.info.endian<>source_info.endian)) then
@@ -5357,28 +5358,28 @@ begin
 
   { Force use of external linker if there is no
     internal linker or the linking is skipped }
-  if not(cs_link_extern in init_settings.globalswitches) and
+  if not(cs_link_extern in compiler.globals.init_settings.globalswitches) and
      ((compiler.target.info.link=ld_none) or
-      (cs_link_nolink in init_settings.globalswitches)) then
+      (cs_link_nolink in compiler.globals.init_settings.globalswitches)) then
     begin
-      include(init_settings.globalswitches,cs_link_extern);
+      include(compiler.globals.init_settings.globalswitches,cs_link_extern);
     end;
 
   { turn off stripping if compiling with debuginfo or profile }
   if (
-      (cs_debuginfo in init_settings.moduleswitches) or
-      (cs_profile in init_settings.moduleswitches)
+      (cs_debuginfo in compiler.globals.init_settings.moduleswitches) or
+      (cs_profile in compiler.globals.init_settings.moduleswitches)
      ) and
-     not(cs_link_separate_dbg_file in init_settings.globalswitches) then
-    exclude(init_settings.globalswitches,cs_link_strip);
+     not(cs_link_separate_dbg_file in compiler.globals.init_settings.globalswitches) then
+    exclude(compiler.globals.init_settings.globalswitches,cs_link_strip);
 
   { choose a reasonable tls model }
-  if (tf_section_threadvars in compiler.target.info.flags) and (init_settings.tlsmodel=tlsm_none) then
+  if (tf_section_threadvars in compiler.target.info.flags) and (compiler.globals.init_settings.tlsmodel=tlsm_none) then
     begin
-      if cs_create_pic in init_settings.moduleswitches then
-        init_settings.tlsmodel:=tlsm_global_dynamic
+      if cs_create_pic in compiler.globals.init_settings.moduleswitches then
+        compiler.globals.init_settings.tlsmodel:=tlsm_global_dynamic
       else
-        init_settings.tlsmodel:=tlsm_local_exec;
+        compiler.globals.init_settings.tlsmodel:=tlsm_local_exec;
     end;
 
   { set Mac OS X version default macros if not specified explicitly }
@@ -5403,12 +5404,12 @@ begin
       or (compiler.target.info.abi=abi_eabi)
 {$endif arm}
      )
-     or (init_settings.fputype=fpu_soft)
+     or (compiler.globals.init_settings.fputype=fpu_soft)
   then
     begin
-      include(init_settings.moduleswitches,cs_fp_emulation);
+      include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
       { cs_fp_emulation and fpu_soft are equal on arm and m68k }
-      init_settings.fputype:=fpu_soft;
+      compiler.globals.init_settings.fputype:=fpu_soft;
     end;
 {$endif cpufpemu}
 
@@ -5419,19 +5420,19 @@ begin
         Some systems might not handle these instructions correctly,
         Used emulators might also be problematic. PM }
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_486;
+        compiler.globals.init_settings.cputype:=cpu_486;
     end;
   case compiler.target.info.system of
     system_i386_android:
       begin
         { set default cpu type to PentiumM for Android unless specified otherwise }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_PentiumM;
+          compiler.globals.init_settings.cputype:=cpu_PentiumM;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_PentiumM;
+          compiler.globals.init_settings.optimizecputype:=cpu_PentiumM;
         { set default fpu type to SSSE3 for Android unless specified otherwise }
         if not option.FPUSetExplicitly then
-          init_settings.fputype:=fpu_ssse3;
+          compiler.globals.init_settings.fputype:=fpu_ssse3;
       end;
     else
       ;
@@ -5442,16 +5443,16 @@ begin
   { xtensa-linux target does not support controller setting option -Wp }
   if not(option.FPUSetExplicitly) and not(compiler.target.info.system = system_xtensa_linux) then
     begin
-      init_settings.fputype:=embedded_controllers[init_settings.controllertype].fputype;
-      if (init_settings.fputype=fpu_soft) then
-        include(init_settings.moduleswitches,cs_fp_emulation);
+      compiler.globals.init_settings.fputype:=embedded_controllers[compiler.globals.init_settings.controllertype].fputype;
+      if (compiler.globals.init_settings.fputype=fpu_soft) then
+        include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
     end;
   if not(option.CPUSetExplicitly) and (compiler.target.info.system=system_xtensa_linux) then
-    init_settings.cputype:=cpu_lx6;
+    compiler.globals.init_settings.cputype:=cpu_lx6;
 
   if (compiler.target.info.system in [system_xtensa_embedded,system_xtensa_freertos]) and not(option.ABISetExplicitly) then
     begin
-      if CPUXTENSA_REGWINDOW in cpu_capabilities[init_settings.cputype] then
+      if CPUXTENSA_REGWINDOW in cpu_capabilities[compiler.globals.init_settings.cputype] then
         compiler.target.set_target_abi(abi_xtensa_windowed)
       else
         compiler.target.set_target_abi(abi_xtensa_call0);
@@ -5466,19 +5467,19 @@ begin
           to VFPv3 (that's what all 32 bit ARM iOS devices use nowadays)
         }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv7;
+          compiler.globals.init_settings.cputype:=cpu_armv7;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv7;
+          compiler.globals.init_settings.optimizecputype:=cpu_armv7;
         if not option.FPUSetExplicitly then
-          init_settings.fputype:=fpu_vfpv3;
+          compiler.globals.init_settings.fputype:=fpu_vfpv3;
       end;
     system_arm_android:
       begin
         { set default cpu type to ARMv5T for Android unless specified otherwise }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv5t;
+          compiler.globals.init_settings.cputype:=cpu_armv5t;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv5t;
+          compiler.globals.init_settings.optimizecputype:=cpu_armv5t;
       end;
     else
       ;
@@ -5495,27 +5496,27 @@ begin
           only armv6, this makes rebuilds of the compiler
           easier }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv6;
+          compiler.globals.init_settings.cputype:=cpu_armv6;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv6;
+          compiler.globals.init_settings.optimizecputype:=cpu_armv6;
 {$else CPUARMV6}
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv7a;
+          compiler.globals.init_settings.cputype:=cpu_armv7a;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv7a;
+          compiler.globals.init_settings.optimizecputype:=cpu_armv7a;
 {$endif CPUARMV6}
 
         { Set FPU type }
         if not(option.FPUSetExplicitly) then
           begin
-            if init_settings.cputype < cpu_armv7 then
-              init_settings.fputype:=fpu_vfpv2
+            if compiler.globals.init_settings.cputype < cpu_armv7 then
+              compiler.globals.init_settings.fputype:=fpu_vfpv2
             else
-              init_settings.fputype:=fpu_vfpv3_d16;
+              compiler.globals.init_settings.fputype:=fpu_vfpv3_d16;
           end
         else
           begin
-            if (not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]))
+            if (not(FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[compiler.globals.init_settings.fputype]))
               or (compiler.target.info.system = system_arm_ios) then
               begin
                 compiler.verbose.Message(option_illegal_fpu_eabihf);
@@ -5529,24 +5530,24 @@ begin
           begin
             { this is what Debian uses }
             if not option.CPUSetExplicitly then
-              init_settings.cputype:=cpu_armv4t;
+              compiler.globals.init_settings.cputype:=cpu_armv4t;
             if not option.OptCPUSetExplicitly then
-              init_settings.optimizecputype:=cpu_armv4t;
+              compiler.globals.init_settings.optimizecputype:=cpu_armv4t;
             if not(option.FPUSetExplicitly) then
-              init_settings.fputype:=fpu_soft;
+              compiler.globals.init_settings.fputype:=fpu_soft;
           end;
       end;
     else
       ;
   end;
 
-  if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
+  if (compiler.globals.init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype]) then
     begin
       def_system_macro('CPUTHUMB');
       if not option.FPUSetExplicitly then
-        init_settings.fputype:=fpu_soft;
-      if not(init_settings.fputype in [fpu_none,fpu_soft,fpu_libgcc]) then
-        compiler.verbose.Message2(option_unsupported_fpu,fputypestr[init_settings.fputype],'Thumb');
+        compiler.globals.init_settings.fputype:=fpu_soft;
+      if not(compiler.globals.init_settings.fputype in [fpu_none,fpu_soft,fpu_libgcc]) then
+        compiler.verbose.Message2(option_unsupported_fpu,fputypestr[compiler.globals.init_settings.fputype],'Thumb');
 {$if defined(FPC_ARMEL) or defined(FPC_ARMHF)}
       compiler.target.set_target_llvmdatalayout('e-p:32:32:32-i1:8:32-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:32-n32-S64');
 {$else FPC_ARMAL or FPC_ARMHF}
@@ -5555,7 +5556,7 @@ begin
 {$endif FPC_ARMAL or FPC_ARMHF}
     end;
 
-  if (init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
+  if (compiler.globals.init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype]) then
     def_system_macro('CPUTHUMB2');
 {$endif arm}
 
@@ -5564,9 +5565,9 @@ begin
     system_aarch64_darwin:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv84a;
+          compiler.globals.init_settings.cputype:=cpu_armv84a;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv84a;
+          compiler.globals.init_settings.optimizecputype:=cpu_armv84a;
       end;
     else
       ;
@@ -5580,16 +5581,16 @@ begin
     abi_riscv_ilp32f:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_rv32imaf;
+          compiler.globals.init_settings.cputype:=cpu_rv32imaf;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_rv32imaf;
+          compiler.globals.init_settings.optimizecputype:=cpu_rv32imaf;
 
         { Set FPU type }
         if not(option.FPUSetExplicitly) then
-          init_settings.fputype:=fpu_fd
+          compiler.globals.init_settings.fputype:=fpu_fd
         else
           begin
-            if not (init_settings.fputype in [fpu_fd]) then
+            if not (compiler.globals.init_settings.fputype in [fpu_fd]) then
               begin
                 compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
@@ -5599,16 +5600,16 @@ begin
     abi_riscv_ilp32d:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_rv32imafd;
+          compiler.globals.init_settings.cputype:=cpu_rv32imafd;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_rv32imafd;
+          compiler.globals.init_settings.optimizecputype:=cpu_rv32imafd;
 
         { Set FPU type }
         if not(option.FPUSetExplicitly) then
-          init_settings.fputype:=fpu_fd
+          compiler.globals.init_settings.fputype:=fpu_fd
         else
           begin
-            if not (init_settings.fputype in [fpu_fd]) then
+            if not (compiler.globals.init_settings.fputype in [fpu_fd]) then
               begin
                 compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
@@ -5620,16 +5621,16 @@ begin
     abi_riscv_lp64f:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_rv64imafdc;
+          compiler.globals.init_settings.cputype:=cpu_rv64imafdc;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_rv64imafdc;
+          compiler.globals.init_settings.optimizecputype:=cpu_rv64imafdc;
 
         { Set FPU type }
         if not(option.FPUSetExplicitly) then
-          init_settings.fputype:=fpu_fd
+          compiler.globals.init_settings.fputype:=fpu_fd
         else
           begin
-            if not (init_settings.fputype in [fpu_fd]) then
+            if not (compiler.globals.init_settings.fputype in [fpu_fd]) then
               begin
                 compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
@@ -5639,16 +5640,16 @@ begin
     abi_riscv_lp64d:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_rv64imafdc;
+          compiler.globals.init_settings.cputype:=cpu_rv64imafdc;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_rv64imafdc;
+          compiler.globals.init_settings.optimizecputype:=cpu_rv64imafdc;
 
         { Set FPU type }
         if not(option.FPUSetExplicitly) then
-          init_settings.fputype:=fpu_fd
+          compiler.globals.init_settings.fputype:=fpu_fd
         else
           begin
-            if not (init_settings.fputype in [fpu_fd]) then
+            if not (compiler.globals.init_settings.fputype in [fpu_fd]) then
               begin
                 compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
@@ -5658,16 +5659,16 @@ begin
     abi_riscv_lp64q:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_rv64imafdc;
+          compiler.globals.init_settings.cputype:=cpu_rv64imafdc;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_rv64imafdc;
+          compiler.globals.init_settings.optimizecputype:=cpu_rv64imafdc;
 
         { Set FPU type }
         if not(option.FPUSetExplicitly) then
-          init_settings.fputype:=fpu_fd
+          compiler.globals.init_settings.fputype:=fpu_fd
         else
           begin
-            if not (init_settings.fputype in [fpu_fd]) then
+            if not (compiler.globals.init_settings.fputype in [fpu_fd]) then
               begin
                 compiler.verbose.Message(option_illegal_fpu_eabihf);
                 StopOptions(1);
@@ -5680,8 +5681,8 @@ begin
   end;
 
   { check if the fpu type requires the F and D extension }
-  if (init_settings.fputype in [fpu_fd]) and not((cpu_capabilities[init_settings.cputype]*[CPURV_HAS_F,CPURV_HAS_D])=[CPURV_HAS_F,CPURV_HAS_D]) then
-    compiler.verbose.Message2(option_unsupported_fpu,fputypestr[init_settings.fputype],cputypestr[init_settings.cputype]);
+  if (compiler.globals.init_settings.fputype in [fpu_fd]) and not((cpu_capabilities[compiler.globals.init_settings.cputype]*[CPURV_HAS_F,CPURV_HAS_D])=[CPURV_HAS_F,CPURV_HAS_D]) then
+    compiler.verbose.Message2(option_unsupported_fpu,fputypestr[compiler.globals.init_settings.fputype],cputypestr[compiler.globals.init_settings.cputype]);
 {$endif defined(riscv32) or defined(riscv64)}
 
 {$ifdef jvm}
@@ -5689,7 +5690,7 @@ begin
   if compiler.target.info.system=system_jvm_android32 then
     begin
       if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_dalvik;
+        compiler.globals.init_settings.cputype:=cpu_dalvik;
     end;
 {$endif jvm}
 
@@ -5705,26 +5706,26 @@ begin
       begin
         { set default cpu type to MIPS32 rev. 1 and hard float for MIPS-Android unless specified otherwise }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_mips32;
+          compiler.globals.init_settings.cputype:=cpu_mips32;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_mips32;
+          compiler.globals.init_settings.optimizecputype:=cpu_mips32;
         if not option.FPUSetExplicitly then
-          init_settings.fputype:=fpu_mips2;
+          compiler.globals.init_settings.fputype:=fpu_mips2;
       end;
     system_mipsel_embedded:
       begin
         { set default cpu type to PIC32MX and softfloat for MIPSEL-EMBEDDED target unless specified otherwise }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_pic32mx;
+          compiler.globals.init_settings.cputype:=cpu_pic32mx;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_pic32mx;
+          compiler.globals.init_settings.optimizecputype:=cpu_pic32mx;
         if not option.FPUSetExplicitly then
-          init_settings.fputype:=fpu_soft;
+          compiler.globals.init_settings.fputype:=fpu_soft;
       end;
     system_mipsel_PS1:
       begin
 {
-          init_settings.optimizerswitches:=[
+          compiler.globals.init_settings.optimizerswitches:=[
                                           cs_opt_stackframe,
                                           cs_opt_size,              // makes smaller
                                           cs_opt_uncertain,
@@ -5745,18 +5746,18 @@ begin
           // dont compile: cs_opt_scheduler
           // makes larger: cs_opt_autoinline
 }
-        init_settings.optimizerswitches:=[];
-        init_settings.debugswitches:= [];
+        compiler.globals.init_settings.optimizerswitches:=[];
+        compiler.globals.init_settings.debugswitches:= [];
 
         { set default cpu type to MIPS1 with SoftFPU }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_mips1;
+          compiler.globals.init_settings.cputype:=cpu_mips1;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_mips1;
+          compiler.globals.init_settings.optimizecputype:=cpu_mips1;
         if not option.FPUSetExplicitly then
           begin
-            include(init_settings.moduleswitches,cs_fp_emulation);
-            init_settings.fputype:=fpu_soft;
+            include(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+            compiler.globals.init_settings.fputype:=fpu_soft;
           end;
       end;
     else
@@ -5764,7 +5765,7 @@ begin
   end;
 {$endif mipsel}
 {$ifdef m68k}
-  if init_settings.cputype in cpu_coldfire then
+  if compiler.globals.init_settings.cputype in cpu_coldfire then
     def_system_macro('CPUCOLDFIRE');
 
   case compiler.target.info.system of
@@ -5772,12 +5773,12 @@ begin
     system_m68k_netbsd:
       begin
         if not (option.FPUSetExplicitly) and
-           not (init_settings.cputype in cpu_coldfire) then
+           not (compiler.globals.init_settings.cputype in cpu_coldfire) then
           begin
             { enable HW FPU for UNIX by default, but only for
               original 68k, not Coldfire }
-            exclude(init_settings.moduleswitches,cs_fp_emulation);
-            init_settings.fputype:=fpu_68881;
+            exclude(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+            compiler.globals.init_settings.fputype:=fpu_68881;
           end;
       end;
     system_m68k_atari,
@@ -5785,17 +5786,17 @@ begin
     system_m68k_human68k:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_mc68000;
+          compiler.globals.init_settings.cputype:=cpu_mc68000;
       end;
     system_m68k_palmos:
       begin
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_mc68000;
+          compiler.globals.init_settings.cputype:=cpu_mc68000;
         if not (option.FPUSetExplicitly) then
           begin
             { No FPU for PalmOS by default }
-            exclude(init_settings.moduleswitches,cs_fp_emulation);
-            init_settings.fputype:=fpu_none;
+            exclude(compiler.globals.init_settings.moduleswitches,cs_fp_emulation);
+            compiler.globals.init_settings.fputype:=fpu_none;
           end;
       end;
     else
@@ -5804,10 +5805,10 @@ begin
 {$endif m68k}
 {$ifdef wasm}
   { if no explicit exception handling mode is set for WebAssembly, select branchful exceptions }
-  if init_settings.targetswitches*[ts_wasm_no_exceptions,ts_wasm_native_exnref_exceptions,ts_wasm_native_legacy_exceptions,ts_wasm_bf_exceptions]=[] then
+  if compiler.globals.init_settings.targetswitches*[ts_wasm_no_exceptions,ts_wasm_native_exnref_exceptions,ts_wasm_native_legacy_exceptions,ts_wasm_bf_exceptions]=[] then
     begin
       def_system_macro(TargetSwitchStr[ts_wasm_bf_exceptions].define);
-      include(init_settings.targetswitches,ts_wasm_bf_exceptions);
+      include(compiler.globals.init_settings.targetswitches,ts_wasm_bf_exceptions);
     end;
 {$endif wasm}
 
@@ -5815,8 +5816,8 @@ begin
   { LoongArch defaults }
   if (compiler.target.info.abi = abi_loongarch_lp64d) then
     begin
-      init_settings.cputype:=cpu_3a;
-      init_settings.fputype:=fpu_fd;
+      compiler.globals.init_settings.cputype:=cpu_3a;
+      compiler.globals.init_settings.fputype:=fpu_fd;
     end;
 {$endif defined(loongarch64)}
 
@@ -5824,18 +5825,18 @@ begin
   def_cpu_macros;
   option.set_endianess_macros;
 
-  { Use init_settings cpu type for asm cpu type,
+  { Use compiler.globals.init_settings cpu type for asm cpu type,
     if asmcputype is cpu_none,
     at least as long as there is no explicit
     option to set it on command line PM }
-  if init_settings.asmcputype = cpu_none then
-    init_settings.asmcputype:=init_settings.cputype;
+  if compiler.globals.init_settings.asmcputype = cpu_none then
+    compiler.globals.init_settings.asmcputype:=compiler.globals.init_settings.cputype;
 
 {$if defined(cpucapabilities)}
   for cpuflag:=low(cpuflag) to high(cpuflag) do
     begin
       str(cpuflag,hs);
-      if cpuflag in cpu_capabilities[init_settings.cputype] then
+      if cpuflag in cpu_capabilities[compiler.globals.init_settings.cputype] then
         def_system_macro(hs)
       else
         undef_system_macro(hs);
@@ -5845,14 +5846,14 @@ begin
   for fpuflag:=low(fpuflag) to high(fpuflag) do
     begin
       str(fpuflag,hs);
-      if fpuflag in fpu_capabilities[init_settings.fputype] then
+      if fpuflag in fpu_capabilities[compiler.globals.init_settings.fputype] then
         def_system_macro(hs)
       else
         undef_system_macro(hs);
     end;
 {$endif defined(fpucapabilities)}
 
-  if init_settings.fputype<>fpu_none then
+  if compiler.globals.init_settings.fputype<>fpu_none then
     begin
 {$if defined(i386) or defined(i8086)}
       def_system_macro('FPC_HAS_TYPE_EXTENDED');
@@ -5893,8 +5894,8 @@ begin
 
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
-  if (init_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
-    not(cs_fp_emulation in init_settings.moduleswitches) then
+  if (compiler.globals.init_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
+    not(cs_fp_emulation in compiler.globals.init_settings.moduleswitches) then
     def_system_macro('FPC_DOUBLE_HILO_SWAPPED');
 {$endif ARM}
 
@@ -5917,12 +5918,12 @@ begin
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }
-  if (CPUARM_HAS_CLZ in cpu_capabilities[init_settings.cputype]) and
-     ((init_settings.instructionset=is_arm) or
-      (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype])) then
+  if (CPUARM_HAS_CLZ in cpu_capabilities[compiler.globals.init_settings.cputype]) and
+     ((compiler.globals.init_settings.instructionset=is_arm) or
+      (CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype])) then
     begin
       def_system_macro('FPC_HAS_INTERNAL_BSR');
-      if CPUARM_HAS_RBIT in cpu_capabilities[init_settings.cputype] then
+      if CPUARM_HAS_RBIT in cpu_capabilities[compiler.globals.init_settings.cputype] then
         def_system_macro('FPC_HAS_INTERNAL_BSF');
     end;
 {$endif}
@@ -5931,7 +5932,7 @@ begin
   { it is determined during system unit compilation if nsau is used for bsr or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
     solution }
-  if CPUXTENSA_HAS_NSAx in cpu_capabilities[init_settings.cputype] then
+  if CPUXTENSA_HAS_NSAx in cpu_capabilities[compiler.globals.init_settings.cputype] then
     begin
       def_system_macro('FPC_HAS_INTERNAL_BSR');
     end;
@@ -5973,13 +5974,13 @@ begin
     compiler.target.set_target_flags(compiler.target.info.flags-[tf_smartlink_sections]);
 
   if not option.LinkTypeSetExplicitly then
-    set_default_link_type;
+    option.set_default_link_type;
   if source_info.endian<>compiler.target.info.endian then
     begin
       if option.LinkInternSetExplicitly then
         compiler.verbose.Message(link_w_unsupported_cross_endian_internal_linker)
       else
-        include(init_settings.globalswitches,cs_link_extern);
+        include(compiler.globals.init_settings.globalswitches,cs_link_extern);
     end;
 
   { Default alignment settings,
@@ -5987,36 +5988,36 @@ begin
     2. adapt defaults specifically for the target
     3. override with generic optimizer setting (little size)
     4. override with the user specified -Oa }
-  UpdateAlignment(init_settings.alignment,compiler.target.info.alignment);
+  UpdateAlignment(compiler.globals.init_settings.alignment,compiler.target.info.alignment);
 
 {$ifdef arm}
-  if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
+  if (compiler.globals.init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[compiler.globals.init_settings.cputype]) then
    begin
-     init_settings.alignment.procalign:=2;
-     init_settings.alignment.jumpalign:=2;
-     init_settings.alignment.coalescealign:=2;
-     init_settings.alignment.loopalign:=2;
+     compiler.globals.init_settings.alignment.procalign:=2;
+     compiler.globals.init_settings.alignment.jumpalign:=2;
+     compiler.globals.init_settings.alignment.coalescealign:=2;
+     compiler.globals.init_settings.alignment.loopalign:=2;
    end;
 {$endif arm}
 
-  if (cs_opt_size in init_settings.optimizerswitches) then
+  if (cs_opt_size in compiler.globals.init_settings.optimizerswitches) then
    begin
-     init_settings.alignment.procalign:=1;
-     init_settings.alignment.jumpalign:=1;
-     init_settings.alignment.coalescealign:=1;
-     init_settings.alignment.loopalign:=1;
+     compiler.globals.init_settings.alignment.procalign:=1;
+     compiler.globals.init_settings.alignment.jumpalign:=1;
+     compiler.globals.init_settings.alignment.coalescealign:=1;
+     compiler.globals.init_settings.alignment.loopalign:=1;
 {$ifdef x86}
      { constalignmax=1 keeps the executable and thus the memory foot print small but
        all processors except x86 are really hurt by this or might even crash ... }
 {$ifndef x86_64}
      { ... and will segfault if not aligned for SSE instructions }
-     if not (CPUX86_HAS_SSEUNIT in cpu_capabilities[init_settings.cputype]) then
-       init_settings.alignment.constalignmax:=1;
+     if not (CPUX86_HAS_SSEUNIT in cpu_capabilities[compiler.globals.init_settings.cputype]) then
+       compiler.globals.init_settings.alignment.constalignmax:=1;
 {$endif not x86_64}
 {$endif x86}
    end;
 
-  UpdateAlignment(init_settings.alignment,option.paraalignment);
+  UpdateAlignment(compiler.globals.init_settings.alignment,option.paraalignment);
 
   set_system_macro('FPC_VERSION',version_nr);
   set_system_macro('FPC_RELEASE',release_nr);
@@ -6035,7 +6036,7 @@ begin
   if compiler.target.info.system in systems_indirect_var_imports then
     def_system_macro('FPC_HAS_INDIRECT_VAR_ACCESS');
 
-  if cs_compilesystem in init_settings.moduleswitches then
+  if cs_compilesystem in compiler.globals.init_settings.moduleswitches then
     for i:=low(tfeature) to high(tfeature) do
       if i in compiler.globals.features then
         def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
@@ -6043,9 +6044,9 @@ begin
 {$push}
 {$warn 6018 off} { Unreachable code due to compile time evaluation }
   if ControllerSupport and (compiler.target.info.system in (systems_embedded+systems_freertos)) and
-    (init_settings.controllertype<>ct_none) then
+    (compiler.globals.init_settings.controllertype<>ct_none) then
     begin
-      with embedded_controllers[init_settings.controllertype] do
+      with embedded_controllers[compiler.globals.init_settings.controllertype] do
         begin
           set_system_macro('FPC_FLASHBASE',tostr(flashbase));
           set_system_macro('FPC_FLASHSIZE',tostr(flashsize));

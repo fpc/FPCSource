@@ -302,8 +302,6 @@ Const
 
 
     var
-       init_settings   : tsettings;
-
        cgbackend: tcgbackend;
 
     const
@@ -689,6 +687,7 @@ Const
         LinkLibraryOrder   : TLinkStrMap;
 
 
+        init_settings,
         current_settings   : tsettings;
 
         pendingstate       : tpendingstate;

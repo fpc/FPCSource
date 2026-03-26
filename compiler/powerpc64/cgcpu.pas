@@ -1168,7 +1168,7 @@ var
     end;
 
     { we may need to store R0 (=LR) ourselves }
-    if ((cs_profile in init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
+    if ((cs_profile in compiler.globals.init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, []);
       current_asmdata.asmcfi.cfa_offset(list, NR_R0, href.offset);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
@@ -1377,7 +1377,7 @@ begin
   needslinkreg :=
     not(nostackframe) and
     (((not (po_assembler in current_procinfo.procdef.procoptions)) and
-       ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
+       ((pi_do_call in current_procinfo.flags) or (cs_profile in compiler.globals.init_settings.moduleswitches))) or
      ((cs_opt_size in compiler.globals.current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
      ([cs_lineinfo, cs_debuginfo] * compiler.globals.current_settings.moduleswitches <> []));
 

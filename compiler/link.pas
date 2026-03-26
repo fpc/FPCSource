@@ -420,7 +420,7 @@ Implementation
               { lto linking ?}
               if (cs_lto in compiler.globals.current_settings.moduleswitches) and
                  ((headerflags and uf_lto_linked)<>0) and
-                 (not(cs_lto_nosystem in init_settings.globalswitches) or
+                 (not(cs_lto_nosystem in compiler.globals.init_settings.globalswitches) or
                   (hp.modulename^<>'SYSTEM')) then
                 begin
                   mask:=mask or link_lto;

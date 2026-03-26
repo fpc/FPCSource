@@ -108,7 +108,7 @@ const
 Constructor TLinkersolaris.Create(ACompiler: TCompilerBase);
 begin
   Inherited;
-  if cs_link_native in init_settings.globalswitches then
+  if cs_link_native in compiler.globals.init_settings.globalswitches then
     use_gnu_ld:=false
   else
     use_gnu_ld:=true;

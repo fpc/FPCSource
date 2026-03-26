@@ -513,7 +513,7 @@ unit agcpugas;
 
                             { exception record headers }
                             tmplist.concat(tai_const.Create_32bit(longint(unwindrec)));
-                            if cs_asm_source in init_settings.globalswitches then
+                            if cs_asm_source in compiler.globals.init_settings.globalswitches then
                               tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
 
                             if unwinddata.size div 4>31 then
@@ -524,7 +524,7 @@ unit agcpugas;
                                   compiler.verbose.comment(V_Error,'Too many unwind codes for SEH');
                                 unwindrec:=(unwinddata.size div 4) shl 16;
                                 tmplist.concat(tai_const.create_32bit(longint(unwindrec)));
-                                if cs_asm_source in init_settings.globalswitches then
+                                if cs_asm_source in compiler.globals.init_settings.globalswitches then
                                   tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
                               end;
 
@@ -534,7 +534,7 @@ unit agcpugas;
                               begin
                                 unwinddata.read(unwindrec,sizeof(longword));
                                 tmplist.concat(tai_const.Create_32bit(longint(unwindrec)));
-                                if cs_asm_source in init_settings.globalswitches then
+                                if cs_asm_source in compiler.globals.init_settings.globalswitches then
                                   tmplist.concat(tai_comment.create(strpnew(hexstr(unwindrec,8))));
                               end;
 

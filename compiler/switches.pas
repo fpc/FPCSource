@@ -338,7 +338,7 @@ procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
       include(compiler.globals.pendingstate.nextlocalswitches,sw)
     else { state = '*' }
       begin
-        if sw in init_settings.localswitches then
+        if sw in compiler.globals.init_settings.localswitches then
          include(compiler.globals.pendingstate.nextlocalswitches,sw)
         else
          exclude(compiler.globals.pendingstate.nextlocalswitches,sw);

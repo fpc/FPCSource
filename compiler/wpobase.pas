@@ -533,7 +533,7 @@ implementation
               wpotype:=sectionhandler.getwpotype;
               compiler.verbose.CGMessage2(wpo_found_section,sectionname,wpo2str[wpotype]);
               { do we need this information? }
-              if ((sectionhandler.performswpoforswitches * init_settings.dowpoptimizerswitches) <> []) then
+              if ((sectionhandler.performswpoforswitches * compiler.globals.init_settings.dowpoptimizerswitches) <> []) then
                 begin
                   { did some other section already generate this type of information? }
                   if assigned(fdest.wpoinfouse[wpotype]) then
@@ -677,7 +677,7 @@ implementation
       i: longint;
     begin
       { error if we don't have to optimize yet have an input feedback file }
-      if (init_settings.dowpoptimizerswitches=[]) and
+      if (compiler.globals.init_settings.dowpoptimizerswitches=[]) and
          assigned(freader) then
         begin
           compiler.verbose.CGMessage(wpo_input_without_info_use);
@@ -685,7 +685,7 @@ implementation
         end;
 
       { error if we have to optimize yet don't have an input feedback file }
-      if (init_settings.dowpoptimizerswitches<>[]) and
+      if (compiler.globals.init_settings.dowpoptimizerswitches<>[]) and
          not assigned(freader) then
         begin
           compiler.verbose.CGMessage(wpo_no_input_specified);
@@ -695,14 +695,14 @@ implementation
       { if we have to generate wpo information, check that a file has been
         specified and that we have something to write to it
       }
-      if (init_settings.genwpoptimizerswitches<>[]) and
+      if (compiler.globals.init_settings.genwpoptimizerswitches<>[]) and
          not assigned(fwriter) then
         begin
           compiler.verbose.CGMessage(wpo_no_output_specified);
           exit;
         end;
 
-      if (init_settings.genwpoptimizerswitches=[]) and
+      if (compiler.globals.init_settings.genwpoptimizerswitches=[]) and
          assigned(fwriter) then
         begin
           compiler.verbose.CGMessage(wpo_output_without_info_gen);
@@ -720,14 +720,14 @@ implementation
       { and for each specified optimization check whether the input feedback
         file contained the necessary information
       }
-      if (([cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts] * init_settings.dowpoptimizerswitches) <> []) and
+      if (([cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts] * compiler.globals.init_settings.dowpoptimizerswitches) <> []) and
          not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) then
         begin
           compiler.verbose.CGMessage1(wpo_not_enough_info,wpo2str[wpo_devirtualization_context_insensitive]);
           exit;
         end;
 
-      if (cs_wpo_symbol_liveness in init_settings.dowpoptimizerswitches) and
+      if (cs_wpo_symbol_liveness in compiler.globals.init_settings.dowpoptimizerswitches) and
          not assigned(wpoinfouse[wpo_live_symbol_information]) then
         begin
           compiler.verbose.CGMessage1(wpo_not_enough_info,wpo2str[wpo_live_symbol_information]);
@@ -738,7 +738,7 @@ implementation
         the selected optimizations and other switches
       }
       for i:=0 to fwpocomponents.count-1 do
-        if (twpocomponentbaseclass(fwpocomponents[i]).generatesinfoforwposwitches*init_settings.genwpoptimizerswitches)<>[] then
+        if (twpocomponentbaseclass(fwpocomponents[i]).generatesinfoforwposwitches*compiler.globals.init_settings.genwpoptimizerswitches)<>[] then
           twpocomponentbaseclass(fwpocomponents[i]).checkoptions
     end;
 

@@ -134,7 +134,7 @@ implementation
       { don't load the wpo info from the units if we are not generating
         a wpo feedback file (that would just take time and memory)
       }
-      if (init_settings.genwpoptimizerswitches=[]) then
+      if (compiler.globals.init_settings.genwpoptimizerswitches=[]) then
         ppufile.skipdata(ppufile.entrysize)
       else
         begin
@@ -220,7 +220,7 @@ implementation
       i: longint;
 
     begin
-      if (init_settings.genwpoptimizerswitches=[]) or
+      if (compiler.globals.init_settings.genwpoptimizerswitches=[]) or
          not assigned(fcalledvmtentriestemplist) then
         exit;
 
@@ -258,7 +258,7 @@ implementation
     var
       i: longint;
     begin
-      if (init_settings.genwpoptimizerswitches=[]) or
+      if (compiler.globals.init_settings.genwpoptimizerswitches=[]) or
          not assigned(fcalledvmtentriestemplist) then
         exit;
 

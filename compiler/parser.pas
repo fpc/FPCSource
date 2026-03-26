@@ -186,9 +186,9 @@ implementation
          unloaded_units:=TLinkedList.Create;
 
          { global switches }
-         compiler.globals.current_settings.globalswitches:=init_settings.globalswitches;
+         compiler.globals.current_settings.globalswitches:=compiler.globals.init_settings.globalswitches;
 
-         compiler.globals.current_settings.sourcecodepage:=init_settings.sourcecodepage;
+         compiler.globals.current_settings.sourcecodepage:=compiler.globals.init_settings.sourcecodepage;
 
          { initialize scanner }
          InitScanner;
@@ -247,7 +247,7 @@ implementation
            system_wasm32_wasip1threads,
            system_wasm32_wasip2:
              begin
-               if ts_wasm_threads in init_settings.targetswitches then
+               if ts_wasm_threads in compiler.globals.init_settings.targetswitches then
                  compiler.globals.maxheapsize:=256*1024*1024
                else
                  compiler.globals.maxheapsize:=0;
@@ -257,7 +257,7 @@ implementation
              begin
                if compiler.globals.stacksize=0 then
                  begin
-                   if init_settings.x86memorymodel in x86_far_data_models then
+                   if compiler.globals.init_settings.x86memorymodel in x86_far_data_models then
                      compiler.globals.stacksize:=16384
                    else
                      compiler.globals.stacksize:=2048;
@@ -267,14 +267,14 @@ implementation
              begin
                if compiler.globals.stacksize=0 then
                  begin
-                   if init_settings.x86memorymodel in x86_far_data_models then
+                   if compiler.globals.init_settings.x86memorymodel in x86_far_data_models then
                      compiler.globals.stacksize:=16384
                    else
                      compiler.globals.stacksize:=4096;
                  end;
                if compiler.globals.maxheapsize=0 then
                  begin
-                   if init_settings.x86memorymodel in x86_far_data_models then
+                   if compiler.globals.init_settings.x86memorymodel in x86_far_data_models then
                      compiler.globals.maxheapsize:=655360
                    else
                      compiler.globals.maxheapsize:=65520;
@@ -284,14 +284,14 @@ implementation
              begin
                if compiler.globals.stacksize=0 then
                  begin
-                   if init_settings.x86memorymodel in x86_far_data_models then
+                   if compiler.globals.init_settings.x86memorymodel in x86_far_data_models then
                      compiler.globals.stacksize:=8192
                    else
                      compiler.globals.stacksize:=5120;
                  end;
                if compiler.globals.heapsize=0 then
                  begin
-                   if init_settings.x86memorymodel in x86_far_data_models then
+                   if compiler.globals.init_settings.x86memorymodel in x86_far_data_models then
                      compiler.globals.heapsize:=8192
                    else
                      compiler.globals.heapsize:=4096;
@@ -525,14 +525,14 @@ implementation
          tcompiler(compiler).symtablestack:=tdefawaresymtablestack.create(compiler);
          tcompiler(compiler).macrosymtablestack:=TSymtablestack.create(compiler);
          systemunit:=nil;
-         compiler.globals.current_settings.defproccall:=init_settings.defproccall;
+         compiler.globals.current_settings.defproccall:=compiler.globals.init_settings.defproccall;
          compiler.globals.current_exceptblock:=0;
          compiler.globals.exceptblockcounter:=0;
          compiler.globals.current_settings.maxfpuregisters:=-1;
          compiler.globals.current_settings.pmessage:=nil;
 
          { Load current state from the init values }
-         compiler.globals.current_settings:=init_settings;
+         compiler.globals.current_settings:=compiler.globals.init_settings;
 
          set_current_module(module);
          if not (module.state in [ms_compile]) then

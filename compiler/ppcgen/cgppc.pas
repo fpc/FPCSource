@@ -176,7 +176,7 @@ unit cgppc;
         result:=
         (not (po_assembler in current_procinfo.procdef.procoptions) and
          ((pi_do_call in current_procinfo.flags) or
-          (cs_profile in init_settings.moduleswitches)))  or
+          (cs_profile in compiler.globals.init_settings.moduleswitches)))  or
         ([cs_lineinfo,cs_debuginfo] * compiler.globals.current_settings.moduleswitches <> []);
       end;
 
