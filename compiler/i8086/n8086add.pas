@@ -291,7 +291,7 @@ interface
               cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,
                 left.location.register64);
             end;
-          location_freetemp(current_asmdata.CurrAsmList,right.location);
+          tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
          end;
 
         { only in case of overflow operations }
@@ -666,7 +666,7 @@ interface
                  hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                  hregister2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                  cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,joinreg64(hregister,hregister2));
-                 location_freetemp(current_asmdata.CurrAsmList,left.location);
+                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                  location_reset(left.location,LOC_REGISTER,left.location.size);
                  left.location.register64.reglo:=hregister;
                  left.location.register64.reghi:=hregister2;
@@ -722,7 +722,7 @@ interface
                  emit_ref_reg(A_CMP,S_W,right.location.reference,left.location.register64.reglo);
                  lastjmp64bitcmp;
                  cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
-                 location_freetemp(current_asmdata.CurrAsmList,right.location);
+                 tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
                end;
              LOC_CONSTANT :
                begin
@@ -844,7 +844,7 @@ interface
                begin
                  hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,left.location,hregister);
-                 location_freetemp(current_asmdata.CurrAsmList,left.location);
+                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                  location_reset(left.location,LOC_REGISTER,left.location.size);
                  left.location.register:=hregister;
                end;
@@ -886,7 +886,7 @@ interface
                  emit_ref_reg(A_CMP,S_W,href,left.location.register);
                  secondjmp32bitcmp;
                  cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
-                 location_freetemp(current_asmdata.CurrAsmList,right.location);
+                 tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
                end;
              LOC_CONSTANT :
                begin
@@ -927,7 +927,7 @@ interface
         then
           begin
             emit_const_ref(A_CMP, S_W, word(right.location.value), left.location.reference);
-            location_freetemp(current_asmdata.CurrAsmList,left.location);
+            tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
           end
         else
           begin
@@ -950,8 +950,8 @@ interface
               end;
 
             emit_generic_code(A_CMP,OS_16,true,false,false);
-            location_freetemp(current_asmdata.CurrAsmList,right.location);
-            location_freetemp(current_asmdata.CurrAsmList,left.location);
+            tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+            tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
           end;
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -1062,8 +1062,8 @@ interface
         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_AX,location.register);
       end;
-      location_freetemp(current_asmdata.CurrAsmList,left.location);
-      location_freetemp(current_asmdata.CurrAsmList,right.location);
+      tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+      tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
     end;
 
 

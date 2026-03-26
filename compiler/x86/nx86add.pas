@@ -628,7 +628,7 @@ unit nx86add;
                 { left must be a register }
                 left_must_be_reg(opdef,opsize,noswap);
                 emit_generic_code(op,opsize,true,extra_not,false);
-                location_freetemp(current_asmdata.CurrAsmList,right.location);
+                tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
 
                 { left is always a register and contains the result }
                 location:=left.location;
@@ -715,8 +715,8 @@ unit nx86add;
         { left must be a register }
         left_must_be_reg(opdef,opsize,false);
         emit_generic_code(op,opsize,true,false,false);
-        location_freetemp(current_asmdata.CurrAsmList,right.location);
-        location_freetemp(current_asmdata.CurrAsmList,left.location);
+        tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+        tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -913,9 +913,9 @@ unit nx86add;
             location.register:=left.location.register;
           end;
 
-        location_freetemp(current_asmdata.CurrAsmList,right.location);
+        tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
         if cmpop then
-          location_freetemp(current_asmdata.CurrAsmList,left.location);
+          tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
       end;
 {$endif SUPPORT_MMX}
 
@@ -1660,8 +1660,8 @@ unit nx86add;
             end;
           end;
         location.resflags:=getfpuresflags;
-        location_freetemp(current_asmdata.CurrAsmList,left.location);
-        location_freetemp(current_asmdata.CurrAsmList,right.location);
+        tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+        tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
 
 
@@ -2287,7 +2287,7 @@ unit nx86add;
 
                    cg.a_op_loc_reg(current_asmdata.CurrAsmList,cgop,opsize,right.location,left.location.register);
                  end;
-               location_freetemp(current_asmdata.CurrAsmList,right.location);
+               tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
              end;
 
            location_copy(location,left.location);
@@ -2336,14 +2336,14 @@ unit nx86add;
            begin
              cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
              emit_const_ref(A_CMP, TCGSize2Opsize[opsize], right.location.value, left.location.reference);
-             location_freetemp(current_asmdata.CurrAsmList,left.location);
+             tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
            end
          else
            begin
              left_must_be_reg(opdef,opsize,false);
              emit_generic_code(A_CMP,opsize,unsigned,false,false);
-             location_freetemp(current_asmdata.CurrAsmList,right.location);
-             location_freetemp(current_asmdata.CurrAsmList,left.location);
+             tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
+             tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
            end;
          location_reset(location,LOC_FLAGS,OS_NO);
          location.resflags:=getresflags(unsigned);

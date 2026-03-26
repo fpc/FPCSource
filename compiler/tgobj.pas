@@ -129,14 +129,15 @@ unit tgobj;
           procedure getlocal(list: TAsmList; size: asizeint; def: tdef; var ref : treference);
           procedure getlocal(list: TAsmList; size: asizeint; alignment,explicitalignment: shortint; def: tdef; sym : tsym; var ref : treference); virtual;
           procedure UnGetLocal(list: TAsmList; const ref : treference);
+
+          procedure location_freetemp(list:TAsmList; const l : tlocation);
+
           property Compiler: TCompilerBase read FCompiler;
        end;
        ttgobjclass = class of ttgobj;
 
      var
        tgobjclass: ttgobjclass = ttgobj;
-
-    procedure location_freetemp(list:TAsmList; const l : tlocation);
 
 
 implementation
@@ -172,12 +173,10 @@ implementation
                                     Helpers
 *****************************************************************************}
 
-    procedure location_freetemp(list:TAsmList; const l : tlocation);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    procedure ttgobj.location_freetemp(list:TAsmList; const l : tlocation);
       begin
         if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-          compiler.tg.ungetiftemp(list,l.reference);
+          ungetiftemp(list,l.reference);
       end;
 
 

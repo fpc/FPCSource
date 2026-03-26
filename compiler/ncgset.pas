@@ -564,7 +564,7 @@ implementation
 {$endif not cpuhighleveltarget}
                end;
            end;
-         location_freetemp(current_asmdata.CurrAsmList, right.location);
+         tg.location_freetemp(current_asmdata.CurrAsmList, right.location);
        end;
 
 {*****************************************************************************

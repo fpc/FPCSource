@@ -132,8 +132,10 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
+        tg: ttgobj;
       begin
         cg:=compiler.cg;
+        tg:=compiler.tg;
         case location.loc of
           LOC_VOID:
             ;
@@ -180,7 +182,7 @@ implementation
           LOC_CREFERENCE :
             begin
               if compiler.paramanager.use_fixed_stack then
-                location_freetemp(list,location);
+                tg.location_freetemp(list,location);
             end;
           else
             internalerror(2004110211);
@@ -424,16 +426,18 @@ implementation
       var
         compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
         cg: tcg;
+        tg: ttgobj;
       var
         reg : tregister;
       begin
         cg:=compiler.cg;
+        tg:=compiler.tg;
         if (l.loc<>LOC_MMREGISTER)  and
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
           begin
             reg:=cg.getmmregister(list,l.size);
             cg.a_loadmm_loc_reg(list,l.size,l,reg,nil);
-            location_freetemp(list,l);
+            tg.location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,l.size);
             l.register:=reg;
           end;

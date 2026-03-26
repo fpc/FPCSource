@@ -409,7 +409,7 @@ interface
               hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                 location.reference.base);
               if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                location_freetemp(current_asmdata.CurrAsmList,left.location);
+                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
             end;
           LOC_CONSTANT:
             begin
@@ -436,7 +436,7 @@ interface
                  cpointerdef.getreusable(left.resultdef,compiler),tmpref);
                hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,
                  tmpref);
-               location_freetemp(current_asmdata.CurrAsmList,left.location);
+               tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
            { the rest is removed in the resultdef pass and converted to compilerprocs }
            else
@@ -510,7 +510,7 @@ interface
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                       hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
                     end;
-                 location_freetemp(current_asmdata.CurrAsmList,left.location);
+                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
             LOC_MMREGISTER,
             LOC_CMMREGISTER:
@@ -737,7 +737,7 @@ interface
               begin
                  location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                  hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
-                 location_freetemp(current_asmdata.CurrAsmList,left.location);
+                 tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
             LOC_CREGISTER:
               begin

@@ -1035,7 +1035,7 @@ implementation
              end;
           end;
           if not genjumps then
-            location_freetemp(current_asmdata.CurrAsmList,right.location);
+            tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
        end;
 
 begin

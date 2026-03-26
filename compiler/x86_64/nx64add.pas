@@ -150,8 +150,8 @@ interface
         { Allocate a new register and store the result in RAX in it. }
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
         emit_reg_reg(A_MOV,opsize,rega,location.register);
-        location_freetemp(current_asmdata.CurrAsmList,left.location);
-        location_freetemp(current_asmdata.CurrAsmList,right.location);
+        tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
+        tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
 
 

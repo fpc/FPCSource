@@ -608,7 +608,7 @@ implementation
                                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,vd,left.location.reference,location.registerhi);
 {$endif defined(CPU8BITALU) and defined(CPU16BITADDR)}
                                end;
-                             location_freetemp(current_asmdata.CurrAsmList,left.location);
+                             tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                           end;
                         else
                           internalerror(200610311);
@@ -979,7 +979,7 @@ implementation
                             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,right.location.size,right.location.size,right.location.reference,r);
                             cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,r,href);
                             if releaseright then
-                              location_freetemp(current_asmdata.CurrAsmList,right.location);
+                              tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
                             releaseright:=true;
                             location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0,[]);
                             right.location.reference:=href;
@@ -1231,7 +1231,7 @@ implementation
          end;
 
         if releaseright then
-          location_freetemp(current_asmdata.CurrAsmList,right.location);
+          tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
       end;
 
 
@@ -1556,7 +1556,7 @@ implementation
                  advancearrayoffset(href,elesize);
                end;
               if freetemp then
-                location_freetemp(current_asmdata.CurrAsmList,hp.left.location);
+                tg.location_freetemp(current_asmdata.CurrAsmList,hp.left.location);
             end;
            { load next entry }
            hp:=tarrayconstructornode(hp.right);

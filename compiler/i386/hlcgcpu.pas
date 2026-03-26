@@ -114,7 +114,7 @@ implementation
                       internalerror(2010053116);
                   end;
                   cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                  location_freetemp(list,tmploc);
+                  tg.location_freetemp(list,tmploc);
                 end
               else
                 internalerror(2010053003);
@@ -144,7 +144,7 @@ implementation
                   tmploc:=l;
                   location_force_mem(list,tmploc,size);
                   cg.a_loadfpu_ref_cgpara(list,tmploc.size,tmploc.reference,cgpara);
-                  location_freetemp(list,tmploc);
+                  tg.location_freetemp(list,tmploc);
                 end;
               else
                 internalerror(2010053004);

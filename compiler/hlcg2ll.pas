@@ -1232,7 +1232,7 @@ implementation
         end;
       { Release temp when it was a reference }
       if oldloc.loc=LOC_REFERENCE then
-          location_freetemp(list,oldloc);
+          tg.location_freetemp(list,oldloc);
     end;
 
   procedure thlcg2ll.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
@@ -1331,7 +1331,7 @@ implementation
                l.size:=def_cgsize(newsize);
                size:=newsize;
              end;
-          location_freetemp(list,l);
+          tg.location_freetemp(list,l);
           location_reset(l,LOC_MMREGISTER,l.size);
           l.register:=reg;
         end;
@@ -1525,7 +1525,7 @@ implementation
                      tmploc:=l;
                      location_force_mem(list,tmploc,size);
                      cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                     location_freetemp(list,tmploc);
+                     tg.location_freetemp(list,tmploc);
                    end;
                end
              else
@@ -1614,7 +1614,7 @@ implementation
                       already in memory, because the caller (ncgcal) will then
                       free it again later }
                     if not(l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                      location_freetemp(list,tmploc);
+                      tg.location_freetemp(list,tmploc);
                   end
                 else
                   a_load_loc_cgpara(list,vardef,l,cgpara);

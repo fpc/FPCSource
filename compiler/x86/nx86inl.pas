@@ -564,7 +564,7 @@ implementation
             begin
               reg:=tcgx86(cg).getmmxregister(list);
               cg.a_loadmm_loc_reg(list,OS_M64,l,reg,nil);
-              location_freetemp(list,l);
+              tg.location_freetemp(list,l);
               location_reset(l,LOC_MMXREGISTER,OS_M64);
               l.register:=reg;
             end;

@@ -1564,7 +1564,7 @@ implementation
       result:=true;
       secondpass(node.left);
       thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,node.left.resultdef,node.left.location);
-      location_freetemp(current_asmdata.CurrAsmList,node.left.location);
+      tg.location_freetemp(current_asmdata.CurrAsmList,node.left.location);
       { Perform a checkcast instruction, which will raise an exception in case
         the actual type does not match/inherit from the expected type.
 

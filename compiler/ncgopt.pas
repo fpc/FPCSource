@@ -93,7 +93,7 @@ begin
     begin
        tg.gethltemp(current_asmdata.CurrAsmList,cshortstringtype,256,tt_normal,href);
        hlcg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,tstringdef(cshortstringtype));
-       location_freetemp(current_asmdata.CurrAsmList,left.location);
+       tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }
        location_reset_ref(left.location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
        left.location.reference:=href;

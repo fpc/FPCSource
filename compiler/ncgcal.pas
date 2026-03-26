@@ -708,7 +708,7 @@ implementation
                     else
                       internalerror(200802121);
                   end;
-                  location_freetemp(current_asmdata.CurrAsmList,location);
+                  tg.location_freetemp(current_asmdata.CurrAsmList,location);
                 end;
               else
                 internalerror(200709085);
@@ -769,7 +769,7 @@ implementation
                         (ppn.parasym.vardef.typ<>objectdef)
                       )
                     )then
-                   location_freetemp(current_asmdata.CurrAsmList,ppn.left.location);
+                   tg.location_freetemp(current_asmdata.CurrAsmList,ppn.left.location);
                  { process also all nodes of an array of const }
                  hp:=ppn.left;
                  while (hp.nodetype=typeconvn) do
@@ -787,7 +787,7 @@ implementation
                            hp2:=tunarynode(tunarynode(hp2).left).left
                          else if hp2.nodetype=addrn then
                            hp2:=tunarynode(hp2).left;
-                         location_freetemp(current_asmdata.CurrAsmList,hp2.location);
+                         tg.location_freetemp(current_asmdata.CurrAsmList,hp2.location);
                          hp:=tarrayconstructornode(hp).right;
                        end;
                    end;
@@ -1226,7 +1226,7 @@ implementation
                   pvreg:=NR_INVALID;
                   callpvdef:=nil;
                 end;
-              location_freetemp(current_asmdata.CurrAsmList,right.location);
+              tg.location_freetemp(current_asmdata.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
                 correct parameter register }

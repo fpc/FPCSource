@@ -387,7 +387,7 @@ implementation
             if (torddef(left.resultdef).ordtype=u32bit) then
               begin
                 tg.GetTemp(current_asmdata.CurrAsmList,8,8,tt_normal,href);
-                location_freetemp(current_asmdata.CurrAsmList,left.location);
+                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                 cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,leftref,href);
                 inc(href.offset,4);
                 cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_32,0,href);

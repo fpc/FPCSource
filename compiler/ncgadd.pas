@@ -125,7 +125,7 @@ interface
               begin
                 tmpreg := cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
                 hlcg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,tmpreg,mms_movescalar);
-                location_freetemp(current_asmdata.CurrAsmList,left.location);
+                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_MMREGISTER,left.location.size);
                 left.location.register:=tmpreg;
               end
@@ -133,7 +133,7 @@ interface
               begin
                 tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
                 cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
-                location_freetemp(current_asmdata.CurrAsmList,left.location);
+                tg.location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_FPUREGISTER,left.location.size);
                 left.location.register := tmpreg;
                 { left operand is now on top of the stack, instead of the right one! }

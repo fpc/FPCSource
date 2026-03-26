@@ -4505,7 +4505,7 @@ implementation
       l.register:=hregister;
       { Release temp if it was a reference }
       if oldloc.loc=LOC_REFERENCE then
-        location_freetemp(list,oldloc);
+        tg.location_freetemp(list,oldloc);
     end;
 
   procedure thlcgobj.location_force_fpureg(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
@@ -4520,7 +4520,7 @@ implementation
             location_force_mem(list,l,size);
           reg:=getfpuregister(list,size);
           a_loadfpu_loc_reg(list,size,size,l,reg);
-          location_freetemp(list,l);
+          tg.location_freetemp(list,l);
           location_reset(l,LOC_FPUREGISTER,l.size);
           l.register:=reg;
         end;
@@ -4650,7 +4650,7 @@ implementation
           reg:=getmmregister(list,newsize);
           a_loadmm_loc_reg(list,size,newsize,l,reg,mms_movescalar);
           l.size:=def_cgsize(newsize);
-          location_freetemp(list,l);
+          tg.location_freetemp(list,l);
           location_reset(l,LOC_MMREGISTER,l.size);
           size:=newsize;
           l.register:=reg;
@@ -5676,7 +5676,7 @@ implementation
           tmploc:=l;
           location_force_mem(list,tmploc,vardef);
           a_load_loc_cgpara(list,vardef,tmploc,cgpara);
-          location_freetemp(list,tmploc);
+          tg.location_freetemp(list,tmploc);
           exit;
         end;
 
