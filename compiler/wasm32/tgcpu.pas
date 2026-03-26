@@ -29,7 +29,8 @@ unit tgcpu;
        sysutils, globtype,
        aasmdata,
        cgutils, cpubase,
-       symtype,tgobj;
+       symtype,tgobj,
+       compilerbase;
 
     type
 
@@ -78,7 +79,7 @@ unit tgcpu;
         public
          localvars: TWasmLocalVars;
 
-         constructor create; override;
+         constructor create(acompiler: TCompilerBase); override;
          destructor destroy; override;
          procedure setfirsttemp(l : asizeint); override;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
@@ -98,7 +99,8 @@ unit tgcpu;
        cgbase,
        symconst,symtable,symdef,symsym,symcpu,defutil,
        aasmbase,aasmcpu,
-       hlcgobj,hlcgcpu, procinfo;
+       hlcgobj,hlcgcpu, procinfo,
+       compiler;
 
     function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
     var
@@ -212,9 +214,9 @@ unit tgcpu;
       if localslasttemp<localsfirsttemp then localslasttemp := localsfirsttemp;
     end;
 
-    constructor ttgwasm.create;
+    constructor ttgwasm.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         localvars:=TWasmLocalVars.Create;
       end;
 
