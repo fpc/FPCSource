@@ -123,13 +123,12 @@ implementation
 
   constructor tunitwpoinfo.ppuload(ppufile:tcompilerppufile);
     var
-      _compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-    var
       i, len: longint;
     begin
+      FCompiler:=ppufile.compiler;
       { load start of definition section, which holds the amount of defs }
       if ppufile.readentry<>ibcreatedobjtypes then
-        _compiler.verbose.Message(unit_f_ppu_read_error);
+        compiler.verbose.Message(unit_f_ppu_read_error);
 
       { don't load the wpo info from the units if we are not generating
         a wpo feedback file (that would just take time and memory)

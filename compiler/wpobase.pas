@@ -142,9 +142,8 @@ type
   }
 
   tunitwpoinfobase = class
-   private
-    FCompiler: TCompilerBase;
    protected
+    FCompiler: TCompilerBase;
     { created object types }
     fcreatedobjtypes: tfpobjectlist;
     { objectdefs pointed to by created classrefdefs }
