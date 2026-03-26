@@ -28,9 +28,7 @@ unit ctask;
 interface
 
 uses
-  finput, fmodule, cclasses, globals,
-  {$IFDEF DEBUG_PPU_CYCLES}globtype,{$ENDIF}
-  globstat;
+  finput, fmodule, cclasses, globals, globstat;
 
 type
   { ttask
@@ -239,8 +237,14 @@ procedure ttask_handler.finishmodule(m: tmodule);
     if root.cycle_search_stamp=tmodule.cycle_stamp then exit;
     root.cycle_search_stamp:=tmodule.cycle_stamp;
 
-    if root.do_recompile
-        or not (root.state in [ms_registered,ms_load,ms_compiled,ms_processed]) then
+    if root.do_recompile then
+      begin
+        // e.g. system.ppu not found
+        tppumodule(root).check_sources_for_recompile;
+        writeln('ttask_handler.finishmodule ',root.modulename^,' ',root.statestr);
+        Internalerror(2026032615);
+      end
+    else if not (root.state in [ms_registered,ms_load,ms_compiled,ms_processed]) then
       begin
         writeln('ttask_handler.finishmodule ',root.modulename^,' ',root.statestr);
         Internalerror(2026030401);

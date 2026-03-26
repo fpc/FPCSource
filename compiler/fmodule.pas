@@ -348,6 +348,7 @@ interface
         procedure remove_from_waitingforunits(amodule : tmodule);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
         function ToString: RTLString; override;
+        procedure WriteUsedUnits(m: tmodule);
       end;
 
     var
@@ -1190,6 +1191,10 @@ implementation
               writeln('tmodule.flagdependent ',m.modulename^,' is using (indirectly) ',bm.modulename^,' ',bm.statestr)
             else
               writeln('tmodule.flagdependent ',m.modulename^,' is not using any incomplete unit.');
+
+            WriteUsedUnits(self);
+            WriteUsedUnits(m);
+
             Internalerror(2026022510);
           end;
           if not m.do_reload and is_reload_needed(dm) then
@@ -1225,28 +1230,26 @@ implementation
           exit; // already visited
         m.cycle_search_stamp:=tmodule.cycle_stamp;
 
-        case m.state of
-          ms_load:
-            if ppu_waitingfor_crc then
-              // check used units
-            else
-              exit(m);
-          ms_compiled_waitcrc:
-            ; // check used units
-          ms_compiled, ms_processed:
-            exit;
-        else
-          exit(m);
-        end;
+        if m<>self then
+          case m.state of
+            ms_load:
+              if ppu_waitingfor_crc then
+                // check used units
+              else
+                exit(m);
+            ms_compiled_waitcrc:
+              ; // check used units
+            ms_compiled, ms_processed:
+              exit;
+          else
+            exit(m);
+          end;
 
         uu:=tused_unit(m.used_units.first);
         while uu<>nil do
           begin
-            if (uu.u<>self) then
-              begin
-                Result:=find_compiling(uu.u);
-                if Result<>nil then exit;
-              end;
+            Result:=find_compiling(uu.u);
+            if Result<>nil then exit;
             uu:=tused_unit(uu.Next);
           end;
       end;
@@ -1818,6 +1821,30 @@ implementation
          Result:='(<'+inttostr(ptrint(self))+'>)';
         // Possibly add some state ?
       end;
+
+    procedure tmodule.WriteUsedUnits(m: tmodule);
+    var
+      uu: tused_unit;
+    begin
+      if m=nil then exit;
+      writeln('tmodule.WriteUsedUnits ',m.modulename^,' ',m.statestr);
+      writeln('  interface uses:');
+      uu:=tused_unit(m.used_units.First);
+      while assigned(uu) do
+        begin
+          if uu.in_interface then
+            writeln('  ',uu.u.modulename^,' ',uu.u.statestr);
+          uu:=tused_unit(uu.Next);
+        end;
+      writeln('  implementation uses:');
+      uu:=tused_unit(m.used_units.First);
+      while assigned(uu) do
+        begin
+          if not uu.in_interface then
+            writeln('  ',uu.u.modulename^,' ',uu.u.statestr);
+          uu:=tused_unit(uu.Next);
+        end;
+    end;
 
 
 initialization
