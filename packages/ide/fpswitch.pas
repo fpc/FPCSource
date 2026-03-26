@@ -208,6 +208,10 @@ procedure GetCompilerOptionLines(C: PUnsortedStringCollection);
 implementation
 
 uses
+  Version,
+{$ifdef USE_EXTERNAL_COMPILER}
+   fpintf, { supersedes version_string of version unit }
+{$endif USE_EXTERNAL_COMPILER}
   Dos,
   GlobType,
   CpuInfo,
@@ -1462,13 +1466,47 @@ begin
   SwitchesPath:=FExpand(SwitchesPath);
 end;
 
+function GuessDefaultUnitSearchPath: DirStr;
+var UnitPath : DirStr;
+    ver : String;
+    iPos : sw_integer;
+begin
+  ver:=version_string;
+  UnitPath:=FExpand(DirOf(system.paramstr(0))+'../lib/fpc/'+ver+'/units'); { Unix / Linux }
+  If Not ExistsDir(UnitPath) Then
+  begin
+    UnitPath:=FExpand(DirOf(system.paramstr(0))+'../../units'); { Windows / Dos }
+    If Not ExistsDir(UnitPath) Then
+    begin
+      GuessDefaultUnitSearchPath:=''; { guess was not lucky }
+      exit;
+    end;
+  end;
+  iPos:= Pos(ver,UnitPath);
+  if iPos>1 then
+    if (UnitPath[iPos-1] in ['\','/',':']) and (UnitPath[iPos+length(ver)] in ['\','/',':']) then
+      UnitPath:=copy(UnitPath,1,iPos-1)+'$fpcversion'+copy(UnitPath,iPos+length(ver),length(UnitPath));
+  GuessDefaultUnitSearchPath:=UnitPath+DirectorySeparator+'$fpctarget'+DirectorySeparator+'*';
+end;
+
+procedure AddUnitSearchPath(S:String);
+var c:PunsortedStringCollection;
+   i : sw_integer;
+begin
+  i:=0; { Unit search path }
+  c:=directorySwitches^.getMultiStringItem(i);
+  if s<>'' then
+    c^.insert(newstr(s));
+end;
+
 procedure SetDefaultSwitches;
 var
    i,OldSwitchesMode : TSwitchMode;
-
+   UnitPath : DirStr;
 begin
   { setup some useful defaults }
   OldSwitchesMode:=SwitchesMode;
+  UnitPath:=GuessDefaultUnitSearchPath;
   for i:=low(TSwitchMode) to high(TSwitchMode) do
     begin
        SwitchesMode:=i;
@@ -1508,6 +1546,8 @@ begin
                CodegenSwitches^.SetBooleanItem(4,true);
                { assertions on }
                SyntaxSwitches^.SetBooleanItem(4,true);
+               {Default unit search path}
+               AddUnitSearchPath(UnitPath);
             end;
           om_normal:
             begin
@@ -1515,6 +1555,8 @@ begin
                OptimizationSwitches^.SetBooleanItem(1,true);
                {Level 1 optimizations.}
                OptimizationSwitches^.SetBooleanItem(3,true);
+               {Default unit search path}
+               AddUnitSearchPath(UnitPath);
             end;
           om_release:
             begin
@@ -1527,6 +1569,8 @@ begin
                CodegenSwitches^.SetBooleanItem(6,true);
                {Strip debug info}
                OtherLinkerSwitches^.SetBooleanItem(0,true);
+               {Default unit search path}
+               AddUnitSearchPath(UnitPath);
             end;
        end;
        { set appropriate default target }
