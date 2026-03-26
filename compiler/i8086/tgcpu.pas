@@ -51,8 +51,6 @@ uses
 { ttgi8086 }
 
 procedure ttgi8086.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
-  var
-    compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
   begin
     inherited;
     ref.segment:=NR_SS;

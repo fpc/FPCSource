@@ -60,6 +60,8 @@ unit tgobj;
 
        {# Generates temporary variables }
        ttgobj = class
+       private
+          FCompiler: TCompilerBase;
        protected
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
@@ -78,7 +80,7 @@ unit tgobj;
                and if all requested alignments are also a power of 2) }
           alignmismatch: longint;
           direction : shortint;
-          constructor create;virtual;reintroduce;
+          constructor create(acompiler: TCompilerBase);virtual;reintroduce;
           {# Clear and free the complete linked list of temporary memory
              locations. The list is set to nil.}
           procedure resettempgen;
@@ -127,6 +129,7 @@ unit tgobj;
           procedure getlocal(list: TAsmList; size: asizeint; def: tdef; var ref : treference);
           procedure getlocal(list: TAsmList; size: asizeint; alignment,explicitalignment: shortint; def: tdef; sym : tsym; var ref : treference); virtual;
           procedure UnGetLocal(list: TAsmList; const ref : treference);
+          property Compiler: TCompilerBase read FCompiler;
        end;
        ttgobjclass = class of ttgobj;
 
@@ -182,9 +185,10 @@ implementation
                                     TTGOBJ
 *****************************************************************************}
 
-    constructor ttgobj.create;
+    constructor ttgobj.create(acompiler: TCompilerBase);
 
      begin
+       FCompiler:=acompiler;
        tempfreelist:=nil;
        templist:=nil;
        { we could create a new child class for this but I don't if it is worth the effort (FK) }
@@ -197,8 +201,6 @@ implementation
 
 
     procedure ttgobj.resettempgen;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          hp : ptemprecord;
       begin
@@ -230,8 +232,6 @@ implementation
 
 
     procedure ttgobj.setfirsttemp(l: asizeint);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          { this is a negative value normally }
          if l*direction>=0 then
@@ -256,8 +256,6 @@ implementation
 
 
     procedure ttgobj.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def :tdef; fini: boolean; out ref: treference);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
          tl,htl,
          bestslot,bestprev,
@@ -480,8 +478,6 @@ implementation
 
     procedure ttgobj.FreeTemp(list: TAsmList; pos: treftemppos; temptypes: ttemptypeset);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          hp,hnext,hprev,hprevfree : ptemprecord;
       begin
          hp:=templist;
@@ -594,8 +590,6 @@ implementation
 
     procedure ttgobj.gettempinternal(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         varalign : shortint;
       begin
         varalign:=used_align(alignment,compiler.globals.current_settings.alignment.localalignmin,compiler.globals.current_settings.alignment.localalignmax);
@@ -623,8 +617,6 @@ implementation
 
     function ttgobj.sizeoftemp(list: TAsmList; const ref: treference): asizeint;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
          hp : ptemprecord;
       begin
          SizeOfTemp := -1;
@@ -646,8 +638,6 @@ implementation
 
 
     function ttgobj.changetemptype(list: tasmList; const ref:treference; temptype:ttemptype):boolean;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         hp : ptemprecord;
       begin
@@ -771,8 +761,6 @@ implementation
 
 
     procedure ttgobj.getlocal(list: TAsmList; size: asizeint; alignment, explicitalignment: shortint; def: tdef; sym : tsym; var ref : treference);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         lalign : shortint;
       begin

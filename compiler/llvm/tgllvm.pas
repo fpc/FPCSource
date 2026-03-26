@@ -64,7 +64,7 @@ unit tgllvm;
        public
         alloclist: tasmlist;
 
-        constructor create; override;
+        constructor create(acompiler: TCompilerBase); override;
         destructor destroy; override;
         procedure setfirsttemp(l: asizeint); override;
         procedure temp_to_ref(p: ptemprecord; out ref: treference); override;
@@ -85,7 +85,8 @@ implementation
        llvmbase,aasmllvm,
        symconst,symtable,symdef,defutil,
        paramgr,parabase,cgobj,hlcgobj,
-       compiler
+       compiler,
+       tghelper
        ;
 
 
@@ -93,14 +94,10 @@ implementation
 
     procedure ttgllvm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        cg: tcg;
-      var
         tl: ptemprecord;
         reg: tregister;
         oldfileinfo: tfileposinfo;
       begin
-        cg:=compiler.cg;
         reg:=cg.gettempregister(list);
         new(tl);
 
@@ -154,16 +151,10 @@ implementation
 
     procedure ttgllvm.emit_lifetime(list: TAsmList; const procname: string; temp: ptemprecord);
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-        hlcg: thlcgobj;
-        paramanager: tparamanager;
-      var
         sizepara, ptrpara: tcgpara;
         pd: tprocdef;
         ref: treference;
       begin
-        hlcg:=compiler.hlcg;
-        paramanager:=compiler.paramanager;
         if (temp^.size<>0) and
            not is_managed_type(temp^.def) then
           begin
@@ -193,9 +184,9 @@ implementation
       end;
 
 
-    constructor ttgllvm.create;
+    constructor ttgllvm.create(acompiler: TCompilerBase);
       begin
-        inherited create;
+        inherited;
         direction:=1;
         alloclist:=TAsmList.create;
       end;
@@ -216,8 +207,6 @@ implementation
 
 
     procedure ttgllvm.getlocal(list: TAsmList; size: asizeint; alignment, explicitalignment: shortint; def: tdef; sym : tsym; var ref: treference);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         alignment:=used_align(alignment,compiler.globals.current_settings.alignment.localalignmin,compiler.globals.current_settings.alignment.localalignmax);
         gethltempintern(list,def,alignment,size,tt_persistent,ref);
