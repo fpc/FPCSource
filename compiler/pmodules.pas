@@ -1757,7 +1757,7 @@ type
         { compute CRC }
         if ErrorCount=0 then
           begin
-          if not module.are_all_used_units_compiled then
+          if module.find_used_unit_compiling<>nil then
             begin
               { Some used units are still compiling, so their CRCs can change.
                 Compute the final CRC of this module and wait.
@@ -1829,10 +1829,13 @@ type
         free_localsymtables(module.localsymtable);
 
         { leave when we got an error }
-        if (Errorcount>0) and not status.skip_error then
+        if (Errorcount>0) then
           begin
-            Message1(unit_f_errors_in_unit,tostr(Errorcount));
-            status.skip_error:=true;
+            if not status.skip_error then
+              begin
+                Message1(unit_f_errors_in_unit,tostr(Errorcount));
+                status.skip_error:=true;
+              end;
             module_is_done(module);
             module.state := ms_moduleerror;
 {$ifdef DEBUG_NODE_XML}

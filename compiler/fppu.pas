@@ -2093,13 +2093,14 @@ var
 
             remove_waitforunit_cycles;
 
-            { the implementation uses were just connected,
-              the scc_tree_crc_wait is outdated.
-              If all used units are compiled, continue.
-              otherwise some used units might still change }
-            if not are_all_used_units_compiled then
-              exit(false);
           end;
+
+        { the implementation uses were just connected,
+          the scc_tree_crc_wait is outdated.
+          If all used units are compiled, continue.
+          otherwise some used units might still change }
+        if find_used_unit_compiling<>nil then
+          exit(false);
 
         { check that all used units have their crc and checksums match }
         if not ppu_check_used_crcs then
@@ -2205,6 +2206,7 @@ var
       end;
 
     function tppumodule.ppu_check_used_crcs: boolean;
+    // check crcs
     var
       pu: tused_unit;
     begin
@@ -2234,9 +2236,6 @@ var
         end;
         pu:=tused_unit(pu.next);
       end;
-
-      if (scc_tree_crc_wait<>nil) and (scc_tree_crc_wait<>self) then
-        exit;
 
       Result:=true;
     end;

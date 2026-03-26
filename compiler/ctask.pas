@@ -28,7 +28,9 @@ unit ctask;
 interface
 
 uses
-  finput, fmodule, cclasses, globals, globtype, globstat;
+  finput, fmodule, cclasses, globals,
+  {$IFDEF DEBUG_PPU_CYCLES}globtype,{$ENDIF}
+  globstat;
 
 type
   { ttask
