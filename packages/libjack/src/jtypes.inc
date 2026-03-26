@@ -105,12 +105,13 @@ type
 (**
  *  @ref jack_options_t bits
  *)
-  JackOptions = (
+  JackOptions = integer;
 
+const
     (**
      * Null value to use when no option bits are needed.
      *)
-    JackNullOption = $00,
+    JackNullOption = $00;
 
     (**
      * Do not automatically start the JACK server when it is not
@@ -118,39 +119,37 @@ type
      * \$JACK_NO_START_SERVER is defined in the calling process
      * environment.
      *)
-    JackNoStartServer = $01,
+    JackNoStartServer = $01;
 
     (**
      * Use the exact client name requested.  Otherwise, JACK
      * automatically generates a unique one, if needed.
      *)
-    JackUseExactName = $02,
+    JackUseExactName = $02;
 
     (**
      * Open with optional <em>(char * ) server_name</em> parameter.
      *)
-    JackServerName = $04,
+    JackServerName = $04;
 
     (**
      * Load internal client from optional <em>(char * )
      * load_name</em>.  Otherwise use the @a client_name.
      *)
-    JackLoadName = $08,
+    JackLoadName = $08;
 
     (**
      * Pass optional <em>(char * ) load_init</em> string to the
      * jack_initialize() entry point of an internal client.
      *)
-    JackLoadInit = $10,
+    JackLoadInit = $10;
 
      (**
       * pass a SessionID Token this allows the sessionmanager to identify the client again.
       *)
-    JackSessionID = $20
-);
+    JackSessionID = $20;
 
 (** Valid options for opening an external client. *)
-const
   JackOpenOptions = JackOptions(Ord(JackSessionID) or Ord(JackServerName) or Ord(JackNoStartServer) or Ord(JackUseExactName));
 
 (** Valid options for loading an internal client. *)

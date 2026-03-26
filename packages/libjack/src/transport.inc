@@ -26,7 +26,7 @@
 //#endif
 
 //#include <jack/types.h>
-{$I types.inc}
+{$I jtypes.inc}
 //#include <jack/weakmacros.h>
 {$I weakmacros.inc}
 
