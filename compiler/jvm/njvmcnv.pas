@@ -1551,10 +1551,12 @@ implementation
     var
       compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       hlcg: thlcgobj;
+      tg: ttgobj;
     var
       checkdef: tdef;
     begin
       hlcg:=compiler.hlcg;
+      tg:=compiler.tg;
       if (node.nodetype=asn) and
          assigned(tasnode(node).call) then
         begin
