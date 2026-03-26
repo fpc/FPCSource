@@ -1724,7 +1724,7 @@ Implementation
         fn:=FindObjectFile(para,'',false);
         compiler.verbose.Comment(V_Tried,'Reading object '+fn);
         objinput:=CObjInput.Create(compiler);
-        objreader:=TObjectreader.create;
+        objreader:=TObjectreader.create(compiler.verbose);
         if objreader.openfile(fn) then
           begin
             if objinput.ReadObjData(objreader,objdata) then
@@ -1751,7 +1751,7 @@ Implementation
         if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
         compiler.verbose.Comment(V_Tried,'Opening library '+para);
-        objreader:=CArObjectreader.createAr(para,true);
+        objreader:=CArObjectreader.createAr(para,true,compiler.verbose);
         if compiler.verbose.ErrorCount>0 then
           exit;
         if objreader.isarchive then

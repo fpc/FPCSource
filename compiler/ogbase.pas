@@ -2407,7 +2407,7 @@ implementation
       begin
         FCompiler:=ACompiler;
         { init writer }
-        FWriter:=TObjectwriter.create;
+        FWriter:=TObjectwriter.create(compiler.verbose);
         FExeWriteMode:=ewm_exefull;
         { object files }
         FObjDataList:=TFPObjectList.Create(true);

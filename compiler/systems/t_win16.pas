@@ -115,7 +115,7 @@ var
 
 begin
   current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
-  ObjWriter:=TOmfLibObjectWriter.CreateAr(current_module.importlibfilename,32);
+  ObjWriter:=TOmfLibObjectWriter.CreateAr(current_module.importlibfilename,32,compiler.verbose);
   ObjOutput:=TOmfObjOutput.Create(ObjWriter,compiler);
   for i:=0 to current_module.ImportLibraryList.Count-1 do
     begin
@@ -173,7 +173,7 @@ begin
     exit;
 
   current_module.linkotherofiles.add(current_module.exportfilename,link_always);
-  ObjWriter:=TObjectWriter.Create;
+  ObjWriter:=TObjectWriter.Create(compiler.verbose);
   ObjOutput:=TOmfObjOutput.Create(ObjWriter,compiler);
   ObjWriter.createfile(current_module.exportfilename);
 

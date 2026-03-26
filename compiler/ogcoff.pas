@@ -3908,7 +3908,7 @@ const pemagic : array[0..3] of byte = (
           assigned(Wow64DisableWow64FsRedirection) then
           Wow64DisableWow64FsRedirection(p);
 {$endif win32}
-        DLLReader:=TObjectReader.Create;
+        DLLReader:=TObjectReader.Create(compiler.verbose);
         DLLReader.OpenFile(dllname);
 {$ifdef win32}
         if (compiler.target.info.system=system_x86_64_win64) and

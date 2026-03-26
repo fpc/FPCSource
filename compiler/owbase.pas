@@ -29,7 +29,7 @@ uses
   globtype,
   cstreams,
   cclasses,
-  compilerbase;
+  verbose;
 
 type
   tobjectwriter=class
@@ -40,11 +40,13 @@ type
     bufidx : longword;
     procedure writebuf;
   protected
+    FVerbose: TVerbose;
     fsize,
     fobjsize  : longword;
+    property Verbose: TVerbose read FVerbose;
   public
-    constructor create;
-    constructor createAr(const Aarfn:string);virtual;
+    constructor create(AVerbose: TVerbose);
+    constructor createAr(const Aarfn:string;AVerbose: TVerbose);virtual;
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
@@ -70,13 +72,15 @@ type
     bufmax : longint;
     function readbuf:boolean;
   protected
+    FVerbose: TVerbose;
     function getfilename : string;virtual;
     function GetSize: longint;virtual;
     function GetPos: longint;virtual;
     function GetIsArchive: boolean;virtual;
+    property Verbose: TVerbose read FVerbose;
   public
-    constructor create;
-    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);virtual;
+    constructor create(AVerbose: TVerbose);
+    constructor createAr(const Aarfn:string;allow_nonar:boolean;AVerbose: TVerbose);virtual;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
@@ -95,7 +99,7 @@ implementation
 
 uses
    SysUtils,
-   verbose, globals, compiler;
+   globals;
 
 const
   bufsize = 32768;
@@ -105,8 +109,9 @@ const
                               TObjectWriter
 ****************************************************************************}
 
-constructor tobjectwriter.create;
+constructor tobjectwriter.create(AVerbose: TVerbose);
 begin
+  FVerbose:=AVerbose;
   setlength(buf,bufsize);
   bufidx:=0;
   opened:=false;
@@ -121,21 +126,19 @@ begin
   buf:=nil;
 end;
 
-constructor tobjectwriter.createAr(const Aarfn:string);
+constructor tobjectwriter.createAr(const Aarfn:string;AVerbose: TVerbose);
 begin
   InternalError(2015041901);
 end;
 
 
 function tobjectwriter.createfile(const fn:string):boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   createfile:=false;
   f:=CFileStreamClass.Create(fn,fmCreate);
   if CStreamError<>0 then
     begin
-       compiler.verbose.Message2(exec_e_cant_create_objectfile,fn,IntToStr(CStreamError));
+       verbose.Message2(exec_e_cant_create_objectfile,fn,IntToStr(CStreamError));
        exit;
     end;
   bufidx:=0;
@@ -249,8 +252,9 @@ end;
                               TObjectReader
 ****************************************************************************}
 
-constructor tobjectreader.create;
+constructor tobjectreader.create(AVerbose: TVerbose);
 begin
+  FVerbose:=AVerbose;
   buf:=nil;
   bufidx:=0;
   bufmax:=0;
@@ -266,21 +270,19 @@ begin
 end;
 
 
-constructor tobjectreader.createAr(const Aarfn:string;allow_nonar:boolean=false);
+constructor tobjectreader.createAr(const Aarfn:string;allow_nonar:boolean;AVerbose: TVerbose);
 begin
   InternalError(2015081401);
 end;
 
 
 function tobjectreader.openfile(const fn:string):boolean;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 begin
   openfile:=false;
   f:=CFileStreamClass.Create(fn,fmOpenRead);
   if CStreamError<>0 then
     begin
-       compiler.verbose.Comment(V_Error,'Can''t open object file: '+fn);
+       verbose.Comment(V_Error,'Can''t open object file: '+fn);
        exit;
     end;
   ffilename:=fn;

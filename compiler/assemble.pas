@@ -2716,7 +2716,7 @@ Implementation
         hp : Tai;
         ObjWriter : TObjectWriter;
       begin
-        ObjWriter:=TObjectwriter.create;
+        ObjWriter:=TObjectwriter.create(compiler.verbose);
         ObjOutput:=CObjOutput.Create(ObjWriter,compiler);
         ObjData:=ObjOutput.newObjData(ObjFileName);
 
@@ -2804,9 +2804,9 @@ Implementation
       begin
         if not(cs_asm_leave in compiler.globals.current_settings.globalswitches) and
            not(af_needar in asminfo^.flags) then
-          ObjWriter:=CInternalAr.CreateAr(current_module.staticlibfilename)
+          ObjWriter:=CInternalAr.CreateAr(current_module.staticlibfilename,compiler.verbose)
         else
-          ObjWriter:=TObjectwriter.create;
+          ObjWriter:=TObjectwriter.create(compiler.verbose);
 
         NextSmartName(cut_normal);
         ObjOutput:=CObjOutput.Create(ObjWriter,compiler);

@@ -28,8 +28,8 @@ interface
 uses
   globtype,
   cclasses,
-  compilerbase,
-  owbase;
+  owbase,
+  verbose;
 
 type
   tarhdr=packed record
@@ -43,7 +43,7 @@ type
   end;
 
   tarobjectwriter=class(tobjectwriter)
-    constructor createAr(const Aarfn:string);override;
+    constructor createAr(const Aarfn:string;AVerbose: TVerbose);override;
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;override;
     procedure closefile;override;
@@ -81,7 +81,7 @@ type
     function GetPos: longint;override;
     function GetIsArchive: boolean; override;
   public
-    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);override;
+    constructor createAr(const Aarfn:string;allow_nonar:boolean;AVerbose: TVerbose);override;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;override;
     procedure closefile;override;
@@ -95,9 +95,7 @@ implementation
       SysUtils,
       cstreams,
       systems,
-      globals,
-      compiler,
-      verbose;
+      globals;
 
     const
       symrelocbufsize = 4096;
@@ -164,10 +162,11 @@ implementation
                                 TArObjectWriter
 *****************************************************************************}
 
-    constructor tarobjectwriter.createAr(const Aarfn:string);
+    constructor tarobjectwriter.createAr(const Aarfn:string;AVerbose: TVerbose);
       var
         time  : TSystemTime;
       begin
+        FVerbose:=AVerbose;
         arfn:=Aarfn;
         ardata:=TDynamicArray.Create(arbufsize);
         symreloc:=TDynamicArray.Create(symrelocbufsize);
@@ -180,10 +179,8 @@ implementation
 
 
     destructor tarobjectwriter.destroy;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if compiler.verbose.Errorcount=0 then
+        if assigned(verbose) and (verbose.Errorcount=0) then
          writear;
         arData.Free;
         arData := nil;
@@ -283,8 +280,6 @@ implementation
 
     procedure tarobjectwriter.writear;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         arf      : TCCustomFileStream;
         fixup,l,
         relocs,i : longint;
@@ -292,7 +287,7 @@ implementation
         arf:=CFileStreamClass.Create(arfn,fmCreate);
         if CStreamError<>0 then
           begin
-             compiler.verbose.Message1(exec_e_cant_create_archivefile,arfn);
+             verbose.Message1(exec_e_cant_create_archivefile,arfn);
              exit;
           end;
         arf.Write(armagic,sizeof(armagic));
@@ -339,13 +334,11 @@ implementation
 *****************************************************************************}
 
 
-    constructor tarobjectreader.createAr(const Aarfn:string;allow_nonar:boolean);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    constructor tarobjectreader.createAr(const Aarfn:string;allow_nonar:boolean;AVerbose: TVerbose);
       var
         magic:array[0..sizeof(armagic)-1] of char;
       begin
-        inherited Create;
+        inherited Create(AVerbose);
         ArSymbols:=TFPHashObjectList.Create(true);
         CurrMemberPos:=0;
         CurrMemberSize:=0;
@@ -357,7 +350,7 @@ implementation
             if isar then
               ReadArchive
             else if (not allow_nonar) then
-              compiler.verbose.Comment(V_Error,'Not a ar file, illegal magic: '+filename);
+              verbose.Comment(V_Error,'Not a ar file, illegal magic: '+filename);
             Seek(0);
           end;
       end;
@@ -401,8 +394,6 @@ implementation
 
     function tarobjectreader.DecodeMemberName(ahdr:TArHdr):string;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hs : string;
         code : integer;
         hsp,
@@ -425,7 +416,7 @@ implementation
             val(hs,lfnidx,code);
             if (lfnidx<0) or (lfnidx>=LFNSize) then
               begin
-                compiler.verbose.Comment(V_Error,'Invalid ar member lfn name index in '+filename);
+                verbose.Comment(V_Error,'Invalid ar member lfn name index in '+filename);
                 exit;
               end;
             p:=@LFNStrs[lfnidx];
@@ -448,8 +439,6 @@ implementation
 
     function tarobjectreader.DecodeMemberSize(ahdr:TArHdr):longint;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         hs : string;
         code : integer;
         hsp,
@@ -466,13 +455,11 @@ implementation
         hs[0]:=chr(hsp-@hs[1]);
         val(hs,result,code);
         if result<=0 then
-          compiler.verbose.Comment(V_Error,'Invalid ar member size in '+filename);
+          verbose.Comment(V_Error,'Invalid ar member size in '+filename);
       end;
 
 
     procedure tarobjectreader.ReadArchive;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       var
         currarhdr   : tarhdr;
         nrelocs,
@@ -498,7 +485,7 @@ implementation
         symsize:=currfilesize-relocsize-4;
         if symsize<0 then
           begin
-            compiler.verbose.Comment(V_Error,'Illegal symtable in ar file '+filename);
+            verbose.Comment(V_Error,'Illegal symtable in ar file '+filename);
             exit;
           end;
         { Read relocs }
@@ -524,7 +511,7 @@ implementation
             inc(currp);
             if currp>endp then
               begin
-                compiler.verbose.Comment(V_Error,'Illegal symtable in ar file '+filename);
+                verbose.Comment(V_Error,'Illegal symtable in ar file '+filename);
                 break;
               end;
           end;

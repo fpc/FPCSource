@@ -32,7 +32,7 @@ uses
   cclasses,
   globtype,
   owbase,
-  compilerbase;
+  verbose;
 
 type
 
@@ -84,8 +84,8 @@ type
     function WriteDictionary: Word;
     function TryWriteDictionaryWithSize(nblocks: Word): Boolean;
   public
-    constructor createAr(const Aarfn:string);override;
-    constructor createAr(const Aarfn:string;PageSize:Integer);
+    constructor createAr(const Aarfn:string;AVerbose: TVerbose);override;
+    constructor createAr(const Aarfn:string;PageSize:Integer;AVerbose: TVerbose);
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;override;
     procedure closefile;override;
@@ -122,7 +122,7 @@ type
     function GetPos: longint;override;
     function GetIsArchive: boolean;override;
   public
-    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);override;
+    constructor createAr(const Aarfn:string;allow_nonar:boolean;AVerbose: TVerbose);override;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;override;
     procedure closefile;override;
@@ -135,9 +135,8 @@ implementation
     uses
       SysUtils,
       cstreams,cutils,
-      globals,verbose,
-      omfbase,
-      compiler;
+      globals,
+      omfbase;
 
     const
       libbufsize = 65536;
@@ -187,13 +186,14 @@ implementation
                                 TOmfLibObjectWriter
 *****************************************************************************}
 
-    constructor TOmfLibObjectWriter.createAr(const Aarfn: string);
+    constructor TOmfLibObjectWriter.createAr(const Aarfn: string;AVerbose: TVerbose);
       begin
-        createAr(Aarfn,-1);
+        createAr(Aarfn,-1,AVerbose);
       end;
 
-    constructor TOmfLibObjectWriter.createAr(const Aarfn: string;PageSize: Integer);
+    constructor TOmfLibObjectWriter.createAr(const Aarfn: string;PageSize: Integer;AVerbose: TVerbose);
       begin
+        FVerbose:=AVerbose;
         FPageSize:=PageSize;
         FLibName:=Aarfn;
         FLibData:=TDynamicArray.Create(libbufsize);
@@ -204,10 +204,8 @@ implementation
 
 
     destructor TOmfLibObjectWriter.destroy;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
-        if compiler.verbose.Errorcount=0 then
+        if assigned(verbose) and (verbose.Errorcount=0) then
           WriteLib;
         FLibData.Free;
         FLibData := nil;
@@ -350,8 +348,6 @@ implementation
 
     procedure TOmfLibObjectWriter.WriteLib;
       var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
-      var
         libf: TCCustomFileStream;
         DictStart, bytes: LongWord;
         DictBlocks: Word;
@@ -362,7 +358,7 @@ implementation
         libf:=CFileStreamClass.Create(FLibName,fmCreate);
         if CStreamError<>0 then
           begin
-            compiler.verbose.Message1(exec_e_cant_create_archivefile,FLibName);
+            verbose.Message1(exec_e_cant_create_archivefile,FLibName);
             exit;
           end;
         for I:=0 to FObjectModules.Count-1 do
@@ -508,8 +504,6 @@ implementation
     end;
 
   procedure TOmfLibObjectReader.ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     const
       nbuckets=37;
       freespace=nbuckets;
@@ -541,7 +535,7 @@ implementation
                 length_of_string:=block^[ofs];
                 if (ofs+1+length_of_string+1)>High(TBlock) then
                   begin
-                    compiler.verbose.Comment(V_Error,'OMF dictionary entry goes beyond end of block');
+                    verbose.Comment(V_Error,'OMF dictionary entry goes beyond end of block');
                     continue;
                   end;
                 SetLength(name,length_of_string);
@@ -569,13 +563,11 @@ implementation
       result:=islib;
     end;
 
-  constructor TOmfLibObjectReader.createAr(const Aarfn: string; allow_nonar: boolean);
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+  constructor TOmfLibObjectReader.createAr(const Aarfn: string; allow_nonar: boolean;AVerbose: TVerbose);
     var
       RecType: Byte;
     begin
-      inherited Create;
+      inherited Create(AVerbose);
       LibSymbols:=TFPHashObjectList.Create(true);
       CurrMemberPos:=0;
       CurrMemberName:='';
@@ -587,7 +579,7 @@ implementation
           if islib then
             ReadLibrary
           else if (not allow_nonar) then
-            compiler.verbose.Comment(V_Error,'Not an OMF library file, illegal magic: '+filename);
+            verbose.Comment(V_Error,'Not an OMF library file, illegal magic: '+filename);
         end;
     end;
 
