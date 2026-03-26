@@ -1165,7 +1165,7 @@ implementation
     procedure tmodule.flagdependent;
       var
         dm : tdependent_unit;
-        m : tmodule;
+        m , bm: tmodule;
 
       begin
         { flag all units that depend on this unit for reloading }
@@ -1174,15 +1174,22 @@ implementation
         dm:=tdependent_unit(dependent_units.first);
         while assigned(dm) do
         begin
-          { We do not have to reload the unit that wants to load
-            this unit, unless this unit is already compiled during
-            the loading }
           m:=dm.u;
           if m.state in [ms_compiled,ms_processed] then
           begin
             { Inconsistency: ms_compiled must only be set when all depending units (even indirect)
                 are complete aka wait for crc or higher }
             writeln('tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
+            bm:=find_used_unit_compiling;
+            if bm<>nil then
+              writeln('tmodule.flagdependent ',modulename^,' is using (indirectly) ',bm.modulename^,' ',bm.statestr)
+            else
+              writeln('tmodule.flagdependent ',modulename^,' is not using any incomplete unit.');
+            bm:=m.find_used_unit_compiling;
+            if bm<>nil then
+              writeln('tmodule.flagdependent ',m.modulename^,' is using (indirectly) ',bm.modulename^,' ',bm.statestr)
+            else
+              writeln('tmodule.flagdependent ',m.modulename^,' is not using any incomplete unit.');
             Internalerror(2026022510);
           end;
           if not m.do_reload and is_reload_needed(dm) then

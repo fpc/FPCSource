@@ -2178,12 +2178,10 @@ var
               else
                 Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
   {$endif DEBUG_UNIT_CRC_CHANGES}
-              recompile_reason:=rr_crcchanged;
               {$IFDEF DEBUG_PPU_CYCLES}
               writeln('PPUALGO tppumodule.load_usedunits_section ',modulename^,' ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
               {$ENDIF}
-              { Note: the recompile_from_sources is invoked by the caller }
-              state:=ms_compile;
+              mark_recompile_needed(rr_crcchanged);
               exit(false);
             end;
 
@@ -2223,11 +2221,10 @@ var
             {$ifdef DEBUG_UNIT_CRC_CHANGES}
             Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
             {$endif DEBUG_UNIT_CRC_CHANGES}
-            recompile_reason:=rr_crcchanged;
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.ppu_check_used_crcs ',modulename^,' interface uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
             {$ENDIF}
-            state:=ms_compile;
+            mark_recompile_needed(rr_crcchanged);
             exit;
           end;
         end else begin
@@ -2407,6 +2404,7 @@ var
         recompile_reason:=reason;
         do_recompile:=true;
         do_reload:=true;
+        state:=ms_compile;
       end;
 
     procedure tppumodule.post_load_or_compile(from_module : tmodule);

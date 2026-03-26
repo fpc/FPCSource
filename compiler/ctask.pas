@@ -1033,6 +1033,7 @@ begin
     writeln('ttask_handler.processqueue scc_root: ',scc_root.modulename^,' ',scc_root.statestr);
     {$ENDIF}
 
+    { recompile marked modules }
     if recompile_pending(scc_root) then
       continue;
 
