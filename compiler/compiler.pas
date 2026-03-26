@@ -858,11 +858,13 @@ function idfversionstring(version : longint):string;
           else
             Replace(s,'$FPCTARGET',target.full_string);
         end;
-      Replace(s,'$FPCSUBARCH',lower(cputypestr[globals.init_settings.cputype]));
+      if assigned(globals) then
+        Replace(s,'$FPCSUBARCH',lower(cputypestr[globals.init_settings.cputype]));
       if assigned(target) then
         Replace(s,'$FPCABI',lower(abiinfo[target.info.abi].name));
 {$ifdef i8086}
-      Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[globals.init_settings.x86memorymodel]));
+      if assigned(globals) then
+        Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[globals.init_settings.x86memorymodel]));
 {$else i8086}
       Replace(s,'$FPCMEMORYMODEL','flat');
 {$endif i8086}
