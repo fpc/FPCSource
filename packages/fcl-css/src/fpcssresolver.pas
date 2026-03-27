@@ -1157,34 +1157,78 @@ begin
 end;
 
 function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity;
+
+  function GetCompValue(El: TCSSElement; out aValue: TCSSResCompValue): boolean;
+  var
+    F: TCSSFloatElement;
+    I: TCSSIntegerElement;
+  begin
+    Result:=true;
+    aValue:=Default(TCSSResCompValue);
+    if El is TCSSResolvedIdentifierElement then
+    begin
+      aValue.Kind:=rvkKeyword;
+      aValue.KeywordID:=TCSSResolvedIdentifierElement(El).NumericalID;
+    end else if El is TCSSFloatElement then
+    begin
+      F:=TCSSFloatElement(El);
+      aValue.Kind:=rvkFloat;
+      aValue.Float:=F.Value;
+      aValue.FloatUnit:=F.Units;
+    end else if El is TCSSIntegerElement then
+    begin
+      I:=TCSSIntegerElement(El);
+      aValue.Kind:=rvkFloat;
+      aValue.Float:=I.Value;
+      aValue.FloatUnit:=I.Units;
+    end else
+      Result:=false;
+  end;
+
 var
-  LeftID: TCSSResolvedIdentifierElement;
   KW: TCSSNumericalID;
   aValue: TCSSResCompValue;
-  RightFloat: TCSSFloatElement;
+  Cmp: integer;
+  ValueOnLeft: boolean;
 begin
   Result:=CSSSpecificityNoMatch;
-  if not Assigned(IsMediaPlain) then exit;
-  // handle plain name:value, e.g. (orientation: portrait)
-  if aBinary.Operation<>boColon then exit;
-  if not (aBinary.Left is TCSSResolvedIdentifierElement) then exit;
-  LeftID:=TCSSResolvedIdentifierElement(aBinary.Left);
-  KW:=LeftID.NumericalID;
-  aValue:=Default(TCSSResCompValue);
-  if aBinary.Right is TCSSResolvedIdentifierElement then
+  // name op value: (width > 400px)
+  // value op name: (400px < width)
+  if aBinary.Left is TCSSResolvedIdentifierElement then
   begin
-    aValue.Kind:=rvkKeyword;
-    aValue.KeywordID:=TCSSResolvedIdentifierElement(aBinary.Right).NumericalID;
-  end else if aBinary.Right is TCSSFloatElement then
+    KW:=TCSSResolvedIdentifierElement(aBinary.Left).NumericalID;
+    if KW<=0 then exit;
+    if not GetCompValue(aBinary.Right,aValue) then exit;
+    ValueOnLeft:=false;
+  end else if aBinary.Right is TCSSResolvedIdentifierElement then
   begin
-    RightFloat:=TCSSFloatElement(aBinary.Right);
-    aValue.Kind:=rvkFloat;
-    aValue.Float:=RightFloat.Value;
-    aValue.FloatUnit:=RightFloat.Units;
+    KW:=TCSSResolvedIdentifierElement(aBinary.Right).NumericalID;
+    if KW<=0 then exit;
+    if not GetCompValue(aBinary.Left,aValue) then exit;
+    ValueOnLeft:=true;
   end else
     exit;
-  if IsMediaPlain(Self,KW,aValue) then
-    Result:=FSourceSpecificity;
+  case aBinary.Operation of
+  boColon:
+    // plain name:value, e.g. (orientation: portrait)
+    if Assigned(IsMediaPlain) and IsMediaPlain(Self,KW,aValue) then
+      Result:=FSourceSpecificity;
+  boEquals,boLT,boLE,boGT,boGE:
+    // range comparison
+    // Cmp: 0=equal, 1=KW bigger, -1=value bigger
+    // for value op name, the operator direction is reversed
+    if Assigned(MediaCompare) and MediaCompare(Self,KW,aValue,Cmp) then
+    begin
+      if ValueOnLeft then Cmp:=-Cmp;
+      case aBinary.Operation of
+      boEquals: if Cmp=0  then Result:=FSourceSpecificity;
+      boGT:     if Cmp>0  then Result:=FSourceSpecificity;
+      boGE:     if Cmp>=0 then Result:=FSourceSpecificity;
+      boLT:     if Cmp<0  then Result:=FSourceSpecificity;
+      boLE:     if Cmp<=0 then Result:=FSourceSpecificity;
+      end;
+    end;
+  end;
 end;
 
 function TCSSResolver.MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity;

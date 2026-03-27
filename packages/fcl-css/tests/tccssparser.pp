@@ -927,8 +927,19 @@ begin
 end;
 
 procedure TTestCSSParser.TestMediaRangeValueName;
+var
+  R: TCSSAtRuleElement;
+  aBin: TCSSBinaryElement;
+  aSel: TCSSIdentifierElement;
 begin
-  ParseRule('@media (100px <= width) {  }');
+  R:=TCSSAtRuleElement(ParseRule('@media (100px <= width) {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('selector 0',TCSSBinaryElement,R.Selectors[0]));
+  AssertEquals('selector operation',boLE,aBin.Operation);
+  CheckLiteral('selector left',aBin.Left,100,cu_px);
+  aSel:=TCSSIdentifierElement(CheckClass('selector right',TCSSIdentifierElement,aBin.Right));
+  AssertEquals('selector right value','width',aSel.Value);
 end;
 
 procedure TTestCSSParser.TestMediaRangeValueLtNameLtValue;
