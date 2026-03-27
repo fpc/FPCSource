@@ -31,7 +31,7 @@ unit optdfa;
   interface
 
     uses
-      compilerbase,node,optutils;
+      compilerbase,node,nutils,optutils;
 
     type
       TDFABuilder = class
@@ -57,6 +57,7 @@ unit optdfa;
       TDFAOptimizer = class
       private
         FCompiler: TCompilerBase;
+        function SearchNode(var n: tnode; arg: pointer): foreachnoderesult;
         property Compiler: TCompilerBase read FCompiler;
       public
         constructor Create(ACompiler: TCompilerBase);
@@ -73,7 +74,7 @@ unit optdfa;
       symconst,symdef,symsym,
       defutil,
       procinfo,
-      nutils,htypechk,
+      htypechk,
       nbas,nflw,ncal,nset,nld,nadd,
       optbase,
       compiler;
@@ -711,9 +712,7 @@ unit optdfa;
 
     { searches for a given node n and warns if the node is found as being uninitialized. If a node is
       found, searching is stopped so each call issues only one warning/hint }
-    function SearchNode(var n: tnode; arg: pointer): foreachnoderesult;
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    function TDFAOptimizer.SearchNode(var n: tnode; arg: pointer): foreachnoderesult;
 
       function WarnedForLocation(f : tfileposinfo) : boolean;
         var
@@ -796,8 +795,8 @@ unit optdfa;
             begin
               { take care of short boolean evaluation: if the expression to be search is found in left,
                 we do not need to search right }
-              if foreachnodestatic(pm_postprocess,taddnode(n).left,@optdfa.SearchNode,arg) or
-                foreachnodestatic(pm_postprocess,taddnode(n).right,@optdfa.SearchNode,arg) then
+              if foreachnode(pm_postprocess,taddnode(n).left,@self.SearchNode,arg) or
+                foreachnode(pm_postprocess,taddnode(n).right,@self.SearchNode,arg) then
                 result:=fen_norecurse_true
               else
                 result:=fen_norecurse_false;
@@ -830,8 +829,8 @@ unit optdfa;
                       { don't warn about the method pointer }
                       AddFilepos(hpt.fileinfo);
 
-                      if not(foreachnodestatic(pm_postprocess,tcallnode(n).left,@optdfa.SearchNode,arg)) then
-                        foreachnodestatic(pm_postprocess,tcallnode(n).right,@optdfa.SearchNode,arg);
+                      if not(foreachnode(pm_postprocess,tcallnode(n).left,@self.SearchNode,arg)) then
+                        foreachnode(pm_postprocess,tcallnode(n).right,@self.SearchNode,arg);
                       result:=fen_norecurse_true
                     end;
                  end;
@@ -906,7 +905,7 @@ unit optdfa;
         procedure MaybeSearchIn(n : tnode);
           begin
             if touchesnode then
-              Result:=Result or foreachnodestatic(pm_postprocess,n,@SearchNode,@SearchNodeInfo);
+              Result:=Result or foreachnode(pm_postprocess,n,@SearchNode,@SearchNodeInfo);
           end;
 
         begin
