@@ -2470,10 +2470,8 @@ begin
   else if El.ClassType=TCSSBinaryElement then
   begin
     Bin:=TCSSBinaryElement(El);
-    if Bin.Left is TCSSResolvedIdentifierElement then
-      ResolveMediaIdentifier(TCSSResolvedIdentifierElement(Bin.Left));
-    if Bin.Right is TCSSResolvedIdentifierElement then
-      ResolveMediaIdentifier(TCSSResolvedIdentifierElement(Bin.Right));
+    CheckMediaSelector(Bin.Left);
+    CheckMediaSelector(Bin.Right);
   end;
 end;
 

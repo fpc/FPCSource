@@ -1185,48 +1185,74 @@ function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TC
       Result:=false;
   end;
 
+  // RangeCmpMatches: compare KW against aValue using Op
+  // Cmp: 0=equal, 1=KW bigger, -1=value bigger
+  // ValueOnLeft=true: operation is written as "value Op name", so flip Cmp
+  function RangeCmpMatches(KW: TCSSNumericalID; const aValue: TCSSResCompValue;
+    Op: TCSSBinaryOperation; ValueOnLeft: boolean): boolean;
+  var
+    Cmp: integer;
+  begin
+    Result:=false;
+    if not (Assigned(MediaCompare) and MediaCompare(Self,KW,aValue,Cmp)) then exit;
+    if ValueOnLeft then Cmp:=-Cmp;
+    case Op of
+    boEquals: Result:=Cmp=0;
+    boGT:     Result:=Cmp>0;
+    boGE:     Result:=Cmp>=0;
+    boLT:     Result:=Cmp<0;
+    boLE:     Result:=Cmp<=0;
+    end;
+  end;
+
 var
   KW: TCSSNumericalID;
-  aValue: TCSSResCompValue;
-  Cmp: integer;
-  ValueOnLeft: boolean;
+  aValue, aValue2: TCSSResCompValue;
+  aInner: TCSSBinaryElement;
 begin
   Result:=CSSSpecificityNoMatch;
-  // name op value: (width > 400px)
-  // value op name: (400px < width)
-  if aBinary.Left is TCSSResolvedIdentifierElement then
+  if aBinary.Left is TCSSBinaryElement then
   begin
+    // interval: value1 op1 name op2 value2, e.g. (100px <= width < 1000px)
+    // inner binary: value1 op1 name (value on left)
+    // outer operation: name op2 value2 (name on left)
+    aInner:=TCSSBinaryElement(aBinary.Left);
+    if not (aInner.Right is TCSSResolvedIdentifierElement) then exit;
+    KW:=TCSSResolvedIdentifierElement(aInner.Right).NumericalID;
+    if KW<=0 then exit;
+    if not GetCompValue(aInner.Left,aValue) then exit;   // value1
+    if not GetCompValue(aBinary.Right,aValue2) then exit; // value2
+    // check both bounds; inner is value-on-left, outer is name-on-left
+    if not RangeCmpMatches(KW,aValue,aInner.Operation,true) then exit;
+    if RangeCmpMatches(KW,aValue2,aBinary.Operation,false) then
+      Result:=FSourceSpecificity;
+  end
+  else if aBinary.Left is TCSSResolvedIdentifierElement then
+  begin
+    // name op value: (width > 400px)
     KW:=TCSSResolvedIdentifierElement(aBinary.Left).NumericalID;
     if KW<=0 then exit;
     if not GetCompValue(aBinary.Right,aValue) then exit;
-    ValueOnLeft:=false;
-  end else if aBinary.Right is TCSSResolvedIdentifierElement then
+    case aBinary.Operation of
+    boColon:
+      // plain name:value, e.g. (orientation: portrait)
+      if Assigned(IsMediaPlain) and IsMediaPlain(Self,KW,aValue) then
+        Result:=FSourceSpecificity;
+    boEquals,boLT,boLE,boGT,boGE:
+      if RangeCmpMatches(KW,aValue,aBinary.Operation,false) then
+        Result:=FSourceSpecificity;
+    end;
+  end
+  else if aBinary.Right is TCSSResolvedIdentifierElement then
   begin
+    // value op name: (400px < width)
     KW:=TCSSResolvedIdentifierElement(aBinary.Right).NumericalID;
     if KW<=0 then exit;
     if not GetCompValue(aBinary.Left,aValue) then exit;
-    ValueOnLeft:=true;
-  end else
-    exit;
-  case aBinary.Operation of
-  boColon:
-    // plain name:value, e.g. (orientation: portrait)
-    if Assigned(IsMediaPlain) and IsMediaPlain(Self,KW,aValue) then
-      Result:=FSourceSpecificity;
-  boEquals,boLT,boLE,boGT,boGE:
-    // range comparison
-    // Cmp: 0=equal, 1=KW bigger, -1=value bigger
-    // for value op name, the operator direction is reversed
-    if Assigned(MediaCompare) and MediaCompare(Self,KW,aValue,Cmp) then
-    begin
-      if ValueOnLeft then Cmp:=-Cmp;
-      case aBinary.Operation of
-      boEquals: if Cmp=0  then Result:=FSourceSpecificity;
-      boGT:     if Cmp>0  then Result:=FSourceSpecificity;
-      boGE:     if Cmp>=0 then Result:=FSourceSpecificity;
-      boLT:     if Cmp<0  then Result:=FSourceSpecificity;
-      boLE:     if Cmp<=0 then Result:=FSourceSpecificity;
-      end;
+    case aBinary.Operation of
+    boEquals,boLT,boLE,boGT,boGE:
+      if RangeCmpMatches(KW,aValue,aBinary.Operation,true) then
+        Result:=FSourceSpecificity;
     end;
   end;
 end;

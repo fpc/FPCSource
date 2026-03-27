@@ -516,10 +516,8 @@ type
     procedure TestRes_Media_Name; // test boolean
     procedure TestRes_Media_NameColonValue; // test plain (name:value)
     procedure TestRes_Media_Range_NameGtValue;
-      procedure TestRes_Media_Range_ValueLtName;
-    // todo procedure TestRes_Media_Range_Cmp1 (300px <= height)
-    // todo procedure TestRes_Media_Range_Cmp2 (width = height)
-    // todo procedure TestRes_Media_Range_Cmp3 (width > 200em)
+    procedure TestRes_Media_Range_ValueLtName;
+    procedure TestRes_Media_Range_ValueLtNameLtValue;
     // todo procedure TestRes_Media_Range_LT_Interval (100px <= width < 300px)
     // todo procedure TestRes_Media_Range_GT_Interval (100px > width >= 300px)
     // todo procedure TestRes_Media_Ratio (aspect_ratio < 3/2)
@@ -3577,6 +3575,24 @@ begin
   Doc.Style:=LinesToStr([
   '@media (1000px >= width) { div{ width: 10px; } }',
   '@media (300px <= height) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Range_ValueLtNameLtValue;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (100px <= width < 1000px) { div{ width: 10px; } }',
+  '@media (300px < height <= 900px) { div{ height: 11px; } }',
   '']);
   ApplyStyle;
   AssertEquals('Div1.Width','10px',Div1.Width);
