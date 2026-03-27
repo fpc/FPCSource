@@ -478,9 +478,9 @@ interface
     procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
 
     procedure printfileinfo(var t:text;pos:tfileposinfo);
-    procedure printfileinfo(pos:tfileposinfo);
+    procedure dprintfileinfo(pos:tfileposinfo);
     procedure printnode(var t:text;n:tnode);
-    procedure printnode(n:tnode);
+    procedure dprintnode(n:tnode);
 {$ifdef DEBUG_NODE_XML}
     procedure XMLPrintNode(var T: Text; N: TNode);
 {$endif DEBUG_NODE_XML}
@@ -650,7 +650,7 @@ implementation
       end;
 
 
-    procedure printnode(n:tnode);
+    procedure dprintnode(n:tnode);
       begin
         printnode(output,n);
       end;
@@ -667,7 +667,7 @@ implementation
         write(t,'(',infile,':',pos.line,',',pos.column,')');
       end;
 
-    procedure printfileinfo(pos:tfileposinfo);
+    procedure dprintfileinfo(pos:tfileposinfo);
       begin
         printfileinfo(output,pos);
       end;
@@ -1479,6 +1479,9 @@ implementation
       end;
 {$endif DEBUG_NODE_XML}
 
+var
+  printfileinfo_address : pointer;
+  printnode_address : pointer;
 
 begin
 {$push}{$warnings off}
@@ -1489,5 +1492,7 @@ begin
   if ord(high(tnodeflags))>31 then
     internalerror(2014020701); *)
 {$pop}
+  printfileinfo_address:=@dprintfileinfo;
+  printnode_address:=@dprintnode;
 end.
 
