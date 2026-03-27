@@ -28,7 +28,7 @@ Interface
 Uses
   cutils,cclasses,
   globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,compilerbase,
-  symconst,symbase,symtype,symdef,symsym,constexp,symcpu,paramgr;
+  symconst,symbase,symtype,symdef,symsym,constexp,symcpu,paramgr,verbose;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -182,11 +182,12 @@ type
 
   TExprParse = class
     public
-     Constructor create;
+     Constructor create(AVerbose: TVerbose);
      Destructor Destroy;override;
      Function Evaluate(Expr:  String): tcgint;
      Function Priority(_Operator: Char): aint;
     private
+     FVerbose   : TVerbose;
      RPNStack   : Array[1..RPNMax] of tcgint;        { Stack For RPN calculator }
      RPNTop     : tcgint;
      OpStack    : Array[1..OpMax] of TExprOperator;    { Operator stack For conversion }
@@ -197,6 +198,7 @@ type
      Procedure OpPush(_Operator: char; prefix: boolean);
      { In reality returns TExprOperator }
      Procedure OpPop(var _Operator:TExprOperator);
+     Property Verbose: TVerbose read FVerbose;
   end;
 
   { Evaluate an expression string to a tcgint }
@@ -239,7 +241,7 @@ Implementation
 
 uses
   SysUtils,
-  defutil,systems,verbose,globals,
+  defutil,systems,globals,
   symtable,
   aasmcpu,
   procinfo,ngenutil,
@@ -249,7 +251,7 @@ uses
                               TExprParse
 *************************************************************************}
 
-Constructor TExprParse.create;
+Constructor TExprParse.create(AVerbose: TVerbose);
 Begin
 end;
 
@@ -544,9 +546,11 @@ end;
 
 Function CalculateExpression(const expression: string): tcgint;
 var
+  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+var
   expr: TExprParse;
 Begin
-  expr:=TExprParse.create;
+  expr:=TExprParse.create(compiler.verbose);
   CalculateExpression:=expr.Evaluate(expression);
   expr.Free;
   expr := nil;
