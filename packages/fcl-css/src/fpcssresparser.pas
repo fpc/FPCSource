@@ -2459,13 +2459,22 @@ end;
 procedure TCSSResolverParser.CheckMediaSelector(El: TCSSElement);
 var
   i: Integer;
+  Bin: TCSSBinaryElement;
 begin
   if El=nil then exit;
   if El.ClassType=TCSSResolvedIdentifierElement then
     ResolveMediaIdentifier(TCSSResolvedIdentifierElement(El))
   else if El.ClassType=TCSSListElement then
     for i:=0 to TCSSListElement(El).ChildCount-1 do
-      CheckMediaSelector(TCSSListElement(El).Children[i]);
+      CheckMediaSelector(TCSSListElement(El).Children[i])
+  else if El.ClassType=TCSSBinaryElement then
+  begin
+    Bin:=TCSSBinaryElement(El);
+    if Bin.Left is TCSSResolvedIdentifierElement then
+      ResolveMediaIdentifier(TCSSResolvedIdentifierElement(Bin.Left));
+    if Bin.Right is TCSSResolvedIdentifierElement then
+      ResolveMediaIdentifier(TCSSResolvedIdentifierElement(Bin.Right));
+  end;
 end;
 
 function TCSSResolverParser.ParseAtMediaRule: TCSSAtRuleElement;

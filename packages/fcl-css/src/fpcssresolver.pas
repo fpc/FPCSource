@@ -403,6 +403,7 @@ type
     function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
     function GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRules: boolean): TCSSRuleElement; virtual;
     function MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
+    function MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity; virtual;
     function MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity; virtual;
     function MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity; virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
@@ -1146,9 +1147,43 @@ begin
   Result:=CSSSpecificityNoMatch;
   KW:=Identifier.NumericalID;
   {$IFDEF VerboseCSSResolver}
-  writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' KW=',CSSRegistry.Keywords[KW]);
+  if KW>0 then
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' KW=',CSSRegistry.Keywords[KW])
+  else
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' unknown');
   {$ENDIF}
   if Assigned(HasMediaBoolean) and HasMediaBoolean(Self,KW) then
+    Result:=FSourceSpecificity;
+end;
+
+function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity;
+var
+  LeftID: TCSSResolvedIdentifierElement;
+  KW: TCSSNumericalID;
+  aValue: TCSSResCompValue;
+  RightFloat: TCSSFloatElement;
+begin
+  Result:=CSSSpecificityNoMatch;
+  if not Assigned(IsMediaPlain) then exit;
+  // handle plain name:value, e.g. (orientation: portrait)
+  if aBinary.Operation<>boColon then exit;
+  if not (aBinary.Left is TCSSResolvedIdentifierElement) then exit;
+  LeftID:=TCSSResolvedIdentifierElement(aBinary.Left);
+  KW:=LeftID.NumericalID;
+  aValue:=Default(TCSSResCompValue);
+  if aBinary.Right is TCSSResolvedIdentifierElement then
+  begin
+    aValue.Kind:=rvkKeyword;
+    aValue.KeywordID:=TCSSResolvedIdentifierElement(aBinary.Right).NumericalID;
+  end else if aBinary.Right is TCSSFloatElement then
+  begin
+    RightFloat:=TCSSFloatElement(aBinary.Right);
+    aValue.Kind:=rvkFloat;
+    aValue.Float:=RightFloat.Value;
+    aValue.FloatUnit:=RightFloat.Units;
+  end else
+    exit;
+  if IsMediaPlain(Self,KW,aValue) then
     Result:=FSourceSpecificity;
 end;
 
@@ -1163,6 +1198,8 @@ begin
     Result:=MediaSelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector))
   else if C=TCSSListElement then
     Result:=MediaSelectorListMatches(TCSSListElement(aSelector))
+  else if C=TCSSBinaryElement then
+    Result:=MediaSelectorBinaryMatches(TCSSBinaryElement(aSelector))
   else begin
     // already warned by parser
     {$IFDEF VerboseCSSResolver}

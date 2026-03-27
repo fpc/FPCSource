@@ -169,7 +169,9 @@ type
       kwLTR=kwInline_Block+1;
       kwRTL=kwLTR+1;
       kwScreen=kwRTL+1;
-      kwWidth=kwScreen+1;
+      kwOrientation=kwScreen+1;
+      kwPortrait=kwOrientation+1;
+      kwWidth=kwPortrait+1;
       kwHeight=kwWidth+1;
     var
 
@@ -511,8 +513,8 @@ type
     procedure TestRes_Nested_AndHasSpaceAtribute; // & [attr]
 
     // @media
-    procedure TestRes_Media_Name;
-    // todo procedure TestRes_Media_NameValue (display-mode: fullscreen)
+    procedure TestRes_Media_Name; // test boolean
+    procedure TestRes_Media_NameColonValue; // test plain (name:value)
     // todo procedure TestRes_Media_Range_Name_Value (height > 600px)
     // todo procedure TestRes_Media_Range_Cmp1 (300px <= height)
     // todo procedure TestRes_Media_Range_Cmp2 (width = height)
@@ -708,7 +710,9 @@ begin
   case KW of
   TDemoCSSRegistry.kwHeight,
   TDemoCSSRegistry.kwScreen,
-  TDemoCSSRegistry.kwWidth: Result:=true;
+  TDemoCSSRegistry.kwOrientation,
+  TDemoCSSRegistry.kwWidth
+    : Result:=true;
   end;
   if aResolver=nil then ;
 end;
@@ -728,12 +732,16 @@ begin
       if not MediaCompare(aResolver,KW,aValue,Cmp) then exit;
       exit(Cmp=0);
     end;
+  TDemoCSSRegistry.kwOrientation:
+     if (aValue.Kind=rvkKeyword) and (aValue.KeywordID=TDemoCSSRegistry.kwPortrait) then
+       Result:=true;
   else exit;
   end;
 end;
 
 function TDemoDocument.MediaCompare(aResolver: TCSSBaseResolver; const KW: TCSSNumericalID;
   const aValue: TCSSResCompValue; out Cmp: integer): boolean;
+// compare length
 var
   LeftType: TDemoMediaRangeType;
   LeftValue, RightValue: double;
@@ -1043,6 +1051,8 @@ begin
   AddKeyword('ltr');
   AddKeyword('rtl');
   AddKeyword('screen');
+  AddKeyword('orientation');
+  AddKeyword('portrait');
   AddKeyword('width');
   if AddKeyword('height')<>kwHeight then
     raise Exception.Create('20260322081506');
@@ -3509,12 +3519,31 @@ begin
 
   Doc.Style:=LinesToStr([
   '@media screen { div{ width: 10px; } }',
-//  '@media (screen) { div{ height: 11px; } }',
-//  '@media print { div{ width: 20px; } }',
-//  '@media (print) { div{ width: 21px; } }',
+  '@media (screen) { div{ height: 11px; } }',
+  '@media print { div{ width: 20px; } }',
+  '@media (print) { div{ width: 21px; } }',
   '']);
   ApplyStyle;
   AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_NameColonValue;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (orientation: portrait) { div{ width: 10px; } }',
+  '@media (orientation: print) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','',Div1.Height);
 end;
 
 initialization
