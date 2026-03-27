@@ -27,6 +27,7 @@ unit systems;
 interface
 
      uses
+       versioncmp,
        compilerbase;
 
 {$i systems.inc}
@@ -579,6 +580,9 @@ interface
       public
         { selected subtarget }
         subtarget         : string;
+
+        MacOSXVersionMin,
+        iPhoneOSVersionMin: tversion;
 
         constructor Create;
 
@@ -1326,6 +1330,9 @@ begin
 {$ifdef loongarch64}
   default_target(system_loongarch64_linux);
 {$endif loongarch64}
+
+  MacOSXVersionMin.invalidate;
+  iPhoneOSVersionMin.invalidate;
 end;
 
 

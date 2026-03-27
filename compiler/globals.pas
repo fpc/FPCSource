@@ -47,7 +47,7 @@ interface
 {$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
 {$endif LLVM or GENERIC_CPU}
-      globtype,version,versioncmp,systems,
+      globtype,version,systems,
       compilerbase;
 
     const
@@ -660,9 +660,6 @@ Const
         GenerateImportSectionSetExplicitly,
         RelocSection : boolean;
 
-        // TODO: MacOSXVersionMin and iPhoneOSVersionMin should probably be moved to TCompilerTarget
-        MacOSXVersionMin,
-        iPhoneOSVersionMin: tversion;
         RelocSectionSetExplicitly : boolean;
 
         // TODO: current_tokenpros and current_filepos should probably be moved to the scanner or the parser
@@ -1680,8 +1677,6 @@ implementation
         GenerateImportSection:=false;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
-        MacOSXVersionMin.invalidate;
-        iPhoneOSVersionMin.invalidate;
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
         stacksize:=0;

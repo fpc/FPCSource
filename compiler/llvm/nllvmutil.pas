@@ -298,7 +298,7 @@ implementation
         begin
           { Objective-C ABI version }
           if not(compiler.target.info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
-             (compiler.globals.MacOSXVersionMin.relationto(10,5,0)>=0) then
+             (compiler.target.MacOSXVersionMin.relationto(10,5,0)>=0) then
             objcabiversion:=2
           else
             objcabiversion:=1;

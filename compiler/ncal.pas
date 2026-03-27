@@ -3162,8 +3162,8 @@ implementation
             if not(cnf_inherited in callnodeflags) then
               msgsendname:='OBJC_MSGSEND_STRET'
             else if (compiler.target.info.system in systems_objc_nfabi) and
-                    (not compiler.globals.MacOSXVersionMin.isvalid or
-                     (compiler.globals.MacOSXVersionMin.relationto(10,6,0)>=0)) then
+                    (not compiler.target.MacOSXVersionMin.isvalid or
+                     (compiler.target.MacOSXVersionMin.relationto(10,6,0)>=0)) then
               msgsendname:='OBJC_MSGSENDSUPER2_STRET'
             else
               msgsendname:='OBJC_MSGSENDSUPER_STRET'
@@ -3181,8 +3181,8 @@ implementation
           if not(cnf_inherited in callnodeflags) then
             msgsendname:='OBJC_MSGSEND'
         else if (compiler.target.info.system in systems_objc_nfabi) and
-                (not compiler.globals.MacOSXVersionMin.isvalid or
-                 (compiler.globals.MacOSXVersionMin.relationto(10,6,0)>=0)) then
+                (not compiler.target.MacOSXVersionMin.isvalid or
+                 (compiler.target.MacOSXVersionMin.relationto(10,6,0)>=0)) then
           msgsendname:='OBJC_MSGSENDSUPER2'
         else
           msgsendname:='OBJC_MSGSENDSUPER';

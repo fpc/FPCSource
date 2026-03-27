@@ -1419,8 +1419,8 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
       While targeting 10.6 or higher does not guarantee we are using ld64,
       we don't have a better heuristic available.
     }
-    if not compiler.globals.MacOSXVersionMin.isvalid or
-       (compiler.globals.MacOSXVersionMin.relationto(10,6,0)>=0) then
+    if not compiler.target.MacOSXVersionMin.isvalid or
+       (compiler.target.MacOSXVersionMin.relationto(10,6,0)>=0) then
       sec:=sec_data
     else
       sec:=sec_data_coalesced;

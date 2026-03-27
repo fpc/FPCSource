@@ -37,8 +37,6 @@ uses
   cpuinfo,tripletcpu,compiler;
 
   function targettriplet(target: TCompilerTarget; tripletstyle: ttripletstyle): ansistring;
-    var
-      compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
     begin
       { architecture }
       result:=tripletcpustr(target,tripletstyle);
@@ -47,11 +45,11 @@ uses
         begin
           result:=result+'-apple';
           if target.info.system in systems_macosx then
-            result:=result+'-macosx'+compiler.globals.MacOSXVersionMin.str
+            result:=result+'-macosx'+target.MacOSXVersionMin.str
           else if target.info.system = system_aarch64_iphonesim then
-            result:=result+'-ios-simulator'+compiler.globals.iPhoneOSVersionMin.str
+            result:=result+'-ios-simulator'+target.iPhoneOSVersionMin.str
           else
-            result:=result+'-ios'+compiler.globals.iPhoneOSVersionMin.str;
+            result:=result+'-ios'+target.iPhoneOSVersionMin.str;
         end
       else if target.info.system in (systems_linux+systems_android) then
         result:=result+'-unknown-linux'
