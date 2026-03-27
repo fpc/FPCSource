@@ -4019,7 +4019,7 @@ implementation
       var
         candidates : tcallcandidates;
         ccflags : tcallcandidatesflags;
-        hpt,tmp : tnode;
+        hpt: tnode;
         pt : tcallparanode;
         lastpara : longint;
         paraidx,
@@ -4030,7 +4030,6 @@ implementation
         statements : tstatementnode;
         converted_result_data : ttempcreatenode;
         calltype: tdispcalltype;
-        invokesym : tsym;
       begin
         result:=nil;
 
@@ -5721,7 +5720,14 @@ implementation
 
         { Concat the body and finalization parts }
         addstatement(inlineinitstatement,body);
-        addstatement(inlineinitstatement,inlinecleanupblock);
+        { Fix: Add only when inlinecleanupblock has actual content. }
+        if assigned(inlinecleanupblock.left) and
+           not ((inlinecleanupblock.left.nodetype = statementn) and
+                (tstatementnode(inlinecleanupblock.left).left.nodetype = nothingn) and
+                not assigned(tstatementnode(inlinecleanupblock.left).right)) then
+          addstatement(inlineinitstatement, inlinecleanupblock)
+        else
+          inlinecleanupblock.free;
         inlinecleanupblock:=nil;
 
         if assigned(callcleanupblock) then
