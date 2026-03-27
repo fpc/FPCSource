@@ -3149,7 +3149,7 @@ Unit Rax86int;
                        else
                          curlist.concat(Tai_const.Create_dgroup);
                        if constsize>2 then
-                         ConcatConstant(curlist,0,constsize-2);
+                         ConcatConstant(curlist,0,constsize-2,compiler.verbose);
                      end
                    else if asmsym='@CODE' then
                      begin
@@ -3159,7 +3159,7 @@ Unit Rax86int;
                          compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
                        curlist.concat(Tai_const.Create_seg_name(current_procinfo.procdef.mangledname));
                        if constsize>2 then
-                         ConcatConstant(curlist,0,constsize-2);
+                         ConcatConstant(curlist,0,constsize-2,compiler.verbose);
                      end
                    else if cseof_isseg in cse_out_flags then
                      begin
@@ -3167,7 +3167,7 @@ Unit Rax86int;
                          compiler.verbose.Message1(asmr_e_const16bit_for_segment,asmsym);
                        curlist.concat(Tai_const.Create_seg_name(asmsym));
                        if constsize>2 then
-                         ConcatConstant(curlist,0,constsize-2);
+                         ConcatConstant(curlist,0,constsize-2,compiler.verbose);
                      end
                    else
 {$endif i8086}
