@@ -685,7 +685,7 @@ Unit Rax86int;
                     actasmpattern:=actasmpattern + c;
                     c:=current_scanner.asmgetchar;
                   end;
-                 actasmpattern:=tostr(ParseVal(actasmpattern,16));
+                 actasmpattern:=tostr(ParseVal(actasmpattern,16,compiler.verbose));
                  actasmtoken:=AS_INTNUM;
                  exit;
                end;
@@ -870,7 +870,7 @@ Unit Rax86int;
                     Begin
                       { Delete the last binary specifier }
                       delete(actasmpattern,length(actasmpattern),1);
-                      actasmpattern:=tostr(ParseVal(actasmpattern,2));
+                      actasmpattern:=tostr(ParseVal(actasmpattern,2,compiler.verbose));
                       actasmtoken:=AS_INTNUM;
                       exit;
                     end
@@ -879,21 +879,21 @@ Unit Rax86int;
                       case c of
                         'O' :
                           Begin
-                            actasmpattern:=tostr(ParseVal(actasmpattern,8));
+                            actasmpattern:=tostr(ParseVal(actasmpattern,8,compiler.verbose));
                             actasmtoken:=AS_INTNUM;
                             c:=current_scanner.asmgetchar;
                             exit;
                           end;
                         'H' :
                           Begin
-                            actasmpattern:=tostr(ParseVal(actasmpattern,16));
+                            actasmpattern:=tostr(ParseVal(actasmpattern,16,compiler.verbose));
                             actasmtoken:=AS_INTNUM;
                             c:=current_scanner.asmgetchar;
                             exit;
                           end;
                         else { must be an integer number }
                           begin
-                            actasmpattern:=tostr(ParseVal(actasmpattern,10));
+                            actasmpattern:=tostr(ParseVal(actasmpattern,10,compiler.verbose));
                             actasmtoken:=AS_INTNUM;
                             exit;
                           end;

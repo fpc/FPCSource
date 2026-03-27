@@ -786,7 +786,7 @@ const
                    Consume(AS_INTNUM);
                   end;
       AS_BINNUM:  begin
-                      tempstr := tostr(ParseVal(actasmpattern,2));
+                      tempstr := tostr(ParseVal(actasmpattern,2,compiler.verbose));
                       if tempstr = '' then
                        compiler.verbose.Message(asmr_e_error_converting_binary);
                       expr:=expr+tempstr;
@@ -794,14 +794,14 @@ const
                   end;
 
       AS_HEXNUM: begin
-                    tempstr := tostr(ParseVal(actasmpattern,16));
+                    tempstr := tostr(ParseVal(actasmpattern,16,compiler.verbose));
                     if tempstr = '' then
                      compiler.verbose.Message(asmr_e_error_converting_hexadecimal);
                     expr:=expr+tempstr;
                     Consume(AS_HEXNUM);
                 end;
       AS_OCTALNUM: begin
-                    tempstr := tostr(ParseVal(actasmpattern,8));
+                    tempstr := tostr(ParseVal(actasmpattern,8,compiler.verbose));
                     if tempstr = '' then
                      compiler.verbose.Message(asmr_e_error_converting_octal);
                     expr:=expr+tempstr;
@@ -1009,9 +1009,9 @@ const
       compiler.verbose.Message(asmr_e_wrong_base_index);
      case actasmtoken of
         AS_INTNUM: str := actasmpattern;
-        AS_HEXNUM: str := Tostr(ParseVal(actasmpattern,16));
-        AS_BINNUM: str := Tostr(ParseVal(actasmpattern,2));
-        AS_OCTALNUM: str := Tostr(ParseVal(actasmpattern,8));
+        AS_HEXNUM: str := Tostr(ParseVal(actasmpattern,16,compiler.verbose));
+        AS_BINNUM: str := Tostr(ParseVal(actasmpattern,2,compiler.verbose));
+        AS_OCTALNUM: str := Tostr(ParseVal(actasmpattern,8,compiler.verbose));
      else
         compiler.verbose.Message(asmr_e_syntax_error);
      end;
@@ -1120,19 +1120,19 @@ const
             tempstr := actasmpattern;
         AS_BINNUM:
             begin
-              tempstr := Tostr(ParseVal(actasmpattern,2));
+              tempstr := Tostr(ParseVal(actasmpattern,2,compiler.verbose));
               if tempstr = '' then
                 compiler.verbose.Message(asmr_e_error_converting_binary);
             end;
         AS_HEXNUM:
             begin
-              tempstr := Tostr(ParseVal(actasmpattern,16));
+              tempstr := Tostr(ParseVal(actasmpattern,16,compiler.verbose));
               if tempstr = '' then
                 compiler.verbose.Message(asmr_e_error_converting_hexadecimal);
             end;
         AS_OCTALNUM:
             begin
-              tempstr := Tostr(ParseVal(actasmpattern,8));
+              tempstr := Tostr(ParseVal(actasmpattern,8,compiler.verbose));
               if tempstr = '' then
                 compiler.verbose.Message(asmr_e_error_converting_octal);
             end;
@@ -1252,9 +1252,9 @@ const
            begin
              case actasmtoken of
                AS_INTNUM: str := actasmpattern;
-               AS_HEXNUM: str := Tostr(ParseVal(actasmpattern,16));
-               AS_BINNUM: str := Tostr(ParseVal(actasmpattern,2));
-               AS_OCTALNUM: str := Tostr(ParseVal(actasmpattern,8));
+               AS_HEXNUM: str := Tostr(ParseVal(actasmpattern,16,compiler.verbose));
+               AS_BINNUM: str := Tostr(ParseVal(actasmpattern,2,compiler.verbose));
+               AS_OCTALNUM: str := Tostr(ParseVal(actasmpattern,8,compiler.verbose));
               else
                 compiler.verbose.Message(asmr_e_syntax_error);
              end;

@@ -208,7 +208,7 @@ type
   {                     String routines                                 }
   {---------------------------------------------------------------------}
 
-Function ParseVal(const S:String;base:byte):tcgint;
+Function ParseVal(const S:String;base:byte;Verbose:TVerbose):tcgint;
 Function PadZero(Var s: String; n: byte): Boolean;
 Function EscapeToPascal(const s:string; Verbose: TVerbose): string;
 
@@ -584,14 +584,14 @@ Begin
              temp:=temp+s[i+1];
              temp:=temp+s[i+2];
              inc(i,2);
-             c:=chr(ParseVal(temp,8));
+             c:=chr(ParseVal(temp,8,verbose));
            end;
          'x':
            Begin
              temp:=s[i+1];
              temp:=temp+s[i+2];
              inc(i,2);
-             c:=chr(ParseVal(temp,16));
+             c:=chr(ParseVal(temp,16,verbose));
            end;
          else
            Begin
@@ -610,9 +610,7 @@ Begin
 end;
 
 
-Function ParseVal(const S:String;base:byte):tcgint;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Function ParseVal(const S:String;base:byte;Verbose:TVerbose):tcgint;
 { Converts a decimal string to tcgint }
 var
   code : integer;
@@ -649,7 +647,7 @@ Begin
       val(prefix+s,result,code);
       if code<>0 then
         begin
-          compiler.verbose.Message1(errmsg,s);
+          verbose.Message1(errmsg,s);
           result:=0;
         end;
     end;
