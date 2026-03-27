@@ -210,7 +210,7 @@ type
 
 Function ParseVal(const S:String;base:byte):tcgint;
 Function PadZero(Var s: String; n: byte): Boolean;
-Function EscapeToPascal(const s:string): string;
+Function EscapeToPascal(const s:string; Verbose: TVerbose): string;
 
 {---------------------------------------------------------------------
                      Symbol helper routines
@@ -545,9 +545,7 @@ end;
 {                         String conversions/utils                        }
 {*************************************************************************}
 
-Function EscapeToPascal(const s:string): string;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Function EscapeToPascal(const s:string; Verbose: TVerbose): string;
 { converts a C styled string - which contains escape }
 { characters to a pascal style string.               }
 var
@@ -597,7 +595,7 @@ Begin
            end;
          else
            Begin
-             compiler.verbose.Message1(asmr_e_escape_seq_ignored,s[i]);
+             Verbose.Message1(asmr_e_escape_seq_ignored,s[i]);
              c:=s[i];
            end;
         end;
