@@ -103,7 +103,10 @@ const
   CSSKeywordRevert = CSSKeywordUnset+1;
   CSSKeywordRevertLayer = CSSKeywordRevert+1;
   CSSKeywordAuto = CSSKeywordRevertLayer+1;
-  CSSKeyword_LastResolver = CSSKeywordAuto;
+  CSSKeywordAnd = CSSKeywordAuto+1;
+  CSSKeywordOr = CSSKeywordAnd+1;
+  CSSKeywordNot = CSSKeywordOr+1;
+  CSSKeyword_LastResolver = CSSKeywordNot;
 
   // attribute functions
   CSSAttrFuncVar = 1;
@@ -808,6 +811,12 @@ begin
     raise ECSSParser.Create('20240623184114');
   if AddKeyword('auto')<>CSSKeywordAuto then
     raise ECSSParser.Create('20240625182731');
+  if AddKeyword('and')<>CSSKeywordAnd then
+    raise ECSSParser.Create('20260327000001');
+  if AddKeyword('or')<>CSSKeywordOr then
+    raise ECSSParser.Create('20260327000002');
+  if AddKeyword('not')<>CSSKeywordNot then
+    raise ECSSParser.Create('20260327000003');
 
   // init attribute functions
   if AddAttrFunction('var')<>CSSAttrFuncVar then

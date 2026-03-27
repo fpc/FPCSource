@@ -1283,6 +1283,8 @@ var
   i: Integer;
   El: TCSSElement;
   Specificity: TCSSSpecificity;
+  KW: TCSSNumericalID;
+  IsOr: boolean;
 begin
   Result:=0;
   {$IFDEF VerboseCSSResolver}
@@ -1290,16 +1292,54 @@ begin
   {$ENDIF}
   // todo: not() is a list with list[0] identifier 'not', and list[1] the condition
 
+  // detect connector: 'and' or 'or' (check first connector found)
+  IsOr:=false;
   for i:=0 to aList.ChildCount-1 do
   begin
     El:=aList.Children[i];
-    {$IFDEF VerboseCSSResolver}
-    writeln('TCSSResolver.MediaSelectorListMatches ',i,' ',GetCSSObj(El),' AsString=',El.AsString);
-    {$ENDIF}
-    Specificity:=MediaSelectorMatches(El);
-    if Specificity<0 then
-      exit(Specificity);
-    inc(Result,Specificity);
+    if El is TCSSResolvedIdentifierElement then
+    begin
+      KW:=TCSSResolvedIdentifierElement(El).NumericalID;
+      if KW=CSSKeywordOr then
+      begin
+        IsOr:=true;
+        break;
+      end else if KW=CSSKeywordAnd then
+        break;
+    end;
+  end;
+
+  if IsOr then
+  begin
+    // OR: match if any condition matches
+    Result:=CSSSpecificityNoMatch;
+    for i:=0 to aList.ChildCount-1 do
+    begin
+      El:=aList.Children[i];
+      if (El is TCSSResolvedIdentifierElement) and
+          (TCSSResolvedIdentifierElement(El).NumericalID=CSSKeywordOr) then
+        continue;
+      Specificity:=MediaSelectorMatches(El);
+      if Specificity>=0 then
+        exit(Specificity);
+    end;
+  end else
+  begin
+    // AND: all conditions must match; skip 'and' connectors
+    for i:=0 to aList.ChildCount-1 do
+    begin
+      El:=aList.Children[i];
+      {$IFDEF VerboseCSSResolver}
+      writeln('TCSSResolver.MediaSelectorListMatches ',i,' ',GetCSSObj(El),' AsString=',El.AsString);
+      {$ENDIF}
+      if (El is TCSSResolvedIdentifierElement) and
+          (TCSSResolvedIdentifierElement(El).NumericalID=CSSKeywordAnd) then
+        continue;
+      Specificity:=MediaSelectorMatches(El);
+      if Specificity<0 then
+        exit(Specificity);
+      inc(Result,Specificity);
+    end;
   end;
 end;
 

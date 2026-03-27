@@ -518,11 +518,10 @@ type
     procedure TestRes_Media_Range_NameGtValue;
     procedure TestRes_Media_Range_ValueLtName;
     procedure TestRes_Media_Range_ValueLtNameLtValue;
-    // todo procedure TestRes_Media_Range_LT_Interval (100px <= width < 300px)
-    // todo procedure TestRes_Media_Range_GT_Interval (100px > width >= 300px)
+    procedure TestRes_Media_Range_ValueGtNameGtValue;
     // todo procedure TestRes_Media_Ratio (aspect_ratio < 3/2)
-    // todo procedure TestRes_Media_And  print and screen
-    // todo procedure TestRes_Media_Or  print or screen
+    procedure TestRes_Media_And;
+    procedure TestRes_Media_Or;
     // todo procedure TestRes_Media_Comma  print, screen
     // todo procedure TestRes_Media_Comma  print, invalid, screen parsing recovers on next comma
     // todo procedure TestRes_Media_Not  not print
@@ -3593,6 +3592,60 @@ begin
   Doc.Style:=LinesToStr([
   '@media (100px <= width < 1000px) { div{ width: 10px; } }',
   '@media (300px < height <= 900px) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Range_ValueGtNameGtValue;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (1000px >= width > 100px) { div{ width: 10px; } }',
+  '@media (900px > height >= 300px) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_And;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (screen and screen) { div{ width: 10px; } }',
+  '@media (screen and (width > 400px)) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Or;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media ((width > 9000px) or screen) { div{ width: 10px; } }',
+  '@media ((width > 9000px) or (height > 90px)) { div{ height: 11px; } }',
   '']);
   ApplyStyle;
   AssertEquals('Div1.Width','10px',Div1.Width);
