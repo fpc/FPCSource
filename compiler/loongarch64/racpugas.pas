@@ -533,7 +533,7 @@ unit racpugas;
               end;
             AS_INTNUM:
               begin
-                result:=CalculateExpression(actasmpattern);
+                result:=CalculateExpression(actasmpattern,compiler.verbose);
                 Consume(AS_INTNUM);
               end;
             AS_LPAREN:

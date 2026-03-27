@@ -1857,7 +1857,7 @@ unit raatt;
         Until false;
         { calculate expression }
         if not ErrorFlag then
-          value:=CalculateExpression(expr)
+          value:=CalculateExpression(expr,compiler.verbose)
         else
           value:=0;
       end;

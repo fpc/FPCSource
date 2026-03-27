@@ -202,7 +202,7 @@ type
   end;
 
   { Evaluate an expression string to a tcgint }
-  Function CalculateExpression(const expression: string): tcgint;
+  Function CalculateExpression(const expression: string; AVerbose: TVerbose): tcgint;
 
   {---------------------------------------------------------------------}
   {                     String routines                                 }
@@ -530,13 +530,11 @@ Begin
 end;
 
 
-Function CalculateExpression(const expression: string): tcgint;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Function CalculateExpression(const expression: string; AVerbose: TVerbose): tcgint;
 var
   expr: TExprParse;
 Begin
-  expr:=TExprParse.create(compiler.verbose);
+  expr:=TExprParse.create(AVerbose);
   CalculateExpression:=expr.Evaluate(expression);
   expr.Free;
   expr := nil;

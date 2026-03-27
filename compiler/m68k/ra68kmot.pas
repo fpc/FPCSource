@@ -810,7 +810,7 @@ const
       { go to next term }
       AS_COMMA: begin
                   if not ErrorFlag then
-                    BuildExpression := CalculateExpression(expr)
+                    BuildExpression := CalculateExpression(expr,compiler.verbose)
                   else
                     BuildExpression := 0;
                   Exit;
@@ -818,7 +818,7 @@ const
       { go to next symbol }
       AS_SEPARATOR: begin
                       if not ErrorFlag then
-                        BuildExpression := CalculateExpression(expr)
+                        BuildExpression := CalculateExpression(expr,compiler.verbose)
                       else
                         BuildExpression := 0;
                       Exit;
@@ -1103,7 +1103,7 @@ const
         AS_LPAREN:
             begin
               if not ErrorFlag then
-                BuildRefExpression := CalculateExpression(expr);
+                BuildRefExpression := CalculateExpression(expr,compiler.verbose);
               { no longer in an expression }
               exit;
             end;
@@ -1142,7 +1142,7 @@ const
               begin
                 { no longer in an expression }
                 if not ErrorFlag then
-                  BuildRefExpression := CalculateExpression(expr);
+                  BuildRefExpression := CalculateExpression(expr,compiler.verbose);
                 exit;
               end;
 

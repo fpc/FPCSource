@@ -1435,7 +1435,7 @@ Unit raz80asm;
         Until false;
         { calculate expression }
         if not ErrorFlag then
-          value:=CalculateExpression(expr)
+          value:=CalculateExpression(expr,compiler.verbose)
         else
           value:=0;
         { no longer in an expression }
