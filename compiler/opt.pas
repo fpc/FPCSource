@@ -28,7 +28,7 @@ interface
 uses
   sysutils,
   compilerbase,
-  optconstprop,optcse,optdeadstore,optloop,opttail,opttree;
+  optconstprop,optcse,optdeadstore,optdfa,optloop,opttail,opttree;
 
 type
 
@@ -39,6 +39,7 @@ type
     FConstProp: TConstPropOptimizer;
     FCSE: TCSEOptimizer;
     FDeadStore: TDeadStoreEliminationOptimization;
+    FDFA: TDFAOptimizer;
     FLoop: TLoopOptimizer;
     FTail: TTailRecursionOptimization;
     FTree: TTreeOptimizations;
@@ -48,6 +49,7 @@ type
     property ConstProp: TConstPropOptimizer read FConstProp;
     property CSE: TCSEOptimizer read FCSE;
     property DeadStore: TDeadStoreEliminationOptimization read FDeadStore;
+    property DFA: TDFAOptimizer read FDFA;
     property Loop: TLoopOptimizer read FLoop;
     property Tail: TTailRecursionOptimization read FTail;
     property Tree: TTreeOptimizations read FTree;
@@ -62,6 +64,7 @@ begin
   FConstProp:=TConstPropOptimizer.Create(ACompiler);
   FCSE:=TCSEOptimizer.Create(ACompiler);
   FDeadStore:=TDeadStoreEliminationOptimization.Create(ACompiler);
+  FDFA:=TDFAOptimizer.Create(ACompiler);
   FLoop:=TLoopOptimizer.Create(ACompiler);
   FTail:=TTailRecursionOptimization.Create(ACompiler);
   FTree:=TTreeOptimizations.Create(ACompiler);
@@ -71,6 +74,7 @@ destructor TOptimizers.Destroy;
 begin
   FreeAndNil(FTree);
   FreeAndNil(FTail);
+  FreeAndNil(FDFA);
   FreeAndNil(FLoop);
   FreeAndNil(FDeadStore);
   FreeAndNil(FCSE);

@@ -1293,7 +1293,7 @@ implementation
                        not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) or
                        { do not warn about initialized hidden parameters }
                        ((tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions*[vo_is_high_para,vo_is_parentfp,vo_is_result,vo_is_self])<>[]))) then
-                       CheckAndWarn(UserCode,tnode(dfabuilder.nodemap[i]));
+                       compiler.opt.dfa.CheckAndWarn(UserCode,tnode(dfabuilder.nodemap[i]));
                    end
                  else
                    begin

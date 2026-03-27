@@ -54,7 +54,14 @@ unit optdfa;
         destructor destroy;override;
       end;
 
-    procedure CheckAndWarn(code : tnode;nodetosearch : tnode);
+      TDFAOptimizer = class
+      private
+        FCompiler: TCompilerBase;
+        property Compiler: TCompilerBase read FCompiler;
+      public
+        constructor Create(ACompiler: TCompilerBase);
+        procedure CheckAndWarn(code : tnode;nodetosearch : tnode);
+      end;
 
   implementation
 
@@ -875,9 +882,13 @@ unit optdfa;
       end;
 
 
-    procedure CheckAndWarn(code : tnode;nodetosearch : tnode);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+    constructor TDFAOptimizer.Create(ACompiler: TCompilerBase);
+      begin
+        FCompiler:=ACompiler;
+      end;
+
+
+    procedure TDFAOptimizer.CheckAndWarn(code : tnode;nodetosearch : tnode);
 
       var
         SearchNodeInfo : TSearchNodeInfo;
