@@ -228,7 +228,7 @@ Function AsmRegisterPara(sym: tabstractnormalvarsym): boolean;
 ---------------------------------------------------------------------}
 
   Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
-  Procedure ConcatConstant(p : TAsmList;value: tcgint; constsize:byte);
+  Procedure ConcatConstant(p : TAsmList;value: tcgint; constsize:byte; verbose: TVerbose);
   Procedure ConcatConstSymbol(p : TAsmList;const sym,endsym:string;symtyp:tasmsymtype;l:tcgint;constsize:byte;isofs:boolean);
   Procedure ConcatRealConstant(p : TAsmList;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : TAsmList;s:string);
@@ -1864,9 +1864,7 @@ end;
   end;
 
 
-Procedure ConcatConstant(p: TAsmList; value: tcgint; constsize:byte);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+Procedure ConcatConstant(p: TAsmList; value: tcgint; constsize:byte; verbose: TVerbose);
 {*********************************************************************}
 {  Description: This routine adds the value constant to the current   }
 {  instruction linked list.                                           }
@@ -1905,7 +1903,7 @@ Begin
   { check for out of bounds }
   if (rangelo<>0) and
      ((value>rangehi) or (value<rangelo)) then
-    compiler.verbose.Message(asmr_e_constant_out_of_bounds);
+    verbose.Message(asmr_e_constant_out_of_bounds);
 end;
 
 

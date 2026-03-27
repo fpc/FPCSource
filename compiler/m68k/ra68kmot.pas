@@ -974,7 +974,7 @@ const
         AS_PLUS,AS_MINUS,AS_LPAREN,AS_NOT:
             begin
               value:=BuildExpression(false,nil);
-              ConcatConstant(curlist,value,constsize);
+              ConcatConstant(curlist,value,constsize,compiler.verbose);
             end;
         AS_COMMA:
             begin

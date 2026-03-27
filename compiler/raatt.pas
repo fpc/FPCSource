@@ -981,7 +981,7 @@ unit raatt;
                    ConcatConstSymbol(curlist,asmsym,'',asmsymtyp,value,constsize,true)
                  end
                 else
-                 ConcatConstant(curlist,value,constsize);
+                 ConcatConstant(curlist,value,constsize,compiler.verbose);
               end;
             AS_COMMA:
               Consume(AS_COMMA);

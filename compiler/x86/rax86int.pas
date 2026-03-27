@@ -3174,7 +3174,7 @@ Unit Rax86int;
                      ConcatConstSymbol(curlist,asmsym,'',asmsymtyp,value,constsize,cseof_hasofs in cse_out_flags);
                  end
                 else
-                 ConcatConstant(curlist,value,constsize);
+                 ConcatConstant(curlist,value,constsize,compiler.verbose);
               end;
             AS_COMMA:
               begin
