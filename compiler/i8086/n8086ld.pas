@@ -136,7 +136,7 @@ implementation
             pvd:=search_system_type('TRELOCATETHREADVARHANDLER').typedef;
             if pvd.typ<>procvardef then
               internalerror(2012120902);
-            paraloc1.init;
+            paraloc1.init(compiler);
             paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
             segreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);

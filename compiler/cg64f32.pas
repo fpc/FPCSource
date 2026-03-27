@@ -839,8 +839,8 @@ unit cg64f32;
       var
         tmplochi,tmploclo: tcgpara;
       begin
-        tmploclo.init;
-        tmplochi.init;
+        tmploclo.init(compiler);
+        tmplochi.init(compiler);
         splitparaloc64(paraloc,tmploclo,tmplochi);
         if target.info.endian=endian_big then
           begin
@@ -865,8 +865,8 @@ unit cg64f32;
       var
         tmplochi,tmploclo: tcgpara;
       begin
-        tmploclo.init;
-        tmplochi.init;
+        tmploclo.init(compiler);
+        tmplochi.init(compiler);
         splitparaloc64(paraloc,tmploclo,tmplochi);
         if target.info.endian=endian_big then
           begin
@@ -892,8 +892,8 @@ unit cg64f32;
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tcgpara;
       begin
-        tmploclo.init;
-        tmplochi.init;
+        tmploclo.init(compiler);
+        tmplochi.init(compiler);
         splitparaloc64(paraloc,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;

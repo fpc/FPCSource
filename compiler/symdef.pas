@@ -5757,8 +5757,8 @@ implementation
          callerargareasize:=0;
          calleeargareasize:=0;
          has_paraloc_info:=callnoside;
-         funcretloc[callerside].init;
-         funcretloc[calleeside].init;
+         funcretloc[callerside].init(compiler);
+         funcretloc[calleeside].init(compiler);
          check_mark_as_nested;
       end;
 
@@ -5916,7 +5916,7 @@ implementation
                unit has been reloaded/recompiled and all references must be
                re-resolved. Since the funcretloc contains a reference to a tdef,
                reset it so that we won't try to access the stale def }
-             funcretloc[callerside].init;
+             funcretloc[callerside].init(compiler);
              has_paraloc_info:=callnoside;
            end;
          { parast }
@@ -5938,7 +5938,7 @@ implementation
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getset(tppuset8(procoptions));
 
-         funcretloc[callerside].init;
+         funcretloc[callerside].init(compiler);
          if po_explicitparaloc in procoptions then
            funcretloc[callerside].ppuload(ppufile);
 

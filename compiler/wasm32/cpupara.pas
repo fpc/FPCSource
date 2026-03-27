@@ -156,7 +156,7 @@ implementation
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        result.init;
+        result.init(compiler);
         result.alignment:=get_para_align(p.proccalloption);
         if not assigned(forcetempdef) then
           result.def:=p.returndef

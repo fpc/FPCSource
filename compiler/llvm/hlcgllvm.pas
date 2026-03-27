@@ -420,9 +420,9 @@ implementation
             pd:=search_system_proc('llvm_dbg_declare')
           else
             pd:=search_system_proc('llvm_dbg_addr');
-          varmetapara.init;
-          symmetadatapara.init;
-          exprmetapara.init;
+          varmetapara.init(compiler);
+          symmetadatapara.init(compiler);
+          exprmetapara.init(compiler);
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,varmetapara);
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,symmetadatapara);
           paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,exprmetapara);
@@ -1286,11 +1286,11 @@ implementation
           exit;
         end;
       pd:=search_system_proc('llvm_memcpy64_indivalign');
-      sourcepara.init;
-      destpara.init;
-      sizepara.init;
-      alignpara.init;
-      volatilepara.init;
+      sourcepara.init(compiler);
+      destpara.init(compiler);
+      sizepara.init(compiler);
+      alignpara.init(compiler);
+      volatilepara.init(compiler);
       paramanager.getcgtempparaloc(list,pd,1,destpara);
       paramanager.getcgtempparaloc(list,pd,2,sourcepara);
       paramanager.getcgtempparaloc(list,pd,3,sizepara);
@@ -1402,7 +1402,7 @@ implementation
              begin
                { store back an int64 rather than an extended }
                pd:=search_system_proc('fpc_round_real');
-               roundpara.init;
+               roundpara.init(compiler);
                paramanager.getcgtempparaloc(list,pd,1,roundpara);
                a_load_reg_cgpara(list,fromsize,reg,roundpara);
                respara:=g_call_system_proc(list,pd,[@roundpara],nil);
@@ -1456,10 +1456,10 @@ implementation
       tmploc: tlocation;
       pd: tprocdef;
     begin
-      frompara.init;
+      frompara.init(compiler);
       if roundingmode then
-        roundpara.init;
-      exceptpara.init;
+        roundpara.init(compiler);
+      exceptpara.init(compiler);
       pd:=search_system_proc(intrinsic);
 
       paramanager.getcgtempparaloc(list,pd,1,frompara);

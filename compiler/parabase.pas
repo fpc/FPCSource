@@ -104,6 +104,11 @@ unit parabase;
        { TCGPara }
 
        TCGPara = object
+        private
+          FCompiler: TCompilerBase;
+        protected
+          property Compiler: TCompilerBase read FCompiler;
+        public
           Def       : tdef; { Type of the parameter }
           Location  : PCGParalocation;
           IntSize   : tcgint; { size of the total location in bytes }
@@ -111,7 +116,7 @@ unit parabase;
           Alignment : ShortInt; { in case of LLVM, a negative alignment mean: force write the alignment }
           Size      : TCGSize;  { Size of the parameter included in all locations }
           Temporary : boolean;  { created on the fly, no permanent references exist to this somewhere that will cause it to be disposed }
-          constructor init;
+          constructor init(acompiler: TCompilerBase);
           destructor  done;
           procedure   reset;
           procedure   resetiftemp; { reset if Temporary }
@@ -171,8 +176,9 @@ implementation
                                 TCGPara
 ****************************************************************************}
 
-    constructor tcgpara.init;
+    constructor tcgpara.init(acompiler: TCompilerBase);
       begin
+        FCompiler:=acompiler;
         alignment:=0;
         size:=OS_NO;
         intsize:=0;
@@ -214,7 +220,7 @@ implementation
       var
         srcloc,hlocation : pcgparalocation;
       begin
-        result.init;
+        result.init(compiler);
         srcloc:=location;
         while assigned(srcloc) do
           begin
@@ -263,8 +269,6 @@ implementation
 
 
     procedure tcgpara.get_location(var newloc:tlocation);
-      var
-        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
         if not assigned(location) then
           internalerror(200408205);

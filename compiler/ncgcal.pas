@@ -172,7 +172,7 @@ implementation
     constructor tcgcallparanode.create(expr,next : tnode;acompiler:TCompilerBase);
       begin
         inherited create(expr,next,acompiler);
-        tempcgpara.init;
+        tempcgpara.init(compiler);
       end;
 
 
@@ -549,7 +549,7 @@ implementation
       begin
         InternalError(2014012901);
         { silence warning }
-        result.init;
+        result.init(compiler);
       end;
 
 
@@ -1349,7 +1349,7 @@ implementation
          if procdefinition.generate_safecall_wrapper then
            begin
              pd:=search_system_proc('fpc_safecallcheck');
-             cgpara.init;
+             cgpara.init(compiler);
              { fpc_safecallcheck returns its parameter value (= function result of function we just called) }
              paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
              location_reset(tmploc,LOC_REGISTER,def_cgsize(retloc.Def));

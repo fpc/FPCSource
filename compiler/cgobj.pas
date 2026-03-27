@@ -2737,9 +2737,9 @@ implementation
         pd : tprocdef;
       begin
         pd:=search_system_proc('MOVE');
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
+        paraloc1.init(compiler);
+        paraloc2.init(compiler);
+        paraloc3.init(compiler);
         paramanager.getcgtempparaloc(list,pd,1,paraloc1);
         paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         paramanager.getcgtempparaloc(list,pd,3,paraloc3);
@@ -3589,10 +3589,12 @@ implementation
 
     procedure tcg128.a_load128_reg_cgpara(list : TAsmList;reg : tregister128;const paraloc : tcgpara);
       var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
+      var
         tmplochi,tmploclo: tcgpara;
       begin
-        tmploclo.init;
-        tmplochi.init;
+        tmploclo.init(compiler);
+        tmplochi.init(compiler);
         splitparaloc128(paraloc,tmploclo,tmplochi);
         cg.a_load_reg_cgpara(list,OS_64,reg.reghi,tmplochi);
         cg.a_load_reg_cgpara(list,OS_64,reg.reglo,tmploclo);
@@ -3608,8 +3610,8 @@ implementation
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tcgpara;
       begin
-        tmploclo.init;
-        tmplochi.init;
+        tmploclo.init(compiler);
+        tmplochi.init(compiler);
         splitparaloc128(paraloc,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;

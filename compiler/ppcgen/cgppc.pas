@@ -674,7 +674,7 @@ unit cgppc;
       if (compiler.target.info.system in [system_powerpc_darwin]) then
         begin
           pd:=search_system_proc('mcount');
-          paraloc1.init;
+          paraloc1.init(compiler);
           paramanager.getcgtempparaloc(list,pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);

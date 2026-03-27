@@ -651,7 +651,7 @@ implementation
               end;
 
             pd:=search_system_proc('_unwind_resume');
-            cgpara1.init;
+            cgpara1.init(compiler);
             paramanager.getcgtempparaloc(list,pd,1,cgpara1);
             hlcg.a_load_reg_cgpara(list,voidpointertype,t.unwind_info,cgpara1);
             paramanager.freecgpara(list,cgpara1);
@@ -708,7 +708,7 @@ implementation
         typeindex : aint;
 {$endif}
       begin
-        paraloc1.init;
+        paraloc1.init(compiler);
 {
         rttidef:=nil;
         rttisym:=nil;

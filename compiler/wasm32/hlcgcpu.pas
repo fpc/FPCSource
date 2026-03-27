@@ -2122,9 +2122,9 @@ implementation
       else
         begin
           pd:=search_system_proc('MOVE');
-          cgpara1.init;
-          cgpara2.init;
-          cgpara3.init;
+          cgpara1.init(compiler);
+          cgpara2.init(compiler);
+          cgpara3.init(compiler);
           paramanager.getcgtempparaloc(list,pd,1,cgpara1);
           paramanager.getcgtempparaloc(list,pd,2,cgpara2);
           paramanager.getcgtempparaloc(list,pd,3,cgpara3);

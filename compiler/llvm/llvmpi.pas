@@ -292,7 +292,7 @@ implementation
           indirect: boolean;
           otherunit: boolean;
         begin
-          paraloc1.init;
+          paraloc1.init(compiler);
           landingpad:=tllvmprocinfo(current_procinfo).currlandingpad;
           rttidef:=nil;
           rttisym:=nil;

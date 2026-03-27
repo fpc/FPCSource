@@ -330,7 +330,7 @@ implementation
   function thlcgjvm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
       internalerror(2012042824);
-      result.init;
+      result.init(compiler);
     end;
 
 

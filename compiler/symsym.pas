@@ -2494,14 +2494,16 @@ implementation
 ****************************************************************************}
 
     constructor tparavarsym.create(const n : TSymStr;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          inherited create(paravarsym,n,vsp,def,vopts);
          if (vsp in [vs_var,vs_value,vs_const,vs_constref]) and
             not(vo_is_funcret in vopts) then
            varstate := vs_initialised;
          paranr:=nr;
-         paraloc[calleeside].init;
-         paraloc[callerside].init;
+         paraloc[calleeside].init(compiler);
+         paraloc[callerside].init(compiler);
       end;
 
 
@@ -2514,6 +2516,8 @@ implementation
 
 
     constructor tparavarsym.ppuload(ppufile:tcompilerppufile);
+      var
+        compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
       begin
          inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;
@@ -2528,8 +2532,8 @@ implementation
          { read usage info }
          refs:=ppufile.getbyte;
 
-         paraloc[calleeside].init;
-         paraloc[callerside].init;
+         paraloc[calleeside].init(compiler);
+         paraloc[callerside].init(compiler);
          if vo_has_explicit_paraloc in varoptions then
            paraloc[callerside].ppuload(ppufile);
 

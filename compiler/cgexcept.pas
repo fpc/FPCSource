@@ -193,9 +193,9 @@ unit cgexcept;
         exceptstate.oldflowcontrol:=flowcontrol;
         exceptstate.finallycodelabel:=nil;
 
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
+        paraloc1.init(compiler);
+        paraloc2.init(compiler);
+        paraloc3.init(compiler);
 
         { fpc_pushexceptaddr(exceptionframetype, setjmp_buffer, exception_address_chain_entry) }
         pd:=search_system_proc('fpc_pushexceptaddr');
@@ -327,7 +327,7 @@ unit cgexcept;
         indirect: boolean;
         otherunit: boolean;
       begin
-        paraloc1.init;
+        paraloc1.init(compiler);
         otherunit:=findunitsymtable(excepttype.owner).moduleid<>findunitsymtable(current_procinfo.procdef.owner).moduleid;
         indirect:=(tf_supports_packages in compiler.target.info.flags) and
                     (compiler.target.info.system in systems_indirect_var_imports) and

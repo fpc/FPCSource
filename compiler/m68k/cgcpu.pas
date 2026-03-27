@@ -581,8 +581,8 @@ unit cgcpu;
         pd : tprocdef;
       begin
         pd:=search_system_proc(name);
-        paraloc1.init;
-        paraloc2.init;
+        paraloc1.init(compiler);
+        paraloc2.init(compiler);
         paramanager.getcgtempparaloc(list,pd,1,paraloc1);
         paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         a_load_const_cgpara(list,size,a,paraloc2);
@@ -605,8 +605,8 @@ unit cgcpu;
         pd : tprocdef;
       begin
         pd:=search_system_proc(name);
-        paraloc1.init;
-        paraloc2.init;
+        paraloc1.init(compiler);
+        paraloc2.init(compiler);
         paramanager.getcgtempparaloc(list,pd,1,paraloc1);
         paramanager.getcgtempparaloc(list,pd,2,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg1,paraloc2);

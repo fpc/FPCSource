@@ -3648,7 +3648,7 @@ implementation
          pd:=search_system_proc('fpc_handleerror');
          current_asmdata.getjumplabel(oklabel);
          a_cmp_const_reg_label(list,selftype,OC_NE,0,reg,oklabel);
-         cgpara1.init;
+         cgpara1.init(compiler);
          paramanager.getcgtempparaloc(list,pd,1,cgpara1);
          a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
          paramanager.freecgpara(list,cgpara1);
@@ -3679,9 +3679,9 @@ implementation
       pd : tprocdef;
     begin
       pd:=search_system_proc('fpc_shortstr_to_shortstr');
-      cgpara1.init;
-      cgpara2.init;
-      cgpara3.init;
+      cgpara1.init(compiler);
+      cgpara2.init(compiler);
+      cgpara3.init(compiler);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
       paramanager.getcgtempparaloc(list,pd,2,cgpara2);
       paramanager.getcgtempparaloc(list,pd,3,cgpara3);
@@ -3712,8 +3712,8 @@ implementation
       pd : tprocdef;
     begin
       pd:=search_system_proc('fpc_variant_copy_overwrite');
-      cgpara1.init;
-      cgpara2.init;
+      cgpara1.init(compiler);
+      cgpara2.init(compiler);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
       paramanager.getcgtempparaloc(list,pd,2,cgpara2);
       if pd.is_pushleftright then
@@ -3740,8 +3740,8 @@ implementation
       cgpara1,cgpara2 : TCGPara;
       pd : tprocdef;
     begin
-       cgpara1.init;
-       cgpara2.init;
+       cgpara1.init(compiler);
+       cgpara2.init(compiler);
        if is_interfacecom_or_dispinterface(t) then
          incrfunc:='fpc_intf_incr_ref'
        else if is_ansistring(t) then
@@ -3801,8 +3801,8 @@ implementation
        cgpara1,cgpara2 : TCGPara;
        pd : tprocdef;
     begin
-       cgpara1.init;
-       cgpara2.init;
+       cgpara1.init(compiler);
+       cgpara2.init(compiler);
        if is_ansistring(t) or
           is_widestring(t) or
           is_unicodestring(t) or
@@ -3862,8 +3862,8 @@ implementation
         decrfunc:='fpc_variant_clear'
       else
         begin
-          cgpara1.init;
-          cgpara2.init;
+          cgpara1.init(compiler);
+          cgpara2.init(compiler);
           if is_open_array(t) then
             InternalError(201103051);
           { fpc_finalize takes a pointer value parameter, fpc_dynarray_clear a
@@ -3893,7 +3893,7 @@ implementation
           exit;
         end;
       pd:=search_system_proc(decrfunc);
-      cgpara1.init;
+      cgpara1.init(compiler);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
@@ -3908,9 +3908,9 @@ implementation
       hreg, lenreg: TRegister;
       pd: tprocdef;
     begin
-      cgpara1.init;
-      cgpara2.init;
-      cgpara3.init;
+      cgpara1.init(compiler);
+      cgpara2.init(compiler);
+      cgpara3.init(compiler);
       pd:=search_system_proc(name);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
       paramanager.getcgtempparaloc(list,pd,2,cgpara2);
@@ -4211,7 +4211,7 @@ implementation
 
       { do getmem call }
       pd:=search_system_proc('fpc_getmem');
-      cgpara1.init;
+      cgpara1.init(compiler);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
       a_load_reg_cgpara(list,sinttype,sizereg,cgpara1);
       paramanager.freecgpara(list,cgpara1);
@@ -4224,9 +4224,9 @@ implementation
 
       { do move call }
       pd:=search_system_proc('MOVE');
-      cgpara1.init;
-      cgpara2.init;
-      cgpara3.init;
+      cgpara1.init(compiler);
+      cgpara2.init(compiler);
+      cgpara3.init(compiler);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
       paramanager.getcgtempparaloc(list,pd,2,cgpara2);
       paramanager.getcgtempparaloc(list,pd,3,cgpara3);
@@ -4265,7 +4265,7 @@ implementation
     begin
       { do freemem call }
       pd:=search_system_proc('fpc_freemem');
-      cgpara1.init;
+      cgpara1.init(compiler);
       paramanager.getcgtempparaloc(list,pd,1,cgpara1);
       { load source }
       a_load_loc_cgpara(list,cpointerdef.getreusable(arrdef,compiler),l,cgpara1);
@@ -5794,7 +5794,7 @@ implementation
       pd       : tprocdef;
     begin
       pd:=search_system_proc('fpc_stackcheck');
-      paraloc1.init;
+      paraloc1.init(compiler);
       paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
       a_load_const_cgpara(list,paraloc1.def,current_procinfo.calc_stackframe_size,paraloc1);
       paramanager.freecgpara(list,paraloc1);
@@ -5807,7 +5807,7 @@ implementation
       pd       : tprocdef;
     begin
       pd:=search_system_proc('fpc_stackcheck');
-      paraloc1.init;
+      paraloc1.init(compiler);
       { The parameter to fpc_stackcheck is loaded separately via
         gen_stack_check_size_para() }
       paramanager.getcgtempparaloc(list,pd,1,paraloc1);
