@@ -123,6 +123,7 @@ type
     Procedure TestMediaPlainOrPlain;
     Procedure TestMediaPlainOrPlainBrackets;
     Procedure TestMediaPlainCommaPlain;
+    Procedure TestMediaRatio;
     Procedure TestMediaNestedBracket;
     Procedure TestSupportsFunction;
     Procedure TestSkipUnknownFunction;
@@ -1017,6 +1018,25 @@ end;
 procedure TTestCSSParser.TestMediaPlainCommaPlain;
 begin
   ParseRule('@media print, screen {  }');
+end;
+
+procedure TTestCSSParser.TestMediaRatio;
+var
+  R: TCSSAtRuleElement;
+  aBin, aRatio: TCSSBinaryElement;
+  aSel: TCSSIdentifierElement;
+begin
+  R:=TCSSAtRuleElement(ParseRule('@media (aspect-ratio > 3/2) {  }'));
+  AssertEquals('at keyword','@media',R.AtKeyWord);
+  AssertEquals('selector count',1,R.SelectorCount);
+  aBin:=TCSSBinaryElement(CheckClass('selector 0',TCSSBinaryElement,R.Selectors[0]));
+  AssertEquals('selector operation',boGT,aBin.Operation);
+  aSel:=TCSSIdentifierElement(CheckClass('selector left',TCSSIdentifierElement,aBin.Left));
+  AssertEquals('selector left value','aspect-ratio',aSel.Value);
+  aRatio:=TCSSBinaryElement(CheckClass('selector right',TCSSBinaryElement,aBin.Right));
+  AssertEquals('selector right operation',boDIV,aRatio.Operation);
+  CheckLiteral('selector right left',aRatio.Left,3);
+  CheckLiteral('selector right right',aRatio.Right,2);
 end;
 
 procedure TTestCSSParser.TestMediaNestedBracket;

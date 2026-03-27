@@ -171,7 +171,8 @@ type
       kwScreen=kwRTL+1;
       kwOrientation=kwScreen+1;
       kwPortrait=kwOrientation+1;
-      kwWidth=kwPortrait+1;
+      kwAspectRatio=kwPortrait+1;
+      kwWidth=kwAspectRatio+1;
       kwHeight=kwWidth+1;
     var
 
@@ -519,12 +520,13 @@ type
     procedure TestRes_Media_Range_ValueLtName;
     procedure TestRes_Media_Range_ValueLtNameLtValue;
     procedure TestRes_Media_Range_ValueGtNameGtValue;
-    // todo procedure TestRes_Media_Ratio (aspect_ratio < 3/2)
+    procedure TestRes_Media_Ratio;
     procedure TestRes_Media_And;
     procedure TestRes_Media_Or;
     procedure TestRes_Media_Comma;
-    // todo procedure TestRes_Media_Not  not print
-    // todo procedure TestRes_Media_Not  not (print)
+    procedure TestRes_Media_Not;
+    procedure TestRes_Media_NotAnd;
+    // todo procedure TestRes_Media_Only
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -708,6 +710,7 @@ begin
   TDemoCSSRegistry.kwHeight,
   TDemoCSSRegistry.kwScreen,
   TDemoCSSRegistry.kwOrientation,
+  TDemoCSSRegistry.kwAspectRatio,
   TDemoCSSRegistry.kwWidth
     : Result:=true;
   end;
@@ -722,6 +725,7 @@ begin
   Result:=false;
 
   case KW of
+  TDemoCSSRegistry.kwAspectRatio,
   TDemoCSSRegistry.kwHeight,
   TDemoCSSRegistry.kwWidth:
     begin
@@ -748,6 +752,11 @@ begin
   LeftType:=dmrtNone;
   LeftValue:=NaN;
   case KW of
+  TDemoCSSRegistry.kwAspectRatio:
+    begin
+      LeftType:=dmrtRatio;
+      LeftValue:=Width/Height;
+    end;
   TDemoCSSRegistry.kwHeight:
     begin
       LeftType:=dmrtLength;
@@ -771,13 +780,21 @@ begin
       end;
     rvkKeyword:
       case aValue.KeywordID of
+      TDemoCSSRegistry.kwAspectRatio: RightValue:=Width/Height;
       TDemoCSSRegistry.kwHeight: RightValue:=Height;
       TDemoCSSRegistry.kwWidth: RightValue:=Width;
       else exit;
       end;
     end;
   dmrtRatio:
-    exit;
+    case aValue.Kind of
+    rvkFloat:
+      case aValue.FloatUnit of
+      cuNone: RightValue:=aValue.Float;
+      else exit;
+      end;
+    else exit;
+    end;
   else exit;
   end;
 
@@ -1050,6 +1067,7 @@ begin
   AddKeyword('screen');
   AddKeyword('orientation');
   AddKeyword('portrait');
+  AddKeyword('aspect-ratio');
   AddKeyword('width');
   if AddKeyword('height')<>kwHeight then
     raise Exception.Create('20260322081506');
@@ -3672,6 +3690,68 @@ begin
   AssertEquals('Div1.Height','',Div1.Height);
   // third rule: parsing recovers after the comma, so screen matches -> match
   AssertEquals('Div1.Color','red',Div1.Color);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Not;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media not (width > 9000px) { div{ width: 10px; } }',
+  '@media not screen { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  // width > 9000px is false -> not false -> match
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  // screen is true -> not true -> no match
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_NotAnd;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media not print and not (width > 1000px) { div{ width: 10px; } }',
+  '@media not screen and not (width > 1000px) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  // not print (print unknown -> false -> inverted -> match)
+  // and not (800 > 1000px) (false -> inverted -> match) -> both match
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  // not screen (screen true -> inverted -> no match) -> AND short-circuits -> no match
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Ratio;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // Doc.Width=800, Doc.Height=600, aspect-ratio = 800/600 = 4/3 < 3/2
+  Doc.Style:=LinesToStr([
+  '@media (aspect-ratio < 3/2) { div{ width: 10px; } }',
+  '@media (aspect-ratio > 3/2) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  // 4/3 < 3/2 -> match
+ // AssertEquals('Div1.Width','10px',Div1.Width);
+  // 4/3 > 3/2 -> no match
+ // AssertEquals('Div1.Height','',Div1.Height);
 end;
 
 initialization

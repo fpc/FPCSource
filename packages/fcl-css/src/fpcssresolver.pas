@@ -116,7 +116,7 @@ uses
   Fcl.AVLTree, FpCss.Tree, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, types, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
+  Classes, SysUtils, types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -1162,8 +1162,10 @@ function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TC
 
   function GetCompValue(El: TCSSElement; out aValue: TCSSResCompValue): boolean;
   var
-    F: TCSSFloatElement;
-    I: TCSSIntegerElement;
+    FloatEl: TCSSFloatElement;
+    IntEl: TCSSIntegerElement;
+    Ratio: TCSSBinaryElement;
+    Num, Den: Double;
   begin
     Result:=true;
     aValue:=Default(TCSSResCompValue);
@@ -1173,16 +1175,38 @@ function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TC
       aValue.KeywordID:=TCSSResolvedIdentifierElement(El).NumericalID;
     end else if El is TCSSFloatElement then
     begin
-      F:=TCSSFloatElement(El);
+      FloatEl:=TCSSFloatElement(El);
       aValue.Kind:=rvkFloat;
-      aValue.Float:=F.Value;
-      aValue.FloatUnit:=F.Units;
+      aValue.Float:=FloatEl.Value;
+      aValue.FloatUnit:=FloatEl.Units;
     end else if El is TCSSIntegerElement then
     begin
-      I:=TCSSIntegerElement(El);
+      IntEl:=TCSSIntegerElement(El);
       aValue.Kind:=rvkFloat;
-      aValue.Float:=I.Value;
-      aValue.FloatUnit:=I.Units;
+      aValue.Float:=IntEl.Value;
+      aValue.FloatUnit:=IntEl.Units;
+    end else if (El is TCSSBinaryElement)
+        and (TCSSBinaryElement(El).Operation=boDIV) then
+    begin
+      // ratio value N/M, e.g. 3/2
+      Ratio:=TCSSBinaryElement(El);
+      if Ratio.Left is TCSSIntegerElement then
+        Num:=TCSSIntegerElement(Ratio.Left).Value
+      else if Ratio.Left is TCSSFloatElement then
+        Num:=TCSSFloatElement(Ratio.Left).Value
+      else
+        exit(false);
+      if Ratio.Right is TCSSIntegerElement then
+        Den:=TCSSIntegerElement(Ratio.Right).Value
+      else if Ratio.Right is TCSSFloatElement then
+        Den:=TCSSFloatElement(Ratio.Right).Value
+      else
+        exit(false);
+      if SameValue(Den,0) then
+        exit(false);
+      aValue.Kind:=rvkFloat;
+      aValue.Float:=Num/Den;
+      aValue.FloatUnit:=cuNone;
     end else
       Result:=false;
   end;
@@ -1196,7 +1220,7 @@ function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TC
     Cmp: integer;
   begin
     Result:=false;
-    if not (Assigned(MediaCompare) and MediaCompare(Self,KW,aValue,Cmp)) then exit;
+    if not Assigned(MediaCompare) or not MediaCompare(Self,KW,aValue,Cmp) then exit;
     if ValueOnLeft then Cmp:=-Cmp;
     case Op of
     boEquals: Result:=Cmp=0;
@@ -1210,22 +1234,22 @@ function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TC
 var
   KW: TCSSNumericalID;
   aValue, aValue2: TCSSResCompValue;
-  aInner: TCSSBinaryElement;
+  LeftBin: TCSSBinaryElement;
 begin
   Result:=CSSSpecificityNoMatch;
   if aBinary.Left is TCSSBinaryElement then
   begin
     // interval: value1 op1 name op2 value2, e.g. (100px <= width < 1000px)
-    // inner binary: value1 op1 name (value on left)
+    // left binary: value1 op1 name (value on left)
     // outer operation: name op2 value2 (name on left)
-    aInner:=TCSSBinaryElement(aBinary.Left);
-    if not (aInner.Right is TCSSResolvedIdentifierElement) then exit;
-    KW:=TCSSResolvedIdentifierElement(aInner.Right).NumericalID;
+    LeftBin:=TCSSBinaryElement(aBinary.Left);
+    if not (LeftBin.Right is TCSSResolvedIdentifierElement) then exit;
+    KW:=TCSSResolvedIdentifierElement(LeftBin.Right).NumericalID;
     if KW<=0 then exit;
-    if not GetCompValue(aInner.Left,aValue) then exit;   // value1
+    if not GetCompValue(LeftBin.Left,aValue) then exit;   // value1
     if not GetCompValue(aBinary.Right,aValue2) then exit; // value2
     // check both bounds; inner is value-on-left, outer is name-on-left
-    if not RangeCmpMatches(KW,aValue,aInner.Operation,true) then exit;
+    if not RangeCmpMatches(KW,aValue,LeftBin.Operation,true) then exit;
     if RangeCmpMatches(KW,aValue2,aBinary.Operation,false) then
       Result:=FSourceSpecificity;
   end
@@ -1292,7 +1316,18 @@ begin
   {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.MediaSelectorListMatches ChildCount=',aList.ChildCount);
   {$ENDIF}
-  // todo: not() is a list with list[0] identifier 'not', and list[1] the condition
+
+  // 'not' list: [not, condition] -> match if condition does NOT match
+  if (aList.ChildCount=2) and (aList.Children[0] is TCSSResolvedIdentifierElement) and
+      (TCSSResolvedIdentifierElement(aList.Children[0]).NumericalID=CSSKeywordNot) then
+  begin
+    Specificity:=MediaSelectorMatches(aList.Children[1]);
+    if Specificity<0 then
+      Result:=FSourceSpecificity
+    else
+      Result:=CSSSpecificityNoMatch;
+    exit;
+  end;
 
   // detect connector: 'and' or 'or' (check first connector found)
   IsOr:=false;

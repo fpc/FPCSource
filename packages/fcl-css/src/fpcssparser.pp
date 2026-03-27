@@ -599,11 +599,36 @@ function TCSSParser.ParseMediaCondition(TopLvl: boolean): TCSSElement;
 //   (color: #fff)
 //   (30em <= width)
 //   (30em >= width > 20em)
+//   (aspect-ratio < 3/2)
 //   (not(MediaCondition))
 //   (not print)
 //   (print or screen)
 //   ((print))
 //   ((print) and not screen)
+
+  function ReadBinRightRatio(Bin: TCSSBinaryElement; Num: TCSSElement): boolean;
+  var
+    Sub: TCSSBinaryElement;
+  begin
+    Result:=false;
+    // ratio value N/M
+    GetNextToken; // consume '/'
+    Sub:=TCSSBinaryElement(CreateElement(CSSBinaryElementClass));
+    Sub.Operation:=boDIV;
+    Bin.Right:=Sub;
+    Sub.Left:=Num;
+    if CurrentToken=ctkINTEGER then
+      Sub.Right:=ParseInteger
+    else if CurrentToken=ctkFLOAT then
+      Sub.Right:=ParseFloat
+    else
+      begin
+      DoWarnExpectedButGot('integer');
+      exit;
+      end;
+    Result:=Sub.Right<>nil;
+  end;
+
 var
   El, Sub: TCSSElement;
   Bin: TCSSBinaryElement;
@@ -803,9 +828,33 @@ begin
       ctkSTRING:
         Bin.Right:=ParseString;
       ctkINTEGER:
-        Bin.Right:=ParseInteger;
+        begin
+        Sub:=ParseInteger;
+        if (Sub<>nil) and (CurrentToken=ctkDIV) then
+          begin
+          if not ReadBinRightRatio(Bin,Sub) then exit;
+          Sub:=nil;
+          end
+        else
+          begin
+          Bin.Right:=Sub;
+          Sub:=nil;
+          end;
+        end;
       ctkFLOAT:
-        Bin.Right:=ParseFloat;
+        begin
+        Sub:=ParseFloat;
+        if (Sub<>nil) and (CurrentToken=ctkDIV) then
+          begin
+          if not ReadBinRightRatio(Bin,Sub) then exit;
+          Sub:=nil;
+          end
+        else
+          begin
+          Bin.Right:=Sub;
+          Sub:=nil;
+          end;
+        end;
       else
         DoWarnExpectedButGot('identifier');
         exit;
