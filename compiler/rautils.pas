@@ -257,8 +257,6 @@ end;
 
 
 Procedure TExprParse.RPNPush(Num : tcgint);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Add an operand to the top of the RPN stack }
 begin
   if RPNTop < RPNMax then
@@ -267,13 +265,11 @@ begin
      RPNStack[RPNTop]:=Num;
    end
   else
-   compiler.verbose.Message(asmr_e_expr_illegal);
+   verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Function TExprParse.RPNPop : tcgint;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Get the operand at the top of the RPN stack }
 begin
   RPNPop:=0;
@@ -283,13 +279,11 @@ begin
      Dec(RPNTop);
    end
   else
-   compiler.verbose.Message(asmr_e_expr_illegal);
+   verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Procedure TExprParse.RPNCalc(const Token : String; prefix:boolean);                       { RPN Calculator }
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   Temp  : tcgint;
   n1,n2 : tcgint;
@@ -347,7 +341,7 @@ begin
          RPNPush(RPNPop mod Temp)
         else
          begin
-           compiler.verbose.Message(asmr_e_expr_zero_divide);
+           verbose.Message(asmr_e_expr_zero_divide);
            { push 1 for error recovery }
            RPNPush(1);
          end;
@@ -360,7 +354,7 @@ begin
          RPNPush(RPNPop div Temp)
         else
          begin
-           compiler.verbose.Message(asmr_e_expr_zero_divide);
+           verbose.Message(asmr_e_expr_zero_divide);
            { push 1 for error recovery }
            RPNPush(1);
          end;
@@ -374,7 +368,7 @@ begin
       RPNPush(Temp)
      else
       begin
-        compiler.verbose.Message(asmr_e_expr_illegal);
+        verbose.Message(asmr_e_expr_illegal);
         { push 1 for error recovery }
         RPNPush(1);
       end;
@@ -383,8 +377,6 @@ end;
 
 
 Procedure TExprParse.OpPush(_Operator : char;prefix: boolean);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Add an operator onto top of the stack }
 begin
   if OpTop < OpMax then
@@ -394,13 +386,11 @@ begin
      OpStack[OpTop].is_prefix:=prefix;
    end
   else
-   compiler.verbose.Message(asmr_e_expr_illegal);
+   verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Procedure TExprParse.OpPop(var _Operator:TExprOperator);
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Get operator at the top of the stack }
 begin
   if OpTop > 0 then
@@ -409,13 +399,11 @@ begin
      Dec(OpTop);
    end
   else
-   compiler.verbose.Message(asmr_e_expr_illegal);
+   verbose.Message(asmr_e_expr_illegal);
 end;
 
 
 Function TExprParse.Priority(_Operator : Char) : aint;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 { Return priority of operator }
 { The greater the priority, the higher the precedence }
 begin
@@ -432,14 +420,12 @@ begin
     '*', '/','%','<','>' :   // the highest priority: *, /, MOD, SHL, SHR
       Priority:=3;
     else
-      compiler.verbose.Message(asmr_e_expr_illegal);
+      verbose.Message(asmr_e_expr_illegal);
   end;
 end;
 
 
 Function TExprParse.Evaluate(Expr : String):tcgint;
-var
-  compiler: TCompilerBase absolute current_compiler;  { TODO: fix node compiler reference!!! }
 Var
   I     : longint;
   Token : String;
@@ -524,7 +510,7 @@ begin
          end; { Case }
        end
      else
-      compiler.verbose.Message(asmr_e_expr_illegal);  { Handle bad input error }
+      verbose.Message(asmr_e_expr_illegal);  { Handle bad input error }
    end;
 
 { Pop off the remaining operators }
