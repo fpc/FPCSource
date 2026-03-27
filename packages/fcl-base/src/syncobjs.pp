@@ -227,6 +227,9 @@ type
 {$IFDEF UNIX}
     FMutex: pthread_mutex_t;
 {$ENDIF POSIX}
+{$IFDEF CPUWASM32}
+    FMutex: TRTLCriticalSection;
+{$ENDIF CPUWASM32}
   public
     constructor Create(aUseCOMWait: Boolean = False); overload;
     constructor Create(aAttributes: PSecurityAttributes; aInitialOwner: Boolean; const aName: string; aUseCOMWait: Boolean = False); overload;
@@ -1011,7 +1014,14 @@ begin
     RaiseLastOSError;
 {$ELSE}
 {$IFDEF CPUWASM}
-  // Todo
+  inherited Create;
+  if (aName <> '') then
+    raise ESyncObjectException.Create(SErrNamesNotSupported);
+  // InitCriticalSection creates a recursive mutex (mkRecursive),
+  // matching the UNIX behavior (PTHREAD_MUTEX_RECURSIVE)
+  InitCriticalSection(FMutex);
+  if aInitialOwner then
+    Acquire;
 {$ELSE}
   raise ESyncObjectException.Create(SErrMutexNotSupported);
 {$ENDIF CPUWASM}
@@ -1042,7 +1052,7 @@ begin
     RaiseLastOSError;
 {$ELSE}
 {$IFDEF CPUWASM}
-  // Todo
+  Create(nil, false, aName, aUseCOMWait);
 {$ELSE}
   raise ESyncObjectException.Create(SErrMutexNotSupported);
 {$ENDIF CPUWASM}
@@ -1056,7 +1066,10 @@ begin
 {$IFDEF UNIX}
    pthread_mutex_destroy(@FMutex);
 {$ENDIF}
-   Inherited;
+{$IFDEF CPUWASM}
+  DoneCriticalSection(FMutex);
+{$ENDIF}
+  Inherited;
 end;
 
 
@@ -1071,7 +1084,45 @@ var
   tnow: ttimeval;
   Tmp: timespec;
 {$ENDIF}
+{$IFDEF CPUWASM32}
+var
+  EndTime : Int64;
+{$ENDIF}
 begin
+{$IFDEF CPUWASM32}
+    // TRTLCriticalSection only supports blocking acquire (no timeout).
+    // For INFINITE, use EnterCriticalSection directly.
+    // For timeout=0 (try-lock), use TryEnterCriticalSection.
+    // Other timeouts: spin with TryEnterCriticalSection.
+    if aTimeout = INFINITE then
+    begin
+      EnterCriticalSection(FMutex);
+      Result := wrSignaled;
+    end
+    else if aTimeout = 0 then
+    begin
+      if TryEnterCriticalSection(FMutex) <> 0 then
+        Result := wrSignaled
+      else
+        Result := wrTimeout;
+    end
+    else
+    begin
+      // Spin-wait with timeout (no native timed lock in WASM RTL)
+      Result := wrTimeout;
+      // LockMutexTimeout from wasmmutex.inc supports timed waits,
+      // but it's not exported. Use a simple spin loop:
+      EndTime := GetTickCount64 + aTimeout;
+      repeat
+        if TryEnterCriticalSection(FMutex) <> 0 then
+        begin
+          Result := wrSignaled;
+          Break;
+        end;
+        ThreadSwitch; // yield to other web workers
+      until GetTickCount64 >= EndTime;
+    end;
+{$ELSE}
 {$IFNDEF UNIX}
   Result:=Inherited WaitFor(aTimeOut);
 {$ELSE}
@@ -1116,6 +1167,7 @@ begin
       Result:=wrSignaled
     end;
 {$ENDIF}
+{$ENDIF}
 end;
 
 procedure TMutex.Acquire;
@@ -1135,6 +1187,9 @@ begin
 {$IFDEF UNIX}
   CheckOSError(pthread_mutex_unlock(@FMutex));
 {$ENDIF UNIX}
+{$IFDEF CPUWASM32}
+  LeaveCriticalSection(FMutex);
+{$ENDIF CPUWASM32}
 end;
 {$ENDIF NO_MUTEX_SUPPORT}
 
