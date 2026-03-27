@@ -1065,7 +1065,9 @@ begin
     exit;
   end;
 
+  {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.ComputeAtRule ',FNode.GetCSSID,' ',BestSpecificity);
+  {$ENDIF}
   if BestSpecificity>=0 then
   begin
     // match -> add rule to ruleset

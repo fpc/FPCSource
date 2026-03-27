@@ -522,8 +522,7 @@ type
     // todo procedure TestRes_Media_Ratio (aspect_ratio < 3/2)
     procedure TestRes_Media_And;
     procedure TestRes_Media_Or;
-    // todo procedure TestRes_Media_Comma  print, screen
-    // todo procedure TestRes_Media_Comma  print, invalid, screen parsing recovers on next comma
+    procedure TestRes_Media_Comma;
     // todo procedure TestRes_Media_Not  not print
     // todo procedure TestRes_Media_Not  not (print)
   end;
@@ -3650,6 +3649,29 @@ begin
   ApplyStyle;
   AssertEquals('Div1.Width','10px',Div1.Width);
   AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Comma;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (width > 9000px), screen { div{ width: 10px; } }',
+  '@media (width > 9000px), (height > 9000px) { div{ height: 11px; } }',
+  '@media invalid, screen { div{ color: red; } }',
+  '']);
+  ApplyStyle;
+  // first rule: first selector fails, second matches -> match
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  // second rule: both selectors fail -> no match
+  AssertEquals('Div1.Height','',Div1.Height);
+  // third rule: parsing recovers after the comma, so screen matches -> match
+  AssertEquals('Div1.Color','red',Div1.Color);
 end;
 
 initialization
