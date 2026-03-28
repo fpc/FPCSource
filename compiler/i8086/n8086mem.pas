@@ -178,7 +178,7 @@ implementation
                hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
                hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
                hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-               system.include(compiler.globals.current_settings.moduleswitches,cs_checkpointer_called);
+               compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_checkpointer_called];
              end;
           end
         else
