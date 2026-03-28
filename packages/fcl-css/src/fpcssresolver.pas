@@ -116,7 +116,7 @@ uses
   Fcl.AVLTree, FpCss.Tree, FpCss.ValueParser;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils, types, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
+  Classes, SysUtils, types, Math, Contnrs, AVL_Tree, StrUtils, fpCSSTree, fpCSSResParser;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -398,9 +398,14 @@ type
     // resolving rules
     procedure ComputeElement(El: TCSSElement); virtual;
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
+    procedure ComputeAtRule(aRule: TCSSAtRuleElement); virtual;
     function ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
     function GetRuleOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
-    function GetRuleParentOfSelector(aSelector: TCSSElement): TCSSRuleElement; virtual;
+    function GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRules: boolean): TCSSRuleElement; virtual;
+    function MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement): TCSSSpecificity; virtual;
+    function MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity; virtual;
+    function MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity; virtual;
+    function MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity; virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: ICSSNode; OnlySpecificity: boolean; aRule: TCSSRuleElement = nil): TCSSSpecificity; virtual;
     function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorAndWhitespaceMatches(aRightSelector: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
@@ -989,6 +994,8 @@ begin
       ComputeElement(Compound.Children[i]);
   end else if C=TCSSRuleElement then
     ComputeRule(TCSSRuleElement(El))
+  else if C=TCSSAtRuleElement then
+    ComputeAtRule(TCSSAtRuleElement(El))
   else
     Log(etWarning,20220908150252,'TCSSResolver.ComputeElement: Unknown CSS element',El);
 end;
@@ -998,15 +1005,20 @@ var
   i: Integer;
   BestSpecificity, Specificity: TCSSSpecificity;
   aSelector: TCSSElement;
+  NestedRule: TCSSRuleElement;
+  C: TClass;
 begin
   BestSpecificity:=CSSSpecificityNoMatch;
+
   for i:=0 to aRule.SelectorCount-1 do
   begin
     aSelector:=aRule.Selectors[i];
     Specificity:=SelectorMatches(aSelector,FNode,false,aRule);
+    writeln('TCSSResolver.ComputeRule ',i,' ',Fnode.GetCSSID,' ',aSelector.ClassName,' ',Specificity);
     if Specificity>BestSpecificity then
       BestSpecificity:=Specificity;
   end;
+
   if BestSpecificity>=0 then
   begin
     // match -> add rule to ruleset
@@ -1014,7 +1026,63 @@ begin
   end;
 
   for i:=0 to aRule.NestedRuleCount-1 do
-    ComputeRule(aRule.NestedRules[i]);
+  begin
+    NestedRule:=aRule.NestedRules[i];
+    C:=NestedRule.ClassType;
+    if C=TCSSAtRuleElement then
+    begin
+      if (BestSpecificity<0) then
+        continue; // current rule mismatch -> do not check nested @-rule
+      ComputeAtRule(TCSSAtRuleElement(NestedRule));
+    end else
+      ComputeRule(NestedRule);
+  end;
+end;
+
+procedure TCSSResolver.ComputeAtRule(aRule: TCSSAtRuleElement);
+var
+  i, BestSpecificity: Integer;
+  aSelector: TCSSElement;
+  C: TClass;
+  Specificity: TCSSSpecificity;
+  NestedRule: TCSSRuleElement;
+begin
+  BestSpecificity:=CSSSpecificityNoMatch;
+
+  case aRule.AtKeyWord of
+  '@media':
+    for i:=0 to aRule.SelectorCount-1 do
+    begin
+      aSelector:=aRule.Selectors[i];
+      Specificity:=MediaSelectorMatches(aSelector);
+      if Specificity>BestSpecificity then
+        BestSpecificity:=Specificity;
+    end;
+  else
+    {$IFDEF VerboseCSSResolver}
+    Log(etWarning,20260322092255,'Unknown CSS rule @'+aRule.AtKeyWord,aRule);
+    {$ENDIF}
+    exit;
+  end;
+
+  {$IFDEF VerboseCSSResolver}
+  writeln('TCSSResolver.ComputeAtRule ',FNode.GetCSSID,' ',BestSpecificity);
+  {$ENDIF}
+  if BestSpecificity>=0 then
+  begin
+    // match -> add rule to ruleset
+    AddRule(aRule,BestSpecificity);
+
+    for i:=0 to aRule.NestedRuleCount-1 do
+    begin
+      NestedRule:=aRule.NestedRules[i];
+      C:=NestedRule.ClassType;
+      if C=TCSSAtRuleElement then
+        ComputeAtRule(TCSSAtRuleElement(NestedRule))
+      else if C=TCSSRuleElement then
+        ComputeRule(TCSSRuleElement(NestedRule));
+    end;
+  end;
 end;
 
 function TCSSResolver.ComputeNestedRuleSelectorSpecifity(aSelector: TCSSElement): TCSSSpecificity;
@@ -1025,7 +1093,7 @@ var
 begin
   Result:=SelectorMatches(aSelector,nil,true,nil);
   if Result<0 then exit;
-  aParentRule:=GetRuleParentOfSelector(aSelector);
+  aParentRule:=GetRuleParentOfSelector(aSelector,true);
   if aParentRule=nil then
     exit(CSSSpecificityInvalid);
 
@@ -1052,17 +1120,264 @@ begin
   until false;
 end;
 
-function TCSSResolver.GetRuleParentOfSelector(aSelector: TCSSElement): TCSSRuleElement;
+function TCSSResolver.GetRuleParentOfSelector(aSelector: TCSSElement; SkipAtRules: boolean
+  ): TCSSRuleElement;
 var
   aRule: TCSSRuleElement;
+  aParent: TCSSElement;
 begin
   Result:=nil;
   aRule:=GetRuleOfSelector(aSelector);
-  if (aRule=nil) then
+  if aRule=nil then exit;
+  // skip @-rules
+  aParent:=aRule.Parent;
+  while (aParent<>nil) do
+  begin
+    if aParent.ClassType=TCSSRuleElement then
+      exit(TCSSRuleElement(aParent));
+    if not SkipAtRules and (aParent.ClassType=TCSSAtRuleElement) then
+      exit(TCSSRuleElement(aParent));
+    aParent:=aParent.Parent;
+  end;
+end;
+
+function TCSSResolver.MediaSelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement
+  ): TCSSSpecificity;
+var
+  KW: TCSSNumericalID;
+begin
+  Result:=CSSSpecificityNoMatch;
+  KW:=Identifier.NumericalID;
+  {$IFDEF VerboseCSSResolver}
+  if KW>0 then
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' KW=',CSSRegistry.Keywords[KW])
+  else
+    writeln('TCSSResolver.MediaSelectorIdentifierMatches ',Identifier.Value,' unknown');
+  {$ENDIF}
+  if Assigned(HasMediaBoolean) and HasMediaBoolean(Self,KW) then
+    Result:=FSourceSpecificity;
+end;
+
+function TCSSResolver.MediaSelectorBinaryMatches(aBinary: TCSSBinaryElement): TCSSSpecificity;
+
+  function GetCompValue(El: TCSSElement; out aValue: TCSSResCompValue): boolean;
+  var
+    FloatEl: TCSSFloatElement;
+    IntEl: TCSSIntegerElement;
+    Ratio: TCSSBinaryElement;
+    Num, Den: Double;
+  begin
+    Result:=true;
+    aValue:=Default(TCSSResCompValue);
+    if El is TCSSResolvedIdentifierElement then
+    begin
+      aValue.Kind:=rvkKeyword;
+      aValue.KeywordID:=TCSSResolvedIdentifierElement(El).NumericalID;
+    end else if El is TCSSFloatElement then
+    begin
+      FloatEl:=TCSSFloatElement(El);
+      aValue.Kind:=rvkFloat;
+      aValue.Float:=FloatEl.Value;
+      aValue.FloatUnit:=FloatEl.Units;
+    end else if El is TCSSIntegerElement then
+    begin
+      IntEl:=TCSSIntegerElement(El);
+      aValue.Kind:=rvkFloat;
+      aValue.Float:=IntEl.Value;
+      aValue.FloatUnit:=IntEl.Units;
+    end else if (El is TCSSBinaryElement)
+        and (TCSSBinaryElement(El).Operation=boDIV) then
+    begin
+      // ratio value N/M, e.g. 3/2
+      Ratio:=TCSSBinaryElement(El);
+      if Ratio.Left is TCSSIntegerElement then
+        Num:=TCSSIntegerElement(Ratio.Left).Value
+      else if Ratio.Left is TCSSFloatElement then
+        Num:=TCSSFloatElement(Ratio.Left).Value
+      else
+        exit(false);
+      if Ratio.Right is TCSSIntegerElement then
+        Den:=TCSSIntegerElement(Ratio.Right).Value
+      else if Ratio.Right is TCSSFloatElement then
+        Den:=TCSSFloatElement(Ratio.Right).Value
+      else
+        exit(false);
+      if SameValue(Den,0) then
+        exit(false);
+      aValue.Kind:=rvkFloat;
+      aValue.Float:=Num/Den;
+      aValue.FloatUnit:=cuNone;
+    end else
+      Result:=false;
+  end;
+
+  // RangeCmpMatches: compare KW against aValue using Op
+  // Cmp: 0=equal, 1=KW bigger, -1=value bigger
+  // ValueOnLeft=true: operation is written as "value Op name", so flip Cmp
+  function RangeCmpMatches(KW: TCSSNumericalID; const aValue: TCSSResCompValue;
+    Op: TCSSBinaryOperation; ValueOnLeft: boolean): boolean;
+  var
+    Cmp: integer;
+  begin
+    Result:=false;
+    if not Assigned(MediaCompare) or not MediaCompare(Self,KW,aValue,Cmp) then exit;
+    if ValueOnLeft then Cmp:=-Cmp;
+    case Op of
+    boEquals: Result:=Cmp=0;
+    boGT:     Result:=Cmp>0;
+    boGE:     Result:=Cmp>=0;
+    boLT:     Result:=Cmp<0;
+    boLE:     Result:=Cmp<=0;
+    end;
+  end;
+
+var
+  KW: TCSSNumericalID;
+  aValue, aValue2: TCSSResCompValue;
+  LeftBin: TCSSBinaryElement;
+begin
+  Result:=CSSSpecificityNoMatch;
+  if aBinary.Left is TCSSBinaryElement then
+  begin
+    // interval: value1 op1 name op2 value2, e.g. (100px <= width < 1000px)
+    // left binary: value1 op1 name (value on left)
+    // outer operation: name op2 value2 (name on left)
+    LeftBin:=TCSSBinaryElement(aBinary.Left);
+    if not (LeftBin.Right is TCSSResolvedIdentifierElement) then exit;
+    KW:=TCSSResolvedIdentifierElement(LeftBin.Right).NumericalID;
+    if KW<=0 then exit;
+    if not GetCompValue(LeftBin.Left,aValue) then exit;   // value1
+    if not GetCompValue(aBinary.Right,aValue2) then exit; // value2
+    // check both bounds; inner is value-on-left, outer is name-on-left
+    if not RangeCmpMatches(KW,aValue,LeftBin.Operation,true) then exit;
+    if RangeCmpMatches(KW,aValue2,aBinary.Operation,false) then
+      Result:=FSourceSpecificity;
+  end
+  else if aBinary.Left is TCSSResolvedIdentifierElement then
+  begin
+    // name op value: (width > 400px)
+    KW:=TCSSResolvedIdentifierElement(aBinary.Left).NumericalID;
+    if KW<=0 then exit;
+    if not GetCompValue(aBinary.Right,aValue) then exit;
+    case aBinary.Operation of
+    boColon:
+      // plain name:value, e.g. (orientation: portrait)
+      if Assigned(IsMediaPlain) and IsMediaPlain(Self,KW,aValue) then
+        Result:=FSourceSpecificity;
+    boEquals,boLT,boLE,boGT,boGE:
+      if RangeCmpMatches(KW,aValue,aBinary.Operation,false) then
+        Result:=FSourceSpecificity;
+    end;
+  end
+  else if aBinary.Right is TCSSResolvedIdentifierElement then
+  begin
+    // value op name: (400px < width)
+    KW:=TCSSResolvedIdentifierElement(aBinary.Right).NumericalID;
+    if KW<=0 then exit;
+    if not GetCompValue(aBinary.Left,aValue) then exit;
+    case aBinary.Operation of
+    boEquals,boLT,boLE,boGT,boGE:
+      if RangeCmpMatches(KW,aValue,aBinary.Operation,true) then
+        Result:=FSourceSpecificity;
+    end;
+  end;
+end;
+
+function TCSSResolver.MediaSelectorMatches(aSelector: TCSSElement): TCSSSpecificity;
+var
+  C: TClass;
+begin
+  // Note: if this is a nested rule: the parent rule was already checked if it matches
+
+  C:=aSelector.ClassType;
+  if C=TCSSResolvedIdentifierElement then
+    Result:=MediaSelectorIdentifierMatches(TCSSResolvedIdentifierElement(aSelector))
+  else if C=TCSSListElement then
+    Result:=MediaSelectorListMatches(TCSSListElement(aSelector))
+  else if C=TCSSBinaryElement then
+    Result:=MediaSelectorBinaryMatches(TCSSBinaryElement(aSelector))
+  else begin
+    // already warned by parser
+    {$IFDEF VerboseCSSResolver}
+    Log(etWarning,20260322092226,'Unknown CSS media selector element '+aSelector.ClassName,aSelector);
+    {$ENDIF}
+  end;
+end;
+
+function TCSSResolver.MediaSelectorListMatches(aList: TCSSListElement): TCSSSpecificity;
+var
+  i: Integer;
+  El: TCSSElement;
+  Specificity: TCSSSpecificity;
+  KW: TCSSNumericalID;
+  IsOr: boolean;
+begin
+  Result:=0;
+  {$IFDEF VerboseCSSResolver}
+  writeln('TCSSResolver.MediaSelectorListMatches ChildCount=',aList.ChildCount);
+  {$ENDIF}
+
+  // 'not' list: [not, condition] -> match if condition does NOT match
+  if (aList.ChildCount=2) and (aList.Children[0] is TCSSResolvedIdentifierElement) and
+      (TCSSResolvedIdentifierElement(aList.Children[0]).NumericalID=CSSKeywordNot) then
+  begin
+    Specificity:=MediaSelectorMatches(aList.Children[1]);
+    if Specificity<0 then
+      Result:=FSourceSpecificity
+    else
+      Result:=CSSSpecificityNoMatch;
     exit;
-  if not (aRule.Parent is TCSSRuleElement) then
-    exit;
-  Result:=TCSSRuleElement(aRule.Parent);
+  end;
+
+  // detect connector: 'and' or 'or' (check first connector found)
+  IsOr:=false;
+  for i:=0 to aList.ChildCount-1 do
+  begin
+    El:=aList.Children[i];
+    if El is TCSSResolvedIdentifierElement then
+    begin
+      KW:=TCSSResolvedIdentifierElement(El).NumericalID;
+      if KW=CSSKeywordOr then
+      begin
+        IsOr:=true;
+        break;
+      end else if KW=CSSKeywordAnd then
+        break;
+    end;
+  end;
+
+  if IsOr then
+  begin
+    // OR: match if any condition matches
+    Result:=CSSSpecificityNoMatch;
+    for i:=0 to aList.ChildCount-1 do
+    begin
+      El:=aList.Children[i];
+      if (El is TCSSResolvedIdentifierElement) and
+          (TCSSResolvedIdentifierElement(El).NumericalID=CSSKeywordOr) then
+        continue;
+      Specificity:=MediaSelectorMatches(El);
+      if Specificity>=0 then
+        exit(Specificity);
+    end;
+  end else
+  begin
+    // AND: all conditions must match; skip 'and' connectors
+    for i:=0 to aList.ChildCount-1 do
+    begin
+      El:=aList.Children[i];
+      {$IFDEF VerboseCSSResolver}
+      writeln('TCSSResolver.MediaSelectorListMatches ',i,' ',GetCSSObj(El),' AsString=',El.AsString);
+      {$ENDIF}
+      if (El is TCSSResolvedIdentifierElement) and
+          (TCSSResolvedIdentifierElement(El).NumericalID=CSSKeywordAnd) then
+        continue;
+      Specificity:=MediaSelectorMatches(El);
+      if Specificity<0 then
+        exit(Specificity);
+      inc(Result,Specificity);
+    end;
+  end;
 end;
 
 function TCSSResolver.FindSharedRuleList(const Rules: TCSSSharedRuleArray
@@ -1228,7 +1543,7 @@ var
 begin
   Result:=CSSSpecificityInvalid;
 
-  if (aRule<>nil) and (aRule.Parent is TCSSRuleElement) then
+  if (aRule<>nil) and (GetRuleParentOfSelector(aSelector,true)<>nil) then
   begin
     // nested rule
 
@@ -1395,7 +1710,7 @@ var
 begin
   Result:=SelectorMatches(aRightSelector,TestNode,false,nil);
   if Result<0 then exit;
-  aParentRule:=GetRuleParentOfSelector(aRightSelector);
+  aParentRule:=GetRuleParentOfSelector(aRightSelector,true);
   if aParentRule=nil then
     exit(CSSSpecificityInvalid);
 
@@ -1429,7 +1744,7 @@ var
 begin
   Result:=SelectorMatches(aRightSelector,TestNode,false,nil);
   if Result<0 then exit;
-  aParentRule:=GetRuleParentOfSelector(aRightSelector);
+  aParentRule:=GetRuleParentOfSelector(aRightSelector,true);
   if aParentRule=nil then
     exit(CSSSpecificityInvalid);
 
@@ -1461,7 +1776,7 @@ var
 begin
   Result:=SelectorMatches(aRightSelector,TestNode,false,nil);
   if Result<0 then exit;
-  aParentRule:=GetRuleParentOfSelector(aRightSelector);
+  aParentRule:=GetRuleParentOfSelector(aRightSelector,true);
   if aParentRule=nil then
     exit(CSSSpecificityInvalid);
 
@@ -1493,7 +1808,7 @@ var
 begin
   Result:=SelectorMatches(aRightSelector,TestNode,false,nil);
   if Result<0 then exit;
-  aParentRule:=GetRuleParentOfSelector(aRightSelector);
+  aParentRule:=GetRuleParentOfSelector(aRightSelector,true);
   if aParentRule=nil then
     exit(CSSSpecificityInvalid);
 
@@ -1529,15 +1844,13 @@ var
   aParent: ICSSNode;
 begin
   // TestNode must match the parent rule's selectors (& = parent rule)
-  writeln('AAA1 TCSSResolver.SelectorAndRightAndMatches ',TestNode.GetCSSID);
-  aParentRule:=GetRuleParentOfSelector(aBinary);
+  aParentRule:=GetRuleParentOfSelector(aBinary,true);
   if aParentRule=nil then
     exit(CSSSpecificityInvalid);
   Result:=CSSSpecificityNoMatch;
   for i:=0 to aParentRule.SelectorCount-1 do
   begin
     ParentSpecificity:=SelectorMatches(aParentRule.Selectors[i],TestNode,false,aParentRule);
-    writeln('AAA2 TCSSResolver.SelectorAndRightAndMatches ',i,' ParentSpecificity=',ParentSpecificity);
     if ParentSpecificity=CSSSpecificityInvalid then
       exit(CSSSpecificityInvalid);
     if ParentSpecificity>=0 then
@@ -1549,12 +1862,10 @@ begin
   if Result<0 then exit;
 
   // AND an ancestor of TestNode must match the left selector
-  writeln('AAA3 TCSSResolver.SelectorAndRightAndMatches ');
   aParent:=TestNode.GetCSSParent;
   while aParent<>nil do
   begin
     ParentSpecificity:=SelectorMatches(aBinary.Left,aParent,false,nil);
-    writeln('AAA4 TCSSResolver.SelectorAndRightAndMatches aParent=',aParent.GetCSSID,' ParentSpecificity=',ParentSpecificity);
     if ParentSpecificity=CSSSpecificityInvalid then
       exit(CSSSpecificityInvalid);
     if ParentSpecificity>=0 then
@@ -1590,7 +1901,7 @@ begin
   end;
 
   // compound: TestNode itself must also match the parent rule's selectors
-  aParentRule:=GetRuleParentOfSelector(aList);
+  aParentRule:=GetRuleParentOfSelector(aList,true);
   if aParentRule=nil then
     exit(CSSSpecificityInvalid);
   for i:=0 to aParentRule.SelectorCount-1 do
@@ -2564,9 +2875,9 @@ begin
   C:=El.ClassType;
   if C<>TCSSDeclarationElement then
   begin
-    // already warned by parser
+    // already warned by parser, e.g. nested rule
     {$IFDEF VerboseCSSResolver}
-    Log(etWarning,20220908232359,'Unknown property',El);
+    //Log(etWarning,20220908232359,'Unknown property',El);
     {$ENDIF}
     exit;
   end;
@@ -3219,7 +3530,7 @@ begin
   if El=nil then
     Result:='no element'
   else begin
-    Result:=El.SourceFileName+'('+IntToStr(El.SourceCol)+','+IntToStr(El.SourceCol)+')';
+    Result:=El.SourceFileName+'('+IntToStr(El.SourceCol)+','+IntToStr(El.SourceRow)+')';
     {$IFDEF VerboseCSSResolver}
     Result:='['+GetElPath(El)+']'+Result;
     {$ENDIF}

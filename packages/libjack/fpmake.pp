@@ -35,7 +35,7 @@ begin
       begin
         AddInclude('systemdeps.inc');
         AddInclude('transport.inc');
-        AddInclude('types.inc');
+        AddInclude('jtypes.inc');
         AddInclude('weakmacros.inc');
       end;
 

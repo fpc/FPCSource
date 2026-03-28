@@ -21,7 +21,7 @@ unit tcCSSResolver;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, fpcunit, testregistry, fpCSSTree,
+  Classes, SysUtils, Math, Contnrs, fpcunit, testregistry, fpCSSTree,
   fpCSSResParser, fpCSSResolver;
 
 type
@@ -155,6 +155,27 @@ type
     procedure OnSplit_Border(Resolver: TCSSBaseResolver;
       var AttrIDs: TCSSNumericalIDArray; var Values: TCSSStringArray);
   public
+
+    const
+      // keywords
+      kwNone=CSSKeywordNone;
+      kwRed=CSSKeyword_LastResolver+1;
+      kwGreen=kwRed+1;
+      kwBlue=kwGreen+1;
+      kwWhite=kwBlue+1;
+      kwBlack=kwWhite+1;
+      kwBlock=kwBlack+1;
+      kwInline_Block=kwBlock+1;
+      kwLTR=kwInline_Block+1;
+      kwRTL=kwLTR+1;
+      kwScreen=kwRTL+1;
+      kwOrientation=kwScreen+1;
+      kwPortrait=kwOrientation+1;
+      kwAspectRatio=kwPortrait+1;
+      kwWidth=kwAspectRatio+1;
+      kwHeight=kwWidth+1;
+    var
+
     DemoAttrIDBase: TCSSNumericalID;
     DemoPseudoClassIDBase: TCSSNumericalID;
     DemoElementTypeIDBase: TCSSNumericalID;
@@ -162,18 +183,6 @@ type
     DemoAttrs: array[TDemoNodeAttribute] of TDemoCSSAttributeDesc;
     DemoPseudoClasses: array[TDemoPseudoClass] of TDemoCSSPseudoClassDesc;
     DemoTypes: array[TDemoElementType] of TDemoCSSTypeDesc;
-
-    // keywords
-    kwRed,
-    kwGreen,
-    kwBlue,
-    kwWhite,
-    kwBlack,
-    kwNone,
-    kwBlock,
-    kwInline_Block,
-    kwLTR,
-    kwRTL: TCSSNumericalID;
 
     // check parameters
     Chk_BorderWidth: TCSSCheckAttrParams_Dimension;
@@ -349,12 +358,26 @@ type
     property Caption: TCSSString read FCaption write SetCaption;
   end;
 
+  TDemoMediaRangeType = (
+    dmrtNone,
+    dmrtLength,
+    dmrtRatio
+    );
+  TDemoMediaRangeTypes = set of TDemoMediaRangeType;
+
   { TDemoDocument }
 
   TDemoDocument = class(TComponent)
   private
     FCSSResolver: TCSSResolver;
+    FHeight: integer;
     FStyle: TCSSString;
+    FWidth: integer;
+    function HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
+    function IsMediaPlain(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
+      const aValue: TCSSResCompValue): boolean;
+    function MediaCompare(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
+      const aValue: TCSSResCompValue; out Cmp: integer): boolean;
     procedure OnResolverLog(Sender: TObject; Entry: TCSSResolverLogEntry);
   protected
     procedure ApplyTypeStyles; virtual;
@@ -368,11 +391,13 @@ type
     property Style: TCSSString read FStyle write SetStyle;
 
     property CSSResolver: TCSSResolver read FCSSResolver;
+    property Width: integer read FWidth write FWidth;
+    property Height: integer read FHeight write FHeight;
   end;
 
-  { TCustomTestNewCSSResolver }
+  { TCustomTestCSSResolver }
 
-  TCustomTestNewCSSResolver = class(TTestCase)
+  TCustomTestCSSResolver = class(TTestCase)
   private
     FDoc: TDemoDocument;
   protected
@@ -388,9 +413,9 @@ type
     property Doc: TDemoDocument read FDoc;
   end;
 
-  { TTestNewCSSResolver }
+  { TTestCSSResolver }
 
-  TTestNewCSSResolver = class(TCustomTestNewCSSResolver)
+  TTestCSSResolver = class(TCustomTestCSSResolver)
   published
     // invalid attributes while parsing stylesheet
     procedure TestRes_ParseAttr_Keyword;
@@ -489,14 +514,20 @@ type
     procedure TestRes_Nested_AndHasSpaceAtribute; // & [attr]
 
     // @media
-    // todo procedure TestRes_Media_Name  print | (print)
-    // todo procedure TestRes_Media_NameValue (display-mode: fullscreen)
-    // todo procedure TestRes_Media_Range (height > 600px) | (400px <= width <= 700px) | (min-width: 300px)
-    // todo procedure TestRes_Media_And  print and screen
-    // todo procedure TestRes_Media_Or  print or screen
-    // todo procedure TestRes_Media_Comma  (width>100px), (height>100px)
-    // todo procedure TestRes_Media_Not  not print
-
+    procedure TestRes_Media_Name; // test boolean
+    procedure TestRes_Media_NameColonValue; // test plain (name:value)
+    procedure TestRes_Media_Range_NameGtValue;
+    procedure TestRes_Media_Range_ValueLtName;
+    procedure TestRes_Media_Range_NameGtName;
+    procedure TestRes_Media_Range_ValueLtNameLtValue;
+    procedure TestRes_Media_Range_ValueGtNameGtValue;
+    procedure TestRes_Media_Ratio;
+    procedure TestRes_Media_And;
+    procedure TestRes_Media_Or;
+    procedure TestRes_Media_Comma;
+    procedure TestRes_Media_Not;
+    procedure TestRes_Media_NotAnd;
+    // todo procedure TestRes_Media_Only
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -632,6 +663,12 @@ begin
   FCSSResolver:=TCSSResolver.Create(nil);
   FCSSResolver.CSSRegistry:=TDemoNode.CSSRegistry;
   FCSSResolver.OnLog:=@OnResolverLog;
+  FCSSResolver.HasMediaBoolean:=@HasMediaBoolean;
+  FCSSResolver.IsMediaPlain:=@IsMediaPlain;
+  FCSSResolver.MediaCompare:=@MediaCompare;
+
+  FWidth:=800;
+  FHeight:=600;
 end;
 
 destructor TDemoDocument.Destroy;
@@ -664,6 +701,113 @@ procedure TDemoDocument.OnResolverLog(Sender: TObject; Entry: TCSSResolverLogEnt
 begin
   if Sender=nil then ;
   if Entry=nil then ;
+end;
+
+function TDemoDocument.HasMediaBoolean(aResolver: TCSSBaseResolver; KW: TCSSNumericalID): boolean;
+begin
+  Result:=false;
+  case KW of
+  TDemoCSSRegistry.kwHeight,
+  TDemoCSSRegistry.kwScreen,
+  TDemoCSSRegistry.kwOrientation,
+  TDemoCSSRegistry.kwAspectRatio,
+  TDemoCSSRegistry.kwWidth
+    : Result:=true;
+  end;
+  if aResolver=nil then ;
+end;
+
+function TDemoDocument.IsMediaPlain(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
+  const aValue: TCSSResCompValue): boolean;
+var
+  Cmp: integer;
+begin
+  Result:=false;
+
+  case KW of
+  TDemoCSSRegistry.kwAspectRatio,
+  TDemoCSSRegistry.kwHeight,
+  TDemoCSSRegistry.kwWidth:
+    begin
+      // length
+      if not MediaCompare(aResolver,KW,aValue,Cmp) then exit;
+      exit(Cmp=0);
+    end;
+  TDemoCSSRegistry.kwOrientation:
+     if (aValue.Kind=rvkKeyword) and (aValue.KeywordID=TDemoCSSRegistry.kwPortrait) then
+       Result:=true;
+  else exit;
+  end;
+end;
+
+function TDemoDocument.MediaCompare(aResolver: TCSSBaseResolver; KW: TCSSNumericalID;
+  const aValue: TCSSResCompValue; out Cmp: integer): boolean;
+// compare length
+var
+  LeftType: TDemoMediaRangeType;
+  LeftValue, RightValue: double;
+begin
+  Result:=false;
+
+  LeftType:=dmrtNone;
+  LeftValue:=NaN;
+  case KW of
+  TDemoCSSRegistry.kwAspectRatio:
+    begin
+      LeftType:=dmrtRatio;
+      LeftValue:=Width/Height;
+    end;
+  TDemoCSSRegistry.kwHeight:
+    begin
+      LeftType:=dmrtLength;
+      LeftValue:=Height;
+    end;
+  TDemoCSSRegistry.kwWidth:
+    begin
+      LeftType:=dmrtLength;
+      LeftValue:=Width;
+    end;
+  else exit;
+  end;
+
+  case LeftType of
+  dmrtLength:
+    case aValue.Kind of
+    rvkFloat:
+      case aValue.FloatUnit of
+      cu_px: RightValue:=aValue.Float;
+      else exit;
+      end;
+    rvkKeyword:
+      case aValue.KeywordID of
+      TDemoCSSRegistry.kwAspectRatio: RightValue:=Width/Height;
+      TDemoCSSRegistry.kwHeight: RightValue:=Height;
+      TDemoCSSRegistry.kwWidth: RightValue:=Width;
+      else exit;
+      end;
+    end;
+  dmrtRatio:
+    case aValue.Kind of
+    rvkFloat:
+      case aValue.FloatUnit of
+      cuNone: RightValue:=aValue.Float;
+      else exit;
+      end;
+    else exit;
+    end;
+  else exit;
+  end;
+
+  Result:=true;
+
+  if SameValue(LeftValue,RightValue) then
+    Cmp:=0
+  else if LeftValue>RightValue then
+    Cmp:=1
+  else
+    Cmp:=-1;
+
+  if aResolver=nil then ;
 end;
 
 procedure TDemoDocument.ApplyTypeStyles;
@@ -905,20 +1049,28 @@ begin
   SetDemoElementTypeID(TDemoSpan);
   SetDemoElementTypeID(TDemoButton);
 
-  kwRed:=AddKeyword('red');
+  if AddKeyword('red')<>kwRed then
+    raise Exception.Create('20260322081212');
   kwFirstColor:=kwRed;
-  kwGreen:=AddKeyword('green');
-  kwBlue:=AddKeyword('blue');
-  kwWhite:=AddKeyword('white');
-  kwBlack:=AddKeyword('black');
+  AddKeyword('green');
+  AddKeyword('blue');
+  AddKeyword('white');
+  if AddKeyword('black')<>kwBlack then
+    raise Exception.Create('20260322081247');
   kwLastColor:=kwBlack;
 
-  kwNone:=CSSKeywordNone;
-  kwBlock:=AddKeyword('block');
-  kwInline_Block:=AddKeyword('inline-block');
+  AddKeyword('block');
+  AddKeyword('inline-block');
 
-  kwLTR:=AddKeyword('ltr');
-  kwRTL:=AddKeyword('rtl');
+  AddKeyword('ltr');
+  AddKeyword('rtl');
+  AddKeyword('screen');
+  AddKeyword('orientation');
+  AddKeyword('portrait');
+  AddKeyword('aspect-ratio');
+  AddKeyword('width');
+  if AddKeyword('height')<>kwHeight then
+    raise Exception.Create('20260322081506');
 
   // check attribute values - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1121,7 +1273,8 @@ begin
   writeln('TDemoNode.ApplyCSS ',Name,' length(Values)=',length(Values.Values),' All="',CSSRegistry.Keywords[Values.AllValue],'"');
   for i:=0 to length(Values.Values)-1 do begin
     AttrID:=Values.Values[i].AttrID;
-    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',CSSRegistry.Attributes[AttrID].Name,'/',AttrID,':="',Values.Values[i].Value,'"');
+    Desc:=Resolver.GetAttributeDesc(AttrID);
+    writeln('TDemoNode.ApplyCSS ',Name,' resolved ',Desc.Name,'/',AttrID,':="',Values.Values[i].Value,'"');
   end;
   {$ENDIF}
   // compute values
@@ -1465,9 +1618,9 @@ begin
   Result:=DemoFirstLineID;
 end;
 
-{ TCustomTestNewCSSResolver }
+{ TCustomTestCSSResolver }
 
-procedure TCustomTestNewCSSResolver.SetUp;
+procedure TCustomTestCSSResolver.SetUp;
 var
   AttrDesc: TCSSAttributeDesc;
 begin
@@ -1482,20 +1635,20 @@ begin
   FDoc:=TDemoDocument.Create(nil);
 end;
 
-procedure TCustomTestNewCSSResolver.TearDown;
+procedure TCustomTestCSSResolver.TearDown;
 begin
   FreeAndNil(FDoc);
   FreeAndNil(TDemoNode.CSSRegistry);
   inherited TearDown;
 end;
 
-procedure TCustomTestNewCSSResolver.ApplyStyle;
+procedure TCustomTestCSSResolver.ApplyStyle;
 begin
   Doc.ApplyStyle;
   CheckWarnings;
 end;
 
-procedure TCustomTestNewCSSResolver.CheckWarnings;
+procedure TCustomTestCSSResolver.CheckWarnings;
 var
   aResolver: TCSSResolver;
   i: Integer;
@@ -1515,37 +1668,37 @@ begin
   end;
 end;
 
-function TCustomTestNewCSSResolver.AddButton(const aName: string; aParent: TDemoNode): TDemoButton;
+function TCustomTestCSSResolver.AddButton(const aName: string; aParent: TDemoNode): TDemoButton;
 begin
   Result:=TDemoButton.Create(nil);
   Result.Name:=aName;
   Result.Parent:=aParent;
 end;
 
-function TCustomTestNewCSSResolver.AddDiv(const aName: string; aParent: TDemoNode): TDemoDiv;
+function TCustomTestCSSResolver.AddDiv(const aName: string; aParent: TDemoNode): TDemoDiv;
 begin
   Result:=TDemoDiv.Create(nil);
   Result.Name:=aName;
   Result.Parent:=aParent;
 end;
 
-function TCustomTestNewCSSResolver.AddSpan(const aName: string; aParent: TDemoNode): TDemoSpan;
+function TCustomTestCSSResolver.AddSpan(const aName: string; aParent: TDemoNode): TDemoSpan;
 begin
   Result:=TDemoSpan.Create(nil);
   Result.Name:=aName;
   Result.Parent:=aParent;
 end;
 
-function TCustomTestNewCSSResolver.AddSpan_Class(const aName, aClass: string; aParent: TDemoNode
+function TCustomTestCSSResolver.AddSpan_Class(const aName, aClass: string; aParent: TDemoNode
   ): TDemoSpan;
 begin
   Result:=AddSpan(aName,aParent);
   Result.CSSClasses.Add(aClass);
 end;
 
-{ TTestNewCSSResolver }
+{ TTestCSSResolver }
 
-procedure TTestNewCSSResolver.TestRes_ParseAttr_Keyword;
+procedure TTestCSSResolver.TestRes_ParseAttr_Keyword;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { direction: ltr; }';
@@ -1553,7 +1706,7 @@ begin
   AssertEquals('Root.direction','ltr',Doc.Root.Direction);
 end;
 
-procedure TTestNewCSSResolver.TestRes_ParseAttr_Keyword_SkipInvalid;
+procedure TTestCSSResolver.TestRes_ParseAttr_Keyword_SkipInvalid;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { direction: something ltr; }';
@@ -1561,7 +1714,7 @@ begin
   AssertEquals('Root.direction','ltr',Doc.Root.Direction);
 end;
 
-procedure TTestNewCSSResolver.TestRes_ParseAttr_Float;
+procedure TTestCSSResolver.TestRes_ParseAttr_Float;
 var
   Div1: TDemoDiv;
 begin
@@ -1592,7 +1745,7 @@ begin
   AssertEquals('Div1.Height','60rem',Div1.Height);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Universal;
+procedure TTestCSSResolver.TestRes_Selector_Universal;
 begin
   Doc.Root:=TDemoNode.Create(nil);
   Doc.Style:='* { left: 10px; }';
@@ -1600,7 +1753,7 @@ begin
   AssertEquals('Root.left','10px',Doc.Root.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Type;
+procedure TTestCSSResolver.TestRes_Selector_Type;
 var
   Button: TDemoButton;
 begin
@@ -1612,7 +1765,7 @@ begin
   AssertEquals('Button.left','11px',Button.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Type_Spaces;
+procedure TTestCSSResolver.TestRes_Selector_Type_Spaces;
 var
   Button1, Button2: TDemoButton;
 begin
@@ -1627,7 +1780,7 @@ begin
   AssertEquals('Button2.left','11px',Button2.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Id;
+procedure TTestCSSResolver.TestRes_Selector_Id;
 var
   Button1: TDemoButton;
 begin
@@ -1639,7 +1792,7 @@ begin
   AssertEquals('Button1.left','12px',Button1.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Class;
+procedure TTestCSSResolver.TestRes_Selector_Class;
 var
   Button1: TDemoButton;
 begin
@@ -1652,7 +1805,7 @@ begin
   AssertEquals('Button1.left','13px',Button1.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_ClassClass;
+procedure TTestCSSResolver.TestRes_Selector_ClassClass;
 var
   Button1, Button2: TDemoButton;
 begin
@@ -1672,7 +1825,7 @@ begin
   AssertEquals('Button2.left','10px',Button2.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_ClassSpaceClass;
+procedure TTestCSSResolver.TestRes_Selector_ClassSpaceClass;
 var
   Button1: TDemoButton;
 begin
@@ -1688,7 +1841,7 @@ begin
   AssertEquals('Button1.left','10px',Button1.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_TypeCommaType;
+procedure TTestCSSResolver.TestRes_Selector_TypeCommaType;
 var
   Button1: TDemoButton;
   Div1: TDemoDiv;
@@ -1706,7 +1859,7 @@ begin
   AssertEquals('Div1.left','10px',Div1.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_ClassGTClass;
+procedure TTestCSSResolver.TestRes_Selector_ClassGTClass;
 var
   Div1, Div2: TDemoDiv;
 begin
@@ -1737,7 +1890,7 @@ begin
   AssertEquals('Div2.width','12px',Div2.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_TypePlusType;
+procedure TTestCSSResolver.TestRes_Selector_TypePlusType;
 var
   Button1, Button2, Button3: TDemoButton;
   Div1: TDemoDiv;
@@ -1762,7 +1915,7 @@ begin
   AssertEquals('Button3.left','',Button3.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_TypeTildeType;
+procedure TTestCSSResolver.TestRes_Selector_TypeTildeType;
 var
   Button1, Button2, Button3: TDemoButton;
   Div1: TDemoDiv;
@@ -1786,7 +1939,7 @@ begin
   AssertEquals('Button3.left','10px',Button3.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_HasAttribute;
+procedure TTestCSSResolver.TestRes_Selector_HasAttribute;
 var
   Button1: TDemoButton;
 begin
@@ -1809,7 +1962,7 @@ begin
   AssertEquals('Button1.Width','4px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_AttributeEquals;
+procedure TTestCSSResolver.TestRes_Selector_AttributeEquals;
 var
   Button1: TDemoButton;
 begin
@@ -1830,7 +1983,7 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_AttributeEqualsI;
+procedure TTestCSSResolver.TestRes_Selector_AttributeEqualsI;
 var
   Button1: TDemoButton;
 begin
@@ -1851,7 +2004,7 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_AttributeBeginsWith;
+procedure TTestCSSResolver.TestRes_Selector_AttributeBeginsWith;
 var
   Button1: TDemoButton;
 begin
@@ -1872,7 +2025,7 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_AttributeEndsWith;
+procedure TTestCSSResolver.TestRes_Selector_AttributeEndsWith;
 var
   Button1: TDemoButton;
 begin
@@ -1893,7 +2046,7 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_AttributeBeginsWithHyphen;
+procedure TTestCSSResolver.TestRes_Selector_AttributeBeginsWithHyphen;
 var
   Button1: TDemoButton;
 begin
@@ -1914,7 +2067,7 @@ begin
   AssertEquals('Button1.Width','',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_AttributeContainsWord;
+procedure TTestCSSResolver.TestRes_Selector_AttributeContainsWord;
 var
   Button1: TDemoButton;
 begin
@@ -1945,7 +2098,7 @@ begin
   AssertEquals('Button1.Display','inline-block',Button1.Display);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_AttributeContainsSubstring;
+procedure TTestCSSResolver.TestRes_Selector_AttributeContainsSubstring;
 var
   Button1: TDemoButton;
 begin
@@ -1966,7 +2119,7 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Root;
+procedure TTestCSSResolver.TestRes_Selector_Root;
 var
   Button1: TDemoButton;
 begin
@@ -1983,7 +2136,7 @@ begin
   AssertEquals('Button1.Top','',Button1.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Empty;
+procedure TTestCSSResolver.TestRes_Selector_Empty;
 var
   Div1, Div11, Div2: TDemoDiv;
 begin
@@ -2010,7 +2163,7 @@ begin
   AssertEquals('Div2.Top','2px',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_FirstChild;
+procedure TTestCSSResolver.TestRes_Selector_FirstChild;
 var
   Div1, Div11, Div12, Div2: TDemoDiv;
 begin
@@ -2041,7 +2194,7 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_LastChild;
+procedure TTestCSSResolver.TestRes_Selector_LastChild;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2073,7 +2226,7 @@ begin
   AssertEquals('Div2.Top','7px',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_OnlyChild;
+procedure TTestCSSResolver.TestRes_Selector_OnlyChild;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2106,7 +2259,7 @@ begin
   AssertEquals('Button12.Top','',Button12.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Not;
+procedure TTestCSSResolver.TestRes_Selector_Not;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2139,7 +2292,7 @@ begin
   AssertEquals('Button12.Top','9px',Button12.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_NthChild;
+procedure TTestCSSResolver.TestRes_Selector_NthChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
@@ -2188,7 +2341,7 @@ begin
   AssertEquals('Div4.Width','',Div4.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_NthLastChild;
+procedure TTestCSSResolver.TestRes_Selector_NthLastChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
@@ -2213,7 +2366,7 @@ begin
   AssertEquals('Div4.Left','8px',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_NthChildOf;
+procedure TTestCSSResolver.TestRes_Selector_NthChildOf;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
 begin
@@ -2242,7 +2395,7 @@ begin
   AssertEquals('Div4.Left','5px',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_FirstOfType;
+procedure TTestCSSResolver.TestRes_Selector_FirstOfType;
 var
   Div1, Div11, Div13, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2278,7 +2431,7 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_LastOfType;
+procedure TTestCSSResolver.TestRes_Selector_LastOfType;
 var
   Div1, Div11, Div13, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2314,7 +2467,7 @@ begin
   AssertEquals('Div2.Top','7px',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_OnlyOfType;
+procedure TTestCSSResolver.TestRes_Selector_OnlyOfType;
 var
   Div1, Div11, Div2: TDemoDiv;
   Button12: TDemoButton;
@@ -2346,7 +2499,7 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_NthOfType;
+procedure TTestCSSResolver.TestRes_Selector_NthOfType;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
   Button1, Button2: TDemoButton;
@@ -2379,7 +2532,7 @@ begin
   AssertEquals('Div4.Left','',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_NthLastOfType;
+procedure TTestCSSResolver.TestRes_Selector_NthLastOfType;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
   Button1, Button2: TDemoButton;
@@ -2411,7 +2564,7 @@ begin
   AssertEquals('Div4.Left','8px',Div4.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Is;
+procedure TTestCSSResolver.TestRes_Selector_Is;
 var
   Div1, Div2: TDemoDiv;
   Button1, Button2: TDemoButton;
@@ -2445,7 +2598,7 @@ begin
   AssertEquals('Button2.Left','7px',Button2.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Where;
+procedure TTestCSSResolver.TestRes_Selector_Where;
 var
   Div1, Div2: TDemoDiv;
 begin
@@ -2468,7 +2621,7 @@ begin
   AssertEquals('Div2.Left','2px',Div2.Left);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Selector_Hover;
+procedure TTestCSSResolver.TestRes_Selector_Hover;
 var
   Div1, Div11: TDemoDiv;
   Button1: TDemoButton;
@@ -2499,7 +2652,7 @@ begin
   AssertEquals('Div11.Top','',Div11.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_InlineStyle;
+procedure TTestCSSResolver.TestRes_InlineStyle;
 var
   Div1: TDemoDiv;
 begin
@@ -2517,7 +2670,7 @@ begin
   AssertEquals('Div1.Top','5px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_InlineStyle_DisplayNone;
+procedure TTestCSSResolver.TestRes_InlineStyle_DisplayNone;
 var
   Div1: TDemoDiv;
 begin
@@ -2530,7 +2683,7 @@ begin
   AssertEquals('Div1.Display','none',Div1.Display);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Specificity_Id_Class;
+procedure TTestCSSResolver.TestRes_Specificity_Id_Class;
 var
   Div1: TDemoDiv;
 begin
@@ -2550,7 +2703,7 @@ begin
   AssertEquals('Div1.Top','8px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Specificity_Important;
+procedure TTestCSSResolver.TestRes_Specificity_Important;
 var
   Div1: TDemoDiv;
 begin
@@ -2570,7 +2723,7 @@ begin
   AssertEquals('Div1.Top','9px',Div1.Top);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Specificity_Shorthand_OneRule;
+procedure TTestCSSResolver.TestRes_Specificity_Shorthand_OneRule;
 var
   Div1: TDemoDiv;
 begin
@@ -2585,7 +2738,7 @@ begin
   AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Specificity_Shorthand_ClassClass;
+procedure TTestCSSResolver.TestRes_Specificity_Shorthand_ClassClass;
 var
   Div1: TDemoDiv;
 begin
@@ -2605,7 +2758,7 @@ begin
   AssertEquals('Div1.BorderWidth','7px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Specificity_Longhand_All_Longhand;
+procedure TTestCSSResolver.TestRes_Specificity_Longhand_All_Longhand;
 var
   Div1: TDemoDiv;
 begin
@@ -2627,7 +2780,7 @@ begin
   AssertEquals('Div1.Background','red',Div1.Background);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Specificity_Shorthand_All_Shorthand;
+procedure TTestCSSResolver.TestRes_Specificity_Shorthand_All_Shorthand;
 var
   Div1, Div2: TDemoDiv;
 begin
@@ -2652,7 +2805,7 @@ begin
   AssertEquals('Div2.BorderWidth','8px',Div2.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Origin_Id_Class;
+procedure TTestCSSResolver.TestRes_Origin_Id_Class;
 var
   Div1: TDemoDiv;
 begin
@@ -2676,7 +2829,7 @@ begin
   AssertEquals('Div1.Background','green',Div1.Background);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Var_NoDefault;
+procedure TTestCSSResolver.TestRes_Var_NoDefault;
 var
   Div1: TDemoDiv;
 begin
@@ -2702,7 +2855,7 @@ begin
   AssertEquals('Div1.Color','',Div1.Color);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Var_Inline_NoDefault;
+procedure TTestCSSResolver.TestRes_Var_Inline_NoDefault;
 var
   Div1: TDemoDiv;
 begin
@@ -2721,7 +2874,7 @@ begin
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Var_Defaults;
+procedure TTestCSSResolver.TestRes_Var_Defaults;
 var
   Div1: TDemoDiv;
 begin
@@ -2744,7 +2897,7 @@ begin
   AssertEquals('Div1.Color','',Div1.Color);
 end;
 
-procedure TTestNewCSSResolver.TestRes_PseudoElement;
+procedure TTestCSSResolver.TestRes_PseudoElement;
 var
   Div1: TDemoDiv;
   FirstLine: TDemoFirstLine;
@@ -2774,7 +2927,7 @@ begin
   AssertEquals('Div1::first-line.Color','red',FirstLine.Color);
 end;
 
-procedure TTestNewCSSResolver.TestRes_PseudoElement_Unary;
+procedure TTestCSSResolver.TestRes_PseudoElement_Unary;
 var
   Div1: TDemoDiv;
   FirstLine: TDemoFirstLine;
@@ -2798,7 +2951,7 @@ begin
   AssertEquals('Div1::first-line.Color','red',FirstLine.Color);
 end;
 
-procedure TTestNewCSSResolver.TestRes_PseudoElement_PostfixSelectNothing;
+procedure TTestCSSResolver.TestRes_PseudoElement_PostfixSelectNothing;
 var
   Div1: TDemoDiv;
   FirstLine: TDemoFirstLine;
@@ -2829,7 +2982,7 @@ begin
   AssertEquals('Div1::first-line.BorderColor','',FirstLine.BorderColor);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_Hash;
+procedure TTestCSSResolver.TestRes_Nested_Hash;
 var
   Container, Div1: TDemoDiv;
 begin
@@ -2853,7 +3006,7 @@ begin
   AssertEquals('Container.Width','',Container.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_Class;
+procedure TTestCSSResolver.TestRes_Nested_Class;
 var
   Container, Div1, Div2: TDemoDiv;
 begin
@@ -2881,7 +3034,7 @@ begin
   AssertEquals('Div2.Width','',Div2.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndClass;
+procedure TTestCSSResolver.TestRes_Nested_AndClass;
 var
   Div1, Div2, Div3: TDemoDiv;
 begin
@@ -2910,7 +3063,7 @@ begin
   AssertEquals('Div3.Width','',Div3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceClass;
+procedure TTestCSSResolver.TestRes_Nested_AndSpaceClass;
 var
   Container, Div1: TDemoDiv;
   Span1, Span2, Span3: TDemoSpan;
@@ -2944,7 +3097,7 @@ begin
   AssertEquals('Span3.Width','10px',Span3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaClass;
+procedure TTestCSSResolver.TestRes_Nested_ClassCommaClass;
 var
   Container, Div1: TDemoDiv;
   Span1, Span2, Span3, Span4: TDemoSpan;
@@ -2977,7 +3130,7 @@ begin
   AssertEquals('Span4.Width','',Span4.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaAndClass;
+procedure TTestCSSResolver.TestRes_Nested_ClassCommaAndClass;
 var
   Container, Div1, Div2, Div3, Div4: TDemoDiv;
 begin
@@ -3014,7 +3167,7 @@ begin
   AssertEquals('Div4.Width','',Div4.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_ClassCommaAndSpaceClass;
+procedure TTestCSSResolver.TestRes_Nested_ClassCommaAndSpaceClass;
 var
   Container, Div1: TDemoDiv;
   Span1, Span2, Span3, Span4: TDemoSpan;
@@ -3047,7 +3200,7 @@ begin
   AssertEquals('Span4.Width','',Span4.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_ClassSpaceAnd;
+procedure TTestCSSResolver.TestRes_Nested_ClassSpaceAnd;
 var
   Container, Div1, Div2, Div3: TDemoDiv;
 begin
@@ -3078,7 +3231,7 @@ begin
   AssertEquals('Div3.Width','',Div3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndSpaceType;
+procedure TTestCSSResolver.TestRes_Nested_AndSpaceType;
 var
   Container, Div1: TDemoDiv;
   Span1, Span2, Span3: TDemoSpan;
@@ -3110,7 +3263,7 @@ begin
   AssertEquals('Span3.Width','10px',Span3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_GTClass;
+procedure TTestCSSResolver.TestRes_Nested_GTClass;
 var
   Container, Div1: TDemoDiv;
   Span1, Span2, Span3, Span4: TDemoSpan;
@@ -3143,7 +3296,7 @@ begin
   AssertEquals('Span4.Width','',Span4.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndGTClass;
+procedure TTestCSSResolver.TestRes_Nested_AndGTClass;
 var
   Container, Div1: TDemoDiv;
   Span1, Span2, Span3, Span4: TDemoSpan;
@@ -3176,7 +3329,7 @@ begin
   AssertEquals('Span4.Width','',Span4.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_PlusClass;
+procedure TTestCSSResolver.TestRes_Nested_PlusClass;
 var
   Container: TDemoDiv;
   Span1, Span2, Span3: TDemoSpan;
@@ -3204,7 +3357,7 @@ begin
   AssertEquals('Span3.Width','',Span3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndPlusType;
+procedure TTestCSSResolver.TestRes_Nested_AndPlusType;
 var
   Container: TDemoDiv;
   Span1, Span2, Span3: TDemoSpan;
@@ -3232,7 +3385,7 @@ begin
   AssertEquals('Span3.Width','',Span3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_TildeClass;
+procedure TTestCSSResolver.TestRes_Nested_TildeClass;
 var
   Container: TDemoDiv;
   Span1, Span2, Span3: TDemoSpan;
@@ -3260,7 +3413,7 @@ begin
   AssertEquals('Span3.Width','',Span3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndTildeClass;
+procedure TTestCSSResolver.TestRes_Nested_AndTildeClass;
 var
   Container: TDemoDiv;
   Span1, Span2, Span3: TDemoSpan;
@@ -3288,7 +3441,7 @@ begin
   AssertEquals('Span3.Width','',Span3.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_HasAtribute;
+procedure TTestCSSResolver.TestRes_Nested_HasAtribute;
 var
   Button1, Button2: TDemoButton;
   Div1: TDemoDiv;
@@ -3315,7 +3468,7 @@ begin
   AssertEquals('Button2.Width','3px',Button2.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndHasAtribute;
+procedure TTestCSSResolver.TestRes_Nested_AndHasAtribute;
 var
   Button1, Button2: TDemoButton;
   Div1: TDemoDiv;
@@ -3343,7 +3496,7 @@ begin
   AssertEquals('Button2.Width','',Button2.Width);
 end;
 
-procedure TTestNewCSSResolver.TestRes_Nested_AndHasSpaceAtribute;
+procedure TTestCSSResolver.TestRes_Nested_AndHasSpaceAtribute;
 var
   Button1, Button2: TDemoButton;
   Div1: TDemoDiv;
@@ -3370,9 +3523,257 @@ begin
   AssertEquals('Button2.Width','3px',Button2.Width);
 end;
 
+procedure TTestCSSResolver.TestRes_Media_Name;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media screen { div{ width: 10px; } }',
+  '@media (screen) { div{ height: 11px; } }',
+  '@media print { div{ width: 20px; } }',
+  '@media (print) { div{ width: 21px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_NameColonValue;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (orientation: portrait) { div{ width: 10px; } }',
+  '@media (orientation: print) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Range_NameGtValue;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (width > 400px) { div{ width: 10px; } }',
+  '@media (height < 1000px) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Range_ValueLtName;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (1000px >= width) { div{ width: 10px; } }',
+  '@media (300px <= height) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Range_NameGtName;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (width > height) { div{ width: 10px; } }',
+  '@media (height = width) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Range_ValueLtNameLtValue;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (100px <= width < 1000px) { div{ width: 10px; } }',
+  '@media (300px < height <= 900px) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Range_ValueGtNameGtValue;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (1000px >= width > 100px) { div{ width: 10px; } }',
+  '@media (900px > height >= 300px) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_And;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (screen and screen) { div{ width: 10px; } }',
+  '@media (screen and (width > 400px)) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Or;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media ((width > 9000px) or screen) { div{ width: 10px; } }',
+  '@media ((width > 9000px) or (height > 90px)) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  AssertEquals('Div1.Height','11px',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Comma;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media (width > 9000px), screen { div{ width: 10px; } }',
+  '@media (width > 9000px), (height > 9000px) { div{ height: 11px; } }',
+  '@media invalid, screen { div{ color: red; } }',
+  '']);
+  ApplyStyle;
+  // first rule: first selector fails, second matches -> match
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  // second rule: both selectors fail -> no match
+  AssertEquals('Div1.Height','',Div1.Height);
+  // third rule: parsing recovers after the comma, so screen matches -> match
+  AssertEquals('Div1.Color','red',Div1.Color);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Not;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media not (width > 9000px) { div{ width: 10px; } }',
+  '@media not screen { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  // width > 9000px is false -> not false -> match
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  // screen is true -> not true -> no match
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_NotAnd;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  Doc.Style:=LinesToStr([
+  '@media not print and not (width > 1000px) { div{ width: 10px; } }',
+  '@media not screen and not (width > 1000px) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  // not print (print unknown -> false -> inverted -> match)
+  // and not (800 > 1000px) (false -> inverted -> match) -> both match
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  // not screen (screen true -> inverted -> no match) -> AND short-circuits -> no match
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
+
+procedure TTestCSSResolver.TestRes_Media_Ratio;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Name:='root';
+
+  Div1:=AddDiv('Div1',Doc.Root);
+
+  // Doc.Width=800, Doc.Height=600, aspect-ratio = 800/600 = 4/3 < 3/2
+  Doc.Style:=LinesToStr([
+  '@media (aspect-ratio < 3/2) { div{ width: 10px; } }',
+  '@media (aspect-ratio > 3/2) { div{ height: 11px; } }',
+  '']);
+  ApplyStyle;
+  // 4/3 < 3/2 -> match
+  AssertEquals('Div1.Width','10px',Div1.Width);
+  // 4/3 > 3/2 -> no match
+  AssertEquals('Div1.Height','',Div1.Height);
+end;
 
 initialization
-  RegisterTests([TTestNewCSSResolver]);
+  RegisterTests([TTestCSSResolver]);
 
 end.
 

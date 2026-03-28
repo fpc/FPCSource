@@ -526,6 +526,7 @@ begin
   until pmc > pmc_end;
 end;
 
+{$ifdef HAS_SYSOSFREE}
 procedure free_oschunk(loc_freelists: pfreelists; poc: poschunk);
 var
   pocsize: ptruint;
@@ -543,6 +544,7 @@ begin
   dec(loc_freelists^.internal_status.currheapsize, pocsize);
   SysOSFree(poc, pocsize);
 end;
+{$endif HAS_SYSOSFREE}
 
 procedure append_to_oslist(poc: poschunk);
 var

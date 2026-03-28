@@ -2093,13 +2093,14 @@ var
 
             remove_waitforunit_cycles;
 
-            { the implementation uses were just connected,
-              the scc_tree_crc_wait is outdated.
-              If all used units are compiled, continue.
-              otherwise some used units might still change }
-            if not are_all_used_units_compiled then
-              exit(false);
           end;
+
+        { the implementation uses were just connected,
+          the scc_tree_crc_wait is outdated.
+          If all used units are compiled, continue.
+          otherwise some used units might still change }
+        if find_used_unit_compiling<>nil then
+          exit(false);
 
         { check that all used units have their crc and checksums match }
         if not ppu_check_used_crcs then
@@ -2177,12 +2178,10 @@ var
               else
                 compiler.verbose.Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
   {$endif DEBUG_UNIT_CRC_CHANGES}
-              recompile_reason:=rr_crcchanged;
               {$IFDEF DEBUG_PPU_CYCLES}
               writeln('PPUALGO tppumodule.load_usedunits_section ',modulename^,' ',BoolToStr(in_interface,'interface','implementation'),' uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
               {$ENDIF}
-              { Note: the recompile_from_sources is invoked by the caller }
-              state:=ms_compile;
+              mark_recompile_needed(rr_crcchanged);
               exit(false);
             end;
 
@@ -2205,6 +2204,7 @@ var
       end;
 
     function tppumodule.ppu_check_used_crcs: boolean;
+    // check crcs
     var
       pu: tused_unit;
     begin
@@ -2221,11 +2221,10 @@ var
             {$ifdef DEBUG_UNIT_CRC_CHANGES}
             compiler.verbose.Comment(V_Normal,'  implcrc change: '+hexstr(pu.u.crc,8)+' for '+pu.u.ppufilename+' <> '+hexstr(pu.checksum,8)+' in unit '+realmodulename^);
             {$endif DEBUG_UNIT_CRC_CHANGES}
-            recompile_reason:=rr_crcchanged;
             {$IFDEF DEBUG_PPU_CYCLES}
             writeln('PPUALGO tppumodule.ppu_check_used_crcs ',modulename^,' interface uses "',pu.u.modulename^,'" old=',statestr,' new=',ms_compile);
             {$ENDIF}
-            state:=ms_compile;
+            mark_recompile_needed(rr_crcchanged);
             exit;
           end;
         end else begin
@@ -2234,9 +2233,6 @@ var
         end;
         pu:=tused_unit(pu.next);
       end;
-
-      if (scc_tree_crc_wait<>nil) and (scc_tree_crc_wait<>self) then
-        exit;
 
       Result:=true;
     end;
@@ -2408,6 +2404,7 @@ var
         recompile_reason:=reason;
         do_recompile:=true;
         do_reload:=true;
+        state:=ms_compile;
       end;
 
     procedure tppumodule.post_load_or_compile(from_module : tmodule);

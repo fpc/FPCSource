@@ -319,10 +319,10 @@ interface
         procedure removedependency(callermodule:tmodule);
         function hasdependency(callermodule:tmodule): boolean;
         procedure flagdependent;
+        function find_used_unit_compiling: tmodule; // find a used module compiling/loading, even indirect
         class procedure increase_cycle_stamp;
         procedure disconnect_depending_modules; virtual;
         function is_reload_needed(du: tdependent_unit): boolean; virtual; // true if reload needed after self changed
-        function are_all_used_units_compiled: boolean;
         class var finish_module: tfinish_module_event;
         procedure addimportedsym(sym:TSymEntry; check_if_exists: boolean = true);
         procedure derefimportedsymbols;
@@ -348,6 +348,7 @@ interface
         procedure remove_from_waitingforunits(amodule : tmodule);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
         function ToString: RTLString; override;
+        procedure WriteUsedUnits(m: tmodule);
       end;
 
     var
@@ -1170,7 +1171,7 @@ implementation
     procedure tmodule.flagdependent;
       var
         dm : tdependent_unit;
-        m : tmodule;
+        m , bm: tmodule;
 
       begin
         { flag all units that depend on this unit for reloading }
@@ -1179,13 +1180,26 @@ implementation
         dm:=tdependent_unit(dependent_units.first);
         while assigned(dm) do
         begin
-          { We do not have to reload the unit that wants to load
-            this unit, unless this unit is already compiled during
-            the loading }
           m:=dm.u;
           if m.state in [ms_compiled,ms_processed] then
           begin
+            { Inconsistency: ms_compiled must only be set when all depending units (even indirect)
+                are complete aka wait for crc or higher }
             writeln('tmodule.flagdependent ',modulename^,' state=',statestr,', is used by ',BoolToStr(dm.in_interface,'interface','implementation'),' of ',m.modulename^,' ',m.statestr);
+            bm:=find_used_unit_compiling;
+            if bm<>nil then
+              writeln('tmodule.flagdependent ',modulename^,' is using (indirectly) ',bm.modulename^,' ',bm.statestr)
+            else
+              writeln('tmodule.flagdependent ',modulename^,' is not using any incomplete unit.');
+            bm:=m.find_used_unit_compiling;
+            if bm<>nil then
+              writeln('tmodule.flagdependent ',m.modulename^,' is using (indirectly) ',bm.modulename^,' ',bm.statestr)
+            else
+              writeln('tmodule.flagdependent ',m.modulename^,' is not using any incomplete unit.');
+
+            WriteUsedUnits(self);
+            WriteUsedUnits(m);
+
             Internalerror(2026022510);
           end;
           if not m.do_reload and is_reload_needed(dm) then
@@ -1209,6 +1223,46 @@ implementation
           dm:=tdependent_unit(dm.next);
         end;
       end;
+
+    function tmodule.find_used_unit_compiling: tmodule;
+
+      function find_compiling(m: tmodule): tmodule;
+      var
+        uu: tused_unit;
+      begin
+        Result:=nil;
+        if m.cycle_search_stamp=tmodule.cycle_stamp then
+          exit; // already visited
+        m.cycle_search_stamp:=tmodule.cycle_stamp;
+
+        if m<>self then
+          case m.state of
+            ms_load:
+              if ppu_waitingfor_crc then
+                // check used units
+              else
+                exit(m);
+            ms_compiled_waitcrc:
+              ; // check used units
+            ms_compiled, ms_processed:
+              exit;
+          else
+            exit(m);
+          end;
+
+        uu:=tused_unit(m.used_units.first);
+        while uu<>nil do
+          begin
+            Result:=find_compiling(uu.u);
+            if Result<>nil then exit;
+            uu:=tused_unit(uu.Next);
+          end;
+      end;
+
+    begin
+      increase_cycle_stamp;
+      Result:=find_compiling(self);
+    end;
 
     class procedure tmodule.increase_cycle_stamp;
       begin
@@ -1281,20 +1335,6 @@ implementation
         Result:=(du.u.state in [ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed])
              or (du.in_interface and du.u.interface_compiled);
         { Note: see also the override in fppu.tppumodule }
-      end;
-
-    function tmodule.are_all_used_units_compiled: boolean;
-      var
-        uu: tused_unit;
-      begin
-        uu:=tused_unit(used_units.First);
-        while assigned(uu) do
-          begin
-            if not (uu.u.state in [ms_compiled,ms_processed]) then
-              exit(false);
-            uu:=tused_unit(uu.Next);
-          end;
-        Result:=true;
       end;
 
     procedure tmodule.addimportedsym(sym: TSymEntry; check_if_exists: boolean);
@@ -1786,6 +1826,30 @@ implementation
          Result:='(<'+inttostr(ptrint(self))+'>)';
         // Possibly add some state ?
       end;
+
+    procedure tmodule.WriteUsedUnits(m: tmodule);
+    var
+      uu: tused_unit;
+    begin
+      if m=nil then exit;
+      writeln('tmodule.WriteUsedUnits ',m.modulename^,' ',m.statestr);
+      writeln('  interface uses:');
+      uu:=tused_unit(m.used_units.First);
+      while assigned(uu) do
+        begin
+          if uu.in_interface then
+            writeln('  ',uu.u.modulename^,' ',uu.u.statestr);
+          uu:=tused_unit(uu.Next);
+        end;
+      writeln('  implementation uses:');
+      uu:=tused_unit(m.used_units.First);
+      while assigned(uu) do
+        begin
+          if not uu.in_interface then
+            writeln('  ',uu.u.modulename^,' ',uu.u.statestr);
+          uu:=tused_unit(uu.Next);
+        end;
+    end;
 
 
 initialization

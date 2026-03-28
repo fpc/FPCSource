@@ -58,7 +58,7 @@ type
 //#include <jack/systemdeps.h>
 {$I systemdeps.inc}
 //#include <jack/types.h>
-{$I types.inc}
+{$I jtypes.inc}
 //#include <jack/transport.h>
 {$I transport.inc}
 
