@@ -1174,9 +1174,8 @@ begin
   def_system_macro('FPC_LINK_STATIC');
   undef_system_macro('FPC_LINK_SMART');
   undef_system_macro('FPC_LINK_DYNAMIC');
-  include(compiler.globals.init_settings.globalswitches,cs_link_static);
-  exclude(compiler.globals.init_settings.globalswitches,cs_link_smart);
-  exclude(compiler.globals.init_settings.globalswitches,cs_link_shared);
+  compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_static];
+  compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_smart,cs_link_shared];
   LinkTypeSetExplicitly:=true;
 end;
 
@@ -2179,9 +2178,9 @@ begin
   { Code generation flags }
   if (tf_pic_default in compiler.target.info.flags) then
     if def then
-      include(compiler.globals.init_settings.moduleswitches,cs_create_pic)
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_create_pic]
     else
-      exclude(compiler.globals.init_settings.moduleswitches,cs_create_pic);
+      compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_create_pic];
 
   { Resources support }
   if (tf_has_winlike_resources in compiler.target.info.flags) then
@@ -2291,7 +2290,7 @@ begin
      not (cs_link_extern in compiler.globals.init_settings.globalswitches) then
     begin
       compiler.verbose.Message(option_debug_info_requires_external_linker);
-      include(compiler.globals.init_settings.globalswitches,cs_link_extern);
+      compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_extern];
     end;
 {$endif i8086_link_intern_debuginfo}
 
@@ -2304,7 +2303,7 @@ begin
          not (af_outputbinary in compiler.target._asm.flags) then
         begin
           compiler.verbose.Message(option_dwarf_smartlink_creation);
-          exclude(compiler.globals.init_settings.moduleswitches,cs_create_smart);
+          compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_create_smart];
         end;
 
       { smart linking does not yet work with DWARF debug info on most targets }
@@ -2321,7 +2320,7 @@ begin
      not(paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
     begin
       compiler.verbose.Message(option_debug_external_unsupported);
-      exclude(compiler.globals.init_settings.globalswitches,cs_link_separate_dbg_file);
+      compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_separate_dbg_file];
     end;
   { Also create a smartlinked version, on an assembler that
     does not support smartlink sections like nasm?
@@ -2335,7 +2334,7 @@ begin
       not (cs_link_nolink in compiler.globals.init_settings.globalswitches) then
     begin
       compiler.verbose.Message(option_smart_link_requires_external_linker);
-      include(compiler.globals.init_settings.globalswitches,cs_link_extern);
+      compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_extern];
     end;
 end;
 
@@ -2401,7 +2400,7 @@ var
   j : integer;
 
 begin
-  include(compiler.globals.init_settings.globalswitches,cs_asm_leave);
+  compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_leave];
   j:=1;
   while j<=length(more) do
    begin
@@ -2411,22 +2410,22 @@ begin
             or (compiler.target.info.cpu in [cpu_mipseb, cpu_mipsel]) then
            begin
              if UnsetBool(More, j, opt, false) then
-               exclude(compiler.globals.init_settings.globalswitches,cs_asm_pre_binutils_2_25)
+               compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_asm_pre_binutils_2_25]
              else
-               include(compiler.globals.init_settings.globalswitches,cs_asm_pre_binutils_2_25);
+               compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_pre_binutils_2_25];
            end
          else
            IllegalPara(opt);
        'l' :
-         include(compiler.globals.init_settings.globalswitches,cs_asm_source);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_source];
        'r' :
-         include(compiler.globals.init_settings.globalswitches,cs_asm_regalloc);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_regalloc];
        'R' :
-         include(compiler.globals.init_settings.globalswitches,cs_asm_rtti_source);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_rtti_source];
        't' :
-         include(compiler.globals.init_settings.globalswitches,cs_asm_tempalloc);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_tempalloc];
        'n' :
-         include(compiler.globals.init_settings.globalswitches,cs_asm_nodes);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_nodes];
        { -ao option must be the last, everything behind it is passed directly to
          external assembler, it is ignored if internal assembler is used. }
        'o' :
@@ -2436,11 +2435,11 @@ begin
          end;
        'p' :
          begin
-           exclude(compiler.globals.init_settings.globalswitches,cs_asm_leave);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_asm_leave];
            if UnsetBool(More, 0, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_asm_pipe)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_asm_pipe]
            else
-             include(compiler.globals.init_settings.globalswitches,cs_asm_pipe);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_asm_pipe];
          end;
        '-' :
          compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches -
@@ -2503,6 +2502,10 @@ var
   s : string;
   includecapability : Boolean;
   tmpabi: tabi;
+  defproccall: tproccalloption;
+  fputype: tfputype;
+  minfpconstprec: tfloattype;
+  targetswitches: ttargetswitches;
   {$ifdef llvm}
   disable: boolean;
   {$endif}
@@ -2519,9 +2522,9 @@ begin
      case more[j] of
        '3' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.localswitches,cs_ieee_errors)
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_ieee_errors]
          Else
-           include(compiler.globals.init_settings.localswitches,cs_ieee_errors);
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_ieee_errors];
        'a' :
          begin
            s:=upper(copy(more,j+1));
@@ -2544,8 +2547,11 @@ begin
 
        'c' :
           begin
-            if not SetAktProcCall(upper(copy(more,j+1)),compiler.globals.init_settings.defproccall) then
-             IllegalPara(opt);
+            defproccall:=compiler.globals.init_settings.defproccall;
+            if SetAktProcCall(upper(copy(more,j+1)),defproccall) then
+              compiler.globals.init_settings.defproccall:=defproccall
+            else
+              IllegalPara(opt);
             break;
           end;
 {$ifdef AVR}
@@ -2567,20 +2573,26 @@ begin
 {$endif cpufpemu}
        'E' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.localswitches,cs_check_fpu_exceptions)
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_fpu_exceptions]
          Else
-           include(compiler.globals.init_settings.localswitches,cs_check_fpu_exceptions);
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_fpu_exceptions];
        'f' :
          begin
            s:=upper(copy(more,j+1));
-           if not(SetFpuType(s,compiler.globals.init_settings.fputype)) then
+           fputype:=compiler.globals.init_settings.fputype;
+           if SetFpuType(s,fputype) then
+             compiler.globals.init_settings.fputype:=fputype
+           else
              IllegalPara(opt);
            FPUSetExplicitly:=True;
            break;
          end;
        'F' :
           begin
-            if not SetMinFPConstPrec(copy(more,j+1),compiler.globals.init_settings.minfpconstprec) then
+            minfpconstprec:=compiler.globals.init_settings.minfpconstprec;
+            if SetMinFPConstPrec(copy(more,j+1),minfpconstprec) then
+              compiler.globals.init_settings.minfpconstprec:=minfpconstprec
+            else
               IllegalPara(opt);
             break;
           end;
@@ -2593,9 +2605,9 @@ begin
                 compiler.verbose.Message(scan_w_pic_ignored);
               end
             else if UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.moduleswitches,cs_create_pic)
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_create_pic]
             else
-              include(compiler.globals.init_settings.moduleswitches,cs_create_pic);
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_create_pic];
          end;
        'h' :
          begin
@@ -2626,9 +2638,9 @@ begin
          end;
        'i' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.localswitches,cs_check_io)
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_io]
          else
-           include(compiler.globals.init_settings.localswitches,cs_check_io);
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_io];
 {$ifdef arm}
        'I' :
          begin
@@ -2706,24 +2718,24 @@ begin
 {$endif llvm}
        'n' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_nolink)
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_nolink]
          Else
-           include(compiler.globals.init_settings.globalswitches,cs_link_nolink);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_nolink];
        'N' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.localswitches,cs_check_low_addr_load)
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_low_addr_load]
          Else
-           include(compiler.globals.init_settings.localswitches,cs_check_low_addr_load);
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_low_addr_load];
        'o' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.localswitches,cs_check_overflow)
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_overflow]
          Else
-           include(compiler.globals.init_settings.localswitches,cs_check_overflow);
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_overflow];
        'O' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.localswitches,cs_check_ordinal_size)
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_ordinal_size]
          Else
-           include(compiler.globals.init_settings.localswitches,cs_check_ordinal_size);
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_ordinal_size];
        'p' :
          begin
            s:=upper(copy(more,j+1));
@@ -2856,20 +2868,14 @@ begin
          end;
        'r' :
          If UnsetBool(More, j, opt, false) then
-           exclude(compiler.globals.init_settings.localswitches,cs_check_range)
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_range]
          Else
-           include(compiler.globals.init_settings.localswitches,cs_check_range);
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_range];
        'R' :
          If UnsetBool(More, j, opt, false) then
-           begin
-             exclude(compiler.globals.init_settings.localswitches,cs_check_range);
-             exclude(compiler.globals.init_settings.localswitches,cs_check_object);
-           end
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_range,cs_check_object]
          Else
-           begin
-             include(compiler.globals.init_settings.localswitches,cs_check_range);
-             include(compiler.globals.init_settings.localswitches,cs_check_object);
-           end;
+           compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_range,cs_check_object];
        's' :
          begin
             val(copy(more,j+1),compiler.globals.stacksize,code);
@@ -2885,31 +2891,34 @@ begin
          end;
        't' :
           If UnsetBool(More, j, opt, false) then
-            exclude(compiler.globals.init_settings.localswitches,cs_check_stack)
+            compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_stack]
           Else
-            include(compiler.globals.init_settings.localswitches,cs_check_stack);
+            compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_stack];
        'D' :
           If UnsetBool(More, j, opt, false) then
-            exclude(compiler.globals.init_settings.moduleswitches,cs_create_dynamic)
+            compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_create_dynamic]
           Else
-            include(compiler.globals.init_settings.moduleswitches,cs_create_dynamic);
+            compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_create_dynamic];
        'X' :
           If UnsetBool(More, j, opt, false) then
-            exclude(compiler.globals.init_settings.moduleswitches,cs_create_smart)
+            compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_create_smart]
           Else
-            include(compiler.globals.init_settings.moduleswitches,cs_create_smart);
+            compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_create_smart];
        'T' :
          begin
-           if not UpdateTargetSwitchStr(copy(more,j+1),compiler.globals.init_settings.targetswitches,true) then
+           targetswitches:=compiler.globals.init_settings.targetswitches;
+           if UpdateTargetSwitchStr(copy(more,j+1),targetswitches,true) then
+             compiler.globals.init_settings.targetswitches:=targetswitches
+           else
              IllegalPara(opt);
            break;
          end;
        'v' :
           If compiler.target.info.system in systems_jvm then
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_check_var_copyout)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_var_copyout]
             Else
-              include(compiler.globals.init_settings.localswitches,cs_check_var_copyout)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_var_copyout]
           else
             IllegalPara(opt);
        'V':
@@ -2972,13 +2981,13 @@ var
 begin
   j:=1;
   if length(more)=0 then
-    include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
+    compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_deffile];
   while j<=length(more) do
     begin
       case more[j] of
        'd' :
          begin
-           include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_deffile];
            compiler.globals.description:=Copy(more,j+1);
            break;
          end;
@@ -2994,7 +3003,7 @@ begin
          end;
        'v' :
          begin
-           include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_deffile];
            compiler.globals.dllversion:=Copy(more,j+1);
            l:=pos('.',compiler.globals.dllversion);
            compiler.globals.dllminor:=0;
@@ -3026,12 +3035,12 @@ begin
          end;
        'w' :
          begin
-           include(compiler.globals.init_settings.globalswitches,cs_link_deffile);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_deffile];
            compiler.globals.usewindowapi:=true;
           end;
        '-' :
          begin
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_deffile);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_deffile];
            compiler.globals.usewindowapi:=false;
          end;
        else
@@ -3053,9 +3062,9 @@ procedure TOption.Interpret_E_U(opt, more: TCmdStr);
 
 begin
   if UnsetBool(More, 0, opt, true) then
-    exclude(compiler.globals.init_settings.globalswitches,cs_link_nolink)
+    compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_nolink]
   else
-    include(compiler.globals.init_settings.globalswitches,cs_link_nolink);
+    compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_nolink];
 end;
 
 
@@ -3067,7 +3076,7 @@ begin
       if tf_no_pic_supported in compiler.target.info.flags then
         compiler.verbose.Message(scan_w_pic_ignored)
       else
-        include(compiler.globals.init_settings.moduleswitches,cs_create_pic)
+        compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_create_pic]
     end
   else
     IllegalPara(opt);
@@ -3103,7 +3112,7 @@ begin
           compiler.verbose.Message1(option_code_page_not_available,more)
         else
           compiler.globals.init_settings.sourcecodepage:=codepagebyname(more);
-        include(compiler.globals.init_settings.moduleswitches,cs_explicit_codepage);
+        compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_explicit_codepage];
       end;
     'C' :
       compiler.globals.RCCompiler:=More;
@@ -3244,20 +3253,20 @@ procedure TOption.Interpret_G_l(opt, more: TCmdStr);
 
 var
   j : integer;
+  debugswitches: tdebugswitches;
 
 begin
   if UnsetBool(More, 0, opt, false) then
    begin
-     exclude(compiler.globals.init_settings.moduleswitches,cs_debuginfo);
-     exclude(compiler.globals.init_settings.globalswitches,cs_use_heaptrc);
-     exclude(compiler.globals.init_settings.globalswitches,cs_use_lineinfo);
-     exclude(compiler.globals.init_settings.localswitches,cs_checkpointer);
+     compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_debuginfo];
+     compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_use_heaptrc,cs_use_lineinfo];
+     compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_checkpointer];
      paratargetdbg:=dbg_none;
      localvartrashing := -1;
    end
   else
    begin
-     include(compiler.globals.init_settings.moduleswitches,cs_debuginfo);
+     compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_debuginfo];
      if paratargetdbg=dbg_none then
        paratargetdbg:=compiler.target.info.dbg;
    end;
@@ -3270,13 +3279,13 @@ begin
         'c' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_checkpointer)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_checkpointer]
             else if (compiler.target.info.system in systems_support_checkpointer) then
               begin
                 if compiler.globals.do_release then
                   compiler.verbose.Message(option_gc_incompatible_with_release_flag)
                 else
-                  include(compiler.globals.init_settings.localswitches,cs_checkpointer);
+                  compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_checkpointer];
               end
             else
               UnsupportedPara('-gc');
@@ -3284,24 +3293,24 @@ begin
         'h' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_use_heaptrc)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_use_heaptrc]
             else
               begin
                 if cs_gdb_valgrind in compiler.globals.init_settings.globalswitches then
                   compiler.verbose.Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
-                include(compiler.globals.init_settings.globalswitches,cs_use_heaptrc);
+                compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_use_heaptrc];
               end;
           end;
         'l' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_use_lineinfo)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_use_lineinfo]
             else
               begin
                 if compiler.target.info.system in (systems_wasm+systems_embedded) then
                   IgnoredPara('-gl')
                 else
-                  include(compiler.globals.init_settings.globalswitches,cs_use_lineinfo);
+                  compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_use_lineinfo];
               end;
           end;
         'm' :
@@ -3310,16 +3319,19 @@ begin
           end;
         'o' :
           begin
-            if not UpdateDebugStr(copy(more,j+1),compiler.globals.init_settings.debugswitches) then
+            debugswitches:=compiler.globals.init_settings.debugswitches;
+            if UpdateDebugStr(copy(more,j+1),debugswitches) then
+              compiler.globals.init_settings.debugswitches:=debugswitches
+            else
               IllegalPara(opt);
             break;
           end;
         'p' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_stabs_preservecase)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_stabs_preservecase]
             else
-              include(compiler.globals.init_settings.globalswitches,cs_stabs_preservecase);
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_stabs_preservecase];
           end;
         's' :
           begin
@@ -3335,12 +3347,12 @@ begin
         'v' :
           begin
             if UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_gdb_valgrind)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_gdb_valgrind]
             else
               begin
                 if cs_use_heaptrc in compiler.globals.init_settings.globalswitches then
                   compiler.verbose.Message2(option_valgrind_heaptrc_mismatch,'-gh', '-gv');
-                include(compiler.globals.init_settings.globalswitches,cs_gdb_valgrind);
+                compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_gdb_valgrind];
               end;
           end;
         'w' :
@@ -3482,6 +3494,9 @@ procedure TOption.Interpret_O_U(opt, more: TCmdStr);
 
 var
   j : integer;
+  optimizecputype: tcputype;
+  optimizerswitches: toptimizerswitches;
+  dowpoptimizerswitches, genwpoptimizerswitches: twpoptimizerswitches;
 
 begin
   j:=1;
@@ -3503,10 +3518,13 @@ begin
            break;
          end;
        's' :
-         include(compiler.globals.init_settings.optimizerswitches,cs_opt_size);
+         compiler.globals.init_settings.optimizerswitches:=compiler.globals.init_settings.optimizerswitches+[cs_opt_size];
        'p' :
          begin
-           if not Setoptimizecputype(copy(more,j+1),compiler.globals.init_settings.optimizecputype) then
+           optimizecputype:=compiler.globals.init_settings.optimizecputype;
+           if Setoptimizecputype(copy(more,j+1),optimizecputype) then
+             compiler.globals.init_settings.optimizecputype:=optimizecputype
+           else
              begin
                OptCPUSetExplicitly:=true;
                { Give warning for old i386 switches }
@@ -3520,8 +3538,11 @@ begin
          end;
        'o' :
          begin
-           if not UpdateOptimizerStr(copy(more,j+1),compiler.globals.init_settings.optimizerswitches) then
-            IllegalPara(opt);
+           optimizerswitches:=compiler.globals.init_settings.optimizerswitches;
+           if UpdateOptimizerStr(copy(more,j+1),optimizerswitches) then
+             compiler.globals.init_settings.optimizerswitches:=optimizerswitches
+           else
+             IllegalPara(opt);
            break;
          end;
        '-' :
@@ -3540,13 +3561,19 @@ begin
          compiler.verbose.Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
        'w' :
          begin
-           if not UpdateWpoStr(copy(more,j+1),compiler.globals.init_settings.dowpoptimizerswitches) then
+           dowpoptimizerswitches:=compiler.globals.init_settings.dowpoptimizerswitches;
+           if UpdateWpoStr(copy(more,j+1),dowpoptimizerswitches) then
+             compiler.globals.init_settings.dowpoptimizerswitches:=dowpoptimizerswitches
+           else
              IllegalPara(opt);
            break;
          end;
        'W' :
          begin
-           if not UpdateWpoStr(copy(more,j+1),compiler.globals.init_settings.genwpoptimizerswitches) then
+           genwpoptimizerswitches:=compiler.globals.init_settings.genwpoptimizerswitches;
+           if UpdateWpoStr(copy(more,j+1),genwpoptimizerswitches) then
+             compiler.globals.init_settings.genwpoptimizerswitches:=genwpoptimizerswitches
+           else
              IllegalPara(opt);
            break;
          end;
@@ -3573,12 +3600,12 @@ begin
     case more[1] of
      'g' : if UnsetBool(more, 1, opt, false) then
             begin
-              exclude(compiler.globals.init_settings.moduleswitches,cs_profile);
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_profile];
               undef_system_macro('FPC_PROFILE');
             end
            else if (compiler.target.info.system in supported_targets_pg) then
             begin
-              include(compiler.globals.init_settings.moduleswitches,cs_profile);
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_profile];
               def_system_macro('FPC_PROFILE');
             end
            else
@@ -3602,8 +3629,13 @@ end;
 
 procedure TOption.Interpret_R_U(opt, more: TCmdStr);
 
+var
+  asmmode: tasmmode;
 begin
-  if not SetAsmReadMode(More,compiler.globals.init_settings.asmmode) then
+  asmmode:=compiler.globals.init_settings.asmmode;
+  if SetAsmReadMode(More,asmmode) then
+    compiler.globals.init_settings.asmmode:=asmmode
+  else
     IllegalPara(opt);
 end;
 
@@ -3664,19 +3696,19 @@ begin
             SetCompileMode('OBJFPC',true);
           'a' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_do_assertion)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_do_assertion]
             else
-              include(compiler.globals.init_settings.localswitches,cs_do_assertion);
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_do_assertion];
           'c' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.moduleswitches,cs_support_c_operators)
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_support_c_operators]
             else
-              include(compiler.globals.init_settings.moduleswitches,cs_support_c_operators);
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_support_c_operators];
           'C':
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_check_all_case_coverage)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_check_all_case_coverage]
             else
-              include(compiler.globals.init_settings.localswitches,cs_check_all_case_coverage);
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_check_all_case_coverage];
           'd' : //an alternative to -Mdelphi
             SetCompileMode('DELPHI',true);
           'e' :
@@ -3706,57 +3738,57 @@ begin
             end;
           'g' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.moduleswitches,cs_support_goto)
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_support_goto]
             else
-              include(compiler.globals.init_settings.moduleswitches,cs_support_goto);
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_support_goto];
           'h' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_refcountedstrings)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_refcountedstrings]
             else
-              include(compiler.globals.init_settings.localswitches,cs_refcountedstrings);
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_refcountedstrings];
           'i' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_do_inline)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_do_inline]
             else
-              include(compiler.globals.init_settings.localswitches,cs_do_inline);
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_do_inline];
           'j' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_typed_const_writable)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_typed_const_writable]
             else
-              include(compiler.globals.init_settings.localswitches,cs_typed_const_writable);
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_typed_const_writable];
           'k' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_load_fpcylix_unit)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_load_fpcylix_unit]
             else
-              include(compiler.globals.init_settings.globalswitches,cs_load_fpcylix_unit);
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_load_fpcylix_unit];
           'm' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.moduleswitches,cs_support_macro)
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_support_macro]
             else
-              include(compiler.globals.init_settings.moduleswitches,cs_support_macro);
+              compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_support_macro];
           'o' : //an alternative to -Mtp
             SetCompileMode('TP',true);
           'r' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_transparent_file_names)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_transparent_file_names]
             else
-              include(compiler.globals.init_settings.globalswitches,cs_transparent_file_names);
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_transparent_file_names];
           {$ifdef gpc_mode}
           'p' : //an alternative to -Mgpc
             SetCompileMode('GPC',true);
           {$endif}
           's' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_constructor_name)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_constructor_name]
             else
-              include(compiler.globals.init_settings.globalswitches,cs_constructor_name);
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_constructor_name];
           't' :
             compiler.verbose.Message1(option_obsolete_switch,'-St');
           'v' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.globalswitches,cs_support_vectors)
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_support_vectors]
             else
-              include(compiler.globals.init_settings.globalswitches,cs_support_vectors);
+              compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_support_vectors];
           'x' :
             If UnsetBool(More, j, opt, false) then
               SetCompileModeSwitch('EXCEPTIONS-',true)
@@ -3764,9 +3796,9 @@ begin
               SetCompileModeSwitch('EXCEPTIONS',true);
           'y' :
             If UnsetBool(More, j, opt, false) then
-              exclude(compiler.globals.init_settings.localswitches,cs_typed_addresses)
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_typed_addresses]
             else
-              include(compiler.globals.init_settings.localswitches,cs_typed_addresses);
+              compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches+[cs_typed_addresses];
           '-' :
             begin
               compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions,
@@ -3860,7 +3892,7 @@ begin
           end;
 {$endif UNITALIASES}
        'n' :
-         exclude(compiler.globals.init_settings.globalswitches,cs_check_unit_name);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_check_unit_name];
        'p' :
           begin
             compiler.verbose.Message2(option_obsolete_switch_use_new,'-Up','-Fu');
@@ -3872,15 +3904,15 @@ begin
            if (cs_checkpointer in compiler.globals.init_settings.localswitches) then
              begin
                compiler.verbose.Message(option_gc_incompatible_with_release_flag);
-               exclude(compiler.globals.init_settings.localswitches,cs_checkpointer);
+               compiler.globals.init_settings.localswitches:=compiler.globals.init_settings.localswitches-[cs_checkpointer];
              end;
          end;
        's' :
-         include(compiler.globals.init_settings.moduleswitches,cs_compilesystem);
+         compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_compilesystem];
        '-' :
          begin
-           exclude(compiler.globals.init_settings.moduleswitches,cs_compilesystem);
-           exclude(compiler.globals.init_settings.globalswitches,cs_check_unit_name);
+           compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_compilesystem];
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_check_unit_name];
          end;
        else
          IllegalPara(opt);
@@ -3910,6 +3942,7 @@ procedure TOption.Interpret_W_U(opt, more: TCmdStr);
 var
   j,code : integer;
   s : string;
+  controllertype: tcontrollertype;
 
 begin
   j:=1;
@@ -4115,10 +4148,12 @@ begin
              ControllerSupport then
              begin
                s:=upper(copy(more,j+1));
-               if not(SetControllerType(s,compiler.globals.init_settings.controllertype)) then
+               controllertype:=compiler.globals.init_settings.controllertype;
+               if not(SetControllerType(s,controllertype)) then
                  IllegalPara(opt)
                else
                  begin
+                   compiler.globals.init_settings.controllertype:=controllertype;
                    if compiler.globals.init_settings.cputype<>embedded_controllers[compiler.globals.init_settings.controllertype].cputype then
                    begin
                      compiler.verbose.Message(scan_n_changecputype);
@@ -4230,9 +4265,9 @@ begin
            if (compiler.target.info.system in systems_linux) then
              begin
                if UnsetBool(More, j, opt, false) then
-                 exclude(compiler.globals.init_settings.moduleswitches,cs_executable_stack)
+                 compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_executable_stack]
                else
-                 include(compiler.globals.init_settings.moduleswitches,cs_executable_stack)
+                 compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_executable_stack]
              end
            else
              IllegalPara(opt);
@@ -4267,9 +4302,9 @@ begin
            if compiler.target.info.system in systems_linux then
              begin
                if UnsetBool(More, j, opt, false) then
-                 exclude(compiler.globals.init_settings.globalswitches,cs_link_pre_binutils_2_19)
+                 compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_pre_binutils_2_19]
                else
-                 include(compiler.globals.init_settings.globalswitches,cs_link_pre_binutils_2_19);
+                 compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_pre_binutils_2_19];
              end
            else
              IllegalPara(opt);
@@ -4277,9 +4312,9 @@ begin
        'a' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_large)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_large]
            else
-             include(compiler.globals.init_settings.globalswitches,cs_large);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_large];
          end;
        'c' : compiler.globals.Cshared:=TRUE;
        'd' : compiler.globals.Dontlinkstdlibpath:=TRUE;
@@ -4287,37 +4322,37 @@ begin
          begin
            If UnsetBool(More, j, opt, false) then
              begin
-               exclude(compiler.globals.init_settings.globalswitches,cs_link_extern);
+               compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_extern];
                LinkInternSetExplicitly:=true;
              end
            else
-             include(compiler.globals.init_settings.globalswitches,cs_link_extern);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_extern];
          end;
        'f' :
-         include(compiler.globals.init_settings.globalswitches,cs_link_pthread);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_pthread];
        'g' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_link_separate_dbg_file)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_separate_dbg_file]
            else
-             include(compiler.globals.init_settings.globalswitches,cs_link_separate_dbg_file);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_separate_dbg_file];
          end;
        'i' :
          begin
            If UnsetBool(More, j, opt, false) then
-             include(compiler.globals.init_settings.globalswitches,cs_link_extern)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_extern]
            else
              begin
-               exclude(compiler.globals.init_settings.globalswitches,cs_link_extern);
+               compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_extern];
                LinkInternSetExplicitly:=true;
              end;
          end;
        'n' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_link_native)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_native]
            else
-             include(compiler.globals.init_settings.globalswitches,cs_link_native);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_native];
          end;
 {$if defined(llvm) or defined(wasm32)}
        'l' :
@@ -4341,9 +4376,9 @@ begin
        'm' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_link_map)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_map]
            else
-             include(compiler.globals.init_settings.globalswitches,cs_link_map);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_map];
          end;
        'p' : ; { Ignore used by fpc.pp }
        'r' :
@@ -4366,20 +4401,20 @@ begin
        's' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_link_strip)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_strip]
            else
-             include(compiler.globals.init_settings.globalswitches,cs_link_strip);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_strip];
          end;
        't' :
-         include(compiler.globals.init_settings.globalswitches,cs_link_staticflag);
+         compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_staticflag];
        'u' :
          begin
            if compiler.target.info.system in systems_support_uf2 then
              begin
                if UnsetBool(More, j, opt, false) then
-                 exclude(compiler.globals.init_settings.globalswitches,cs_generate_uf2)
+                 compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_generate_uf2]
                else
-                 include(compiler.globals.init_settings.globalswitches,cs_generate_uf2);
+                 compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_generate_uf2];
              end
            else
              IgnoredPara('-Xu');
@@ -4387,18 +4422,17 @@ begin
        'v' :
          begin
            If UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_link_opt_vtable)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_opt_vtable]
            else
-             include(compiler.globals.init_settings.globalswitches,cs_link_opt_vtable);
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_opt_vtable];
          end;
        'D' :
          begin
            def_system_macro('FPC_LINK_DYNAMIC');
            undef_system_macro('FPC_LINK_SMART');
            undef_system_macro('FPC_LINK_STATIC');
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_static);
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_smart);
-           include(compiler.globals.init_settings.globalswitches,cs_link_shared);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_static,cs_link_smart];
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_shared];
            LinkTypeSetExplicitly:=true;
          end;
        'M' :
@@ -4429,16 +4463,13 @@ begin
                            if not compiler.globals.LinkLibraryOrder.AddWeight(s) Then
                               IllegalPara(opt);
                           end;
-                    'D' : include(compiler.globals.init_settings.globalswitches,cs_link_no_default_lib_order);
+                    'D' : compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_no_default_lib_order];
                     'L' :
                       begin
                         if UnsetBool(More, j, opt, false) then
-                          exclude(compiler.globals.init_settings.globalswitches,cs_link_lld)
+                          compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_lld]
                         else
-                          begin
-                            include(compiler.globals.init_settings.globalswitches,cs_link_lld);
-                            include(compiler.globals.init_settings.globalswitches,cs_link_extern);
-                          end;
+                          compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_lld,cs_link_extern];
                        LinkerSetExplicitly:=true;
                      end
                    else
@@ -4454,12 +4485,9 @@ begin
        'V' :
          begin
            if UnsetBool(More, j, opt, false) then
-             exclude(compiler.globals.init_settings.globalswitches,cs_link_vlink)
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_vlink]
            else
-             begin
-               include(compiler.globals.init_settings.globalswitches,cs_link_vlink);
-               include(compiler.globals.init_settings.globalswitches,cs_link_extern);
-             end;
+             compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_vlink,cs_link_extern];
            LinkerSetExplicitly:=true;
          end;
        'X' :
@@ -4467,16 +4495,14 @@ begin
            def_system_macro('FPC_LINK_SMART');
            undef_system_macro('FPC_LINK_STATIC');
            undef_system_macro('FPC_LINK_DYNAMIC');
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_static);
-           include(compiler.globals.init_settings.globalswitches,cs_link_smart);
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_shared);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_static];
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_smart];
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_shared];
            LinkTypeSetExplicitly:=true;
          end;
        '-' :
          begin
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_staticflag);
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_strip);
-           exclude(compiler.globals.init_settings.globalswitches,cs_link_map);
+           compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_staticflag,cs_link_strip,cs_link_map];
            set_default_link_type;
          end;
        else
@@ -4946,6 +4972,7 @@ var
   cmditem,
   tmpcmditem : TCmdStrListItem;
   cmdstr : TCmdStr;
+  targetswitches: ttargetswitches;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
 {$endif defined(cpucapabilities)}
@@ -5034,14 +5061,29 @@ begin
   option.set_endianess_macros;
 
   if tf_cld in compiler.target.info.flags then
-    if not UpdateTargetSwitchStr('CLD', compiler.globals.init_settings.targetswitches, true) then
-      InternalError(2013092801);
+    begin
+      targetswitches:=compiler.globals.init_settings.targetswitches;
+      if UpdateTargetSwitchStr('CLD', targetswitches, true) then
+        compiler.globals.init_settings.targetswitches:=targetswitches
+      else
+        InternalError(2013092801);
+    end;
   if tf_x86_far_procs_push_odd_bp in compiler.target.info.flags then
-    if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', compiler.globals.init_settings.targetswitches, true) then
-      InternalError(2013092802);
+    begin
+      targetswitches:=compiler.globals.init_settings.targetswitches;
+      if UpdateTargetSwitchStr('FARPROCSPUSHODDBP', targetswitches, true) then
+        compiler.globals.init_settings.targetswitches:=targetswitches
+      else
+        InternalError(2013092802);
+    end;
   if tf_wasm_threads in compiler.target.info.flags then
-    if not UpdateTargetSwitchStr('WASMTHREADS', compiler.globals.init_settings.targetswitches, true) then
-      InternalError(2025022701);
+    begin
+      targetswitches:=compiler.globals.init_settings.targetswitches;
+      if UpdateTargetSwitchStr('WASMTHREADS', targetswitches, true) then
+        compiler.globals.init_settings.targetswitches:=targetswitches
+      else
+        InternalError(2025022701);
+    end;
 
   { Use standard Android NDK prefixes when cross-compiling }
   if (source_info.system<>compiler.target.info.system) and (compiler.target.info.system in systems_android) then
@@ -5310,7 +5352,7 @@ begin
           compiler.verbose.Message1(option_confict_asm_debug,
             asminfos[option.paratargetasm]^.idtxt);
           option.paratargetdbg:=dbg_none;
-          exclude(compiler.globals.init_settings.moduleswitches,cs_debuginfo);
+          compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches-[cs_debuginfo];
         end;
       { Some assemblers, like clang, do not support
         stabs debugging format, switch to dwordé in that case }
@@ -5361,9 +5403,7 @@ begin
   if not(cs_link_extern in compiler.globals.init_settings.globalswitches) and
      ((compiler.target.info.link=ld_none) or
       (cs_link_nolink in compiler.globals.init_settings.globalswitches)) then
-    begin
-      include(compiler.globals.init_settings.globalswitches,cs_link_extern);
-    end;
+    compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_extern];
 
   { turn off stripping if compiling with debuginfo or profile }
   if (
@@ -5371,7 +5411,7 @@ begin
       (cs_profile in compiler.globals.init_settings.moduleswitches)
      ) and
      not(cs_link_separate_dbg_file in compiler.globals.init_settings.globalswitches) then
-    exclude(compiler.globals.init_settings.globalswitches,cs_link_strip);
+    compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches-[cs_link_strip];
 
   { choose a reasonable tls model }
   if (tf_section_threadvars in compiler.target.info.flags) and (compiler.globals.init_settings.tlsmodel=tlsm_none) then
@@ -5980,7 +6020,7 @@ begin
       if option.LinkInternSetExplicitly then
         compiler.verbose.Message(link_w_unsupported_cross_endian_internal_linker)
       else
-        include(compiler.globals.init_settings.globalswitches,cs_link_extern);
+        compiler.globals.init_settings.globalswitches:=compiler.globals.init_settings.globalswitches+[cs_link_extern];
     end;
 
   { Default alignment settings,

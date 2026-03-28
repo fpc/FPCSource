@@ -838,7 +838,7 @@ Const
         LinkLibraryOrder   : TLinkStrMap;
 
 
-        init_settings      : tsettings;
+        init_settings,
         current_settings   : TMutableSettings;
 
         pendingstate       : tpendingstate;
@@ -917,7 +917,7 @@ Const
     function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
     function Setabitype(const s:string;target:TCompilerTarget;var a:tabi):boolean;
     function Setoptimizecputype(const s:string;var a:tcputype):boolean;
-    function Setcputype(const s:string;var a:tsettings):boolean;
+    function Setcputype(const s:string;a:TMutableSettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
@@ -1637,7 +1637,7 @@ implementation
       end;
 
 
-    function Setcputype(const s:string;var a:tsettings):boolean;
+    function Setcputype(const s:string;a:TMutableSettings):boolean;
       var
         t  : tcputype;
         hs : string;
@@ -1940,10 +1940,12 @@ implementation
        FreeAndNil(premodule_namespacelist);
        current_namespacelist:=Nil;
        FreeAndNil(current_settings);
+       FreeAndNil(init_settings);
      end;
 
    procedure TCompilerGlobals.InitGlobals(ATarget: TCompilerTarget);
      begin
+        init_settings:=TMutableSettings.Create;
         current_settings:=TMutableSettings.Create;
 
         get_exepath;
@@ -2016,7 +2018,7 @@ implementation
         apptype:=app_cui;
 
         { Init values }
-        init_settings:=default_settings;
+        init_settings.CreateFromRecord(default_settings);
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
 

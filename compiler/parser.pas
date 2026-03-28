@@ -535,7 +535,7 @@ implementation
          compiler.globals.current_settings.pmessage:=nil;
 
          { Load current state from the init values }
-         compiler.globals.current_settings.CreateFromRecord(compiler.globals.init_settings);
+         compiler.globals.current_settings.Assign(compiler.globals.init_settings);
 
          set_current_module(module);
          if not (module.state in [ms_compile]) then

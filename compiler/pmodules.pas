@@ -2888,7 +2888,7 @@ type
          begin
            compiler.globals.current_settings.moduleswitches:=compiler.globals.current_settings.moduleswitches+[cs_create_pic];
            { also set create_pic for all unit compilation }
-           include(compiler.globals.init_settings.moduleswitches,cs_create_pic);
+           compiler.globals.init_settings.moduleswitches:=compiler.globals.init_settings.moduleswitches+[cs_create_pic];
          end;
 
         { setup things using the switches, do this before the semicolon, because after the semicolon has been

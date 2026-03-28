@@ -692,6 +692,8 @@ interface
     procedure set_source_info(const ti : tsysteminfo);
 
     function UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo) : boolean;
+    function UpdateAlignment(d:TMutableAlignmentInfo;const s:talignmentinfo) : boolean;
+    function UpdateAlignment(d:TMutableAlignmentInfo;s:TReadOnlyAlignmentInfo) : boolean;
 
     procedure RegisterTarget(const r:tsysteminfo);
     procedure RegisterRes(const r:tresinfo; rcf : TAbstractResourceFileClass);
@@ -1045,6 +1047,25 @@ begin
       maxCrecordalign:=s.maxCrecordalign;
    end;
 end;
+
+function UpdateAlignment(d: TMutableAlignmentInfo; const s: talignmentinfo): boolean;
+  var
+    dd: TAlignmentInfo;
+  begin
+    dd:=d.ToRecord;
+    result:=UpdateAlignment(dd,s);
+    d.CreateFromRecord(dd);
+  end;
+
+function UpdateAlignment(d: TMutableAlignmentInfo; s: TReadOnlyAlignmentInfo): boolean;
+  var
+    dd,ss: TAlignmentInfo;
+  begin
+    ss:=s.ToRecord;
+    dd:=d.ToRecord;
+    result:=UpdateAlignment(dd,ss);
+    d.CreateFromRecord(dd);
+  end;
 
 
 {****************************************************************************
